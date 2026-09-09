@@ -800,6 +800,7 @@
 - ✅ **RK1638** **a prose check finds its span by splitting on a sentence, so a reworded clause empties the test instead of failing it** — Both spans are read off the binding the comment sits above, and the three readings that used to be empty strings refuse.
 - ✅ **RK1639** **one closed set of prose was swept for stale figures and the three a caller actually meets were not** — One reading over four closed sets, with a row per table saying whether its prose is a caller's or an author's.
 - ✅ **RK1640** **421 verb-leading spans sit in messages carrying no sibling door, so the pair that decides one reads none of them** — The 27 spans carrying a placeholder are read one by one, and the answer is not the design's: thirteen are doors.
+- ✅ **RK1641** **the sweep that runs every door the gate offers reaches one of eighty-four dispatchable rows** — One instrument, three fixtures, and the reach stated as seven of eighty-five instead of described as one.
 
 ## Block E — Adoption
 

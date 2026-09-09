@@ -33,6 +33,8 @@ from composing import (
     census,
     commanded,
     commands,
+    converged,
+    dispatchable,
     filled,
     inconsistent,
     loose,
@@ -255,14 +257,19 @@ def test_the_path_a_refusal_names_runs_as_printed(tmp_path, capsys, families, fi
     assert ran[0][: len(first)] == first, ran
 
 
-def test_every_door_the_gate_offers_on_this_project_lands(tmp_path, capsys):
+def test_the_doors_of_a_line_pointing_at_nothing_land(tmp_path, capsys):
     """The doors, executed. `test_remedying` asserts a `run` remedy carries no placeholder and
     parses as a subcommand; what it cannot say is that the call is *accepted*, which is the
     difference RK1203 and RK1206 were each one instance of.
 
     A `compose` door carries the blank by design (L4), so it is filled here and run like the
     rest: what is being tested is the argv around the prose, not the prose.
-    """
+
+    **Named for the fixture since RK1641.** This read *every door the gate offers on this
+    project*, which is a property over the table — and this project's gate is clean, so what
+    it actually runs is the doors of one hand-made defect: `ref.unresolved`, one row of
+    eighty-five. That is RK1209's own finding turned on this file, a test named for a claim it
+    does not make; the reach is stated in `REACHED` below, where a number can move."""
     root = outlined(tmp_path)
     # A line pointing at a section that is not there, with its family opened — so the door is
     # about the address and not about the stair above it.
@@ -555,16 +562,19 @@ DEFECTIVE = (
 )
 
 
-def test_the_doors_close_the_gate_and_not_only_parse(tmp_path, capsys):
-    """RK1338. `test_every_door_the_gate_offers_on_this_project_lands` runs the doors of one
-    remedy row of 118: this project's gate is clean, so the doors it offers are the doors of
-    a single hand-made defect. RK1337 was a bug in one of the other 117 — `section move`
-    refuses an id-addressed section by construction — and it was found by hand.
+def test_the_doors_of_six_defective_lines_close_the_gate(tmp_path, capsys):
+    """RK1338. The sweep above runs the doors of one remedy row of eighty-five: this project's
+    gate is clean, so the doors it offers are the doors of a single hand-made defect. RK1337
+    was a bug in one of the others — `section move` refuses an id-addressed section by
+    construction — and it was found by hand.
 
     Converging rather than iterating a snapshot, which is the stronger claim and the one worth
     the fixture: each door is run against the state that produced its finding, and the loop
     ends when the gate is clean. A door that parses, is accepted and leaves the finding
     standing would pass an acceptance check and hang this one.
+
+    Named for its corpus since RK1641, and the loop is `composing.converged` — one instrument
+    for the two fixtures that have one, because the reach is what a third fixture adds to.
     """
     root = tmp_path
     # The id scheme, where the pointer is derived: an outline raises `ref.missing` on every
@@ -594,39 +604,100 @@ def test_the_doors_close_the_gate_and_not_only_parse(tmp_path, capsys):
     )
     assert lint(Config.discover(root)).findings, "the fixture stopped being defective"
 
-    closed: list[str] = []
-    for _ in range(len(DEFECTIVE) * 4):
-        findings = lint(Config.discover(root)).findings
-        runnable = [
-            (f, r)
-            for f in findings
-            if (r := remedy(f, Config.discover(root))) is not None
-            # Not `fix`: `lint --fix` exits 1 while any unfixed finding still stands, so a
-            # mechanical row run mid-loop would be asserted against the wrong code. The
-            # fixer closes the derived and has its own suite; these doors close the rest,
-            # and the single `--fix` below is what the two halves meet at.
-            and r.kind in ("run", "compose")
-        ]
-        if not runnable:
-            break
-        found, rule = runnable[0]
-        for door in rule.doors:
-            argv = supplied(filled(list(door.argv)))
-            assert all(not one.startswith("<unfilled ") for one in argv), (found.code, argv)
-            assert main(["-C", str(root), *argv]) == EXIT_OK, (found.code, argv)
-            capsys.readouterr()
-        closed.append(found.code)
-
-    # What the doors left is the derived, which is the fixer's half by construction (RK16).
-    main(["-C", str(root), "lint", "--fix"])
+    closed = converged(root, rounds=len(DEFECTIVE))
     capsys.readouterr()
-    # The gate closing is the proof the doors were the right ones, as it is above.
+    # The gate closing is the proof the doors were the right ones, as it is above. What they
+    # left is the derived, which is the fixer's half by construction (RK16) and which
+    # `converged` runs last.
     report = lint(Config.discover(root))
     assert report.clean, [str(one) for one in report.findings]
     # And the count, stated rather than described: this is where door coverage stands, so a
     # row whose door stops being reachable shows up as a number that fell rather than as a
     # code quietly skipped. Five, against the one the sweep above reaches.
-    assert len(set(closed)) >= 5, sorted(set(closed))
+    assert set(closed) == set(BY_LINES), {
+        "closed, undeclared": sorted(set(closed) - set(BY_LINES)),
+        "declared, no longer closed": sorted(set(BY_LINES) - set(closed)),
+    }
+
+
+#: What six defective **lines** reach: the line schema's own codes, and nothing else. Declared
+#: rather than counted, so a door that stops being reachable is a name that left rather than a
+#: number that fell.
+BY_LINES = (
+    "symptom.sentence",
+    "symptom.too-long",
+    "why.no-terminator",
+    "why.sentences",
+    "why.too-long",
+)
+
+#: What one wrongly shaped **project** reaches, which is the other kind of state (RK1641). A
+#: ledger with no heading for a block the roadmap plans under, and a line pointing at a section
+#: that is not there.
+BY_SHAPE = ("block.unorganised", "ref.unresolved")
+
+
+def test_the_doors_of_a_wrongly_shaped_project_close_the_gate(tmp_path, capsys):
+    """RK1641's own measurement, kept as the fixture it produced. Widening the *line* corpus
+    buys nothing — four more defective shapes were tried and closed no code the five above do
+    not, because the line schema is what a line can be wrong about. What the remaining rows
+    need is a **project** shaped wrong, and this is one: a ledger organised by nothing beside a
+    roadmap that plans under a block, and a pointer resolving to no section.
+
+    That is the number the design asked to be weighed against: one hand-shaped state buys about
+    one code, so eighty-five rows is eighty-odd fixtures. Which is why the answer here is a
+    third fixture and a stated reach rather than a cross-product — `test_doors.DOORS` can
+    enumerate its states because two markers and a ledger is a product of nine cells, and a
+    finding code is not a cell of anything."""
+    root = tmp_path
+    (root / "roadkeep.toml").write_text(
+        'prefix = "TT"\n[files]\nroadmap = "ROADMAP.md"\n'
+        'changelog = "CHANGELOG.md"\nimprovements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    # No heading at all, which is the state `block.unorganised` is about: the ledger is
+    # organised by nothing while the roadmap plans work under a block.
+    (root / "CHANGELOG.md").write_text("# Shipped\n", encoding="utf-8")
+    (root / "IMPROVEMENTS.md").write_text(
+        "# Improvements\n\n## Block A\n", encoding="utf-8"
+    )
+    (root / "ROADMAP.md").write_text(
+        "# Roadmap\n\n## Block A\n\n"
+        "- 📋 **TT2** (deps: —) **A symptom plainly long enough to read** — "
+        "Because of a reason. → §TT2\n",
+        encoding="utf-8",
+    )
+    assert lint(Config.discover(root)).findings, "the fixture stopped being defective"
+
+    closed = converged(root)
+    capsys.readouterr()
+    report = lint(Config.discover(root))
+    assert report.clean, [str(one) for one in report.findings]
+    assert set(closed) == set(BY_SHAPE), {
+        "closed, undeclared": sorted(set(closed) - set(BY_SHAPE)),
+        "declared, no longer closed": sorted(set(BY_SHAPE) - set(closed)),
+    }
+
+
+def test_the_reach_of_every_door_fixture_is_a_number_and_not_a_sentence():
+    """RK1641. The symptom was a test named for the table that reads one fixture, and the
+    reason the same defect kept arriving as a task: RK472, RK1015 and RK1591 each corrected
+    `runnable` on a door found refusing in the field, and the sweep written to catch that never
+    reached the rows.
+
+    So the gap is a figure this suite states. Seven of eighty-five dispatchable codes have a door
+    executed here, and the eighty-five is derived from the table rather than written down — a
+    row added tomorrow lowers the fraction rather than leaving it true by omission.
+
+    Not a floor to be raised by weakening it: the reach is declared per fixture and asserted
+    exactly, so a code that stops closing is a name that left."""
+    every = set(dispatchable())
+    reached = set(BY_LINES) | set(BY_SHAPE) | {"ref.unresolved"}
+    assert reached <= every, sorted(reached - every)
+    assert len(every) >= 80, len(every)
+    # Where door coverage stands. Stated as both halves, because a fraction alone hides which
+    # moved: a row added to the table and a fixture added here are the same number falling.
+    assert len(reached) == 7, sorted(reached)
 
 
 #: Doors whose blank sits in a positional, which `filled` cannot supply from a table keyed by

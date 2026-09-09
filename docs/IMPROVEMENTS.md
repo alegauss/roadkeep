@@ -224,27 +224,6 @@ reading.
 
 ## Block D — The gate
 
-### §RK1641 The door sweep that is really one fixture
-
-`test_every_door_the_gate_offers_on_this_project_lands` loops over every finding a
-project emits, builds the remedy, fills the blank and runs the argv — which reads as a
-property over the table. It is a property over one fixture, and that fixture emits
-**one** finding: `ref.unresolved`. Of the 84 rows whose kind is `fix`, `run` or
-`compose`, it executes one.
-
-That is why the same defect keeps arriving as a task. RK472 found a `section drop` the
-file refuses. RK1015 measured why a door field cannot replace the kind. RK1591 found
-`export --<target>` dispatched against the state that emits its own finding. Three
-corrections to one predicate, each by example, with a sweep in the tree that would have
-caught all three had it reached the rows.
-
-What is undecided is the cost. Eighty-three more emitting states is eighty-three
-fixtures, and most of the codes need a project shaped a particular wrong way — which is
-the work, and is why the existing test settled for the findings it had.
-`tests/test_doors.py` holds the other answer: a declared cross-product of states, each
-door executed, and an empty cell that has to say why there is none. Whether that shape
-ports here is the design, and the number to weigh it against is one, not eighty-four.
-
 ### §RK1642 The other command in the same refusal
 
 A refused write can print two commands. RK1149's retry is the caller's own call with a

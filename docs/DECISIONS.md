@@ -194,6 +194,7 @@ command. The new property holds all three values, which leak alike.
 - ✅ **RK1563** **a field that shares a name with the served prefix is reported as a carrier of it, which it is not** — A red that made somebody look is the mechanism working; narrowing the sweep that raised it trades a misleading message for a missed one.
 - ✅ **RK1637** **seven cost subjects each argued they were the Nth cadence nobody counted, and nothing enumerates the cadences** — A cost subject is a cadence and states its trigger: the population is total against the declaration, and no ceiling sums them — different surfaces are paid by different callers.
 - ✅ **RK1640** **421 verb-leading spans sit in messages carrying no sibling door, so the pair that decides one reads none of them** — A span carrying a field an author fills is decidable and read by hand, one row per span: the placeholder is the tell, and the census is total so the next one asks its question.
+- ✅ **RK1641** **the sweep that runs every door the gate offers reaches one of eighty-four dispatchable rows** — Door coverage grows one code per hand-shaped state, so the cross-product does not port: the reach is declared per fixture and asserted exactly, and the eighty-five is derived.
 
 ### §RK1394 Proof, not age
 

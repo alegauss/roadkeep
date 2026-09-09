@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 233 | 2 |
 | C — Query (consult without reading the file) | 5 | 187 | 7 |
-| D — The gate | 14 | 300 | 7 |
+| D — The gate | 13 | 301 | 7 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 162 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 44 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 21 | 1121 | 24 |
+| **Total** | 20 | 1122 | 24 |
 
 **Next ready:**
 
-- 💭 **RK1641** (deps: —) **the sweep that runs every door the gate offers reaches one of eighty-four dispatchable rows** — RK472, RK1015 and RK1591 each corrected runnable on a door found refusing in the field, and the test written to catch that reads whatever one fixture happens to emit. → §RK1641
+- 💭 **RK1642** (deps: —) **the preventive read a refusal names for seven codes is in the sentence and in no field of the payload** — RK1600 published the retry and left the other runnable row of the same refusal as prose, so a caller reading fields gets the rule and never the read that prevents it. → §RK1642
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

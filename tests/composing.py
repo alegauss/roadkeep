@@ -946,6 +946,62 @@ def _owners(module) -> dict[int, str]:
     return found
 
 
+def dispatchable() -> tuple[str, ...]:
+    """Every finding code whose remedy is a command this tool can be asked to run (RK1641).
+
+    The population a door sweep is a property *over*, derived from the table rather than
+    counted in prose. `fix`, `run` and `compose` are the kinds that dispatch; `read`, `decide`
+    and `restore` name something to look at, choose between, or do with another tool.
+    """
+    from roadkeep.remedying import _TABLE  # noqa: PLC0415 - the table is the population
+
+    return tuple(
+        sorted(code for code, rule in _TABLE.items() if rule.kind in ("fix", "run", "compose"))
+    )
+
+
+def converged(root: Path, *, rounds: int = 6) -> tuple[str, ...]:
+    """Run the doors of one defective project until the gate is clean, and answer which closed.
+
+    RK1338's loop, lifted for its second fixture (RK1641). Converging rather than iterating a
+    snapshot, which is the stronger claim: each door is run against the state that produced its
+    finding, and a door that parses, is accepted and leaves the finding standing hangs this
+    instead of passing an acceptance check.
+
+    Not `fix`: `lint --fix` exits 1 while any unfixed finding still stands, so a mechanical row
+    run mid-loop would be asserted against the wrong code. The fixer closes the derived and has
+    its own suite; these doors close the rest, and one `--fix` at the end is where the two
+    halves meet.
+
+    Answers the codes it closed, in order, so a caller asserts the **reach** and not only that
+    the gate went clean — which is the number RK1641 is about: this reaches five codes of
+    eighty-five, and the sweep named for the table reaches one.
+    """
+    from roadkeep.cli import EXIT_OK, main  # noqa: PLC0415 - the suite's own edge
+    from roadkeep.config import Config  # noqa: PLC0415 - the suite's own edge
+    from roadkeep.linting import lint  # noqa: PLC0415 - the suite's own edge
+    from roadkeep.remedying import remedy  # noqa: PLC0415 - the suite's own edge
+
+    closed: list[str] = []
+    for _ in range(rounds * 12):
+        config = Config.discover(root)
+        runnable = [
+            (found, rule)
+            for found in lint(config).findings
+            if (rule := remedy(found, config)) is not None and rule.kind in ("run", "compose")
+        ]
+        if not runnable:
+            break
+        found, rule = runnable[0]
+        for door in rule.doors:
+            argv = supplied(filled(list(door.argv)))
+            assert all(not one.startswith("<unfilled ") for one in argv), (found.code, argv)
+            assert main(["-C", str(root), *argv]) == EXIT_OK, (found.code, argv)
+        closed.append(found.code)
+    main(["-C", str(root), "lint", "--fix"])
+    return tuple(closed)
+
+
 #: A field the author fills in: `<label>`, `<its title>`, `…`. What a caller **substitutes**,
 #: which is the tell RK1640 measured — a flag family being named in prose never carries one,
 #: and a command somebody is meant to paste almost always does.

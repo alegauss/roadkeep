@@ -1707,8 +1707,9 @@ def test_the_duplicate_anchor_door_is_the_one_this_scheme_has(tmp_path):
     section by design — *the address is not this verb's to move*. So the door named a command
     the verb it names rejects, in the state that produces the finding.
 
-    No test caught it because `test_every_door_the_gate_offers_on_this_project_lands` runs the
-    doors this repository's gate produces, and `section.duplicate` never fires here."""
+    No test caught it because the door sweep runs the doors *one fixture* produces, and
+    `section.duplicate` fires in none of them — which RK1641 turned into a figure this suite
+    states: seven of eighty-five dispatchable codes have a door executed anywhere here."""
     finding = Finding("section.duplicate", "docs/IMPROVEMENTS.md", "", 9, "RK1")
     outlined = remedy(finding, _project(tmp_path / "outline", ref_scheme="outline"))
     assert outlined is not None and outlined.kind == "compose"
