@@ -82,6 +82,16 @@ function payload(stdout: string): string {
   return stdout.replaceAll(CRLF, LF).replace(/\n$/, '')
 }
 
+/**
+ * Which build wrote a payload, read off the payload itself.
+ *
+ * Every one of them carries it, which is what makes an engine rebuilt mid-run visible as
+ * something other than sixteen unrelated diffs.
+ */
+function engineVersion(stdout: string): string {
+  return /"version":\s*"([^"]*)"/.exec(payload(stdout))?.[1] ?? ''
+}
+
 /** The same call, both ways: an argv for one transport and a tool call for the other. */
 function asked(verb: VerbName) {
   return {
@@ -103,6 +113,18 @@ describe('RG101: the whole read surface, over a held engine', () => {
         overProcess.run(asked(verb)),
         overMcp.run(asked(verb)),
       ])
+
+      // A held process pins the engine it started with; a spawn loads whatever is on disk
+      // now. So a roadkeep rebuilt underneath this run makes every payload differ on its
+      // `version`, and reporting that as a transport defect would send a reader looking in
+      // the wrong place. Named here for the same reason RG84 names it once per run.
+      const moved = engineVersion(byHeld.stdout) !== engineVersion(bySpawn.stdout)
+      expect(
+        moved,
+        `the engine moved under this run — the held process is roadkeep ${engineVersion(byHeld.stdout)}` +
+          ` and a spawn now loads ${engineVersion(bySpawn.stdout)}. Nothing here is a claim about` +
+          ' either transport until they are one build.',
+      ).toBe(false)
 
       // The payload, byte for byte once the console's newline is out of it. Anything the
       // surface added or lost shows here.

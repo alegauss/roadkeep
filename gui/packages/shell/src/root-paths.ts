@@ -1,7 +1,9 @@
-import { statSync } from 'node:fs'
+import { stat } from 'node:fs/promises'
 import path from 'node:path'
 
 import type { ScanRoot } from '@rk/core'
+
+import { probing } from './probing'
 
 /**
  * The half of a root that needs a platform.
@@ -24,13 +26,21 @@ export function rootKey(candidate: string): string {
   return CASE_INSENSITIVE ? resolved.toLowerCase() : resolved
 }
 
-/** Whether the folder is there now. Anything that is not a directory is not a root. */
-export function rootExists(candidate: string): boolean {
-  try {
-    return statSync(path.resolve(candidate)).isDirectory()
-  } catch {
-    return false
-  }
+/**
+ * Whether the folder is there now. Anything that is not a directory is not a root.
+ *
+ * Asynchronous and bounded since RG102: this is asked once per declared root, in the
+ * process the window's IPC goes through, and a sleeping drive answering a `statSync` is
+ * that window not repainting.
+ */
+export async function rootExists(candidate: string): Promise<boolean> {
+  return probing(async () => {
+    try {
+      return (await stat(path.resolve(candidate))).isDirectory()
+    } catch {
+      return false
+    }
+  })
 }
 
 /**

@@ -12,7 +12,6 @@
 
 - 💭 **RG13** (deps: RG11 ✅, roadkeep RK1631) **a candidate is judged governed by a read that fails, so rejecting a folder costs the work of a whole lint** — config answers with a null and engines answers happily about an ungoverned directory, so the cheap probe a scan wants does not exist yet. → §RG13
 - 💭 **RG15** (deps: RG2 ✅, RG13) **which copy of roadkeep each project runs is never read, so a disagreement engines can name is averaged away** — This block will not be finished until the version, the home and the verdict sit beside a project's counts, and nothing reads them yet. → §RG15
-- 📋 **RG102** (deps: RG71 ✅) **the walk yields now and the three reads around it do not, over the same paths a person named** — Whether a root is there, whether a project is a worktree and when its governed files last moved are each a synchronous stat in the process that answers the window. → §RG102
 
 ## Block C — The portfolio (many backlogs in one view)
 

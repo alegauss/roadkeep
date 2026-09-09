@@ -100,20 +100,21 @@ describe('RG10: keeping the list', () => {
 })
 
 describe('RG10: a root that is not there', () => {
-  it('is kept and marked, never dropped', () => {
+  it('is kept and marked, never dropped', async () => {
     // A disconnected drive is not a project somebody deleted, and forgetting it makes the
     // person retype a setting for a reason that was never theirs.
-    const marked = withPresence(
-      [root('/here'), root('/on-a-usb-stick')],
-      (path) => path === '/here',
+    const marked = await withPresence([root('/here'), root('/on-a-usb-stick')], (path) =>
+      Promise.resolve(path === '/here'),
     )
 
     expect(marked).toHaveLength(2)
     expect(marked[1]).toMatchObject({ path: '/on-a-usb-stick', presence: 'missing' })
   })
 
-  it('is left out of a walk without being left out of the list', () => {
-    const marked = withPresence([root('/here'), root('/gone')], (path) => path === '/here')
+  it('is left out of a walk without being left out of the list', async () => {
+    const marked = await withPresence([root('/here'), root('/gone')], (path) =>
+      Promise.resolve(path === '/here'),
+    )
 
     expect(walkable(marked).map((entry) => entry.path)).toEqual(['/here'])
     expect(marked).toHaveLength(2)

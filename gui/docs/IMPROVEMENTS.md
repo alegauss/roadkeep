@@ -77,29 +77,6 @@ be drawn as one; it is a repository where two copies could write and the person 
 know which did. What is refused is showing a count with no engine beside it, because
 that count is an answer whose author has been dropped.
 
-### §RG102 The reads either side of the walk
-
-RG71 made the walk asynchronous and stopped there, because the walk was what the line
-named. What surrounds it did not move, and it runs over the same paths: `rootExists`
-stats every root a person declared, `git-worktree` stats and reads `.git` for every
-project the walk found, and `governed-stamp` stats each of five governed files per
-project to key the cache. Seventeen projects is around ninety stats, every one of them
-synchronous, in the process every IPC call from the window goes through.
-
-So the symptom RG71 was filed for survives it. A sleeping external drive still freezes
-the app; the walk simply is not where it happens any more. That is worth saying plainly
-rather than counting the line as half done — the fix moved a stall rather than removing
-one, and the remaining half is larger in calls than the half that shipped.
-
-The shape is the same three times over and it is the shape RG71 left behind:
-`node:fs/promises` in place of `node:fs`, and `createLimiter` where a set of paths is
-read together. `withPresence` and `rowsFrom` become async with it, which reaches further
-into `catalogue` than the scan did.
-
-What is worth deciding rather than assuming is whether these want one bound between them
-or three. Ninety stats against one disk under three separate widths is three answers to
-a question that has one.
-
 ## Block C — The portfolio (many backlogs in one view)
 
 ## Block D — The project surface (one backlog, read)

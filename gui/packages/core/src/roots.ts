@@ -104,11 +104,17 @@ export function removeRoot(roots: readonly ScanRoot[], path: string, keyOf: KeyO
  * The keeping is the point. Dropping a root that is missing turns a disconnected drive
  * into a setting the person has to re-enter, and it does it silently.
  */
-export function withPresence(
+export async function withPresence(
   roots: readonly ScanRoot[],
-  present: (path: string) => boolean,
-): KnownRoot[] {
-  return roots.map((root) => ({ ...root, presence: present(root.path) ? 'present' : 'missing' }))
+  present: (path: string) => Promise<boolean>,
+): Promise<KnownRoot[]> {
+  // In parallel and not in turn: the caller bounds how many reach the disk at once (RG102),
+  // and asking one root at a time would make a list of ten as slow as its slowest ten.
+  const there = await Promise.all(roots.map(async (root) => present(root.path)))
+  return roots.map((root, at) => ({
+    ...root,
+    presence: there[at] === true ? 'present' : 'missing',
+  }))
 }
 
 /** The roots worth walking right now. The missing ones are still roots; they are just not here. */

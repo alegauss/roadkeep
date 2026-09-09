@@ -36,7 +36,9 @@ function project(relative: string): void {
 async function rescan(previous = EMPTY_CATALOGUE, now = '2026-09-01T10:00:00.000Z') {
   const scanned = await scanRoots(roots)
   const families = groupProjects(
-    scanned.found.map((entry) => ({ path: entry.path, ...gitSite(entry.path) })),
+    await Promise.all(
+      scanned.found.map(async (entry) => ({ path: entry.path, ...(await gitSite(entry.path)) })),
+    ),
     rootKey,
   )
   const rootOf = (candidate: string) =>

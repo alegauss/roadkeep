@@ -22,51 +22,53 @@ const junction = path.join(TURING, 'latest')
 const worktreesPresent = versions.every((p) => existsSync(p)) && existsSync(junction)
 
 describe('RG12: reading the git directory a checkout shares', () => {
-  it('answers null for a folder that is not a checkout at all', () => {
-    expect(gitCommonDir(path.join(REPO, 'packages'))).toBeNull()
+  it('answers null for a folder that is not a checkout at all', async () => {
+    expect(await gitCommonDir(path.join(REPO, 'packages'))).toBeNull()
   })
 
-  it('answers this repository own git directory', () => {
+  it('answers this repository own git directory', async () => {
     // A main worktree: `.git` is a directory and is itself the common one.
-    const common = gitCommonDir(REPO)
+    const common = await gitCommonDir(REPO)
 
     expect(common).not.toBeNull()
     expect(path.basename(common ?? '')).toBe('.git')
   })
 
-  it('answers null rather than throwing for a path that does not exist', () => {
-    expect(gitCommonDir(path.join(REPO, 'no-such-folder'))).toBeNull()
+  it('answers null rather than throwing for a path that does not exist', async () => {
+    expect(await gitCommonDir(path.join(REPO, 'no-such-folder'))).toBeNull()
   })
 })
 
 describe('RG12: resolving a link', () => {
-  it('resolves a path to the folder it really is', () => {
-    expect(realPathOf(path.join(REPO, 'packages', '..'))).toBe(realPathOf(REPO))
+  it('resolves a path to the folder it really is', async () => {
+    expect(await realPathOf(path.join(REPO, 'packages', '..'))).toBe(await realPathOf(REPO))
   })
 
-  it('gives back the path itself when it cannot be resolved', () => {
+  it('gives back the path itself when it cannot be resolved', async () => {
     const missing = path.join(REPO, 'no-such-folder')
-    expect(realPathOf(missing)).toBe(path.resolve(missing))
+    expect(await realPathOf(missing)).toBe(path.resolve(missing))
   })
 })
 
 describe.skipIf(!worktreesPresent)('RG12: a real worktree family on this machine', () => {
-  it('gives both versions the same common directory', () => {
-    const [main, old] = versions.map(gitCommonDir)
+  it('gives both versions the same common directory', async () => {
+    const [main, old] = await Promise.all(versions.map(async (one) => gitCommonDir(one)))
 
     expect(main).not.toBeNull()
     expect(old).toBe(main)
   })
 
-  it('resolves the junction onto the version it points at', () => {
-    expect(realPathOf(junction)).toBe(realPathOf(versions[0] ?? ''))
+  it('resolves the junction onto the version it points at', async () => {
+    expect(await realPathOf(junction)).toBe(await realPathOf(versions[0] ?? ''))
   })
 
-  it('draws three paths as one family of two versions', () => {
-    const sites = [...versions, junction].map((project) => ({
-      path: project,
-      ...gitSite(project),
-    }))
+  it('draws three paths as one family of two versions', async () => {
+    const sites = await Promise.all(
+      [...versions, junction].map(async (project) => ({
+        path: project,
+        ...(await gitSite(project)),
+      })),
+    )
 
     const families = groupProjects(sites, rootKey)
 
@@ -80,7 +82,7 @@ describe.skipIf(!worktreesPresent)('RG12: a real worktree family on this machine
 })
 
 describe.skipIf(worktreesPresent)('RG12: the worktree family this machine does not have', () => {
-  it('is named rather than skipped silently', () => {
+  it('is named rather than skipped silently', async () => {
     // A skip nobody reads is a test that stopped covering something. This says which
     // arrangement went unchecked and where it would be.
     expect(worktreesPresent).toBe(false)

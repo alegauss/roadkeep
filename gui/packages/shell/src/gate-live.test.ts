@@ -18,11 +18,11 @@ import { rootKey } from './root-paths'
 let fixture: Fixture
 let governed: string[] = []
 
-const stamp = () => stampGoverned(fixture.root, governed)
+const stamp = async () => stampGoverned(fixture.root, governed)
 
 /** Run the gate once and put the verdict on the ledger, as the watcher would. */
 async function runGate(ledger: ReturnType<typeof createGateLedger>): Promise<void> {
-  const taken = stamp()
+  const taken = await stamp()
   const linted = await read(fixture.root, 'lint', {})
   ledger.note(fixture.root, recordGate(linted, taken, new Date().toISOString()))
 }
@@ -38,19 +38,19 @@ afterAll(() => {
 })
 
 describe('RG18: what a real project’s gate says, and when', () => {
-  it('is unknown before anything has run', () => {
+  it('is unknown before anything has run', async () => {
     const ledger = createGateLedger(rootKey)
 
     // First launch. Not clean — nothing has been asked.
-    expect(ledger.healthOf(fixture.root, stamp()).verdict).toBe('unknown')
-    expect(ledger.stale(fixture.root, stamp())).toBe(true)
+    expect(ledger.healthOf(fixture.root, await stamp()).verdict).toBe('unknown')
+    expect(ledger.stale(fixture.root, await stamp())).toBe(true)
   })
 
   it('is a verdict once the gate has actually run', async () => {
     const ledger = createGateLedger(rootKey)
     await runGate(ledger)
 
-    const health = ledger.healthOf(fixture.root, stamp())
+    const health = ledger.healthOf(fixture.root, await stamp())
 
     // The fixture is built by the write verbs, so it should be clean.
     expect(health.verdict).toBe('clean')
@@ -63,24 +63,24 @@ describe('RG18: what a real project’s gate says, and when', () => {
     await runGate(ledger)
 
     // The cost this whole arrangement avoids: seventeen lints per redraw.
-    expect(ledger.stale(fixture.root, stamp())).toBe(false)
+    expect(ledger.stale(fixture.root, await stamp())).toBe(false)
   })
 
   it('goes stale the moment a governed file is written', async () => {
     const ledger = createGateLedger(rootKey)
     await runGate(ledger)
-    const before = ledger.healthOf(fixture.root, stamp())
+    const before = ledger.healthOf(fixture.root, await stamp())
 
     appendFileSync(path.join(fixture.root, 'docs', 'ROADMAP.md'), '\n')
 
-    const after = ledger.healthOf(fixture.root, stamp())
+    const after = ledger.healthOf(fixture.root, await stamp())
 
     expect(before.stale).toBe(false)
     expect(after.stale).toBe(true)
     // Dated, not discarded: the verdict and the moment survive.
     expect(after.verdict).toBe(before.verdict)
     expect(after.taken).toBe(before.taken)
-    expect(ledger.stale(fixture.root, stamp())).toBe(true)
+    expect(ledger.stale(fixture.root, await stamp())).toBe(true)
   })
 
   it('reports drifted when the gate actually finds something', async () => {
@@ -94,7 +94,7 @@ describe('RG18: what a real project’s gate says, and when', () => {
     const ledger = createGateLedger(rootKey)
     await runGate(ledger)
 
-    const health = ledger.healthOf(fixture.root, stamp())
+    const health = ledger.healthOf(fixture.root, await stamp())
     expect(health.verdict).toBe('drifted')
     expect(health.problems).toBeGreaterThan(0)
   })

@@ -1,5 +1,7 @@
-import { readFileSync, realpathSync, statSync } from 'node:fs'
+import { readFile, realpath, stat } from 'node:fs/promises'
 import path from 'node:path'
+
+import { probing } from './probing'
 
 /**
  * Which git directory a checkout shares, read off git's own files.
@@ -24,21 +26,29 @@ export interface GitSite {
   readonly commonDir: string | null
 }
 
-/** The folder with every junction and symlink resolved, or the path itself if it cannot be. */
-export function realPathOf(candidate: string): string {
-  try {
-    return realpathSync.native(path.resolve(candidate))
-  } catch {
-    return path.resolve(candidate)
-  }
+/**
+ * The folder with every junction and symlink resolved, or the path itself if it cannot be.
+ *
+ * Asynchronous and bounded since RG102, like everything else here: this is three reads per
+ * project and it ran in the process the window's IPC goes through. The promises API resolves
+ * the platform's own way, so there is no `.native` to ask for as there is on the sync one.
+ */
+export async function realPathOf(candidate: string): Promise<string> {
+  return probing(async () => {
+    try {
+      return await realpath(path.resolve(candidate))
+    } catch {
+      return path.resolve(candidate)
+    }
+  })
 }
 
-export function gitCommonDir(project: string): string | null {
+export async function gitCommonDir(project: string): Promise<string | null> {
   const dotGit = path.join(path.resolve(project), '.git')
 
   let entry
   try {
-    entry = statSync(dotGit)
+    entry = await probing(async () => stat(dotGit))
   } catch {
     return null
   }
@@ -52,7 +62,7 @@ export function gitCommonDir(project: string): string | null {
 
   let pointer: string
   try {
-    pointer = readFileSync(dotGit, 'utf8')
+    pointer = await probing(async () => readFile(dotGit, 'utf8'))
   } catch {
     return null
   }
@@ -65,7 +75,9 @@ export function gitCommonDir(project: string): string | null {
   const gitDir = path.resolve(path.dirname(dotGit), named[1])
 
   try {
-    const common = readFileSync(path.join(gitDir, 'commondir'), 'utf8').trim()
+    const common = (
+      await probing(async () => readFile(path.join(gitDir, 'commondir'), 'utf8'))
+    ).trim()
     if (common !== '') return realPathOf(path.resolve(gitDir, common))
   } catch {
     // No `commondir` means this is not a worktree's git directory after all. The pointer
@@ -75,6 +87,9 @@ export function gitCommonDir(project: string): string | null {
   return realPathOf(gitDir)
 }
 
-export function gitSite(project: string): GitSite {
-  return { realPath: realPathOf(project), commonDir: gitCommonDir(project) }
+export async function gitSite(project: string): Promise<GitSite> {
+  // Together rather than in turn: they read different files and the bound above decides how
+  // many of those reach the disk at once.
+  const [realPath, commonDir] = await Promise.all([realPathOf(project), gitCommonDir(project)])
+  return { realPath, commonDir }
 }

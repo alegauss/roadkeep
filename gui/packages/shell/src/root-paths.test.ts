@@ -41,24 +41,27 @@ describe('RG10: telling two paths apart on this platform', () => {
 })
 
 describe('RG10: whether a root is there', () => {
-  it('says yes for a folder', () => {
-    expect(rootExists(folder())).toBe(true)
+  it('says yes for a folder', async () => {
+    expect(await rootExists(folder())).toBe(true)
   })
 
-  it('says no for a path that does not exist', () => {
-    expect(rootExists(path.join(tmpdir(), 'rk-root-that-is-not-here'))).toBe(false)
+  it('says no for a path that does not exist', async () => {
+    expect(await rootExists(path.join(tmpdir(), 'rk-root-that-is-not-here'))).toBe(false)
   })
 
-  it('says no for a file, which is not somewhere to look', () => {
+  it('says no for a file, which is not somewhere to look', async () => {
     const one = folder()
     const file = path.join(one, 'notes.md')
     writeFileSync(file, 'not a folder', 'utf8')
 
-    expect(rootExists(file)).toBe(false)
+    expect(await rootExists(file)).toBe(false)
   })
 
-  it('marks a missing root without dropping it', () => {
-    const marked = withPresence([at(folder()), at(path.join(tmpdir(), 'rk-root-gone'))], rootExists)
+  it('marks a missing root without dropping it', async () => {
+    const marked = await withPresence(
+      [at(folder()), at(path.join(tmpdir(), 'rk-root-gone'))],
+      rootExists,
+    )
 
     expect(marked.map((root) => root.presence)).toEqual(['present', 'missing'])
   })

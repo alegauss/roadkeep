@@ -22,59 +22,61 @@ afterAll(() => {
 })
 
 describe('RG7: stamping a project', () => {
-  it('is the same twice when nothing moved', () => {
+  it('is the same twice when nothing moved', async () => {
     const root = project({ 'roadkeep.toml': 'prefix = "FX"', 'ROADMAP.md': '# a' })
 
-    expect(stampGoverned(root, ['ROADMAP.md'])).toBe(stampGoverned(root, ['ROADMAP.md']))
+    expect(await stampGoverned(root, ['ROADMAP.md'])).toBe(
+      await stampGoverned(root, ['ROADMAP.md']),
+    )
   })
 
-  it('changes when a governed file changes', () => {
+  it('changes when a governed file changes', async () => {
     const root = project({ 'roadkeep.toml': 'prefix = "FX"', 'ROADMAP.md': '# a' })
-    const before = stampGoverned(root, ['ROADMAP.md'])
+    const before = await stampGoverned(root, ['ROADMAP.md'])
 
     writeFileSync(path.join(root, 'ROADMAP.md'), '# a much longer roadmap', 'utf8')
 
-    expect(stampGoverned(root, ['ROADMAP.md'])).not.toBe(before)
+    expect(await stampGoverned(root, ['ROADMAP.md'])).not.toBe(before)
   })
 
-  it('changes when the config changes, because that changes which files are governed', () => {
+  it('changes when the config changes, because that changes which files are governed', async () => {
     const root = project({ 'roadkeep.toml': 'prefix = "FX"', 'ROADMAP.md': '# a' })
-    const before = stampGoverned(root, ['ROADMAP.md'])
+    const before = await stampGoverned(root, ['ROADMAP.md'])
 
     writeFileSync(path.join(root, 'roadkeep.toml'), 'prefix = "FX"\ndeferred = true', 'utf8')
 
-    expect(stampGoverned(root, ['ROADMAP.md'])).not.toBe(before)
+    expect(await stampGoverned(root, ['ROADMAP.md'])).not.toBe(before)
   })
 
-  it('does not change when an ungoverned file changes', () => {
+  it('does not change when an ungoverned file changes', async () => {
     const root = project({ 'roadkeep.toml': 'prefix = "FX"', 'ROADMAP.md': '# a' })
-    const before = stampGoverned(root, ['ROADMAP.md'])
+    const before = await stampGoverned(root, ['ROADMAP.md'])
 
     writeFileSync(path.join(root, 'NOTES.md'), 'not governed', 'utf8')
 
-    expect(stampGoverned(root, ['ROADMAP.md'])).toBe(before)
+    expect(await stampGoverned(root, ['ROADMAP.md'])).toBe(before)
   })
 
-  it('treats a file that is not there as a state, not an error', () => {
+  it('treats a file that is not there as a state, not an error', async () => {
     const root = project({ 'roadkeep.toml': 'prefix = "FX"' })
 
-    const before = stampGoverned(root, ['DEFERRED.md'])
+    const before = await stampGoverned(root, ['DEFERRED.md'])
     expect(before).toContain('absent')
 
     // And it stops being absent the moment somebody writes it.
     writeFileSync(path.join(root, 'DEFERRED.md'), '# set aside', 'utf8')
-    expect(stampGoverned(root, ['DEFERRED.md'])).not.toBe(before)
+    expect(await stampGoverned(root, ['DEFERRED.md'])).not.toBe(before)
   })
 
-  it('does not depend on the order the files were named in', () => {
+  it('does not depend on the order the files were named in', async () => {
     const root = project({
       'roadkeep.toml': 'prefix = "FX"',
       'ROADMAP.md': '# a',
       'CHANGELOG.md': '# b',
     })
 
-    expect(stampGoverned(root, ['ROADMAP.md', 'CHANGELOG.md'])).toBe(
-      stampGoverned(root, ['CHANGELOG.md', 'ROADMAP.md']),
+    expect(await stampGoverned(root, ['ROADMAP.md', 'CHANGELOG.md'])).toBe(
+      await stampGoverned(root, ['CHANGELOG.md', 'ROADMAP.md']),
     )
   })
 })
