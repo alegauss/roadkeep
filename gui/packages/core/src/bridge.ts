@@ -14,6 +14,7 @@
  */
 
 import type { BuildIdentity } from './build'
+import type { SettingsRead } from './settings'
 
 /** The single property the preload adds to `window`. */
 export const BRIDGE_KEY = 'roadkeep'
@@ -33,8 +34,31 @@ export interface BridgeIdentity {
   readonly build: BuildIdentity
 }
 
+/**
+ * What the shell holds, as the renderer receives it.
+ *
+ * The settings themselves plus what reading them lost, which is `SettingsRead` unchanged —
+ * and one field the renderer could not work out for itself.
+ */
+export interface LaunchSettings extends SettingsRead {
+  /**
+   * Which of the locales this build ships the window is speaking, already chosen.
+   *
+   * Resolved on the shell's side because `Settings.locale` may be empty, and empty means
+   * *whatever the desktop says* — a question only a process can ask. What crosses is the
+   * answer, so the renderer never has two ideas of what language it is in.
+   */
+  readonly locale: string
+}
+
 export interface RendererBridge {
   identify(): Promise<BridgeIdentity>
+  /**
+   * A method of its own rather than another field on `identify`, and the line between them
+   * is whether the answer can change while the app runs. A build cannot; a settings file is
+   * a person's to edit, and one asked for once is one a restart is the only way to reread.
+   */
+  settings(): Promise<LaunchSettings>
 }
 
 /**
@@ -43,4 +67,5 @@ export interface RendererBridge {
  */
 export const BRIDGE_CHANNELS = {
   identify: 'roadkeep:identify',
+  settings: 'roadkeep:settings',
 } as const satisfies Record<keyof RendererBridge, string>

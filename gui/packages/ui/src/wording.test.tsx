@@ -1,13 +1,18 @@
 import {
   BASE,
+  BASE_LOCALE,
+  DEFAULT_SETTINGS,
   identityFrom,
   isPseudo,
   PACKAGES,
   pseudo,
   PSEUDO_CLOSE,
   PSEUDO_OPEN,
+  PT_BR,
   type RendererBridge,
+  translator,
   type Wording,
+  wordingFor,
 } from '@rk/core'
 import { render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -25,7 +30,12 @@ import { WordingProvider } from './wording'
  */
 const BUILT = identityFrom({ version: '0.0.0', commit: 'abc1234', signed: 'unsigned' })
 
-function withBridge(bridge: RendererBridge): void {
+function withBridge(parts: Partial<RendererBridge>): void {
+  const bridge: RendererBridge = {
+    identify: () => Promise.resolve({ transport: 'ipc', build: BUILT }),
+    settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: BASE_LOCALE }),
+    ...parts,
+  }
   Object.defineProperty(window, 'roadkeep', { value: bridge, configurable: true })
 }
 
@@ -98,5 +108,26 @@ describe('RG51: a translation reaches the screen', () => {
     expect(screen.getByText('A janela abre e os três pacotes estão ligados.')).toBeTruthy()
     // Untranslated, so English — and never the key.
     expect(await screen.findByText(BASE['transport.http'])).toBeTruthy()
+  })
+})
+
+describe('RG86: the locale this build ships', () => {
+  // Through `translator` rather than off `PT_BR` directly: the type is `Partial`, and a
+  // test reading a key straight out of it would compare against `undefined` the day one
+  // goes missing instead of failing on the sentence that is not there.
+  const inPtBr = translator(PT_BR)
+
+  it('draws the screen in Portuguese, from the tag alone', async () => {
+    withBridge({})
+    drawIn(wordingFor('pt-BR'))
+
+    expect(screen.getByText(inPtBr('app.tagline'))).toBeTruthy()
+    expect(await screen.findByText(inPtBr('transport.ipc'))).toBeTruthy()
+  })
+
+  it('says the base for a tag nobody wrote, which is what an unshipped locale is', () => {
+    drawIn(wordingFor('ja'))
+
+    expect(screen.getByText(BASE['app.tagline'])).toBeTruthy()
   })
 })

@@ -506,32 +506,6 @@ string the package draws. The dep stands until that lands.
 **`react-router-dom` is not installed.** A declared peer npm did not pull; routing
 arrives with this line.
 
-### §RG86 Carrying a locale from the settings to the screen
-
-RG51 built the catalogue and the fallback, and proved both with a locale nobody speaks.
-What it did not build is the path a real locale travels: `Settings.locale` holds a
-BCP-47 tag, `localeFor` can choose among tags that exist, and nothing connects them
-because no second locale exists to choose.
-
-Three pieces are missing and they are small. A locale is a file — a partial map of the
-same keys — and something has to list which ones this build ships, since `localeFor`
-takes that list rather than discovering it. The shell reads the chosen one and hands it
-over the bridge with the settings; `WordingProvider` takes it, and so does i18next.
-
-**A locale file is bundled with the renderer**, so a translation is a release. Reading
-from disk beside the settings would let somebody add one without a build — a different
-product, not this one.
-
-**An empty tag follows the desktop, and the shell is what says so** — it has the
-process, and `localeFor` answering `en` for an empty tag is the promise `settings.ts`
-makes and does not keep. `i18next-browser-languagedetector` goes: it reads the browser's
-answer, not the desktop's, and [[RG88]] settled that there is one answer.
-
-**The second locale is `pt-BR`**, which the package already halves — its own components
-ship `pt`. `untranslated` and `stale` exist and nothing runs them, so the suite runs
-both: the first thing that goes wrong with a translation is a key that moved underneath
-it.
-
 ### §RG87 Which copy of the ground setting is the real one
 
 RG52 handed the switch to the design system, which is right — its own `Toaster` reads
@@ -631,3 +605,26 @@ the trade this makes knowingly.
 
 RG54's contrast test is where the two pairs are asserted, so a value that moves is
 caught by a run rather than by somebody looking at it.
+
+### §RG106 Mounting when the bridge does not answer
+
+RG86 moved the first render behind one bridge call, and that was the right trade against
+a window that repaints every sentence a frame after it opens. What it did not buy is a
+bound: `localeFromBridge` resolves on an answer and on a rejection, and a promise that
+does neither is a promise React never hears about. Electron shows the window on
+`ready-to-show`, which fires on the first paint of an empty page, so the failure is a
+window sized and titled and holding nothing.
+
+Nothing observed this. It is reachable, though, and the shape of it is known: a handler
+that throws before replying rejects, but a main process wedged in a synchronous read
+never settles the channel at all, and `loadSettings` reads a file.
+
+**A deadline, not a retry.** The base catalogue is complete and English is a correct
+window, so the answer when the shell is slow is to mount in English — the same answer
+already given for no bridge and for a refusal. What the deadline is worth arguing about
+is its length: long enough that an ordinary IPC round trip never loses the locale, short
+enough that nobody watches an empty frame.
+
+**It belongs to the ask and not to the caller.** Every later reader of `settings()`
+wants the same bound, so it is the reader in `ui/src/locale.ts` that carries it, not
+`main.tsx`.

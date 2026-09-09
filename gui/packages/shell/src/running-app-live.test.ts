@@ -1,4 +1,4 @@
-import { BRIDGE_KEY, PACKAGED_POLICY, policyText } from '@rk/core'
+import { BRIDGE_KEY, LOCALE_TAGS, PACKAGED_POLICY, policyText } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { startApp, type RunningApp } from './running-app'
@@ -34,7 +34,7 @@ describe('RG60: what the renderer was given', () => {
     // reviewed. Read off the running object rather than off the type.
     const methods = await app.evaluate<string[]>(`Object.keys(window['${BRIDGE_KEY}']).sort()`)
 
-    expect(methods).toEqual(['identify'])
+    expect(methods).toEqual(['identify', 'settings'])
   })
 
   it('round-trips a call through it', async () => {
@@ -44,6 +44,19 @@ describe('RG60: what the renderer was given', () => {
 
     expect(identity.transport).toBe('ipc')
     expect(identity.build).toBeDefined()
+  })
+
+  it('answers with a locale this build actually ships', async () => {
+    // RG86: the whole path in one call — the main process reads the settings file, asks
+    // Electron what the desktop speaks where the tag is empty, and what comes back is a
+    // tag `wordingFor` has an answer for. A resolution done in the renderer would pass a
+    // unit test and still hand the window a language it cannot draw.
+    const launch = await app.evaluate<{ locale?: string; settings?: { locale?: string } }>(
+      `window['${BRIDGE_KEY}'].settings()`,
+    )
+
+    expect(LOCALE_TAGS).toContain(launch.locale)
+    expect(launch.settings?.locale).toBeDefined()
   })
 })
 
@@ -66,7 +79,7 @@ describe('RG60: what the renderer was not given', () => {
       `Object.values(window['${BRIDGE_KEY}']).map((one) => typeof one)`,
     )
 
-    expect(reachable).toEqual(['function'])
+    expect(reachable).toEqual(['function', 'function'])
   })
 })
 

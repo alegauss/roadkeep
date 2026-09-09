@@ -1,7 +1,7 @@
 export { identityFrom, saidOfBuild, STAMP_VARS, UNSTAMPED } from './build'
 export type { BuildIdentity } from './build'
 export { BRIDGE_CHANNELS, BRIDGE_KEY } from './bridge'
-export type { BridgeIdentity, RendererBridge, TransportName } from './bridge'
+export type { BridgeIdentity, LaunchSettings, RendererBridge, TransportName } from './bridge'
 export {
   CALLED_NAMES,
   capabilitiesOf,
@@ -208,6 +208,8 @@ export {
   untranslated,
 } from './wording'
 export type { Fill, MessageKey, Translate, Wording } from './wording'
+export { LOCALE_TAGS, LOCALES, wordingFor } from './locales'
+export { PT_BR, PT_BR_LOCALE } from './pt-br'
 export { coversEverything, search } from './search'
 export type { Hit, SearchableProject, SearchAnswer, SearchField } from './search'
 export { DEFAULT_POLICY, mayEnter, scan, SCAN_WIDTH } from './scanning'

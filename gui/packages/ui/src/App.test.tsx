@@ -1,19 +1,35 @@
-import { identityFrom, PACKAGES, type RendererBridge } from '@rk/core'
+import {
+  BASE_LOCALE,
+  DEFAULT_SETTINGS,
+  identityFrom,
+  PACKAGES,
+  type RendererBridge,
+} from '@rk/core'
 import { render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { App } from './App'
 
-function withBridge(bridge: RendererBridge): void {
+/** A build identity like a real one, so a fixture is not a shape of its own. */
+const BUILT = identityFrom({ version: '0.0.0', commit: 'abc1234', signed: 'unsigned' })
+
+/**
+ * A bridge with every method the interface declares, of which a test overrides the one it
+ * is about. Spelling all of them at each call site would make widening the bridge a change
+ * to every test that never cared.
+ */
+function withBridge(parts: Partial<RendererBridge>): void {
+  const bridge: RendererBridge = {
+    identify: () => Promise.resolve({ transport: 'ipc', build: BUILT }),
+    settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: BASE_LOCALE }),
+    ...parts,
+  }
   Object.defineProperty(window, 'roadkeep', { value: bridge, configurable: true })
 }
 
 afterEach(() => {
   Reflect.deleteProperty(window, 'roadkeep')
 })
-
-/** A build identity like a real one, so a fixture is not a shape of its own. */
-const BUILT = identityFrom({ version: '0.0.0', commit: 'abc1234', signed: 'unsigned' })
 
 describe('RG37: the scaffold screen', () => {
   it('renders without a display', () => {

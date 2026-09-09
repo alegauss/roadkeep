@@ -1,6 +1,8 @@
-import { BRIDGE_CHANNELS, type BridgeIdentity } from '@rk/core'
+import { BRIDGE_CHANNELS, type BridgeIdentity, type LaunchSettings } from '@rk/core'
 import { app, ipcMain } from 'electron'
 
+import { localeChoice } from './locale'
+import { loadSettings } from './settings-file'
 import { readStamp } from './stamp'
 
 /**
@@ -15,4 +17,13 @@ export function registerBridge(): void {
   const build = readStamp(import.meta.dirname, app.isPackaged)
 
   ipcMain.handle(BRIDGE_CHANNELS.identify, (): BridgeIdentity => ({ transport: 'ipc', build }))
+
+  // The settings, unlike the build, are read per call: the file is documented as one a
+  // person may edit by hand, and a copy taken at startup is one only a restart refreshes.
+  // The path read is this app's own settings file and never one the renderer names, which
+  // is what keeps a handler that touches the filesystem off the list of powers it gains.
+  ipcMain.handle(BRIDGE_CHANNELS.settings, (): LaunchSettings => {
+    const read = loadSettings(app.getPath('userData'))
+    return { ...read, locale: localeChoice(read.settings.locale, app.getLocale()) }
+  })
 }
