@@ -28,6 +28,12 @@ release/
 # puts a pinned engine, which is this checkout's choice and not the repo's.
 .roadkeep/
 
+# The engine CI checks out into the workspace, named `ROADKEEP_CHECKOUT` in ci.yml, so the
+# live tests have something to spawn. It is another repository sitting at this one's root:
+# untracked, and until it is named here not ignored — which is all it takes for a tool that
+# walks from the root to read it as code this project wrote (RG111).
+/roadkeep/
+
 # Claude Code's project directory is local state except for the files roadkeep
 # needs a clone to carry: settings.json declares the marketplace and enables the
 # plugin, hooks/ holds the launcher that gives Claude Code on the web (which has

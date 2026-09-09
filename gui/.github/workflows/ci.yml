@@ -21,6 +21,13 @@ permissions:
 env:
   # Where the engine is checked out to, named once because two jobs and one launcher all
   # have to agree on it.
+  #
+  # It is another repository landing at the workspace root, and that root is where
+  # `npm run lint` starts walking — so `.gitignore`, `.oxlintrc.json` and `.prettierignore`
+  # each name this directory, and the gate goes on judging only what this project wrote
+  # (RG111). Checking out somewhere already ignored would save those three lines, and
+  # `.roadkeep/` is the candidate that suggests itself; roadkeep refuses a `.roadkeep/`
+  # carrying a `.git` as a source, so that trades a red lint for a red `engines` row.
   ROADKEEP_CHECKOUT: roadkeep
 
 jobs:

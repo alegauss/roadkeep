@@ -37,7 +37,11 @@
     "node_modules/**",
     // Captured engine and session output, kept verbatim so a test reads what a real run
     // printed. Linting it would be linting somebody else's bytes.
-    "packages/shell/src/captured/**"
+    "packages/shell/src/captured/**",
+    // The same reason and a whole repository of it: CI checks the engine out here so the
+    // live tests have something to spawn, and oxlint walks from the root, so the gate spent
+    // a run reporting 61 errors about a React site this project has never edited (RG111).
+    "roadkeep/**"
   ],
   "rules": {
     "no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],

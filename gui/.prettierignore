@@ -3,6 +3,11 @@
 release/
 node_modules/
 
+# The engine CI checks out at the workspace root so the live tests have something to spawn
+# (RG111) — a whole repository of them, and Prettier walks from the root exactly as oxlint
+# does. Ignored by git too; this says it again where the gate reads.
+/roadkeep/
+
 # Captured engine and session output, kept exactly as a real run printed it. Reformatting
 # it would make the fixture a formatter's idea of what the engine says.
 packages/shell/src/captured/
