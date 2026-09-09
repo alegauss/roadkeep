@@ -131,31 +131,6 @@ replaces itself while somebody is reading a backlog is one that loses their plac
 it must not do is phone anywhere on launch by default: this app reads a person's
 repositories, and a network call it did not need is one that has to be explained.
 
-### §RG115 What happens when a setting does not stick
-
-RG47 built the recovery carefully: a settings file that is not JSON, one from a future
-build, a pool width typed as a word — each takes the default, and each composes a
-sentence saying what was lost and why. `wasReset` exists to ask whether any of them
-fired. `LaunchSettings` carries the list across the bridge with the settings themselves.
-Nothing in `ui` or `shell` reads either. Grep for `wasReset` outside a test and there is
-one definition and no caller.
-
-So the careful half is done and the visible half is missing, which is the worst of the
-three states: somebody whose roots were dropped finds out by opening the app and
-noticing the list is short, and the sentence that would have told them was composed and
-thrown away.
-
-RG87 added the mirror of this and left it the same way. A ground the person chose is
-written back through the bridge, and the write is fire-and-forget: a rejection is
-swallowed in `keepGround` because there is nowhere to put it. A choice that was not kept
-looks kept until the next launch.
-
-Both want one surface and neither should invent it separately — which is why this is an
-idea and not a design. What it should be is bounded by two things already here: the
-design system ships a `Toaster`, and page chrome is RG63's. A notice belongs in
-whichever of those two arrives first, and the answer to *which* is the design still to
-write.
-
 ### §RG118 The build the window is, said on screen
 
 Block G's own criterion is that a user can say which build they are running and where it
@@ -346,3 +321,26 @@ stands.
 What it should not become is a route the map does not know about. The two lists are
 different questions — what the router serves, and what a reader is offered — and the
 check is that the second is a subset of the first.
+
+### §RG123 The strings the pseudo-locale run cannot see
+
+RG115 put the settings notices on screen and left two holes of the same shape.
+
+**The sentences are not translatable.** `readSettings` composes one per field it reset —
+*the pool width was not a whole number, so it is back to 4* — in `core`, as prose rather
+than as a `MessageKey`. RG115 shows them under a translated frame, so a window in
+Portuguese says the frame in Portuguese and the detail in English. Each carries an
+interpolated value, which is why they are not four more keys and are instead a small
+shape: a code and its fields, resolved through the catalogue the way `THEME_TEXT`
+resolves a marker.
+
+**And the run that holds this cannot see them.** RG51's pseudo-locale test renders the
+window under a locale where every catalogue value is bracketed and fails on anything
+unwrapped — but it reads `container`, and a toast renders in a portal outside it. So
+does a dialog, and the shortcuts sheet is already one. A literal typed into any of them
+is invisible to the one test that exists to find literals.
+
+The second is the one to fix first: it is a line of scope in a test that already works,
+and it is what would have caught the first. `document.body` rather than `container`,
+with the portalled surfaces opened — which means the run has to open them, and that is
+the work.

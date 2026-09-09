@@ -1,5 +1,5 @@
-import { DARK_QUERY, groundFor, nextTheme, type Ground, type Theme } from '@rk/core'
-import { ThemeProvider, useTheme } from '@viglet/viglet-design-system'
+import { BASE, DARK_QUERY, groundFor, nextTheme, type Ground, type Theme } from '@rk/core'
+import { ThemeProvider, toast, useTheme } from '@viglet/viglet-design-system'
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 
 import { getBridge } from './bridge'
@@ -56,14 +56,21 @@ function seedGroundCache(theme: Theme): null {
 /**
  * Send the choice back to the file, which is the half browser storage cannot do.
  *
- * Nothing waits on it and a failure is swallowed: the ground has already changed on
- * screen, and a person who cannot write settings has a problem no toast on this control
- * would explain.
+ * **Nothing waits on it and a failure is said out loud** (RG115). The ground has already
+ * changed on screen, so there is nothing to undo and nothing to retry — but a choice that
+ * was not kept looks kept until the next launch, which is the one state worth a sentence.
+ * It was swallowed until the chrome had somewhere to put it.
+ *
+ * The base wording rather than the provider's, because this is not a component: a rule that
+ * needed a hook to say what went wrong would be a rule that could only run inside a render.
+ * One string, and the locale it loses is the price of that.
  */
 function keepGround(theme: Theme): void {
   void getBridge()
     ?.saveTheme(theme)
-    .catch(() => undefined)
+    .catch(() => {
+      toast.warning(BASE['settings.unsaved'])
+    })
 }
 
 /**

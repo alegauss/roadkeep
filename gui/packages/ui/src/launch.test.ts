@@ -58,7 +58,11 @@ describe('RG87: the ground the window opens in', () => {
       saveTheme: () => Promise.resolve(),
     }
 
-    expect(await choicesFromBridge(counting)).toEqual({ locale: 'pt-BR', theme: 'light' })
+    expect(await choicesFromBridge(counting)).toEqual({
+      locale: 'pt-BR',
+      theme: 'light',
+      reset: [],
+    })
     expect(asked).toBe(1)
   })
 
@@ -86,7 +90,7 @@ describe('RG106: an answer that never comes', () => {
 
     const opened = await choicesFromBridge(silent, 20)
 
-    expect(opened).toEqual({ locale: BASE_LOCALE, theme: null })
+    expect(opened).toEqual({ locale: BASE_LOCALE, theme: null, reset: [] })
   })
 
   it('takes the answer when it arrives inside the deadline', async () => {
@@ -109,7 +113,11 @@ describe('RG106: an answer that never comes', () => {
       saveTheme: () => Promise.resolve(),
     }
 
-    expect(await choicesFromBridge(slow, 500)).toEqual({ locale: 'pt-BR', theme: 'dark' })
+    expect(await choicesFromBridge(slow, 500)).toEqual({
+      locale: 'pt-BR',
+      theme: 'dark',
+      reset: [],
+    })
   })
 
   it('waits the deadline it was given and not longer', async () => {

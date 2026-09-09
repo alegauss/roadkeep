@@ -27,7 +27,6 @@
 
 - 💭 **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — An unsigned build is one most people will not run, and no amount of code in this repository substitutes for the certificate. → §RG49
 - 💭 **RG50** (deps: RG46 ✅) (requires: published-artifact) **nothing updates, so a fix reaches a person only if they go and look for one** — A desktop build that cannot update is one whose defects live on every machine that installed it until somebody notices. → §RG50
-- 💭 **RG115** (deps: RG47 ✅) **the sentences a bad settings file composes cross the bridge and no screen shows one** — readSettings names each field it reset and LaunchSettings carries the list to the renderer, and nothing on the far side reads it, so a dropped root is found by noticing the list is short. → §RG115
 - 💭 **RG118** (deps: RG44 ✅, RG63 ✅) **no screen names the build, so a defect report cannot say which one it came from** — identify already answers with the version, the commit and whether it is signed, and nothing draws any of it. → §RG118
 - 💭 **RG119** (deps: RG91 ✅) (requires: macos-machine) **no macOS build of this app has ever been made, so what it needs is a guess** — electron-builder.yml names a dmg target nobody has run, and the two things a Mac build turns out to want are learned by making one. → §RG119
 - 📋 **RG120** (deps: RG55 ✅, RG92 ✅) **the wired skill and hook are behind the engine answering here, and only a command somebody remembers fixes it** — install --check exists to be that gate and no job runs it, so the finding stands on every lint and teaches a reader to skim the gate's output. → §RG120
@@ -38,6 +37,7 @@
 - 📋 **RG90** (deps: RG54 ✅, the design system darkening the muted foreground) **muted text on a muted panel is 4.33 to 1, which no screen renders yet and one will** — Those two tokens are named as a pair and miss AA on the light ground, so the first panel using both ships a pale label looking like a style. → §RG90
 - 💭 **RG116** (deps: RG88 ✅, RG87 ✅) **there is no control for the language, so choosing one means editing the settings file by hand** — RG88 gave i18next the locale and changeLanguage moves it, RG87 built the write back for the ground, and what is missing is the control between them. → §RG116
 - 📋 **RG117** (deps: RG63 ✅) **the route table is spelled three times, so a surface can be routed and still be missing from the map** — main mounts the routes, the harness mounts them again and the shell's test keeps a third list to check a nav entry against, and only one of the three is what a window runs. → §RG117
+- 📋 **RG123** (deps: RG115 ✅, RG51 ✅) **a sentence shown in a toast is English whatever the window is speaking, and the run that would catch it looks elsewhere** — readSettings composes its prose in core outside the catalogue, and the pseudo-locale test reads the container while a toast renders in a portal. → §RG123
 
 ## Done when — Block A
 

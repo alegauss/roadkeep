@@ -42,9 +42,17 @@ export interface LaunchChoices {
    * though a file had said so would overwrite that on every reload.
    */
   readonly theme: Theme | null
+  /**
+   * What reading the settings file lost, each said as a sentence (RG115).
+   *
+   * `readSettings` composes one per field it had to reset and `LaunchSettings` has carried
+   * them across since RG47; until now nothing on this side read them, so somebody whose
+   * roots were dropped found out by noticing the list was short.
+   */
+  readonly reset: readonly string[]
 }
 
-const AT_WORST: LaunchChoices = { locale: BASE_LOCALE, theme: null }
+const AT_WORST: LaunchChoices = { locale: BASE_LOCALE, theme: null, reset: [] }
 
 /**
  * How long the first frame waits on the shell.
@@ -77,6 +85,7 @@ export async function choicesFromBridge(
       bridge.settings().then((answer) => ({
         locale: answer.locale,
         theme: answer.settings.theme,
+        reset: answer.reset,
       })),
       deadline,
     ])
@@ -87,7 +96,22 @@ export async function choicesFromBridge(
   }
 }
 
+/**
+ * What the launch lost, for whoever draws the notice (RG115).
+ *
+ * Held here rather than handed down as a prop, because there is one launch per window and
+ * this is a fact about it — the same reason the locale goes to one i18next instance instead
+ * of being threaded through the tree. The chrome asks once, on mount.
+ */
+let lost: readonly string[] = []
+
+export function noticesAtLaunch(): readonly string[] {
+  return lost
+}
+
 /** The same question, of whatever bridge this page was given. */
-export function choicesAtLaunch(): Promise<LaunchChoices> {
-  return choicesFromBridge(getBridge())
+export async function choicesAtLaunch(): Promise<LaunchChoices> {
+  const choices = await choicesFromBridge(getBridge())
+  lost = choices.reset
+  return choices
 }

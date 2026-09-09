@@ -1,16 +1,17 @@
 import { THEME_TEXT } from '@rk/core'
-import { Button } from '@viglet/viglet-design-system'
+import { Button, Toaster, toast } from '@viglet/viglet-design-system'
 import {
   BentoBackToTop,
   BentoCommandPalette,
   BentoNavRail,
   BentoShortcutsDialog,
 } from '@viglet/viglet-design-system/bento'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 
 import { AREAS, HOME_ROUTE, surfacesIn } from './areas'
 import { useGround } from './ground'
+import { noticesAtLaunch } from './launch'
 import { useWording } from './wording'
 
 /**
@@ -37,6 +38,12 @@ import { useWording } from './wording'
  * takes the corner it would have had: the package's own answer for reaching that sheet is
  * the user menu, and with no user menu the only way in would be a keyboard shortcut nothing
  * on screen mentions.
+ *
+ * **And it carries the notice surface** (RG115). A setting that could not be read, and a
+ * choice that could not be saved, are both things the app knew and nobody was told — the
+ * sentences were composed and thrown away. `Toaster` is the design system's and reads the
+ * ground from the same `next-themes` this app already mounts, so there is one of it and it
+ * lives here, where every screen is already inside it.
  */
 
 /** Past which the two global keys are the platform's own. */
@@ -73,6 +80,21 @@ export function AppShell() {
   const openShortcuts = useCallback(() => {
     setShortcutsOpen(true)
   }, [])
+
+  // Once per mount and never per render: React mounts twice under StrictMode in
+  // development, and a person opening the app would see every sentence twice.
+  const said = useRef(false)
+  useEffect(() => {
+    if (said.current) return
+    said.current = true
+
+    // The frame is this app's own voice and translated; the sentences are the ones
+    // `readSettings` composed, shown as it wrote them. One toast per loss, because two
+    // fields resetting for two reasons is two things a person may want to act on.
+    for (const lost of noticesAtLaunch()) {
+      toast.warning(say('settings.reset'), { description: lost })
+    }
+  }, [say])
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -156,6 +178,12 @@ export function AppShell() {
       />
       <BentoShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} isMac={mac} />
       <BentoBackToTop />
+      {/*
+       * One of these, in the chrome, so a notice from any screen has somewhere to land and
+       * nothing has to mount a second. It reads the ground from the `next-themes` this app
+       * already has (RG52), which is why it takes nothing here.
+       */}
+      <Toaster />
     </>
   )
 }

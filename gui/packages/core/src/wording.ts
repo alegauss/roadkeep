@@ -40,6 +40,9 @@ export const EN = {
   'transport.ipc': 'bridged over IPC',
   'transport.http': 'bridged over HTTP',
 
+  'settings.reset': 'Some settings could not be read, so they are back to their defaults.',
+  'settings.unsaved': 'That choice could not be saved, so the next launch will not have it.',
+
   'shell.home': 'Home',
   'shell.palette': 'Find a line in every backlog',
   'shell.shortcuts': 'Keyboard shortcuts',

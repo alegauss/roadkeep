@@ -123,6 +123,7 @@
 - ✅ **RG94** **no type-aware rule runs, so a floating promise is still nobody's finding** — The lint gate runs the type-aware half, and the findings were read rather than silenced: one rule off with a reason, and the rest fixed (design recorded in `.oxlintrc.json`).
 - ✅ **RG95** **no gate reads an advisory, so the next one is found by whoever happens to install something** — CI reads npm audit against a written list of the advisories answered here, and fails on anything else and on an exception nothing reports (design recorded in `packages/shell/src/advisories.ts`).
 - ✅ **RG96** **the suite now tests a bundle it did not build, so a green run can be about yesterday's code** — A live run refuses to start against a build older than the tree, naming the file that was edited and the command that fixes it (design recorded in `packages/shell/src/freshness.ts`).
+- ✅ **RG115** **the sentences a bad settings file composes cross the bridge and no screen shows one** — A launch that lost a field says so in the chrome's own notice surface, one sentence per loss, and a ground that could not be saved says so too (design recorded in `packages/ui/src/Shell.tsx`).
 
 ## Block H — The look (a design system for governed prose)
 

@@ -29,6 +29,9 @@ export const PT_BR: Wording = {
   'transport.ipc': 'ligada por IPC',
   'transport.http': 'ligada por HTTP',
 
+  'settings.reset': 'Algumas configurações não puderam ser lidas e voltaram aos valores padrão.',
+  'settings.unsaved': 'Essa escolha não pôde ser salva, então a próxima abertura não a terá.',
+
   'shell.home': 'Início',
   'shell.palette': 'Encontre uma linha em qualquer backlog',
   'shell.shortcuts': 'Atalhos de teclado',
