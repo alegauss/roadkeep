@@ -795,6 +795,7 @@
 - 🗑 **RK1662** **two session notes reach the summary and two do not, and the set holding the pair argues for none of the split** — abandoned: An observation and not a defect: a disagreement is one note whose content is which copies differ, so a summary clause would say 1 and be the line a reader stops seeing.
 - ✅ **RK1626** **the field sweep skips its whole assertion where a corpus is absent, including this repository's own 2,246 fields** — The sweep reads every corpus that is present and requires none, so this repository's own 2,324 fields are asserted on a machine with neither — which is what CI is.
 - ✅ **RK1627** **nothing enumerates the fields a caller composes, so which of them has a validator is answered by remembering** — composed.FIELDS classifies every value-taking argument a write verb takes as schema, round-trip, address or path, and its first run found govern --because writing prose no validator reads.
+- ✅ **RK1635** **the composer sweep runs every door through shlex, which is the assumption the door was wrong about** — One door now runs through every shell on the machine, so the quoting is read by a shell instead of by the parser that mis-quoted it.
 
 ## Block E — Adoption
 

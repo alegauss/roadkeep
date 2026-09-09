@@ -47,13 +47,18 @@ from __future__ import annotations
 
 import argparse
 import ast
+import base64
+import json
 import re
 import shlex
+import shutil
+import subprocess
+import sys
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
-from roadkeep.provenance import invocation
+from roadkeep.provenance import invocation, quoted
 from surface import Module, modules
 
 
@@ -168,6 +173,9 @@ SITES: tuple[Site, ...] = (
     # create`, a pipeline into another tool — and the half that is ours files a capture about
     # the run being tested, which is `NOT_A_STEP`'s own argument one verb over.
     Site("capturing.py:handoff", "deliberate", FOREIGN),
+    # Still not a step, and since RK1635 the one door whose **line** is executed anyway:
+    # `argv_after` hands it to each shell on the machine with this tool swapped for an argv
+    # echoer, so the quoting is run for real without the report being filed.
     Site("capturing.py:offer", "deliberate", NOT_A_STEP),
     # RK1394. The one door in this family that is takeable here: `--check` prints the delete it
     # would make, and `test_capturing` runs exactly that line — which is the whole reason the
@@ -702,6 +710,65 @@ def runs(root: Path, said: str, *, expect: int = 0) -> tuple[list[str], ...]:
         assert code == expect, (argv, code)
         ran.append(argv)
     return tuple(ran)
+
+
+#: The shells a maintainer pastes a door into, on the platforms this project is developed and
+#: gated on (RK1635). Every one absent from a machine is skipped by :func:`argv_after`, which is
+#: what `tests/corpora` does with its pins: an instrument that refuses to run where a shell is
+#: missing is one that runs nowhere.
+SHELLS = ("cmd", "powershell", "sh")
+
+#: What each shell is pointed at instead of this tool: a program that says which argv arrived.
+#: Not `cli.main`, because the reader under test is the **shell** — routing the line back
+#: through `shlex.split` is the assumption RK1580 was invisible behind.
+_ECHOER = "import json, sys\nsys.stdout.write(json.dumps(sys.argv[1:]))\n"
+
+
+def argv_after(shell: str, door: str, *, at: Path) -> list[str] | None:
+    """The argv `shell` delivers when `door` is pasted at its prompt, or None if it is absent.
+
+    RK1635. Every other reader in this file is `shlex.split`, which is a Python reading of a
+    line a **shell** is going to read: a door quoted wrongly for a shell round-trips through it
+    perfectly, so the sweep was green for the year RK1580's defect stood, and the only thing
+    that found it was a person typing the printed line into three terminals.
+
+    The tool's own name is swapped for :data:`_ECHOER` and **every other byte of the door is
+    left as printed** — the quoting is the whole subject, so a harness that re-quoted anything
+    after the prefix would be testing itself again.
+
+    Each shell needs its own way to be handed a *line*, and none of that is the door's:
+
+    * `cmd /s /c "<line>"` is the documented deterministic form — strip the outer pair, take
+      the rest as typed — and it is passed as one string so Windows hands `CreateProcess` the
+      line rather than an argv `subprocess` re-quoted.
+    * PowerShell gets the script base64 UTF-16, because its own `-Command` splitter strips the
+      quotes off its command line before the parser ever sees them, and its stdin is decoded
+      in the console codepage. Both are transport and neither is the parser this is about.
+      The `&` is the call operator a quoted executable path needs there.
+    * `sh -c <line>` takes it as one argument, which is already a line.
+    """
+    exe = shutil.which(shell)
+    if exe is None:
+        return None
+    script = at / "echoargv.py"
+    script.write_text(_ECHOER, encoding="utf-8")
+    prefix = invocation()
+    assert door.startswith(prefix), door
+    # Quoted, because a POSIX shell reads every backslash of a Windows path as an escape —
+    # `provenance.quoted`'s own first reason, applied to the one token this harness supplies.
+    line = f"{quoted(sys.executable)} {quoted(str(script))}{door[len(prefix) :]}"
+    read = {"capture_output": True, "text": True, "encoding": "utf-8", "errors": "replace"}
+    if shell == "cmd":
+        got = subprocess.run(f'{exe} /s /c "{line}"', **read)  # type: ignore[call-overload]
+    elif shell == "powershell":
+        script_text = base64.b64encode(f"& {line}".encode("utf-16-le")).decode("ascii")
+        got = subprocess.run(  # type: ignore[call-overload]
+            [exe, "-NoProfile", "-EncodedCommand", script_text], **read
+        )
+    else:
+        got = subprocess.run([exe, "-c", line], **read)  # type: ignore[call-overload]
+    assert got.returncode == 0, (shell, line, got.stdout, got.stderr)
+    return list(json.loads(got.stdout.strip()))
 
 
 #: A placeholder — `<…>` with no quote inside it. The **space** is tested separately rather

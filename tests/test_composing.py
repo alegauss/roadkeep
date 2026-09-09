@@ -25,8 +25,10 @@ import pytest
 from composing import (
     FILLS,
     FOREIGN,
+    SHELLS,
     SITES,
     STATES,
+    argv_after,
     beyond,
     census,
     commanded,
@@ -41,6 +43,7 @@ from composing import (
 )
 from surface import modules
 from conftest import git_commit, git_init
+from roadkeep import capturing
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, build_parser, main
 from roadkeep.config import Config
 from roadkeep.linting import Finding, lint
@@ -1892,6 +1895,91 @@ def test_the_quote_is_the_one_every_shell_reads():
     assert shlex.split(line) == [
         "roadkeep", "add", "--symptom", "It isn't short", "--capture", r"C:\a\b.json",
     ]
+
+
+# -- the reader that is the assumption (RK1635) --------------------------------
+
+#: The failing argv the door under test carries, in the shapes the fields it quotes take: a
+#: symptom with spaces, an apostrophe and the punctuation prose has, and a capture path made
+#: of Windows separators.
+PASTED = (
+    "add",
+    "--block",
+    "A",
+    "--symptom",
+    "a claim with a space, an apostrophe's, a semicolon; a pipe | and (parens)",
+    "--capture",
+    "C:\\Users\\a b\\ROADMAP.md",
+)
+
+
+@pytest.mark.parametrize("shell", SHELLS)
+def test_the_door_a_fault_prints_delivers_the_argv_it_composed(shell, tmp_path):
+    """RK1635. Every reading above is `shlex.split` — the reader whose POSIX default put the
+    wrong quote in every door — so a line quoted wrongly for a shell round-trips through it
+    perfectly. That is why RK1580 stood for a year with a green sweep over it, and why the only
+    thing that found it was a person typing the printed line into three terminals.
+
+    So one door is run for real, in each shell that is on this machine. One is enough because
+    the quoting is one function now: `provenance.quoted` is what every composer reaches, and
+    `test_no_composed_command_is_quoted_for_one_family_of_shells` is what carries the rule
+    across the rest of the sites."""
+    door = capturing.offer(PASTED).splitlines()[1].strip()
+    delivered = argv_after(shell, door, at=tmp_path)
+    if delivered is None:
+        pytest.skip(f"{shell} is not on this machine")
+    assert delivered == ["report", "--symptom", "…", "--why", "…", "--", *PASTED]
+
+
+#: What one double-quoted span cannot carry into every shell at once, **measured** rather than
+#: asserted (RK1635): the token, the shells that do not deliver it, and what each of them does.
+#: The boundary `provenance.quoted` states in prose, as a value a reader can check — and a row
+#: here is a claim about this machine's shells, not about a design.
+UNQUOTABLE = (
+    ('a claim that says "no" out loud', ("powershell",), "a backslash is not its escape"),
+    ("a claim with $HOME in it", ("powershell", "sh"), "both expand it inside double quotes"),
+    ("a claim with a `tick` in it", ("powershell", "sh"), "an escape there, a substitution here"),
+    ("a claim with %PATH% in it", ("cmd",), "`cmd` expands it inside double quotes"),
+    ("a claim ending in a backslash\\", SHELLS, "the quote it would close is escaped instead"),
+)
+
+
+@pytest.mark.parametrize("field, mangles, why", UNQUOTABLE)
+def test_the_shapes_no_one_spelling_survives_are_the_ones_measured(field, mangles, why, tmp_path):
+    """`quoted`'s disclaimer, taken as a measurement (RK1635). It claims no general quoter, on
+    the ground that `$`, a backtick, an embedded `"` and a trailing backslash are not shapes the
+    fields it quotes take — and the instrument above is the first thing here that can say
+    whether that is so.
+
+    For a path it is. For **prose** it is not: a `report` door carries the failing argv
+    verbatim, so a symptom with a backtick in it — which is how this project writes about its
+    own verbs — is delivered wrong by PowerShell *and* by the POSIX shell this repository is
+    developed in, where a backtick inside double quotes is a command substitution.
+
+    A reading and not a red, because no single spelling fixes the table: each of the three
+    expands something inside a double quote that the other two keep literal. What has to stay
+    true is that the population is **known** — a row that starts agreeing is a row to delete,
+    and a shape that starts disagreeing is a red here.
+
+    Per shell and never as *some shell disagrees*, because which one is the whole of what an
+    author reading this needs."""
+    door = capturing.offer(("add", "--symptom", field)).splitlines()[1].strip()
+    want = ["report", "--symptom", "…", "--why", "…", "--", "add", "--symptom", field]
+    ran = 0
+    for shell in SHELLS:
+        try:
+            delivered = argv_after(shell, door, at=tmp_path)
+        except AssertionError:
+            # The shell refused the line outright, which is a mangling as much as a wrong token
+            # is: an unterminated string is how two of the three answer a trailing backslash.
+            assert shell in mangles, (shell, why)
+            ran += 1
+            continue
+        if delivered is None:
+            continue
+        ran += 1
+        assert (delivered != want) == (shell in mangles), (shell, why, delivered)
+    assert ran, "no shell in this table is on this machine, so nothing was measured"
 
 
 # -- the vendored copy the un-wiring keeps (RK1549) ----------------------------

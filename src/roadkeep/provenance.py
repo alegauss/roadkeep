@@ -496,9 +496,11 @@ def quoted(word: str) -> str:
 
     :func:`invocation`'s own rule, one token wider: this module already refuses to describe a
     machine, and a quote that is right in one family of shells is that description made
-    silently. What is *not* claimed is a general Windows quoter — an embedded `"` is escaped
-    the way both families accept and a token ending in a backslash is left to the caller,
-    neither being a shape the fields here take.
+    silently. What is *not* claimed is a general quoter, and since RK1635 that boundary is
+    **measured** rather than asserted — `tests/test_composing.UNQUOTABLE` runs a door through
+    every shell on the machine and names what each one does not deliver: an embedded `"` and a
+    trailing backslash, `$` and a backtick, `%VAR%`. No single double-quoted spelling carries
+    all five, each shell expanding inside quotes what the others keep literal.
     """
     if word and not any(one in word for one in _NEEDS_QUOTING):
         return word

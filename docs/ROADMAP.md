@@ -38,7 +38,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1635** (deps: —) **the composer sweep runs every door through shlex, which is the assumption the door was wrong about** — RK1580 was invisible for a year because the instrument reads a line with the parser whose POSIX default put the bad quote there. → §RK1635
 - 📋 **RK1637** (deps: —) **seven cost subjects each argued they were the Nth cadence nobody counted, and nothing enumerates the cadences** — RK1424, RK1428, RK1491, RK1524 and RK1582 each made that case from scratch and none could say how many were left. → §RK1637
 - 📋 **RK1638** (deps: —) **a prose check finds its span by splitting on a sentence, so a reworded clause empties the test instead of failing it** — RK1585's two readers both address the comment by a phrase somebody wrote, which is the drift they were built to catch one level up. → §RK1638
 - 📋 **RK1639** (deps: —) **one closed set of prose was swept for stale figures and the three a caller actually meets were not** — RK1588 found two of nine withholding reasons resting on numbers nothing re-takes, and remedies, notes and refusals are the same shape unread. → §RK1639
@@ -55,6 +54,7 @@
 - 💭 **RK1654** (deps: —) **ten functions print to both streams in one body and two go through the helper, nothing saying which of the rest need to** — RK1612 gave the rule a function and left the census it named unbuilt, so the guard catches a stray flush and not a stderr print after a stdout one. → §RK1654
 - 📋 **RK1665** (deps: —) **the backstop reads a code only where it is a literal, so six a write refuses are outside a total that says it is one** — scoping and criteria name their codes as constants on purpose, and the scan widens to the computed set instead of seeing them. → §RK1665
 - 📋 **RK1666** (deps: —) **govern writes a caller's sentence into roadkeep.toml and no validator reads it, so a mangled run lands and stays** — The write re-parses the file and a comment carrying a mojibake run is legal TOML, and lint never reads that file for characters. → §RK1666
+- 📋 **RK1667** (deps: —) **the report door mangles a symptom carrying a backtick in the shell this repository is developed in** — RK1635 measured it in three shells: inside double quotes a backtick substitutes in sh and escapes in PowerShell, and this project's prose is backticks. → §RK1667
 
 ## Block E — Adoption
 
