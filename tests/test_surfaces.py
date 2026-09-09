@@ -493,6 +493,8 @@ OVER_BODY = ("a word " * 200).strip() + "."
 #: repair, and a budget predicting a refusal that never came to find.
 MEASURED: dict[tuple[str, str], list[str]] = {
     ("add", "why"): ["add", "--block", "A", "--symptom", "A symptom", "--why", OVER],
+    # RK1632. The field every line leads with, measured at the door it had no pipe to.
+    ("add", "symptom"): ["add", "--block", "A", "--symptom", OVER, "--why", "Because."],
     ("add", "section_body"): [
         "add", "--block", "A", "--symptom", "A symptom", "--why", "Because.",
         "--section", "A design", "--section-body", OVER_BODY,

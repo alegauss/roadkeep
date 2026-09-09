@@ -82,7 +82,7 @@ def _add(config: Config, args: argparse.Namespace) -> Result | int:
         insertion = add(
             config,
             block=args.block,
-            symptom=args.symptom,
+            symptom=_piped(args.symptom),
             why=_piped(args.why),
             status=args.status,
             deps=args.deps,
@@ -321,7 +321,9 @@ def declare_lines(subcommands: argparse._SubParsersAction) -> None:
     )
     add_parser.add_argument("--block", required=True, help="the block label, e.g. B")
     add_parser.add_argument(
-        "--symptom", required=True, help="what does not work — a phrase, never a fix"
+        "--symptom",
+        required=True,
+        help="what does not work — a phrase, never a fix" + _PIPE,
     )
     add_parser.add_argument(
         "--why", required=True, help="one sentence, ending in a stop" + _PIPE
@@ -416,6 +418,13 @@ def declare_lines(subcommands: argparse._SubParsersAction) -> None:
         # because it is the field that reliably carries what a shell reads first. Ungated,
         # unlike the body: a `--why -` is the caller asking for the pipe outright.
         reads_stdin=(
+            # The field every task line leads with, and the one prose argument that had no
+            # pipe (RK1632). RK329 gave every other one a `-` so a sentence carrying a backtick
+            # or an apostrophe never meets a shell, and RK1187 applied it to `restate --symptom`
+            # — the sibling door on the same field. `add` kept the literal, so the same claim
+            # reached one verb and landed as text in the other, and a `-` handed here was not
+            # read as a pipe: it was measured and stored as a one-character claim.
+            Prose(dest="symptom", omitted=False),
             Prose(dest="section_body", gated_by="section", unless="section_body_file"),
             Prose(dest="why", omitted=False),
         ),

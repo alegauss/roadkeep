@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1632 The field every line leads with, and the pipe it has not got
-
-RK329 established that every prose argument reads stdin on `-`, so a sentence carrying a
-backtick or an apostrophe never meets a shell. RK1187 applied it to `restate --symptom`,
-whose help says so today. `add --symptom` was not moved and its help does not: the value
-arrives as argv or not at all.
-
-So the field every task line leads with is the one field with no pipe, on the verb that
-writes it first. `add --why` takes `-`, `add --section-body` takes `-` and a path, and
-between them sits a symptom that has to survive whatever quoted it. The failure is
-silent in the direction that matters: a `-` handed to it is not read as a pipe, it is
-measured and stored as a one-character claim, which is the exact landing RK1187 was
-filed about one verb over.
-
-RK1474 recorded the same class from the other end — a value passed ASCII-only to survive
-a shell is bytes that never arrived, and permanent in two files at once. A caller
-writing in a language with accents meets this on the first line it files, and a client
-composing argv from a text box has no shell to blame.
-
-What closes it is the door the sibling verb already has, spelled the same way in the
-same place, and a test that asks the parser rather than the help text which arguments
-read a pipe.
-
 ### §RK1634 The last look at a section, at the moment it goes
 
 A ship deletes the rationale section in the same transaction that writes the ledger

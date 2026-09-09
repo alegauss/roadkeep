@@ -1562,7 +1562,11 @@ def test_each_declaration_says_which_argv_goes_to_the_pipe():
     # omitted-argument read is off — which the handler knew and the declaration did not, and a
     # pass reading only the declaration would have refused a legal `--section-body-file` call
     # for a pipe clash that is not one.
+    # `symptom` since RK1632, and first: the field every task line leads with was the one
+    # prose argument with no pipe, so a `-` handed to it was not read as one — it was measured
+    # and stored as a one-character claim, which is the landing RK1187 fixed one verb over.
     assert prose_of("add") == (
+        Prose(dest="symptom", omitted=False),
         Prose(dest="section_body", gated_by="section", unless="section_body_file"),
         Prose(dest="why", omitted=False),
     )
@@ -1570,7 +1574,7 @@ def test_each_declaration_says_which_argv_goes_to_the_pipe():
     assert prose_of("section amend") == (
         Prose(dest="body", omitted=False, unless="body_file"),
     )
-    body, why = prose_of("add")
+    symptom, body, why = prose_of("add")
     # An `add` naming no section must never block on a pipe — the comment that was the guard.
     assert not body.reached_by({"block": "A", "symptom": "s", "why": "w."})
     assert body.reached_by({"section": "A design"})
@@ -1578,6 +1582,10 @@ def test_each_declaration_says_which_argv_goes_to_the_pipe():
     # argparse's refusal, so only an outright `-` is the caller asking for the pipe.
     assert why.reached_by({"why": "-"})
     assert not why.reached_by({"why": "A reason."})
+    # The symptom is the `why`'s shape on the same verb (RK1632), which is what it had not
+    # got: a `-` was measured and stored as a one-character claim rather than read as a pipe.
+    assert symptom.reached_by({"symptom": "-"})
+    assert not symptom.reached_by({"symptom": "A symptom of a kind"})
     assert not prose_of("section amend")[0].reached_by({"title": "A new heading"})
     assert prose_of("section amend")[0].reached_by({"body": "-"})
 
