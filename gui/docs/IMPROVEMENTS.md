@@ -367,29 +367,6 @@ The order is not a verdict, and drawing it must not make it one. How long a paus
 stand is a judgement about work — the same one `[claims] held` refuses to make — so the
 oldest is first and what that means is the reader's.
 
-### §RG74 The marker and the claim are two different facts
-
-Writing RG23's tests turned up something worth stating before a screen draws it. The
-working marker on a line and an entry in the claim registry are separate: this session
-moved RG23 to 🛠 and `held` stayed empty, because a claim is dated and released on a
-window and a marker is not. A line can therefore be in progress with nobody holding it,
-held by somebody with the marker not yet moved, or both.
-
-The detail carries both already. What it does not do is say what the pair means, and the
-two obvious readings are both wrong. Treating the marker as the claim makes every line
-somebody started look taken forever, which is what the sixty-minute window exists to
-avoid. Treating the claim as the only truth makes a line whose claim expired look free
-while a session is still working it.
-
-The honest reading is that they answer different questions — the marker says what state
-the *work* is in, and the claim says whether a *worker* is on it right now — so a screen
-shows both and never one as a proxy for the other. Where they disagree is exactly where
-somebody needs to look, which makes the disagreement worth drawing rather than
-resolving.
-
-This becomes urgent at RG41, where an agent is handed a line: starting one that somebody
-else is on is the failure that costs two people an afternoon.
-
 ### §RG76 The chain a brief already sent
 
 `brief` sends `chains` on every line and this app's shape does not declare the key, so

@@ -6,6 +6,7 @@ import {
   markersOf,
   meaningOf,
   openMarkers,
+  workingMarker,
   type ConfigPayload,
 } from '@rk/core'
 import { beforeAll, describe, expect, it } from 'vitest'
@@ -85,5 +86,23 @@ describe('RG53: what a real config says about markers', () => {
 
     expect(overlapping.length).toBeGreaterThan(0)
     for (const meaning of overlapping) expect(meaning.label).not.toBe('open')
+  })
+})
+
+describe('RG74: the marker this project moves a line to', () => {
+  it('reads one, and it is one this project can actually carry', () => {
+    const working = workingMarker(config)
+
+    // Read and never guessed: most projects declare no `markers.working`, and the config
+    // carries what the build uses when nothing does. Held to the open set, because a
+    // marker outside it names a state no line here may be in.
+    expect(working).not.toBe('')
+    expect(openMarkers(config)).toContain(working)
+  })
+
+  it('is the marker a claim actually moves a line to', () => {
+    // The whole point of reading it rather than declaring one: this is the emoji the
+    // engine writes when somebody takes a line, and RG74 compares against it.
+    expect(workingMarker(config)).toBe('🛠')
   })
 })

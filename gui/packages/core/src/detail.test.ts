@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { designOf, detailFrom, whyNotStartable } from './detail'
+import { designOf, detailFrom, saidOfUnderway, underway, whyNotStartable } from './detail'
 import { readBriefPayload, type BriefPayload } from './payloads'
 
 /** Captured from a real `brief --json`, trimmed to the keys the shape declares. */
@@ -228,5 +228,78 @@ describe('RG23: a line whose pointer resolves to nothing', () => {
     expect(detail.hasDesign).toBe(false)
     expect(designOf(detail)).toBeNull()
     expect(detail.payload.sectionAbsence).toContain('no section')
+  })
+})
+
+describe('RG74: the marker and the claim, which are two facts', () => {
+  const HOLDER = { by: 'a session', since: '2026-09-08T19:00:00Z', state: 'held', paths: [] }
+  const state = (status: string, held: unknown[], working = '🛠') =>
+    underway(detailFrom(brief({ status, held })), working)
+
+  it('reads a started line somebody holds as both, and not as one', () => {
+    const both = state('🛠', [HOLDER])
+
+    expect(both.marked).toBe(true)
+    expect(both.held?.by).toBe('a session')
+    expect(both.disagree).toBe(false)
+  })
+
+  it('reads a line nobody holds and nothing started as neither', () => {
+    const idle = state('📋', [])
+
+    expect(idle.marked).toBe(false)
+    expect(idle.held).toBeNull()
+    expect(idle.disagree).toBe(false)
+  })
+
+  it('says a started line with no live claim is a disagreement', () => {
+    // The sixty-minute window lapsed, or the session ended. Reading the marker as the
+    // claim would make this look taken forever, which is what the window exists to avoid.
+    const stale = state('🛠', [])
+
+    expect(stale.marked).toBe(true)
+    expect(stale.held).toBeNull()
+    expect(stale.disagree).toBe(true)
+  })
+
+  it('says a held line whose marker never moved is a disagreement too', () => {
+    // The other direction, and the one that costs two people an afternoon: reading the
+    // marker alone shows this as free while somebody is on it.
+    const quiet = state('📋', [HOLDER])
+
+    expect(quiet.marked).toBe(false)
+    expect(quiet.held?.by).toBe('a session')
+    expect(quiet.disagree).toBe(true)
+  })
+
+  it('does not call it a disagreement where the project has no working marker', () => {
+    // One fact cannot disagree with a question this project does not ask.
+    const unasked = state('🛠', [], '')
+
+    expect(unasked.marked).toBe(false)
+    expect(unasked.disagree).toBe(false)
+  })
+})
+
+describe('RG74: what the pair is told to a person as', () => {
+  const HOLDER = { by: 'alex', since: 'an hour ago', state: 'held', paths: [] }
+  const said = (status: string, held: unknown[]) =>
+    saidOfUnderway(underway(detailFrom(brief({ status, held })), '🛠'))
+
+  it('names the worker where somebody is on it', () => {
+    expect(said('🛠', [HOLDER])).toBe('alex is working it, since an hour ago')
+  })
+
+  it('says the claim lapsed rather than repeating the marker', () => {
+    // "In progress" alone cannot tell a line somebody is on from one abandoned an hour ago.
+    expect(said('🛠', [])).toBe('started, and no claim on it is still live')
+  })
+
+  it('says the marker was never moved where somebody holds it', () => {
+    expect(said('📋', [HOLDER])).toContain('has not been moved to the working marker')
+  })
+
+  it('says nothing where there is nothing to say', () => {
+    expect(said('📋', [])).toBe('')
   })
 })

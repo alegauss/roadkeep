@@ -42,6 +42,24 @@ export function openMarkers(config: ConfigPayload): string[] {
   return [entry.set.replace(/^["']|["']$/g, '')]
 }
 
+/**
+ * The marker this project moves a line to when somebody starts it, or the empty string.
+ *
+ * **Declared or built in, and never guessed** (RG74). Most projects declare no
+ * `markers.working` and every one of them still has one, which is why `config` carries what
+ * a build uses when nothing declares it. Empty is a real answer and not a failure: a
+ * backlog whose open set never spells the built-in marker has no working marker, and a
+ * screen that invented one would show every line as started.
+ */
+export function workingMarker(config: ConfigPayload): string {
+  const entry = config.keys.find((key) => key.address === 'markers.working')
+  const spelled = entry?.set ?? entry?.fallback ?? ''
+  const marker = spelled.replace(/^["']|["']$/g, '')
+  // Held to the open set for the engine's own reason: a marker outside it is one no line
+  // may carry, so reporting it would be describing a state this project cannot be in.
+  return openMarkers(config).includes(marker) ? marker : ''
+}
+
 /** What a marker write did to the claim on its line. The engine's own three answers. */
 export type ClaimEffect = 'claimed' | 'released' | 'neither'
 
