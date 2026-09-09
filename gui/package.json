@@ -6,6 +6,9 @@
   "license": "MIT",
   "type": "module",
   "main": "packages/shell/dist/main.js",
+  "engines": {
+    "node": ">=26"
+  },
   "workspaces": [
     "packages/*"
   ],

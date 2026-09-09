@@ -50,6 +50,11 @@ commit as the code.
 `npm run dev` opens the window with hot reload; `npm start` runs it against the bundle on
 disk. Neither is a gate.
 
+**Node 26 or newer**, declared in `package.json` and `.nvmrc` (RG97). On Node 20 none of
+the above reports a version problem: every jsdom file dies with a `TypeError` out of the
+undici jsdom bundles, and the window test with `WebSocket is not defined`. Two symptoms
+that look unrelated and neither names the cause.
+
 ## Two habits that are not obvious
 
 **Check what is already there before building a mechanism.** The design system ships a
