@@ -369,6 +369,23 @@ config at all.
 What it must not become is thirteen `unreached` rows. That is the work-list back, bought
 with a token.
 
+### §RK1669 The rows a transport does not have
+
+`_one_answer` composes the rows off the declaration, so a call naming no subject is
+answered with every subject its parser declares. On the terminal that is the whole set
+and correct. Over MCP it is not: `cost` declares seven and the tool exposes four,
+`deny`, `notes` and `near` being withheld with reasons that say why a caller there is
+not offered them — so three of seven rows name flags that caller cannot pass, and a
+retry passing one is refused again by `additionalProperties: false`.
+
+The rule is one rule and the surfaces differ, which is the arrangement RK1260 already
+met one field over: the pipe clause is unsaid over a transport that has no stdin. What
+is missing here is the same subtraction, and the dispatcher is the wrong place to make
+it — it does not know which surface it is on. So either the refusal takes the exposed
+set from its caller, or `serving.call` filters the rows it hands back, and which of
+those it is turns on whether a refusal composed in `cli` may be shaped by anything above
+it.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
