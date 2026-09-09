@@ -797,6 +797,7 @@
 - ✅ **RK1627** **nothing enumerates the fields a caller composes, so which of them has a validator is answered by remembering** — composed.FIELDS classifies every value-taking argument a write verb takes as schema, round-trip, address or path, and its first run found govern --because writing prose no validator reads.
 - ✅ **RK1635** **the composer sweep runs every door through shlex, which is the assumption the door was wrong about** — One door now runs through every shell on the machine, so the quoting is read by a shell instead of by the parser that mis-quoted it.
 - ✅ **RK1637** **seven cost subjects each argued they were the Nth cadence nobody counted, and nothing enumerates the cadences** — The trigger is declared beside the flag that reads it, so the population is a table and the bare form prints it.
+- ✅ **RK1638** **a prose check finds its span by splitting on a sentence, so a reworded clause empties the test instead of failing it** — Both spans are read off the binding the comment sits above, and the three readings that used to be empty strings refuse.
 
 ## Block E — Adoption
 

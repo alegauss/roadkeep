@@ -24,6 +24,7 @@ one that silently reports about the wrong one.
 
 from __future__ import annotations
 
+import ast
 import re
 from dataclasses import dataclass
 from functools import cached_property, lru_cache
@@ -149,6 +150,88 @@ def suite() -> tuple[Path, ...]:
     itself. Every other sweep asks here.
     """
     return tuple(sorted(Path(__file__).resolve().parent.glob("test_*.py")))
+
+
+def commented(module: str, name: str) -> str:
+    """The comment block immediately above where ``name`` is bound (RK1638).
+
+    Prose addressed by **the thing it is attached to**, which is how this file addresses a
+    module and `USES` a caller. The checks in `test_naming` found their span by splitting the
+    source on a phrase somebody had written — so an author rewording the opening clause did
+    not break the test, they emptied it, which is the drift that file exists to end one level
+    up. RK1539 was prose drifting from its table; that was a check drifting from its prose,
+    failing the same way: silently, green, covering nothing.
+
+    ``name`` is a dotted binding — `TOOLS`, or `_accepting.line` for one inside a function —
+    spelled the way `composing.census` spells a site, because a bare name is not an address:
+    `line` is assigned in a dozen functions of `cli.py`, and a reader that took the first
+    would be the coin toss :func:`address` refuses one question over.
+
+    Refused rather than defaulted in both directions that could be silent: a name this module
+    binds nowhere or in several places, and a binding with no comment above it. Either is the
+    empty read the phrase-split produced, and answering `""` would reintroduce it here.
+    """
+    where = address(module)
+    return beside(next(one.text for one in modules() if one.where == where), name, where=where)
+
+
+def beside(text: str, name: str, *, where: str = "<text>") -> str:
+    """:func:`commented`'s reading, over source rather than over a module of this package.
+
+    Apart so the refusals can be exercised on a fixture: what makes this a fix and not a
+    reshuffle is that the three silent readings a phrase-split had — no such name, several of
+    them, no comment at all — are refusals here, and a test cannot reword this package's own
+    comments to prove it.
+    """
+    lines = text.splitlines()
+    found = [node.lineno for path, node in _bindings(ast.parse(text)) if path == name]
+    if len(found) != 1:
+        raise LookupError(
+            f"{name!r} is bound {len(found)} times in {where}: a comment is addressed by one "
+            f"binding, so pass the dotted path — `<function>.<name>` — that names it"
+        )
+    said: list[str] = []
+    at = found[0] - 1
+    while at > 0 and lines[at - 1].lstrip().startswith("#"):
+        at -= 1
+        stripped = lines[at].lstrip()
+        said.append(stripped.removeprefix("#:").removeprefix("#").strip())
+    if not any(said):
+        raise LookupError(
+            f"{name!r} in {where} has no comment above it, so there is no prose beside this "
+            f"table to hold it to"
+        )
+    return "\n".join(reversed(said))
+
+
+def _bindings(tree: ast.Module) -> list[tuple[str, ast.stmt]]:
+    """Every name this module assigns, as `<scope path>.<name>` and the statement (RK1638).
+
+    Scoped, for :func:`commented`'s reason: the address has to be unique or the read is a
+    guess. A `for` target and a `with` alias are not here — nothing in this package puts a
+    table under one, and a reader that guessed at every binding form would be answering about
+    whichever shape it happened to walk first.
+    """
+    found: list[tuple[str, ast.stmt]] = []
+
+    def walk(node: ast.AST, scope: tuple[str, ...]) -> None:
+        for child in ast.iter_child_nodes(node):
+            if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                walk(child, (*scope, child.name))
+                continue
+            targets: list[ast.expr] = []
+            if isinstance(child, ast.Assign):
+                targets = list(child.targets)
+            elif isinstance(child, ast.AnnAssign):
+                targets = [child.target]
+            for target in targets:
+                if isinstance(target, ast.Name):
+                    found.append((".".join((*scope, target.id)), child))
+            if not targets:
+                walk(child, scope)
+
+    walk(tree, ())
+    return found
 
 
 #: A backticked single word — a verb, a flag, a key, a tool name. The span is one word because

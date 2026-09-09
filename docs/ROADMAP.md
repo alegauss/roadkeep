@@ -38,7 +38,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1638** (deps: —) **a prose check finds its span by splitting on a sentence, so a reworded clause empties the test instead of failing it** — RK1585's two readers both address the comment by a phrase somebody wrote, which is the drift they were built to catch one level up. → §RK1638
 - 📋 **RK1639** (deps: —) **one closed set of prose was swept for stale figures and the three a caller actually meets were not** — RK1588 found two of nine withholding reasons resting on numbers nothing re-takes, and remedies, notes and refusals are the same shape unread. → §RK1639
 - 💭 **RK1640** (deps: —) **421 verb-leading spans sit in messages carrying no sibling door, so the pair that decides one reads none of them** — RK1590 fires on a message spelling one verb both ways and the mixed shape numbers zero, so what is unread is every span with nothing beside it. → §RK1640
 - 💭 **RK1641** (deps: —) **the sweep that runs every door the gate offers reaches one of eighty-four dispatchable rows** — RK472, RK1015 and RK1591 each corrected runnable on a door found refusing in the field, and the test written to catch that reads whatever one fixture happens to emit. → §RK1641

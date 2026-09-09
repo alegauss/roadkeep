@@ -224,32 +224,6 @@ reading.
 
 ## Block D — The gate
 
-### §RK1638 The span addressed by its own words
-
-Both checks in `test_naming` find their prose by splitting the source on a phrase — one
-for the guard's comment, one for the tool table's preamble. The span is addressed by a
-sentence somebody wrote, so an author who rewords the opening clause does not break the
-test: they empty it.
-
-That is the failure the file exists to end, one level up. RK1539 was prose drifting from
-its table; this is a check drifting from its prose, and it fails the same way —
-silently, green, covering nothing. RK496 declared the module set once for exactly that
-reason.
-
-The guard is cheap and half-present. The tool-table check asserts the span names at
-least one verb before checking any, so an empty read is a red; the collision check has
-no such line, and neither says the span it took was the span it meant.
-
-What closes it is addressing prose the way `surface` addresses a module: by the **thing
-it is attached to** rather than by its own text. Both spans here sit immediately above a
-named assignment, which `ast` gives exactly — `spoken` already walks source that way,
-and `USES` is reached by name.
-
-So the shape is a reader taking a module and a name and answering with the prose above
-it, and every caller in `BESIDE` moving onto it. A phrase-split stays where a span
-genuinely is one clause inside a longer docstring, and is then a stated exception rather
-than the default.
-
 ### §RK1639 The prose a caller is handed
 
 RK1588 swept one closed set and found two of nine reasons resting on stale figures — a
