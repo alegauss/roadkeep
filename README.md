@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 3 | 231 | 2 |
-| C — Query (consult without reading the file) | 6 | 186 | 7 |
+| C — Query (consult without reading the file) | 5 | 187 | 7 |
 | D — The gate | 17 | 295 | 7 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 162 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 2 | 42 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 29 | 1111 | 24 |
+| **Total** | 28 | 1112 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1631** (deps: —) **no one call says whether a path is governed and where its root is, so a client reads it off a null** — config answers source = null, engines answers happily about an ungoverned directory, and lint does a whole file's work to report the root a probe needs. → §RK1631
+- 📋 **RK1632** (deps: —) **add --symptom takes no stdin, the one prose field with no pipe being the one every line leads with** — RK1187 gave restate --symptom the pipe and add kept the literal, so a claim carrying a backtick reaches one verb and lands as text in the other. → §RK1632
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

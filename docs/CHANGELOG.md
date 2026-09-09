@@ -487,6 +487,7 @@
 - ✅ **RK1625** **unclosed answers a tree with no git as a backlog with nothing open, the flag that tells those apart never being set** — The flag and the open count pass from the walk that knows them, so a tree with no git says it read no history and how many lines it cannot speak for.
 - ✅ **RK1628** **pick offers an idea whose premise a later ship deleted, no answer saying what landed under the line since it was filed** — show and brief carry the distance, off one derivation: how many entries landed under the block since the commit that proposed the line, which pick at 2 ms does not pay for.
 - ✅ **RK1630** **a read payload names neither the root it answered about nor the build that answered** — One helper on the two readers of a payload leads every mapping with the absolute root and the build that answered, keeping the two verbs that already name one, and hands a list back untouched.
+- ✅ **RK1631** **no one call says whether a path is governed and where its root is, so a client reads it off a null** — config states governed and the roles [files] declares, so the probe is one call: with RK1630's root and version already on it, a client meeting a path before a project has all four.
 
 ## Block D — The gate
 

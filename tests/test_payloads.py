@@ -58,7 +58,10 @@ PROMISED = {
     # `tables` joined when the note moved off the key rows (RK1603): it was on every one of
     # them, so a hover's sentence now joins on `table`, and both halves are keys a reader
     # outside this process depends on.
-    "config": ("version", "source", "keys", "tables"),
+    # `governed` and `files` since RK1631: *is this path governed* had no door, and a
+    # client was branching on `source: null` — a fact expressed as an absence, with no
+    # root, no roles and no reason beside it.
+    "config": ("version", "source", "governed", "files", "keys", "tables"),
 }
 
 #: The keys inside the one object each of those carries a list of. Held apart from the top
@@ -178,6 +181,49 @@ def test_every_payload_says_which_project_and_which_build(verb, dirty, populated
     assert Path(got["root"]).is_absolute()
     assert Path(got["root"]) == Path(where).resolve()
     assert got["version"]
+
+
+def test_one_call_says_whether_a_path_is_governed_and_what_it_declares(tmp_path):
+    """RK1631. Asking whether a path is governed had no door: `config --json` answered
+    `source: null`, `engines` exits 0 on a directory with no config anywhere above it, and
+    `lint` was the only read carrying a root — reached by parsing every governed file, which
+    is a file's work to answer a directory's question.
+
+    The caller is any client that meets a **path** before it meets a project: an editor
+    opening a folder, a gate deciding whether to run, a surface over a machine's checkouts.
+    Each was reconstructing the discovery rule in its own language, which is wrong the first
+    time discovery changes.
+
+    One call, and after RK1630 the root and the build are already on it."""
+    bare = tmp_path / "ungoverned"
+    bare.mkdir()
+    got = payload("config", root=bare, expected=EXIT_OK)
+    assert got["governed"] is False
+    # An absence stated rather than inferred: `source` is still null and no longer the signal.
+    assert got["source"] is None
+    # And no roles, which is the same answer — never `Config.default()`'s three, which would
+    # be this read answering about a layout nobody declared.
+    assert got["files"] == {}
+    # The two RK1630 leads with are there either way, so a client has the path it asked about.
+    assert Path(got["root"]) == bare.resolve()
+    assert got["version"]
+
+
+def test_a_governed_path_says_so_and_names_the_roles_it_declares(populated):
+    from roadkeep.config import Config
+
+    got = payload("config", root=populated, expected=EXIT_OK)
+    assert got["governed"] is True
+    assert got["source"]
+    # The project's own spelling, relative to the root beside it — which is every other `file`
+    # key here, and two conventions in one payload is the join a consumer gets wrong.
+    config = Config.discover(populated)
+    assert got["files"] == {
+        role: config.relative(config.path(role))
+        for role in config.paths
+    }
+    assert "roadmap" in got["files"]
+    assert not Path(got["files"]["roadmap"]).is_absolute()
 
 
 def test_a_payload_that_already_named_one_keeps_its_own(dirty):

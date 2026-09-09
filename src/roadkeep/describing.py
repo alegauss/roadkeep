@@ -227,6 +227,30 @@ class Shape:
     notes: Mapping[str, str] = field(default_factory=dict)
     #: The file read back for :attr:`Key.declared`, or `None` on a project with no config.
     source: str | None = None
+    #: Whether a `roadkeep.toml` governs this path at all (RK1631) — stated, and no longer a
+    #: null for a caller to infer it from.
+    #:
+    #: *Is this governed* had no door. `config --json` answered `source: null`, which is a fact
+    #: expressed as an absence: a client branches on a null and is given no reason for it.
+    #: `engines` exits 0 on a directory with no config anywhere above it, and `lint` is the
+    #: only read that carried a root — reached by parsing every governed file, which is a
+    #: file's work to answer a directory's question.
+    #:
+    #: The caller is any client that meets a **path** before it meets a project: an editor
+    #: opening a folder, a gate deciding whether to run, a surface over a machine's checkouts.
+    #: Each was reconstructing the discovery rule — walk up looking for `roadkeep.toml` — in
+    #: its own language, which is the second implementation this project exists to remove and
+    #: is wrong the first time discovery changes.
+    governed: bool = False
+    #: The roles `[files]` declares, as the project spells them: role → path, relative to the
+    #: root every payload now leads with (RK1630). Empty on an ungoverned path, which is the
+    #: same answer `governed` gives and not a project that declared none — a project always
+    #: declares a roadmap.
+    #:
+    #: The project's own spelling and never an absolute path, which is every other `file` key
+    #: here: an address is joined to the root beside it, and two conventions in one payload is
+    #: the join a consumer gets wrong.
+    files: Mapping[str, str] = field(default_factory=dict)
     #: What this build fixes from a corpus instead of accepting (RK1381). Empty where the
     #: reading could not be taken — a project whose files this process cannot read — which is
     #: the honest answer and not a figure stated without the corpus behind it.
@@ -504,6 +528,23 @@ def shape(config: Config, table: str | None = None) -> Shape:
         notes=said,
         version=__version__,
         source=None if config.source is None else config.relative(config.source),
+        # Governed and the roles it declares, off the config already read (RK1631): the
+        # discovery walk has run by the time this is called, so what a client was
+        # reconstructing in its own language is a field here rather than a second
+        # implementation of `find_config` that is wrong the first time discovery changes.
+        governed=config.source is not None,
+        # Only where a declaration was found: `Config.default()` carries three paths a project
+        # never wrote, and publishing those as `[files]`' would be this read answering about a
+        # layout nobody declared — which is the null this task is about, spelled as data.
+        files=(
+            {}
+            if config.source is None
+            else {
+                role: config.relative(config.path(role))
+                for role in ROLES
+                if config.has(role)
+            }
+        ),
         # Only on the whole listing (RK1381): `--table <name>` narrows to one table, and a
         # figure that is under no table at all would arrive as an answer to a narrower
         # question than the one asked.
@@ -537,6 +578,16 @@ def stated(found: Shape) -> str:
         f"  build    roadkeep {found.version} — what is listed is what *this* copy takes, "
         f"which is how a key it predates is told from a typo",
     ]
+    # What the plain register was saying only by omission (RK1631). The listing above reads the
+    # same on a governed tree and an ungoverned one — the keys are what the *build* takes — so
+    # the one row that differs is the one a reader met a null for on the other register.
+    rows.append(
+        f"  governs  {len(found.files)} declared role(s): "
+        f"{', '.join(f'{role} {path}' for role, path in found.files.items())}"
+        if found.governed
+        else "  governs  nothing here: no roadkeep.toml at this path or above it, so every "
+        "value below is this build's own default"
+    )
     for name in found.tables():
         under = found.under(name)
         rows.append(f"[{name or 'top level'}]")
@@ -571,7 +622,16 @@ def payload(found: Shape) -> dict[str, object]:
     """The same answer as data — what a completion list reads (RK1270, RK1271)."""
     return {
         "version": found.version,
+        # Whether a `roadkeep.toml` governs this path at all, stated (RK1631). Beside `source`
+        # and never instead of it: that key answers *which file*, and a client asking *is this
+        # governed* was branching on its null — a fact expressed as an absence, with no reason
+        # beside it and no roles to act on.
+        "governed": found.governed,
         "source": found.source,
+        # What `[files]` declares, role by role, as the project spells them — relative to the
+        # `root` every payload now leads with (RK1630). `{}` on an ungoverned path, which is
+        # the same answer `governed` gives: a governed project always declares a roadmap.
+        "files": dict(found.files),
         # What this build fixes instead of accepting (RK1381). `[]` and never omitted, for the
         # reason every other absence here is published: a consumer reading a missing key cannot
         # tell "nothing is fixed" from "this build is older than the answer".

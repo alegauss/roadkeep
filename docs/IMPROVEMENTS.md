@@ -147,26 +147,6 @@ already built, and already the shape every other door that leaves a pointer owin
 
 ## Block C — Query
 
-### §RK1631 The probe, and the null that stands in for it
-
-Asking whether a path is governed has no door. `config --json` answers `source: null`,
-which is a fact stated by an absence — a client branches on a null and is given no root,
-no roles and no reason. `engines --json` exits 0 on a directory with no `roadkeep.toml`
-anywhere above it and reports `invoke: roadkeep`, so it answers confidently about
-nothing. `lint --json` is the only read carrying `root`, and it gets there by parsing
-every governed file, which is a file's work to answer a directory's question.
-
-The caller this is missing for is any client that meets a path before it meets a
-project: an editor opening a folder, a gate deciding whether to run, a surface over a
-machine's checkouts. Each one reconstructs the discovery rule — walk up looking for
-`roadkeep.toml` — in its own language, which is the second implementation this project
-exists to remove, and it is wrong the first time discovery changes.
-
-The answer wanted is one call, cheap, that says: governed or not, the absolute root, the
-roles `[files]` declares and the engine that would write. Every part of it is computed
-somewhere already; none of it is reachable together, and the one signal that is
-reachable is a null.
-
 ### §RK1650 Where a read may say no
 
 *Reading is never refused* is a real rule here and it is stated four times, each about
