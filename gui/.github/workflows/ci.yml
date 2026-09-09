@@ -83,6 +83,21 @@ jobs:
         with:
           python-version: '3.11'
 
+      # And the same engine again, this time as a command (RG113).
+      #
+      # `engineCandidates` builds both of its candidates relative to the project being
+      # opened: the committed launcher where that project has one, and otherwise a bare
+      # `roadkeep` on PATH. A live fixture is a temporary directory with governed files in
+      # it and no `.claude/`, so PATH is the only candidate it ever gets — and a runner
+      # given the engine as a checkout alone has nothing there, which reads as `unresolved`
+      # and fails five tests that pass wherever pip has been.
+      #
+      # Installed from the checkout above, so the command and `ROADKEEP_HOME` are one
+      # commit. No dependencies to resolve, which is why this costs a second.
+      - name: put that engine on PATH
+        run: pip install ./${{ env.ROADKEEP_CHECKOUT }}
+        shell: bash
+
       - run: npm ci
 
       - name: typecheck
