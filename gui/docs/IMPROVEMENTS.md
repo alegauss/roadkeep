@@ -581,3 +581,26 @@ browser applies.
 So there are two defects here and the second is the one that matters: a value, and a
 guard that agrees with the intent rather than with the sheet. Any token this app
 overrides that the package re-points in dark has the same shape.
+
+### §RG116 The language has a setting, a source and no switch
+
+RG86 made `Settings.locale` reach every screen and RG88 made i18next the one place the
+tag lives, so the reading half is finished. Nothing writes it. A person who wants
+Portuguese opens `settings.json`, types a tag and restarts, which is the state the
+ground was in before RG87.
+
+Three of the four pieces are already here, which is why this is worth stating rather
+than discovering later. `changeLanguage` moves both catalogues at once and a screen
+follows it — `speaking.test.tsx` holds that. The write back has a shape to copy:
+`saveTheme` on the bridge, validated in the main process against `core`'s own set, the
+file re-read so no other field is lost. And the control itself is the design system's:
+it ships `LanguageSelect` and `LanguageSwitcher`, so building one here would be the
+duplicate [[RG39]] exists to refuse.
+
+What is undecided is the fourth. `saveTheme` was deliberately one field, and its own
+note says widening the bridge to a settings patch is a decision for whoever needs the
+second write — this is that caller. A second narrow method keeps the surface honest and
+starts a list; a patch method hands the renderer the roots as well. Neither is obviously
+right, and the answer wants to be given once rather than twice.
+
+Where the control sits is [[RG63]]'s, since there is no chrome to put it in yet.
