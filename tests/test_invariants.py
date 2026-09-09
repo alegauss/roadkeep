@@ -354,6 +354,18 @@ INVARIANTS: tuple[Invariant, ...] = (
         # neither checked against the parser.
         instances=("RK1539",),
     ),
+    Invariant(
+        stated="RK1639",
+        rule=(
+            "prose a caller is handed quotes no measured figure, so a decision is defended "
+            "by the read that takes the number rather than by the number"
+        ),
+        over="test_figures.HANDED",
+        held_by="test_figures::test_no_prose_a_caller_is_handed_rests_on_a_figure_nothing_re_takes",
+        # The three RK1588 found in the one set it swept, each a figure frozen beside a
+        # surface that had moved since — and none of which broke anything.
+        instances=("RK1530", "RK1540", "RK1541"),
+    ),
 )
 
 #: The rules stated here that nothing holds, named so that losing a holder is a decision

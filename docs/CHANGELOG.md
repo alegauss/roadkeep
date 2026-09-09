@@ -798,6 +798,7 @@
 - ✅ **RK1635** **the composer sweep runs every door through shlex, which is the assumption the door was wrong about** — One door now runs through every shell on the machine, so the quoting is read by a shell instead of by the parser that mis-quoted it.
 - ✅ **RK1637** **seven cost subjects each argued they were the Nth cadence nobody counted, and nothing enumerates the cadences** — The trigger is declared beside the flag that reads it, so the population is a table and the bare form prints it.
 - ✅ **RK1638** **a prose check finds its span by splitting on a sentence, so a reworded clause empties the test instead of failing it** — Both spans are read off the binding the comment sits above, and the three readings that used to be empty strings refuse.
+- ✅ **RK1639** **one closed set of prose was swept for stale figures and the three a caller actually meets were not** — One reading over four closed sets, with a row per table saying whether its prose is a caller's or an author's.
 
 ## Block E — Adoption
 

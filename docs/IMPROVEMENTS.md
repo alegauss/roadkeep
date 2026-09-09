@@ -224,31 +224,6 @@ reading.
 
 ## Block D — The gate
 
-### §RK1639 The prose a caller is handed
-
-RK1588 swept one closed set and found two of nine reasons resting on stale figures — a
-third of those carrying a number at all. That set was the honest first step, and the
-general form is not cheap: most numbers in package prose are corpus measurements whose
-point is being historical.
-
-The next sets are closed too and unswept. `remedying`'s remedies, `serving`'s notes and
-`guarding`'s refusals are each an enumeration this suite holds total, and each reaches a
-**caller** rather than a maintainer — which makes a stale figure worse there. A
-withholding reason is read by whoever edits the surface; a refusal by whoever met it.
-
-What made the sweep cheap was the distinction and not the regex: `RK1506` is an address
-and `943` is a measurement, and one line of pattern separates them. That holds wherever
-the prose is reached through a declared table, which is exactly these three.
-
-What it must not become is a rule about digits in this package. `test_corpora` quotes
-pinned counts on purpose, `budgeting` quotes what a surface measured the day a limit was
-chosen, and RK1530's docstring names two figures it is about. The line is *prose a
-caller is handed*; outside it a number is a record, not a claim.
-
-So the shape is that sweep over the next three tables, and a row per table saying
-whether its prose is a caller's or an author's — which decides whether a figure in it is
-a defect or a date.
-
 ### §RK1640 The bare verb with nothing to compare it against
 
 RK1590 made a message's own two spellings the tell, and that is the shape RK1589 had. It
@@ -315,24 +290,21 @@ apart.
 
 `SKILL.md` is 11,671 code units against `ORIENTATION_MAX = 13_000` in
 `tests/test_skill.py`. `writing.md` is 47,404 and `asking.md` 20,500, and no test, no
-`[budgets]` key and no reading bounds either. Together they are the guidance six times
-over, and the ceiling is on the third of it that shrank.
+`[budgets]` key and no reading bounds either. Together they are six times the guidance,
+and the ceiling is on the third that shrank.
 
 RK1601 is how that reads in practice: it added 1,361 units to one page and 1,076 to the
-other, both correctly — the argument being that a page's cost falls on the turn that
-opens it — and nothing anywhere could say whether the page could afford them.
-`roadkeep.toml`'s own comment already anticipates the shape, saying `SKILL.md` is
-deliberately absent from `[budgets]` because trigger-loaded and that its ceiling lives
-in a test instead. The pages are trigger-loaded one cadence further out and got neither.
+other, both correctly, and nothing could say whether either could afford them.
+`roadkeep.toml` anticipates the shape, saying `SKILL.md` is absent from `[budgets]`
+because trigger-loaded and holds its ceiling in a test. These are trigger-loaded a
+cadence further out and got neither.
 
-What is undecided is the number and who holds it. A test is where the orientation's
-lives, and it is one figure per file, which is what a page-cadence ceiling wants;
-`[budgets]` is where a project's own belong, and these ship in the plugin, so a project
-cannot be the one to set them. **No effort or size field.** does not reach this: that
-non-goal is about a field on a task line, and a ceiling on a file this tool ships is
-what `lint` holds for two others. Whether a bound helps is open — a reference refusing a
-rule because it is full is the failure `agents.md`'s budget causes on purpose, and a
-page's may not.
+Undecided is the number and who holds it. A test holds the orientation's, one figure per
+file, which a page-cadence ceiling wants; `[budgets]` holds a project's own, and these
+ship in the plugin. **No effort or size field.** does not reach this: that non-goal is
+about a field on a task line, and `lint` already holds a ceiling on two files this tool
+ships. Whether a bound helps is open: a reference refusing a rule because it is full is
+what `agents.md`'s budget causes on purpose, and a page's may not.
 
 ### §RK1644 The guard that reads characters
 

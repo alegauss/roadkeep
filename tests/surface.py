@@ -241,6 +241,34 @@ def _bindings(tree: ast.Module) -> list[tuple[str, ast.stmt]]:
 _WORD = re.compile(r"`([a-z][a-z0-9_-]*)`")
 
 
+#: A digit group standing as **its own word**, which is what tells a measurement from an
+#: address (RK1588, generalised by RK1639). `RK1506` is where a decision was made, `L5` is a
+#: law, `UTF-8` is an encoding and `utf-16-code-units` is a unit — every one of them glued to
+#: a letter or a hyphen, and none of them a number somebody took once. `943` and `2,947` are
+#: not glued to anything, and those are the figures that go stale.
+#:
+#: One line of pattern and not a table of exceptions, which is the whole reason the sweep is
+#: cheap enough to point at a second set of prose.
+_MEASURED = re.compile(r"(?<![\w-])\d[\d,]*(?![\w-])")
+
+
+def measured(prose: str) -> tuple[str, ...]:
+    """Every figure one span quotes **as a figure**, in order (RK1639).
+
+    RK1588's reading, lifted for its second caller. A number frozen in prose beside a surface
+    that moves is a claim nothing re-takes: `budget --decides`' reason quoted *2947 characters
+    against 2850* while the tool measured 2758 the same session, `cost --deny` said *19 of
+    room* where the read reports hundreds, and `anchors --retired` said *943 of 983* against a
+    repository that now holds over a thousand. None of the three broke anything, which is the
+    point — a decision defended by a stale figure reads exactly like one that is right.
+
+    **The extraction and never the verdict**, which is `claimed`'s division one function up:
+    whether a figure here is a defect or a date depends on who reads the prose, and
+    `tests/test_figures.py` is where that is declared per table.
+    """
+    return tuple(_MEASURED.findall(prose))
+
+
 def claimed(prose: str) -> tuple[str, ...]:
     """Every backticked word one span of prose names, in order and once each (RK1585).
 

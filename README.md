@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 233 | 2 |
 | C — Query (consult without reading the file) | 5 | 187 | 7 |
-| D — The gate | 15 | 298 | 7 |
+| D — The gate | 14 | 299 | 7 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 162 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 44 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 22 | 1119 | 24 |
+| **Total** | 21 | 1120 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1639** (deps: —) **one closed set of prose was swept for stale figures and the three a caller actually meets were not** — RK1588 found two of nine withholding reasons resting on numbers nothing re-takes, and remedies, notes and refusals are the same shape unread. → §RK1639
+- 💭 **RK1640** (deps: —) **421 verb-leading spans sit in messages carrying no sibling door, so the pair that decides one reads none of them** — RK1590 fires on a message spelling one verb both ways and the mixed shape numbers zero, so what is unread is every span with nothing beside it. → §RK1640
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
