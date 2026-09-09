@@ -241,30 +241,6 @@ replaces itself while somebody is reading a backlog is one that loses their plac
 it must not do is phone anywhere on launch by default: this app reads a person's
 repositories, and a network call it did not need is one that has to be explained.
 
-### §RG91 The artefact CI does not make
-
-RG55 wired the typecheck, the suite and `npm run build` to every change. `npm run
-package` is not among them, and it is the one command whose output a person would
-install: it stamps the build identity, refuses to package a renderer that lost its
-posture, and hands electron-builder an installer to produce.
-
-Everything RG46 established about that step is currently held by one machine having run
-it once. The stamp, the posture refusal and the archived app opening a window were all
-verified by hand, on Windows, in a session that is over.
-
-Packaging in CI is not free and that is the whole of the question. An installer per
-platform per push is minutes of runner time and an artefact nobody downloads; the useful
-shapes are narrower. Run the stamp and the posture check on every change, which is fast
-and is where the refusal lives. Run the full package on a tag, or on demand, and keep
-the artefact — which is also how somebody gets a build to try without a developer
-machine.
-
-Two things make it more than tidiness. `ELECTRON_RUN_AS_NODE` is exported by agent
-sessions and silently turns a packaged Electron into plain Node, which is the defect
-RG46 spent a session misdiagnosing — a runner does not export it, so CI is the
-environment where that class of failure is visible rather than masked. And a macOS build
-has never been attempted at all.
-
 ### §RG92 The instructions nothing gates
 
 RG56 gave this project an index and put it under a budget the gate enforces. Beside it
@@ -423,6 +399,27 @@ chrome has none, and what must not happen is one page growing its own. That is t
 decision to make here, and the alternative worth weighing is the header's trailing edge,
 where `BentoUserMenu` would have gone and where `docs/design/Main.dc.html` draws a
 version.
+
+### §RG119 The build nobody has made
+
+`electron-builder.yml` declares a `dmg` target with a category beside it, and that is
+the whole of what this project knows about a macOS build. Nobody has run it. RG91
+packaged Windows and Linux in CI and left this out deliberately: a runner is a poor
+place to find out what a platform needs, because every answer arrives as a red job with
+a log and no way to try the next thing without another push.
+
+Three things are likely to want settling, and none of them is knowable from here. An
+unsigned `.app` is refused by Gatekeeper on the machine that downloads it, which is a
+different problem from RG49's Windows one and is not solved by the same certificate.
+`spawnElectron` strips `ELECTRON_RUN_AS_NODE` and resolves a binary by a path this
+project has only ever resolved on two platforms. And the live suite starts the built app
+with a remote debugging port, which on macOS is the same mechanism and a different
+sandbox.
+
+So this carries `macos-machine` rather than a CI job: whoever has one runs `npm run
+package`, opens what comes out, and writes down what it took. Adding `macos-latest` to
+the package matrix is the last step and not the first — it is how the answer is kept,
+not how it is found.
 
 ## Block H — The look (a design system for governed prose)
 

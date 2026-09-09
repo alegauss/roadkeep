@@ -111,6 +111,7 @@
 - ✅ **RG113** **the live tests find an engine on the developer's PATH, so a fixture is unresolved on a runner** — CI installs the checked-out engine with pip, so a fixture resolves the same command a developer has — verified against a venv holding only that (design recorded in `.github/workflows/ci.yml`).
 - ✅ **RG114** **the built app never starts on the Linux runner, and the harness reports the wait without what it printed** — The refusal now carries what the app printed, and the Linux runner lets Chromium enter its sandbox — the second is a hypothesis CI tests (design recorded in `packages/shell/src/running-app.ts`).
 - ✅ **RG85** **the handler proving the seam runs any argv against any root, which a real service cannot** — The refusals a service transport owes are written down before one exists: DECISIONS names four, and the test handler's own comment points at them.
+- ✅ **RG91** **the packaged build is proven on one machine, and CI never makes one** — CI runs the stamp and its posture refusal on every change, and builds a Windows and a Linux installer on a tag or on demand, keeping both (design recorded in `.github/workflows/ci.yml`).
 
 ## Block H — The look (a design system for governed prose)
 

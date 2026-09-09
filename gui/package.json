@@ -28,7 +28,7 @@
     "test:watch": "vitest --project core --project shell --project ui",
     "clean": "tsc -b --clean",
     "stamp": "node packages/shell/dist/stamp-build.js",
-    "package": "npm run build && npm run stamp && electron-builder --config electron-builder.yml"
+    "package": "npm run build && npm run stamp && electron-builder --config electron-builder.yml --publish never"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",

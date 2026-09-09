@@ -8,7 +8,14 @@ name: ci
 on:
   push:
     branches: [main]
+    # A tag is what asks for an installer (RG91). The gate and the suite run on every
+    # change; the package job below runs only here and on demand, because an installer per
+    # platform per push is runner minutes spent on an artefact nobody downloads.
+    tags: ['v*']
   pull_request:
+  # The other way to ask for one, and the way somebody gets a build to try without a
+  # developer machine.
+  workflow_dispatch:
 
 # A push that supersedes a run makes the earlier one an answer about code nobody has.
 concurrency:
@@ -145,3 +152,70 @@ jobs:
         shell: bash
         env:
           ROADKEEP_HOME: ${{ github.workspace }}/${{ env.ROADKEEP_CHECKOUT }}
+
+      # The half of packaging that is worth paying for on every change (RG91).
+      #
+      # `npm run package` is three steps — build, stamp, electron-builder — and the refusal
+      # lives in the second: it reads the posture the window is actually constructed with
+      # and exits non-zero rather than shipping a renderer that gained a power. Running it
+      # here costs a second and is the difference between that refusal being code and being
+      # a thing one machine ran once. electron-builder is the expensive third step and is
+      # the job below.
+      - name: stamp, which is where packaging refuses
+        run: npm run stamp
+
+  # The artefact somebody would actually install (RG91).
+  #
+  # On a tag or on demand, never on a push: an installer per platform per push is minutes
+  # of runner time for something nobody downloads, and what this is for is the two cases
+  # where a real build matters — cutting one, and handing one to somebody without a
+  # developer machine.
+  #
+  # macOS is absent and that is not an oversight: no macOS build of this app has ever been
+  # attempted, and a runner is the wrong place to find out what it needs. It is RG119.
+  package:
+    name: package on ${{ matrix.os }}
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    # Nothing is packaged from a tree whose suite is red, which is the whole reason the
+    # artefact is worth keeping.
+    needs: [gate, suite]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # `commitOf` runs `git rev-parse` in the checkout, and a shallow clone still has
+          # a HEAD — but a build whose stamp says `unstamped` is the one thing this job
+          # exists to produce correctly, so the history is fetched rather than assumed.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: npm
+
+      - run: npm ci
+
+      # Build, stamp and electron-builder, in one command, so CI runs what a person runs
+      # rather than a sequence assembled here that could drift from it.
+      # The script itself carries `--publish never`, so this job keeps the artefact and
+      # publishes nothing whether or not a runner happens to hand it a token. A release is
+      # a decision somebody makes, not a side effect of pushing a tag.
+      - name: package
+        run: npm run package
+
+      # The installer, and nothing else from `release/` — the unpacked directory beside it
+      # is the same bytes again and several times the size.
+      - name: keep it
+        uses: actions/upload-artifact@v4
+        with:
+          name: roadkeep-${{ matrix.os }}
+          path: |
+            release/*.exe
+            release/*.AppImage
+          if-no-files-found: error
+          retention-days: 14

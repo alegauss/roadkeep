@@ -32,7 +32,6 @@
 
 - 💭 **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — An unsigned build is one most people will not run, and no amount of code in this repository substitutes for the certificate. → §RG49
 - 💭 **RG50** (deps: RG46 ✅) (requires: published-artifact) **nothing updates, so a fix reaches a person only if they go and look for one** — A desktop build that cannot update is one whose defects live on every machine that installed it until somebody notices. → §RG50
-- 💭 **RG91** (deps: RG55 ✅, RG46 ✅) **the packaged build is proven on one machine, and CI never makes one** — The workflow runs the suite and the bundle but never the packaging step, so the artefact anybody would actually install is the one thing nothing checks. → §RG91
 - 💭 **RG92** (deps: RG56 ✅) **the project skill states counts and a priority that stopped being true, and nothing checks it** — It is prose about a governed backlog, held by nobody: it names shipped ids as the queue, counts open lines from weeks ago, and calls the suite something still to arrive. → §RG92
 - 💭 **RG93** (deps: RG57 ✅) **the dev loop reaches into the compiler's own layout, and only a hand run would notice it moving** — TypeScript exports neither of its launchers, so the path is built from the package directory and nothing in the suite ever resolves it. → §RG93
 - 💭 **RG94** (deps: RG58 ✅) **no type-aware rule runs, so a floating promise is still nobody's finding** — The linter's type-aware half is a separate package nobody installed, and it is the half that catches an unawaited call, a misused promise and an unnecessary condition. → §RG94
@@ -40,6 +39,7 @@
 - 💭 **RG96** (deps: RG60 ✅) **the suite now tests a bundle it did not build, so a green run can be about yesterday's code** — One test starts the built app and nothing rebuilds it first, so a renderer change that broke the window passes locally until somebody happens to build. → §RG96
 - 💭 **RG115** (deps: RG47 ✅) **the sentences a bad settings file composes cross the bridge and no screen shows one** — readSettings names each field it reset and LaunchSettings carries the list to the renderer, and nothing on the far side reads it, so a dropped root is found by noticing the list is short. → §RG115
 - 💭 **RG118** (deps: RG44 ✅, RG63 ✅) **no screen names the build, so a defect report cannot say which one it came from** — identify already answers with the version, the commit and whether it is signed, and nothing draws any of it. → §RG118
+- 💭 **RG119** (deps: RG91 ✅) (requires: macos-machine) **no macOS build of this app has ever been made, so what it needs is a guess** — electron-builder.yml names a dmg target nobody has run, and the two things a Mac build turns out to want are learned by making one. → §RG119
 
 ## Block H — The look (a design system for governed prose)
 
