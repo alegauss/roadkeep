@@ -59,7 +59,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from roadkeep.provenance import invocation, quoted
-from surface import Module, modules
+from surface import MODULE, Module, modules, owners, scoped
 
 
 @dataclass(frozen=True, slots=True)
@@ -504,32 +504,19 @@ def census() -> tuple[str, ...]:
     the author's own two spellings inside one message, and a span carrying a field an author
     fills, which is what a caller substitutes and a flag family never has (RK1640).
     """
+    #: `surface.scoped` since RK1647, where this built its own name stack: three walkers in
+    #: this suite each rebuilt *which function is this node in*, and the third spelled the
+    #: address differently — only functions, and the last name rather than the dotted path — so
+    #: a method inside `Created` was `stated`, a name several classes in one module share.
     found: list[str] = []
     for module in modules():
-        tree = ast.parse(module.text)
-        stack: list[str] = []
-
-        class Walk(ast.NodeVisitor):
-            def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
-                stack.append(node.name)
-                self.generic_visit(node)
-                stack.pop()
-
-            visit_AsyncFunctionDef = visit_FunctionDef  # type: ignore[assignment]
-
-            def visit_ClassDef(self, node: ast.ClassDef) -> None:
-                stack.append(node.name)
-                self.generic_visit(node)
-                stack.pop()
-
-            def visit_Call(self, node: ast.Call) -> None:
-                if isinstance(node.func, ast.Name) and node.func.id == "invocation":
-                    where = f"{module.where}:{'.'.join(stack) or '<module>'}"
-                    if where not in found:
-                        found.append(where)
-                self.generic_visit(node)
-
-        Walk().visit(tree)
+        for where, node in scoped(module.text):
+            if not isinstance(node, ast.Call):
+                continue
+            if isinstance(node.func, ast.Name) and node.func.id == "invocation":
+                address = f"{module.where}:{where}"
+                if address not in found:
+                    found.append(address)
     return tuple(sorted(found))
 
 
@@ -916,34 +903,20 @@ def inconsistent(said: str) -> list[str]:
     return [one for one in spans if one.split()[:1] and one.split()[0] in verbs]
 
 
-def _owners(module) -> dict[int, str]:
+def _owners(module: Module) -> dict[int, str]:
     """Line number to the address of the function holding it, for one module.
 
-    :func:`census` walks the same tree for the same names; this keeps every line rather than
-    the call, because the question here is which function a *message* was composed in.
+    `surface.owners` since RK1647, where this was the second of three walkers rebuilding the
+    same scope stack. What is left here is the one thing that is this file's: a line in **no**
+    function is left out rather than answered `<module>`, so every caller's `owner.get(lineno,
+    module.where)` falls back to the file — which is how a message composed at module level is
+    addressed in `beyond` and `unprefixed`.
     """
-    found: dict[int, str] = {}
-    stack: list[str] = []
-
-    class Walk(ast.NodeVisitor):
-        def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
-            stack.append(node.name)
-            where = f"{module.where}:{'.'.join(stack)}"
-            for inner in ast.walk(node):
-                if hasattr(inner, "lineno"):
-                    found.setdefault(inner.lineno, where)
-            self.generic_visit(node)
-            stack.pop()
-
-        visit_AsyncFunctionDef = visit_FunctionDef  # type: ignore[assignment]
-
-        def visit_ClassDef(self, node: ast.ClassDef) -> None:
-            stack.append(node.name)
-            self.generic_visit(node)
-            stack.pop()
-
-    Walk().visit(ast.parse(module.text))
-    return found
+    return {
+        line: where
+        for line, where in owners(module.text, prefix=f"{module.where}:").items()
+        if not where.endswith(f":{MODULE}")
+    }
 
 
 def dispatchable() -> tuple[str, ...]:

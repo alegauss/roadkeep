@@ -4258,34 +4258,30 @@ def test_the_read_and_the_write_agree_about_the_decision_line(tmp_path, capsys):
 
 
 def _builders() -> set[str]:
-    """Every function in `budgeting` that constructs a :class:`Part`, by name.
+    """Every scope in `budgeting` that constructs a :class:`Part`, by address.
 
     Off the AST, for `emitted_as_notes`' reason one file over: a list here would be a second
     population, and the day it matters is the day somebody adds a fourth caller.
+
+    **`surface.scoped` since RK1647**, and the address changed with it. This built its own name
+    stack, pushed only functions and took the last name, so a method inside `Noted` answered
+    `stated` — a name several classes in one module share, and a different reading from the two
+    walkers in `composing` that push `ClassDef` too and join on a dot. One reader for the
+    question, so the three cannot come to disagree without either being edited.
     """
     import ast
 
-    source = (Path(__file__).resolve().parents[1] / "src/roadkeep/budgeting.py").read_text(
-        encoding="utf-8"
-    )
-    found: set[str] = set()
-    stack: list[str] = []
+    from surface import address, modules, scoped
 
-    class Walk(ast.NodeVisitor):
-        def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
-            stack.append(node.name)
-            self.generic_visit(node)
-            stack.pop()
-
-        visit_AsyncFunctionDef = visit_FunctionDef  # type: ignore[assignment]
-
-        def visit_Call(self, node: ast.Call) -> None:
-            if isinstance(node.func, ast.Name) and node.func.id == "Part" and stack:
-                found.add(stack[-1])
-            self.generic_visit(node)
-
-    Walk().visit(ast.parse(source))
-    return found
+    where = address("budgeting")
+    source = next(one.text for one in modules() if one.where == where)
+    return {
+        scope
+        for scope, node in scoped(source)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "Part"
+    }
 
 
 def test_every_caller_of_the_shared_record_says_what_its_label_holds():

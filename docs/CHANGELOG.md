@@ -806,6 +806,7 @@
 - ✅ **RK1644** **nine guards over this package's source read its characters where twenty-two read its syntax** — Five guards whose subject was a code shape now read the syntax, and the population that reads characters is empty.
 - ✅ **RK1645** **config publishes three lists of objects and the promise table holds one slot per verb, so one list's rows are unpromised** — One table with a row per list, and the population read off the payloads — which found a second list nothing promised.
 - ✅ **RK1646** **the guard against the folded idiom sweeps the package and not the suite, where two sites still spell it out** — The sweep reads the suite as well as the package, and the two sites that predated the fold are folded.
+- ✅ **RK1647** **three walkers in the suite each rebuild which function a node sits in, and one of them spells the address differently** — One scope walk in surface.py answers both questions, and the third walker's shorter address is gone.
 
 ## Block E — Adoption
 

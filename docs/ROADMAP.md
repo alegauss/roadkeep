@@ -38,7 +38,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK1647** (deps: —) **three walkers in the suite each rebuild which function a node sits in, and one of them spells the address differently** — RK1605 added the third, and surface.py is where a shared reading of the layout belongs. → §RK1647
 - 💭 **RK1649** (deps: —) **answers() spells at most one of a verb's flags and nothing spells exactly one, so a required choice stays a raise** — RK1607 moved four pairs to the parser and left criterion add's, where argparse's required group answers on a command line and says nothing over MCP. → §RK1649
 - 💭 **RK1652** (deps: —) **a config refusal now names the table a key belongs under, and no verb moves it there** — RK1610 ends in a hand edit to the one file govern and declare exist so nobody hand-edits, and a served session has no editor at all. → §RK1652
 - 💭 **RK1654** (deps: —) **ten functions print to both streams in one body and two go through the helper, nothing saying which of the rest need to** — RK1612 gave the rule a function and left the census it named unbuilt, so the guard catches a stray flush and not a stderr print after a stdout one. → §RK1654

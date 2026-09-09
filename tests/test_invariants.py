@@ -355,6 +355,18 @@ INVARIANTS: tuple[Invariant, ...] = (
         instances=("RK1539",),
     ),
     Invariant(
+        stated="RK1647",
+        rule=(
+            "one reader answers which scope a node of this package sits in, so two surveys "
+            "cannot come to spell the same address differently"
+        ),
+        over="surface.suite",
+        held_by="test_invariants::test_no_test_rebuilds_the_scope_walk_surface_already_holds",
+        # The three walkers, and the one that answered `stated` where the others answered
+        # `Created.stated`. RK1605 added the second and RK1522's builder scan was the third.
+        instances=("RK1605", "RK1522"),
+    ),
+    Invariant(
         stated="RK1644",
         rule=(
             "a guard whose subject is a code shape reads this package's syntax and not its "
@@ -721,6 +733,10 @@ _PARSING = frozenset(
         "calling",
         "naming",
         "bodies",
+        # The scope walk `surface.py` holds once (RK1647), and the line-to-address reading
+        # over it: both answer from the tree, so a caller of either is reading syntax.
+        "scoped",
+        "owners",
     }
 )
 
@@ -772,6 +788,39 @@ def test_no_guard_over_this_package_reads_its_source_as_characters():
     assert found == [], (
         "these read the package's source as characters, where a docstring naming a call "
         f"counts as one: `surface.calling`, `naming` and `bodies` ask the tree — {found}"
+    )
+
+
+def test_no_test_rebuilds_the_scope_walk_surface_already_holds():
+    """RK1647. Three walkers in this suite each answered *which function is this node in*, each
+    pushing a name on a `FunctionDef` and popping after — and the third spelled the address
+    differently: only functions, and the last name rather than the dotted path, so a method
+    inside `Created` answered `stated`, a name several classes in one module share.
+
+    That is not a style difference. It is a third walker answering a slightly different question
+    under the same shape, which is how two readings come to disagree without either being
+    edited — the failure `surface.py` exists against (RK496).
+
+    Held on the **shape** and not on the addresses, because the addresses agreeing is exactly
+    what the three did until they did not: every `Part` builder in `budgeting` is a module-level
+    function today, so the two spellings gave the same answer and the disagreement was latent.
+    `surface.scoped` is the reader, and a fourth visitor here is a fourth stack.
+
+    Read as syntax and not as characters, which is RK1644's rule applied to this file's own
+    check: over lines it would have matched the two names in this very sentence."""
+    found: list[str] = []
+    for path in suite():
+        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                if node.name.startswith("visit_"):
+                    found.append(f"{path.name}:{node.lineno} {node.name}")
+            elif isinstance(node, ast.ClassDef) and any(
+                ast.unparse(base).endswith("NodeVisitor") for base in node.bases
+            ):
+                found.append(f"{path.name}:{node.lineno} {node.name}")
+    assert found == [], (
+        "`surface.scoped` answers which scope a node is in, and `surface.owners` the same "
+        f"question by line — a second walk is a second reading: {found}"
     )
 
 

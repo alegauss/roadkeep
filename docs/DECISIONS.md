@@ -200,6 +200,7 @@ command. The new property holds all three values, which leak alike.
 - ✅ **RK1644** **nine guards over this package's source read its characters where twenty-two read its syntax** — A guard over this package's source reads its syntax where its subject is a code shape: surface.calling, naming and bodies are the readers, and the population is held empty.
 - ✅ **RK1645** **config publishes three lists of objects and the promise table holds one slot per verb, so one list's rows are unpromised** — A payload promises every list of objects it carries, one row per list, and the population is derived from the payloads rather than maintained beside them.
 - ✅ **RK1646** **the guard against the folded idiom sweeps the package and not the suite, where two sites still spell it out** — The suite is held to the folded idiom exactly as the package is: the exemption set is declared and empty, because no test here asks the question the long way for a reason.
+- ✅ **RK1647** **three walkers in the suite each rebuild which function a node sits in, and one of them spells the address differently** — One reader answers which scope a node sits in: surface.scoped yields the dotted address per node and surface.owners is that by line, and a fourth visitor is a red.
 
 ### §RK1394 Proof, not age
 

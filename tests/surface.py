@@ -152,6 +152,67 @@ def suite() -> tuple[Path, ...]:
     return tuple(sorted(Path(__file__).resolve().parent.glob("test_*.py")))
 
 
+#: What :func:`scoped` calls a node that sits in no function or class of its own — a constant
+#: at module level, a decorator, a table's own rows. Spelled rather than `""` because it is an
+#: answer: `composing.census` prints it in an address, and an empty string there reads as a
+#: reading that failed.
+MODULE = "<module>"
+
+
+def scoped(source: str) -> list[tuple[str, ast.AST]]:
+    """Every node of a module, with the dotted address of the scope it sits in (RK1647).
+
+    Three walkers in this suite each rebuilt this. `composing.census` answers *which function
+    is this call in*, `composing._owners` *which function is this line in*, and
+    `test_budgeting._builders` the first question about a different call — each pushing its own
+    name stack on a `FunctionDef` and popping after.
+
+    Two of the three pushed `ClassDef` too and joined on a dot, so a method inside `Created` is
+    `Created.stated`; the third pushed only functions and took the last name, so the same
+    method was `stated` — a name several classes in one module share. Not a style difference: a
+    third walker answering a slightly different question under the same shape, which is how two
+    readings come to disagree without either being edited.
+
+    Here for :func:`modules`' own reason (RK496): a survey deriving its own view of the layout
+    agrees with every other one until the layout moves. Both questions fall out of this — a
+    caller looking for a particular call filters on the node, and one wanting line-to-address
+    calls :func:`owners`.
+
+    A **list** and not a generator, because every caller walks it whole and two of them do so
+    per module of the package: a generator would be re-parsed on the second pass.
+    """
+    found: list[tuple[str, ast.AST]] = []
+    scopes = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
+
+    def walk(node: ast.AST, stack: tuple[str, ...]) -> None:
+        for child in ast.iter_child_nodes(node):
+            found.append((".".join(stack) or MODULE, child))
+            walk(child, (*stack, child.name) if isinstance(child, scopes) else stack)
+
+    walk(ast.parse(source), ())
+    return found
+
+
+def owners(source: str, prefix: str = "") -> dict[int, str]:
+    """Line number to the address of the scope holding it, for one module (RK1647).
+
+    :func:`scoped`'s other reading. ``prefix`` is put in front of every address where a caller
+    reports across modules — `cli.py:_accepting.line` — and left off where the question is
+    about one file.
+
+    **The innermost scope**, which is where the three walkers differed a second time: the one
+    this replaces set every node under a function to that function and kept the first answer,
+    so a line inside a nested function was attributed to the function around it. :func:`scoped`
+    yields each node exactly once, under the scope it is actually in.
+    """
+    found: dict[int, str] = {}
+    for where, node in scoped(source):
+        line = getattr(node, "lineno", None)
+        if line is not None:
+            found.setdefault(line, f"{prefix}{where}" if prefix else where)
+    return found
+
+
 def calling(source: str, spelled: str) -> tuple[int, ...]:
     """Every line where a call to ``spelled`` is made, by syntax and not by characters (RK1644).
 

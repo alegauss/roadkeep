@@ -224,31 +224,6 @@ reading.
 
 ## Block D — The gate
 
-### §RK1647 The scope walk written three times
-
-`composing.census` walks a module's syntax to answer *which function is this call in*.
-`composing._owners` walks it again to answer *which function is this line in* — RK1605
-added that one. `test_budgeting._parts` walks it a third time for the same question
-about `Part` calls. Each builds its own name stack, pushing on `FunctionDef` and popping
-after.
-
-Two of the three push `ClassDef` too and join the stack with a dot, so a method inside
-`Created` is `adopting.py:Created.stated`. The third pushes only functions and takes
-`stack[-1]`, so the same method is `stated` — a name several classes in one module can
-share. That is not a style difference: it is the third walker answering a slightly
-different question under the same shape, which is how two readings come to disagree
-without either being edited.
-
-`tests/surface.py` is where this belongs and says so: it exists because a survey
-deriving its own view of the layout agrees with every other one until the layout moves
-(RK496). It already holds `modules`, `address`, `names`, `suite` and `claimed` — every
-shared reading of the tree except this one.
-
-What is not settled is the shape it should take there. A mapping from line to address
-serves `_owners`; a visitor hook serves the two looking for a particular call. One
-reader answering both is the question, and three call sites is a small enough population
-to design against rather than guess.
-
 ### §RK1649 The choice that has to be made
 
 `answers(...)` declares that two flags are two answers, and `_one_answer` refuses both
