@@ -1,8 +1,8 @@
-import { BRIDGE_CHANNELS, type BridgeIdentity, type LaunchSettings } from '@rk/core'
+import { BRIDGE_CHANNELS, isTheme, type BridgeIdentity, type LaunchSettings } from '@rk/core'
 import { app, ipcMain } from 'electron'
 
 import { localeChoice } from './locale'
-import { loadSettings } from './settings-file'
+import { loadSettings, saveSettings } from './settings-file'
 import { readStamp } from './stamp'
 
 /**
@@ -25,5 +25,16 @@ export function registerBridge(): void {
   ipcMain.handle(BRIDGE_CHANNELS.settings, (): LaunchSettings => {
     const read = loadSettings(app.getPath('userData'))
     return { ...read, locale: localeChoice(read.settings.locale, app.getLocale()) }
+  })
+
+  // The one write the renderer can ask for, and it reaches exactly one field. The file is
+  // re-read rather than remembered so a root somebody added by hand a moment ago survives
+  // a click on the ground switch, and the value is checked here because a channel argument
+  // is the renderer's word: `isTheme` is the same set the reader uses, so nothing gets in
+  // that a later read would reset.
+  ipcMain.handle(BRIDGE_CHANNELS.saveTheme, (_event, theme: unknown): void => {
+    if (!isTheme(theme)) return
+    const userData = app.getPath('userData')
+    saveSettings(userData, { ...loadSettings(userData).settings, theme })
   })
 }

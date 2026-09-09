@@ -99,3 +99,26 @@ describe('RG47: a file that cannot be read', () => {
     expect(read.reset[0]).toContain('pool width')
   })
 })
+
+describe('RG87: keeping one field without losing the rest', () => {
+  it('leaves the roots and the locale alone when only the ground changed', () => {
+    // The shape the bridge's theme handler writes: re-read, replace one field, save. A
+    // handler that remembered the settings at startup instead would drop a root somebody
+    // added by hand a minute earlier, and the click that dropped it would be a colour.
+    const home = userData()
+    saveSettings(home, {
+      ...DEFAULT_SETTINGS,
+      roots: [{ path: 'D:/Git', depth: 3 }],
+      locale: 'pt-BR',
+    })
+
+    saveSettings(home, { ...loadSettings(home).settings, theme: 'dark' })
+
+    expect(loadSettings(home).settings).toEqual({
+      ...DEFAULT_SETTINGS,
+      roots: [{ path: 'D:/Git', depth: 3 }],
+      locale: 'pt-BR',
+      theme: 'dark',
+    })
+  })
+})

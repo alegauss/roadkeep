@@ -34,7 +34,7 @@ describe('RG60: what the renderer was given', () => {
     // reviewed. Read off the running object rather than off the type.
     const methods = await app.evaluate<string[]>(`Object.keys(window['${BRIDGE_KEY}']).sort()`)
 
-    expect(methods).toEqual(['identify', 'settings'])
+    expect(methods).toEqual(['identify', 'saveTheme', 'settings'])
   })
 
   it('round-trips a call through it', async () => {
@@ -58,6 +58,34 @@ describe('RG60: what the renderer was given', () => {
     expect(LOCALE_TAGS).toContain(launch.locale)
     expect(launch.settings?.locale).toBeDefined()
   })
+
+  it('keeps a ground the page chose, so the file is the source of it', async () => {
+    // RG87: the whole write path in one call, which no unit test reaches — the renderer
+    // asks, a handler validates the value and rewrites this profile's settings file, and
+    // the next read is the one the next launch would get. The profile is a throwaway
+    // temporary directory, so nothing here touches a person's own settings.
+    await app.evaluate<null>(`window['${BRIDGE_KEY}'].saveTheme('dark')`)
+
+    const after = await app.evaluate<{ settings?: { theme?: string } }>(
+      `window['${BRIDGE_KEY}'].settings()`,
+    )
+
+    expect(after.settings?.theme).toBe('dark')
+  })
+
+  it('refuses a ground that is not one, rather than writing it', async () => {
+    // The argument is the renderer's word, and a resolved ground is not a setting. What is
+    // held is that a value the reader would reset never reaches the file at all — so the
+    // last real choice is still what a read answers.
+    await app.evaluate<null>(`window['${BRIDGE_KEY}'].saveTheme('light')`)
+    await app.evaluate<null>(`window['${BRIDGE_KEY}'].saveTheme('midnight')`)
+
+    const after = await app.evaluate<{ settings?: { theme?: string } }>(
+      `window['${BRIDGE_KEY}'].settings()`,
+    )
+
+    expect(after.settings?.theme).toBe('light')
+  })
 })
 
 describe('RG60: what the renderer was not given', () => {
@@ -79,7 +107,7 @@ describe('RG60: what the renderer was not given', () => {
       `Object.values(window['${BRIDGE_KEY}']).map((one) => typeof one)`,
     )
 
-    expect(reachable).toEqual(['function', 'function'])
+    expect(reachable).toEqual(['function', 'function', 'function'])
   })
 })
 

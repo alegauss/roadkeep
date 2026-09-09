@@ -22,6 +22,7 @@ function withBridge(parts: Partial<RendererBridge>): void {
   const bridge: RendererBridge = {
     identify: () => Promise.resolve({ transport: 'ipc', build: BUILT }),
     settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: BASE_LOCALE }),
+    saveTheme: () => Promise.resolve(),
     ...parts,
   }
   Object.defineProperty(window, 'roadkeep', { value: bridge, configurable: true })

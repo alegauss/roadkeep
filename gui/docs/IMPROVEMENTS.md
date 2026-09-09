@@ -400,6 +400,31 @@ instruction.
 The third is probably it. A test that refuses to run against a stale subject is honest
 in a way that a test which silently rebuilds is not, and it costs a `stat`.
 
+### §RG115 What happens when a setting does not stick
+
+RG47 built the recovery carefully: a settings file that is not JSON, one from a future
+build, a pool width typed as a word — each takes the default, and each composes a
+sentence saying what was lost and why. `wasReset` exists to ask whether any of them
+fired. `LaunchSettings` carries the list across the bridge with the settings themselves.
+Nothing in `ui` or `shell` reads either. Grep for `wasReset` outside a test and there is
+one definition and no caller.
+
+So the careful half is done and the visible half is missing, which is the worst of the
+three states: somebody whose roots were dropped finds out by opening the app and
+noticing the list is short, and the sentence that would have told them was composed and
+thrown away.
+
+RG87 added the mirror of this and left it the same way. A ground the person chose is
+written back through the bridge, and the write is fire-and-forget: a rejection is
+swallowed in `keepGround` because there is nowhere to put it. A choice that was not kept
+looks kept until the next launch.
+
+Both want one surface and neither should invent it separately — which is why this is an
+idea and not a design. What it should be is bounded by two things already here: the
+design system ships a `Toaster`, and page chrome is RG63's. A notice belongs in
+whichever of those two arrives first, and the answer to *which* is the design still to
+write.
+
 ## Block H — The look (a design system for governed prose)
 
 ### §RG62 Joining the checks the other consoles already answer to
@@ -456,29 +481,6 @@ string the package draws. The dep stands until that lands.
 
 **`react-router-dom` is not installed.** A declared peer npm did not pull; routing
 arrives with this line.
-
-### §RG87 Which copy of the ground setting is the real one
-
-RG52 handed the switch to the design system, which is right — its own `Toaster` reads
-the same library, and a second theme system writing the class from a second key is the
-defect that package was consolidated to fix. What comes with that is `next-themes`
-persisting the choice to `localStorage` under `vite-ui-theme`.
-
-Meanwhile `Settings.theme` has been in settings.json since RG47, validated on read and
-reset field by field with a sentence when it is wrong. Nothing reads it. So the choice a
-person makes is remembered by the browser storage of one window, and the field this app
-declared for it does nothing.
-
-Two homes is not automatically wrong — one is a cache for the first paint, which is what
-it is for, and `next-themes` injects a blocking script to use it before React runs. What
-is wrong is that neither is stated to be the source. The shape that works is the file
-being the source and storage being the cache: settings load, the loaded theme is handed
-to the provider, and a change writes back through the bridge.
-
-That is the same shape as the locale in [[RG86]] and probably the same piece of work:
-one call that carries the settings across and hands both to their providers. Until then,
-a person who sets the ground and reinstalls loses it, which is small, and a person who
-edits the field by hand sees nothing happen, which is worse because it looks broken.
 
 ### §RG88 Two translation systems on one screen
 

@@ -66,6 +66,17 @@ export interface SettingsRead {
 
 const THEMES = new Set<Theme>(['system', 'light', 'dark'])
 
+/**
+ * Whether a value is a ground setting this build knows.
+ *
+ * Exported because two callers have to agree on it: reading the file, and the main process
+ * taking a theme the renderer named. A second spelling of the same set is a build that
+ * accepts a value its own reader would reset.
+ */
+export function isTheme(value: unknown): value is Theme {
+  return typeof value === 'string' && THEMES.has(value as Theme)
+}
+
 function asRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -171,7 +182,7 @@ export function readSettings(source: unknown): SettingsRead {
   )
   const [theme, saidOfTheme] = field<Theme>(
     file['theme'],
-    (value) => typeof value === 'string' && THEMES.has(value as Theme),
+    isTheme,
     DEFAULT_SETTINGS.theme,
     `the theme was not one this build knows, so it is back to ${DEFAULT_SETTINGS.theme}`,
   )

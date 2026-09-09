@@ -14,7 +14,7 @@
  */
 
 import type { BuildIdentity } from './build'
-import type { SettingsRead } from './settings'
+import type { SettingsRead, Theme } from './settings'
 
 /** The single property the preload adds to `window`. */
 export const BRIDGE_KEY = 'roadkeep'
@@ -59,6 +59,19 @@ export interface RendererBridge {
    * a person's to edit, and one asked for once is one a restart is the only way to reread.
    */
   settings(): Promise<LaunchSettings>
+  /**
+   * Keep the ground somebody just chose, which is what makes the file the source of it.
+   *
+   * The switch persists to browser storage on its own, and that copy is a cache: it is read
+   * before React runs so the first frame is not the wrong colour. A cache nothing refreshes
+   * is a second answer, so the choice comes back through here and the file wins at the next
+   * launch.
+   *
+   * **One field and not a settings patch.** A method that took `Partial<Settings>` would
+   * hand the renderer the roots and the ignore list as well, and the screen that needs those
+   * does not exist yet — widening this is a decision that belongs to whoever builds it.
+   */
+  saveTheme(theme: Theme): Promise<void>
 }
 
 /**
@@ -68,4 +81,5 @@ export interface RendererBridge {
 export const BRIDGE_CHANNELS = {
   identify: 'roadkeep:identify',
   settings: 'roadkeep:settings',
+  saveTheme: 'roadkeep:save-theme',
 } as const satisfies Record<keyof RendererBridge, string>

@@ -1,9 +1,18 @@
-import { BASE, DARK_QUERY, THEME_ORDER, type Theme } from '@rk/core'
+import {
+  BASE,
+  BASE_LOCALE,
+  DARK_QUERY,
+  DEFAULT_SETTINGS,
+  identityFrom,
+  THEME_ORDER,
+  type RendererBridge,
+  type Theme,
+} from '@rk/core'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { App } from './App'
-import { GroundProvider } from './ground'
+import { GROUND_CACHE_KEY, GroundProvider } from './ground'
 import { WordingProvider } from './wording'
 
 /**
@@ -76,6 +85,25 @@ function labelOfControl(): string {
   return screen.getByTestId('ground').textContent?.trim() ?? ''
 }
 
+/** A bridge that records what the ground control sent back to the file. */
+function recordingBridge(): { kept: Theme[] } {
+  const kept: Theme[] = []
+  const bridge: RendererBridge = {
+    identify: () =>
+      Promise.resolve({
+        transport: 'ipc',
+        build: identityFrom({ version: '0.0.0', commit: 'abc1234', signed: 'unsigned' }),
+      }),
+    settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: BASE_LOCALE }),
+    saveTheme: (theme) => {
+      kept.push(theme)
+      return Promise.resolve()
+    },
+  }
+  Object.defineProperty(window, 'roadkeep', { value: bridge, configurable: true })
+  return { kept }
+}
+
 beforeEach(() => {
   desktopIsDark(false)
   localStorage.clear()
@@ -85,6 +113,7 @@ afterEach(() => {
   document.documentElement.className = ''
   document.documentElement.removeAttribute('style')
   localStorage.clear()
+  Reflect.deleteProperty(window, 'roadkeep')
 })
 
 describe('RG52: which ground the window is in', () => {
@@ -143,6 +172,70 @@ describe('RG52: the control', () => {
   })
 
   it('actually repaints when it is used', async () => {
+    drawIn('light')
+    await painted('light')
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('ground'))
+      await Promise.resolve()
+    })
+
+    await painted('dark')
+  })
+})
+
+describe('RG87: which copy of the setting wins', () => {
+  it('paints what the file says, over what this window remembered last', async () => {
+    // The whole defect: `next-themes` prefers its stored value to `defaultTheme`, so a
+    // window that had been switched to dark would keep painting dark whatever the file
+    // said, and the field a person edited by hand would look broken.
+    localStorage.setItem(GROUND_CACHE_KEY, 'dark')
+    drawIn('light')
+
+    await painted('light')
+  })
+
+  it('leaves the cache holding the file, so the next first frame is right too', async () => {
+    localStorage.setItem(GROUND_CACHE_KEY, 'dark')
+    drawIn('light')
+
+    await painted('light')
+    expect(localStorage.getItem(GROUND_CACHE_KEY)).toBe('light')
+  })
+
+  it('sends a change back to the file and not only to browser storage', async () => {
+    const bridge = recordingBridge()
+    drawIn('light')
+    await painted('light')
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('ground'))
+      await Promise.resolve()
+    })
+
+    expect(bridge.kept).toEqual(['dark'])
+  })
+
+  it('leaves the cache alone when no file answered, which is a browser tab', async () => {
+    // The other direction of the same rule: with no source to refresh from, what the
+    // browser remembers is the only record there is, and seeding it would lose the choice
+    // on every reload.
+    localStorage.setItem(GROUND_CACHE_KEY, 'dark')
+    render(
+      <GroundProvider>
+        <WordingProvider>
+          <App />
+        </WordingProvider>
+      </GroundProvider>,
+    )
+
+    await painted('dark')
+    expect(localStorage.getItem(GROUND_CACHE_KEY)).toBe('dark')
+  })
+
+  it('still switches with no bridge, which is what a browser tab gives it', async () => {
+    // The file is the source and the window is not held hostage to it: somebody running
+    // this as a page still gets the ground they asked for, for as long as the tab lives.
     drawIn('light')
     await painted('light')
 

@@ -15,6 +15,7 @@ import { BRIDGE_CHANNELS, BRIDGE_KEY, type RendererBridge } from '@rk/core'
 const bridge: RendererBridge = {
   identify: () => ipcRenderer.invoke(BRIDGE_CHANNELS.identify),
   settings: () => ipcRenderer.invoke(BRIDGE_CHANNELS.settings),
+  saveTheme: (theme) => ipcRenderer.invoke(BRIDGE_CHANNELS.saveTheme, theme),
 }
 
 contextBridge.exposeInMainWorld(BRIDGE_KEY, Object.freeze(bridge))

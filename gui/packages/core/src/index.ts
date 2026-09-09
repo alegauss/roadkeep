@@ -183,6 +183,7 @@ export { CONFIG_FILE, createWatching, QUIET_MS, watchedFiles } from './watching'
 export type { Clock, Interest, OnChanged, Watcher, Watching } from './watching'
 export {
   DEFAULT_SETTINGS,
+  isTheme,
   readSettings,
   SETTINGS_VERSION,
   settingsText,

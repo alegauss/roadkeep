@@ -5,6 +5,7 @@ import { DEPTH_CEILING } from './roots'
 import { DEFAULT_POLICY } from './scanning'
 import {
   DEFAULT_SETTINGS,
+  isTheme,
   readSettings,
   SETTINGS_VERSION,
   settingsText,
@@ -154,5 +155,19 @@ describe('RG47: the version is read first', () => {
 
     expect(read.settings.theme).toBe('dark')
     expect(read.settings.version).toBe(SETTINGS_VERSION)
+  })
+})
+
+describe('RG87: which grounds this build knows', () => {
+  it('accepts the three the setting has, `system` included', () => {
+    expect(['system', 'light', 'dark'].every(isTheme)).toBe(true)
+  })
+
+  it('refuses anything else, which is what the bridge leans on', () => {
+    // The main process takes a theme the renderer named, and this is the check standing
+    // between that argument and the settings file. A resolved ground is not a setting.
+    for (const junk of ['', 'Dark', 'auto', 'light dark', 0, null, undefined, {}, ['dark']]) {
+      expect(isTheme(junk)).toBe(false)
+    }
   })
 })
