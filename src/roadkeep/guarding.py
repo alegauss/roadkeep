@@ -719,9 +719,15 @@ class Advice:
     So the two writers disagree about what is checkable, and the unchecked one is the default.
 
     **Denying it is the wrong answer**, and the reason is the shape of the file: a hook sees a
-    path and not a table. `[files]`, `[markers]`, `[refs]` and `[grammar]` have no verb and
-    are not going to get one, so a denial would make the config unwritable in the sessions
-    that need it most — including the one where `install` has not run yet.
+    path and not a table. `[markers]`, `[refs]` and `[grammar]` have no verb, so a denial would
+    make the config unwritable in the sessions that need it most — including the one where
+    `install` has not run yet.
+
+    That list named `[files]` too until RK1652 counted the doors: `declare <role>` has written
+    a `[files]` key since RK1264 and `declare --move` places a misplaced one under any table,
+    so the set with no verb at all is three and not four. Which changes nothing about the
+    conclusion and is worth correcting for what the sentence is *for* — it is the argument the
+    next task weighing a denial would read, and an overstated set is one it would act on.
 
     What this is instead is the register the barrier deliberately has no other use for: it
     **decides nothing**. `permissionDecision: "allow"` would grant the write and wave through
