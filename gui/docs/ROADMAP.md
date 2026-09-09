@@ -36,7 +36,6 @@
 ## Block H — The look (a design system for governed prose)
 
 - 📋 **RG90** (deps: RG54 ✅, the design system darkening the muted foreground) **muted text on a muted panel is 4.33 to 1, which no screen renders yet and one will** — Those two tokens are named as a pair and miss AA on the light ground, so the first panel using both ships a pale label looking like a style. → §RG90
-- 📋 **RG107** (deps: RG54 ✅) **the dark focus ring is the light accent, because this app's :root wins over the package's dark block** — index.css says the package makes the ring the accent in dark and the contrast test agrees, but both blocks are unlayered and equally specific, so the later one wins. → §RG107
 - 💭 **RG116** (deps: RG88 ✅, RG87 ✅) **there is no control for the language, so choosing one means editing the settings file by hand** — RG88 gave i18next the locale and changeLanguage moves it, RG87 built the write back for the ground, and what is missing is the control between them. → §RG116
 - 📋 **RG117** (deps: RG63 ✅) **the route table is spelled three times, so a surface can be routed and still be missing from the map** — main mounts the routes, the harness mounts them again and the shell's test keeps a third list to check a nav entry against, and only one of the three is what a window runs. → §RG117
 

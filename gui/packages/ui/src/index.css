@@ -84,9 +84,14 @@
    *
    * `--vg-ring` is `oklch(70.8% 0 0)` on `:root`, which is 2.59:1 against the light ground
    * and fails WCAG 1.4.11 — a focus indicator has to reach 3:1, and this app is a keyboard
-   * tool. The package already makes the ring the accent in dark (`var(--vg-accent-text-dark)`),
-   * so this is that decision applied to the ground where it was left as a grey, not a new
-   * one. The contrast test computes both and is what would notice either moving.
+   * tool. The package already makes the ring the accent in dark, so this is that decision
+   * applied to the ground where it was left as a grey, not a new one.
+   *
+   * **And it reaches the dark ground too, which RG107 is** — this block is written after the
+   * package's dark one and is equally specific, so what is set here wins on both. The dark
+   * ring rendered at `#b45309` on `#171717`: 3.57:1, legal and not the colour anybody chose.
+   * The block below is what gives the ground its own value back. The contrast test models
+   * the cascade in source order now, and holds the two apart by name.
    */
   --vg-ring: var(--vg-accent-text);
 
@@ -104,6 +109,25 @@
   --font-marker:
     'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Segoe UI Symbol', 'Noto Emoji',
     var(--font-sans), sans-serif;
+}
+
+/*
+ * What this app overrides that the package re-points in dark (RG107).
+ *
+ * One entry, and the list is meant to stay short. Anything set at `:root` above that the
+ * package also sets under this selector needs a line here, because the block above is later
+ * in this sheet and equally specific — so without one the light value wins on both grounds.
+ *
+ * `--primary` is not here and does not need to be: the package reads it per ground through
+ * the four `*-base` inputs, which is exactly the arrangement this block exists to stand in
+ * for where a token has none.
+ *
+ * The selector is the package's own, spelled the same way, so a theme attribute and a class
+ * both reach it.
+ */
+.dark,
+[data-theme='dark'] {
+  --vg-ring: var(--vg-accent-text-dark);
 }
 
 /*

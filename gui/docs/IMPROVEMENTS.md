@@ -300,32 +300,6 @@ the line. Dark is untouched, the package re-pointing that token there already.
 
 What is left here is adopting the release that carries it, and enforcing the pair.
 
-### §RG107 The override that reached both grounds
-
-RG54 overrode `--vg-ring` in this app's `:root` because the package's light ring is a
-grey that does not clear 3:1. The comment beside it says the package already makes the
-ring the accent in dark, so this is that decision applied to the ground where it was
-left a grey.
-
-It does not hold. `index.css` imports the package and then declares `:root`, so this
-app's block is the last one in the sheet. The package re-points `--vg-ring` under
-`.dark, [data-theme="dark"]`, and that selector and `:root` are unlayered and equally
-specific -- so the later declaration wins and the light value applies in dark as well.
-
-What renders in dark is `#b45309` on `#171717`: 3.57:1. What was meant to render is the
-package's own dark ring, `#fbbf24`, at about 10.7:1. Nothing failed, because WCAG 1.4.11
-asks a focus indicator for 3:1 and 3.57 clears it. The ring is legal, and it is not the
-ring anybody chose.
-
-The contrast test does not see it because it models the cascade the other way: `LIGHT`
-is the package's `:root` then this app's, and `DARK` is that map re-pointed by the
-package's dark block. That is the order a reader expects and the opposite of the one a
-browser applies.
-
-So there are two defects here and the second is the one that matters: a value, and a
-guard that agrees with the intent rather than with the sheet. Any token this app
-overrides that the package re-points in dark has the same shape.
-
 ### §RG116 The language has a setting, a source and no switch
 
 RG86 made `Settings.locale` reach every screen and RG88 made i18next the one place the

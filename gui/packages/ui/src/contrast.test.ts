@@ -63,11 +63,33 @@ function resolve(tokens: Map<string, string>, value: string, depth = 4): string 
   return next === undefined ? value : resolve(tokens, next, depth - 1)
 }
 
-/** The light ground: the package's `:root`, then this app's, which overrides it. */
+/**
+ * The two grounds, in the order a browser resolves them (RG107).
+ *
+ * Source order and not intent. `index.css` imports the package and then opens its own
+ * `:root`, and `:root` and `.dark, [data-theme="dark"]` are unlayered and equally specific —
+ * so a token this app overrides at `:root` beats the package's *dark* block, which is later
+ * in nobody's sheet but earlier in this one.
+ *
+ * Modelling it the other way round is what let the dark focus ring be the light accent while
+ * this test agreed it was not: the map said what the author meant and the browser rendered
+ * what the file said. Every block, in the order it is written, is the only model that reads
+ * the way the cascade does.
+ *
+ * The dark selector is a pattern and not a literal because the two sheets spell it
+ * differently: the package ships it minified, and Prettier writes this app's across two
+ * lines with the value quoted. Both are the block a browser applies.
+ */
+const DARK_SELECTOR = String.raw`\.dark,\s*\[data-theme=['"]?dark['"]?\]`
+
 const LIGHT = new Map([...tokensUnder(PACKAGE_CSS, ':root'), ...tokensUnder(APP_CSS, ':root')])
 
-/** The dark ground: the light one re-pointed by the package's dark block. */
-const DARK = new Map([...LIGHT, ...tokensUnder(PACKAGE_CSS, '\\.dark,\\[data-theme=dark\\]')])
+const DARK = new Map([
+  ...tokensUnder(PACKAGE_CSS, ':root'),
+  ...tokensUnder(PACKAGE_CSS, DARK_SELECTOR),
+  ...tokensUnder(APP_CSS, ':root'),
+  ...tokensUnder(APP_CSS, DARK_SELECTOR),
+])
 
 const GROUNDS: readonly [string, Map<string, string>][] = [
   ['light', LIGHT],
@@ -172,6 +194,36 @@ describe('RG54: the stylesheets this test reads', () => {
     expect(LIGHT.get('--vg-accent-text')).toBe(
       tokensUnder(APP_CSS, ':root').get('--vg-accent-text'),
     )
+  })
+})
+
+describe('RG107: a token this app overrides, on the ground it did not mean to', () => {
+  it('rings in the dark accent and not the light one', () => {
+    // 3.57:1 against 10.7:1 — both clear the 3:1 a focus indicator owes, so contrast alone
+    // said nothing while the wrong colour rendered. What is asserted is the value.
+    expect(resolve(DARK, DARK.get('--vg-ring') ?? '')).toBe(
+      resolve(DARK, DARK.get('--vg-accent-text-dark') ?? ''),
+    )
+    expect(resolve(DARK, DARK.get('--vg-ring') ?? '')).not.toBe(
+      resolve(LIGHT, LIGHT.get('--vg-ring') ?? ''),
+    )
+  })
+
+  it('leaves every other override this app makes reaching one ground only', () => {
+    // The shape rather than the instance: any token declared at this app's `:root` that the
+    // package re-points in dark lands on both grounds, because `:root` here is written after
+    // that dark block. A second one would be the same defect with another name.
+    const own = tokensUnder(APP_CSS, ':root')
+    const packageDark = tokensUnder(PACKAGE_CSS, DARK_SELECTOR)
+    const ownDark = tokensUnder(APP_CSS, DARK_SELECTOR)
+
+    const leaking = [...own.keys()].filter((token) => packageDark.has(token) && !ownDark.has(token))
+
+    expect(
+      leaking,
+      'these are overridden at `:root` and re-pointed by the package in dark, so the light' +
+        " value wins in both. Declare each in this app's own dark block as well.",
+    ).toEqual([])
   })
 })
 
