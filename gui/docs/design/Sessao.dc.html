@@ -1,0 +1,213 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700&display=swap">
+  <style>
+    body { margin: 0; background: #ffffff; }
+    a { color: #b45309; text-decoration: none; }
+    a:hover { color: #92400e; }
+    .rk { font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .mk { font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", "Segoe UI Symbol", sans-serif; line-height: 1; }
+    .clip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  </style>
+</helmet>
+
+<div class="rk" style="position:relative;width:1440px;height:900px;background:#ffffff;color:#0a0a0a;overflow:hidden">
+
+  <nav style="position:absolute;left:0;top:0;bottom:0;width:64px;z-index:4;display:flex;flex-direction:column;align-items:center;gap:4px;padding:80px 0 16px;background:rgba(255,255,255,0.55);backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%);border-right:1px solid rgba(229,229,229,0.4)">
+    <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;color:#737373"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"></rect><rect x="14" y="3" width="7" height="7" rx="2"></rect><rect x="3" y="14" width="7" height="7" rx="2"></rect><rect x="14" y="14" width="7" height="7" rx="2"></rect></svg></div>
+    <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;color:#737373"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"></path><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01"></path></svg></div>
+    <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;color:#737373"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v5h5"></path><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2z"></path><path d="M8 13h7M8 17h5"></path></svg></div>
+    <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;border:1px solid rgba(23,23,23,0.4);background:rgba(23,23,23,0.09);color:#171717"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7l4.5 5L5 17"></path><path d="M12.5 17H19"></path></svg></div>
+    <div style="flex:1"></div>
+    <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;color:#737373"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 3.6v2M12 18.4v2M20.4 12h-2M5.6 12h-2M17.9 6.1l-1.4 1.4M7.5 16.5l-1.4 1.4M17.9 17.9l-1.4-1.4M7.5 7.5L6.1 6.1"></path></svg></div>
+  </nav>
+
+  <header style="position:absolute;left:0;right:0;top:0;height:80px;z-index:5;display:flex;align-items:center;gap:20px;padding:0 28px 0 18px;background:rgba(255,255,255,0.55);backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%);border-bottom:1px solid rgba(229,229,229,0.4)">
+    <div style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9px;background-image:linear-gradient(to bottom right,#fbbf24,#f59e0b);color:#7c2d12;flex:0 0 auto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V7a2 2 0 0 1 2-2h7l3 3h2a2 2 0 0 1 2 2v9"></path><path d="M4 19h16"></path></svg></div>
+    <div style="font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:18px;font-weight:600;letter-spacing:-0.015em;margin-left:10px">roadkeep</div>
+    <div style="flex:1"></div>
+    <div style="display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 11px;border-radius:999px;border:1px solid rgba(79,57,246,0.35);background:rgba(79,57,246,0.08);color:#4f39f6;font-size:12px;font-weight:600"><span style="width:7px;height:7px;border-radius:999px;background:#4f39f6"></span>session running · 6 min</div>
+    <div class="mono" style="display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 10px;border-radius:999px;background:#f5f5f5;color:#525252;font-size:11.5px">roadkeep 0.2.411</div>
+  </header>
+
+  <main style="position:absolute;left:64px;right:0;top:80px;bottom:0;padding:20px 32px 0;display:flex;flex-direction:column;gap:14px">
+
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:11px">
+          <span class="mk" style="font-size:17px">🛠</span>
+          <span class="mono" style="font-size:20px;font-weight:600">RG98</span>
+          <span class="clip" style="font-size:15px;color:#404040">core's boundary test holds an import and nothing else, so a path rule written as string work passes it</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px;margin-top:6px">
+          <span style="display:inline-flex;align-items:center;gap:6px;height:21px;padding:0 9px;border-radius:6px;border:1px solid rgba(0,188,125,0.4);background:rgba(0,188,125,0.1);color:#007a55;font-size:11px;font-weight:600">held by you · since 14:02</span>
+          <span style="font-size:11.5px;color:#737373">the claim is roadkeep's registry, read — never a state this app kept</span>
+        </div>
+      </div>
+      <button style="height:32px;padding:0 13px;border:1px solid #e5e5e5;border-radius:8px;background:#ffffff;font:500 12.5px Inter,sans-serif;cursor:pointer">Open the task</button>
+      <button style="height:32px;padding:0 13px;border:1px solid rgba(251,44,54,0.4);border-radius:8px;background:#ffffff;color:#c10007;font:500 12.5px Inter,sans-serif;cursor:pointer">Stop the session</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:296px 1fr 336px;gap:18px;flex:1;min-height:0">
+
+      <!-- what was handed over -->
+      <div style="border:1px solid #e5e5e5;border-radius:16px;padding:16px 17px;display:flex;flex-direction:column;gap:11px;min-height:0;overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:11px;font-weight:600;letter-spacing:0.07em;color:#737373">WHAT WAS HANDED OVER</span>
+          <span class="mono" style="font-size:10.5px;color:#a1a1a1">brief RG98</span>
+        </div>
+        <div style="font-size:12.5px;color:#404040;line-height:1.5">The payload <span class="mono" style="font-size:11.5px">brief</span> returned for this line — not a sentence somebody typed about it.</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#007a55" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5 11-11"></path></svg>the design, §RG98 · 214 words</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#007a55" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5 11-11"></path></svg>deps · RG65 shipped</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#007a55" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5 11-11"></path></svg>block A's 4 criteria</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#007a55" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5 11-11"></path></svg>the 10 non-goals</div>
+        </div>
+        <div style="height:1px;background:#f0f0f0"></div>
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.07em;color:#737373">THE COMMAND THAT STARTED IT</div>
+        <div class="mono" style="font-size:11px;color:#525252;line-height:1.65;word-break:break-all;background:#fafafa;border:1px solid #f0f0f0;border-radius:10px;padding:9px 10px">claude --append-system-prompt … \
+  -C D:\Git\alegauss\roadkeep-gui</div>
+        <div style="flex:1"></div>
+        <div style="font-size:11px;color:#737373;line-height:1.45">Two sessions are never offered one line: a live claim is named here before it is handed anywhere.</div>
+      </div>
+
+      <!-- the stream -->
+      <div style="background:rgba(255,255,255,0.72);backdrop-filter:blur(18px) saturate(180%);-webkit-backdrop-filter:blur(18px) saturate(180%);border:1px solid rgba(229,229,229,0.7);border-radius:24px;overflow:hidden;display:flex;flex-direction:column;min-height:0;box-shadow:0 18px 40px -30px rgba(0,0,0,0.25)">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-bottom:1px solid #f0f0f0">
+          <span style="font-size:11px;font-weight:600;letter-spacing:0.07em;color:#737373">WHAT THE SESSION IS DOING</span>
+          <span style="font-size:11px;color:#737373">28 acts · 4 touched a governed file</span>
+        </div>
+        <div style="flex:1;overflow:hidden;padding:6px 0">
+
+          <div style="display:flex;gap:11px;padding:9px 18px">
+            <span class="mono" style="font-size:10.5px;color:#a1a1a1;width:22px;flex:0 0 auto;text-align:right;padding-top:2px">12</span>
+            <div style="min-width:0"><div style="font-size:12.5px;line-height:1.5;color:#171717">The boundary test asserts an import and nothing else, so a separator fold written inline compiles and passes. I will assert the rule, not the import.</div></div>
+          </div>
+
+          <div style="display:flex;gap:11px;padding:9px 18px">
+            <span class="mono" style="font-size:10.5px;color:#a1a1a1;width:22px;flex:0 0 auto;text-align:right;padding-top:2px">13</span>
+            <div style="min-width:0;flex:1">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="display:inline-flex;align-items:center;height:19px;padding:0 7px;border-radius:6px;background:#f5f5f5;color:#525252;font-size:10.5px;font-weight:600">Read</span>
+                <span class="mono clip" style="font-size:11.5px;color:#404040">packages/core/src/boundary.test.ts</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:11px;padding:9px 18px">
+            <span class="mono" style="font-size:10.5px;color:#a1a1a1;width:22px;flex:0 0 auto;text-align:right;padding-top:2px">14</span>
+            <div style="min-width:0;flex:1">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="display:inline-flex;align-items:center;height:19px;padding:0 7px;border-radius:6px;background:#f5f5f5;color:#525252;font-size:10.5px;font-weight:600">Edit</span>
+                <span class="mono clip" style="font-size:11.5px;color:#404040">packages/core/src/boundary.test.ts</span>
+                <span style="font-size:11px;color:#737373">+31 −4</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:11px;padding:9px 18px;border-left:3px solid #fbbf24;background:rgba(251,191,36,0.07)">
+            <span class="mono" style="font-size:10.5px;color:#a1a1a1;width:22px;flex:0 0 auto;text-align:right;padding-top:2px">15</span>
+            <div style="min-width:0;flex:1">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="display:inline-flex;align-items:center;height:19px;padding:0 7px;border-radius:6px;background:#f5f5f5;color:#525252;font-size:10.5px;font-weight:600">Bash</span>
+                <span class="mono clip" style="font-size:11.5px;color:#404040">npm test</span>
+                <span style="display:inline-flex;align-items:center;gap:5px;height:19px;padding:0 7px;border-radius:6px;border:1px solid rgba(0,188,125,0.4);background:rgba(0,188,125,0.1);color:#007a55;font-size:10.5px;font-weight:600">exit 0 · 9.4s</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:11px;padding:9px 18px;border-left:3px solid #fbbf24;background:rgba(251,191,36,0.07)">
+            <span class="mono" style="font-size:10.5px;color:#a1a1a1;width:22px;flex:0 0 auto;text-align:right;padding-top:2px">16</span>
+            <div style="min-width:0;flex:1">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="display:inline-flex;align-items:center;height:19px;padding:0 7px;border-radius:6px;border:1px solid rgba(180,83,9,0.35);background:rgba(251,191,36,0.16);color:#7c2d12;font-size:10.5px;font-weight:600">roadkeep</span>
+                <span class="mono clip" style="font-size:11.5px;color:#404040">status RG98 🛠</span>
+                <span style="display:inline-flex;align-items:center;height:19px;padding:0 7px;border-radius:6px;border:1px solid rgba(180,83,9,0.3);color:#92400e;font-size:10.5px;font-weight:600">governed · docs/ROADMAP.md</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:11px;padding:9px 18px">
+            <span class="mono" style="font-size:10.5px;color:#a1a1a1;width:22px;flex:0 0 auto;text-align:right;padding-top:2px">17</span>
+            <div style="min-width:0"><div style="font-size:12.5px;line-height:1.5;color:#171717">The suite is green and the marker is moved. Running the gate before the commit.</div></div>
+          </div>
+
+          <div style="display:flex;gap:11px;padding:9px 18px;border-left:3px solid #fbbf24;background:rgba(251,191,36,0.07)">
+            <span class="mono" style="font-size:10.5px;color:#a1a1a1;width:22px;flex:0 0 auto;text-align:right;padding-top:2px">18</span>
+            <div style="min-width:0;flex:1">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="display:inline-flex;align-items:center;height:19px;padding:0 7px;border-radius:6px;border:1px solid rgba(180,83,9,0.35);background:rgba(251,191,36,0.16);color:#7c2d12;font-size:10.5px;font-weight:600">roadkeep</span>
+                <span class="mono clip" style="font-size:11.5px;color:#404040">lint</span>
+                <span style="display:inline-flex;align-items:center;gap:5px;height:19px;padding:0 7px;border-radius:6px;border:1px solid rgba(0,188,125,0.4);background:rgba(0,188,125,0.1);color:#007a55;font-size:10.5px;font-weight:600">clean</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:11px;padding:9px 18px">
+            <span class="mono" style="font-size:10.5px;color:#a1a1a1;width:22px;flex:0 0 auto;text-align:right;padding-top:2px">19</span>
+            <div style="display:flex;align-items:center;gap:9px">
+              <span style="width:7px;height:7px;border-radius:999px;background:#4f39f6"></span>
+              <span style="font-size:12.5px;color:#737373">working…</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- what moved in the backlog -->
+      <div style="display:flex;flex-direction:column;gap:12px;min-height:0">
+        <div style="border:1px solid #e5e5e5;border-radius:16px;padding:15px 17px">
+          <div style="font-size:11px;font-weight:600;letter-spacing:0.07em;color:#737373;margin-bottom:11px">WHAT MOVED IN THE BACKLOG</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:center;gap:9px;font-size:12.5px">
+              <span class="mk" style="font-size:14px">📋</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a1a1a1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 7l5 5-5 5"></path></svg>
+              <span class="mk" style="font-size:14px">🛠</span>
+              <span style="color:#404040">marker moved · 14:02</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:9px;font-size:12.5px;color:#404040">
+              <span style="width:7px;height:7px;border-radius:999px;background:#00bc7d"></span>
+              claim written · your name, this machine
+            </div>
+            <div style="display:flex;align-items:center;gap:9px;font-size:12.5px;color:#a1a1a1">
+              <span style="width:7px;height:7px;border-radius:999px;border:1px solid #d4d4d4"></span>
+              nothing shipped yet
+            </div>
+          </div>
+        </div>
+
+        <div style="border:1px solid #e5e5e5;border-radius:16px;padding:15px 17px;flex:1;min-height:0">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px">
+            <span style="font-size:11px;font-weight:600;letter-spacing:0.07em;color:#737373">GOVERNED FILES, WATCHED</span>
+            <span style="display:inline-flex;align-items:center;gap:5px;font-size:10.5px;color:#4f39f6;font-weight:600"><span style="width:6px;height:6px;border-radius:999px;background:#4f39f6"></span>live</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span class="mono clip" style="font-size:11.5px;color:#404040">docs/ROADMAP.md</span><span style="font-size:10.5px;color:#b45309;font-weight:600">changed 14:02</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span class="mono clip" style="font-size:11.5px;color:#737373">docs/CHANGELOG.md</span><span style="font-size:10.5px;color:#a1a1a1">unchanged</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span class="mono clip" style="font-size:11.5px;color:#737373">docs/IMPROVEMENTS.md</span><span style="font-size:10.5px;color:#a1a1a1">unchanged</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span class="mono clip" style="font-size:11.5px;color:#737373">docs/DECISIONS.md</span><span style="font-size:10.5px;color:#a1a1a1">unchanged</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span class="mono clip" style="font-size:11.5px;color:#737373">docs/DEFERRED.md</span><span style="font-size:10.5px;color:#a1a1a1">unchanged</span></div>
+          </div>
+          <div style="height:1px;background:#f0f0f0;margin:13px 0"></div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:0.07em;color:#737373;margin-bottom:9px">HELD ELSEWHERE</div>
+          <div style="display:flex;align-items:center;gap:9px;font-size:12px;color:#404040">
+            <span class="mono" style="font-weight:600">RG75</span>
+            <span style="color:#737373">— a claim from another checkout, 2 days old</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+</x-dc>
+</body>
+</html>

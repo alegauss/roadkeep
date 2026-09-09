@@ -12,6 +12,12 @@ packages/shell/src/captured/
 # from, so the gate says the surfaces are behind when only a formatter has been past.
 .claude/skills/roadkeep/
 
+# The source of a published design canvas, and a formatter would rewrite it into something
+# that canvas never published — the two ends would stop round-tripping. One artboard is the
+# harder case: it shows a governed section with the wrapping the file stores, inside a
+# `white-space: pre-wrap` block, so reindenting it changes what the drawing demonstrates.
+docs/design/*.dc.html
+
 # roadkeep owns these five and refuses a hand edit; a formatter is a hand edit.
 docs/ROADMAP.md
 docs/CHANGELOG.md

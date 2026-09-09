@@ -1,0 +1,333 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700&display=swap">
+  <style>
+    body { margin: 0; background: #ffffff; }
+    a { color: #b45309; text-decoration: none; }
+    a:hover { color: #92400e; }
+    .rk { font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .mk { font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", "Segoe UI Symbol", sans-serif; line-height: 1; }
+    .clip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  </style>
+</helmet>
+
+<div class="rk" style="position:relative;width:1440px;height:900px;background:#ffffff;color:#0a0a0a;overflow:hidden">
+
+  <div style="position:absolute;top:-180px;right:-140px;width:540px;height:540px;border-radius:999px;background:radial-gradient(circle,rgba(251,191,36,0.16),rgba(251,191,36,0) 70%)"></div>
+  <div style="position:absolute;bottom:-260px;left:180px;width:600px;height:600px;border-radius:999px;background:radial-gradient(circle,rgba(245,158,11,0.09),rgba(245,158,11,0) 70%)"></div>
+
+  <!-- nav rail: w-16 (64px), fixed, frosted, items start below the 80px header -->
+  <nav style="position:absolute;left:0;top:0;bottom:0;width:64px;z-index:4;display:flex;flex-direction:column;align-items:center;gap:4px;padding:80px 0 16px;background:rgba(255,255,255,0.55);backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%);border-right:1px solid rgba(229,229,229,0.4)">
+    <div title="Portfolio" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;border:1px solid rgba(23,23,23,0.4);background:rgba(23,23,23,0.09);color:#171717">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"></rect><rect x="14" y="3" width="7" height="7" rx="2"></rect><rect x="3" y="14" width="7" height="7" rx="2"></rect><rect x="14" y="14" width="7" height="7" rx="2"></rect></svg>
+    </div>
+    <div title="Backlog" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;color:#737373">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"></path><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01"></path></svg>
+    </div>
+    <div title="Prose" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;color:#737373">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v5h5"></path><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2z"></path><path d="M8 13h7M8 17h5"></path></svg>
+    </div>
+    <div title="Sessions" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;color:#737373">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7l4.5 5L5 17"></path><path d="M12.5 17H19"></path></svg>
+    </div>
+    <div style="flex:1"></div>
+    <div title="Settings" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;color:#737373">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 3.6v2M12 18.4v2M20.4 12h-2M5.6 12h-2M17.9 6.1l-1.4 1.4M7.5 16.5l-1.4 1.4M17.9 17.9l-1.4-1.4M7.5 7.5L6.1 6.1"></path></svg>
+    </div>
+  </nav>
+
+  <!-- header: 80px, frosted, spans the rail -->
+  <header style="position:absolute;left:0;right:0;top:0;height:80px;z-index:5;display:flex;align-items:center;gap:20px;padding:0 28px 0 18px;background:rgba(255,255,255,0.55);backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%);border-bottom:1px solid rgba(229,229,229,0.4)">
+    <div style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9px;background-image:linear-gradient(to bottom right,#fbbf24,#f59e0b);color:#7c2d12;flex:0 0 auto">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V7a2 2 0 0 1 2-2h7l3 3h2a2 2 0 0 1 2 2v9"></path><path d="M4 19h16"></path></svg>
+    </div>
+    <div style="font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:18px;font-weight:600;letter-spacing:-0.015em;margin-left:10px">roadkeep</div>
+
+    <div style="display:flex;align-items:center;gap:8px;width:440px;height:36px;padding:0 12px;margin-left:24px;border:1px solid #e5e5e5;border-radius:10px;background:#ffffff">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#737373" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.4-4.4"></path></svg>
+      <span style="font-size:13px;color:#737373;flex:1">Find a line in every backlog</span>
+      <span class="mono" style="display:inline-flex;align-items:center;height:20px;padding:0 6px;border:1px solid #e5e5e5;border-radius:6px;font-size:11px;color:#737373">Ctrl K</span>
+    </div>
+
+    <div style="flex:1"></div>
+
+    <div class="mono" style="display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 10px;border-radius:999px;background:#f5f5f5;color:#525252;font-size:11.5px">
+      <span style="width:6px;height:6px;border-radius:999px;background:#fe9a00"></span>roadkeep 0.2.411
+    </div>
+    <div style="display:inline-flex;align-items:center;height:32px;padding:0 12px;border:1px solid #e5e5e5;border-radius:8px;font-size:12.5px;font-weight:500;color:#0a0a0a">ground: light</div>
+  </header>
+
+  <main style="position:absolute;left:64px;right:0;top:80px;bottom:0;padding:26px 36px 0">
+
+    <!-- hero -->
+    <div style="display:flex;align-items:flex-end;gap:24px;margin-bottom:22px">
+      <div style="flex:1;display:flex;flex-direction:column;gap:7px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.09em;color:#b45309">PORTFOLIO</div>
+        <div style="font-size:34px;font-weight:600;letter-spacing:-0.022em;line-height:1.1">7 projects on this machine</div>
+        <div style="font-size:13.5px;color:#737373;max-width:720px;text-wrap:pretty">5 read · 1 still reading · 1 unreadable. Three roots, named and persisted — nothing walked a drive unasked.</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button style="height:36px;padding:0 14px;border:1px solid #e5e5e5;border-radius:8px;background:#ffffff;color:#0a0a0a;font:500 13px Inter,sans-serif;cursor:pointer">Rescan roots</button>
+        <button style="height:36px;padding:0 14px;border:none;border-radius:8px;background:#171717;color:#fafafa;font:500 13px Inter,sans-serif;cursor:pointer">Add a root</button>
+      </div>
+    </div>
+
+    <!-- filter row -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+      <span style="display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:999px;background:#171717;color:#fafafa;font-size:12.5px;font-weight:500">All 7</span>
+      <span style="display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:999px;border:1px solid #e5e5e5;color:#525252;font-size:12.5px">Gate drifted 1</span>
+      <span style="display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:999px;border:1px solid #e5e5e5;color:#525252;font-size:12.5px">Engine disagrees 2</span>
+      <span style="display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:999px;border:1px solid #e5e5e5;color:#525252;font-size:12.5px">Unreadable 1</span>
+      <div style="flex:1"></div>
+      <span style="font-size:12px;color:#737373">order: the record's</span>
+    </div>
+
+    <!-- the list -->
+    <div style="background:rgba(255,255,255,0.72);backdrop-filter:blur(18px) saturate(180%);-webkit-backdrop-filter:blur(18px) saturate(180%);border:1px solid rgba(229,229,229,0.7);border-radius:24px;overflow:hidden;box-shadow:0 18px 40px -30px rgba(0,0,0,0.25)">
+
+      <div style="display:grid;grid-template-columns:290px 176px 1fr 148px 156px;gap:16px;padding:11px 22px;border-bottom:1px solid #ededed;font-size:10.5px;font-weight:600;letter-spacing:0.07em;color:#737373">
+        <div>PROJECT</div><div>BACKLOG</div><div>NEXT READY LINE</div><div>GATE</div><div>ENGINE</div>
+      </div>
+
+      <!-- row: read -->
+      <div style="display:grid;grid-template-columns:290px 176px 1fr 148px 156px;gap:16px;align-items:center;padding:13px 22px;border-bottom:1px solid #f2f2f2;background:rgba(251,191,36,0.05)">
+        <div style="display:flex;align-items:center;gap:11px;min-width:0">
+          <div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:10px;background-image:linear-gradient(to bottom right,#fe9a00,#f54900);color:#ffffff;flex:0 0 auto">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+          </div>
+          <div style="min-width:0">
+            <div style="font-size:13.5px;font-weight:600">roadkeep-gui</div>
+            <div class="mono clip" style="font-size:11px;color:#737373">D:\Git\alegauss\roadkeep-gui</div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums">33 open</div>
+          <div style="display:flex;align-items:center;gap:9px;margin-top:3px;font-size:11.5px;color:#525252"><span class="mk">📋</span>6 <span class="mk">💭</span>26 <span class="mk">⏳</span>1</div>
+          <div style="font-size:11px;color:#737373;margin-top:2px">31 startable · 2 waiting</div>
+        </div>
+        <div style="min-width:0">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="mono" style="font-size:12px;font-weight:600">RG98</span>
+            <span class="mk" style="font-size:12px">📋</span>
+            <span style="display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:6px;background:#f5f5f5;color:#525252;font-size:11px;font-weight:600">A</span>
+            <span style="font-size:11px;color:#737373">tier: designed</span>
+          </div>
+          <div class="clip" style="font-size:12.5px;color:#404040;margin-top:3px">core's boundary test holds an import and nothing else, so a path rule written as string work passes it</div>
+        </div>
+        <div>
+          <div style="display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:999px;border:1px solid rgba(0,188,125,0.4);background:rgba(0,188,125,0.1);color:#007a55;font-size:11.5px;font-weight:600"><span style="width:6px;height:6px;border-radius:999px;background:#00bc7d"></span>clean</div>
+          <div style="font-size:11px;color:#737373;margin-top:4px">0 findings · 4 min ago</div>
+        </div>
+        <div>
+          <div class="mono" style="font-size:12px;font-weight:600">0.2.411</div>
+          <div style="display:inline-flex;align-items:center;gap:5px;margin-top:3px;height:19px;padding:0 8px;border-radius:999px;border:1px solid rgba(254,154,0,0.4);background:rgba(254,154,0,0.1);color:#973c00;font-size:10.5px;font-weight:600">working tree</div>
+          <div class="mono clip" style="font-size:10.5px;color:#737373;margin-top:3px">D:\Git\alegauss\roadkeep</div>
+        </div>
+      </div>
+
+      <!-- row: pending -->
+      <div style="display:grid;grid-template-columns:290px 176px 1fr 148px 156px;gap:16px;align-items:center;padding:13px 22px;border-bottom:1px solid #f2f2f2">
+        <div style="display:flex;align-items:center;gap:11px;min-width:0">
+          <div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:10px;background-image:linear-gradient(to bottom right,#45556c,#314158);color:#ffffff;flex:0 0 auto">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+          </div>
+          <div style="min-width:0">
+            <div style="font-size:13.5px;font-weight:600">roadkeep</div>
+            <div class="mono clip" style="font-size:11px;color:#737373">D:\Git\alegauss\roadkeep</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="width:74px;height:9px;border-radius:999px;background:#ececec"></div>
+          <div style="width:104px;height:9px;border-radius:999px;background:#f2f2f2"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px">
+          <span style="width:7px;height:7px;border-radius:999px;background:#4f39f6"></span>
+          <span style="font-size:12.5px;color:#525252">still reading — drawn as pending, never as zero</span>
+        </div>
+        <div><div style="width:64px;height:9px;border-radius:999px;background:#f2f2f2"></div></div>
+        <div><div style="width:80px;height:9px;border-radius:999px;background:#f2f2f2"></div></div>
+      </div>
+
+      <!-- row: worktree, gate drifted -->
+      <div style="display:grid;grid-template-columns:290px 176px 1fr 148px 156px;gap:16px;align-items:center;padding:13px 22px;border-bottom:1px solid #f2f2f2">
+        <div style="display:flex;align-items:center;gap:11px;min-width:0">
+          <div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:10px;background-image:linear-gradient(to bottom right,#ec003f,#e60076);color:#ffffff;flex:0 0 auto">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+          </div>
+          <div style="min-width:0">
+            <div style="display:flex;align-items:center;gap:7px"><span style="font-size:13.5px;font-weight:600">shio</span><span style="display:inline-flex;align-items:center;height:17px;padding:0 6px;border-radius:5px;background:#f5f5f5;color:#525252;font-size:10.5px;font-weight:600">worktree 2026.3</span></div>
+            <div class="mono clip" style="font-size:11px;color:#737373">D:\Git\viglet\shio\2026.3</div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums">118 open</div>
+          <div style="display:flex;align-items:center;gap:9px;margin-top:3px;font-size:11.5px;color:#525252"><span class="mk">📋</span>41 <span class="mk">💭</span>74 <span class="mk">🛠</span>3</div>
+          <div style="font-size:11px;color:#737373;margin-top:2px">96 startable · 22 waiting</div>
+        </div>
+        <div style="min-width:0">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="mono" style="font-size:12px;font-weight:600">SH482</span>
+            <span class="mk" style="font-size:12px">📋</span>
+            <span style="display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:6px;background:#f5f5f5;color:#525252;font-size:11px;font-weight:600">D</span>
+            <span style="font-size:11px;color:#737373">tier: designed</span>
+          </div>
+          <div class="clip" style="font-size:12.5px;color:#404040;margin-top:3px">sample row — the next line, its marker, its block and its symptom, exactly as pick printed them</div>
+        </div>
+        <div>
+          <div style="display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:999px;border:1px solid rgba(251,44,54,0.4);background:rgba(251,44,54,0.1);color:#c10007;font-size:11.5px;font-weight:600"><span style="width:6px;height:6px;border-radius:999px;background:#fb2c36"></span>drifted</div>
+          <div style="font-size:11px;color:#737373;margin-top:4px">3 findings · stale</div>
+        </div>
+        <div>
+          <div class="mono" style="font-size:12px;font-weight:600">0.2.397</div>
+          <div style="display:inline-flex;align-items:center;gap:5px;margin-top:3px;height:19px;padding:0 8px;border-radius:999px;border:1px solid rgba(254,154,0,0.4);background:rgba(254,154,0,0.1);color:#973c00;font-size:10.5px;font-weight:600">two copies disagree</div>
+          <div class="mono clip" style="font-size:10.5px;color:#737373;margin-top:3px">.roadkeep/ (vendored)</div>
+        </div>
+      </div>
+
+      <!-- row -->
+      <div style="display:grid;grid-template-columns:290px 176px 1fr 148px 156px;gap:16px;align-items:center;padding:13px 22px;border-bottom:1px solid #f2f2f2">
+        <div style="display:flex;align-items:center;gap:11px;min-width:0">
+          <div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:10px;background-image:linear-gradient(to bottom right,#155dfc,#4f39f6);color:#ffffff;flex:0 0 auto">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+          </div>
+          <div style="min-width:0">
+            <div style="display:flex;align-items:center;gap:7px"><span style="font-size:13.5px;font-weight:600">turing</span><span style="display:inline-flex;align-items:center;height:17px;padding:0 6px;border-radius:5px;background:#f5f5f5;color:#525252;font-size:10.5px;font-weight:600">worktree 2026.3</span></div>
+            <div class="mono clip" style="font-size:11px;color:#737373">D:\Git\viglet\turing\2026.3</div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums">204 open</div>
+          <div style="display:flex;align-items:center;gap:9px;margin-top:3px;font-size:11.5px;color:#525252"><span class="mk">📋</span>77 <span class="mk">💭</span>125 <span class="mk">⏳</span>2</div>
+          <div style="font-size:11px;color:#737373;margin-top:2px">181 startable · 23 waiting</div>
+        </div>
+        <div style="min-width:0">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="mono" style="font-size:12px;font-weight:600">TU1913</span>
+            <span class="mk" style="font-size:12px">💭</span>
+            <span style="display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:6px;background:#f5f5f5;color:#525252;font-size:11px;font-weight:600">K</span>
+            <span style="font-size:11px;color:#737373">tier: undesigned</span>
+          </div>
+          <div class="clip" style="font-size:12.5px;color:#404040;margin-top:3px">sample row — a symptom runs to 120 characters and the column has to hold that without a tooltip</div>
+        </div>
+        <div>
+          <div style="display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:999px;border:1px solid #e5e5e5;background:#fafafa;color:#525252;font-size:11.5px;font-weight:600"><span style="width:6px;height:6px;border-radius:999px;background:#a1a1a1"></span>unknown</div>
+          <div style="font-size:11px;color:#737373;margin-top:4px">never run here</div>
+        </div>
+        <div>
+          <div class="mono" style="font-size:12px;font-weight:600">0.2.411</div>
+          <div style="display:inline-flex;align-items:center;gap:5px;margin-top:3px;height:19px;padding:0 8px;border-radius:999px;border:1px solid rgba(0,188,125,0.4);background:rgba(0,188,125,0.1);color:#007a55;font-size:10.5px;font-weight:600">agrees</div>
+          <div class="mono clip" style="font-size:10.5px;color:#737373;margin-top:3px">plugin + action + CLI</div>
+        </div>
+      </div>
+
+      <!-- row -->
+      <div style="display:grid;grid-template-columns:290px 176px 1fr 148px 156px;gap:16px;align-items:center;padding:13px 22px;border-bottom:1px solid #f2f2f2">
+        <div style="display:flex;align-items:center;gap:11px;min-width:0">
+          <div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:10px;background-image:linear-gradient(to bottom right,#009966,#009689);color:#ffffff;flex:0 0 auto">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+          </div>
+          <div style="min-width:0">
+            <div style="font-size:13.5px;font-weight:600">claude-tray</div>
+            <div class="mono clip" style="font-size:11px;color:#737373">D:\Git\alegauss\claude-tray</div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums">12 open</div>
+          <div style="display:flex;align-items:center;gap:9px;margin-top:3px;font-size:11.5px;color:#525252"><span class="mk">📋</span>4 <span class="mk">💭</span>8</div>
+          <div style="font-size:11px;color:#737373;margin-top:2px">12 startable · 0 waiting</div>
+        </div>
+        <div style="min-width:0">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="mono" style="font-size:12px;font-weight:600">CT31</span>
+            <span class="mk" style="font-size:12px">📋</span>
+            <span style="display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:6px;background:#f5f5f5;color:#525252;font-size:11px;font-weight:600">B</span>
+            <span style="font-size:11px;color:#737373">tier: designed</span>
+          </div>
+          <div class="clip" style="font-size:12.5px;color:#404040;margin-top:3px">sample row</div>
+        </div>
+        <div>
+          <div style="display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:999px;border:1px solid rgba(0,188,125,0.4);background:rgba(0,188,125,0.1);color:#007a55;font-size:11.5px;font-weight:600"><span style="width:6px;height:6px;border-radius:999px;background:#00bc7d"></span>clean</div>
+          <div style="font-size:11px;color:#737373;margin-top:4px">0 findings · 2 days ago</div>
+        </div>
+        <div>
+          <div class="mono" style="font-size:12px;font-weight:600">0.2.411</div>
+          <div style="display:inline-flex;align-items:center;gap:5px;margin-top:3px;height:19px;padding:0 8px;border-radius:999px;border:1px solid rgba(0,188,125,0.4);background:rgba(0,188,125,0.1);color:#007a55;font-size:10.5px;font-weight:600">agrees</div>
+          <div class="mono clip" style="font-size:10.5px;color:#737373;margin-top:3px">D:\Git\alegauss\roadkeep</div>
+        </div>
+      </div>
+
+      <!-- row -->
+      <div style="display:grid;grid-template-columns:290px 176px 1fr 148px 156px;gap:16px;align-items:center;padding:13px 22px;border-bottom:1px solid #f2f2f2">
+        <div style="display:flex;align-items:center;gap:11px;min-width:0">
+          <div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:10px;background-image:linear-gradient(to bottom right,#7f22fe,#9810fa);color:#ffffff;flex:0 0 auto">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+          </div>
+          <div style="min-width:0">
+            <div style="font-size:13.5px;font-weight:600">claude-code-usage</div>
+            <div class="mono clip" style="font-size:11px;color:#737373">D:\Git\alegauss\claude-code-usage</div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums">6 open</div>
+          <div style="display:flex;align-items:center;gap:9px;margin-top:3px;font-size:11.5px;color:#525252"><span class="mk">📋</span>2 <span class="mk">💭</span>4</div>
+          <div style="font-size:11px;color:#737373;margin-top:2px">6 startable · 0 waiting</div>
+        </div>
+        <div style="min-width:0">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="mono" style="font-size:12px;font-weight:600">CU9</span>
+            <span class="mk" style="font-size:12px">💭</span>
+            <span style="display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:6px;background:#f5f5f5;color:#525252;font-size:11px;font-weight:600">A</span>
+            <span style="font-size:11px;color:#737373">tier: undesigned</span>
+          </div>
+          <div class="clip" style="font-size:12.5px;color:#404040;margin-top:3px">sample row</div>
+        </div>
+        <div>
+          <div style="display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:999px;border:1px solid #e5e5e5;background:#fafafa;color:#525252;font-size:11.5px;font-weight:600"><span style="width:6px;height:6px;border-radius:999px;background:#a1a1a1"></span>unknown</div>
+          <div style="font-size:11px;color:#737373;margin-top:4px">never run here</div>
+        </div>
+        <div>
+          <div class="mono" style="font-size:12px;font-weight:600">0.2.411</div>
+          <div style="display:inline-flex;align-items:center;gap:5px;margin-top:3px;height:19px;padding:0 8px;border-radius:999px;border:1px solid rgba(0,188,125,0.4);background:rgba(0,188,125,0.1);color:#007a55;font-size:10.5px;font-weight:600">agrees</div>
+          <div class="mono clip" style="font-size:10.5px;color:#737373;margin-top:3px">D:\Git\alegauss\roadkeep</div>
+        </div>
+      </div>
+
+      <!-- row: unreadable -->
+      <div style="display:grid;grid-template-columns:290px 176px 1fr 148px 156px;gap:16px;align-items:center;padding:13px 22px;background:rgba(251,44,54,0.035)">
+        <div style="display:flex;align-items:center;gap:11px;min-width:0">
+          <div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:10px;border:1px dashed #d4d4d4;color:#a1a1a1;flex:0 0 auto">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+          </div>
+          <div style="min-width:0">
+            <div style="font-size:13.5px;font-weight:600;color:#525252">fespsp-base</div>
+            <div class="mono clip" style="font-size:11px;color:#737373">D:\Git\fespsp\fespsp-base</div>
+          </div>
+        </div>
+        <div style="grid-column:2 / span 3;display:flex;align-items:center;gap:10px">
+          <div style="display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:999px;border:1px solid rgba(251,44,54,0.4);background:rgba(251,44,54,0.1);color:#c10007;font-size:11.5px;font-weight:600"><span style="width:6px;height:6px;border-radius:999px;background:#fb2c36"></span>unreadable</div>
+          <span style="font-size:12.5px;color:#525252">nothing here answered <span class="mono" style="font-size:12px">engines</span> — the probe rejected it in 3 candidates, no lint was run</span>
+          <a href="#" style="font-size:12.5px;font-weight:500">what was tried</a>
+        </div>
+        <div style="font-size:11.5px;color:#737373">still on the list</div>
+      </div>
+
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px;margin-top:14px;font-size:11.5px;color:#737373">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg>
+      Every number on this screen is one a verb printed. Nothing is summed across projects.
+    </div>
+
+  </main>
+</div>
+</x-dc>
+</body>
+</html>
