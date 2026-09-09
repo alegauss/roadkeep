@@ -26,6 +26,7 @@
 - ✅ **RG82** **the contract test asserts one engine version across three reads, so a rebuilt engine reds a suite nothing touched** — The version is named once and carried into every failure printed, and nothing compares two reads of a tree under edit (design recorded in `packages/shell/src/contract-live.test.ts`).
 - ✅ **RG83** **one verb answers in two shapes under a flag, and nothing names the second until it breaks** — Six second shapes are declared and each is covered, so naming one without a case reds a guard rather than waiting to break (design recorded in `packages/shell/src/contract-live.test.ts`).
 - ✅ **RG84** **every live file resolves the engine itself, so one being rebuilt mid-run reds the suite four ways** — The suite asks the engine what it is once per run, so a rebuild underneath it arrives as one named sentence and not thirty-one renamed keys (design recorded in `packages/shell/src/live.ts`).
+- ✅ **RG98** **core's boundary test holds an import and nothing else, so a path rule written as string work passes it** — core's boundary test now fails on a separator fold nobody wrote a reason for, and on a reason that no longer matches anything (design recorded in `packages/core/src/boundaries.test.ts`).
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

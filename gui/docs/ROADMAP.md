@@ -5,7 +5,6 @@
 ## Block A — The client (payloads in, types out)
 
 - 💭 **RG9** (deps: RG1 ✅, roadkeep RK1632) **prose a person typed goes out through argv, which is where RK1474 recorded bytes arriving as different bytes** — why and section-body each read stdin on a dash and symptom does not, so the field every line leads with is the one with no safe path in. → §RG9
-- 📋 **RG98** (deps: RG65 ✅) **core's boundary test holds an import and nothing else, so a path rule written as string work passes it** — RG65 decided what a path means belongs to whoever has the filesystem, and a separator fold written inline compiles, typechecks and passes every gate. → §RG98
 - 📋 **RG99** (deps: RG66 ✅, RG103 ✅) **a read has two doors and the one a screen has to use is the one that raises rather than answering** — The client reads a verb with its own shape and throws when the call never happened, and attemptRead states that as a value but takes the reader back at the call site. → §RG99
 - 📋 **RG100** (deps: RG67 ✅) **an id in a project whose listing was bounded reads as one nothing in that project ever carried** — Where an id is filed is answered by looking through three listings, and a listing past the read bound holds no lines to look through. → §RG100
 - 📋 **RG101** (deps: RG68 ✅) **every call spends a second and a half starting Python, and the engine publishes a mode that starts once** — Both transports here spawn per call, so the cost is paid per read rather than per session, and RG7's cache only stops it being paid twice. → §RG101

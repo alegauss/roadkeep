@@ -11,28 +11,6 @@ rather than pretending it is safe. Spawning without a shell removes the quoting 
 but not the encoding one. What proves it is a round trip: write a symptom carrying an
 accent, an apostrophe and an em dash, read it back with show, and compare the bytes.
 
-### §RG98 The boundary that is only a rule about imports
-
-`boundaries.test.ts` reads every file in `core` and fails on an import of `node:`,
-`electron` or `react`. That catches the loud way in. RG65 found the quiet one: a rule
-about paths does not need an import. `left.replace(/\\/g, '/') === right.replace(/\\/g,
-'/')` is nine tokens, has no dependency, typechecks under a config with no Node types,
-and would have shipped the exact bug RG65 rejected — two different files on Linux
-reported as one, in the branch that claims the declared engine was reached.
-
-So `core` has a stated constraint with no gate. It is worth asking what a gate could
-honestly hold. A grep for a backslash literal is narrow, cheap and would have caught
-RG65's rejected fix; it would also flag prose in a docstring, which is most of what a
-backslash is in this package today. `path.sep`, `win32`, `toLowerCase` on something
-named like a path and a `..` segment are the other tells, and each is a heuristic rather
-than a rule.
-
-The alternative is to accept that this one is held by review and by the decision record,
-and to spend nothing. That is a real answer and may be the right one — `core` is small,
-and a gate that fires on docstrings gets an exception list, then a second one, and then
-nobody reads it. What this line has to decide is which of the two, not how to build the
-first.
-
 ### §RG99 Two doors into one read
 
 RG66 gave `client.call` the verb's own shape and three answers: a payload, a refusal, a
