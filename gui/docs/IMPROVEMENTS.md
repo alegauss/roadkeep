@@ -11,32 +11,6 @@ rather than pretending it is safe. Spawning without a shell removes the quoting 
 but not the encoding one. What proves it is a round trip: write a symptom carrying an
 accent, an apostrophe and an em dash, read it back with show, and compare the bytes.
 
-### §RG82 A version read three times
-
-`contract.test.ts` reads the engine's version once in `beforeAll` and asserts two later
-answers equal it. On a machine where the engine is a working checkout somebody is
-editing, those are three reads of a moving number: this suite failed twice in one
-afternoon with `expected '0.2.385' to be '0.2.384'`, having changed nothing, while every
-shape assertion in the same test passed.
-
-The version is worth asserting and the equality is not. The file promises that a green
-run is a claim about one build, so what is useful is that a version was named and
-reported — not that two reads of a tree under edit agree. Where identity does matter,
-both halves belong to one read: comparing what came back from a single call is a claim
-about that call rather than about the interval between two.
-
-This is RG75's shape with a different moving part. There the assertion named a task id
-and the commit that shipped it broke the test; here it names a version and a rebuild
-does. In both the test asserts that the world has not moved, which is not what it was
-written to check.
-
-It matters more than a flake, because the failure is indistinguishable from the one this
-file exists to produce: a red contract test is supposed to mean roadkeep renamed a key,
-and a reader who has learned it also means "the version moved" is a reader who stops
-believing it.
-
-On ship: `--recorded-in packages/shell/src/contract.test.ts`.
-
 ### §RG83 The second shape a verb answers with
 
 RG66 is about a verb with no shape. This is about a verb with two, which its fix does

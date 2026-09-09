@@ -23,6 +23,7 @@
 - ✅ **RG75** **two live tests still name RG9, so the commit that ships it fails a suite nothing changed to break** — Both tests now find their line by the state they are about — a dep resolved, one no ship here can clear — so shipping an id changes which line answers, not whether they pass.
 - ✅ **RG78** **every live test file now carries its own call-and-unwrap, and the sentence a moved key prints is written in each** — Thirty-one live files open on one module, and the sentence a moved key prints is composed once instead of in each (design recorded in `packages/shell/src/live.ts`).
 - ✅ **RG81** **the read and write paths each spell the same argv wrapper, and the two have already drifted apart** — Both paths wrap their own table's spelling with one composer, and the write path now says why it takes no cancel signal (design recorded in `packages/core/src/client.ts`).
+- ✅ **RG82** **the contract test asserts one engine version across three reads, so a rebuilt engine reds a suite nothing touched** — The version is named once and carried into every failure printed, and nothing compares two reads of a tree under edit (design recorded in `packages/shell/src/contract-live.test.ts`).
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
