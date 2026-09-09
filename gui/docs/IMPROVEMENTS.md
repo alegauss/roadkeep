@@ -510,26 +510,26 @@ which is why it is written down here rather than made quietly.
 The design system's page vocabulary is its bento layer: a nav rail, a command palette, a
 hero, a list mosaic and the save-bar morph, extracted from Turing and shared with Shio.
 It is a separate entry point, so importing the tokens does not bring it, and this app
-has none of it. Its own authoring guide names the failure directly — the first mistake
-is a page that looks bento inside a console that does not — so this is the shell, not a
-screen.
+has none of it. Its own authoring guide names the failure: a page that looks bento
+inside a console that does not — so this is the shell, not a screen.
 
-Reading the components' contracts turned up three things the line was written without.
+**The shell is bento and the content inside it is not.** The rail, the header, the
+palette, the hero, the glass panels and the tile motion are adopted whole; a backlog
+inside them is drawn as rows, not tiles, because a 120-character symptom fits in no tile
+and this block's criterion is legibility at the lengths the format allows.
+`docs/design/` draws both readings; `Main.dc.html` is the one this settles on.
 
 **`BentoUserMenu` is not for this app.** Its props are `accountRoute` and `logoutUrl`;
 it exists to sign somebody out. *No account, no auth and no remote store in the desktop
 build* forbids exactly that, so the shell here is the rail, the palette, the shortcuts
-dialog and the back-to-top, and the user menu is left out on purpose rather than passed
-empty strings.
+dialog and the back-to-top.
 
 **Every nav label is an i18next key.** `BentoNavItem` carries `titleKey` and
-`descriptionKey`, resolved by the package's own i18next. So adopting the rail means this
-app's nav strings live there while RG51's catalogue holds the rest — which is [[RG88]]'s
-question, unsettled. That is now a dep, because building the shell first would answer it
-by accident.
+`descriptionKey`, resolved by the package's own i18next — which is where [[RG88]] puts a
+string the package draws. The dep stands until that lands.
 
-**`react-router-dom` is not installed.** A declared peer that npm did not pull; routing
-arrives with this line, as the design always said.
+**`react-router-dom` is not installed.** A declared peer npm did not pull; routing
+arrives with this line.
 
 ### §RG86 Carrying a locale from the settings to the screen
 
@@ -629,3 +629,27 @@ say so where somebody would look. Or take it upstream, since the pair is the pac
 and every console using it has the same 4.33.
 
 Whichever, the pair goes into the enforced list the moment a screen renders it.
+
+### §RG105 The colour that says where you are
+
+`bento.css` draws the rail's active item from `--primary`, and says why: a shared
+component picking that colour itself is "the clearest case of a shared component making
+one product look wrong". Turing is blue and Shio is orange because each keyed the token.
+This app keyed `--vg-accent-from`, `-to` and `-text` to amber and left `--vg-primary` at
+the package's neutral, so the mark for where you are is grey — drawn that way on purpose
+in `docs/design/Shell.dc.html`.
+
+The token is not the rail's alone. `bg-primary` is the default `Button` fill, the
+progress bar and the slider track, and `bento.css` reads it again for the tile's hover
+glow, the inline-edit border, the new-tile hover and the focus ring. Keying it moves all
+of them together, which is the point rather than the cost: those are the places a
+product is supposed to look like itself.
+
+One value per ground, because the fill and its foreground swap roles: `#b45309` under
+white on light, `#fbbf24` under near-black on dark. Both are the accent this app already
+declares, and both were measured rather than judged — 5.02:1 and about 11:1, past AA.
+The button gives up contrast it had, near-black on white being about 17:1, and that is
+the trade this makes knowingly.
+
+RG54's contrast test is where the two pairs are asserted, so a value that moves is
+caught by a run rather than by somebody looking at it.

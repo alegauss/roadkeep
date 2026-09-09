@@ -50,6 +50,7 @@
 - 💭 **RG87** (deps: RG52 ✅) **the ground setting has two homes, and the file one is not the one that wins** — The switch keeps the choice in browser storage under its own key while settings.json holds a theme field nothing reads, so the two agree only by never being used together. → §RG87
 - 📋 **RG88** (deps: RG51 ✅) **one screen has two translation systems, and only one of them was chosen** — The design system translates its own components with i18next, a declared dependency here, and RG51 built a second catalogue beside it without ever asking which of the two owns a string. → §RG88
 - 💭 **RG90** (deps: RG54 ✅) **muted text on a muted panel is 4.33 to 1, which no screen renders yet and one will** — The design system pairs those two tokens by name and they miss AA on the light ground, so the first panel that uses both ships an unreadable label looking like a style. → §RG90
+- 📋 **RG105** (deps: RG54 ✅) **the rail marks where you are in the package's neutral, so the shell reads as another product's console** — The bento layer keys that mark to --primary and expects a product to have claimed it, and this app keyed only the accent, so the mark is the package's own grey. → §RG105
 
 ## Done when — Block A
 
@@ -146,6 +147,10 @@
 - **Nothing is told by colour alone, in either ground** Contrast is met in light and in
   dark and a status carries a shape or a word as well as a hue, because a marker set is
   emoji and a colour-only state is one some readers never see.
+- **A section is drawn in the text face, with the file's own wrapping kept** The
+  wrapping is what lint measured, so re-flowing it shows a reviewer something the commit
+  will not diff. The breaks were made for a monospace measure and the face is not mono,
+  so a ragged right margin is the deliberate cost; docs/design/Tarefa.dc.html draws it.
 
 ## Done when — RG28
 
