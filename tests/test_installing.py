@@ -1844,6 +1844,34 @@ def test_the_vendored_copy_of_this_repository_runs(tmp_path):
     assert ran.returncode == 0, f"{ran.stdout}\n{ran.stderr}"
 
 
+def test_asking_a_tree_its_version_writes_nothing_into_it(tmp_path):
+    """RK1648. `vendor` verifies by running the copy's launcher, which is RK1193's fourth rule
+    and what makes picking by version mean anything: the evidence is the copy answering. That
+    imports the package out of the copy, and CPython writes `__pycache__` beside every module
+    it loads — measured on the copy `vendor` had just made, 84 files and 3.85 MiB as written
+    against 141 and 7.20 MiB after one unguarded read.
+
+    The bytecode was never wrong, which is why no rule about what is *copied* reached it: it is
+    valid, and the launcher writes it on first use anyway. What is wrong is a **read** that
+    writes three megabytes into somebody's tree, and that the count `Vendored` reports is taken
+    after the call — so `install --vendor` said 141 files where RK1606's rule says 84.
+
+    Held on `_asked` and not on `vendor`, because the read is asked of somebody else's checkout
+    too when picking among candidates, where the same write has a worse subject."""
+    from roadkeep.installing import LAUNCHER, _asked, _outside
+
+    home = Path(__file__).resolve().parents[1]
+    into = tmp_path / "copy"
+    shutil.copytree(home, into, ignore=_outside(home))
+    before = {one for one in into.rglob("*") if one.is_file()}
+    assert (into / LAUNCHER).is_file(), "the fixture carries no launcher to ask"
+
+    assert _asked(into), "the copy answered nothing, so this asserts about no read at all"
+
+    after = {one for one in into.rglob("*") if one.is_file()}
+    assert after == before, sorted(str(one.relative_to(into)) for one in after - before)
+
+
 def test_the_version_is_read_out_of_the_line_and_not_off_its_end():
     """Measured end to end, and it is why this function exists: `--version` prints the number
     followed by the provenance RK79 added — the commit, whether the tree is modified, and where

@@ -2824,12 +2824,25 @@ def _asked(home: Path) -> str:
     The subprocess is the point (see :func:`candidates`), and every failure is `""`: a tree
     that raises, hangs past the timeout or is not Python is not a candidate, and none of that
     is worth failing the command over while another copy may be fine.
+
+    **`-B`, so a read writes nothing** (RK1648). Running the launcher imports the package out
+    of that tree and CPython writes `__pycache__` beside every module it loads. Measured on the
+    copy `vendor` had just made: 3.89 MiB across 90 files as written, 7.24 MiB across 147
+    afterwards — 60 files and 3.35 MiB of bytecode nothing asked for, in an artefact RK1606
+    had just been about the size of. The count `Vendored` reports is taken after this call, so
+    the report said 147 where the rule says 90.
+
+    The bytecode was never wrong, which is why no rule about what is *copied* could reach it:
+    it is valid, and the launcher writes it on first use anyway. What `-B` changes is that the
+    first use is the one that pays, rather than a read that was only ever asking a question —
+    and this is asked of somebody else's checkout too (:func:`candidates`), where writing into
+    a tree to find out its version is the same thing with a worse subject.
     """
     import subprocess  # noqa: PLC0415 - RK260
 
     try:
         done = subprocess.run(
-            [sys.executable, str(home / LAUNCHER), "--version"],
+            [sys.executable, "-B", str(home / LAUNCHER), "--version"],
             capture_output=True,
             text=True,
             timeout=_ASKED_TIMEOUT,

@@ -1097,6 +1097,7 @@
 - ✅ **RK1619** **the note sweep names the first call in an answer, so a helper before the note would take its kind** — The note is the interpolation after the blank line, exact in both directions; a site spelling none falls back to the first call, so an undeclared kind fails by name instead of passing in silence.
 - 🗑 **RK1658** **nothing says the four answer sites all spell the blank line, so one losing it falls back and stays green** — abandoned: An observation and not a defect: the fallback keeps an undeclared kind visible, and a count of which sites took which reading is a figure with no caller.
 - 🗑 **RK1659** **the paragraph separator is spelled at four answer sites, so what appending a note is stays a literal a sweep matches** — abandoned: An observation and not a defect: one helper would tidy four literals the sweep already reads correctly, which is indirection bought against nobody.
+- ✅ **RK1648** **verifying a vendored engine runs it, so Python writes three megabytes of bytecode into an artefact just measured at four** — The read runs with -B, so asking a tree its version leaves it as written and the reported count is the rule's.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

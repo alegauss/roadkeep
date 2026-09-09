@@ -398,29 +398,6 @@ with a token.
 
 ## Block F — The plugin
 
-### §RK1648 The bytecode the check leaves behind
-
-`vendor` verifies by running `<copy>/scripts/roadkeep.py --version` — RK1193's fourth
-rule, and what makes picking by version mean anything: the evidence is the copy
-answering. That imports the package out of the copy, and Python writes `__pycache__`
-beside every module it loads.
-
-Measured while building RK1606: the copy as written is **3.89 MiB across 90 files** and
-**7.24 MiB across 147** after the check, of which 60 files and 3.35 MiB are bytecode
-nothing asked for. The proportion is the finding — the check costs almost what the
-artefact does.
-
-It predates RK1606, was invisible beside 22.46 MiB, and is not a bug: the bytecode is
-valid and is what the launcher writes on first use anyway. It is an artefact that
-stopped being the size its rule says. **No supported Python API.** does not reach it:
-that non-goal is about what this tool offers a caller to import, and this is what
-CPython writes for its own loader.
-
-Three ways out, differing in what they give up. `-B` on the verification subprocess
-leaves the copy as written and makes the first run pay. Deleting `__pycache__` after is
-a second sweep over a tree just walked. Or the figure is stated: a report saying 7.24
-where the rule says 3.89 is the part that misleads.
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

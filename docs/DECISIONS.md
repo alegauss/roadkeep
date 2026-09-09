@@ -455,6 +455,7 @@ from outside the tree.
 - ✅ **RK1549** **no verb removes the vendored engine, so the report that names it hands the last step back to the reader in English** — A destructive write this tool would otherwise hand back in English is built once its cost is measured, never on the guess that it is small.
 - ✅ **RK1560** **install replaces a server declaration an adopter wrote themselves and no row names what was there** — A file merged into and not owned is one where every entry an adopter may have authored is theirs, this project's name on it or not.
 - ✅ **RK1561** **engines --invoke prints a command and never that the declaration it fell through was one this tool cannot read** — A one-line contract is kept by choosing the stream, not by dropping the fact.
+- ✅ **RK1648** **verifying a vendored engine runs it, so Python writes three megabytes of bytecode into an artefact just measured at four** — Asking a tree its version writes nothing into it: the verification runs with -B, so the first real use pays for its own bytecode and a read never does.
 
 ### §RK1424 Why the description gave way and not the ceiling
 
