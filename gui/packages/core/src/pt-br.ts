@@ -29,6 +29,10 @@ export const PT_BR: Wording = {
   'transport.ipc': 'ligada por IPC',
   'transport.http': 'ligada por HTTP',
 
+  'shell.home': 'Início',
+  'shell.palette': 'Encontre uma linha em qualquer backlog',
+  'shell.shortcuts': 'Atalhos de teclado',
+
   'ground.system': 'fundo: seguindo o sistema',
   'ground.light': 'fundo: claro',
   'ground.dark': 'fundo: escuro',

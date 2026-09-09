@@ -23,6 +23,9 @@ come from the resolved design system, so an artboard is checkable against
 this repository's own, and the other projects are sample rows, which the canvas says on the
 page.
 
-Three questions it turned up are open on the roadmap rather than answered here: what the
+Three questions it turned up were open on the roadmap rather than answered here: what the
 rail's "you are here" is coloured with, which face a section's preserved wrapping is set in,
-and which of the two directions the screens follow. RG63 is where the first and third land.
+and which of the two directions the screens follow. RG63 settled the third by adopting the
+shell — `Main.dc.html` is the direction, and the chrome around it is the design system's.
+The rail's colour is RG105, still open, which is why the rail is drawn grey above. The face
+became a criterion of block H rather than a task, there being no code to change yet.

@@ -40,6 +40,10 @@ export const EN = {
   'transport.ipc': 'bridged over IPC',
   'transport.http': 'bridged over HTTP',
 
+  'shell.home': 'Home',
+  'shell.palette': 'Find a line in every backlog',
+  'shell.shortcuts': 'Keyboard shortcuts',
+
   'ground.system': 'ground: following the desktop',
   'ground.light': 'ground: light',
   'ground.dark': 'ground: dark',

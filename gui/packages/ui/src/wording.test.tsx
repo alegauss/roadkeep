@@ -14,11 +14,10 @@ import {
   type Wording,
   wordingFor,
 } from '@rk/core'
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { App } from './App'
-import { WordingProvider } from './wording'
+import { drawWindow } from './harness'
 
 /**
  * RG51: the test the design rests on.
@@ -44,12 +43,13 @@ afterEach(() => {
   Reflect.deleteProperty(window, 'roadkeep')
 })
 
+/**
+ * The whole window, chrome included. Since RG63 most of this app's own sentences are in the
+ * shell — the wordmark, the palette's prompt, the ground — so a run against the page alone
+ * would be a guard that stopped watching the strings most likely to be typed in by hand.
+ */
 function drawIn(over: Wording | undefined) {
-  return render(
-    <WordingProvider over={over}>
-      <App />
-    </WordingProvider>,
-  )
+  return drawWindow({ over })
 }
 
 /**
@@ -57,11 +57,16 @@ function drawIn(over: Wording | undefined) {
  *
  * Read off the leaf elements rather than off `textContent` at the root, which would join
  * a wrapped string to an unwrapped one and hide exactly what this is looking for.
+ *
+ * `script` and `style` are skipped: `next-themes` injects one to set the class before the
+ * first paint, and it carries the chosen theme in its source rather than on screen.
  */
+const UNREAD = new Set(['SCRIPT', 'STYLE'])
+
 function visibleText(root: HTMLElement): string[] {
   const seen = new Set<string>()
   for (const node of root.querySelectorAll('*')) {
-    if (node.children.length > 0) continue
+    if (node.children.length > 0 || node.tagName === KEYCAP || UNREAD.has(node.tagName)) continue
     const text = node.textContent?.trim() ?? ''
     if (text !== '') seen.add(text)
   }
@@ -70,6 +75,15 @@ function visibleText(root: HTMLElement): string[] {
 
 /** The only text on this screen that is a name and not a sentence. */
 const IDENTIFIERS = new Set<string>(PACKAGES)
+
+/**
+ * A key on the keyboard is not a sentence.
+ *
+ * `Ctrl K`, `⌘K` and `?` are drawn in `kbd` and are the platform's own names for its keys —
+ * translating them would be telling somebody to press a key their keyboard does not have.
+ * The element is the claim: anything outside a `kbd` is prose and is held to the rule.
+ */
+const KEYCAP = 'KBD'
 
 describe('RG51: nothing on the screen is typed into a component', () => {
   it('wraps every sentence, leaving only the package names bare', async () => {

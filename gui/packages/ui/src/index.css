@@ -28,6 +28,14 @@
 @import '@viglet/viglet-design-system/fonts';
 
 /*
+ * The bento layer's stylesheet, a separate entry from the tokens so that a consumer taking
+ * only the layout maths does not carry CSS it never renders. This one renders it: RG63
+ * adopted the shell, and the rail's gutter, the frosted surfaces, the tile motion and the
+ * save-bar morph are all defined here rather than in any component.
+ */
+@import '@viglet/viglet-design-system/bento.css';
+
+/*
  * roadkeep's accent, and not a new one. The public site is keyed to amber and spells
  * three of them (`--amber`, `--amber-bright`, `--amber-deep`); these are those three in
  * OKLCH, so the app and the site cannot drift into two ambers. `--vg-accent-text` is the
@@ -70,17 +78,26 @@
 }
 
 /*
- * The one thing that is this app's and not the design system's: a desktop window is not
- * a page. The frame never scrolls, because the chrome belongs to the window and the
- * scrolling belongs to a panel inside it.
+ * The document is the scroller, and RG63 is why.
+ *
+ * This used to read the other way — `overflow: hidden` on the body, the frame fixed, and
+ * the scrolling given to a panel inside it, on the argument that a desktop window is not a
+ * page. Adopting the bento shell settles it the other way, because the layer is built for a
+ * scrolling document and says so in three places: `BentoBackToTop` reads `window.scrollY`
+ * and calls `window.scrollTo`, the save-bar morph is driven by the document's own scroll,
+ * and `AppFooter` is written `mt-auto`. Keeping an inner scroller would have left all three
+ * inert — which is the shell half-adopted, and a page that looks bento inside a console that
+ * does not is the first mistake its own guidance names.
+ *
+ * The window still reads as a window: the rail is `fixed` and the header is `sticky`, so
+ * neither moves while the content under them does.
  */
 html,
 body,
 #root {
-  height: 100%;
+  min-height: 100%;
 }
 
 body {
   margin: 0;
-  overflow: hidden;
 }

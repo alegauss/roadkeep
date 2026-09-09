@@ -8,12 +8,11 @@ import {
   type RendererBridge,
   type Theme,
 } from '@rk/core'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { App } from './App'
-import { GROUND_CACHE_KEY, GroundProvider } from './ground'
-import { WordingProvider } from './wording'
+import { GROUND_CACHE_KEY } from './ground'
+import { drawWindow } from './harness'
 
 /**
  * RG52: the ground, from the outside.
@@ -43,13 +42,7 @@ function desktopIsDark(isDark: boolean): void {
 }
 
 function drawIn(initial: Theme) {
-  return render(
-    <GroundProvider initial={initial}>
-      <WordingProvider>
-        <App />
-      </WordingProvider>
-    </GroundProvider>,
-  )
+  return drawWindow({ initial })
 }
 
 /** What the window is actually painted in, read where the tokens are read from. */
@@ -221,13 +214,7 @@ describe('RG87: which copy of the setting wins', () => {
     // browser remembers is the only record there is, and seeding it would lose the choice
     // on every reload.
     localStorage.setItem(GROUND_CACHE_KEY, 'dark')
-    render(
-      <GroundProvider>
-        <WordingProvider>
-          <App />
-        </WordingProvider>
-      </GroundProvider>,
-    )
+    drawWindow()
 
     await painted('dark')
     expect(localStorage.getItem(GROUND_CACHE_KEY)).toBe('dark')

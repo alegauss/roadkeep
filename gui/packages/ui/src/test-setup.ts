@@ -1,6 +1,18 @@
 import { cleanup } from '@testing-library/react'
 import { afterEach, beforeEach } from 'vitest'
 
+import { startSpeaking } from './speaking'
+
+/**
+ * i18next, started once per worker, because the design system's components resolve their own
+ * strings through it and warn on every render without one (RG63, RG88).
+ *
+ * The package's own guidance says a consumer testing these components needs the same setup
+ * it has. The base locale, so a test that says nothing about language is reasoning about the
+ * plainest window; `speaking.test.tsx` moves it and puts it back.
+ */
+await startSpeaking('en')
+
 /**
  * jsdom implements no `matchMedia`, and anything that follows the desktop asks for one —
  * `next-themes` does it on mount, so every render under the ground provider would throw.

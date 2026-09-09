@@ -75,6 +75,7 @@ inherits its permissions.
 - ✅ **RG52** **there is one ground, so somebody who works in dark reads this app in light** — The design system owns the theme switch; this app resolves the setting and never mounts a second theme system.
 - ✅ **RG86** **the locale setting reaches no screen, so choosing one changes nothing** — A locale ships inside the bundle and nothing reads a translation off disk, so adding a language is a release.
 - ✅ **RG88** **one screen has two translation systems, and only one of them was chosen** — A string belongs to whoever draws it: this app's own components read a MessageKey, the design system's read an i18next key, and one instance holds the locale both take.
+- ✅ **RG63** **there is no page chrome, so the first real screen will invent a shape the design system already has** — The shell is bento and the content inside it is not: a backlog is drawn as rows, because a 120-character symptom fits in no tile.
 
 ### §RG39 A shared design system, not a copied one
 
@@ -123,3 +124,18 @@ So two catalogues, divided by who renders the element — checkable by reading t
 rather than by remembering a rule. What is never two is the locale: the package reads it
 off the shared i18next instance and cannot be told otherwise, so that instance is the
 source the catalogue is fed from.
+
+### §RG63 Bento outside, rows inside
+
+The layer's page shape for a listing is a mosaic of tiles, and this app will not use it
+for a backlog. A symptom runs to 120 characters and a tile has room for a name; drawing
+lines as tiles truncates the one field a reader scans for, and a tooltip recovering it
+is a screen nobody can read without a mouse. Block H's criterion is legibility at the
+lengths the format allows, and rows are what that costs.
+
+So the division is the chrome and not the content: the rail, the header, the palette and
+the frosted surfaces are the package's, whole, and what sits inside the reading column
+is drawn for the shape of the data. `docs/design/` drew both readings, and
+`Main.dc.html` is the one it settles on.
+
+Tiles keep every other use the layer intends — a hub, a stats strip, a project card.

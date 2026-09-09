@@ -456,32 +456,6 @@ digest is then required to carry that set.
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
 
-### §RG63 The shell before the pages
-
-The design system's page vocabulary is its bento layer: a nav rail, a command palette, a
-hero, a list mosaic and the save-bar morph, extracted from Turing and shared with Shio.
-It is a separate entry point, so importing the tokens does not bring it, and this app
-has none of it. Its own authoring guide names the failure: a page that looks bento
-inside a console that does not — so this is the shell, not a screen.
-
-**The shell is bento and the content inside it is not.** The rail, the header, the
-palette, the hero, the glass panels and the tile motion are adopted whole; a backlog
-inside them is drawn as rows, not tiles, because a 120-character symptom fits in no tile
-and this block's criterion is legibility at the lengths the format allows.
-`docs/design/` draws both readings; `Main.dc.html` is the one this settles on.
-
-**`BentoUserMenu` is not for this app.** Its props are `accountRoute` and `logoutUrl`;
-it exists to sign somebody out. *No account, no auth and no remote store in the desktop
-build* forbids exactly that, so the shell here is the rail, the palette, the shortcuts
-dialog and the back-to-top.
-
-**Every nav label is an i18next key.** `BentoNavItem` carries `titleKey` and
-`descriptionKey`, resolved by the package's own i18next — which is where [[RG88]] puts a
-string the package draws. The dep stands until that lands.
-
-**`react-router-dom` is not installed.** A declared peer npm did not pull; routing
-arrives with this line.
-
 ### §RG90 A token pair that fails before anything uses it
 
 RG54's contrast test computes every pair this app renders. It also found one it does

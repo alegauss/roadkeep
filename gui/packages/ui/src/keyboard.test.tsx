@@ -1,9 +1,7 @@
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { App } from './App'
-import { GroundProvider } from './ground'
-import { WordingProvider } from './wording'
+import { drawWindow } from './harness'
 
 /**
  * RG54: the half a screenshot cannot show.
@@ -17,14 +15,13 @@ import { WordingProvider } from './wording'
 /** Everything a person can reach with Tab, plus everything that behaves as a control. */
 const FOCUSABLE = 'a[href], button, input, select, textarea, [tabindex], [role="button"]'
 
+/**
+ * The whole window since RG63, chrome included: the rail, the palette trigger and the
+ * ground control are the shell's, and a run against the page alone would be a run that
+ * stopped seeing most of the controls the moment they moved.
+ */
 function drawScreen() {
-  return render(
-    <GroundProvider initial="light">
-      <WordingProvider>
-        <App />
-      </WordingProvider>
-    </GroundProvider>,
-  )
+  return drawWindow({ initial: 'light' })
 }
 
 /** The accessible name, as far as a DOM without a full accname implementation gives it. */
@@ -95,13 +92,24 @@ describe('RG54: what a keyboard can reach', () => {
   })
 
   it('takes nothing out of the tab order that a person has to use', () => {
+    // A control out of the tab order has to be out of everybody's reach, not just a
+    // keyboard's. `BentoBackToTop` is the case that makes the distinction worth drawing: it
+    // is `tabindex="-1"` and `pointer-events-none` together while the page has not scrolled,
+    // which is one control that is not being offered rather than one a mouse can use and a
+    // keyboard cannot. That second thing is what this is looking for.
     const { container } = drawScreen()
 
-    const removed = [...container.querySelectorAll('button, a[href]')].filter(
-      (element) => element.getAttribute('tabindex') === '-1',
-    )
+    const unreachable = [...container.querySelectorAll('button, a[href]')]
+      .filter((element) => element.getAttribute('tabindex') === '-1')
+      .filter(
+        (element) =>
+          !element.classList.contains('pointer-events-none') &&
+          element.getAttribute('aria-hidden') !== 'true' &&
+          !element.hasAttribute('hidden'),
+      )
+      .map((element) => element.outerHTML.slice(0, 120))
 
-    expect(removed).toEqual([])
+    expect(unreachable).toEqual([])
   })
 
   it('leaves a control enabled unless it says why it is not', () => {

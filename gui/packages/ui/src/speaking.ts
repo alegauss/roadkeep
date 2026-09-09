@@ -4,6 +4,8 @@ import { initVigI18n } from '@viglet/viglet-design-system'
 import i18next, { changeLanguage } from 'i18next'
 import { useSyncExternalStore } from 'react'
 
+import { AREA_WORDING } from './areas'
+
 /**
  * The one answer to what language this window is in.
  *
@@ -39,7 +41,9 @@ import { useSyncExternalStore } from 'react'
  * are already reading.
  */
 export async function startSpeaking(tag: string): Promise<void> {
-  if (!i18next.isInitialized) initVigI18n()
+  // This app's own i18next strings go in at init: the nav labels the package's components
+  // resolve, which is the half of the wording RG88 put on this side of the line.
+  if (!i18next.isInitialized) initVigI18n(AREA_WORDING)
   await changeLanguage(tag)
 }
 
