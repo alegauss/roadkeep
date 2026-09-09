@@ -1,4 +1,11 @@
-import type { DepChain, DepsPayload, ResolvedDep, Unblocks } from './payloads'
+import type {
+  BriefPayload,
+  DepChain,
+  DepsPayload,
+  Narrowing,
+  ResolvedDep,
+  Unblocks,
+} from './payloads'
 
 /**
  * A line's edges, laid out for a screen to draw and never walked again.
@@ -7,6 +14,11 @@ import type { DepChain, DepsPayload, ResolvedDep, Unblocks } from './payloads'
  * the chains spelled from this id outward with the hop behind each one, what shipping
  * would free directly and transitively, and the ids caught in a cycle. This module lays
  * that answer out.
+ *
+ * **A brief resolves most of it too**, and the lay-out is the same one. Opening a task
+ * costs one read, so the chains that read already sent are drawn from it rather than
+ * fetched again; `deps` stays the call for the three things only it answers, and the graph
+ * says which those are instead of sending back an empty list that means "none".
  *
  * **Nothing here walks the graph.** A chain arrives as a path and the vias behind it, and
  * a second traversal in this app would be a resolver able to disagree with the one that
@@ -77,12 +89,81 @@ export interface Graph {
   readonly cycle: readonly string[]
   /** In a cycle, where no amount of shipping inside the group starts anything. */
   readonly deadlocked: boolean
+  /**
+   * Which of these lists the read that answered could not fill.
+   *
+   * An empty `blockers` means nothing is holding the line; an empty `blockers` on a graph
+   * that was never asked for one means the caller has no idea. The two look identical and
+   * this is the only thing that tells them apart.
+   */
+  readonly narrowing: Narrowing
+}
+
+/**
+ * The half of a resolved graph both verbs answer.
+ *
+ * `deps` fills every field of it. A brief fills the deps, the chains and the unblock
+ * counts, which is what an opening task draws — naming the shape here is what lets one
+ * lay-out serve both, rather than a second module kept saying the same thing.
+ */
+interface Resolution {
+  readonly id: string
+  readonly readiness: string
+  readonly deps: readonly ResolvedDep[]
+  readonly blockers: readonly string[]
+  readonly chains: readonly DepChain[]
+  readonly unblocks: Unblocks | null
+  readonly cycle: readonly string[]
 }
 
 export function graphFrom(payload: DepsPayload): Graph {
+  return layout(payload, [])
+}
+
+/**
+ * The graph a brief already sent, laid out without asking for it again.
+ *
+ * Block D's criterion is that a task opens in one read, and `brief` resolves this line's
+ * deps and spells the same chains from it outward — so the ordinary open task is drawn off
+ * the call that opened it. What a brief does not carry is the blockers as a list and the
+ * ids caught in a cycle, and `deps` is the call a screen makes when somebody asks for
+ * those or for the dep behind a hop. Deferred, not replaced.
+ */
+export function graphOfBrief(payload: BriefPayload): Graph {
+  return layout(
+    {
+      id: payload.id,
+      readiness: payload.readiness,
+      deps: payload.depsResolved,
+      blockers: [],
+      chains: payload.chains,
+      unblocks: payload.unblocks,
+      cycle: [],
+    },
+    ['the blockers as a list and the ids in a cycle, which only `deps` names'],
+  )
+}
+
+/**
+ * @param absent what this caller's verb does not answer at all, in its own words — the
+ *   one part that cannot be read off the payload, since a list nobody asked for and a
+ *   list that came back empty are the same two brackets.
+ */
+function layout(payload: Resolution, absent: readonly string[]): Graph {
   const edges: Edge[] = payload.deps.map((dep) => ({ ...dep, standing: standingOf(dep.status) }))
   const unblocks = payload.unblocks
   const direct = new Set(unblocks?.direct ?? [])
+  const transitive = unblocks?.transitive ?? []
+
+  // The transitive list contains the direct ones, and the difference is why both are
+  // shown: four lines freed by shipping this, against four more freed by those four. With
+  // no direct list there is no difference to take — subtracting nothing would call every
+  // freed id downstream, which is the one reading that is certainly wrong.
+  const split = direct.size > 0
+  const reasons = [...absent]
+  if (!split && transitive.length > 0) {
+    reasons.push('which of these ids shipping this line frees on its own, which `deps` separates')
+  }
 
   return {
     id: payload.id,
@@ -96,11 +177,10 @@ export function graphFrom(payload: DepsPayload): Graph {
       hops: chain.path.slice(1),
     })),
     unblocks,
-    // The transitive list contains the direct ones, and the difference is why both are
-    // shown: four lines freed by shipping this, against four more freed by those four.
-    onward: (unblocks?.transitive ?? []).filter((id) => !direct.has(id)),
+    onward: split ? transitive.filter((id) => !direct.has(id)) : [],
     cycle: payload.cycle,
     deadlocked: payload.cycle.length > 0,
+    narrowing: { complete: reasons.length === 0, reasons },
   }
 }
 

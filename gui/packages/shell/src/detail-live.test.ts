@@ -4,7 +4,9 @@ import {
   createClient,
   designOf,
   detailFrom,
+  graphOfBrief,
   listedTasks,
+  routeOf,
   whyNotStartable,
   type TaskDetail,
 } from '@rk/core'
@@ -169,6 +171,18 @@ describe('RG23: a real task, in one read', () => {
     expect(outside.startable).toBe(false)
     expect(outside.blocking).toContain(never?.dep)
     expect(whyNotStartable(outside)).toContain('waiting on')
+  })
+
+  it('draws that line chain off the brief, with no second call for it', () => {
+    // RG76: a real `brief` sends the routes already resolved, so opening a blocked task
+    // costs one subprocess and not two. What it does not send is the blockers as a list
+    // and the cycle, and the graph says which rather than answering an empty bracket.
+    const graph = graphOfBrief(outside.payload)
+
+    expect(graph.chains.length).toBeGreaterThan(0)
+    expect(routeOf(graph.chains[0]!)).toContain(outside.payload.id)
+    expect(graph.chains.some((chain) => chain.standing === 'never')).toBe(true)
+    expect(graph.narrowing.complete).toBe(false)
   })
 
   it('reads a line already in progress, which is the first tier and not a blocker', async () => {

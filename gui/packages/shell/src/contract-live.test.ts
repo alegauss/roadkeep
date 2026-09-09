@@ -230,6 +230,9 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect(payload.readiness).not.toBe('')
     expect(payload.nonGoals.length).toBeGreaterThan(0)
     expect(payload.doneWhen.length).toBeGreaterThan(0)
+    // Shape over values, as with `deps` below: this fixture's line has no chain, and a key
+    // that only exists on blocked lines is the one a shape stops declaring.
+    expect(Array.isArray(payload.chains)).toBe(true)
     // The elision counts are read whether or not this fixture elides anything: a client
     // that never looked would draw a sample as though it were the set.
     expect(narrowingOfBrief(payload)).toHaveProperty('complete')

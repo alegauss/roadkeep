@@ -630,6 +630,14 @@ export interface BriefPayload {
   readonly picked: string | null
   /** Each dep with what resolves it, so a blocker is a state and not an id to go and look up. */
   readonly depsResolved: readonly ResolvedDep[]
+  /**
+   * The routes from this line outward, **already resolved by the read that opened it**.
+   *
+   * The same shape `deps` sends and one field narrower: a brief spells `path`, `end` and
+   * `detail` and leaves `via` out, which `readDepChain` defaults. Declaring the key is what
+   * stops a screen paying for a second subprocess to be told what this one already said.
+   */
+  readonly chains: readonly DepChain[]
   readonly unblocks: Unblocks | null
   readonly nonGoals: readonly string[]
   readonly nonGoalsElided: number
@@ -680,6 +688,7 @@ export const readBriefPayload: Reader<BriefPayload> = record<BriefPayload>(
     readiness: orMissing(aString, ''),
     picked: orMissing(orNull(aString), null),
     depsResolved: orMissing(listOf(readResolvedDep), []),
+    chains: orMissing(listOf(readDepChain), []),
     unblocks: orMissing(orNull(readUnblocks), null),
     nonGoals: orMissing(listOf(aString), []),
     nonGoalsElided: orMissing(aNumber, 0),

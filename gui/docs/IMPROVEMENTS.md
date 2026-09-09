@@ -344,30 +344,6 @@ The order is not a verdict, and drawing it must not make it one. How long a paus
 stand is a judgement about work — the same one `[claims] held` refuses to make — so the
 oldest is first and what that means is the reader's.
 
-### §RG76 The chain a brief already sent
-
-`brief` sends `chains` on every line and this app's shape does not declare the key, so
-RG25's graph is fetched with a second subprocess for a fact the first one already
-answered. Block D's own criterion says a task opens in one read, and it does not today.
-
-The two answers are not the same, which is the part worth getting right. A brief's chain
-carries `path`, `end` and `detail`; `deps` adds `via` — the dep the file actually wrote,
-which differs from the path wherever a block label or a range expanded into its members.
-`deps` also carries `blockers` and `cycle`, and a brief carries neither.
-
-So the read is not replaced, it is deferred. The chains a brief already has are declared
-in its shape and drawn from it, which covers the ordinary open task; `deps` is what a
-screen asks for when somebody wants the dep behind a hop, the cycle, or the blockers
-named as a list rather than inferred from the chains. One is the page loading, the other
-is a person asking a second question.
-
-The reader is the one already written: `readDepChain` defaults `via` to empty, so the
-brief's narrower chain parses against it without a second shape. What is missing is the
-key on `BriefPayload` and a `graphFrom` that takes what a brief has — which is the same
-lay-out over a payload with two of its lists absent, not a second module.
-
-On ship: `--recorded-in packages/core/src/graph.ts`.
-
 ### §RG77 The reason a non-goal keeps to itself
 
 `non-goal list --json` answers with the leads, the file, what was elided and which

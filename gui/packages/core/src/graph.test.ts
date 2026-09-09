@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { expandedFrom, graphFrom, routeOf, standingOf } from './graph'
-import { readDepsPayload, type DepsPayload } from './payloads'
+import { expandedFrom, graphFrom, graphOfBrief, routeOf, standingOf } from './graph'
+import { readBriefPayload, readDepsPayload, type BriefPayload, type DepsPayload } from './payloads'
 
 /** Captured from a real `deps --json` on a line blocked inside the backlog. */
 const RAW = {
@@ -23,6 +23,40 @@ const RAW = {
 
 function deps(over: Record<string, unknown> = {}): DepsPayload {
   const parsed = readDepsPayload({ ...RAW, ...over }, '')
+  if (!parsed.ok) throw new Error(`the fixture does not match the shape: ${parsed.failure.path}`)
+  return parsed.value
+}
+
+/**
+ * Captured from a real `brief --json` on a line blocked outside the backlog.
+ *
+ * Kept as it arrived, which is the point of the fixture: the chain has no `via`, the
+ * unblocks have no `direct`, and there is no `blockers` key and no `cycle` key at all.
+ */
+const BRIEFED = {
+  id: 'RG15',
+  status: '💭',
+  block: 'B',
+  symptom: 'which copy of roadkeep each project runs is never read',
+  why: 'The block is not finished until the verdict sits beside a project counts.',
+  deps: ['RG2 ✅', 'RG13'],
+  readiness: 'blocked',
+  deps_resolved: [
+    { dep: 'RG2', kind: 'task', status: 'shipped', detail: 'in the changelog' },
+    { dep: 'RG13', kind: 'task', status: 'open', detail: 'open in Block B' },
+  ],
+  chains: [
+    {
+      path: ['RG15', 'RG13', 'roadkeep RK1631'],
+      end: 'unresolvable',
+      detail: 'outside the backlog: shipping cannot satisfy it',
+    },
+  ],
+  unblocks: { count: 0, of: 32, transitive: [], transitive_elided: 0 },
+}
+
+function brief(over: Record<string, unknown> = {}): BriefPayload {
+  const parsed = readBriefPayload({ ...BRIEFED, ...over }, '')
   if (!parsed.ok) throw new Error(`the fixture does not match the shape: ${parsed.failure.path}`)
   return parsed.value
 }
@@ -166,15 +200,18 @@ describe('RG25: what shipping this would free', () => {
     expect(graph.onward).toEqual([])
   })
 
-  it('reads a brief unblocks, which names no direct set at all', () => {
-    // The same shape over two verbs: `brief` samples and elides, `deps` does not.
+  it('withholds the split when it was never given the direct half', () => {
+    // The brief-shaped unblocks: a sample of the transitive set and no direct list. The
+    // difference against nothing is the whole sample, which would call all fifteen freed
+    // downstream when some of them are freed by shipping this line itself.
     const graph = graphFrom(
       deps({ unblocks: { transitive: ['RG40'], count: 15, of: 49, transitive_elided: 11 } }),
     )
 
     expect(graph.unblocks?.direct).toEqual([])
     expect(graph.unblocks?.transitiveElided).toBe(11)
-    expect(graph.onward).toEqual(['RG40'])
+    expect(graph.onward).toEqual([])
+    expect(graph.narrowing.complete).toBe(false)
   })
 })
 
@@ -191,5 +228,40 @@ describe('RG25: a cycle, where nothing in the group can start', () => {
 
     expect(graph.deadlocked).toBe(false)
     expect(graph.cycle).toEqual([])
+    expect(graph.narrowing.complete).toBe(true)
+  })
+})
+
+describe('RG76: the graph a brief already sent', () => {
+  it('draws the chain off the read that opened the task', () => {
+    const graph = graphOfBrief(brief())
+
+    expect(routeOf(graph.chains[0]!)).toBe('RG15 → RG13 → roadkeep RK1631')
+    expect(graph.chains[0]?.standing).toBe('never')
+    expect(graph.outside.map((edge) => edge.dep)).toEqual([])
+    expect(graph.readiness).toBe('blocked')
+  })
+
+  it('defaults the hop behind a chain, which a brief does not spell', () => {
+    // `via` is the one field `deps` adds to a chain. The reader defaults it and this says
+    // so out loud: an empty answer here means ask `deps`, never that nothing expanded.
+    expect(expandedFrom(graphOfBrief(brief()).chains[0]!, 0)).toBe('')
+  })
+
+  it('says which lists it was never given, rather than calling them empty', () => {
+    const graph = graphOfBrief(brief())
+
+    expect(graph.blockers).toEqual([])
+    expect(graph.cycle).toEqual([])
+    expect(graph.deadlocked).toBe(false)
+    // The two brackets a screen must not read as "nothing is holding this line".
+    expect(graph.narrowing.complete).toBe(false)
+    expect(graph.narrowing.reasons[0]).toContain('deps')
+  })
+
+  it('resolves each dep the same way, because it is the same list', () => {
+    const graph = graphOfBrief(brief())
+
+    expect(graph.edges.map((edge) => edge.standing)).toEqual(['settled', 'waiting'])
   })
 })
