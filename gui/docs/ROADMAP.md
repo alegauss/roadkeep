@@ -5,8 +5,8 @@
 ## Block A — The client (payloads in, types out)
 
 - 💭 **RG9** (deps: RG1 ✅, roadkeep RK1632) **prose a person typed goes out through argv, which is where RK1474 recorded bytes arriving as different bytes** — why and section-body each read stdin on a dash and symptom does not, so the field every line leads with is the one with no safe path in. → §RG9
-- 📋 **RG101** (deps: RG68 ✅) **every call spends a second and a half starting Python, and the engine publishes a mode that starts once** — Both transports here spawn per call, so the cost is paid per read rather than per session, and RG7's cache only stops it being paid twice. → §RG101
 - 📋 **RG104** (deps: —) **removing a fixture directory throws EPERM on Windows, so a file whose tests all passed reports as a failed suite** — Teardown runs in afterAll and rmSync's force flag forgives only a missing path, so a lock Windows has not dropped yet reds a suite nothing in the code caused. → §RG104
+- 📋 **RG122** (deps: RG101 ✅, RG103 ✅) **the transport that reads in 6ms is proven by a test and reached by nothing a person would run** — openProject builds the one that spawns, so a screen still pays 738ms a read, and what stands between them is a process lifetime nobody owns. → §RG122
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

@@ -29,6 +29,7 @@
 - ✅ **RG98** **core's boundary test holds an import and nothing else, so a path rule written as string work passes it** — core's boundary test now fails on a separator fold nobody wrote a reason for, and on a reason that no longer matches anything (design recorded in `packages/core/src/boundaries.test.ts`).
 - ✅ **RG99** **a read has two doors and the one a screen has to use is the one that raises rather than answering** — client.call answers with the same three states a write gets and raises for none, so a screen has one door and no caller wraps a read in a try (design recorded in `packages/core/src/client.ts`).
 - ✅ **RG100** **an id in a project whose listing was bounded reads as one nothing in that project ever carried** — An id in none of the listings reads as unfiled only where all three were read whole, and as unknown otherwise, which is a sentence about the read (design recorded in `packages/core/src/pauses.ts`).
+- ✅ **RG101** **every call spends a second and a half starting Python, and the engine publishes a mode that starts once** — A third transport holds one roadkeep mcp per project: 6ms a read against 738ms spawned, same payload, spawning for what it cannot serve (design recorded in `packages/shell/src/mcp-transport.ts`).
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

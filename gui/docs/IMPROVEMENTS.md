@@ -11,31 +11,6 @@ rather than pretending it is safe. Spawning without a shell removes the quoting 
 but not the encoding one. What proves it is a round trip: write a symptom carrying an
 accent, an apostrophe and an em dash, read it back with show, and compare the bytes.
 
-### §RG101 The interpreter that could stay
-
-Measured while shipping RG68: an engine call against this repository costs about 1.5
-seconds, almost all of it Python starting. The live suite makes roughly six hundred of
-them and spends 415 seconds doing so, and the app will pay the same for every read a
-screen makes that RG7's cache does not already hold.
-
-`commands` publishes 91 verbs and one of them is `mcp` — a process that starts once and
-answers over stdio, which is how the agent in this session reads these files. Both
-transports here spawn instead: the process one by design, and the HTTP one by running
-the process one behind a handler, so the seam it proves buys no speed. A third transport
-speaking to a long-lived `roadkeep mcp` would make a call cost what an in-process call
-costs.
-
-Three things make this worth care rather than worth doing straight away. The tool names
-are the MCP surface's, not the CLI's, and `commands` reports 23 verbs that run and are
-not published there — so this transport answers fewer verbs than the other two, which is
-the question RG6's capability report already knows how to ask. A long-lived process is
-state this app would own and have to restart. And `fileParallelism: false` exists
-because twenty interpreters starve eight cores; one process removes that reason and may
-replace it with different contention.
-
-Not a fourth answer either: whichever verbs it serves, the client above it must not be
-able to tell which transport replied.
-
 ### §RG104 A teardown that reds a green file
 
 Forty-one live files ran and one reported failure: `rows-live.test.ts`, whose five tests
@@ -56,6 +31,31 @@ that stopped being removable rather than an id that stopped being true.
 
 Swallowing the error is not the fix: temp directories nothing removes are a leak nobody
 sees. Retrying is.
+
+### §RG122 The held engine, and who closes it
+
+RG101 built the transport and measured it: eight reads of this repository cost 5904ms
+spawned and 45ms held, which is 738ms against 6ms. It is held by `mcp-live.test.ts` over
+every read verb and by nothing else. `openProject` still builds `createPooledTransport`
+over the process one, so every screen to come pays the spawn.
+
+What stands in the way is not the reading, which is done. It is that a held process is
+state this app owns, and three things follow that nobody has settled.
+
+**Who closes it.** `OpenProject` has `invalidate` and no `close`; a window that opened
+seventeen projects would hold seventeen engines, and closing that window has to end
+them. On Windows that means killing the tree — the launcher spawns rather than `execv`s
+— which RG101 records and which the app would now be doing at shutdown.
+
+**Whether the pool still makes sense.** `createPooledTransport` bounds calls in flight
+because twenty interpreters starve eight cores. One process per project is a different
+shape, and the width that was right for spawning may be wrong or unnecessary here.
+
+**And whether the live suite's `fileParallelism: false` can go**, which exists for the
+same reason and is most of why that suite takes ten minutes.
+
+Measure before and after rather than assuming: one process serialises what twenty did in
+parallel, and the win above is per call and not per suite.
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

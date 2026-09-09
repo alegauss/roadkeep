@@ -2,6 +2,7 @@ import { ANSWERS, type VerbAnswers } from './answers'
 import { attemptRead, type Unreadable } from './limits'
 import type { Reader } from './reading'
 import { readAnswerFrom, type Refusal } from './refusals'
+import { callFor, type EngineCall } from './tools'
 import type { CancelSignal, Transport } from './transport'
 import { spell, VERBS, VERB_WORDS, type VerbInputs, type VerbName } from './verbs'
 
@@ -104,6 +105,17 @@ export function buildArgv<K extends VerbName>(
   return wrapArgv(root, spell(verb, VERB_WORDS), argvFor(input))
 }
 
+/**
+ * The same read, spelled for the engine's tool surface (RG101).
+ *
+ * Composed here and carried on every request, so a transport speaking to a long-lived
+ * `roadkeep mcp` has what it needs and one that spawns can ignore it. Off the same
+ * spelling table as the argv, which is what keeps the two from naming different verbs.
+ */
+export function buildCall<K extends VerbName>(verb: K, input: VerbInputs[K]): EngineCall {
+  return callFor(verb, input, VERB_WORDS)
+}
+
 export function createClient(transport: Transport): Client {
   return {
     async call(root, verb, input, options = {}) {
@@ -118,6 +130,7 @@ export function createClient(transport: Transport): Client {
         {
           root,
           argv: buildArgv(root, verb, input),
+          call: buildCall(verb, input),
           ...(options.timeoutMs === undefined ? {} : { timeoutMs: options.timeoutMs }),
           ...(options.signal === undefined ? {} : { signal: options.signal }),
         },

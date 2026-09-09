@@ -19,6 +19,8 @@ export interface CancelSignal {
   removeEventListener(type: 'abort', listener: () => void): void
 }
 
+import type { EngineCall } from './tools'
+
 export interface EngineRequest {
   /** The project the answer is about. The transport makes it the working directory. */
   readonly root: string
@@ -27,6 +29,16 @@ export interface EngineRequest {
    * a person typed into these elements, and a string is where a quoting defect lives.
    */
   readonly argv: readonly string[]
+  /**
+   * The same call as a tool and its arguments, where the caller composed one (RG101).
+   *
+   * Carried beside the argv rather than instead of it, because the engine has two surfaces
+   * and a transport speaks one of them: the process and HTTP transports run the argv and
+   * ignore this, and a transport speaking to a long-lived `roadkeep mcp` reads this and
+   * ignores the argv. A request with only an argv still works everywhere — that is what a
+   * door's own command line is, and nothing composed a tool call for it.
+   */
+  readonly call?: EngineCall
   /** Milliseconds after which the call is abandoned. Absent means no ceiling. */
   readonly timeoutMs?: number
   /** Cancellation from the caller — a screen redrawing while reads are still in flight. */
