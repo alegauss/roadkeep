@@ -618,17 +618,20 @@ together today, and a test defending a number nobody renders is a number somebod
 eventually weaken to make an unrelated change land. What is on screen is muted text on a
 card, which clears in both grounds and is enforced.
 
-But the tokens are *named* as a pair — that is what the shadcn convention means by `x`
-and `x-foreground` — so the first muted panel anybody builds will reach for both, and
-the label will be a little too pale in exactly the way nobody notices in review.
+But the tokens are *named* as a pair — what the shadcn convention means by `x` and
+`x-foreground` — so the first muted panel anybody builds reaches for both, and the label
+is too pale in exactly the way nobody notices in review. `docs/design/Fundos.dc.html`
+draws it on both grounds.
 
-Three ways out, in order of how much they cost. Override `--vg-muted-foreground` in this
-app's `:root`, the way RG54 overrode the ring — one line, and it darkens every muted
-label everywhere, which may be right. Or never use `--vg-muted` as a text surface and
-say so where somebody would look. Or take it upstream, since the pair is the package's
-and every console using it has the same 4.33.
+**The fix goes upstream, not into this app's `:root`.** The pair is the package's, and
+Turing, Shio and Dumont render the same 4.33: an override here leaves three consoles
+with the defect and this one out of step with them.
 
-Whichever, the pair goes into the enforced list the moment a screen renders it.
+**`--vg-muted-foreground` becomes `oklch(0.52 0 0)`** — 5.05:1 on the muted surface and
+5.51:1 on the ground. Break-even is 0.547, so this buys margin rather than sitting on
+the line. Dark is untouched, the package re-pointing that token there already.
+
+What is left here is adopting the release that carries it, and enforcing the pair.
 
 ### §RG105 The colour that says where you are
 

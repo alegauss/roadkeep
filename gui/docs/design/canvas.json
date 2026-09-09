@@ -1,7 +1,7 @@
 {
   "pages": [
     { "id": "page-1", "name": "Telas" },
-    { "id": "page-2", "name": "Decisões" }
+    { "id": "page-2", "name": "Decidido" }
   ],
   "artboards": [
     {
@@ -64,7 +64,7 @@
       "y": 0,
       "w": 880,
       "h": 640,
-      "title": "A · Bento fiel",
+      "title": "A · Bento fiel (não escolhida)",
       "page": "page-2"
     },
     {
@@ -73,7 +73,7 @@
       "y": 0,
       "w": 880,
       "h": 640,
-      "title": "B · Denso",
+      "title": "B · Denso (não escolhida)",
       "page": "page-2"
     },
     {
@@ -101,7 +101,7 @@
       "x": 1560,
       "y": -170,
       "w": 480,
-      "text": "O \"você está aqui\" do rail lê --primary, que neste app ainda é o neutro do pacote.\nSó --vg-accent-* foi virado para âmbar, então a marca de seção sai cinza.\nDecidir na RG63: re-keyar --primary ou aceitar o cinza."
+      "text": "DECIDIDO — --vg-primary vira âmbar: #b45309 no claro, sob texto branco a 5.02:1, e #fbbf24 no escuro, sob texto quase-preto a ~11:1.\nÉ a RG105, 📋, e move junto o botão, a barra de progresso, o slider e o brilho do hover do tile — que são os lugares onde um produto deve parecer ele mesmo.\nO rail continua cinza nestas pranchetas de propósito: é o estado que a linha descreve."
     },
     {
       "id": "n-prosa",
@@ -109,7 +109,7 @@
       "x": 3120,
       "y": -170,
       "w": 480,
-      "text": "A prosa aparece como o arquivo guarda: quebras preservadas, ** e [[RG88]] literais.\nÉ o non-goal \"No Markdown parsed in this app\" desenhado.\nA pergunta aberta é a face: proporcional com quebras do arquivo fica irregular; mono parece código."
+      "text": "A prosa aparece como o arquivo guarda: quebras preservadas, ** e [[RG88]] literais.\nÉ o non-goal \"No Markdown parsed in this app\" desenhado.\nDECIDIDO — a face é a de texto, não mono, com as quebras do arquivo mantidas. Virou critério do bloco H e não tarefa, porque não há código para mudar ainda. A margem direita irregular é o custo assumido."
     },
     {
       "id": "n-escrita",
@@ -133,7 +133,7 @@
       "x": 0,
       "y": -190,
       "w": 720,
-      "text": "A mesma tela nas duas direções. O critério do bloco H (\"legível no comprimento que o formato permite\") puxa para B; a orientação do próprio bento — e a RG63 — puxa para A.\nO Main hoje segura a candidata líder: casca de A, conteúdo de B. Escolhida uma, ela vai para o Main e a outra sai."
+      "text": "DECIDIDO — nenhuma das duas como desenhada: a casca é de A, o conteúdo é de B.\nEstá em §RG63: \"The shell is bento and the content inside it is not.\" O rail, o header, o palette, o hero, os painéis de vidro e o movimento dos tiles são adotados inteiros; dentro deles, linhas e não tiles.\nMain.dc.html, na página Telas, é a forma que isto fechou. As duas aqui ficam como o registro da escolha."
     },
     {
       "id": "n-fundos",
@@ -141,7 +141,7 @@
       "x": 1960,
       "y": -190,
       "w": 560,
-      "text": "As razões de contraste foram calculadas dos tokens resolvidos, não estimadas.\nA RG90 é um defeito só do fundo claro: no escuro o pacote já subiu o muted-foreground.\nO candidato de correção é proposta, não decisão — a linha está 💭."
+      "text": "DECIDIDO — a correção vai para o pacote, não para o :root deste app: o par é do design system e Turing, Shio e Dumont têm o mesmo 4.33.\n--vg-muted-foreground passa a oklch(0.52 0 0), que dá 5.05:1 sobre a superfície muted. O ponto de virada é 0.547, então 0.52 compra margem em vez de encostar na linha.\nA RG90 está 📋 e carrega o dep externo. O escuro não muda: o pacote já re-aponta o token lá."
     }
   ],
   "launch": { "view": "canvas", "page": "page-1" }

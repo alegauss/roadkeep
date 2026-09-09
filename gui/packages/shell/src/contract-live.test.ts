@@ -64,6 +64,41 @@ import { createProcessTransport } from './process-transport'
  * test was written to check.
  */
 
+/**
+ * Every call known to make a verb answer in a shape its ordinary call does not.
+ *
+ * RG66 gave each verb one shape; this is the half that fix does not reach. A single reader
+ * still has to handle both answers, and nothing made anybody notice there were two — every
+ * entry below was found by hand at the moment it broke something. `ship --part` cost a red
+ * live test and a shape rewrite, because a reader taking only `removed` drew a partial ship
+ * as a closure.
+ *
+ * The pattern is exact and it is why a list is worth keeping: **the flag that narrows a
+ * read, or changes what a write does, is the flag that changes the answer** — and it is
+ * never the call anybody writes the first test for.
+ *
+ * So they are declared here and `covers` marks each one off as its case runs. A shape
+ * somebody names without covering reds the guard at the foot of this file, which turns a
+ * reader that works until the day a person clicks the other button into a gap in a list.
+ */
+const SECOND_SHAPES = {
+  'show --no-body': '`section.body`: the prose on the ordinary call, null under the flag',
+  'criterion list --task': '`empty` and `doors`, which the block form answers with neither',
+  'delivered --near': '`near`: null unranked, and the sentence it ranked against when given',
+  'reversals <id>': '`asked`: null over the whole ledger, the id when one was named',
+  'ship --part': '`roadmap`: a line removed on a closure, a line still open on a partial',
+  'brief on a shipped line': '`budget`: an object while the design is there, null once it is gone',
+} as const
+
+type SecondShape = keyof typeof SECOND_SHAPES
+
+const covered = new Set<SecondShape>()
+
+/** Say that a case exercised one of them. */
+function covers(shape: SecondShape): void {
+  covered.add(shape)
+}
+
 let fixture: Fixture
 let engineVersion = ''
 /**
@@ -219,6 +254,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
     // which is the finding this file was written to produce.
     expect(payload.section?.file).toContain('IMPROVEMENTS.md')
     expect(payload.section?.body).toBeNull()
+    covers('show --no-body')
   })
 
   it('reads a brief, including what it left out', async () => {
@@ -276,6 +312,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect(finishing.empty).not.toBeNull()
     expect(finishing.doors.length).toBeGreaterThan(0)
     expect(finishing.doors[0]?.argv.length).toBeGreaterThan(0)
+    covers('criterion list --task')
   })
 
   it('reads what a block already delivered, ranked and unranked', async () => {
@@ -290,6 +327,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect(near.near).not.toBeNull()
     expect(whole.delivered[0]?.symptom).not.toBe('')
     expect(whole.delivered[0]?.undoneBy).toBeNull()
+    covers('delivered --near')
   })
 
   it('reads what the ledger undid, and the id a caller asked about', async () => {
@@ -300,6 +338,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect(all.asked).toBeNull()
     expect(one.asked).toBe('FX1')
     expect(Array.isArray(one.reversed)).toBe(true)
+    covers('reversals <id>')
   })
 
   it('writes a line, and reads back the shape the write answered with', async () => {
@@ -367,6 +406,11 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect(ship.value.roadmap?.file).toContain('ROADMAP.md')
     expect(typeof ship.value.roadmap?.open).toBe('boolean')
     expect(Array.isArray(ship.value.checked)).toBe(true)
+    // The closure half of `ship --part`'s pair: the line left the roadmap, so `removed`
+    // names where it was and `open` is false.
+    expect(ship.value.roadmap?.removed).toBeGreaterThan(0)
+    expect(ship.value.roadmap?.open).toBe(false)
+    expect(ship.value.part).toBe('')
 
     const retire = await applyWrite(
       transport,
@@ -399,6 +443,65 @@ describe('RG4: every read this client makes, against a live engine', () => {
     if (resume.kind !== 'applied') throw new Error('unreachable')
     expect(resume.value.was).toBe('Waiting on a decision.')
     expect(resume.value.marker).not.toBe('')
+  })
+
+  it('records half a line, which answers about a line that is still there', async () => {
+    // The second shape `ship` has, and the one that cost a shape rewrite: a partial writes
+    // a ledger entry and leaves the task open, so `roadmap` is about where the line still
+    // is rather than about a line that has gone.
+    const filed = await applyWrite(
+      transport,
+      composeWrite(fixture.root, 'add', {
+        block: 'A',
+        symptom: 'half of something lands before the rest of it does',
+        why: 'A partial ship answers in a shape the ordinary one does not.',
+      }),
+      readAddedPayload,
+      { timeoutMs: CEILING },
+    )
+    expect(filed.kind).toBe('applied')
+    if (filed.kind !== 'applied') throw new Error('unreachable')
+
+    const partial = await applyWrite(
+      transport,
+      composeWrite(fixture.root, 'ship', {
+        id: filed.value.id,
+        why: 'The local half answers now.',
+        part: 'local half',
+        remainder: 'The half that crosses a process is still to come.',
+      }),
+      readShipPayload,
+      { timeoutMs: CEILING },
+    )
+    expect(partial.kind).toBe('applied')
+    if (partial.kind !== 'applied') throw new Error('unreachable')
+
+    // Nothing was taken out, and the three keys the closure form leaves at their defaults
+    // are the ones a reader has to have looked for.
+    expect(partial.value.part).not.toBe('')
+    expect(partial.value.roadmap?.removed).toBe(0)
+    expect(partial.value.roadmap?.line).toBeGreaterThan(0)
+    expect(partial.value.roadmap?.status).not.toBe('')
+    expect(partial.value.roadmap?.open).toBe(true)
+    // And the line really is still a task, which is the claim `open` is making.
+    expect(listedTasks(await readVerb('list', {})).map((task) => task.id)).toContain(filed.value.id)
+    covers('ship --part')
+  })
+
+  it('briefs a shipped line, whose budget went with its design', async () => {
+    // `budget` is an object while there is a design to price and null once shipping has
+    // deleted it. A shape demanding the object reads every closed line as unreadable.
+    const shipped = listedTasks(await readVerb('list', { role: 'changelog' }))[0]?.id ?? ''
+    expect(shipped).not.toBe('')
+
+    const closed = await readVerb('brief', { id: shipped })
+    const open = await readVerb('brief', {})
+
+    expect(closed.shipped).toBe(true)
+    expect(closed.budget).toBeNull()
+    expect(closed.section).toBeNull()
+    expect(open.budget).not.toBeNull()
+    covers('brief on a shipped line')
   })
 
   it('writes a rationale under an anchor, and corrects it as a fragment', async () => {
@@ -717,5 +820,26 @@ describe('RG4: the states a fixture is built to contain', () => {
   it('has a deferred store, which `list --role deferred` reads', async () => {
     const payload = await readVerb('list', { role: 'deferred' })
     expect(listedTasks(payload).length).toBeGreaterThan(0)
+  })
+})
+
+/**
+ * Last in the file, and it has to be: it reads what the cases above marked off as they ran.
+ */
+describe('RG83: every second shape this file names is one it covers', () => {
+  it('has a case for each, so naming one without covering it is the failure', () => {
+    const named = Object.keys(SECOND_SHAPES) as SecondShape[]
+    const missing = named.filter((shape) => !covered.has(shape))
+
+    expect(
+      missing.map((shape) => `${shape} — ${SECOND_SHAPES[shape]}`),
+      'a second shape is declared above and no case exercises it',
+    ).toEqual([])
+  })
+
+  it('names no shape a case does not, so the list cannot outlive the call', () => {
+    // The other direction. A `covers` left behind after its case went is a list claiming
+    // coverage nothing provides, which is the failure this file exists to make impossible.
+    expect([...covered].every((shape) => shape in SECOND_SHAPES)).toBe(true)
   })
 })
