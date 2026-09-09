@@ -1,12 +1,12 @@
 ---
 name: viglet-ds-pages
 description: Building or changing a page with @viglet/viglet-design-system/bento -- the shell, the three page shapes, the panel, and which tokens a product claims. Load before the first screen, and before adding a region to one.
-vds-version: 2026.3.5
+vds-version: 2026.3.8
 ---
 
 # Pages in the Viglet design system
 
-This is vendored from `@viglet/viglet-design-system@2026.3.5` and refreshed by
+This is vendored from `@viglet/viglet-design-system@2026.3.8` and refreshed by
 `viglet-ds-page-reference`. Do not edit these files here: the next run rewrites them, and
 a correction belongs in the package so every consumer gets it.
 
