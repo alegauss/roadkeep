@@ -24,7 +24,6 @@ import {
   readSectionWritten,
   readShipPayload,
   readStatusPayload,
-  resolveEngine,
   withheld,
   type VerbAnswers,
   type VerbInputs,
@@ -32,10 +31,15 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import { CEILING, liveClient as client, liveEngine as transport, read, REPO } from './live'
-import { engineCandidates, samePathPart } from './engine-candidates'
+import {
+  CEILING,
+  engineReading,
+  liveClient as client,
+  liveEngine as transport,
+  read,
+  REPO,
+} from './live'
 import { buildFixture, type Fixture } from './fixture'
-import { createProcessTransport } from './process-transport'
 
 /**
  * RG4: where a rename is allowed to go red.
@@ -100,7 +104,7 @@ function covers(shape: SecondShape): void {
 }
 
 let fixture: Fixture
-let engineVersion = ''
+let engineNamed = ''
 /**
  * The first open line, listed once (RG68). Two `show` cases want an id and nothing else,
  * and each was fetching the whole listing to find one — a second and a half apiece for an
@@ -110,16 +114,10 @@ let firstOpen = ''
 
 beforeAll(async () => {
   fixture = await buildFixture(transport)
-
-  const resolution = await resolveEngine(
-    (engine) => createProcessTransport({ command: engine[0] ?? '', prefixArgs: engine.slice(1) }),
-    REPO,
-    engineCandidates(REPO),
-    { timeoutMs: CEILING, samePart: samePathPart },
-  )
-  if (resolution.kind === 'resolved') {
-    engineVersion = resolution.engine.payload.writing.version
-  }
+  // Read here rather than resolved here (RG84). This file used to start its own interpreter
+  // to learn which build was answering, and the thirty other live files did not bother —
+  // so the one place that could name the engine was the one place that had paid for it.
+  engineNamed = (await engineReading()).named
 
   firstOpen = listedTasks(await readVerb('list', {}))[0]?.id ?? ''
 }, 180000)
@@ -138,10 +136,7 @@ async function readVerb<K extends VerbName>(
   verb: K,
   input: VerbInputs[K],
 ): Promise<VerbAnswers[K]> {
-  // The seam is `live.ts`, and the version is what this file adds to it: the message a
-  // moved key prints names the build that moved it, and this is the one file that has
-  // resolved which build answered.
-  return read(fixture.root, verb, input, { engineVersion })
+  return read(fixture.root, verb, input)
 }
 
 describe('RG4: the build this contract was proven against', () => {
@@ -149,7 +144,17 @@ describe('RG4: the build this contract was proven against', () => {
     // Named once and never compared again. It reaches a reader through `explainFailure`,
     // which puts it in the sentence every failed read in this file prints — which is what
     // "a claim about one build" needs, and equality between two samples never was.
-    expect(engineVersion).toMatch(/^\d+\.\d+\.\d+/)
+    expect(engineNamed).toMatch(/^\d+\.\d+\.\d+/)
+  })
+
+  it('RG84: names the revision too, so red says whether the tool moved or this app did', () => {
+    // The engine here is a working checkout, so a version alone cannot separate "the shape
+    // changed upstream" from "somebody saved a file two directories over". The revision can,
+    // and it is the half `No engine the reader cannot name` was asking for.
+    expect(
+      engineNamed,
+      'the engine answering here is a checkout, so it has a revision to name',
+    ).toMatch(/^\d+\.\d+\.\d+.* \(.+\)$/)
   })
 })
 
@@ -798,7 +803,7 @@ describe('RG5: a refusal, against a live engine', () => {
     // The claim the design makes: `explain`'s table and a lint finding's `remedy` are one
     // map at two moments, so one reader covers both. This repository's own gate carries
     // notes with remedies, which is where that gets exercised against real output.
-    const linted = await read(REPO, 'lint', {}, { engineVersion })
+    const linted = await read(REPO, 'lint', {})
 
     const withRemedy = [...linted.findings, ...linted.notes].find((entry) => entry.remedy !== null)
     expect(withRemedy?.remedy?.doors.length).toBeGreaterThan(0)

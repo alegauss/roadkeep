@@ -25,9 +25,16 @@ export default defineConfig({
     // fail for being starved rather than for being wrong. Observed: the portfolio row test
     // passing alone and failing in a full run, twice.
     fileParallelism: false,
-    // Where a built fixture is kept for the rest of the run, so the same shape is not
-    // scaffolded twenty-six times (RG68). It is made here and removed here: these are real
-    // governed projects, and the run that made them is the run that owns them.
-    globalSetup: ['./src/fixture-cache.ts'],
+    // Two things settled once and spent by every worker, both travelling as environment
+    // variables because that is what crosses a fork.
+    //
+    //   fixture-cache  where a built fixture is kept for the rest of the run, so the same
+    //                  shape is not scaffolded twenty-six times (RG68). Made here and
+    //                  removed here: these are real governed projects, and the run that
+    //                  made them is the run that owns them.
+    //   live           what the engine said it was, asked once (RG84), so a rebuild
+    //                  underneath the run is one answer at the start rather than
+    //                  thirty-one files disagreeing about which program they read.
+    globalSetup: ['./src/fixture-cache.ts', './src/live.ts'],
   },
 })

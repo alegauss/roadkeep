@@ -1,7 +1,7 @@
 import { buildArgv, explainFailure, listedTasks, type VerbInputs, type VerbName } from '@rk/core'
 import { describe, expect, it } from 'vitest'
 
-import { REPO, liveClient as client, liveEngine as engine } from './live'
+import { REPO, engineReading, liveClient as client, liveEngine as engine } from './live'
 
 /**
  * RG1's symptom is that no code here can fetch a payload. These are the tests that make
@@ -49,9 +49,12 @@ describe('RG1: a payload this app can actually fetch', () => {
     // output rather than from memory, which is the way a hand-written shape goes wrong.
     const answer = await client.call(REPO, 'list', { block: 'A' }, { timeoutMs: CEILING })
 
+    // The build that answered, not the word `live` this used to print (RG84): a shape that
+    // moved upstream is only actionable when the message says which revision moved it.
+    const { named } = await engineReading()
     expect(
       answer.ok,
-      answer.ok ? '' : explainFailure(answer.failure, { verb: 'list', engineVersion: 'live' }),
+      answer.ok ? '' : explainFailure(answer.failure, { verb: 'list', engineVersion: named }),
     ).toBe(true)
     if (!answer.ok || answer.value.kind === 'refused') return
     expect(listedTasks(answer.value.value).length).toBeGreaterThan(0)

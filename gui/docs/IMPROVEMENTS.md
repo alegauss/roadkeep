@@ -11,33 +11,6 @@ rather than pretending it is safe. Spawning without a shell removes the quoting 
 but not the encoding one. What proves it is a round trip: write a symptom carrying an
 accent, an apostrophe and an em dash, read it back with show, and compare the bytes.
 
-### §RG84 One engine for the length of a run
-
-Thirty-one live files each resolve the engine themselves, as they call it. Where that
-engine is a working checkout somebody is editing, the suite reads a different program on
-every call — and four runs went red today with nothing here changed.
-
-Three shapes, one cause. Mid-edit the package does not import, so the launcher falls
-back to a cached build that refuses this config and every read is unreadable. A rebuild
-between two calls fails an equality on the version. A call landing between the states
-answers differently from its neighbour. Each is indistinguishable from the failure the
-contract test exists to produce, which is the cost: a red suite should mean a renamed
-key.
-
-The suite should read the engine once and use that reading throughout. Resolving in one
-place — a module beside `fixture.ts`, alongside RG78's shared reader — gives every file
-the same program for the length of a run, and a version that moves underneath is then
-one answer at the start rather than thirty-one disagreeing.
-
-It also names the engine in the report, which `No engine the reader cannot name` asks
-for and no live file does today: a failure would say which revision answered rather than
-leaving somebody to guess whether the code moved or the tool did.
-
-This does not make the suite immune to a broken engine, and should not: it makes the
-breakage arrive once and named, instead of as an assertion about a key.
-
-On ship: `--recorded-in packages/shell/src/live.ts`.
-
 ### §RG98 The boundary that is only a rule about imports
 
 `boundaries.test.ts` reads every file in `core` and fails on an import of `node:`,

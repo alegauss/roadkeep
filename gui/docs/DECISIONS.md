@@ -5,6 +5,7 @@
 - ✅ **RG64** **the fast suite and the one that spawns a real engine are one command, so every run pays for both** — A test that spawns a process, opens a window or reads the build is named `*-live.test.*`; suites.test.ts reads every test file and fails when one is filed under a fast name.
 - ✅ **RG65** **resolving an engine costs two interpreter starts on Windows, where the same file is spelled two ways** — A rule about what a path means is handed into `core` and never folded inside it, even written as pure string work.
 - ✅ **RG75** **two live tests still name RG9, so the commit that ships it fails a suite nothing changed to break** — A live test names no open id: it asks the engine for a line in the state it is about.
+- ✅ **RG84** **every live file resolves the engine itself, so one being rebuilt mid-run reds the suite four ways** — The live suite asks its engine what it is once per run and spends that one reading; it never resolves an engine of its own.
 
 ### §RG65 What a path means is not core's to know
 

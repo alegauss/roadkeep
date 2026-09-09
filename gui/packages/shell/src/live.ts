@@ -63,18 +63,89 @@ export const liveEngine: Transport = createProcessTransport({
 /** The client over it, reading each verb with the shape that verb declares. */
 export const liveClient: Client = createClient(liveEngine)
 
+/**
+ * The engine, read once and named for the length of the run (RG84).
+ *
+ * Thirty-one files call this engine and none of them ever asked what it was. Where it is a
+ * working checkout somebody is editing — which here it always is — each call is a fresh
+ * reading of a moving program, and the suite went red four times in one afternoon with
+ * nothing in this repository changed: a package mid-save does not import, the launcher
+ * falls back to a cached build, and what comes back is a payload this app cannot read. That
+ * failure is indistinguishable from the one the contract test exists to produce, and a
+ * reader who learns red can also mean "somebody hit save elsewhere" stops believing it.
+ *
+ * So the engine is asked what it is **once per run**, and every file spends that one
+ * answer. It cannot make the suite immune to an engine being rebuilt underneath it, and
+ * should not: what it does is make the breakage arrive once, at the start, saying which
+ * revision answered — instead of thirty-one files each reporting a renamed key.
+ *
+ * **Named and not discovered.** This asks the launcher this repository commits, which is
+ * the engine the suite already calls, rather than resolving candidates: `resolveEngine` is
+ * how the *app* picks a copy for a project it was handed, and a suite that discovered its
+ * own engine could go green against a `roadkeep` on PATH that governs nothing here.
+ *
+ * The answer travels to the workers as an environment variable because that is what crosses
+ * a fork — the same reason `fixture-cache.ts` gives. Absent, a worker asks for itself, which
+ * is one interpreter start and the behaviour this replaces.
+ */
+
+/** Where the run's one reading is published, for the workers it forks. */
+export const ENGINE_VAR = 'RK_LIVE_ENGINE'
+
+export interface EngineReading {
+  /** `0.2.426 (984c5b9a)`, or the empty string where nothing answered. */
+  readonly named: string
+  /** Why nothing answered, sentence-shaped, or the empty string where one did. */
+  readonly unresolved: string
+}
+
+/** Ask the engine what it is. The one call this suite makes that is not about a project. */
+async function askTheEngine(): Promise<EngineReading> {
+  let answer
+  try {
+    answer = await liveClient.call(REPO, 'engines', {}, { timeoutMs: CEILING })
+  } catch (cause) {
+    // Unspawnable or past the ceiling: no python, or a launcher that cannot import.
+    return { named: '', unresolved: `it could not be started — ${String(cause)}` }
+  }
+  if (!answer.ok) {
+    return {
+      named: '',
+      unresolved: explainFailure(answer.failure, { verb: 'engines', engineVersion: '' }),
+    }
+  }
+  if (answer.value.kind === 'refused') {
+    return { named: '', unresolved: `it refused \`engines\`: ${answer.value.refusal.said}` }
+  }
+
+  const { version, revision } = answer.value.value.writing
+  return { named: revision === '' ? version : `${version} (${revision})`, unresolved: '' }
+}
+
+let held: Promise<EngineReading> | undefined
+
+/** What the engine said it was, asked once and remembered for the rest of this process. */
+export function engineReading(): Promise<EngineReading> {
+  held ??= (async (): Promise<EngineReading> => {
+    const published = process.env[ENGINE_VAR]
+    return published === undefined ? askTheEngine() : (JSON.parse(published) as EngineReading)
+  })()
+  return held
+}
+
+/** Vitest's `globalSetup` for the live project: ask once, before any worker starts. */
+export async function setup(): Promise<void> {
+  process.env[ENGINE_VAR] = JSON.stringify(await askTheEngine())
+}
+
+export function teardown(): void {
+  delete process.env[ENGINE_VAR]
+}
+
 export interface ReadOptions {
   /** A client of this file's own, where the transport under test is not the ordinary one. */
   readonly client?: Client
   readonly timeoutMs?: number
-  /**
-   * The build that answered, for the sentence a failure prints.
-   *
-   * Empty says so rather than guessing — `explainFailure` writes "of an unknown version",
-   * which is true and still tells a reader that this app is behind something. A file that
-   * has resolved the engine passes what it found.
-   */
-  readonly engineVersion?: string
 }
 
 /**
@@ -85,6 +156,12 @@ export interface ReadOptions {
  * asked for an answer and got a refusal has learnt something different from one whose shape
  * did not parse. A file asserting the refusal itself calls the client directly — that is an
  * answer it wanted, not a failure.
+ *
+ * **Four outcomes, really**, and the fourth is why the reading is consulted before the call
+ * rather than only in the message: an engine that answered nothing at the start of the run
+ * is going to answer nothing here either, and saying so is worth more than the renamed-key
+ * report a read against a fallen-back build produces. There is no way to override the
+ * name — one reading is the point, and a second would be the disagreement this removes.
  */
 export async function read<K extends VerbName>(
   root: string,
@@ -93,12 +170,20 @@ export async function read<K extends VerbName>(
   over: ReadOptions = {},
 ): Promise<VerbAnswers[K]> {
   const client = over.client ?? liveClient
+  const reading = await engineReading()
+  if (reading.unresolved !== '' && over.client === undefined) {
+    // The shared engine only. A file that built a transport of its own is asking about that
+    // one, and this repository's launcher has nothing to say about whether it answers.
+    throw new Error(
+      'The engine this suite runs against did not answer `engines` at the start of the run, ' +
+        `so nothing here is a claim about a build anybody can name: ${reading.unresolved}`,
+    )
+  }
+
   const answer = await client.call(root, verb, input, { timeoutMs: over.timeoutMs ?? CEILING })
 
   if (!answer.ok) {
-    throw new Error(
-      explainFailure(answer.failure, { verb, engineVersion: over.engineVersion ?? '' }),
-    )
+    throw new Error(explainFailure(answer.failure, { verb, engineVersion: reading.named }))
   }
   if (answer.value.kind === 'refused') {
     throw new Error(`\`${verb}\` was refused: ${answer.value.refusal.said}`)

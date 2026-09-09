@@ -25,6 +25,7 @@
 - ✅ **RG81** **the read and write paths each spell the same argv wrapper, and the two have already drifted apart** — Both paths wrap their own table's spelling with one composer, and the write path now says why it takes no cancel signal (design recorded in `packages/core/src/client.ts`).
 - ✅ **RG82** **the contract test asserts one engine version across three reads, so a rebuilt engine reds a suite nothing touched** — The version is named once and carried into every failure printed, and nothing compares two reads of a tree under edit (design recorded in `packages/shell/src/contract-live.test.ts`).
 - ✅ **RG83** **one verb answers in two shapes under a flag, and nothing names the second until it breaks** — Six second shapes are declared and each is covered, so naming one without a case reds a guard rather than waiting to break (design recorded in `packages/shell/src/contract-live.test.ts`).
+- ✅ **RG84** **every live file resolves the engine itself, so one being rebuilt mid-run reds the suite four ways** — The suite asks the engine what it is once per run, so a rebuild underneath it arrives as one named sentence and not thirty-one renamed keys (design recorded in `packages/shell/src/live.ts`).
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
