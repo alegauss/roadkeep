@@ -39,6 +39,7 @@ from composing import (
     runs,
     spoken,
     supplied,
+    unprefixed,
     unreached,
 )
 from surface import modules
@@ -1895,6 +1896,124 @@ def test_the_quote_is_the_one_every_shell_reads():
     assert shlex.split(line) == [
         "roadkeep", "add", "--symptom", "It isn't short", "--capture", r"C:\a\b.json",
     ]
+
+
+# -- the bare verb with nothing to compare it against (RK1640) -----------------
+
+#: Every verb-leading span with a placeholder in it, no sibling door, and no invocation — and
+#: **what each one is**. RK1590 measured 421 bare verb-leading spans and declined to rule on
+#: them, on the ground that most are prose and no scan can decide which were meant as doors.
+#: RK1640 is the narrower measurement it left: of the 406 with no sibling door, 27 carry a
+#: field an author fills, which is what a caller substitutes and a flag family never has.
+#:
+#: **The design expected them to be prose and they are not.** Thirteen are commands a caller is
+#: being offered, printed without the prefix — RK1589's defect, thirteen times, standing. The
+#: other fourteen are prose for four different reasons, and naming which is the whole value: a
+#: census where every row said `prose` would be RK1590's limit restated, and one where every
+#: row said `door` would be the gate rule this project already refused.
+#:
+#: Total against :func:`~composing.unprefixed`, so the twenty-eighth is a red here with one
+#: question in it: is this a door.
+BARE: dict[str, str] = {
+    # -- doors, printed bare. Each is a command a caller pastes, and none of them runs as
+    # printed on a machine where the console script is not on the path (RK1667's shell
+    # measurement is the other half of what a pasted line costs). RK1668 is what closes them,
+    # and it is a task rather than a token: prefixing one makes its function a `census` site,
+    # so thirteen of them owe thirteen `SITES` rows that can say their door was executed —
+    # and a row that cannot is the work-list RK1599 emptied, back.
+    "adopting.py:AlreadyConfigured.__init__: adopt <file>": "door",
+    "adopting.py:TableDeclared.__init__: govern {}.lead <n>": "door",
+    "blocking.py:Catalogue.stated: block add <label> --title …": "door",
+    "budgeting.py:AmbiguousAnchor.__init__: budget --anchor {} --role <role>": "door",
+    "capturing.py: capture filed <path> --as ID": "door",
+    "claiming.py:Claimed.stated: claim {} --path <p>": "door",
+    "history.py:Unclosed.stated: ship <id> --why …": "door",
+    "queueing.py:NoQueue.__init__: priority add <token>": "door",
+    "queueing.py:NothingToMigrate.__init__: priority add <token>": "door",
+    "sections.py:AnchorIsId.__init__: renumber {} --to <id>": "door",
+    "sections.py:Found.stated: section show <anchor>": "door",
+    "shipping.py:NotRedundant.__init__: record drop {} --line <n>": "door",
+    "shipping.py:NotRedundant.__init__: record renumber {} --line <n>": "door",
+    # -- a usage line, read under `<verb> --help`. The caller reached it *by* the invocation,
+    # so repeating it in the sentence describing the verb's own arguments is noise.
+    "verbs/authoring.py:declare_lines: status <id> <marker>": "usage",
+    "verbs/querying.py:declare_reads: claim <id>": "usage",
+    "verbs/querying.py:declare_reads: claim <id> --path …": "usage",
+    "verbs/sections.py:declare_places: add --block <x>": "usage",
+    "verbs/sections.py:declare_places: brief <id>": "usage",
+    "verbs/sections.py:declare_places: delivered <block>": "usage",
+    # -- a shape typed inside a remedy's sentence, beside the door of the same row, which
+    # `Remedy` renders with the prefix. `priority.shape` says so in a comment of its own: the
+    # example is typed rather than composed because it is an example. The door and the sentence
+    # are two strings, which is why `inconsistent` cannot see the pair.
+    "remedying.py: priority add <id>": "example",
+    "remedying.py: non-goal add --lead … --why …": "example",
+    "remedying.py: criterion add --block … --lead … --why …": "example",
+    "remedying.py: non-goal amend <lead> --why": "example",
+    "remedying.py: resume <id>": "example",
+    # -- the same command, carried prefixed by the remedy row for the finding's own code:
+    # `block.unrecorded` and `block.unorganised` each compose `block add {id} --title …`, so
+    # `lint` prints the door under the message that names it.
+    "linting.py:_undeclared_blocks: block add {} --title \"<its title>\"": "beside",
+    "linting.py:_unorganised: block add {} --title \"<its title>\" --organise changelog": "beside",
+    # -- the kernel imports nothing above it, which is the layout's own claim about that layer
+    # (`tests/test_kernel.py` holds it), so this refusal cannot reach `invocation()` at all.
+    "kernel/document.py:UnknownBlock.__init__: block add {} --title \"<its title>\"{}": "kernel",
+}
+
+#: What each verdict means, so a row is a reading and not a label. `door` is the defect; the
+#: other four are reasons a span stays bare, and each is a property of *where* it is rather
+#: than a judgement about the sentence.
+VERDICTS = {
+    "door": "a command a caller is offered, printed with no invocation — RK1589's defect",
+    "usage": "a usage line under `<verb> --help`, reached by the invocation already",
+    "example": "a shape typed inside a remedy's sentence, beside the door that carries it",
+    "beside": "the same command carried prefixed by the remedy row for this finding's code",
+    "kernel": "the kernel imports nothing above it, so it cannot reach `invocation()`",
+}
+
+
+def test_every_bare_span_that_looks_like_a_door_is_read_and_named():
+    """RK1640. The measurement RK1590 left, and its answer is not the one the design expected:
+    the placeholder tell cuts 406 spans to 27 and the 27 are **not** all prose.
+
+    Total, so this is a census and not a sample. A twenty-eighth span arrives as a red with one
+    question in it — is this a door — which is the question RK1590 argued no scan can answer
+    and this table answers by hand, once, per row."""
+    assert set(unprefixed()) == set(BARE), {
+        "looks like a door, unread": sorted(set(unprefixed()) - set(BARE)),
+        "read, no longer found": sorted(set(BARE) - set(unprefixed())),
+    }
+
+
+def test_the_reading_narrows_and_does_not_replace_the_pair_rule():
+    """The three narrowings, as the numbers they are: the pair rule is sharper where it
+    applies, the census covers the sites this suite runs, and the placeholder is what is left.
+    A reading that had widened to every bare verb would be the gate rule RK1590 refused —
+    measured at 421 spans, most of them prose."""
+    every = [
+        one
+        for module in modules()
+        for _, said in spoken(module)
+        for one in commanded(said)
+    ]
+    assert len(every) >= 300, len(every)
+    # An order and not a threshold: what matters is that each step is a narrowing of the one
+    # above, so no reading here is the blanket rule.
+    assert len(unprefixed()) < len(beyond()) < len(every)
+    assert len(unprefixed()) == len(BARE)
+
+
+def test_every_verdict_is_one_of_the_five_and_the_defect_is_the_named_half():
+    """A row is a reading, so the vocabulary is closed and each word means something stated.
+    And the count that makes the census worth having: thirteen are doors, which is the finding
+    — a table whose every row said `prose` would be RK1590's limit written out again."""
+    assert set(BARE.values()) <= set(VERDICTS)
+    assert set(VERDICTS) == set(BARE.values()), sorted(set(VERDICTS) - set(BARE.values()))
+    for verdict, why in VERDICTS.items():
+        assert len(why.split()) >= 8, verdict
+    doors = [one for one, verdict in BARE.items() if verdict == "door"]
+    assert len(doors) == 13, sorted(doors)
 
 
 # -- the reader that is the assumption (RK1635) --------------------------------

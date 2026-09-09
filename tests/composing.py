@@ -500,7 +500,9 @@ def census() -> tuple[str, ...]:
     Widening this to every backticked verb is the wrong repair and RK1590 measured why: 421
     such spans lead with a verb and carry no prefix, and most are prose — `add --section` named
     as a flag family, `pick` as a verb being discussed. :func:`beyond` is that population, and
-    :func:`inconsistent` is the part of it a rule can decide.
+    :func:`inconsistent` and :func:`unprefixed` are the two parts of it a rule can decide —
+    the author's own two spellings inside one message, and a span carrying a field an author
+    fills, which is what a caller substitutes and a flag family never has (RK1640).
     """
     found: list[str] = []
     for module in modules():
@@ -944,6 +946,63 @@ def _owners(module) -> dict[int, str]:
     return found
 
 
+#: A field the author fills in: `<label>`, `<its title>`, `…`. What a caller **substitutes**,
+#: which is the tell RK1640 measured — a flag family being named in prose never carries one,
+#: and a command somebody is meant to paste almost always does.
+_HOLDER_IN_SPAN = re.compile(r"<[^>]*>|…")
+
+
+def unprefixed() -> list[str]:
+    """Every verb-leading span that looks like a **door** and carries no invocation (RK1640).
+
+    Three narrowings, and each is what keeps this from being the rule RK1590 measured and
+    rejected — *every backticked verb carries the prefix*, which refuses the sentences this
+    tool needs to write.
+
+    * **No sibling door in the message.** Where there is one, :func:`inconsistent` already
+      decides it off the author's own two spellings, and that is the sharper reading.
+    * **Outside the census.** A function that calls `invocation()` is a site `SITES` accounts
+      for and this suite runs, so a bare span beside a composed one there is not silent.
+    * **Carrying a placeholder**, which is the measurement. 406 spans in this package have no
+      sibling door; 27 of them carry a field an author fills, and reading those 27 is what the
+      design asked for. The result contradicts its own sampling: they are not all prose. Half
+      are commands a caller is being offered — `` `block add <label> --title …` writes the
+      first heading ``, `` `section show <anchor>` prints the prose as it is `` — printed
+      without the prefix, which is RK1589's defect exactly and still standing.
+
+    Returned as `<owner>: <span>`, deduplicated, so the population is a set a table can be
+    total against. `tests/test_composing.BARE` is the verdict per row, because which of the 27
+    was *meant* as a door is a reading and not something this can decide (RK1590).
+    """
+    prefix = invocation()
+    verbs = _verbs()
+    # Built once, for `_verbs`' own reason one function up: the census is an AST walk of every
+    # module, and taking it per message put this read past two minutes.
+    sites = set(census())
+    found: list[str] = []
+    for module in modules():
+        owner = _owners(module)
+        for lineno, said in spoken(module):
+            where = owner.get(lineno, module.where)
+            if where in sites:
+                continue
+            spans = [" ".join(one.split()) for one in _SPAN.findall(said)]
+            if any(
+                one.split()[:1] == [prefix] and one.split()[1:2] and one.split()[1] in verbs
+                for one in spans
+            ):
+                continue
+            for one in spans:
+                if not (one.split()[:1] and one.split()[0] in verbs):
+                    continue
+                if not _HOLDER_IN_SPAN.search(one):
+                    continue
+                row = f"{where}: {one}"
+                if row not in found:
+                    found.append(row)
+    return found
+
+
 def beyond() -> list[str]:
     """Every verb-leading span in a message **outside** the census, addressed (RK1605).
 
@@ -955,7 +1014,9 @@ def beyond() -> list[str]:
     Non-empty on purpose and not a work-list. RK1590 measured the population: most of it is
     prose naming a flag family or a verb under discussion, and a rule refusing all of it would
     refuse the sentences this tool needs to write. What is checkable inside it is
-    :func:`inconsistent`'s narrower claim, and RK1640 holds what is not.
+    :func:`inconsistent`'s narrower claim and :func:`unprefixed`'s narrower one — the second
+    being RK1640's measurement, which found the twenty-seven spans carrying a field an author
+    fills and read each: thirteen are doors, which is what the count outside them bounds.
     """
     sites = set(census())
     verbs = _verbs()

@@ -38,7 +38,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK1640** (deps: —) **421 verb-leading spans sit in messages carrying no sibling door, so the pair that decides one reads none of them** — RK1590 fires on a message spelling one verb both ways and the mixed shape numbers zero, so what is unread is every span with nothing beside it. → §RK1640
 - 💭 **RK1641** (deps: —) **the sweep that runs every door the gate offers reaches one of eighty-four dispatchable rows** — RK472, RK1015 and RK1591 each corrected runnable on a door found refusing in the field, and the test written to catch that reads whatever one fixture happens to emit. → §RK1641
 - 💭 **RK1642** (deps: —) **the preventive read a refusal names for seven codes is in the sentence and in no field of the payload** — RK1600 published the retry and left the other runnable row of the same refusal as prose, so a caller reading fields gets the rule and never the read that prevents it. → §RK1642
 - 💭 **RK1643** (deps: —) **the orientation is held at a ceiling and the two pages it points at, six times its size, are held by nothing** — RK1437 split them off on a cadence argument and gave the ceiling to the half that shrank, so RK1601 added 2,437 code units to the unbounded half and nothing asked. → §RK1643
@@ -52,6 +51,7 @@
 - 📋 **RK1665** (deps: —) **the backstop reads a code only where it is a literal, so six a write refuses are outside a total that says it is one** — scoping and criteria name their codes as constants on purpose, and the scan widens to the computed set instead of seeing them. → §RK1665
 - 📋 **RK1666** (deps: —) **govern writes a caller's sentence into roadkeep.toml and no validator reads it, so a mangled run lands and stays** — The write re-parses the file and a comment carrying a mojibake run is legal TOML, and lint never reads that file for characters. → §RK1666
 - 📋 **RK1667** (deps: —) **the report door mangles a symptom carrying a backtick in the shell this repository is developed in** — RK1635 measured it in three shells: inside double quotes a backtick substitutes in sh and escapes in PowerShell, and this project's prose is backticks. → §RK1667
+- 📋 **RK1668** (deps: —) **thirteen printed doors name a command with no invocation, so a caller pastes a line their shell has no such command for** — RK1640's census read the 27 bare spans carrying a placeholder and thirteen are commands a caller is offered, which is RK1589's defect standing thirteen times. → §RK1668
 
 ## Block E — Adoption
 

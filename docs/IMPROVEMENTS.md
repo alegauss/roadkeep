@@ -224,25 +224,6 @@ reading.
 
 ## Block D — The gate
 
-### §RK1640 The bare verb with nothing to compare it against
-
-RK1590 made a message's own two spellings the tell, and that is the shape RK1589 had. It
-is not the shape most of the package holds: 331 messages carry 421 verb-leading spans
-with no prefixed door beside them, and the mixed shape the rule fires on now numbers
-zero. So the sweep is red for a regression of RK1589 exactly and silent for a door that
-forgets in a message where nothing else runs.
-
-What is undecided is whether those 421 hold any doors at all. Sampling says mostly not —
-`add --section` is a flag family, `pick` alone is prose, `init` beside `adopt <file>` is
-two verbs being named. But `adopt <file>` carries a placeholder, which is what a caller
-pastes and a flag family never has, and that is a tell nothing has been measured
-against.
-
-The design is that measurement, and its result may be that the population is prose and
-the pair rule is the whole answer. That would be worth writing down: RK1590's section
-argues no scan can decide which spans were meant to be doors, and a count showing the
-undecidable ones are all prose turns that from a limit into a bound.
-
 ### §RK1641 The door sweep that is really one fixture
 
 `test_every_door_the_gate_offers_on_this_project_lands` loops over every finding a
@@ -537,6 +518,33 @@ invisible codepoint.
 What it must not become is a quoter that guesses which shell a reader is at:
 `provenance` refuses to describe a machine, and a spelling right in one family and
 silently wrong in another is that description made anyway.
+
+### §RK1668 The thirteen doors the census named
+
+RK1640's census cut 406 bare verb-leading spans down to the 27 carrying a field an
+author fills, and read each. Thirteen are commands a caller is being offered — `block
+add <label> --title …` writes the first heading, `section show <anchor>` prints the
+prose as it is, `priority add <token>` writes the first entry — printed with no
+invocation in front of them.
+
+That is RK1589's defect thirteen times over. What it costs is exact: a caller pastes the
+line and their shell has no such command, which on this project's own platform is the
+failure RK1667 measured from the other side. The other fourteen spans are prose for four
+stated reasons and `BARE` says which.
+
+The repair is one token per site and the cost is not there. `census()` is every function
+that calls `invocation()`, and `SITES` is held total against it with every row `run` or
+`deliberate` — a state RK1599 reached by emptying the work-list over sixteen sittings.
+Prefixing thirteen messages adds thirteen sites, and a row that cannot say its door was
+executed reopens that list.
+
+So the question is not whether to prefix but what each new site owes. A door carrying
+the invocation is one `runs` can execute, which is the point; the fixture each needs is
+the refusal's own state, and two of the thirteen refuse about a project that declares no
+config at all.
+
+What it must not become is thirteen `unreached` rows. That is the work-list back, bought
+with a token.
 
 ## Block E — Adoption
 
