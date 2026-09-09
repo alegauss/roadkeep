@@ -38,7 +38,13 @@ const planted: string[] = []
 afterAll(() => {
   // `recursive` because the list holds both kinds, and a planted duplicate left in the
   // tree is a duplicate the next run of the gate reports.
-  for (const made of planted) rmSync(made, { force: true, recursive: true })
+  //
+  // The retries are RG104's, spelled here rather than imported: `shell` owns the helper and
+  // the renderer never imports the shell, test or not. Fewer tries than there, because what
+  // this removes is a file it wrote a moment ago rather than a directory a process held.
+  for (const made of planted) {
+    rmSync(made, { force: true, recursive: true, maxRetries: 5, retryDelay: 100 })
+  }
 })
 
 function runGate(roots: readonly string[]): { code: number; said: string } {

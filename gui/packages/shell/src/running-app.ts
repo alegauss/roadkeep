@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { mkdtempSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { setTimeout as after } from 'node:timers/promises'
@@ -6,6 +6,8 @@ import { setTimeout as after } from 'node:timers/promises'
 import type { ChildProcess } from 'node:child_process'
 
 import { spawnElectron } from './launch'
+
+import { removeTree } from './scratch'
 
 /**
  * The app, running, with a way to ask it questions.
@@ -161,7 +163,7 @@ export async function startApp(extraEnv: Record<string, string> = {}): Promise<R
     }
 
     try {
-      rmSync(userDataDir, { recursive: true, force: true })
+      removeTree(userDataDir)
     } catch {
       // Still held, or already gone. Either way there is nothing useful to do about it.
     }

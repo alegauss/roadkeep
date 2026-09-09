@@ -1,11 +1,13 @@
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
 import { afterAll, describe, expect, it } from 'vitest'
 
 import { commitOf, STAMP_FILE, versionOf, writeStamp } from './stamp'
+
+import { removeTree } from './scratch'
 
 /**
  * The build step, run for real. It writes a file and reads a checkout, so it is exercised
@@ -21,7 +23,7 @@ function elsewhere(): string {
 }
 
 afterAll(() => {
-  for (const home of scratch) rmSync(home, { recursive: true, force: true })
+  for (const home of scratch) removeTree(home)
 })
 
 describe('RG46: the commit is stamped at build time', () => {

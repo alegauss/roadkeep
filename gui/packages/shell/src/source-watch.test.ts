@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
@@ -7,6 +7,8 @@ import { afterAll, describe, expect, it } from 'vitest'
 
 import { REAL_CLOCK } from './governed-watch'
 import { createSourceWatcher, REBUILD_QUIET_MS } from './source-watch'
+
+import { removeTree } from './scratch'
 
 /**
  * RG57: real directories and a real watcher, because a fake filesystem cannot say whether
@@ -50,7 +52,7 @@ const WATCHED = ['packages/shell/src', 'packages/core/src']
 const PATIENCE = REBUILD_QUIET_MS * 8
 
 afterAll(() => {
-  for (const root of scratch) rmSync(root, { recursive: true, force: true })
+  for (const root of scratch) removeTree(root)
 })
 
 describe('RG57: what a source watch sees', () => {

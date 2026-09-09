@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
@@ -6,6 +6,8 @@ import { DEFAULT_POLICY } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { lookWith, scanRoots } from './scan-fs'
+
+import { removeTree } from './scratch'
 
 /**
  * A real tree on a real disk, with the decoys that make the walk worth bounding: a marker
@@ -40,7 +42,7 @@ beforeAll(() => {
 })
 
 afterAll(() => {
-  rmSync(root, { recursive: true, force: true })
+  removeTree(root)
 })
 
 describe('RG11: a real walk over a real tree', () => {

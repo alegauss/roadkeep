@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
@@ -16,6 +16,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { gitSite } from './git-worktree'
 import { rootKey } from './root-paths'
 import { scanRoots } from './scan-fs'
+
+import { removeTree } from './scratch'
 
 /**
  * The whole of block B end to end on a real tree: walk it, group what was found, fold that
@@ -55,7 +57,7 @@ beforeAll(() => {
 })
 
 afterAll(() => {
-  rmSync(root, { recursive: true, force: true })
+  removeTree(root)
 })
 
 describe('RG14: a record built from a real walk', () => {
@@ -80,7 +82,7 @@ describe('RG14: a record built from a real walk', () => {
 
   it('marks a deleted project missing and keeps it', async () => {
     const first = (await rescan()).catalogue
-    rmSync(path.join(root, 'org', 'beta'), { recursive: true, force: true })
+    removeTree(path.join(root, 'org', 'beta'))
 
     const second = await rescan(first, '2026-09-04T10:00:00.000Z')
 
@@ -102,7 +104,7 @@ describe('RG14: a record built from a real walk', () => {
     const withGamma = (await rescan(EMPTY_CATALOGUE, '2026-09-01T10:00:00.000Z')).catalogue
     expect(withGamma.projects.some((entry) => entry.path.endsWith('gamma'))).toBe(true)
 
-    rmSync(path.join(root, 'org', 'gamma'), { recursive: true, force: true })
+    removeTree(path.join(root, 'org', 'gamma'))
     const gone = (await rescan(withGamma, '2026-09-04T10:00:00.000Z')).catalogue
 
     project('org/gamma')

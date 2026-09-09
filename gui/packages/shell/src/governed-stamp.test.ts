@@ -1,10 +1,12 @@
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
 import { afterAll, describe, expect, it } from 'vitest'
 
 import { stampGoverned } from './governed-stamp'
+
+import { removeTree } from './scratch'
 
 const made: string[] = []
 
@@ -18,7 +20,7 @@ function project(files: Record<string, string>): string {
 }
 
 afterAll(() => {
-  for (const root of made) rmSync(root, { recursive: true, force: true })
+  for (const root of made) removeTree(root)
 })
 
 describe('RG7: stamping a project', () => {

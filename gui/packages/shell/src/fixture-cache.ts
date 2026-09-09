@@ -1,6 +1,8 @@
-import { mkdtempSync, rmSync } from 'node:fs'
+import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
+
+import { removeTree } from './scratch'
 
 /**
  * One directory the live suite keeps its built fixtures in, for the length of one run.
@@ -46,6 +48,6 @@ export function setup(): void {
 export function teardown(): void {
   const held = cacheDirectory()
   if (held === '') return
-  rmSync(held, { recursive: true, force: true })
+  removeTree(held)
   delete process.env[CACHE_VAR]
 }

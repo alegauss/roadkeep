@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
@@ -6,6 +6,8 @@ import { DEFAULT_SETTINGS, SETTINGS_VERSION } from '@rk/core'
 import { afterAll, describe, expect, it } from 'vitest'
 
 import { loadSettings, SETTINGS_FILE, saveSettings, settingsPath } from './settings-file'
+
+import { removeTree } from './scratch'
 
 /** Real directories, because what this module does is put a file in one and get it back. */
 const scratch: string[] = []
@@ -17,7 +19,7 @@ function userData(): string {
 }
 
 afterAll(() => {
-  for (const home of scratch) rmSync(home, { recursive: true, force: true })
+  for (const home of scratch) removeTree(home)
 })
 
 describe('RG47: where the settings live', () => {

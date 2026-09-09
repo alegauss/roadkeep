@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
@@ -7,10 +7,12 @@ import { afterAll, describe, expect, it } from 'vitest'
 
 import { rootContains, rootExists, rootKey } from './root-paths'
 
+import { removeTree } from './scratch'
+
 const made: string[] = []
 
 afterAll(() => {
-  for (const root of made) rmSync(root, { recursive: true, force: true })
+  for (const root of made) removeTree(root)
 })
 
 function folder(): string {

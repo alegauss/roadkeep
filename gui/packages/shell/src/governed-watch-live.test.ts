@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
@@ -16,6 +16,8 @@ import { CEILING, liveEngine as engine, read } from './live'
 import { buildFixture, type Fixture } from './fixture'
 import { createGovernedWatcher, REAL_CLOCK } from './governed-watch'
 import { stampGoverned } from './governed-stamp'
+
+import { removeTree } from './scratch'
 
 /**
  * The watcher against real files and real writes.
@@ -52,7 +54,7 @@ beforeAll(async () => {
 
 afterAll(() => {
   fixture.dispose()
-  for (const home of scratch) rmSync(home, { recursive: true, force: true })
+  for (const home of scratch) removeTree(home)
 })
 
 describe('RG45: what to watch comes off the config', () => {

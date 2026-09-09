@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, utimesSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
@@ -6,6 +6,8 @@ import { afterAll, describe, expect, it } from 'vitest'
 
 import { BUILD_DIRECTORIES, SOURCE_ROOTS } from './built'
 import { newestBuilt, newestSource, staleBundle } from './freshness'
+
+import { removeTree } from './scratch'
 
 /**
  * RG96: whether a bundle is the code the tree holds.
@@ -32,7 +34,7 @@ function fileAt(home: string, name: string, seconds: number): string {
 }
 
 afterAll(() => {
-  for (const home of scratch) rmSync(home, { recursive: true, force: true })
+  for (const home of scratch) removeTree(home)
 })
 
 describe('RG96: which file is newest', () => {

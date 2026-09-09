@@ -30,6 +30,7 @@
 - ✅ **RG99** **a read has two doors and the one a screen has to use is the one that raises rather than answering** — client.call answers with the same three states a write gets and raises for none, so a screen has one door and no caller wraps a read in a try (design recorded in `packages/core/src/client.ts`).
 - ✅ **RG100** **an id in a project whose listing was bounded reads as one nothing in that project ever carried** — An id in none of the listings reads as unfiled only where all three were read whole, and as unknown otherwise, which is a sentence about the read (design recorded in `packages/core/src/pauses.ts`).
 - ✅ **RG101** **every call spends a second and a half starting Python, and the engine publishes a mode that starts once** — A third transport holds one roadkeep mcp per project: 6ms a read against 738ms spawned, same payload, spawning for what it cannot serve (design recorded in `packages/shell/src/mcp-transport.ts`).
+- ✅ **RG104** **removing a fixture directory throws EPERM on Windows, so a file whose tests all passed reports as a failed suite** — One removal waits out a lock Windows has not dropped, and a live test holds it against a child standing in the directory (design recorded in `packages/shell/src/scratch.ts`).
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

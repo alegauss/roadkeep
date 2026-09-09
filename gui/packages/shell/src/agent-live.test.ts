@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from 'node:fs'
+import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
@@ -7,6 +7,8 @@ import { afterAll, describe, expect, it } from 'vitest'
 
 import { agentCandidates } from './agent-candidates'
 import { createProcessTransport } from './process-transport'
+
+import { removeTree } from './scratch'
 
 /**
  * Resolving the real Claude Code on this machine.
@@ -27,7 +29,7 @@ const transportFor = (command: readonly string[]) =>
 const homes: string[] = []
 
 afterAll(() => {
-  for (const home of homes) rmSync(home, { recursive: true, force: true })
+  for (const home of homes) removeTree(home)
 })
 
 describe('RG43: what this machine has', () => {

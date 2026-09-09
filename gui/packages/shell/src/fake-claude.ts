@@ -1,6 +1,8 @@
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
+
+import { removeTree } from './scratch'
 
 /**
  * A `claude` that is not Claude, for testing the process half of a session.
@@ -98,7 +100,7 @@ export function fakeClaude(behaviour: FakeBehaviour = {}): FakeClaude {
     command: process.execPath,
     prefixArgs: [file],
     dispose() {
-      rmSync(home, { recursive: true, force: true })
+      removeTree(home)
     },
   }
 }

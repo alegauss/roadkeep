@@ -1,10 +1,12 @@
-import { appendFileSync, cpSync, existsSync, mkdtempSync, rmSync } from 'node:fs'
+import { appendFileSync, cpSync, existsSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
 import type { Transport } from '@rk/core'
 
 import { cacheDirectory } from './fixture-cache'
+
+import { removeTree } from './scratch'
 
 /**
  * A governed project, built by the real engine, for the contract test to read.
@@ -86,7 +88,7 @@ export async function buildFixture(
 ): Promise<Fixture> {
   const root = mkdtempSync(path.join(tmpdir(), 'rk-fixture-'))
   const dispose = () => {
-    rmSync(root, { recursive: true, force: true })
+    removeTree(root)
   }
 
   const held = builtEarlier(shape)

@@ -11,27 +11,6 @@ rather than pretending it is safe. Spawning without a shell removes the quoting 
 but not the encoding one. What proves it is a round trip: write a symptom carrying an
 accent, an apostrophe and an em dash, read it back with show, and compare the bytes.
 
-### §RG104 A teardown that reds a green file
-
-Forty-one live files ran and one reported failure: `rows-live.test.ts`, whose five tests
-all passed and whose `afterAll` threw `EPERM` removing the temp directory its fixture
-built. The next run of the same file was green, and nothing in it had changed.
-
-`dispose` is `rmSync(root, { recursive: true, force: true })`, and `force` forgives a
-path that is not there — not one Windows will not let go of yet. A directory the engine
-had as its cwd, or one an indexer opened a moment ago, is still held when the last test
-returns, and a removal that would have worked a second later throws instead.
-
-Two things are wrong here and only one is the lock. `rmSync` takes `maxRetries` and
-`retryDelay` for exactly this — Node documents them as the answer to EBUSY, ENOTEMPTY
-and EPERM on Windows — and neither is passed. And a teardown failure is reported as a
-test failure, so a file that proved everything it set out to prove reads as broken. That
-is the shape RG75 removed from this suite one commit ago, arriving again as a directory
-that stopped being removable rather than an id that stopped being true.
-
-Swallowing the error is not the fix: temp directories nothing removes are a leak nobody
-sees. Retrying is.
-
 ### §RG122 The held engine, and who closes it
 
 RG101 built the transport and measured it: eight reads of this repository cost 5904ms
