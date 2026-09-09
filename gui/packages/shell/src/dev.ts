@@ -10,12 +10,12 @@
 // to build and when not to is `createReloading` in `core`, and the burst is held by the
 // same `createWatching` the governed files use.
 import { spawn, type ChildProcess } from 'node:child_process'
-import { createRequire } from 'node:module'
 import path from 'node:path'
 
 import { createReloading, createWatching } from '@rk/core'
 import { createServer } from 'vite'
 
+import { compilerLauncher } from './compiler'
 import { REAL_CLOCK } from './governed-watch'
 import { shellRoot, spawnElectron } from './launch'
 import { createSourceWatcher, REBUILD_QUIET_MS } from './source-watch'
@@ -74,17 +74,10 @@ async function shutDown(code: number): Promise<never> {
  * `npx` and a shell: PATH is not something a dev loop should depend on, and a shell in the
  * middle is a quoting question nobody needs to have.
  *
- * Resolved **from `package.json` and then by path**, because TypeScript 7 exports neither
- * `./bin/tsc` nor `./lib/tsc.js` — the package's `exports` publishes its version module and
- * the unstable API and nothing else, so asking for the launcher by subpath throws
- * `ERR_PACKAGE_PATH_NOT_EXPORTED` at load. The one subpath that is exported is
- * `package.json`, which is enough to find the directory the `bin` entry names.
+ * Why the path is assembled rather than imported is `compiler.ts`, which is also where a
+ * test resolves the same one and starts it (RG93).
  */
-const tsc = path.join(
-  path.dirname(createRequire(import.meta.url).resolve('typescript/package.json')),
-  'lib',
-  'tsc.js',
-)
+const tsc = compilerLauncher()
 
 function compile(): Promise<boolean> {
   return new Promise((resolve) => {

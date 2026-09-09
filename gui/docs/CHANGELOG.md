@@ -113,6 +113,7 @@
 - ✅ **RG85** **the handler proving the seam runs any argv against any root, which a real service cannot** — The refusals a service transport owes are written down before one exists: DECISIONS names four, and the test handler's own comment points at them.
 - ✅ **RG91** **the packaged build is proven on one machine, and CI never makes one** — CI runs the stamp and its posture refusal on every change, and builds a Windows and a Linux installer on a tag or on demand, keeping both (design recorded in `.github/workflows/ci.yml`).
 - ✅ **RG92** **the project skill states counts and a priority that stopped being true, and nothing checks it** — Every count and queue the skill restated is now the read that answers it, and the file is under a budget the gate holds (design recorded in `.claude/skills/roadkeep-gui-roadmap-docs/SKILL.md`).
+- ✅ **RG93** **the dev loop reaches into the compiler's own layout, and only a hand run would notice it moving** — The path into TypeScript's layout is one function two callers name, and a live test starts it, so an upgrade that moves the file reds a run (design recorded in `packages/shell/src/compiler.ts`).
 
 ## Block H — The look (a design system for governed prose)
 
