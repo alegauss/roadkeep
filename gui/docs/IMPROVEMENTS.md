@@ -374,6 +374,29 @@ can go red on a day nobody edited a skill. And the refresh belongs in its own co
 rewrites files this repository ships, and a diff of copied bytes should not ride along
 with something a reader is meant to review.
 
+### §RG121 The rule that is off in more places than it needs to be
+
+RG94 turned `typescript/no-unsafe-type-assertion` off across the project, for a real
+reason: `reading.ts` checks a value and then asserts the type it just proved, every
+payload shape in `payloads.ts` is read through it, and a run made green by suppressing
+fifty deliberate assertions would have said less than no rule at all.
+
+The reason does not reach every file the switch does. Among those fifty were three of a
+different kind — `session.ts` and two tests asserting *from `any`*, which the rule
+reports with its own sentence and which no validator argument covers: an `any` has been
+proved nothing about. Those are exactly the ones worth seeing, and today nothing shows
+them.
+
+The shape is an `overrides` entry rather than a project-wide switch. The reader files
+are a short, nameable list — `reading.ts`, `payloads.ts`, and whichever of `acts.ts`,
+`capabilities.ts`, `settings.ts`, `cold-start.ts`, `opening.ts` and `session.ts` turn
+out to be reading rather than converting — and the rule stays on everywhere else. Which
+is which is the work: each of the fifty has to be read once, and a file that lands on
+the exempt list because it was easier is the outcome this is trying to avoid.
+
+Worth doing while the findings are cheap to reproduce: `oxlint --type-aware` with the
+rule back on prints the whole list in a second.
+
 ## Block H — The look (a design system for governed prose)
 
 ### §RG62 Joining the checks the other consoles already answer to

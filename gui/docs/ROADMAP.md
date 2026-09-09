@@ -38,6 +38,7 @@
 - 💭 **RG118** (deps: RG44 ✅, RG63 ✅) **no screen names the build, so a defect report cannot say which one it came from** — identify already answers with the version, the commit and whether it is signed, and nothing draws any of it. → §RG118
 - 💭 **RG119** (deps: RG91 ✅) (requires: macos-machine) **no macOS build of this app has ever been made, so what it needs is a guess** — electron-builder.yml names a dmg target nobody has run, and the two things a Mac build turns out to want are learned by making one. → §RG119
 - 📋 **RG120** (deps: RG55 ✅, RG92 ✅) **the wired skill and hook are behind the engine answering here, and only a command somebody remembers fixes it** — install --check exists to be that gate and no job runs it, so the finding stands on every lint and teaches a reader to skim the gate's output. → §RG120
+- 📋 **RG121** (deps: RG94 ✅) **the one type-aware rule left off covers the whole tree, so an unsafe assertion outside a reader is unreported too** — It was switched off for the payload readers, where asserting a type just proved is the design, and that turns it off for every other file as well. → §RG121
 
 ## Block H — The look (a design system for governed prose)
 
