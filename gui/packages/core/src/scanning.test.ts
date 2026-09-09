@@ -58,17 +58,17 @@ const at = (path: string, depth: number): ScanRoot => ({ path, depth })
 describe('RG11: what the walk refuses to enter', () => {
   it.each(['node_modules', '.git', 'dist', 'build', 'target', '__pycache__', '.venv'])(
     'never enters %s',
-    async (name) => {
+    (name) => {
       expect(mayEnter(name, DEFAULT_POLICY)).toBe(false)
     },
   )
 
-  it('never enters any hidden directory', async () => {
+  it('never enters any hidden directory', () => {
     expect(mayEnter('.cache', DEFAULT_POLICY)).toBe(false)
     expect(mayEnter('.anything-at-all', DEFAULT_POLICY)).toBe(false)
   })
 
-  it('enters an ordinary folder', async () => {
+  it('enters an ordinary folder', () => {
     expect(mayEnter('viglet', DEFAULT_POLICY)).toBe(true)
   })
 

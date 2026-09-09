@@ -88,9 +88,9 @@ export interface OpenOptions {
    * Takes the governed files as well as the root, because the composition learns them from
    * `config` and the caller cannot know them before this call is made.
    */
-  stampFor?(root: string, governed: readonly string[]): Promise<string>
+  stampFor?: (root: string, governed: readonly string[]) => Promise<string>
   /** Whether an argv's answer may be remembered. Defaults to `readsOnly`. */
-  cacheable?(argv: readonly string[]): boolean
+  cacheable?: (argv: readonly string[]) => boolean
 }
 
 /** Four is a floor a machine can raise, and it is what a portfolio read already allows. */

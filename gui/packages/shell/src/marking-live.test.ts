@@ -68,14 +68,14 @@ afterAll(() => {
 })
 
 describe('RG30: the markers offered are the ones the project declared', () => {
-  it('reads the open set off the fixture own config', async () => {
+  it('reads the open set off the fixture own config', () => {
     // The fixture is `init`'s defaults, so this is roadkeep's own declared set and not
     // one written into this test.
     expect(markers.length).toBeGreaterThan(1)
     expect(markers.every((marker) => marker !== '')).toBe(true)
   })
 
-  it('takes every marker it offers, which is what makes the list a list of doors', async () => {
+  it('takes every marker it offers, which is what makes the list a list of doors', () => {
     // Proved by `beforeAll`, which wrote every one of them to find the working marker.
     expect(working).not.toBe('')
     expect(off).not.toBe('')

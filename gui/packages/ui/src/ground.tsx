@@ -78,7 +78,8 @@ export function useSystemIsDark(): boolean {
   )
 
   useEffect(() => {
-    if (typeof matchMedia !== 'function') return
+    // `undefined` rather than a bare return: the other path hands React a cleanup.
+    if (typeof matchMedia !== 'function') return undefined
 
     const query = matchMedia(DARK_QUERY)
     const answer = () => {

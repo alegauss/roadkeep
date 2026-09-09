@@ -68,14 +68,14 @@ function visibleText(root: HTMLElement): string[] {
   const seen: string[] = []
   for (const node of root.querySelectorAll('*')) {
     if (node.children.length > 0 || UNREAD.has(node.tagName)) continue
-    const text = node.textContent?.trim() ?? ''
+    const text = node.textContent.trim()
     if (text !== '') seen.push(text)
   }
   return seen.toSorted()
 }
 
 function labelOfControl(): string {
-  return screen.getByTestId('ground').textContent?.trim() ?? ''
+  return screen.getByTestId('ground').textContent.trim()
 }
 
 /** A bridge that records what the ground control sent back to the file. */

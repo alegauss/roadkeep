@@ -175,7 +175,7 @@ export const PSEUDO_LOCALE = 'zz'
 export function pseudo(): Wording {
   const out: Record<string, string> = {}
   for (const key of keys()) out[key] = `${PSEUDO_OPEN}${BASE[key]}${PSEUDO_CLOSE}`
-  return out as Wording
+  return out
 }
 
 /** Whether a string on screen came through the pseudo-locale. */

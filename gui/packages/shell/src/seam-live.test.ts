@@ -62,7 +62,7 @@ afterAll(async () => {
 })
 
 /** The same command line either transport is asked to run. */
-function asked<K extends VerbName>(verb: K) {
+function asked(verb: VerbName) {
   return {
     root: fixture.root,
     argv: buildArgv(fixture.root, verb, READS[verb]),

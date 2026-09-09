@@ -168,6 +168,6 @@ export function leftPointing(departure: Departure): string {
   if (departure.dependents.length === 0) return ''
   return (
     `${String(departure.dependents.length)} line(s) still name ${departure.id}: ` +
-    `${departure.dependents.join(', ')}`
+    departure.dependents.join(', ')
   )
 }

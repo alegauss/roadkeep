@@ -45,7 +45,7 @@ async function rescan(previous = EMPTY_CATALOGUE, now = '2026-09-01T10:00:00.000
   return reconcile(previous, roots, rowsFrom(families, rootOf, now), rootKey, now)
 }
 
-beforeAll(async () => {
+beforeAll(() => {
   root = mkdtempSync(path.join(tmpdir(), 'rk-catalogue-'))
   roots = [{ path: root, depth: 2 }]
   project('org/alpha')

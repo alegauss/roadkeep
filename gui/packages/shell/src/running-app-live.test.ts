@@ -21,7 +21,10 @@ beforeAll(async () => {
 }, 120000)
 
 afterAll(async () => {
-  await app?.close()
+  // No `?.`: the declaration says this is assigned, and it is. A `beforeAll` that threw
+  // before assigning fails the file on its own error, and vitest reports the hook's second
+  // one beside it rather than instead of it.
+  await app.close()
 })
 
 describe('RG60: what the renderer was given', () => {
@@ -152,7 +155,7 @@ describe('RG60: what the page may load', () => {
     expect(refused).toBe(true)
   })
 
-  it('reports that refusal against the policy this build declares', async () => {
+  it('reports that refusal against the policy this build declares', () => {
     // And the renderer says which directive stopped it, which is the line somebody reads
     // when a legitimate resource is blocked.
     const said = app.console.join('\n')

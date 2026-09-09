@@ -18,7 +18,9 @@ export function useTransport(): TransportState {
     const bridge = getBridge()
     if (!bridge) {
       setTransport('absent')
-      return
+      // `undefined` rather than a bare return: this effect's other path hands React a
+      // cleanup, and the two branches have to agree about what the function answers.
+      return undefined
     }
 
     let live = true

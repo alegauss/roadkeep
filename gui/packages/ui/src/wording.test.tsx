@@ -67,7 +67,7 @@ function visibleText(root: HTMLElement): string[] {
   const seen = new Set<string>()
   for (const node of root.querySelectorAll('*')) {
     if (node.children.length > 0 || node.tagName === KEYCAP || UNREAD.has(node.tagName)) continue
-    const text = node.textContent?.trim() ?? ''
+    const text = node.textContent.trim()
     if (text !== '') seen.add(text)
   }
   return [...seen]

@@ -42,16 +42,21 @@ function fail(path: string, expected: string, value: unknown): Parsed<never> {
 export function describe(value: unknown): string {
   if (value === null) return 'null'
   if (Array.isArray(value)) return `an array of ${String(value.length)}`
-  const kind = typeof value
-  if (kind === 'undefined') return 'nothing'
-  if (kind === 'string') {
-    const text = value as string
-    return text.length > 30
-      ? `the string ${JSON.stringify(text.slice(0, 30))}…`
-      : JSON.stringify(text)
+  if (value === undefined) return 'nothing'
+  if (typeof value === 'string') {
+    return value.length > 30
+      ? `the string ${JSON.stringify(value.slice(0, 30))}…`
+      : JSON.stringify(value)
   }
-  if (kind === 'object') return 'an object'
-  return `${kind} ${String(value)}`
+  // Only the three that stringify to something a reader can use are stringified. `String`
+  // over a wider type is how `[object Object]` reaches a sentence meant to say what was
+  // there, which is the one answer this function must never give (RG94).
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
+    return `${typeof value} ${String(value)}`
+  }
+  if (typeof value === 'function') return 'a function'
+  if (typeof value === 'symbol') return 'a symbol'
+  return 'an object'
 }
 
 export const aString: Reader<string> = (value, path) =>

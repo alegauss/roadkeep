@@ -241,28 +241,6 @@ replaces itself while somebody is reading a backlog is one that loses their plac
 it must not do is phone anywhere on launch by default: this app reads a person's
 repositories, and a network call it did not need is one that has to be explained.
 
-### §RG94 The half of the linter that reads types
-
-RG58's design named four kinds of defect: an unused import, a wrong hook dependency
-list, a second spelling of a name, and **a floating promise**. Three are held. The
-fourth is not, and this says so rather than letting the ship read as though it were.
-
-`no-floating-promises` cannot be decided from syntax — it needs to know that an
-expression is a `Promise`, which means the type checker. oxlint puts that behind
-`oxlint-tsgolint`, a peer package built on TypeScript-Go: the same engine TypeScript 7
-is, which is why it works here at all where `typescript-eslint` does not.
-
-It matters more in this codebase than in most. The transport is asynchronous everywhere,
-the dev loop builds in the background, the watcher fans out to listeners, and `void` is
-used deliberately in several places to say *this promise is not awaited on purpose*. A
-rule that reads types is what tells those apart from the ones that are a mistake — and
-an unawaited engine call is a read whose failure lands nowhere, which is the defect
-class hardest to see in a review.
-
-The work is installing the peer, turning on the type-aware category, and then reading
-the findings honestly: some of the `void`s will be right and some will not, and a sweep
-that silences the rule to make the run green would leave this worse than not having it.
-
 ### §RG95 Advisories nobody is told about
 
 Nothing in this repository reads a security advisory. `npm ci` does not audit,

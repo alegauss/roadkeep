@@ -122,7 +122,7 @@ describe('RG57: a build that failed', () => {
 })
 
 describe('RG57: a save while a build is running', () => {
-  it('never runs two builds at once', async () => {
+  it('never runs two builds at once', () => {
     // `tsc -b` writing while another reads is a build that fails for a reason nobody edited.
     const run = harness()
 

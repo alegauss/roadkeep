@@ -32,11 +32,11 @@ function nameOf(element: Element): string {
   const described = element.getAttribute('aria-labelledby')
   if (described !== null) {
     const target = element.ownerDocument.getElementById(described)
-    const text = target?.textContent?.trim() ?? ''
+    const text = target?.textContent.trim() ?? ''
     if (text !== '') return text
   }
 
-  return element.textContent?.trim() ?? ''
+  return element.textContent.trim()
 }
 
 beforeEach(() => {

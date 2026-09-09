@@ -38,7 +38,7 @@ afterAll(() => {
 })
 
 describe('RG18: what a real project’s gate says, and when', () => {
-  it('is unknown before anything has run', async () => {
+  it('is unknown before anything has run', () => {
     const ledger = createGateLedger(rootKey)
 
     // First launch. Not clean — nothing has been asked.

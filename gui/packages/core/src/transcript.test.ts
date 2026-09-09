@@ -153,7 +153,7 @@ describe('RG34: the transcript, ordered and in memory', () => {
     const log = createTranscript().remember(composed, {
       ...unreadable,
       unreadable: { ...unreadable.unreadable, said: 'roadkeep: --replace names one occurrence' },
-    } as WriteOutcome<{ id: string }>)
+    })
 
     expect(log.entries[0]?.said).toContain('--replace names one occurrence')
   })

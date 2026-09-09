@@ -62,7 +62,7 @@ describe('RG8: a project that could not be read', () => {
       readListPayload,
     )
 
-    expect(read.ok === false && read.unreadable.reason).toBe('unspawnable')
+    expect(!read.ok && read.unreadable.reason).toBe('unspawnable')
   })
 
   it('is a state when the answer is not JSON', async () => {

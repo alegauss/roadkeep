@@ -88,7 +88,7 @@ async function findStates(): Promise<void> {
     if (detail.payload.depsResolved.length === 0) continue
     resolved ??= detail
     if (detail.payload.depsResolved.some((dep) => dep.status === UNRESOLVABLE)) never ??= detail
-    if (resolved !== undefined && never !== undefined) break
+    if (never !== undefined) break
   }
 
   // The premise of this file, stated where it fails. A backlog that stopped carrying one
@@ -112,7 +112,7 @@ afterAll(() => {
 })
 
 describe('RG23: a real task, in one read', () => {
-  it('opens a line with its design, its deps and what it unblocks', async () => {
+  it('opens a line with its design, its deps and what it unblocks', () => {
     expect(open.payload.id).toMatch(/^RG\d+$/)
     expect(open.payload.symptom).not.toBe('')
     expect(open.hasDesign).toBe(true)

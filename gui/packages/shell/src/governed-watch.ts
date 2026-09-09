@@ -28,7 +28,7 @@ import type { Clock, Watcher } from '@rk/core'
 export const REAL_CLOCK: Clock = {
   after(ms, run) {
     const handle = setTimeout(run, ms)
-    handle.unref?.()
+    handle.unref()
     return () => {
       clearTimeout(handle)
     }
@@ -55,7 +55,7 @@ export function createGovernedWatcher(): Watcher {
           const watcher = watch(directory, { persistent: false }, (_event, name) => {
             // `name` can be null on some platforms; a change we cannot attribute is still
             // a change, and the cost of announcing it is one read.
-            if (name === null || wanted.has(path.basename(String(name)))) moved()
+            if (name === null || wanted.has(path.basename(name))) moved()
           })
           watcher.on('error', () => {
             // A directory that goes away takes its watch with it. Not a crash: the project

@@ -38,9 +38,9 @@ const recorded = (projectPath: string): RecordedProject => ({
 })
 
 /** One stage: read one verb through the pool and turn it into the row's fields. */
-function stage<K extends 'stats' | 'pick' | 'lint' | 'engines'>(
+function stage(
   name: string,
-  verb: K,
+  verb: 'stats' | 'pick' | 'lint' | 'engines',
   fill: (stdout: string) => object,
 ): ColdStartStage {
   return {
@@ -48,7 +48,7 @@ function stage<K extends 'stats' | 'pick' | 'lint' | 'engines'>(
     read: async (project) => {
       const result = await pooled.run({
         root: project.path,
-        argv: buildArgv(project.path, verb, {} as never),
+        argv: buildArgv(project.path, verb, {}),
         timeoutMs: CEILING,
       })
       return fill(result.stdout)

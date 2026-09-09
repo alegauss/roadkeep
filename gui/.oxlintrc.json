@@ -57,6 +57,28 @@
     "react-hooks/exhaustive-deps": "error",
     "unicorn/prefer-node-protocol": "error",
 
+    // The type-aware half, which `npm run lint` turns on with `--type-aware` (RG94). It is
+    // what catches a floating promise, a misused one and a condition that cannot be false —
+    // none of which is decidable from syntax, and all of which matter here, where the
+    // transport is asynchronous everywhere and `void` is used deliberately to say *this
+    // promise is not awaited on purpose*. Requires the `oxlint-tsgolint` peer, which is
+    // built on TypeScript-Go and is why this works on TypeScript 7 at all.
+    //
+    // The rules below the first four are on by category; these four are named so that the
+    // ones the design asked for cannot be lost to a category being retuned upstream.
+    "typescript/no-floating-promises": "error",
+    "typescript/no-misused-promises": "error",
+    "typescript/await-thenable": "error",
+    "typescript/no-unnecessary-condition": "error",
+
+    // The one type-aware rule turned off, and the reason is this codebase's shape rather
+    // than the size of the sweep. `reading.ts` is a validator: it checks a value and then
+    // asserts the type it just proved, which is what a reader *is*, and every payload shape
+    // in `payloads.ts` is read through it. The rule reported fifty of those and nothing
+    // else — a run made green by suppressing fifty deliberate assertions would say less
+    // than no rule at all.
+    "typescript/no-unsafe-type-assertion": "off",
+
     // The dev run and the build steps print to a terminal on purpose.
     "no-console": "off",
     // A live test that walks candidates in order is sequential by nature.

@@ -21,7 +21,7 @@ export interface FakeClaude {
   readonly command: string
   /** Arguments that come before the session's own, so the script runs. */
   readonly prefixArgs: readonly string[]
-  dispose(): void
+  dispose: () => void
 }
 
 export interface FakeBehaviour {
