@@ -53,6 +53,7 @@
 - ✅ **RG28 (the store, read)** **the deferred store is invisible, so a paused line cannot be told from one that was never filed** — The deferred store is a listing like any other, and an id now answers open, shipped, paused or nowhere.
 - ✅ **RG74** **a marker says in progress and the claim registry says nobody holds it, and nothing tells the two apart** — Both facts are reported and the disagreement is drawn rather than resolved, against the working marker the config names (design recorded in `packages/core/src/detail.ts`).
 - ✅ **RG76** **brief already sends the chains and the shape drops them, so opening one task pays for a second call to deps** — A brief's chains are declared on its shape and laid out by the same code, so a task draws its routes off the read that opened it (design recorded in `packages/core/src/graph.ts`).
+- ✅ **RG80** **opening a paused task is a refusal whose typed fields are all empty, leaving the screen only English** — A refused task read now asks the three listings where the id went, so a paused line draws its store entry and the way back (design recorded in `packages/core/src/pauses.ts`).
 
 ## Block E — The write path (the app composes an argv; the command writes)
 

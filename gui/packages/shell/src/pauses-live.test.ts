@@ -1,15 +1,19 @@
 import {
+  applyWrite,
   listedTasks,
   filingOf,
   pauseOf,
+  readResumePayload,
   storeFrom,
+  whereaboutsOf,
   whereFiled,
   type ListPayload,
+  type Refusal,
   type Store,
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import { liveEngine as engine, read } from './live'
+import { CEILING, liveClient, liveEngine as engine, read } from './live'
 import { buildFixture, type Fixture } from './fixture'
 
 /**
@@ -108,5 +112,88 @@ describe('RG28: a paused line told from one nothing ever filed', () => {
 
     expect(said).toContain('DEFERRED.md')
     expect(said).toContain('Waiting on a decision')
+  })
+})
+
+describe('RG80: opening a task the engine will not open', () => {
+  /** The refusal a real `brief` answers with, for an id that is not in the roadmap. */
+  async function refusalOf(root: string, id: string): Promise<Refusal> {
+    const answer = await liveClient.call(root, 'brief', { id }, { timeoutMs: CEILING })
+    if (!answer.ok) throw new Error('brief did not read at all')
+    if (answer.value.kind !== 'refused') throw new Error(`brief on ${id} answered a payload`)
+    return answer.value.refusal
+  }
+
+  it('refuses with every typed field empty, which is what this task is about', async () => {
+    const store = await storeOf(fixture.root)
+    const refusal = await refusalOf(fixture.root, store.pauses[0]!.id)
+
+    // Not a shape this app chose: the engine puts the whole answer in `said` here, so a
+    // screen reading the typed fields has nothing at all.
+    expect(refusal.refused).toEqual([])
+    expect(refusal.beside).toBe('')
+    expect(refusal.about).toBe('')
+    expect(refusal.said).not.toBe('')
+  })
+
+  it('fills that refusal from the listings, without reading the sentence', async () => {
+    const filings = {
+      roadmap: await listing(fixture.root),
+      ledger: await listing(fixture.root, { role: 'changelog' }),
+      store: await listing(fixture.root, { stale: true }),
+    }
+    const paused = listedTasks(filings.store)[0]!.id
+    const found = whereaboutsOf(
+      fixture.root,
+      paused,
+      await refusalOf(fixture.root, paused),
+      filings,
+    )
+
+    expect(found.filing).toBe('paused')
+    expect(found.pause?.why).toContain('Waiting on a decision')
+    expect(found.back?.argv).toEqual(['-C', fixture.root, 'resume', paused, '--json'])
+    // The engine's sentence names the same store and the same verb, and is carried rather
+    // than read: everything asserted above came from a listing.
+    expect(found.said).toContain('resume')
+  })
+
+  it('tells that apart from an id this project never carried', async () => {
+    const filings = {
+      roadmap: await listing(fixture.root),
+      ledger: await listing(fixture.root, { role: 'changelog' }),
+      store: await listing(fixture.root, { stale: true }),
+    }
+    const found = whereaboutsOf(
+      fixture.root,
+      'FX9999',
+      await refusalOf(fixture.root, 'FX9999'),
+      filings,
+    )
+
+    expect(found.filing).toBe('unfiled')
+    expect(found.back).toBeNull()
+    expect(found.sentence).toBe('nothing in this project carries that id')
+  })
+
+  it('brings the line back with the argv it composed', async () => {
+    // The door is only a door if it runs. This takes it, on a fixture of its own so the
+    // store the tests above read is still there.
+    const own = await buildFixture(engine, { open: 2, shipped: 0, deferred: 1 })
+    try {
+      const paused = storeFrom(await listing(own.root, { stale: true })).pauses[0]!.id
+      const found = whereaboutsOf(own.root, paused, await refusalOf(own.root, paused), {
+        store: await listing(own.root, { stale: true }),
+      })
+
+      const outcome = await applyWrite(engine, found.back!, readResumePayload, {
+        timeoutMs: CEILING,
+      })
+
+      expect(outcome.kind).toBe('applied')
+      expect(listedTasks(await listing(own.root)).map((task) => task.id)).toContain(paused)
+    } finally {
+      own.dispose()
+    }
   })
 })

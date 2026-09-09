@@ -1,4 +1,6 @@
 import { listedTasks, type ListPayload, type TaskLine } from './payloads'
+import type { Refusal } from './refusals'
+import { composeWrite, type Composed } from './writing'
 
 /**
  * The deferred store, and telling a paused line from one nothing ever filed.
@@ -105,6 +107,65 @@ function holds(payload: ListPayload | undefined, id: string): boolean {
   // `unfiled` is the answer of last resort and each caller is handed the payloads it
   // read: a listing whose lines were withheld cannot say an id is absent.
   return payload !== undefined && listedTasks(payload).some((task) => task.id === id)
+}
+
+/**
+ * What a refused task read turns out to have been about.
+ *
+ * `brief FX1` and `show FX1` on a set-aside line both refuse with `refused`, `beside` and
+ * `about` all empty and the whole answer in `said` — a sentence that names the store, the
+ * line, the listing that prints the reason and the verb that brings it back, and gives a
+ * screen nothing typed to draw. Reading `is paused in` back out of that sentence is the
+ * prose-scraping this client refuses everywhere else, so this asks instead.
+ *
+ * **It goes behind the refusal and never in front of it.** `filingOf` wants three listings
+ * where opening a task made one call, so the ordinary open task pays nothing: only a read
+ * that already failed goes looking for why.
+ *
+ * `said` is carried whole and unparsed, because a filing this could not settle — three
+ * listings none of which was read — leaves the engine's own sentence as the best thing on
+ * the screen.
+ */
+export interface Whereabouts {
+  readonly id: string
+  readonly filing: Filing
+  /** The store's own entry, where the id is paused and the store was among the listings. */
+  readonly pause: Pause | null
+  /**
+   * The move that brings it back, or null.
+   *
+   * Composed from this app's own verb table, which is the one kind of command line it is
+   * allowed to build: the app chose `resume`, so the app spells it. A door the engine
+   * published would arrive on the refusal, and this refusal publishes none.
+   */
+  readonly back: Composed | null
+  /** What to show, in a sentence built from the filing rather than read out of `said`. */
+  readonly sentence: string
+  /** The engine's whole refusal, kept as it was written. */
+  readonly said: string
+}
+
+export function whereaboutsOf(
+  root: string,
+  id: string,
+  refusal: Refusal,
+  filings: Filings,
+): Whereabouts {
+  const filing = filingOf(id, filings)
+  const store = filings.store === undefined ? null : storeFrom(filings.store)
+  const paused = filing === 'paused'
+
+  return {
+    id,
+    filing,
+    // A `paused` verdict came off the store listing itself, so there is an entry behind it
+    // — `filingOf` and `storeFrom` read the same lines. The guard is what the types ask
+    // for and not a case: no store means no paused verdict to have.
+    pause: paused && store !== null ? pauseOf(store, id) : null,
+    back: paused ? composeWrite(root, 'resume', { id }) : null,
+    sentence: whereFiled(filing, store, id),
+    said: refusal.said,
+  }
 }
 
 /**

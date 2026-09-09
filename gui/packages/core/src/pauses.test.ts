@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import { filingOf, pauseOf, storeFrom, whereFiled } from './pauses'
+import { filingOf, pauseOf, storeFrom, whereaboutsOf, whereFiled } from './pauses'
 import { readListPayload, type ListPayload } from './payloads'
+import type { Refusal } from './refusals'
 
 /** Captured from a real `list --stale --json` against a fixture with one pause. */
 const STORE = {
@@ -142,5 +143,71 @@ describe('RG28: what to say about an id that is not open', () => {
     expect(whereFiled('unfiled')).toBe('nothing in this project carries that id')
     expect(whereFiled('open')).toBe('open in the roadmap')
     expect(whereFiled('shipped')).toBe('shipped, and in the ledger')
+  })
+})
+
+/** Captured from a real `show FX1 --json` on a line that had been set aside. */
+const REFUSED: Refusal = {
+  refused: [],
+  beside: '',
+  about: '',
+  said:
+    'roadkeep: no task FX1 in docs/ROADMAP.md or docs/CHANGELOG.md: FX1 is paused in ' +
+    'docs/DEFERRED.md:5 — `roadkeep list --role deferred` prints it with the reason it ' +
+    'was set aside, and `roadkeep resume FX1` returns it to its block',
+}
+
+describe('RG80: the refusal that knows where the line went', () => {
+  const roadmap = withIds('docs/ROADMAP.md', ['FX3'])
+  const ledger = withIds('docs/CHANGELOG.md', ['FX2'])
+  const filings = { roadmap, ledger, store: listing() }
+
+  it('has nothing typed to read on the refusal itself, which is the symptom', () => {
+    // Not a claim about this app: it is what the engine answers, and the reason the three
+    // listings are asked at all.
+    expect(REFUSED.refused).toEqual([])
+    expect(REFUSED.beside).toBe('')
+    expect(REFUSED.about).toBe('')
+  })
+
+  it('answers a paused id with the store entry and the way back', () => {
+    const found = whereaboutsOf('/w', 'FX1', REFUSED, filings)
+
+    expect(found.filing).toBe('paused')
+    expect(found.pause?.line).toBe(5)
+    expect(found.pause?.why).toContain('Waiting on a decision')
+    expect(found.sentence).toContain('docs/DEFERRED.md')
+    expect(found.back?.argv).toEqual(['-C', '/w', 'resume', 'FX1', '--json'])
+  })
+
+  it('offers no way back for an id nothing carries, and says that instead', () => {
+    // The two states this exists to separate. Both refuse; only one has anywhere to go.
+    const found = whereaboutsOf('/w', 'FX99', REFUSED, filings)
+
+    expect(found.filing).toBe('unfiled')
+    expect(found.pause).toBeNull()
+    expect(found.back).toBeNull()
+    expect(found.sentence).toBe('nothing in this project carries that id')
+  })
+
+  it('reads a withheld store as unfiled, which is RG100 and not this', () => {
+    // A listing past `[reads] list` carries counts and no lines, so nothing is found in it
+    // and `unfiled` is the answer of last resort. The id is still paused in the file. RG100
+    // is the line about that hole; what belongs here is that it is not papered over.
+    const withheld = whereaboutsOf('/w', 'FX1', REFUSED, { store: listing({ tasks: null }) })
+
+    expect(withheld.filing).toBe('unfiled')
+    expect(withheld.pause).toBeNull()
+    expect(withheld.back).toBeNull()
+  })
+
+  it('carries the engine sentence whole, because nothing above may say more', () => {
+    // The one case with no listings to ask: the sentence is all there is, and it is passed
+    // through rather than picked apart.
+    const nothing = whereaboutsOf('/w', 'FX1', REFUSED, {})
+
+    expect(nothing.filing).toBe('unfiled')
+    expect(nothing.said).toBe(REFUSED.said)
+    expect(nothing.said).toContain('roadkeep resume FX1')
   })
 })

@@ -28,7 +28,6 @@
 
 - ⏳ **RG28** (deps: roadkeep publishing the stale ordering in the payload) **the deferred store has no order, so which pause has stood longest is a question only a terminal can ask** — How long each pause has stood, which --stale orders by and prints for a terminal, putting none of it in the payload. → §RG28
 - 💭 **RG77** (deps: roadkeep publishing a non-goal's reason) **a non-goal arrives as a lead alone, so the sentence that argues it stays in the file** — The reason is the half that settles whether a proposal is forbidden, and criterion list publishes its why while non-goal list does not. → §RG77
-- 💭 **RG80** (deps: —) **opening a paused task is a refusal whose typed fields are all empty, leaving the screen only English** — filingOf already answers where an id went, and nothing calls it when a task read refuses, so a set-aside line looks like a broken read. → §RG80
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
