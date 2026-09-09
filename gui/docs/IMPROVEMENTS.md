@@ -300,30 +300,6 @@ the line. Dark is untouched, the package re-pointing that token there already.
 
 What is left here is adopting the release that carries it, and enforcing the pair.
 
-### §RG105 The colour that says where you are
-
-`bento.css` draws the rail's active item from `--primary`, and says why: a shared
-component picking that colour itself is "the clearest case of a shared component making
-one product look wrong". Turing is blue and Shio is orange because each keyed the token.
-This app keyed `--vg-accent-from`, `-to` and `-text` to amber and left `--vg-primary` at
-the package's neutral, so the mark for where you are is grey — drawn that way on purpose
-in `docs/design/Shell.dc.html`.
-
-The token is not the rail's alone. `bg-primary` is the default `Button` fill, the
-progress bar and the slider track, and `bento.css` reads it again for the tile's hover
-glow, the inline-edit border, the new-tile hover and the focus ring. Keying it moves all
-of them together, which is the point rather than the cost: those are the places a
-product is supposed to look like itself.
-
-One value per ground, because the fill and its foreground swap roles: `#b45309` under
-white on light, `#fbbf24` under near-black on dark. Both are the accent this app already
-declares, and both were measured rather than judged — 5.02:1 and about 11:1, past AA.
-The button gives up contrast it had, near-black on white being about 17:1, and that is
-the trade this makes knowingly.
-
-RG54's contrast test is where the two pairs are asserted, so a value that moves is
-caught by a run rather than by somebody looking at it.
-
 ### §RG106 Mounting when the bridge does not answer
 
 RG86 moved the first render behind one bridge call, and that was the right trade against

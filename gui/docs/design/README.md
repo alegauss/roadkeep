@@ -27,5 +27,6 @@ Three questions it turned up were open on the roadmap rather than answered here:
 rail's "you are here" is coloured with, which face a section's preserved wrapping is set in,
 and which of the two directions the screens follow. RG63 settled the third by adopting the
 shell — `Main.dc.html` is the direction, and the chrome around it is the design system's.
-The rail's colour is RG105, still open, which is why the rail is drawn grey above. The face
+The rail's colour was RG105, now shipped: the rail is drawn grey in `Shell.dc.html`
+because that is what the package rendered before it. The face
 became a criterion of block H rather than a task, there being no code to change yet.

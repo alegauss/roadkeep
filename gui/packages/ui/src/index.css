@@ -51,6 +51,35 @@
   --vg-accent-text-dark: oklch(82.8% 0.189 84.429); /* #fbbf24 — readable on dark */
 
   /*
+   * RG105: `--primary`, claimed, which is the token that says *you are here*.
+   *
+   * The bento layer draws the rail's active mark from it and its own notes say why a shared
+   * component must not pick that colour itself — Turing is blue and Shio is orange because
+   * each product keyed this. Keying only the accent left the mark the package's neutral
+   * grey, which is what another product's console looks like.
+   *
+   * **The token is not the rail's alone**, and that is the point rather than the cost. It
+   * is the default `Button` fill, the progress bar and the slider track, and `bento.css`
+   * reads it again for the tile's hover glow, the inline-edit border, the new-tile hover
+   * and the focus ring. Those are the places a product is supposed to look like itself, and
+   * they move together.
+   *
+   * **Through the four inputs and never `--vg-primary` itself.** This stylesheet imports
+   * the package and then opens its own `:root`, which lands after the package's dark block
+   * at the same specificity and in no layer — so one value set on `--vg-primary` would win
+   * on *both* grounds and the dark ground would silently get the light one. The inputs are
+   * read per ground, which is why there is no dark block here.
+   *
+   * The fill and its foreground swap roles between grounds: amber-deep under near-white on
+   * light, amber-bright under near-black on dark. The contrast test asserts that pair in
+   * both, so a value that moves is caught by a run rather than by somebody looking.
+   */
+  --vg-primary-base: oklch(55.5% 0.163 48.998); /* #b45309 — amber-deep */
+  --vg-primary-base-dark: oklch(82.8% 0.189 84.429); /* #fbbf24 — amber-bright */
+  --vg-primary-foreground-base: oklch(98.5% 0 0);
+  --vg-primary-foreground-base-dark: oklch(20.5% 0 0);
+
+  /*
    * RG54: the focus ring, overridden because the package's light one does not clear.
    *
    * `--vg-ring` is `oklch(70.8% 0 0)` on `:root`, which is 2.59:1 against the light ground

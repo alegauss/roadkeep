@@ -175,6 +175,35 @@ describe('RG54: the stylesheets this test reads', () => {
   })
 })
 
+describe('RG105: the colour that says where you are', () => {
+  /** What the package ships when nobody has claimed it: a neutral, at zero chroma. */
+  const NEUTRAL = /oklch\(\s*[\d.]+%?\s+0\s+0\s*\)/
+
+  it('claims `--primary` through the inputs and never through the token', () => {
+    // One value set on `--vg-primary` here would land after the package's dark block at the
+    // same specificity and in no layer, so it would win on *both* grounds and the dark one
+    // would silently get the light value. The inputs are read per ground instead.
+    const own = tokensUnder(APP_CSS, ':root')
+
+    expect(own.get('--vg-primary'), 'set the four inputs, never the token').toBeUndefined()
+    for (const input of [
+      '--vg-primary-base',
+      '--vg-primary-base-dark',
+      '--vg-primary-foreground-base',
+      '--vg-primary-foreground-base-dark',
+    ]) {
+      expect(own.get(input), `${input} is what claims the token on one ground`).toBeDefined()
+    }
+  })
+
+  it.each(GROUNDS)('is this product`s colour and not the package`s grey in %s', (_, tokens) => {
+    // The pair below already has to clear AA, and the package's own neutral clears it easily
+    // — so contrast alone would pass a build that had quietly stopped claiming the token.
+    // What says the mark is *this* product's is that it has colour at all.
+    expect(resolve(tokens, tokens.get('--vg-primary') ?? '')).not.toMatch(NEUTRAL)
+  })
+})
+
 describe.each(GROUNDS)('RG54: contrast in %s', (ground, tokens) => {
   it.each(PAIRS)('$what clears its threshold', ({ front, behind, least }) => {
     const declared = tokens.get(front)
