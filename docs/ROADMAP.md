@@ -66,8 +66,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1636** (deps: —) **a name a module imports and then defines is bound by the later one, and nothing here reports the dead import** — RK1581 imported config.declares into a module that already declared its own, and the wrong function was called until a TypeError three frames away. → §RK1636
-
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
 ## Done when — Block D

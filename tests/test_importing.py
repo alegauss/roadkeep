@@ -33,6 +33,14 @@ the local was read; disqualifying every rebound name reports 32 and most are fal
 `symtable`, which has the scopes, is blind to annotations and reports `Config` and `Sequence`
 in nearly every module here. So the scan is a hybrid, and each half is where its question has
 an answer. Five dead imports were live behind the old reading.
+
+**And the one binding that reading calls live** (RK1636). A name a module imports and then
+defines at its own level is resolved by Python in favour of the later statement, silently: the
+name *is* referenced, so the scan above is green while the import is dead. Two were standing —
+RK1581's `declares`, found by a `TypeError` three frames away, and `installing`'s `Engine`,
+which left `Engines.running` annotated with the wrong record for as long as RK1549 had been
+shipped. :func:`rebound` is that question, and it is narrow on purpose: not a rule about
+shadowing, one shape that is never intentional.
 """
 
 from __future__ import annotations
@@ -64,6 +72,98 @@ def _bound(tree: ast.Module) -> list[tuple[int, str]]:
             if alias.name == "*":
                 continue
             found.append((node.lineno, alias.asname or alias.name.split(".")[0]))
+    return found
+
+
+def _statements(body: list[ast.stmt]) -> list[ast.stmt]:
+    """Every statement at a module's **own** level, through the guards it wraps them in.
+
+    An `if TYPE_CHECKING:` and a `try/except ImportError:` are not scopes: what they hold runs
+    at module level and binds there. A `def` or a `class` is, and its body is not walked —
+    a name bound inside one is a local, which is :func:`_referenced`'s question and not this
+    one.
+    """
+    found: list[ast.stmt] = []
+    for node in body:
+        if isinstance(node, ast.If):
+            found += _statements(node.body) + _statements(node.orelse)
+        elif isinstance(node, ast.Try):
+            found += _statements(node.body)
+            for handler in node.handlers:
+                found += _statements(handler.body)
+            found += _statements(node.orelse) + _statements(node.finalbody)
+        else:
+            found.append(node)
+    return found
+
+
+def _defined(tree: ast.Module) -> dict[str, int]:
+    """Every name this module binds at its own level with a definition, and where (RK1636).
+
+    A `def`, a `class` or an assignment, and the **first** line that binds it: what is being
+    read is that the name is spoken for here, not which statement won.
+    """
+    found: dict[str, int] = {}
+    for node in _statements(tree.body):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            found.setdefault(node.name, node.lineno)
+        elif isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    found.setdefault(target.id, target.lineno)
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            found.setdefault(node.target.id, node.target.lineno)
+    return found
+
+
+def _imported(tree: ast.Module) -> dict[str, int]:
+    """The same reading as :func:`_bound`, at module level only and keyed by name (RK1636).
+
+    Module level because that is where the collision is silent. A call-time import inside a
+    function binding a name the module also defines is a local shadowing a global, which is
+    deliberate at every one of the sites RK260 argues for here — and reporting it would make
+    this a style rule about shadowing rather than the narrow finding it is.
+    """
+    found: dict[str, int] = {}
+    for node in _statements(tree.body):
+        if not isinstance(node, (ast.Import, ast.ImportFrom)):
+            continue
+        if getattr(node, "module", None) == DIRECTIVE:
+            continue
+        for alias in node.names:
+            if alias.name == "*":
+                continue
+            found.setdefault(alias.asname or alias.name.split(".")[0], node.lineno)
+    return found
+
+
+def rebound(surface) -> dict[str, list[str]]:
+    """Which modules import a name they then define at module level (RK1636).
+
+    Python resolves it silently and in favour of the later statement, so the two bindings can
+    never both be live: one of them is a dead line or a bug, and both want removing. RK1581 is
+    the measurement — `from roadkeep.config import declares` into a module with a public
+    `declares` of its own, and `plan` called the wrong one until a `TypeError` three frames
+    away in `os.path.relpath`. That was luck: the two return types were incompatible. Two
+    functions that both return a string collide into a wrong answer with a green suite.
+
+    Nothing above reports it, and nothing above can. :func:`_spelled` reads the name as *used*,
+    because it is — just not the imported one, and neither `symtable` nor an annotation walk is
+    asked which binding a reference reached.
+
+    **Narrow on purpose.** Not a rule about shadowing: a local named `found` over a builtin is
+    not this, and a call-time import shadowing a module's own name is the seam RK260 argues
+    for. What is reported is one shape — a name this module imported and then defined — which
+    is never intentional.
+    """
+    found: dict[str, list[str]] = {}
+    for module in surface:
+        tree = ast.parse(module.text)
+        imports, defs = _imported(tree), _defined(tree)
+        for name in sorted(set(imports) & set(defs)):
+            found.setdefault(module.where, []).append(
+                f"{name}: imported at {imports[name]}, defined at {defs[name]}"
+            )
     return found
 
 
@@ -204,6 +304,70 @@ def test_no_module_imports_a_name_it_never_spells():
     until somebody reads it to decide what a module depends on, and then it costs the
     decision."""
     assert unspelled(modules()) == {}
+
+
+def test_no_module_imports_a_name_it_then_defines():
+    """RK1636. The one binding Python decides silently, and the one the scan above reads as
+    live: the name *is* referenced, so `unspelled` is green while the import is dead.
+
+    Two were standing when this was written and neither had broken anything visible. RK1581's
+    was found by a `TypeError` three frames away and cost ten minutes; the other was
+    `installing`'s `Engine`, imported from `provenance` and re-declared by RK1549 three
+    thousand lines later — so `Engines.running`, the field that names *the copy this process
+    is*, was annotated with the record `uninstall --engine` weighs instead. Nothing broke,
+    because an annotation is never evaluated here. It was simply false to every reader.
+    """
+    assert rebound(modules()) == {}
+
+
+def test_the_rebinding_is_read_where_the_dead_import_is_not():
+    """The two halves are one file and two questions, so each is asked of a fixture that
+    answers only it: a name imported and then defined is spelled, and a name imported and
+    never spelled is not defined. Written together because either check alone reads the
+    other's case as clean — which is how both of RK1636's instances survived."""
+    ate = (
+        "from __future__ import annotations\n"
+        "from x import n\n"
+        "def n(a):\n"
+        "    return a\n"
+        "V = n(1)\n"
+    )
+    assert rebound([_Fixture("ate.py", ate)]) == {
+        "ate.py": ["n: imported at 2, defined at 3"]
+    }
+    # And the reader that misses it, on the same text: the name is spelled, so nothing here.
+    assert unspelled([_Fixture("ate.py", ate)]) == {}
+
+    # A guard is not a scope: `if TYPE_CHECKING` and a fallback `except ImportError` both bind
+    # at module level, which is where the collision is silent.
+    guarded = (
+        "from __future__ import annotations\n"
+        "from typing import TYPE_CHECKING\n"
+        "if TYPE_CHECKING:\n"
+        "    from x import N\n"
+        "class N:\n"
+        "    pass\n"
+        "V: N = N()\n"
+    )
+    assert rebound([_Fixture("guarded.py", guarded)]) == {
+        "guarded.py": ["N: imported at 4, defined at 5"]
+    }
+
+    # A `def` is a scope, so a local of the imported name is not this finding — that is the
+    # shadowing `unspelled` already reports, and reporting it twice would make this a style
+    # rule about names rather than one about bindings.
+    local = "from __future__ import annotations\nfrom x import n\ndef f(a):\n    n = a\n    return n\n"
+    assert rebound([_Fixture("local.py", local)]) == {}
+
+    # And an aliased import collides with nothing, which is the remedy both instances took.
+    aliased = (
+        "from __future__ import annotations\n"
+        "from x import n as theirs\n"
+        "def n(a):\n"
+        "    return theirs(a)\n"
+        "V = n(1)\n"
+    )
+    assert rebound([_Fixture("aliased.py", aliased)]) == {}
 
 
 def test_the_re_export_exclusion_is_load_bearing():

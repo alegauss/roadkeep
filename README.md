@@ -123,13 +123,13 @@ called unbuilt were already in the ledger.
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 162 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 1 | 43 | 1 |
+| H — The tool's own shape (what one verb costs to change) | 0 | 44 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 25 | 1116 | 24 |
+| **Total** | 24 | 1117 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1636** (deps: —) **a name a module imports and then defines is bound by the later one, and nothing here reports the dead import** — RK1581 imported config.declares into a module that already declared its own, and the wrong function was called until a TypeError three frames away. → §RK1636
+- 📋 **RK1637** (deps: —) **seven cost subjects each argued they were the Nth cadence nobody counted, and nothing enumerates the cadences** — RK1424, RK1428, RK1491, RK1524 and RK1582 each made that case from scratch and none could say how many were left. → §RK1637
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

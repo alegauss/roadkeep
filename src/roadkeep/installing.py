@@ -92,7 +92,13 @@ from roadkeep.config import (
 )
 from roadkeep.linting import lint
 from roadkeep.merging import ATTRIBUTES, Registration, register
-from roadkeep.provenance import Engine, Installed, engine, home, installed
+# `Engine` under a name of its own, for the reason above one import over (RK1636): RK1549
+# gave this module a public `Engine` of its own — the vendored copy `uninstall --engine`
+# weighs — and the later `class` wins, so `Engines.running` was annotated with the wrong
+# record from the day that one landed. Nothing broke, because an annotation under PEP 563 is
+# never evaluated; what it cost is that the field said something false to every reader.
+from roadkeep.provenance import Engine as AnsweringEngine
+from roadkeep.provenance import Installed, engine, home, installed
 from roadkeep.provenance import invocation, stated_at
 
 #: The server's name, which is also the prefix an agent reads on every tool it offers.
@@ -1536,7 +1542,7 @@ class Vendor:
 
     version: str
     #: The package directory inside the vendored tree — `<root>/.roadkeep/src/roadkeep`, so it
-    #: is the same fact as :attr:`Engine.home` and the two rows compare directly.
+    #: is the same fact as :attr:`AnsweringEngine.home` and the two rows compare directly.
     home: Path
 
 
@@ -1552,11 +1558,11 @@ def vendored_at(root: Path) -> Vendor | None:
 
     So the literal is the answer, through :func:`~roadkeep.provenance.stated_at`, which is the
     one reader this package has for *what a directory says it is* — and the same one
-    :attr:`Engine.on_disk` asks about the running copy (RK1452). Where the tree states nothing
+    :attr:`AnsweringEngine.on_disk` asks about the running copy (RK1452). Where the tree states nothing
     there is no row: a `.roadkeep/` with no package in it is not a second engine, it is a
     directory.
     """
-    # Resolved, because the row beside it is :attr:`Engine.home` and that one is: a copy
+    # Resolved, because the row beside it is :attr:`AnsweringEngine.home` and that one is: a copy
     # answering out of `.roadkeep/` has to compare equal to itself, and on this platform two
     # spellings of one directory are what would stop it.
     home = (root / PROJECT_ENGINE / "src" / "roadkeep").resolve()
@@ -1597,7 +1603,7 @@ class Engines:
     """
 
     #: The copy this process is, always known.
-    running: Engine
+    running: AnsweringEngine
     #: The copy the harness wired to this project, or None where none is registered — which
     #: is every project served by a checkout alone, and is not a defect.
     plugin: Installed | None = None
@@ -1683,7 +1689,7 @@ class Engines:
         that has not held it since, and every row here is then a comparison against a number
         nothing on disk states.
 
-        So it is asked at answer time, off :attr:`Engine.on_disk`, and it outranks every other
+        So it is asked at answer time, off :attr:`AnsweringEngine.on_disk`, and it outranks every other
         reading: a verdict composed from a stale `running` is a verdict about copies that are
         not the ones in play.
         """
