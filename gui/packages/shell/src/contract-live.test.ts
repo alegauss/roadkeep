@@ -50,7 +50,18 @@ import { createProcessTransport } from './process-transport'
  * the shape that can move underneath this app.
  *
  * A green run here is a claim about one build of roadkeep and never about roadkeep in
- * general, which is why the version that answered is asserted to exist and reported.
+ * general, which is why the version that answered is asserted to exist and carried into
+ * every failure this file prints.
+ *
+ * **What it does not assert is that two reads agree on it.** The engine here is often a
+ * working checkout somebody is editing, so a version read in `beforeAll` and a version
+ * read forty calls later are two samples of a moving number — this suite failed twice in
+ * one afternoon on `expected '0.2.385' to be '0.2.384'` with nothing changed, while every
+ * shape assertion beside them passed. That failure is indistinguishable from the one this
+ * file exists to produce, and a reader who learns red can also mean "somebody rebuilt the
+ * engine" is a reader who stops believing it. RG75 was the same shape with a task id in
+ * place of a version: an assertion that the world has not moved, which is not what either
+ * test was written to check.
  */
 
 let fixture: Fixture
@@ -100,6 +111,9 @@ async function readVerb<K extends VerbName>(
 
 describe('RG4: the build this contract was proven against', () => {
   it('names a version, so a green suite is a claim about one engine', () => {
+    // Named once and never compared again. It reaches a reader through `explainFailure`,
+    // which puts it in the sentence every failed read in this file prints — which is what
+    // "a claim about one build" needs, and equality between two samples never was.
     expect(engineVersion).toMatch(/^\d+\.\d+\.\d+/)
   })
 })
@@ -580,7 +594,16 @@ describe('RG4: every read this client makes, against a live engine', () => {
   it('reads which engine answered for the fixture', async () => {
     const payload = await readVerb('engines', {})
 
-    expect(payload.writing.version).toBe(engineVersion)
+    // Every claim here is about this one call. What the read has to prove is that the
+    // payload names a build and the copy it came from — not that the number matches one
+    // sampled from another project, minutes earlier, off a tree under edit.
+    expect(payload.writing.version).toMatch(/^\d+\.\d+\.\d+/)
+    expect(payload.writing.home).not.toBe('')
+    expect(payload.invoke).not.toBe('')
+    // The verdict over the copies is the engine's own word, and it is carried whether or
+    // not they agree: a machine with four copies in play is an ordinary machine.
+    expect(payload.verdict).not.toBe('')
+    expect(typeof payload.agree).toBe('boolean')
   })
 })
 
@@ -595,7 +618,9 @@ describe('RG6: what the live build says it can do', () => {
     // app composes are flags this build actually takes. A failure here names them.
     expect(withheld(report), withheld(report).join('\n')).toEqual([])
     expect(report.complete).toBe(true)
-    expect(report.version).toBe(engineVersion)
+    // The build the report is about, named by the report itself. Both halves of that come
+    // off this one `commands` call, which is what makes it a claim and not a stopwatch.
+    expect(report.version).toMatch(/^\d+\.\d+\.\d+/)
   })
 
   it('agrees with the flags derived from this project’s own builders', async () => {
