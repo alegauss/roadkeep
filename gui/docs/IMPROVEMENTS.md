@@ -241,29 +241,6 @@ replaces itself while somebody is reading a backlog is one that loses their plac
 it must not do is phone anywhere on launch by default: this app reads a person's
 repositories, and a network call it did not need is one that has to be explained.
 
-### §RG95 Advisories nobody is told about
-
-Nothing in this repository reads a security advisory. `npm ci` does not audit,
-roadkeep's gate is about governed files, and the suite has no opinion. So the one
-advisory this project knows about was found by somebody installing a linter for an
-unrelated task — which is the shape of finding this block exists to stop.
-
-That advisory is [[RG61]]'s and this line is not about it. This is about the next one: a
-dependency added six months from now that arrives with something known, and nobody
-hears.
-
-The likely shape is `npm audit --audit-level=high` as a CI step. What makes it a task
-rather than a line of YAML is the exception, because an advisory with no published fix
-is the ordinary case and a gate that cannot be satisfied is a gate somebody adds a flag
-to silence. So the exception has to be a list somebody wrote deliberately — an advisory
-id, why it does not reach this executable, and the date that was established — and a
-*third* advisory has to be what breaks the build.
-
-The alternative is Dependabot, which this repository already configures and which
-reports without gating. That is worth reading before building anything: if its alerts
-are seen, the gate adds a fail and not a discovery, and the exception list is the only
-part actually missing.
-
 ### §RG96 A test whose subject is on disk
 
 RG60 put a test in the suite that starts the built app. Everything else in there

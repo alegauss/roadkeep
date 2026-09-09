@@ -28,6 +28,7 @@
     "test:watch": "vitest --project core --project shell --project ui",
     "clean": "tsc -b --clean",
     "stamp": "node packages/shell/dist/stamp-build.js",
+    "audit": "npm run build:app && node packages/shell/dist/audit.js",
     "package": "npm run build && npm run stamp && electron-builder --config electron-builder.yml --publish never"
   },
   "devDependencies": {

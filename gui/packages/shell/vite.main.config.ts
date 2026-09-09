@@ -23,6 +23,9 @@ export default defineConfig({
         // The build step behind `npm run package`: it stamps what this build is and
         // refuses to package one that lost the posture it claims.
         'stamp-build': 'src/stamp-build.ts',
+        // The gate behind `npm run audit`: it reads `npm audit --json` against the list of
+        // advisories this project has answered, and fails on anything else (RG95).
+        audit: 'src/audit.ts',
       },
       formats: ['es'],
     },

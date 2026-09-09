@@ -164,6 +164,17 @@ jobs:
       - name: stamp, which is where packaging refuses
         run: npm run stamp
 
+      # Advisories, against the list of the ones this project has read (RG95). It is a step
+      # and not a job because it needs the install that is already here, and it is here
+      # rather than in `npm run lint` because a gate over somebody else's registry can go
+      # red on a morning nobody changed a line — which is a thing to be told, but not a
+      # thing to discover while checking a formatting run.
+      #
+      # `npm audit`'s own exit code is not the answer: it is non-zero for anything at the
+      # level it was given, accepted or not. The script reads the report.
+      - name: advisories
+        run: node packages/shell/dist/audit.js
+
   # The artefact somebody would actually install (RG91).
   #
   # On a tag or on demand, never on a push: an installer per platform per push is minutes

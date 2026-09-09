@@ -115,6 +115,7 @@
 - ✅ **RG92** **the project skill states counts and a priority that stopped being true, and nothing checks it** — Every count and queue the skill restated is now the read that answers it, and the file is under a budget the gate holds (design recorded in `.claude/skills/roadkeep-gui-roadmap-docs/SKILL.md`).
 - ✅ **RG93** **the dev loop reaches into the compiler's own layout, and only a hand run would notice it moving** — The path into TypeScript's layout is one function two callers name, and a live test starts it, so an upgrade that moves the file reds a run (design recorded in `packages/shell/src/compiler.ts`).
 - ✅ **RG94** **no type-aware rule runs, so a floating promise is still nobody's finding** — The lint gate runs the type-aware half, and the findings were read rather than silenced: one rule off with a reason, and the rest fixed (design recorded in `.oxlintrc.json`).
+- ✅ **RG95** **no gate reads an advisory, so the next one is found by whoever happens to install something** — CI reads npm audit against a written list of the advisories answered here, and fails on anything else and on an exception nothing reports (design recorded in `packages/shell/src/advisories.ts`).
 
 ## Block H — The look (a design system for governed prose)
 
