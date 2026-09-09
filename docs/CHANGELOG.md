@@ -484,6 +484,7 @@
 - 🗑 **RK1661** **two payloads say notes about two populations, the gate one per address and the census one per printed block** — abandoned: An observation and not a defect: both payloads answer what they say they do, and the folded key beside the figure already tells the two populations apart.
 - 🗑 **RK1664** **what a pinned corpus holds is answerable only from Python, and the advisory that says it fires only where the tree moved** — abandoned: An observation and not a defect: the shape is answerable and the drift advisory prints it, and a command for it wants a directory the pin deliberately has not got.
 - ✅ **RK1624** **the ranking an add volunteers exists only inside that write, no read answering over a block's whole corpus** — delivered --near --open ranks the corpus an add ranks, at this verb's wider window, so the order a write volunteered once can be asked for again and each row says which half it came from.
+- ✅ **RK1625** **unclosed answers a tree with no git as a backlog with nothing open, the flag that tells those apart never being set** — The flag and the open count pass from the walk that knows them, so a tree with no git says it read no history and how many lines it cannot speak for.
 
 ## Block D — The gate
 

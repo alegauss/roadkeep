@@ -32,7 +32,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1625** (deps: —) **unclosed answers a tree with no git as a backlog with nothing open, the flag that tells those apart never being set** — Nothing in the package makes Unclosed.searched false, so the one state the field was declared for is the one it reports as a clean sweep. → §RK1625
 - 📋 **RK1628** (deps: —) **pick offers an idea whose premise a later ship deleted, no answer saying what landed under the line since it was filed** — RK1571 and RK1574 were both designed against a work-list RK1599 emptied, and reading the section was the only way to learn it. → §RK1628
 - 📋 **RK1630** (deps: —) **a read payload names neither the root it answered about nor the build that answered** — lint carries root and config carries version; list, show, brief, stats, export and pick carry neither, so a client holding several projects' answers cannot tell whose it holds. → §RK1630
 - 📋 **RK1631** (deps: —) **no one call says whether a path is governed and where its root is, so a client reads it off a null** — config answers source = null, engines answers happily about an ungoverned directory, and lint does a whole file's work to report the root a probe needs. → §RK1631

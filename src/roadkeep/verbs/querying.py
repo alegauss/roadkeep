@@ -1426,7 +1426,15 @@ def _unclosed(config: Config, args: argparse.Namespace) -> Result | int:
         # The whole walk and not `pending` alone (RK1568): what the incidental filter did is
         # the same `git log`, and a second call would be a second history read for a row.
         sweep = swept(config)
-        answer = Unclosed(rows=sweep.rows, sifted=sweep.sifted)
+        # Every field the walk found out, and `searched` is the one that was dropped (RK1625):
+        # constructed at its default here, the one state it exists to report was the state it
+        # reported as a clean sweep.
+        answer = Unclosed(
+            rows=sweep.rows,
+            sifted=sweep.sifted,
+            searched=sweep.searched,
+            open_lines=sweep.open_lines,
+        )
     except (KeyError, OSError) as error:
         return _refused(error)
 

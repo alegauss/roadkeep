@@ -2554,6 +2554,65 @@ def test_a_walk_that_did_not_happen_reports_no_entry_as_idle(tmp_path):
     assert "set aside" not in said
 
 
+def test_a_tree_with_no_history_says_so_and_says_what_it_cannot_speak_for(tmp_path, capsys):
+    """RK1625. `searched` says what it is for — `()` means two different things otherwise, and
+    a checkout with no history reading as a clean backlog is the silence RK10 is about — and
+    nothing in the package ever set it False. The walk returned its empty answer on
+    `HistoryUnavailable` exactly as on a backlog with nothing open, and the verb built the
+    record at the field's default.
+
+    So a scaffolded project holding one open line answered `0 of 0 open line(s) already have
+    commits naming them`, with `"searched": true` beside it: both halves wrong, the count
+    because the rows never came back and the flag because the one state it exists to report is
+    the one that produced it.
+
+    The count is here too, for that reason: how many lines are open is a fact about the
+    roadmap, so a report that could not walk still says how many it cannot speak for."""
+    import json
+
+    from roadkeep.cli import EXIT_OK, main
+    from roadkeep.history import swept
+
+    # A governed project and deliberately **no** `git init`, which is the one input this is
+    # about — and the state a scaffolded tree is in before its first commit.
+    assert main(["-C", str(tmp_path), "init", "--block", "A"]) == EXIT_OK
+    assert main([
+        "-C", str(tmp_path), "add", "--block", "A",
+        "--symptom", "A symptom that is plainly long enough", "--why", "Because of a reason.",
+    ]) == EXIT_OK
+    capsys.readouterr()
+
+    sweep = swept(Config.discover(tmp_path))
+    assert not sweep.searched
+    assert sweep.rows == ()
+    # The roadmap's own count, which wants no history at all.
+    assert sweep.open_lines == 1
+
+    assert main(["-C", str(tmp_path), "unclosed"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "no history to read" in said
+    assert "1 open line(s)" in said
+    assert "already have commits naming them" not in said
+
+    assert main(["-C", str(tmp_path), "unclosed", "--json"]) == EXIT_OK
+    found = json.loads(capsys.readouterr().out)
+    assert found["searched"] is False
+    assert found["open"] == 1
+
+
+def test_a_backlog_with_nothing_open_is_not_a_history_that_could_not_be_read(tmp_path):
+    """The other half of the same distinction (RK1625). No `git log` runs there either, and
+    the honest answer is still that this report speaks for every line it holds — of which
+    there are none. What the flag is about is evidence the read could not get, and a project
+    with an empty backlog is one where there was nothing to get."""
+    from roadkeep.history import swept
+
+    config = repo(tmp_path)
+    sweep = swept(Config.discover(config.root))
+    assert sweep.searched
+    assert sweep.open_lines == 0
+
+
 def test_this_repository_can_now_exercise_the_rule_it_proves(tmp_path):
     """The finding's own success criterion. `docs/` is this format's conformance fixture, and
     a filter inert on it is one whose next regression nothing here will catch — so what is

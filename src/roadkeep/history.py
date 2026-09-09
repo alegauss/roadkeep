@@ -1035,6 +1035,22 @@ class Sweep:
 
     rows: tuple[Pending, ...] = ()
     sifted: Sifted = field(default_factory=Sifted)
+    #: Whether the history could be read at all (RK1625). False on a checkout with no git, a
+    #: shallow clone, a tree that is not a repository — the one state `Unclosed.searched` was
+    #: declared for and that nothing ever set, so `()` was answered as a clean backlog.
+    #:
+    #: Here and not only on the record the verb prints, which is RK1568's split: this is what
+    #: the walk **found out**, so it belongs to the walk and passes on, exactly as the
+    #: incidental reading beside it does.
+    #:
+    #: True on a backlog with nothing open, where no `git log` runs either: the report speaks
+    #: for every line it holds, and there are none. What this field is about is evidence the
+    #: read could not get, not whether a subprocess happened.
+    searched: bool = True
+    #: How many lines the roadmap holds open — a fact about that file and knowable with no
+    #: history at all (RK1625). Carried because :attr:`rows` is empty on both early answers,
+    #: so a report that could not walk can still say how many lines it cannot speak for.
+    open_lines: int = 0
 
 
 def pending(config: Config) -> tuple[Pending, ...]:
@@ -1058,7 +1074,9 @@ def swept(config: Config) -> Sweep:
     # Both early answers carry the declaration and no reading (RK1568): nothing was walked,
     # so every entry is unmeasured rather than idle — which is the difference between a
     # filter that did nothing and a report that asked nothing.
-    blank = Sweep(sifted=Sifted(declared=tuple(config.incidental)))
+    blank = Sweep(
+        sifted=Sifted(declared=tuple(config.incidental)), open_lines=len(open_lines)
+    )
     if not open_lines:
         return blank
     recorded = (
@@ -1072,7 +1090,10 @@ def swept(config: Config) -> Sweep:
         # field this needs.
         listed = _parse(_run(config.root, "log", "--no-merges", f"--format={_FORMAT}"))
     except HistoryUnavailable:
-        return blank
+        # The one branch that says so (RK1625): every line stays unmeasured, and a reader
+        # handed an empty answer here has to be able to tell that from a backlog nothing is
+        # stale in — which is the silence RK10 is about and what the flag was declared for.
+        return replace(blank, searched=False)
     from roadkeep.ids import id_scanner  # noqa: PLC0415 - RK260
 
     naming: dict[str, list[Commit]] = {}
@@ -1143,6 +1164,7 @@ def swept(config: Config) -> Sweep:
             for entry in open_lines
         ),
         sifted=Sifted(declared=declared, aside=aside, filtered=len(removed)),
+        open_lines=len(open_lines),
     )
 
 
@@ -1247,7 +1269,17 @@ class Unclosed:
     rows: tuple[Pending, ...] = ()
     #: True where git answered at all. `()` means two different things otherwise, and a
     #: checkout with no history reading as a clean backlog is the silence RK10 is about.
+    #:
+    #: **Passed from the walk since RK1625**, which is where it is known and where it was
+    #: never set: this record was built with the default at its one call site, so the state
+    #: the field exists to report was the state it reported as a clean sweep — `0 of 0 open
+    #: line(s) already have commits naming them` on a scaffolded project holding one, with
+    #: `"searched": true` beside it. Both halves wrong, and the flag wrong about itself.
     searched: bool = True
+    #: How many lines the roadmap holds open, which :attr:`rows` cannot answer where the walk
+    #: never ran (RK1625). Equal to `len(rows)` on every searched answer — a row per open line
+    #: is what the walk returns — and the real count on the one where it is not.
+    open_lines: int = 0
     #: What `[history] incidental` did on the same walk (RK1568). Here rather than in the
     #: gate because the walk is here: `lint` reads a blob to say a declared path is absent
     #: and would have to start walking the history to say one matched nothing.
@@ -1259,10 +1291,16 @@ class Unclosed:
 
     def stated(self) -> str:
         if not self.searched:
-            return "no history to read, so nothing here says whether a line was left open"
+            # The count rides on it (RK1625): *no history to read* alone leaves a reader
+            # unable to tell a backlog this cannot speak for from one with nothing in it, and
+            # how many lines are open is a fact about the roadmap that wants no history.
+            return (
+                f"no history to read, so nothing here says whether any of "
+                f"{self.open_lines} open line(s) was left open"
+            )
         found = self.stale
         rows = [
-            f"{len(found)} of {len(self.rows)} open line(s) already have commits naming them"
+            f"{len(found)} of {self.open_lines} open line(s) already have commits naming them"
         ]
         for one in found:
             named = ", ".join(commit.short for commit in one.commits[:3])
@@ -1303,7 +1341,11 @@ class Unclosed:
     def payload(self) -> dict[str, object]:
         return {
             "searched": self.searched,
-            "open": len(self.rows),
+            # The roadmap's count and never the walked rows' (RK1625): those are empty where
+            # the history could not answer, and a consumer reading `0` there would take an
+            # unreadable tree for an empty backlog — the pair this key sits beside exists to
+            # tell exactly those two apart.
+            "open": self.open_lines,
             # The second half of the same walk (RK1568), as its own key: a consumer acting on
             # a stale line and one correcting a declaration are different readers.
             "incidental": {
