@@ -337,29 +337,6 @@ reading.
 
 ## Block D — The gate
 
-### §RK1626 The sweep CI has never run
-
-RK1569 separated what this build claims from what somebody else's checkout happens to
-hold, and the sibling sweep has the same seam in the other direction. The field half
-reads this repository's fields **and** both corpora, and calls `require` on each corpus
-inside the loop — so a machine without Shio skips the whole assertion, including the
-2,246 symptoms and whys of our own two governed files.
-
-Those are the population the rule is most about. `docs/` is this format's conformance
-fixture, and whether a field here has grown a mangled run is a claim about this build
-alone, answered by files in the tree. CI has neither corpus, so the sweep that would
-catch the signature beginning to match ordinary prose has never run there.
-
-The bar the skip protects is met without them. `assert len(fields) >= 2000` exists so a
-survey covering nothing cannot pass, and this repository carries 2,246 alone — so the
-non-vacuity `require` stands in for is a property of the local files. What the corpora
-add is scale and other people's vocabulary: worth having, and not what makes it honest.
-
-So the shape is the one RK1569 just drew: read every corpus that is present, name which
-were read, and keep the red for the fields. A corpus that is absent contributes nothing
-and skips nothing — the same rule `present` already gives every other reader here,
-applied to the one sweep that reached for `require` instead.
-
 ### §RK1627 The register the composed fields have not got
 
 RK1570 found the block title by being told where to look. What it could not have found

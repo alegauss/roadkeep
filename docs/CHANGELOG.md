@@ -788,6 +788,7 @@
 - ✅ **RK1621** **the summary and the folded note row now both carry the count of surfaces behind the engine** — The summary earns its count on three grounds the fold does not reach: it counts across both codes, it is there where a run of one folds to nothing, and the missing-entirely split is one no fold makes.
 - 🗑 **RK1660** **one sentence said once is written twice, the notes' fold lifted out of the gate and the findings' left inside it** — abandoned: An observation and not a defect: the findings' fold has one caller, so lifting it would be indirection with no second reader to hold it true.
 - 🗑 **RK1662** **two session notes reach the summary and two do not, and the set holding the pair argues for none of the split** — abandoned: An observation and not a defect: a disagreement is one note whose content is which copies differ, so a summary clause would say 1 and be the line a reader stops seeing.
+- ✅ **RK1626** **the field sweep skips its whole assertion where a corpus is absent, including this repository's own 2,246 fields** — The sweep reads every corpus that is present and requires none, so this repository's own 2,324 fields are asserted on a machine with neither — which is what CI is.
 
 ## Block E — Adoption
 

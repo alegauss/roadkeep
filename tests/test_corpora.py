@@ -427,18 +427,35 @@ def test_the_mangled_signature_still_fires_nowhere_in_a_field():
 
     This is that reading, re-taken. A field growing a run is one of two things and both want
     looking at: a real mangling in a live backlog, or a signature that has begun matching the
-    prose people actually write."""
+    prose people actually write.
+
+    **Every corpus that is present, and none required** (RK1626). `require` inside the loop
+    skipped the whole assertion on a machine without Shio — including this repository's own
+    2,324 fields, which are the population the rule is most about: `docs/` is this format's
+    conformance fixture, and whether a field *here* has grown a mangled run is a claim about
+    this build alone, answered by files in the tree. CI has neither corpus, so the sweep that
+    would catch the signature beginning to match ordinary prose had never run there.
+
+    The bar the skip protected is met without them, which is what makes dropping it honest and
+    is asserted below rather than argued: what the corpora add is scale and other people's
+    vocabulary, worth having and not what keeps this non-vacuous. The same rule `present`
+    already gives every other reader here, applied to the one sweep that reached for
+    `require` instead — and it is the shape the prose sibling below already has."""
     from roadkeep.kernel.schema import mangled_runs
 
     fields, _ = _here()
+    # The half that is **ours**, held apart (RK1569's split, one sweep over): a corpus that is
+    # absent contributes nothing and skips nothing, so the non-vacuity `require` stood in for
+    # has to be a property of the local files or it was never a property at all.
+    assert len(fields) >= 2000, f"only {len(fields)} fields in this repository"
+    read = ["this repository"]
     for corpus in corpora.BOTH:
-        corpora.require(corpus)
+        if not corpora.present(corpus):
+            continue
+        read.append(corpus.name)
         fields += _fielded(corpus)
-    # Non-vacuous, on the rule this suite holds every derived population to: a survey that
-    # covers nothing passes exactly like one that covers everything.
-    assert len(fields) >= 2000, f"only {len(fields)} fields reached"
     caught = [(one, mangled_runs(one)) for one in fields if mangled_runs(one)]
-    assert not caught, caught[:3]
+    assert not caught, {"read": read, "caught": caught[:3]}
 
 
 def test_the_prose_it_does_not_read_is_where_the_signature_does_fire():

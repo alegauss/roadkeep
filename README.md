@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 3 | 231 | 2 |
 | C — Query (consult without reading the file) | 8 | 184 | 7 |
-| D — The gate | 17 | 293 | 7 |
+| D — The gate | 16 | 294 | 7 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 162 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 3 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 32 | 1106 | 24 |
+| **Total** | 31 | 1107 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1626** (deps: —) **the field sweep skips its whole assertion where a corpus is absent, including this repository's own 2,246 fields** — RK1569 split ours from theirs in the prose half, and the field half still requires both corpora to say anything about the files in this tree. → §RK1626
+- 💭 **RK1627** (deps: —) **nothing enumerates the fields a caller composes, so which of them has a validator is answered by remembering** — RK1570 found the block title because a design named it, and the same gap in any other composed field would be as invisible as that one was. → §RK1627
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
