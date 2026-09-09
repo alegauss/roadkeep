@@ -168,8 +168,13 @@ def _retrying(error: Exception) -> _Retry | None:
     )
 
 
-def _foreseeing(error: SchemaError) -> list[str]:
+def _foreseeing(error: SchemaError) -> Door | None:
     """The read that would have refused this without writing, at most once (RK1435).
+
+    A `Door` and no longer a row since RK1642. It composed the sentence and returned it, so
+    the read was in `said` and in no field of the payload — leaving a caller reading fields
+    with the rule that refused and not the command that would have made the refusal
+    unnecessary, which is the half RK1600 published for the retry and left here.
 
     A refusal teaches the verb whose **absence** caused a visible failure, and teaches nothing
     about the verb whose whole purpose is that the failure never happens — so a session learns
@@ -194,11 +199,16 @@ def _foreseeing(error: SchemaError) -> list[str]:
         # the line — the first was being offered on both, and says the draft fits.
         door = foreseen(violation.code, violation.bound)
         if door is not None:
-            return [f"foresee  {provenance.invocation()} {' '.join(door.argv)}  ({door.what})"]
-    return []
+            return door
+    return None
 
 
-def _payload(error: Exception, said: str, retry: _Retry | None = None) -> None:
+def _payload(
+    error: Exception,
+    said: str,
+    retry: _Retry | None = None,
+    foresee: Door | None = None,
+) -> None:
     """The refusal as data on stdout, where the caller asked for data (RK1584).
 
     **The one answer this package published as prose alone.** `add --json`, `lint --json` and
@@ -231,6 +241,15 @@ def _payload(error: Exception, said: str, retry: _Retry | None = None) -> None:
     states for a door: a consumer reading the key at all is one that acts on it, and a null is
     a row it has to test first. Most refusals have none, which is a fact about them and not a
     field they are missing.
+
+    **And the other command in the same refusal** (RK1642). A refused write can print two, and
+    they are not the same offer: the retry is the caller's own call with one token replaced —
+    they already chose it — and the `foresee` read is the command that would have refused the
+    same draft *without writing*, which is a choice. So it goes under `doors`, which is
+    RK1324's rule for every payload publishing a runnable command, and the retry keeps the
+    exception RK1600 argued for it. `Door.payload()` says the rest — what it is for, whether
+    it writes, and that its argv is **incomplete**: `<draft>` is the caller's prose, so the row
+    is a template, and a consumer that ran it verbatim would be asking about a literal.
     """
     if not provenance.asked_fields():
         return
@@ -239,7 +258,16 @@ def _payload(error: Exception, said: str, retry: _Retry | None = None) -> None:
     payload: dict[str, object] = (
         error.payload() if isinstance(error, _SchemaError) else {"refused": [], "beside": "", "about": ""}
     )
-    offer = {"retry": retry.payload()} if retry is not None else {}
+    offer: dict[str, object] = {"retry": retry.payload()} if retry is not None else {}
+    # A list of one, and always a list (RK1324): one name and one shape wherever a payload
+    # publishes a runnable command, so a consumer reads them with one loop.
+    #
+    # No `served` prefix, and the reason is this path rather than the door: `served_by` takes
+    # a root and a refusal is rendered where the project has gone out of scope — the argv is
+    # what every consumer before RK449 reads anyway, and discovering a tree here to name a
+    # tool would be a filesystem read on the error path.
+    if foresee is not None:
+        offer["doors"] = [foresee.payload()]
     print(json.dumps({**payload, **offer, "said": said}, indent=2))
 
 
@@ -275,13 +303,18 @@ def _refused(error: Exception) -> int:
             # started editing the wrong one.
             rows.append(f"  {error.about}")
         rows += [f"  {violation}" for violation in error.violations]
-        rows += [f"  {row}" for row in _foreseeing(error)]
+        foresee = _foreseeing(error)
+        if foresee is not None:
+            rows.append(
+                f"  foresee  {provenance.invocation()} {' '.join(foresee.argv)}  "
+                f"({foresee.what})"
+            )
         retry = _retrying(error)
         if retry is not None:
             rows.append(f"  retry    {retry.door.quoted}")
         said = "\n".join(rows)
         print(said, file=sys.stderr)
-        _payload(error, said, retry)
+        _payload(error, said, retry, foresee)
         return EXIT_USAGE
     if isinstance(error, (RoundTripError, StaleFile)):
         # The file drifted before this command ran, so the gate says no: normalizing a

@@ -91,6 +91,7 @@ over the whole table rather than a defect discovered one row at a time.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from functools import lru_cache
@@ -107,6 +108,12 @@ KINDS = ("fix", "run", "read", "compose", "decide", "restore")
 #: Marks the one field of a ``compose`` argv that the tool may not write (L4). Kept as a
 #: distinct token rather than an empty string so a caller can find it without parsing prose.
 BLANK = "…"
+
+#: The other placeholder this module writes: a `<draft>`, a `<path>`, an `<id>` — a field the
+#: caller completes from what is already in front of them, which is how :data:`FORESEEN`'s
+#: rows differ from a remedy's (RK1642). Read by :attr:`Door.complete`, so a template is not
+#: published as a command.
+_ANGLED = re.compile(r"<[^>]+>")
 
 
 def _spelled_word(word: str) -> str:
@@ -253,8 +260,17 @@ class Door:
 
     @property
     def complete(self) -> bool:
-        """Whether every field is filled — false where L4 left one to the author."""
-        return not any(BLANK in word for word in self.argv)
+        """Whether every field is filled — false where L4 left one to the author.
+
+        **Both placeholders, since RK1642.** This read :data:`BLANK` alone, which is every
+        remedy door: a `…` marks the one field the tool may not write in a command otherwise
+        composed for the caller. A `foresee` door is angled all through — `budget --why
+        <draft>` names the caller's own prose, their own id, their own path — and it was the
+        first door published in a payload that had none of the first kind, so this said
+        `complete: true` about an argv that is a template. Nothing had read it wrong yet
+        because nothing had published one.
+        """
+        return not any(BLANK in word or _ANGLED.search(word) for word in self.argv)
 
     def call(self) -> tuple[str, dict[str, object]] | None:
         """The same door as a **tool call**: the name and its fields, or ``None`` (RK449).

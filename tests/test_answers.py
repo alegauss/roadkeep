@@ -379,7 +379,9 @@ def test_a_refused_call_publishes_the_rules_that_refused_it(project):
         "add", "--block", "A", "--symptom", "A symptom plainly long enough to read",
         "--why", "y " * 200 + "z.", "--json",
     ))
-    assert set(payload) == {"refused", "beside", "about", "said"}
+    # `doors` since RK1642: a `why` over its limit is one of the seven codes a read predicts,
+    # so this refusal carries the preventive command beside the rules that decided it.
+    assert set(payload) == {"refused", "beside", "about", "doors", "said"}
     (first, *_) = payload["refused"]
     assert set(first) == {"code", "field", "bound", "message"}
     assert first["code"] == "why.too-long"
@@ -557,6 +559,72 @@ def test_a_refusal_that_derived_no_address_publishes_no_retry_key(project):
     payload, said = _refusal(project, ("show", "RK9999", "--json"))
     assert "retry" not in payload
     assert "retry" not in said
+
+
+# -- the other command in the same refusal (RK1642) ---------------------------
+
+
+def _over(root: Path) -> tuple[str, ...]:
+    """An `add` whose `why` is past its own limit: refused, with a read that predicts it.
+
+    The `foresee` shape and not the retry's: nothing about the call is derived here, and what
+    is offered is `budget --why <draft>` — the command that would have measured the same
+    sentence and written nothing.
+    """
+    return (
+        "add", "--block", "A", "--symptom", "A symptom plainly long enough to read",
+        "--why", "Because of a reason that goes on and on " * 6 + "and it ends.",
+        "--json",
+    )
+
+
+def test_the_preventive_read_is_published_as_a_door(project):
+    """RK1642. A refused write can print two commands and RK1600 published one: the retry is
+    the caller's own call with a token replaced, and the `foresee` read is what would have
+    refused the same draft without writing. The second was a line of `said` and no field, so a
+    caller reading fields got the rule that refused and never the read that prevents it.
+
+    Under `doors`, which is RK1324's rule wherever a payload publishes a runnable command —
+    and the side of the line a `foresee` read is on: the retry is an offer the caller already
+    chose, and this is one they have not."""
+    payload, said = _refusal(project, _over(project))
+    assert "retry" not in payload, "nothing about this call was derived"
+    (door,) = payload["doors"]
+    assert door["argv"] == ["budget", "--why", "<draft>"]
+    assert door["writes"] is False
+    # The same composition in both channels, which is RK1584's founding rule.
+    for token in door["argv"]:
+        assert token in said, (token, said)
+
+
+def test_the_published_read_says_its_argv_is_a_template(project):
+    """The field the shape turns on, and a defect this task's own work exposed: `complete` read
+    :data:`~roadkeep.remedying.BLANK` alone — a `…`, which is every remedy door — and a
+    `foresee` argv is angled all through. `<draft>` is the caller's prose, so the row is a
+    template, and the first door ever published in a refusal payload said it was a command.
+
+    A consumer that ran it verbatim would be asking `budget` to price the literal string."""
+    payload, _ = _refusal(project, _over(project))
+    (door,) = payload["doors"]
+    assert door["complete"] is False
+    # And the other direction, off a door that really is complete: the two placeholders are
+    # read together, so neither reading answers for the other.
+    from roadkeep.remedying import Door
+
+    assert Door(argv=("lint", "--fix"), what="").complete
+    assert not Door(argv=("add", "--why", "…"), what="").complete
+
+
+def test_a_refusal_nothing_predicts_publishes_no_doors_key(project):
+    """Absent and never `"doors": []`, which is `rendering._reading_door`'s rule and the one
+    the retry keeps beside it: a consumer reading the key at all is one that acts on it.
+
+    Most refusals have none, and that is a fact about them — a duplicate id, a dep nothing
+    satisfies and a marker the project does not declare are states no draft measurement would
+    have caught, so a row offering one is the advice RK16 refuses."""
+    payload, said = _refusal(project, ("show", "RK9999", "--json"))
+    assert "doors" not in payload
+    assert "foresee" not in said
 
 
 def test_nothing_is_published_where_the_caller_asked_for_prose(project):

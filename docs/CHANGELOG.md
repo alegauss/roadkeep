@@ -801,6 +801,7 @@
 - ✅ **RK1639** **one closed set of prose was swept for stale figures and the three a caller actually meets were not** — One reading over four closed sets, with a row per table saying whether its prose is a caller's or an author's.
 - ✅ **RK1640** **421 verb-leading spans sit in messages carrying no sibling door, so the pair that decides one reads none of them** — The 27 spans carrying a placeholder are read one by one, and the answer is not the design's: thirteen are doors.
 - ✅ **RK1641** **the sweep that runs every door the gate offers reaches one of eighty-four dispatchable rows** — One instrument, three fixtures, and the reach stated as seven of eighty-five instead of described as one.
+- ✅ **RK1642** **the preventive read a refusal names for seven codes is in the sentence and in no field of the payload** — The read goes out under doors, which is where a payload publishes a command a caller has not yet chosen.
 
 ## Block E — Adoption
 
