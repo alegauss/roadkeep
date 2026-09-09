@@ -1142,6 +1142,11 @@ def _reject_unknown(
     is kept for the key that truly is unknown — told apart by the word the problem opens with,
     which is what :func:`_unknown_clause` reads.
     """
+    # RK260, the refusal path only, and `_skew`'s import one function over: `provenance` sits
+    # below this module, a refusal is already the slow branch, and the door this problem names
+    # is spelled as the machine can reach it (RK254).
+    from roadkeep.provenance import invocation  # noqa: PLC0415
+
     for key in data:
         if key in allowed:
             continue
@@ -1152,7 +1157,8 @@ def _reject_unknown(
             # this reader guessing which table the author meant.
             problems.append(
                 f"misplaced key '{where}{key}': this build declares it as "
-                f"{', '.join(elsewhere)} — the header above it is what to move, not the key"
+                f"{', '.join(elsewhere)} — `{invocation()} declare --move {where}{key}` "
+                f"moves the line, and takes `--to` where several tables declare it"
             )
             continue
         problems.append(

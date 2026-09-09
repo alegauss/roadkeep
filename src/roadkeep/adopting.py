@@ -76,6 +76,7 @@ from roadkeep.config import (
     ROLES,
     Config,
     Scope,
+    find_config,
     readable,
 )
 from roadkeep.kernel.document import LEDGER_SHAPES, Document, Heading, checkbox
@@ -1390,6 +1391,239 @@ def declare_table(config: Config, table: str) -> Opened:
     return Opened(table=table, config=config.source)
 
 
+@dataclass(frozen=True, slots=True)
+class Moved:
+    """What `declare --move` did: one key, out of one table and under another (RK1652)."""
+
+    #: As the caller addressed it — `files.priority`, which is where the key **was**.
+    address: str
+    #: The key alone, which is what the line spells.
+    key: str
+    #: The table it went under, `""` being the top level.
+    to: str
+    #: The line as the file carries it, stripped — reported because it is the value that
+    #: moved, and the one thing a caller can check without opening the file.
+    line: str
+    #: Where it landed, 1-based.
+    lineno: int
+    config: Path
+
+    @property
+    def named(self) -> str:
+        """The destination as this file spells one: a header, or the top level."""
+        return f"[{self.to}]" if self.to else "the top level"
+
+    def stated(self, config: Config) -> str:
+        from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
+        return chr(10).join(
+            [
+                f"moved    {self.address} → {self.named}  {self.config.name}:{self.lineno}",
+                f"line     {self.line}",
+                # The read that answers whether the file loads now, which is the whole point
+                # of the move and the one thing this write cannot claim on its own: every
+                # other key it did not touch may be misplaced too.
+                f"reads    `{invocation()} config`",
+                f"stage    git add -- {self.config.name}",
+            ]
+        )
+
+    def payload(self, config: Config) -> dict[str, object]:
+        return {
+            "address": self.address,
+            "key": self.key,
+            "to": self.to,
+            "line": self.line,
+            "lineno": self.lineno,
+            "config": self.config.as_posix(),
+            "wrote": [config.relative(self.config)],
+        }
+
+
+def _declaring(key: str, written: str) -> tuple[str, ...]:
+    """Every table this build declares ``key`` under, other than the one it was written in.
+
+    `config._tables_holding`'s set, read as the names rather than as the backticked prose that
+    refusal composes: one map (`describing.TABLES`) answering the message and the move, so the
+    door a refusal names cannot resolve a key the door then declines to find.
+    """
+    from roadkeep.describing import TABLES  # noqa: PLC0415 - RK260, `describing` imports config
+
+    return tuple(
+        name for name, keys in TABLES.items() if key in keys and name != written
+    )
+
+
+def relocate(config: Config, address: str, to: str = "") -> Moved:
+    """Move one misplaced key to the table this build declares it under (RK1652).
+
+    `govern` was built on one argument: every table in `roadkeep.toml` but the four it writes
+    was a hand edit, *which over the served surface is no edit at all*. RK1610 wrote a message
+    straight into that gap — `misplaced key 'files.priority': this build declares it as
+    `priority` at the top level` — and the repair it named is a header three lines up, by hand,
+    to a caller who may have no editor. Measured then: 20 tables declared, 5 written by a verb.
+
+    **The one write here that runs on a config that does not load**, and it has to be: a
+    misplaced key closes the file behind every other verb, this one among them, so a door that
+    needed the config parsed would be a door that only opens once the edit is already made.
+
+    Derived and never chosen, which is what makes it a verb at all (RK16's line, one file over):
+    the destination comes from `describing.TABLES`, the value is the caller's own bytes moved
+    whole, and a key several tables declare — `why` is `[limits]`', `[non_goals]`' and
+    `[criteria]`' — is **refused** with the three named rather than placed under a guess.
+
+    The comment run above the key is left where it is, deliberately: a comment under a header
+    may be the table's rather than the key's, and a move that took the wrong one would carry an
+    argument about `[limits]` into `[criteria]` where nothing could tell it had moved.
+    """
+    source = config.source or find_config(config.root)
+    if source is None:
+        raise Unconfigured(config.root)
+    written, _, key = address.rpartition(".")
+    if not key:
+        raise ValueError(
+            f"`{address}` is not a key: a misplaced key is addressed as the refusal spells "
+            f"it — `<table>.<key>`, or the bare key where it sits at the top level"
+        )
+    candidates = _declaring(key, written)
+    if not candidates:
+        raise ValueError(
+            f"this build declares no key `{key}`, so there is no table to move it to: "
+            f"`config --table {written or '\"\"'}` prints what this one accepts, and a key no "
+            f"version ever declared is a typo rather than a misplacement"
+        )
+    destination = _destination(address, key, candidates, to)
+    text, line, lineno = _lifted(source, written, key, destination)
+    # RK1576, the fourth of the writers RK1533's decision binds — and the one it matters most
+    # for: this file was already unreadable when the call started, so a move that left it that
+    # way would report a repair the next verb still refuses.
+    readable(text, config.root, source, f"moving {address} to {destination or 'the top level'}")
+    source.write_text(text, encoding="utf-8", newline="")
+    return Moved(
+        address=address,
+        key=key,
+        to=destination,
+        line=line.strip(),
+        lineno=lineno,
+        config=source,
+    )
+
+
+def _destination(address: str, key: str, candidates: Sequence[str], to: str) -> str:
+    """Which table the key goes under: the only one, or the one the caller named.
+
+    Every refusal here is an absence rather than a judgement, which is the rule this verb
+    keeps: a table declared once per role or per path is a *decision* about which role, and a
+    top-level name that opens a table is not a key at all.
+    """
+    named = [one for one in candidates if not _is_placeholder(one)]
+    if to:
+        if to not in candidates:
+            raise ValueError(
+                f"`{to}` does not declare `{key}`: this build has it under "
+                f"{_spelled_tables(candidates)}"
+            )
+        if _is_placeholder(to):
+            raise ValueError(
+                f"`{to}` is declared once per role or per path, so where `{key}` goes is a "
+                f"decision and not a derivation: write the header this project wants it "
+                f"under and move the key by hand, `govern` being the verb for what is in it"
+            )
+        return "" if to == '""' else to
+    if len(named) != 1:
+        raise ValueError(
+            f"`{address}` could go under {_spelled_tables(named or candidates)}, so which is "
+            f"the caller's to say: pass `--to <table>`, and the top level is `\"\"`"
+        )
+    return named[0]
+
+
+def _is_placeholder(table: str) -> bool:
+    """Whether this table is declared once per something the project names (`rules.<role>`)."""
+    return "<" in table
+
+
+def _spelled_tables(names: Iterable[str]) -> str:
+    return ", ".join(f"`{one}`" if one else "the top level" for one in names)
+
+
+def _lifted(
+    source: Path, written: str, key: str, destination: str
+) -> tuple[str, str, int]:
+    """The file with ``key`` taken out of ``written`` and put under ``destination``.
+
+    One pass out and one pass in, and the removal first: inserting into a table that comes
+    *before* the key's own would otherwise shift the line the removal is about, which is the
+    class of defect a two-edit write has and a single serialiser does not — and a serialiser
+    is what would take the comments with it.
+    """
+    lines = source.read_text(encoding="utf-8").splitlines(keepends=True)
+    at = _key_at(lines, written, key)
+    if at is None:
+        raise ValueError(
+            f"nothing under {_spelled_tables([written])} spells `{key}`, so there is no line "
+            f"to move: the refusal that names one reads the file as it is now"
+        )
+    standing = _key_at(lines, destination, key)
+    if standing is not None:
+        # Which of the two values the project meant is the author's, and the only thing here
+        # that is: both lines are theirs, this one is a *duplicate* rather than a misplacement,
+        # and a move that overwrote either would delete a value nothing else records.
+        raise ValueError(
+            f"{_spelled_tables([destination])} already declares `{key}`, at line "
+            f"{standing + 1} — so the line at {at + 1} is a second value and not a misplaced "
+            f"one: delete whichever the project does not mean, which is a value and not a "
+            f"placement"
+        )
+    row = lines[at]
+    text = _opened(
+        "".join([*lines[:at], *lines[at + 1 :]]), destination
+    )
+    text = _into(text, destination, row)
+    landed = text.splitlines(keepends=True)
+    lineno = next(
+        (index + 1 for index, line in enumerate(landed) if line is row or line == row), 1
+    )
+    return text, row, lineno
+
+
+def _opened(text: str, table: str) -> str:
+    """``text`` with ``table``'s header appended where it has none (RK1652).
+
+    `declare_table`'s write, at the one place a move can need it: a key belonging under a table
+    this file never opened has nowhere to land, and refusing there would hand back the hand
+    edit this verb exists to remove — the header being derived from the same map the
+    destination is.
+
+    A no-op wherever the header is already there, and at the **end** for `declare_table`'s
+    reason: a table that does not exist has no sibling to sit beside.
+    """
+    if not table or any(line.strip() == f"[{table}]" for line in text.splitlines()):
+        return text
+    blank, line = chr(10) * 2, chr(10)
+    separator = "" if text.endswith(blank) else (line if text.endswith(line) else blank)
+    return f"{text}{separator}[{table}]{line}"
+
+
+def _key_at(lines: Sequence[str], table: str, key: str) -> int | None:
+    """Where ``table`` spells ``key``, as an index into ``lines`` — or `None`.
+
+    Read line by line for :func:`_into`'s reason: the file is the caller's own bytes, and a
+    reader that went through `tomllib` would answer about a document with no comments,
+    no order and — on the config this verb exists for — no parse at all.
+    """
+    header = f"[{table}]"
+    inside = not table
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith("["):
+            inside = stripped == header
+            continue
+        if inside and stripped.split("=")[0].strip() == key and "=" in stripped:
+            return index
+    return None
+
+
 def _mirrored(config: Config) -> tuple[Heading, ...]:
     """The block headings this project's roadmap carries, for a file that has none of its own.
 
@@ -1407,6 +1641,15 @@ def _mirrored(config: Config) -> tuple[Heading, ...]:
 def _with_role(source: Path, row: str) -> str:
     """This project's `roadkeep.toml` with one `[files]` key added, byte for byte otherwise.
 
+    :func:`_into`, at the one table `declare <role>` writes — the insertion is general since
+    RK1652, where a second caller needed the same placement under any header.
+    """
+    return _into(source.read_text(encoding="utf-8"), "files", row)
+
+
+def _into(text: str, table: str, row: str) -> str:
+    """``text`` with ``row`` added under ``table``, byte for byte otherwise.
+
     A targeted insertion and never a serialiser, which is `sections._with_namespace`'s rule and
     `bump_version`'s before it: a `tomllib` round-trip drops the comments a scaffolded config is
     mostly made of, and rewriting somebody's file to add a line is the destructive formatting L3
@@ -1415,24 +1658,30 @@ def _with_role(source: Path, row: str) -> str:
     Placed after the table's **last key** rather than before its first or after the whole table:
     the first would put a retrofitted role above the roadmap, and the last would land it under
     whatever table follows — the one way this write can be silently wrong.
+
+    ``table`` is `""` for the top level (RK1652), where there is no header to find and the
+    insertion goes after the last key **above the first one**: a top-level key written below a
+    header is the misplacement this move exists to undo, so putting it back below one would
+    write the same defect at the other end of the file.
     """
-    text = source.read_text(encoding="utf-8")
     lines = text.splitlines(keepends=True)
-    at, last = None, None
+    header = f"[{table}]"
+    at, last = (None if table else -1), None
     for index, line in enumerate(lines):
         stripped = line.strip()
         if stripped.startswith("["):
             # The table this key belongs to, and then the next one, which ends the search: a
             # `[files]` appearing twice is a config `tomllib` itself refuses.
-            at = index if stripped == "[files]" else at
+            at = index if stripped == header else at
             if at is not None and index > at:
                 break
         elif at is not None and index > at and "=" in stripped:
             last = index
     if at is None:
         raise ValueError(
-            f"{source.as_posix()} declares no `[files]` table, so there is no place for a "
-            f"role: a configured project has one, and this file may have been hand-edited"
+            f"this config declares no `{header}` table, so there is no place for "
+            f"`{row.split('=')[0].strip()}`: `init` writes one, and a file past it may have "
+            f"been hand-edited"
         )
     into = (last if last is not None else at) + 1
     return "".join([*lines[:into], row, *lines[into:]])

@@ -119,8 +119,12 @@ build *fixes* from its own corpus and no project may declare, with the reading i
 follows — so *is this mine to set?* is answered rather than guessed. Reach for it before
 writing a key rather than after the refusal, and read the build it names: a key nothing
 declares is a typo, a key this copy predates is an upgrade, and the file cannot tell
-them apart. **`govern <address> [<n>]` is the write beside it**, and the only one on that
-file besides `declare`: the four tables whose
+them apart. A key this build knows **one table away** names the third: `declare --move
+files.priority` moves the line to the table that declares it, and `declare --move limits.why
+--to criteria` says which where several do. It is the one write that runs while the config
+does not parse, which is the state a misplaced key leaves every other verb in.
+**`govern <address> [<n>]` is the write beside it**, and the only one on that file besides
+`declare`: the four tables whose
 value is a judgement about a number — `[limits]`, `[budgets]`, `[tools]`, `[claims]` — each
 already had the read that decides it somewhere else, so this takes the reading and writes the
 number in one call. With no number it prints the reading alone;

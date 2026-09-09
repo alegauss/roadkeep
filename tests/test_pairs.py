@@ -458,11 +458,20 @@ def test_every_declared_answer_names_a_flag_its_verb_actually_has():
     dest through the subparser and raise where it has none, so a declaration naming a flag
     that was renamed fails when the parser is *constructed*. This asserts what that buys —
     every group is non-empty, every subject says what it answers, and every narrowing flag
-    names a subject the same verb declares."""
+    names a subject the same verb declares.
+
+    A **positional** answer is spelled `<dest>` and has no option string (RK1652), which is
+    `declare`'s pair: a role by position and a misplaced key by flag. So the assertion is that
+    the verb declares the argument, whichever way a caller passes it — the option strings for a
+    flag, and the dest for the one that has none."""
     seen = 0
     for name, parser in sorted(subcommands().items()):
         options = {
             one for action in parser._actions for one in action.option_strings  # noqa: SLF001
+        } | {
+            f"<{action.dest}>"
+            for action in parser._actions  # noqa: SLF001
+            if not action.option_strings
         }
         for group in parser.get_default("subjects") or ():
             seen += 1
@@ -486,17 +495,22 @@ def test_every_declared_answer_names_a_flag_its_verb_actually_has():
 # -- the subject a verb cannot answer without (RK1649) -------------------------
 
 #: Every verb declaring that one of its subjects is **required**, and how many it offers.
-#: Two, and the count is what decided the shape rather than a preference about declarations:
+#: Three, and the count is what decided the shape rather than a preference about declarations:
 #: RK1555 kept a rule with one member as a raise, with a comment saying it was the exception
 #: and not the oversight, so what tells that answer from a declaration is how many verbs have
-#: the shape — which is a number nothing could report while both of these raised it inside a
-#: handler, where no reader of a declaration looks.
-REQUIRED = {"criterion add": 2, "cost": 7}
+#: the shape — which is a number nothing could report while two of these raised it inside a
+#: handler, where no reader of a declaration looks. `declare` is the third (RK1652), and the
+#: one whose answers are a positional and a flag.
+REQUIRED = {"criterion add": 2, "cost": 7, "declare": 2}
 
 #: What each of them needs before a bare call is missing **only** a subject. `criterion add`
 #: takes a lead and a reason argparse refuses first, and a refusal about those would be this
 #: file measuring a different rule.
-FILLED = {"criterion add": ["--lead", "Unplaced", "--why", "Nowhere yet."], "cost": []}
+FILLED = {
+    "criterion add": ["--lead", "Unplaced", "--why", "Nowhere yet."],
+    "cost": [],
+    "declare": [],
+}
 
 
 def test_every_verb_that_requires_a_subject_is_one_this_table_names():

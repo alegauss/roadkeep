@@ -344,6 +344,39 @@ def test_the_role_a_decision_needs_is_opened_by_the_command_the_refusal_names(tm
     assert lint(Config.discover(root)).clean
 
 
+def test_the_door_a_misplaced_key_names_moves_it_and_the_config_then_loads(tmp_path, capsys):
+    """RK1652, and RK393's rule at the one file every other verb reads first. A key this build
+    declares one table away closed the config behind the whole tool, and the repair RK1610's
+    refusal named was a header three lines up — by hand, which over MCP is no edit at all.
+
+    Run in the order the messages print: the refusal names `declare --move`, that call moves
+    the line, and its own answer names the read that says the file parses now. The last step is
+    what a matched sentence cannot claim — every key the move did not touch may be misplaced
+    too, so *it loads* is a fact about the file and not about the write.
+    """
+    root = tmp_path / "project"
+    root.mkdir()
+    (root / "roadkeep.toml").write_text(
+        'prefix = "TT"\n\n[files]\nroadmap = "ROADMAP.md"\npad = 3\n',
+        encoding="utf-8",
+        newline="",
+    )
+    (root / "ROADMAP.md").write_text("# Roadmap\n\n## Block A\n", encoding="utf-8", newline="")
+    # Any verb at all, because the load is ahead of every handler: what a caller meets is this
+    # refusal whichever command they typed.
+    assert main(["-C", str(root), "stats"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    moving = commands(said)
+    assert [one[:2] for one in moving] == [["declare", "--move"]], said
+    ran = runs(root, said)
+    assert ran and ran[0] == ["declare", "--move", "files.pad"], said
+    # And the answer that write printed names the read, which now answers rather than refusing.
+    answer = capsys.readouterr().out
+    assert runs(root, answer) == (["config"],), answer
+    capsys.readouterr()
+    assert Config.discover(root).schema.id_pad == 3, "the key is in force, one table over"
+
+
 # -- the doors of a departure that cannot happen (RK1498) ---------------------
 
 #: A governed project on the id scheme, whole: a pointer that resolves and a design under it,

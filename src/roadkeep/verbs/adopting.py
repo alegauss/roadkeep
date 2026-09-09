@@ -36,6 +36,7 @@ from roadkeep.adopting import (
     adopt,
     declare,
     init,
+    relocate,
 )
 from roadkeep.provenance import joined
 from roadkeep.capturing import (
@@ -54,7 +55,7 @@ from roadkeep.capturing import (
     sweep,
 )
 from roadkeep.backlog import Backlog
-from roadkeep.config import ROLES, Config
+from roadkeep.config import ROLES, Config, find_config
 from roadkeep.installing import (
     PROJECT_ENGINE,
     engines,
@@ -128,6 +129,23 @@ def _declare(config: Config, args: argparse.Namespace) -> Result | int:
     the caller is standing in, and the headings it mirrors are that project's own.
     """
     try:
+        # The third act, and the one that runs on a config this build cannot read (RK1652).
+        # First, because the other two need the parse it repairs: a role written into a file
+        # whose keys are misplaced is a `[files]` entry under a config nothing loads.
+        if args.move:
+            return answered(relocate(config, args.move, args.to or ""), config=config)
+        if config.source is None and (found := find_config(config.root)) is not None:
+            # The load's own words and no door of this refusal's own (RK1652): the problem
+            # already carries the command that closes it — `_reject_unknown` composes `declare
+            # --move <key>` where the key is one this build knows — and a second door composed
+            # here would be this verb having an opinion about a message it is quoting.
+            try:
+                Config.load(found)
+            except (ValueError, OSError) as broken:
+                raise ValueError(
+                    f"this config did not parse, so there is no table to declare "
+                    f"`{args.role}` in: {broken}"
+                ) from None
         # One argument, two vocabularies (RK1328): a **role** retrofits a file and its
         # `[files]` key, and an opt-in **table** opens a list this project may then govern.
         # Both are *this file, one key, refused where it is already declared*, which is why
@@ -877,14 +895,16 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
         "declare",
         help="add one governed role or open one opt-in table, past `init`",
         description=(
-            "Write one role's file and the `[files]` key governing it, or open an opt-in "
-            "table, on a project past `init`. Reach for it when a verb refuses over an "
-            "undeclared role or table: `init` writes both once and refuses to run twice, so "
-            "either declined at scaffold time was otherwise a hand edit. A role's file "
-            "arrives with the block headings the roadmap carries, spelled as that file spells "
-            "one; a table arrives empty, which is what opting in means, and `govern` tunes "
-            "what is in it. The config keeps every other byte. Refused where it is already "
-            "declared."
+            "Write one role's file and the `[files]` key governing it, open an opt-in "
+            "table, or move a misplaced key to the table this build declares it under, on a "
+            "project past `init`. Reach for it when a verb refuses over an undeclared role or "
+            "table: `init` writes both once and refuses to run twice, so either declined at "
+            "scaffold time was otherwise a hand edit. A role's file arrives with the block "
+            "headings the roadmap carries, spelled as that file spells one; a table arrives "
+            "empty, which is what opting in means, and `govern` tunes what is in it. The "
+            "config keeps every other byte. Refused where it is already declared — and "
+            "`--move` is the one write that runs while the file does not parse, which is what "
+            "a misplaced key leaves every other verb refusing."
         ),
     )
     # Not argparse `choices`, for `--role`'s own reason (RK304) read one step further: what is
@@ -893,6 +913,7 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
     # refused by name in the command.
     declare_parser.add_argument(
         "role",
+        nargs="?",
         help=(
             f"which governed file to declare, one of {', '.join(ROLES)} — or an opt-in "
             f"table to open, one of {', '.join(OPT_IN)}"
@@ -902,8 +923,44 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
         "--path",
         help="where it goes, project-relative (default: this role's own docs/ path)",
     )
+    # The third act on this file, and the one that runs when it does not parse (RK1652).
+    declare_parser.add_argument(
+        "--move",
+        metavar="KEY",
+        help=(
+            "move a misplaced key to the table this build declares it under, addressed as "
+            "the refusal spells it, e.g. files.priority; the value is moved whole and a key "
+            "several tables declare is refused"
+        ),
+    )
+    declare_parser.add_argument(
+        "--to",
+        help=(
+            "which table it goes under, with --move: needed only where several declare the "
+            "key, and the top level is \"\""
+        ),
+    )
     declare_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    declare_parser.set_defaults(handler=_declare)
+    # RK1649's required choice: this verb writes one thing and there are now two of them, so a
+    # call naming neither has nothing to do — and the role is a positional, which argparse
+    # would refuse before `--move` could be read.
+    answers(
+        declare_parser,
+        ("role", "declares a governed role or opens an opt-in table"),
+        ("move", "moves a misplaced key to the table that declares it"),
+        required=(
+            "this verb writes one key, and which one is the whole call: a role retrofits a "
+            "file, a table opens a list, and `--move` puts a misplaced key back"
+        ),
+    )
+    narrows(declare_parser, "to", "move")
+    narrows(declare_parser, "path", "role")
+    # The one write in this package that survives a broken config, and the reason is the state
+    # it repairs: a misplaced key closes the file behind every verb, this one among them, so a
+    # door needing the config parsed opens only once the hand edit has been made. The other
+    # two acts refuse below rather than run against `Config.default` — writing a role into a
+    # file this build could not read is the half-landed state `declare` already refuses.
+    declare_parser.set_defaults(handler=_declare, tolerates_config_error=True)
 
     adopt_parser = subcommands.add_parser(
         "adopt",

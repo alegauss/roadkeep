@@ -236,6 +236,16 @@ SITES: tuple[Site, ...] = (
     # so the door gave back the identical refusal — `engines` now tolerates a broken config
     # the way `guard` and `report` do, needing the root and nothing else (RK1598).
     Site("config.py:_skew", "run"),
+    # RK1652, and the door RK1610's refusal did not have: a key this build declares one table
+    # away named the header to move it under, by hand, in the file no other verb can read past
+    # it. Run by `test_composing`, which reads the refusal off a config holding one, runs the
+    # `declare --move` it names, and asks the same config to load — the only proof a door is
+    # the right command (RK393).
+    Site("config.py:_reject_unknown", "run"),
+    # The other half of that write, and the read a caller has next: whether the file parses
+    # now, which this write cannot claim on its own — every key it did not touch may be
+    # misplaced too. Run by the same test, on the config the move above repaired.
+    Site("adopting.py:Moved.stated", "run"),
     # RK1498, over RK10. The read that shows what a count could not take, run by
     # `test_composing` against a roadmap holding one marker-bearing line that is not a task.
     # It was quoted with apostrophes rather than backticks (RK1597) — the same class as a

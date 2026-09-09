@@ -560,14 +560,18 @@ def test_a_key_under_the_wrong_header_is_told_which_table_holds_it(tmp_path):
     keys exist — one table away.
 
     RK1064's sentence points a reader at their spelling and at their version, and the edit is
-    neither: it is a header three lines up, which the message never named."""
+    neither: it is a header three lines up, which the message never named.
+
+    And since RK1652 it names the **verb** rather than the edit, which is that task's whole
+    argument: the repair was a hand edit to the one file this tool owns the writes to, and over
+    MCP a hand edit is no edit at all."""
     path = write(tmp_path, '[files]\nroadmap = "docs/R.md"\npriority = ["RK1"]\n')
     with pytest.raises(ConfigError) as caught:
         Config.load(path)
     said = str(caught.value)
     assert "misplaced key 'files.priority'" in said
     assert "at the top level" in said, "the table is named, which is the whole repair"
-    assert "the header above it is what to move" in said
+    assert "declare --move files.priority" in said
 
 
 def test_a_name_several_tables_declare_names_all_of_them(tmp_path):

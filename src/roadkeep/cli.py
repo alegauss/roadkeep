@@ -424,6 +424,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         # `roadkeep.toml` into a repository nobody can edit. It resolves its own config
         # from the payload anyway — one hook process serves every project a session sees.
         config = Config.default(args.directory)
+        # Said on the args and not inferred from `config.source` (RK1652): a project with no
+        # config at all is also sourceless, and *there* the defaults are what the tool
+        # governs. What `dispatch` needs to know is that this run cannot say which files are
+        # governed, which is a fact about the load and not about the object it fell back to.
+        args.config_unread = True
     # Recorded here because this is the one surface that has one: a refusal that computed the
     # address the caller was missing can then offer the same call with it filled in, instead of a
     # sentence to read, extract and retype (RK1149). After `discover`, so a run that never reached
@@ -517,7 +522,14 @@ def answer(config: Config, args: argparse.Namespace) -> Result | int:
         # is the bytes a verb left, so a later turn can say that bytes which are not these
         # arrived some other way (RK175). A refusal wrote nothing and re-records the same
         # digests, which is the right answer and not a special case.
-        attest(config)
+        #
+        # **Except where the config did not parse** (RK1652). `declare --move` is the first
+        # write to run on the fallback config, whose paths are the defaults — so recording
+        # them would key this project's roles to files it may not govern, and every one of
+        # them would read as drifted the moment the real config parses again. A run that
+        # cannot say which files are governed records nothing about them.
+        if not getattr(args, "config_unread", False):
+            attest(config)
         return code
 
 

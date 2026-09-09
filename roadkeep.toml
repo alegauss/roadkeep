@@ -183,7 +183,16 @@ characters = 2850
 # seven arguments saying nothing changed, and the call then refused over a why that had
 # not moved. 165 characters for two fields, and the payload one refusal re-sends is
 # larger than that. 67200 leaves 125, the discipline of the 119 above it.
-session = 67200
+# RK1652 gives declare the third act on this file, and this transport is the whole
+# argument for it: a misplaced key closes the config behind every verb, and the repair
+# RK1610's refusal named is a header three lines up - a hand edit, which here is no edit
+# at all. So a session that meets one cannot use any tool until somebody opens an editor,
+# which is the state 20 declared tables and 5 written by a verb had left standing. 465
+# characters for two fields and the clause that says what the third act is, and the
+# reading here is 67665. Nothing was trimmed to pay for it: the description had no
+# paragraph nobody had edited, which is the test RK1059 sets before a raise. 67790 leaves
+# 125, the discipline of the 125 above it.
+session = 67790
 
 [budgets]
 # Files loaded on every turn, and what each may cost (RK30). This budget lived in prose at

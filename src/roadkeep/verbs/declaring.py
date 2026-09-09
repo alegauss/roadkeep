@@ -350,10 +350,18 @@ def _declared(parser: argparse.ArgumentParser, dest: str) -> tuple[str, str, obj
     any argv reaches it — rather than a refusal that silently never fires. That is the same
     trade `writes_when` makes one function up, and the reason this takes dests: an option
     string is spelled per flag and a dest is what every other declaration here is keyed by.
+
+    **A positional is an answer too** (RK1652), spelled `<dest>` as a usage line spells one:
+    `declare` takes a role by position and a misplaced key by flag, which are two answers to
+    one verb, and a declaration that could hold only flags would have left that pair as the
+    handler raise RK1649 took out of two others. It is optional by `nargs="?"` there — a
+    required positional cannot be one of two answers, argparse refusing before any
+    declaration is read — so the shape and the check stay in step with each other.
     """
     for action in parser._actions:  # noqa: SLF001 - argparse exposes no public reader
-        if action.dest == dest and action.option_strings:
-            return dest, action.option_strings[0], action.default
+        if action.dest == dest:
+            spelled = action.option_strings[0] if action.option_strings else f"<{dest}>"
+            return dest, spelled, action.default
     raise KeyError(f"{parser.prog} declares no --{dest.replace('_', '-')}")
 
 

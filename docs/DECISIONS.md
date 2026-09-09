@@ -237,6 +237,7 @@ two strings neither scan claims.
 - ✅ **RK1646** **the guard against the folded idiom sweeps the package and not the suite, where two sites still spell it out** — The suite is held to the folded idiom exactly as the package is: the exemption set is declared and empty, because no test here asks the question the long way for a reason.
 - ✅ **RK1647** **three walkers in the suite each rebuild which function a node sits in, and one of them spells the address differently** — One reader answers which scope a node sits in: surface.scoped yields the dotted address per node and surface.owners is that by line, and a fourth visitor is a red.
 - ✅ **RK1649** **answers() spells at most one of a verb's flags and nothing spells exactly one, so a required choice stays a raise** — A required choice is declared beside the pair and never published: a required boolean key is present-and-false, the call it refuses, and the skill shows the address filled in.
+- ✅ **RK1652** **a config refusal now names the table a key belongs under, and no verb moves it there** — The verb that repairs roadkeep.toml runs on a config that did not load, and a run which cannot say which files are governed attests none of them.
 
 ### §RK1394 Proof, not age
 
@@ -436,6 +437,21 @@ the subjectless call it refuses, so the clause would say yes where the tool says
 `criterion add` it costs 60 of the 109 units left under `[tools] session`, to publish an
 address `writing.md` shows filled in every span it writes — the reading `Detail.silent`
 exists to make.
+
+### §RK1652 The verb that owns the file
+
+Whose verb it was decided itself on the surface. A third served tool costs about 800
+units and this transport had 109 free, while `declare` already owns the non-measured
+writes to this file — `govern`'s own division puts everything but a measurement there.
+So the argument widened again, and the positional and the flag became a required choice.
+
+Two refusals are the author's and not derivable: a key several tables declare, and a key
+the destination already holds. The second is a *duplicate* rather than a misplacement,
+and deleting either value would delete something nothing else records.
+
+A missing header is written, not refused: refusing there would hand back the hand edit
+the verb exists to remove, and the header comes from the same map the destination does.
+The comment run above a key stays put — under a header it may be the table's.
 
 ## Block E — Adoption
 

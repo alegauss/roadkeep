@@ -195,29 +195,6 @@ total over every function that composes a command, so the row and its run come w
 
 ## Block D — The gate
 
-### §RK1652 The edit with no door
-
-`govern` was built on one argument: every table in `roadkeep.toml` except the four it
-writes was a hand edit, *which over the served surface is no edit at all*. RK1610 wrote
-a new message straight into that gap — `misplaced key 'files.priority': this build
-declares it as \`priority\` at the top level — the header above it is what to move` —
-and the move is a hand edit with no verb behind it.
-
-Measured: `describing.TABLES` declares 20 tables, `governed` writes 5, `declare` opens a
-role's `[files]` entry, and **15 tables no verb reaches**. A misplaced key in any of
-them is a refusal naming an edit precisely, in a file this tool otherwise owns, to a
-caller that may have no editor.
-
-It is the sharper case rather than a new one: the same is true of every hand edit those
-15 tables need. What RK1610 changed is that the tool now knows the exact repair — which
-key, which header, from a map it already prints — and still hands back prose.
-
-So the shape is a verb that moves a key between tables, and the question is its bounds.
-`govern` refuses a key with no reading behind it, on the argument that a name or a path
-is a decision and not a measurement; moving one is neither — it is a correction to a
-placement the tool can derive whole. Whether that makes it `govern`'s, `declare`'s, or a
-door of its own is the design.
-
 ### §RK1654 The eight nobody separated
 
 RK1612 put the stream ordering in `refusing.beneath` and pointed its two known callers

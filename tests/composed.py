@@ -172,6 +172,12 @@ FIELDS: dict[str, Composed] = {
     "folds_into": _address("the task this work went inside, resolved the same way"),
     "supersedes": _address("the shipped entry a revert undoes, resolved in the ledger"),
     "key": _address("which `roadkeep.toml` key `govern` writes, from the declared tables"),
+    # What `declare --move` takes (RK1652). An address and not a value: the key is resolved
+    # against `describing.TABLES` and the line that moves is the caller's own bytes, so what
+    # this write can get wrong is a placement and never a field — and the file is read back
+    # before it lands, which is the `round-trip` half every writer here keeps. Its `--to` is
+    # in `ELSEWHERE`, that dest already meaning an anchor on the two verbs that move a section.
+    "move": _address("the misplaced key, resolved against the tables this build declares"),
     "at": _address("the number that key takes, refused by the parser that reads the file"),
     "level": _address("the heading depth a section is written at, a small integer"),
     "line": _address("which of two entries under one id, by its line number in the file"),
@@ -208,6 +214,11 @@ ELSEWHERE: dict[tuple[str, str], Composed] = {
     ("criterion amend", "why"): _schema(
         "the same field corrected in place, held to the same two numbers",
         "criterion.why", "criterion.shape",
+    ),
+    # `--to` is an anchor on the two verbs that move a section and a **table** here (RK1652):
+    # the same word about two vocabularies, which is exactly what this list is for.
+    ("declare", "to"): _address(
+        "which table a misplaced key goes under, from the ones this build declares it in"
     ),
     # The one dest that is an address on one verb and prose on another: `non-goal drop` and
     # `criterion drop` take the lead to *find* the bullet, and the two `add` verbs write it.

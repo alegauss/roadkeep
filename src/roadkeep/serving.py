@@ -378,7 +378,10 @@ TOOLS: tuple[Tool, ...] = (
     # surface is the hand edit the guard denies and so no edit at all. `init` and `adopt` stay
     # withheld beside it and the line between them is *when*: those run before a project is
     # governed, and this is a write on one that already is, reached from a `defer` refusal.
-    Tool("declare", ("role", "path")),
+    # `move` and `to` since RK1652, and this transport is the whole argument for them: a
+    # misplaced key closes the config behind every verb, and the repair the refusal named
+    # was a header three lines up — a hand edit, which here is no edit at all.
+    Tool("declare", ("role", "path", "move", "to")),
     # The write a session makes first, and the one flag that became a tool (RK149, RK150): it
     # is `brief --claim`, so the answer is everything needed to start the task *and* the
     # marker that stops the next agent being handed it — while `brief` and `pick` below stay
