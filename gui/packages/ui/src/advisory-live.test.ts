@@ -36,11 +36,10 @@ const MEASURED_AGAINST = '2026.3.8'
 const MARKERS = ['xlsx', 'SheetJS', 'sheet_to_json', 'aoa_to_sheet', 'book_new']
 
 function bundledScript(): string {
+  // Whether there is a build at all, and whether it is older than the tree, is the live
+  // run's own setup to refuse (RG96). What is left here is the directory this file reads.
   if (!existsSync(BUNDLE_DIR)) {
-    throw new Error(
-      `${BUNDLE_DIR} is not there, so there is no bundle to look in. Run \`npm run build\` first —` +
-        ' this asks what the renderer actually ships and cannot answer it from source.',
-    )
+    throw new Error(`${BUNDLE_DIR} is not there, so there is no bundle to look in.`)
   }
 
   return readdirSync(BUNDLE_DIR)

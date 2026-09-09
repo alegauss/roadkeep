@@ -22,5 +22,10 @@ export default {
     name: 'ui-live',
     include: ['src/**/*-live.test.{ts,tsx}'],
     exclude: ['**/node_modules/**', '**/dist/**'],
+    // The same refusal `shell`'s live project makes, from the same file: one of the two
+    // tests here reads the built bundle, and a bundle older than the tree answers green
+    // about code nobody is looking at (RG96). Reached across packages because a config is
+    // Node tooling and not the renderer — the seam this must not cross is `ui/src`.
+    globalSetup: ['../shell/src/built-setup.ts'],
   },
 }

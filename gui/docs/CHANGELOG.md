@@ -116,6 +116,7 @@
 - ✅ **RG93** **the dev loop reaches into the compiler's own layout, and only a hand run would notice it moving** — The path into TypeScript's layout is one function two callers name, and a live test starts it, so an upgrade that moves the file reds a run (design recorded in `packages/shell/src/compiler.ts`).
 - ✅ **RG94** **no type-aware rule runs, so a floating promise is still nobody's finding** — The lint gate runs the type-aware half, and the findings were read rather than silenced: one rule off with a reason, and the rest fixed (design recorded in `.oxlintrc.json`).
 - ✅ **RG95** **no gate reads an advisory, so the next one is found by whoever happens to install something** — CI reads npm audit against a written list of the advisories answered here, and fails on anything else and on an exception nothing reports (design recorded in `packages/shell/src/advisories.ts`).
+- ✅ **RG96** **the suite now tests a bundle it did not build, so a green run can be about yesterday's code** — A live run refuses to start against a build older than the tree, naming the file that was edited and the command that fixes it (design recorded in `packages/shell/src/freshness.ts`).
 
 ## Block H — The look (a design system for governed prose)
 

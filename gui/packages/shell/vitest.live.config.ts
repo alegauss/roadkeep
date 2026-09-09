@@ -35,6 +35,8 @@ export default defineConfig({
     //   live           what the engine said it was, asked once (RG84), so a rebuild
     //                  underneath the run is one answer at the start rather than
     //                  thirty-one files disagreeing about which program they read.
-    globalSetup: ['./src/fixture-cache.ts', './src/live.ts'],
+    //   built          that there is a build and that it is not older than the tree, so a
+    //                  run whose subject is on disk is a run about this code (RG96).
+    globalSetup: ['./src/built-setup.ts', './src/fixture-cache.ts', './src/live.ts'],
   },
 })

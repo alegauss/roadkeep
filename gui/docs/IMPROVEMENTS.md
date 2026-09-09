@@ -241,28 +241,6 @@ replaces itself while somebody is reading a backlog is one that loses their plac
 it must not do is phone anywhere on launch by default: this app reads a person's
 repositories, and a network call it did not need is one that has to be explained.
 
-### §RG96 A test whose subject is on disk
-
-RG60 put a test in the suite that starts the built app. Everything else in there
-compiles from source through Vitest, so `npm test` has always been a statement about the
-working tree. This one is a statement about `packages/ui/dist` and
-`packages/shell/dist`, which are whatever the last build left.
-
-CI is fine: the workflow builds before it tests, deliberately. A developer is not. `npm
-test` after editing a renderer file runs the new unit tests against the new source and
-the RG60 questions against the old bundle, and reports one number for both. The failure
-mode is the bad one — a green run that is partly about code nobody is looking at.
-
-Three shapes, none obviously right. Make `npm test` depend on a build, which costs every
-run a build and makes the fast inner loop slower. Have the test build what it needs,
-which puts a build inside a test and makes one test cost what a build costs. Or have it
-*notice*: compare the bundle's timestamp against the newest source file and fail with a
-sentence naming `npm run build`, which is cheap and turns a false green into an
-instruction.
-
-The third is probably it. A test that refuses to run against a stale subject is honest
-in a way that a test which silently rebuilds is not, and it costs a `stat`.
-
 ### §RG115 What happens when a setting does not stick
 
 RG47 built the recovery carefully: a settings file that is not JSON, one from a future
