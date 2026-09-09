@@ -11,31 +11,6 @@ rather than pretending it is safe. Spawning without a shell removes the quoting 
 but not the encoding one. What proves it is a round trip: write a symptom carrying an
 accent, an apostrophe and an em dash, read it back with show, and compare the bytes.
 
-### §RG81 One way to spell a command line
-
-`buildArgv` and `composeWrite` both build `['-C', root, ...verb.split(' '), ...args,
-'--json']`, and three non-obvious rules now live in two places. `-C` is passed even
-though the transport also sets the working directory, deliberately and for a reason
-written down at one of the two sites. `--json` is appended by the composer rather than
-declared per verb. A verb name is split on spaces because `non-goal list` is two words
-while the table key stays whole, which is what `commands` publishes and what the
-capability check matches.
-
-They have already diverged. A read carries a `signal` through `CallOptions` and a write
-takes only `timeoutMs` — that one is deliberate, since a write aborted mid-call leaves
-the caller unable to say whether it landed, which is exactly the state `unreadable`
-exists to name. But it is deliberate nowhere in writing: the asymmetry reads as an
-oversight, and the next person to notice it will either document it again or remove it.
-
-The fix is small and worth doing before the write table grows. One composer takes a
-root, a verb name and the arguments a builder produced, and both paths call it; the read
-and write tables stay separate, because that separation is about which doors may be
-offered and not about how a command line is spelled. The signal's absence becomes a
-sentence in the write path saying why, rather than a difference a reader has to
-interpret.
-
-On ship: `--recorded-in packages/core/src/client.ts`.
-
 ### §RG82 A version read three times
 
 `contract.test.ts` reads the engine's version once in `beforeAll` and asserts two later
@@ -591,22 +566,22 @@ because no second locale exists to choose.
 
 Three pieces are missing and they are small. A locale is a file — a partial map of the
 same keys — and something has to list which ones this build ships, since `localeFor`
-takes that list rather than discovering it. The shell has to read the chosen one and
-hand it across the bridge, alongside the settings it already holds. And
-`WordingProvider` has to take it, which it already does.
+takes that list rather than discovering it. The shell reads the chosen one and hands it
+over the bridge with the settings; `WordingProvider` takes it, and so does i18next.
 
-The question worth deciding first is where a locale file lives and who reads it. Bundled
-with the renderer is the simple answer and makes a translation a release. Read from disk
-beside the settings would let somebody add one without a build, which is a different
-product and probably not this one.
+**A locale file is bundled with the renderer**, so a translation is a release. Reading
+from disk beside the settings would let somebody add one without a build — a different
+product, not this one.
 
-`untranslated` and `stale` exist and nothing runs them, so a locale can drift from the
-base without anybody hearing about it. Whatever holds the second locale should run both,
-because the first thing that goes wrong with a translation is a key that moved
-underneath it.
+**An empty tag follows the desktop, and the shell is what says so** — it has the
+process, and `localeFor` answering `en` for an empty tag is the promise `settings.ts`
+makes and does not keep. `i18next-browser-languagedetector` goes: it reads the browser's
+answer, not the desktop's, and [[RG88]] settled that there is one answer.
 
-Nothing here is urgent while English is the only locale. It stops being small the moment
-there are two.
+**The second locale is `pt-BR`**, which the package already halves — its own components
+ship `pt`. `untranslated` and `stale` exist and nothing runs them, so the suite runs
+both: the first thing that goes wrong with a translation is a key that moved underneath
+it.
 
 ### §RG87 Which copy of the ground setting is the real one
 
@@ -645,15 +620,17 @@ systems on it, each with its own idea of the current locale — which is exactly
 of the theme problem in [[RG87]], and the package's own notes describe the harm: two
 systems agreeing only by luck.
 
-The question is not which library is better. It is which one holds *the locale*, since
-there can only be one answer to what language this window is in. The likely shape is
-that i18next holds the locale because the package's components read it from there, and
-this app's catalogue is fed the same tag — its own lookup is fifty lines and does not
-need replacing to stop being a second source.
+**i18next holds the locale.** The package's components read it from there and cannot be
+told otherwise, so there is one answer to what language this window is in, and the
+catalogue is fed the same tag rather than keeping its own. Its fifty-line lookup stays:
+replacing it would spend the type and the pseudo-locale run for nothing.
 
-Worth settling with [[RG86]], which is the line that first has to choose a locale at
-all. Deciding it there costs nothing; deciding it after two locales exist means moving
-both.
+Which leaves where a string lives, and the rule is **whoever draws it**. A string this
+app's own components render is a `MessageKey`. A string the package renders is an
+i18next key, including the nav labels this app writes and `BentoNavItem` resolves —
+which is what [[RG63]] was waiting to know.
+
+`initVigI18n` is the entry point's call, and nothing makes it yet.
 
 ### §RG90 A token pair that fails before anything uses it
 

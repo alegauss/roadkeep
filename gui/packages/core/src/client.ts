@@ -46,7 +46,10 @@ export interface Client {
 }
 
 /**
- * Build the whole command line for one call.
+ * The one way this app spells a command line, for a read and for a write alike.
+ *
+ * Three rules live here and nowhere else, which is the point: they were written twice and
+ * had begun to drift.
  *
  * `-C <root>` leads, because the engine takes it before the verb, and it is passed even
  * though the transport also makes `root` the working directory. Both, deliberately: an
@@ -57,18 +60,31 @@ export interface Client {
  * `--json` closes every call for the same reason no verb declares it: a client that read
  * human output would be reading a format nobody promised it.
  *
- * A verb's words are spread rather than its key split: some of the engine's verbs are two
- * words — `non-goal list`, `criterion list` — and `VERB_WORDS` carries the spelling as an
- * array. Nothing here ever turns a string into arguments, which is the whole point of an
- * argv being an array in the first place.
+ * The verb arrives already spelled, as words rather than a key: some of the engine's verbs
+ * are two — `non-goal list`, `criterion list`, `section add` — and each table carries the
+ * spelling as an array. Nothing here ever turns a string into arguments, which is the whole
+ * point of an argv being an array in the first place.
+ *
+ * **What stays separate is the tables.** Which verbs may be read and which may be written
+ * is about what this app is allowed to offer, and it has nothing to do with how a command
+ * line is spelled — so the two builders keep their own tables and share this.
  */
+export function wrapArgv(
+  root: string,
+  words: readonly string[],
+  args: readonly string[] = [],
+): string[] {
+  return ['-C', root, ...words, ...args, '--json']
+}
+
+/** Build the whole command line for one read, off the read table's own spelling. */
 export function buildArgv<K extends VerbName>(
   root: string,
   verb: K,
   input: VerbInputs[K],
 ): string[] {
   const argvFor = VERBS[verb] as (value: VerbInputs[K]) => readonly string[]
-  return ['-C', root, ...spell(verb, VERB_WORDS), ...argvFor(input), '--json']
+  return wrapArgv(root, spell(verb, VERB_WORDS), argvFor(input))
 }
 
 export function createClient(transport: Transport): Client {

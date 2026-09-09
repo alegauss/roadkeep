@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { buildArgv, createClient } from './client'
+import { buildArgv, createClient, wrapArgv } from './client'
 import type { CancelSignal, EngineRequest, EngineResult, Transport } from './transport'
+import { composeDoor, composeWrite } from './writing'
 
 function recordingTransport(): { transport: Transport; calls: EngineRequest[] } {
   const calls: EngineRequest[] = []
@@ -16,6 +17,37 @@ function recordingTransport(): { transport: Transport; calls: EngineRequest[] } 
     },
   }
 }
+
+describe('RG81: one way to spell a command line, for a read and a write alike', () => {
+  it('wraps whatever a builder produced, and adds nothing else', () => {
+    expect(wrapArgv('/w', ['non-goal', 'list'], ['--block', 'A'])).toEqual([
+      '-C',
+      '/w',
+      'non-goal',
+      'list',
+      '--block',
+      'A',
+      '--json',
+    ])
+    expect(wrapArgv('/w', ['lint'])).toEqual(['-C', '/w', 'lint', '--json'])
+  })
+
+  it('spells a read and a write the same way, which is the whole task', () => {
+    // The two tables stay separate — which verbs may be read and which may be written is
+    // about what this app may offer. How the line is spelled is not, and this is it.
+    const read = buildArgv('/w', 'show', { id: 'RG1' })
+    const write = composeWrite('/w', 'retire', { id: 'RG1', reason: 'no longer true' }).argv
+    const door = composeDoor('/w', { argv: ['repair', '--dry-run'] }).argv
+
+    for (const argv of [read, write, door]) {
+      expect(argv.slice(0, 2)).toEqual(['-C', '/w'])
+      expect(argv.at(-1)).toBe('--json')
+      // Never a string turned into arguments: every element the builder produced is one
+      // element still, spaces and all.
+      expect(argv.every((one) => typeof one === 'string')).toBe(true)
+    }
+  })
+})
 
 describe('RG1: the command line one call builds', () => {
   it('names the project before the verb, because the engine takes -C first', () => {

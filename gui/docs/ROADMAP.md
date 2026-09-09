@@ -5,7 +5,6 @@
 ## Block A — The client (payloads in, types out)
 
 - 💭 **RG9** (deps: RG1 ✅, roadkeep RK1632) **prose a person typed goes out through argv, which is where RK1474 recorded bytes arriving as different bytes** — why and section-body each read stdin on a dash and symptom does not, so the field every line leads with is the one with no safe path in. → §RG9
-- 💭 **RG81** (deps: —) **the read and write paths each spell the same argv wrapper, and the two have already drifted apart** — Three rules about -C, --json and a two-word verb now live in two composers, and only one of them says why any of it is so. → §RG81
 - 💭 **RG82** (deps: RG75 ✅) **the contract test asserts one engine version across three reads, so a rebuilt engine reds a suite nothing touched** — A red contract test is meant to mean roadkeep renamed a key, and a reader who learns it also means the version moved stops believing it. → §RG82
 - 💭 **RG83** (deps: —) **one verb answers in two shapes under a flag, and nothing names the second until it breaks** — The flag that narrows a read is the flag that changes its answer, and it is never the call anybody writes the first test for. → §RG83
 - 💭 **RG84** (deps: RG78 ✅, RG103 ✅) **every live file resolves the engine itself, so one being rebuilt mid-run reds the suite four ways** — A red contract test is meant to mean roadkeep renamed a key, and it now also means somebody saved a file in another checkout. → §RG84
@@ -48,9 +47,9 @@
 ## Block H — The look (a design system for governed prose)
 
 - 📋 **RG63** (deps: RG39 ✅, RG88) **there is no page chrome, so the first real screen will invent a shape the design system already has** — The bento layer is the shared page vocabulary and its own guidance is to adopt the shell before the pages, which is a thing to do once and early. → §RG63
-- 💭 **RG86** (deps: RG51 ✅) **the locale setting reaches no screen, so choosing one changes nothing** — A tag is held in settings and the renderer builds its lookup from nothing, so there is no locale file, no loader and no path from the one to the other. → §RG86
+- 📋 **RG86** (deps: RG51 ✅) **the locale setting reaches no screen, so choosing one changes nothing** — A tag is held in settings and the renderer builds its lookup from nothing, so there is no locale file, no loader and no path from the one to the other. → §RG86
 - 💭 **RG87** (deps: RG52 ✅) **the ground setting has two homes, and the file one is not the one that wins** — The switch keeps the choice in browser storage under its own key while settings.json holds a theme field nothing reads, so the two agree only by never being used together. → §RG87
-- 💭 **RG88** (deps: RG51 ✅) **one screen has two translation systems, and only one of them was chosen** — The design system translates its own components with i18next, a declared dependency here, and RG51 built a second catalogue beside it without ever asking which of the two owns a string. → §RG88
+- 📋 **RG88** (deps: RG51 ✅) **one screen has two translation systems, and only one of them was chosen** — The design system translates its own components with i18next, a declared dependency here, and RG51 built a second catalogue beside it without ever asking which of the two owns a string. → §RG88
 - 💭 **RG90** (deps: RG54 ✅) **muted text on a muted panel is 4.33 to 1, which no screen renders yet and one will** — The design system pairs those two tokens by name and they miss AA on the light ground, so the first panel that uses both ships an unreadable label looking like a style. → §RG90
 
 ## Done when — Block A

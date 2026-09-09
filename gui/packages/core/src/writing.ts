@@ -1,3 +1,4 @@
+import { wrapArgv } from './client'
 import { EngineCallFailed, type EngineResult, type Transport } from './transport'
 import { readAnswer, type Refusal } from './refusals'
 import type { Reader } from './reading'
@@ -39,12 +40,11 @@ export interface Composed {
 }
 
 /**
- * Build the command line for one write.
+ * Build the command line for one write, off the write table's own spelling.
  *
- * `-C <root>` leads and `--json` closes, for the reasons `buildArgv` gives for a read, and
- * the verb's words are spread from `WRITE_WORDS` rather than split out of its key — which
- * matters most here, since almost every write to come is `section add`, `criterion add`,
- * `block add`.
+ * How it is spelled is `wrapArgv`'s and is not repeated here — `-C`, `--json` and a verb
+ * arriving as words all have one reason each, written once. What belongs to this side is
+ * `WRITE_WORDS`, which matters most here: almost every write to come is two words.
  */
 export function composeWrite<K extends WriteName>(
   root: string,
@@ -52,11 +52,7 @@ export function composeWrite<K extends WriteName>(
   input: WriteInputs[K],
 ): Composed {
   const argvFor = WRITES[verb] as (value: WriteInputs[K]) => readonly string[]
-  return {
-    verb,
-    root,
-    argv: ['-C', root, ...spell(verb, WRITE_WORDS), ...argvFor(input), '--json'],
-  }
+  return { verb, root, argv: wrapArgv(root, spell(verb, WRITE_WORDS), argvFor(input)) }
 }
 
 /**
@@ -71,7 +67,7 @@ export function composeWrite<K extends WriteName>(
  * placeholders go through as themselves, and `complete` is what a caller checks.
  */
 export function composeDoor(root: string, door: { readonly argv: readonly string[] }): Composed {
-  return { verb: door.argv[0] ?? '', root, argv: ['-C', root, ...door.argv, '--json'] }
+  return { verb: door.argv[0] ?? '', root, argv: wrapArgv(root, door.argv) }
 }
 
 export type WriteOutcome<T> =
@@ -106,6 +102,13 @@ export type WriteOutcome<T> =
  * The reader is the verb's own payload shape. It is passed in rather than looked up here
  * so that adding a write verb stays what the table says it is: a row, and a shape beside
  * it, and no branch in this function.
+ *
+ * **There is no cancel signal here, and its absence is the decision.** A read carries one
+ * through `CallOptions` because abandoning a read costs nothing — the answer was going to
+ * be thrown away. Abandoning a write is different: the engine may already have written the
+ * file, and a caller who cancelled cannot say whether it did. That is exactly `unreadable`,
+ * and offering a flag whose whole effect is to manufacture that state is worse than not
+ * offering it. A deadline stays, because a write that never answers has to end somehow.
  */
 export async function applyWrite<T>(
   transport: Transport,

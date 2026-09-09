@@ -107,6 +107,8 @@ const DEFAULT_WIDTH = 4
  */
 export function readsOnly(argv: readonly string[]): boolean {
   if (argv.includes('--claim')) return false
+  // The one place that reads the wrapper `wrapArgv` writes, rather than writing one: the
+  // leading `-C <root>` is skipped so the verb's own words line up at the head.
   const words = argv.slice(argv[0] === '-C' ? 2 : 0)
   return (Object.keys(VERBS) as VerbName[]).some((verb) => {
     const spelled = spell(verb, VERB_WORDS)
