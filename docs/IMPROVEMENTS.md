@@ -198,6 +198,25 @@ means to be cited should probably say both — open rows over the roadmap, deliv
 over the union — and the cost of that is one more number per row rather than a second
 reading.
 
+### §RK1670 The door an undeclared role has
+
+`Config.path` raises `this project declares no 'deferred' file (has: changelog,
+improvements, roadmap)`, which is two thirds of what a refusal owes: it names the
+absence and what stands in its place, so the caller can tell the question apart from an
+empty answer. What it does not name is the verb — and `declare`'s own description says
+outright *reach for it when a verb refuses over an undeclared role or table*, so the
+door exists and the one refusal it was written for does not point at it.
+
+RK1328 made the same repair one table over: `criteria.NotGoverned` said *`declare
+criteria` opens the table* rather than naming a hand edit to configuration this tool
+owns the writes to. A role is the same shape and reaches more callers — every read and
+write that resolves a path goes through here.
+
+What has to be decided is the site. This raise is in `config.py`, below `remedying` and
+`provenance`, so a `Door` here would be an import the layering does not have; the plain
+backticked verb `criteria.py` uses needs none, but `test_composing` holds its census
+total over every function that composes a command, so the row and its run come with it.
+
 ## Block D — The gate
 
 ### §RK1652 The edit with no door
