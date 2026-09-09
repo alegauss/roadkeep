@@ -34,6 +34,7 @@ about what the verb answers with.
 
 from __future__ import annotations
 
+import ast
 import contextlib
 import io
 import json
@@ -41,6 +42,8 @@ import os
 from pathlib import Path
 
 import pytest
+
+from surface import scoped
 
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.rendering import _staging_rows
@@ -461,6 +464,158 @@ def test_a_note_lands_under_the_answer_it_is_about_off_a_terminal(tmp_path):
         )
     )
     assert reversed_.index("the note about it") < reversed_.index("the answer"), reversed_
+
+
+#: What a row says when a function reaches **both streams in one run**, and so owes its
+#: stderr to `beneath`. The sentinel rather than a second table, for `test_advisories`'
+#: reason: the population is one and the two answers are what a reader looks for on one row.
+BOTH = "writes an answer and a note in one run"
+
+#: Every function in the package that writes to stdout and to stderr, and which of the two
+#: shapes it is — :data:`BOTH`, or the reason its two writes are mutually exclusive.
+#:
+#: **The census RK1612 named and did not build** (RK1654). That task put the ordering in
+#: `refusing.beneath` and pointed its two known callers at it, on the argument that most
+#: functions printing to both streams write an answer *or* a refusal and need nothing — which
+#: is true, and left twelve functions with nothing saying which five of them were the other
+#: shape. The guard it shipped refuses a `stdout.flush()` written anywhere but the helper, so
+#: the *repair* could not be re-implemented while the *fault* — a stderr print after a stdout
+#: one — was unheld. A rule that catches the fix and not the fault is RK1602's shape.
+#:
+#: Read one at a time, which is what a census replaces: five were exclusive at a glance and
+#: five were not, and the five that were not are the ones a caller reads down a pipe —
+#: `install --check` and `uninstall --check` print a report and then its verdict, `lint --fix`
+#: a report and then what it refused to repair, `uninstall --engine` the files it deleted and
+#: then a refusal, and `_rendered` is the seam **every** answer with a note goes through.
+STREAMS: dict[tuple[str, str], str] = {
+    ("cli.py", "_may_offer"): BOTH,
+    ("cli.py", "_rendered"): BOTH,
+    ("linting.py", "_report_rows"): BOTH,
+    ("verbs/adopting.py", "_install"): BOTH,
+    ("verbs/adopting.py", "_reclaim"): BOTH,
+    ("verbs/adopting.py", "_report"): BOTH,
+    ("verbs/adopting.py", "_uninstall"): BOTH,
+    # The five whose two writes cannot both happen. Each is *answer or refusal*, and the
+    # reason is the same shape every time: the stderr branch returns.
+    ("verbs/adopting.py", "_replay"): "a capture that would not load, or the replay's answer",
+    ("verbs/linting.py", "_merge"): "a driver refusal, or the merged file's summary",
+    ("verbs/querying.py", "_brief"): "a refusal about the flags, or the brief",
+    ("verbs/querying.py", "_evidence"): "a line with no section, or its evidence clauses",
+    ("verbs/querying.py", "_remaining"): "the same absence one read over, or the count",
+}
+
+
+def _streams(text: str) -> dict[str, set[str]]:
+    """Which streams each function of one module writes to, by its address (RK1654).
+
+    Structural: a `print` with no `file=` is stdout, one naming `sys.stderr` is stderr, and a
+    `beneath` call is both — which is the whole point of it. Off `surface.scoped`, so the
+    address is the one every other survey here spells (RK1647).
+    """
+    found: dict[str, set[str]] = {}
+    for where, node in scoped(text):
+        if not isinstance(node, ast.Call):
+            continue
+        callee = ast.unparse(node.func)
+        if callee.endswith("beneath"):
+            found.setdefault(where, set()).update({"out", "err", "ordered"})
+        elif callee == "print":
+            named = next((one for one in node.keywords if one.arg == "file"), None)
+            stream = "err" if named is not None and "stderr" in ast.unparse(named.value) else "out"
+            found.setdefault(where, set()).add(stream)
+    return found
+
+
+def _reaching_both() -> dict[tuple[str, str], set[str]]:
+    """Every function of the package that writes to both streams, and how."""
+    from surface import modules
+
+    return {
+        (one.where, where): kinds
+        for one in modules()
+        for where, kinds in _streams(one.text).items()
+        if {"out", "err"} <= kinds
+    }
+
+
+def test_every_function_that_writes_both_streams_says_which_shape_it_is():
+    """The census, total against the package. A function reaching both streams is either the
+    exclusive shape — where the flush buys nothing — or the one that needs it, and reading each
+    of twelve to find out is what this replaces. A thirteenth is a red here with one question
+    in it, which is the question RK1612 left to whoever met the defect next."""
+    assert set(_reaching_both()) == set(STREAMS), {
+        "writes both, unclassified": sorted(set(_reaching_both()) - set(STREAMS)),
+        "classified, writes one": sorted(set(STREAMS) - set(_reaching_both())),
+    }
+    for where, because in STREAMS.items():
+        assert because.strip(), where
+    # And the two shapes are both populated, which the total alone would not say: a census
+    # where every row is `BOTH` is one nobody separated.
+    exclusive = [one for one in STREAMS.values() if one != BOTH]
+    assert exclusive and len(exclusive) < len(STREAMS), STREAMS
+
+
+def test_a_function_that_writes_both_orders_them_through_the_helper():
+    """The fault, held where RK1612 held only the fix. Every function the census calls `BOTH`
+    reaches stderr through `beneath` — so a plain `print(..., file=sys.stderr)` in one of them
+    is a red, whichever line it is on, and the exclusive rows keep theirs.
+
+    This is what the flush guard below could not say. That one refuses the *repair* being
+    re-implemented anywhere else; this refuses the defect, which is the one of the two that
+    ever shipped."""
+    guilty = {
+        where: sorted(kinds)
+        for where, kinds in _reaching_both().items()
+        if STREAMS.get(where) == BOTH and "ordered" not in kinds
+    }
+    assert not guilty, (
+        f"these write an answer and a note in one run and print the note straight to stderr, "
+        f"so it lands above the answer down a pipe: {guilty}"
+    )
+
+
+def test_the_note_lands_under_the_answer_in_a_verb_that_writes_both(tmp_path):
+    """The census driven rather than read (RK1654). `_rendered` is the seam every answer with
+    a note goes through, and `list` over a roadmap holding a marker-bearing line that is not a
+    task is the cheapest state that produces one: the lines on stdout, which is what makes
+    this verb a substitute for the grep, and *what was not counted* on stderr.
+
+    A subprocess with the two pipes merged, for the reason the test above it gives: `capsys`
+    records two buffers and would pass whatever the flush did."""
+    import subprocess
+    import sys as _sys
+
+    assert main(["-C", str(tmp_path), "init"]) == EXIT_OK
+    assert (
+        main(
+            [
+                "-C", str(tmp_path), "add", "--block", "A",
+                "--symptom", "a symptom plainly long enough to read",
+                "--why", "Because the listing needs a line to print.",
+            ]
+        )
+        == EXIT_OK
+    )
+    roadmap = tmp_path / "docs" / "ROADMAP.md"
+    # Hand-written, because no verb files one: a marker-bearing bullet that is not a task is
+    # what `missed` counts, and it is the state the note exists for.
+    with roadmap.open("a", encoding="utf-8", newline="") as handle:
+        handle.write("- \U0001F4CB **not a task at all**\n")
+    ran = subprocess.run(
+        [_sys.executable, "-m", "roadkeep.cli", "-C", str(tmp_path), "list"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        env={**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src")},
+    )
+    said = ran.stdout
+    assert "RK1" in said, said
+    assert "were not counted" in said, said
+    # The listing first and the sentence about it second, which is the order a terminal reads
+    # and the one a pipe reversed until this seam went through `beneath`.
+    assert said.index("RK1") < said.index("were not counted"), said
 
 
 def test_the_ordering_lives_in_one_function_and_not_in_two_disciplines():

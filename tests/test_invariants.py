@@ -768,6 +768,10 @@ _PARSING = frozenset(
         # over it: both answer from the tree, so a caller of either is reading syntax.
         "scoped",
         "owners",
+        # Which streams one module's functions write to (RK1654), off `scoped` and by the
+        # keyword a `print` carries — the census that decides which of them owe their stderr
+        # to `beneath`, and syntax at every step of it.
+        "_streams",
     }
 )
 

@@ -812,6 +812,7 @@
 - ✅ **RK1647** **three walkers in the suite each rebuild which function a node sits in, and one of them spells the address differently** — One scope walk in surface.py answers both questions, and the third walker's shorter address is gone.
 - ✅ **RK1649** **answers() spells at most one of a verb's flags and nothing spells exactly one, so a required choice stays a raise** — One rule on both surfaces: a declaration says one subject is required and the dispatcher refuses a call that named none, where two handlers each raised their own.
 - ✅ **RK1652** **a config refusal now names the table a key belongs under, and no verb moves it there** — declare --move puts a misplaced key under the table this build declares it in, and it is the one write that runs while the config does not parse.
+- ✅ **RK1654** **ten functions print to both streams in one body and two go through the helper, nothing saying which of the rest need to** — The census is declared and total, and the five that write both streams in one run go through beneath: every answer with a note had its note above it down a pipe.
 
 ## Block E — Adoption
 

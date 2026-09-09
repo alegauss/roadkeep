@@ -255,6 +255,7 @@ is the structural half of this repair and the half that needed no table at all.
 - ✅ **RK1647** **three walkers in the suite each rebuild which function a node sits in, and one of them spells the address differently** — One reader answers which scope a node sits in: surface.scoped yields the dotted address per node and surface.owners is that by line, and a fourth visitor is a red.
 - ✅ **RK1649** **answers() spells at most one of a verb's flags and nothing spells exactly one, so a required choice stays a raise** — A required choice is declared beside the pair and never published: a required boolean key is present-and-false, the call it refuses, and the skill shows the address filled in.
 - ✅ **RK1652** **a config refusal now names the table a key belongs under, and no verb moves it there** — The verb that repairs roadkeep.toml runs on a config that did not load, and a run which cannot say which files are governed attests none of them.
+- ✅ **RK1654** **ten functions print to both streams in one body and two go through the helper, nothing saying which of the rest need to** — A guard on a stream order holds the fault and not the fix: the census says which functions write both in one run, and each of those owes its stderr to beneath.
 
 ### §RK1394 Proof, not age
 
@@ -469,6 +470,22 @@ and deleting either value would delete something nothing else records.
 A missing header is written, not refused: refusing there would hand back the hand edit
 the verb exists to remove, and the header comes from the same map the destination does.
 The comment run above a key stays put — under a header it may be the table's.
+
+### §RK1654 Five of twelve, driven
+
+The census answered the question RK1612 left, and five of the twelve were the shape that
+needs the flush: two `--check` verbs printing a report then its verdict, `lint --fix` a
+report then what it refused to repair, one deleting files then refusing — and
+`_rendered`, the seam **every** answer with a note goes through, so `list` over a
+roadmap with one uncounted line printed the sentence above the listing on every run down
+a pipe.
+
+The other seven are exclusive and stay as they are: the stderr branch returns, so the
+two writes cannot both happen and a flush there would be discipline nobody can check.
+
+Held as the **fault** rather than the fix. The guard shipped with the helper refuses a
+`stdout.flush()` written anywhere else, which is the repair; a plain stderr print inside
+a row the census calls both is what shipped four times.
 
 ## Block E — Adoption
 

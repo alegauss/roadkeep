@@ -131,6 +131,7 @@ from roadkeep.history import (
     tracked_now,
 )
 from roadkeep.markers import derive
+from roadkeep.verbs.refusing import beneath
 from roadkeep.referring import PAIRS
 from roadkeep.kernel.schema import (
     CODEPOINT_KINDS,
@@ -4834,8 +4835,11 @@ def _report_rows(config: Config, report: Report, applied: Fix, root: str, quiet:
         # Notes before the findings and the summary: a note is what the gate says about a
         # file it is passing, and after an exit-1 report nobody would read it (RK35).
         _print_notes(report.notes)
+    # Through `beneath` (RK1654): the rows above went to stdout and the summary below goes
+    # there too, so a `--fix` that refused something put its refusal above the report it is
+    # about — the one shape in this report that reaches both streams in one run.
     for line in applied.refusals():
-        print(line, file=sys.stderr)
+        beneath(line)
     if report.clean:
         # The files are named on the way out even when there is nothing to say: a gate
         # that passed by reading nothing looks exactly like a gate that passed.

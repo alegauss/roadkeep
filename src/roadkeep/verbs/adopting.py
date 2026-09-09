@@ -353,8 +353,11 @@ def _install(config: Config, args: argparse.Namespace) -> int:
         if pinned is not None:
             print(pinned.stated(args.check))
         if args.check:
+            # Through `beneath` (RK1654): the rows above went to stdout, so a verdict printed
+            # straight to stderr arrived over the report it is the verdict *of* — down a pipe,
+            # which is where a `--check` is read.
             for line in intent.verdict():
-                print(line, file=sys.stderr)
+                beneath(line)
     if args.check and intent.changing:
         # Stated by the **run** and not by the parser (RK1420): this verb returns `EXIT_GATE`
         # from nowhere else, so a declaration standing over the whole of it would be a claim
@@ -501,7 +504,9 @@ def _reclaim(args: argparse.Namespace) -> int:
         print(f"{found.path.as_posix()}  ←  the vendored engine{at}")
         print(f"  {did:<14} {found.files} file(s), {found.bytes:,} bytes")
     if found.refused:
-        print(f"roadkeep: {found.refused}", file=sys.stderr)
+        # After the rows this run printed and never above them (RK1654): a reclaim that
+        # deleted some files and then refused says both, in that order.
+        beneath(f"roadkeep: {found.refused}")
         return EXIT_USAGE
     if args.check and found.present:
         args.verdict = True
@@ -529,8 +534,10 @@ def _uninstall(config: Config, args: argparse.Namespace) -> int:
     else:
         print(intent.stated(args.check))
         if args.check:
+            # `_install`'s reason one verb over (RK1654): the rows above went to stdout, so a
+            # verdict printed straight to stderr arrived over the report it is the verdict of.
             for line in intent.verdict():
-                print(line, file=sys.stderr)
+                beneath(line)
     if args.check and intent.changing:
         # `_install`'s reason one function over: a check that found entries to take out is a
         # report, and the write that closes it is the same verb without the flag.

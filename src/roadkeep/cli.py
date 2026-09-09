@@ -567,8 +567,13 @@ def _rendered(answer: object, args: argparse.Namespace, config: Config) -> int:
     # After stdout and never folded into it (RK1615): a handler writing both is one whose two
     # streams mean different things — `next-id` puts the id where a shell captures it and the
     # promise where that capture stays one token — and the order is the one a terminal read.
+    #
+    # Through `beneath` since RK1654, which is what *after* means down a pipe: this is the
+    # seam every answer with a note goes through, so a plain `print` here put the note above
+    # the answer for every one of them — the defect RK1612 wrote the helper for, in the one
+    # function that could exhibit it most often.
     if answer.noted:
-        print(answer.noted, file=sys.stderr)
+        beneath(answer.noted)
     return answer.code
 
 
