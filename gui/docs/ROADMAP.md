@@ -50,6 +50,7 @@
 - 📋 **RG90** (deps: RG54 ✅, the design system darkening the muted foreground) **muted text on a muted panel is 4.33 to 1, which no screen renders yet and one will** — Those two tokens are named as a pair and miss AA on the light ground, so the first panel using both ships a pale label looking like a style. → §RG90
 - 📋 **RG105** (deps: RG54 ✅) **the rail marks where you are in the package's neutral, so the shell reads as another product's console** — The bento layer keys that mark to --primary and expects a product to have claimed it, and this app keyed only the accent, so the mark is the package's own grey. → §RG105
 - 📋 **RG106** (deps: RG86 ✅) **the window mounts nothing until the bridge answers, so a call that never returns leaves it blank** — The locale is asked for before the first render with no deadline, so a main process that hangs shows a window painted its background colour and nothing else. → §RG106
+- 📋 **RG107** (deps: RG54 ✅) **the dark focus ring is the light accent, because this app's :root wins over the package's dark block** — index.css says the package makes the ring the accent in dark and the contrast test agrees, but both blocks are unlayered and equally specific, so the later one wins. → §RG107
 
 ## Done when — Block A
 
