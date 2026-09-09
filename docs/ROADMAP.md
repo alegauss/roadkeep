@@ -30,7 +30,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 💭 **RK1653** (deps: —) **five classes answer to notes and one is a gate report, so a sweep over the name is off for three whole test modules** — RK1603 and RK1611 each added a class and an exemption, and each turns the rule off for every assertion in that module rather than for the name. → §RK1653
 - 📋 **RK1656** (deps: —) **a dep on a ruled-out finding resolves as unknown, which says nothing can answer about a file that answers exactly** — RK92 gave the resolver a fifth answer for a paused target, and the seventh role arrived with no sixth. → §RK1656
 - 📋 **RK1663** (deps: —) **the per-block half of a pin's shape counts the roadmap's headings, so a finished block's entries land in no row** — Turing's rows account for 55 of 901 delivered, the rest filed under labels whose last line shipped and whose roadmap heading went with it. → §RK1663
 - 📋 **RK1670** (deps: —) **the refusal over an undeclared role names what the project has and not the verb that adds one** — Config.path names the absence and the roles that stand in its place, where declare exists for exactly this refusal and is not named. → §RK1670

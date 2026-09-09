@@ -73,6 +73,7 @@ on the prose roles.
 - ✅ **RK1558** **one marker scan skips what a caller is shown and the one beside it does not, with nothing saying they differ** — Where two scans of one rule disagree, the line between them is drawn by measuring what the code already does.
 - ✅ **RK1650** **one of forty read-only verbs now refuses, and the rule that reading is never refused is prose in three places** — A read refuses only where the question cannot be asked of this project: a word its declarations exclude, or state that has to be made first — never an empty answer.
 - ✅ **RK1651** **three readings of one source claim to be complements of each other and no test holds any of the three claims** — The two string readings are a partition and the third is a finding scan: total is the half that matters, a string neither reads being a value both exemptions let through.
+- ✅ **RK1653** **five classes answer to notes and one is a gate report, so a sweep over the name is off for three whole test modules** — A sweep over a name exempts the receiver and never the file, and the register is total: a receiver nobody classified is a red, where a file-keyed row was a silence.
 
 ### §RK1362 Why a projection and not a wider read
 
@@ -205,6 +206,22 @@ cannot give — that nothing is left over. Measured with a third exemption penci
 Over the nodes and not the rows. `_shown` joins an f-string into a literal that is no
 node's own text, so its parts are covered by it, and a row-level reading would report
 two strings neither scan claims.
+
+### §RK1653 The receiver, declared
+
+Which of the two shapes was cheaper turned out to be a measurement, and it was one grep:
+twenty-five reads across fourteen modules, and exactly five of them are not a gate
+report. So the receiver is declared, not inferred — a dataflow rule would have to decide
+what `lint(config)` returns, and the register says it in a word a reader recognises.
+
+Keyed by the pair and not the symbol, because two modules spell one local name for two
+things: `found` is a priced `cost --notes` payload in one and a `describing.Shape` in
+the other.
+
+Six of the twenty-five reads were never lists. `remedying.notes()` and
+`describing.notes()` return populations, and one of those calls was a whole module's
+exemption on its own — an attribute being called is not an attribute being read, which
+is the structural half of this repair and the half that needed no table at all.
 
 ## Block D — The gate
 
