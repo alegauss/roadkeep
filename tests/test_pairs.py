@@ -482,6 +482,103 @@ def test_every_declared_answer_names_a_flag_its_verb_actually_has():
     assert seen >= 12, seen
 
 
+# -- the subject a verb cannot answer without (RK1649) -------------------------
+
+#: Every verb declaring that one of its subjects is **required**, and how many it offers.
+#: Two, and the count is what decided the shape rather than a preference about declarations:
+#: RK1555 kept a rule with one member as a raise, with a comment saying it was the exception
+#: and not the oversight, so what tells that answer from a declaration is how many verbs have
+#: the shape — which is a number nothing could report while both of these raised it inside a
+#: handler, where no reader of a declaration looks.
+REQUIRED = {"criterion add": 2, "cost": 7}
+
+#: What each of them needs before a bare call is missing **only** a subject. `criterion add`
+#: takes a lead and a reason argparse refuses first, and a refusal about those would be this
+#: file measuring a different rule.
+FILLED = {"criterion add": ["--lead", "Unplaced", "--why", "Nowhere yet."], "cost": []}
+
+
+def leaves() -> dict[str, argparse.ArgumentParser]:
+    """Every parser that dispatches, by the words a caller types — `criterion add` included.
+
+    :func:`subcommands` reaches the top level alone, and one of the two verbs declaring a
+    required subject is two words in: a survey that could not see it would be a survey of the
+    other one, reporting a population of one about a rule with two members.
+    """
+    found: dict[str, argparse.ArgumentParser] = {}
+
+    def walk(prefix: str, parser: argparse.ArgumentParser) -> None:
+        # On the action's type and not on `choices` being set, which any argument declared
+        # with a fixed set of values also has: a verb taking one would otherwise be walked
+        # into as though its values were subcommands.
+        inner = [
+            one
+            for one in parser._actions  # noqa: SLF001
+            if isinstance(one, argparse._SubParsersAction)  # noqa: SLF001
+        ]
+        if not inner:
+            found[prefix] = parser
+            return
+        for name, child in inner[0].choices.items():
+            walk(f"{prefix} {name}".strip(), child)
+
+    walk("", build_parser())
+    return found
+
+
+def test_every_verb_that_requires_a_subject_is_one_this_table_names():
+    """The population, total against the parsers, so a third verb is a red here with the
+    question RK1649 answered in it: whether a required choice is enough of a shape to declare.
+    It is asked of a **leaf** parser, which is where the sixteen declarations live."""
+    declared = {
+        name: len(parser.get_default("subjects") or ())
+        for name, parser in leaves().items()
+        if parser.get_default("subjects_required") is not None
+    }
+    assert declared == REQUIRED
+    assert set(FILLED) == set(REQUIRED)
+    # And the sweep reaches further than the top level, which is the whole of what `leaves`
+    # buys: `criterion add` is two words and `subcommands` cannot see it.
+    assert "criterion add" in leaves()
+    assert "criterion" not in leaves()
+
+
+def test_the_dispatcher_refuses_a_bare_call_with_the_reason_and_every_door(capsys):
+    """What the declaration buys over the two raises it replaces. `_one_answer` is the whole
+    rule and this asks it directly, for `test_the_dispatcher_refuses_exactly_the_pairs_a_verb_
+    declares`' reason: both of these verbs exit 2 on a bare call for reasons a code cannot
+    tell apart — argparse's own missing-argument refusal reaches the same number.
+
+    The reason is asserted as well as the flags, because it is what a boolean declaration
+    would have thrown away: told only that a subject is missing, a caller has to go and read
+    the help to find out which of them answers what.
+    """
+    parser = build_parser()
+    for command, count in REQUIRED.items():
+        args = parser.parse_args([*command.split(), *FILLED[command]])
+        needed = args.subjects_required
+        assert _one_answer(args) == 2, command
+        said = capsys.readouterr().err
+        assert needed.why in said, command
+        assert needed.verb == command, command
+        for one in args.subjects:
+            assert one.option in said, (command, one.option)
+        assert len(args.subjects) == count, command
+
+
+def test_a_call_that_named_a_subject_is_not_refused_for_wanting_one():
+    """The other direction, which a refusal firing on every call would pass. Set onto the
+    namespace rather than typed, because what `given` reads is the dest against the parser's
+    own default: one of these subjects takes a value and the other seven are flags, and typing
+    each correctly would be this file holding a second opinion about their arity."""
+    parser = build_parser()
+    for command in REQUIRED:
+        args = parser.parse_args([*command.split(), *FILLED[command]])
+        dest, _option, default = args.subjects[0].flags[0]
+        setattr(args, dest, "A" if default is None else not default)
+        assert _one_answer(args) is None, command
+
+
 # -- the cadences a table now counts (RK1637) ----------------------------------
 
 #: Every cadence `cost` prices: the flag that reads it, and **when what it measures is paid**.

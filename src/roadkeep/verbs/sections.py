@@ -444,7 +444,7 @@ def _non_goal_drop(config: Config, args: argparse.Namespace) -> Result | int:
     return answered(dropped, config=config, wrote=wrote)
 
 
-def _one_list(parser: argparse.ArgumentParser) -> None:
+def _one_list(parser: argparse.ArgumentParser, *, required: str = "") -> None:
     """Declare `--block` and `--task` as this verb's two answers (RK1607).
 
     A criterion belongs to a body of work or to a line, so a call naming both says which one
@@ -454,11 +454,17 @@ def _one_list(parser: argparse.ArgumentParser) -> None:
 
     On all four verbs and not the three that write: `criterion list` takes the same two flags
     and had the same refusal, reached through the same resolver.
+
+    ``required`` is the other half of the same argument, one verb further (RK1649): three of
+    these four resolve an omitted address off the lead already on file and `add` has no file to
+    read, so the choice it cannot do without is declared here rather than raised in the handler
+    that discovered it.
     """
     answers(
         parser,
         ("block", "addresses a block's list"),
         ("task", "addresses one line's own"),
+        required=required,
     )
 
 
@@ -469,35 +475,22 @@ def _addressed(args: argparse.Namespace) -> str:
     up* — reaches `criteria._resolved` unchanged from every one of them.
 
     Naming **both** is refused by the parser since RK1607, where :func:`_one_list` declares
-    them as two answers: what is left here is the resolution, which was always the job.
+    them as two answers, and naming **neither** since RK1649, on the one verb that cannot look
+    a lead up: what is left here is the resolution, which was always the job.
     """
     block = getattr(args, "block", None) or ""
     task = getattr(args, "task", None) or ""
     return task or block
 
 
-def _required_address(args: argparse.Namespace) -> str:
-    """The address, where the verb has nothing to look one up by (RK1268).
-
-    `criterion add` creates the bullet, so there is no lead on file to resolve against — and
-    refused here rather than by argparse, because a `required` mutually exclusive group answers
-    on the command line and says nothing over MCP, where both fields exist and neither is
-    marked required. One rule, one message, both transports.
-    """
-    about = _addressed(args)
-    if not about:
-        raise ValueError(
-            "a criterion is addressed to a body of work or to a line, so this call needs "
-            "--block <x> or --task <id>: `add` writes the bullet, and there is no lead on "
-            "file yet for the address to be looked up from"
-        )
-    return about
-
-
 def _criterion_add(config: Config, args: argparse.Namespace) -> Result | int:
+    # Naming **neither** is refused by the parser since RK1649, where :func:`_one_list` declares
+    # the choice as required: `_required_address` raised it here, where the dispatcher enforcing
+    # every other rule about these two flags could not see it.
     try:
-        about = _required_address(args)
-        written = add_criterion(config, about, lead=args.lead, why=_piped(args.why))
+        written = add_criterion(
+            config, _addressed(args), lead=args.lead, why=_piped(args.why)
+        )
         wrote = written.save()
     except REFUSALS as error:
         return _refused(error)
@@ -1181,10 +1174,10 @@ def declare_places(subcommands: argparse._SubParsersAction) -> None:
             "declare is refused, so a typo opens nothing."
         ),
     )
-    # RK1268. Exactly one address, and both flags optional to argparse: the pair is refused by
-    # `_addressed`, which is one rule written once for the four verbs and reaches this
-    # transport too — a mutually exclusive group answers on the command line and says nothing
-    # over MCP, where both fields exist and either can arrive.
+    # RK1268. Exactly one address, and both flags optional to argparse: the choice is declared
+    # below and enforced by `_one_answer` for both surfaces — a required mutually exclusive
+    # group answers on the command line and says nothing over MCP, where both fields exist and
+    # either can arrive.
     criterion_add.add_argument("--block", help="the block label this finishes, e.g. B")
     criterion_add.add_argument("--task", help="the id this finishes, e.g. RK42")
     criterion_add.add_argument(
@@ -1202,7 +1195,13 @@ def declare_places(subcommands: argparse._SubParsersAction) -> None:
         action="store_true",
         help="the bullet, with the file and line it landed on",
     )
-    _one_list(criterion_add)
+    _one_list(
+        criterion_add,
+        required=(
+            "`add` writes the bullet, so there is no lead on file yet for an omitted address "
+            "to be looked up from"
+        ),
+    )
     criterion_add.set_defaults(
         handler=_criterion_add, reads_stdin=(Prose(dest="why", omitted=False),)
     )

@@ -57,6 +57,7 @@ from roadkeep.verbs.linting import declare_gate
 from roadkeep.verbs.querying import declare_reads
 from roadkeep.verbs.declaring import (
     Answer,
+    Requirement,
     _A_TYPO,
     _VALUED,
     _Verb,
@@ -803,6 +804,14 @@ def _one_answer(args: argparse.Namespace) -> int | None:
     ``None`` where the call is one question, which is every call to a verb that declares
     nothing. Run from :func:`dispatch`, so the refusal is the same on both surfaces and no
     handler carries a copy of it.
+
+    **And a call that asked none**, where the verb declared that one is required (RK1649).
+    Two verbs raised exactly that inside a handler — `criterion add`, which writes the bullet
+    and so has no lead on file to resolve an address from, and `cost`, whose subjects are
+    cadences with no default between them — so what the dispatcher enforced was *not both*
+    while *at least one* stayed a `ValueError` and a `print`, invisible to every reader of the
+    declaration. The rows are the subjects, which is the affordance `cost` composed by hand: a
+    caller told only that something is missing has to go and read the help to find out what.
     """
     subjects: tuple[Answer, ...] = getattr(args, "subjects", ())
     given = [one for one in subjects if one.given(args)]
@@ -810,6 +819,19 @@ def _one_answer(args: argparse.Namespace) -> int | None:
         print(
             f"roadkeep: one answer per call: {given[0].asked(args)} or "
             f"{given[1].asked(args)}, not both",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+    needed: Requirement | None = getattr(args, "subjects_required", None)
+    if not given and needed is not None:
+        print(
+            "\n".join(
+                [
+                    f"roadkeep: {needed.verb} takes one of these ({len(subjects)}), and this "
+                    f"call named none: {needed.why}",
+                    *(one.offered() for one in subjects),
+                ]
+            ),
             file=sys.stderr,
         )
         return EXIT_USAGE

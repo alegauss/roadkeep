@@ -201,6 +201,7 @@ command. The new property holds all three values, which leak alike.
 - ✅ **RK1645** **config publishes three lists of objects and the promise table holds one slot per verb, so one list's rows are unpromised** — A payload promises every list of objects it carries, one row per list, and the population is derived from the payloads rather than maintained beside them.
 - ✅ **RK1646** **the guard against the folded idiom sweeps the package and not the suite, where two sites still spell it out** — The suite is held to the folded idiom exactly as the package is: the exemption set is declared and empty, because no test here asks the question the long way for a reason.
 - ✅ **RK1647** **three walkers in the suite each rebuild which function a node sits in, and one of them spells the address differently** — One reader answers which scope a node sits in: surface.scoped yields the dotted address per node and surface.owners is that by line, and a fourth visitor is a red.
+- ✅ **RK1649** **answers() spells at most one of a verb's flags and nothing spells exactly one, so a required choice stays a raise** — A required choice is declared beside the pair and never published: a required boolean key is present-and-false, the call it refuses, and the skill shows the address filled in.
 
 ### §RK1394 Proof, not age
 
@@ -385,6 +386,21 @@ carries the prefix, rename where the field is something else.
 
 The sentence is a function, so this suite reads it back. A message nothing tests is
 prose, and this one was wrong for a class of member.
+
+### §RK1649 Declared, and not published
+
+The declaration was the decidable half. Two verbs raised a missing subject inside a
+handler — `criterion add`, which writes the bullet and has no lead to resolve an address
+from, and `cost`, whose cadences have no default between them — so RK1555's answer for a
+shape with one member did not apply: the population is two, and RK1607's three reasons
+hold for the choice as they did for the pair.
+
+Publishing it did not survive being priced. `oneOf` over `required` is sound only where
+every subject takes a value: `cost` serves two booleans, and a key present-and-false is
+the subjectless call it refuses, so the clause would say yes where the tool says no. On
+`criterion add` it costs 60 of the 109 units left under `[tools] session`, to publish an
+address `writing.md` shows filled in every span it writes — the reading `Detail.silent`
+exists to make.
 
 ## Block E — Adoption
 

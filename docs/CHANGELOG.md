@@ -807,6 +807,7 @@
 - ✅ **RK1645** **config publishes three lists of objects and the promise table holds one slot per verb, so one list's rows are unpromised** — One table with a row per list, and the population read off the payloads — which found a second list nothing promised.
 - ✅ **RK1646** **the guard against the folded idiom sweeps the package and not the suite, where two sites still spell it out** — The sweep reads the suite as well as the package, and the two sites that predated the fold are folded.
 - ✅ **RK1647** **three walkers in the suite each rebuild which function a node sits in, and one of them spells the address differently** — One scope walk in surface.py answers both questions, and the third walker's shorter address is gone.
+- ✅ **RK1649** **answers() spells at most one of a verb's flags and nothing spells exactly one, so a required choice stays a raise** — One rule on both surfaces: a declaration says one subject is required and the dispatcher refuses a call that named none, where two handlers each raised their own.
 
 ## Block E — Adoption
 

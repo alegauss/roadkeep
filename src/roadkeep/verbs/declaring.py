@@ -305,8 +305,41 @@ class Answer:
 
         The trigger last, because it is the half a caller who ran the verb bare does not have:
         they know they want a figure and not which of seven cadences they are asking about.
+
+        Omitted where there is none (RK1649), which is every subject but `cost`'s seven: the
+        rows are composed by the dispatcher now, for any verb declaring that one of its
+        subjects is required, and a trailing comma with nothing after it is what a subject
+        that is not a cadence used to render as.
         """
-        return f"  {self.option:<10} {self.what}, {self.trigger}"
+        return f"  {self.option:<10} {self.what}{f', {self.trigger}' if self.trigger else ''}"
+
+
+def _verb(parser: argparse.ArgumentParser) -> str:
+    """This subparser's command, as a caller types it after `roadkeep` (RK1649).
+
+    Off `prog`, which argparse composes from the chain of parsers that reached here — so
+    `criterion add` is two words and `cost` is one, and a verb renamed in one `add_parser`
+    call cannot leave a refusal naming the old name.
+    """
+    return " ".join(parser.prog.split()[1:]) or parser.prog
+
+
+@dataclass(frozen=True, slots=True)
+class Requirement:
+    """Why one of a verb's subjects has to be named, and by which verb (RK1649).
+
+    A **sentence** and not a boolean, which is the whole of what this carries over `required=
+    True`: the refusal a boolean composes names the flags and never why one of them is needed,
+    and that is the half the caller acts on — `criterion add` writes the bullet, so there is no
+    lead on file for an address to be resolved from, and nothing about the two flags says so.
+    Both verbs that raised this inside a handler had written that sentence; what they had no
+    way to do was declare it.
+    """
+
+    #: The sentence, printed above the rows :meth:`Answer.offered` composes.
+    why: str
+    #: The verb, without the program name in front of it: the message already says `roadkeep`.
+    verb: str
 
 
 def _declared(parser: argparse.ArgumentParser, dest: str) -> tuple[str, str, object]:
@@ -327,6 +360,7 @@ def _declared(parser: argparse.ArgumentParser, dest: str) -> tuple[str, str, obj
 def answers(
     parser: argparse.ArgumentParser,
     *groups: tuple[str | tuple[str, ...], str] | tuple[str | tuple[str, ...], str, str],
+    required: str = "",
 ) -> None:
     """Declare which of a verb's flags are **answers**, so two of them are refused (RK489).
 
@@ -347,6 +381,16 @@ def answers(
     subjects are cadences rather than questions, when each is paid is what tells them apart,
     and `cost` is the only verb here whose seven are. Optional and not defaulted per verb,
     because a subject that is not a cadence has no honest answer to give.
+
+    ``required`` says **one of them has to arrive** (RK1649), as the sentence explaining why —
+    see :class:`Requirement`. Argparse spells this and cannot help: a `required` mutually
+    exclusive group refuses on a command line and says nothing over a transport where both
+    fields exist and neither is marked required, which is why no verb here uses one — measured
+    across 82 leaf verbs, zero required groups against sixteen declarations of this. So the two
+    verbs that need it raised it inside a handler, and the three reasons RK1607 gave for moving
+    the *pair* out apply unchanged to the choice: `_one_answer` never saw it, the pair sweep
+    read a correct exit as something it could not account for, and an agent met the rule by
+    making the call.
     """
     parser.set_defaults(
         subjects=tuple(
@@ -359,7 +403,12 @@ def answers(
                 *group[2:],
             )
             for group in groups
-        )
+        ),
+        # `None` is *no subject is required*, which is fourteen of the sixteen: a verb with a
+        # sensible bare form has one, and the two here have nothing to answer without one.
+        # Keyed off the sentence rather than beside it, so a declaration cannot say it is
+        # required and leave the caller without the reason.
+        subjects_required=Requirement(required, _verb(parser)) if required else None,
     )
 
 

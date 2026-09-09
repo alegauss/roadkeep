@@ -591,12 +591,19 @@ def test_add_with_no_address_names_both_doors(tmp_path, capsys):
     # `add` writes the bullet, so there is no lead on file for the address to be looked up
     # from — refused here and not by argparse, the same rule reaching MCP where a required
     # group says nothing.
+    #
+    # Declared on the parser since RK1649, where `_one_list` takes the choice as required: this
+    # was a `ValueError` in the handler, so the dispatcher enforcing every other rule about
+    # these two flags could not see the one they cannot both be omitted from. What the caller
+    # gets is the reason and then the doors, which is the shape `cost` had written by hand.
     project(tmp_path)
     assert main(
         ["-C", str(tmp_path), "criterion", "add", "--lead", "Nowhere", "--why", "Unplaced."]
     ) != EXIT_OK
     said = capsys.readouterr().err
-    assert "--block <x> or --task <id>" in said
+    assert "no lead on file yet" in said
+    assert "--block" in said
+    assert "--task" in said
 
 
 def test_the_listing_names_the_flag_that_opens_the_list_it_found_empty(tmp_path, capsys):

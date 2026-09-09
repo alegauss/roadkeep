@@ -70,7 +70,6 @@ from roadkeep.verbs.declaring import (
     _PIPE,
     _counting_flags,
     _marker_flag,
-    Answer,
     answers,
     narrows,
     withheld,
@@ -442,8 +441,9 @@ def _cost(config: Config, args: argparse.Namespace) -> Result | int:
     ceiling calibrated on `ship` at 2,466, so whichever arrived last was refused by a limit
     none of them was about.
 
-    Which subject was asked for, and that exactly one was, is `answers` at this verb's own
-    `add_parser` and `dispatch`'s to refuse (RK489) — so what is left here is the dispatch.
+    Which subject was asked for, that exactly one was, and that one had to be (RK489, RK1649),
+    is `answers` at this verb's own `add_parser` and `dispatch`'s to refuse — so what is left
+    here is the dispatch.
     """
     # `is not None` and not truth (RK1236): bare `--tools` is the empty string, the flag
     # taking a value, which is `--brief`'s reading one subject over.
@@ -461,26 +461,11 @@ def _cost(config: Config, args: argparse.Namespace) -> Result | int:
         return _notes_budget(config, args)
     if args.near:
         return _near_budget(config, args)
-    # No subject is the default here, unlike `budget`, whose bare form is about the line `add`
-    # would write next: these are cadences, and privileging one would make the others look
-    # like narrowings of it.
-    #
-    # **Read off the declaration** (RK1637). This sentence restated all seven by hand and a
-    # comment beside it counted their cadences in prose, so a subject added anywhere was a
-    # line somebody had to remember in three places — and five tasks in a row each argued
-    # from scratch that theirs was the one nothing counted. Rows and not a sentence, because
-    # the population is the answer: what a caller asked for is which cadence, and a
-    # 300-character clause is the enumeration this task is about being unreadable.
-    subjects: tuple[Answer, ...] = getattr(args, "subjects", ())
-    print(
-        "\n".join(
-            [
-                f"roadkeep: cost takes a subject, one per cadence ({len(subjects)}):",
-                *(one.offered() for one in subjects),
-            ]
-        ),
-        file=sys.stderr,
-    )
+    # Unreachable, and a `return` rather than a raise: `_one_answer` refuses a call naming no
+    # cadence before this handler runs (RK1649), off the declaration these seven branches are
+    # one of, and prints the same rows this used to compose here — `Answer.offered` is where
+    # they were already read off (RK1637). What is left is what a type-checker needs, rather
+    # than a second copy of a refusal one verb's handler happened to have written.
     return EXIT_USAGE
 
 
@@ -2100,6 +2085,14 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
             "near",
             "what the neighbours an `add` volunteers cost",
             "once per `add`",
+        ),
+        # No subject is the default here, unlike `budget`, whose bare form is about the line an
+        # `add` would write next (RK1649). The sentence was a comment in the handler beside the
+        # rows it printed, which is a reason the caller never saw: what a bare call is missing
+        # is a cadence, and there is no answering it with the smallest or the first.
+        required=(
+            "these are cadences and none of them is the default — privileging one would make "
+            "the others read as narrowings of it"
         ),
     )
     # The one subject of this verb the surface does not offer (RK1428), and `list --ids`'
