@@ -1006,10 +1006,11 @@ def test_every_writer_of_the_config_reads_it_back():
     wherever a table grows a second key constraining the first.
 
     **And the sweep is what found the sixth.** RK1576's own reading counted five writers, and
-    `declare refs` is not in that count — it lives in `verbs/` rather than beside the other
-    four, which is exactly the reason a hand-written list would have missed it twice. Held as a
-    sweep and not as five tests for that: what has to stay true is that the population and the
-    rule do not drift apart, so a writer added tomorrow is a red here until it reads back."""
+    `declare refs` was not in that count — it lived in `verbs/` rather than beside the other
+    four, which is exactly the reason a hand-written list would have missed it twice. RK1633
+    moved that write onto `Namespaced.save`, so the population is one layer again; the sweep
+    stays, because what has to hold is that the population and the rule do not drift apart, and
+    a writer added tomorrow is a red here until it reads back."""
     writers = _config_writers()
     assert writers, "the scan found no config writer at all, which is the scan being broken"
     unchecked = sorted(

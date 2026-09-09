@@ -39,7 +39,7 @@ from roadkeep.backlog import Where, Whereabouts
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, build_parser, main
 from roadkeep.config import Config
 from roadkeep.provenance import invocation
-from roadkeep.kernel.document import Document, UnknownBlock
+from roadkeep.kernel.document import Document, StaleFile, UnknownBlock
 from roadkeep.kernel.schema import Schema, SchemaError
 from roadkeep.linting import lint
 from roadkeep.sections import (
@@ -66,6 +66,7 @@ from roadkeep.sections import (
     drop,
     find,
     move,
+    namespaced,
     nested,
     paragraphs,
     pointers,
@@ -3797,6 +3798,46 @@ def test_the_config_keeps_every_other_byte(tmp_path):
     written = (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
     assert "# a comment somebody wrote" in written
     assert written.startswith(TWO_FILES.split("[files]")[0])
+
+
+def test_composing_the_namespace_writes_neither_file(tmp_path):
+    """RK1633. `namespaced` composes and validates; `Namespaced.save` writes. It returned a
+    rendered `config_text` and let the handler call `write_text` on it — the one write in
+    `verbs/` that was not a `.save()` on a record a domain module had built, and for that
+    reason the config writer every enumeration of the population missed twice."""
+    config = colliding(tmp_path)
+    before = (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+    prose = (tmp_path / "STRATEGY.md").read_text(encoding="utf-8")
+
+    found = namespaced(config, "strategy", "S")
+    assert found.carried
+    assert (tmp_path / "roadkeep.toml").read_text(encoding="utf-8") == before
+    assert (tmp_path / "STRATEGY.md").read_text(encoding="utf-8") == prose
+
+    wrote = found.save()
+    # Prose first and the key last, which is the order the report's staging line then reads in.
+    assert [one.name for one in wrote] == ["STRATEGY.md", "roadkeep.toml"]
+    assert "§S:I.2" in (tmp_path / "STRATEGY.md").read_text(encoding="utf-8")
+    assert 'strategy = "S"' in (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+
+
+def test_a_prose_file_this_cannot_rewrite_leaves_the_key_undeclared(tmp_path):
+    """The ordering, as a property of the save rather than of a handler (RK1633).
+
+    A file that moved under the parse is refused by `Document`'s own check (RK116), and the
+    config has not been touched when it is — so the failure lands on the side that changes
+    nothing: an undeclared key is the state the project was already in, where a key declared
+    over a file whose citations were not carried is the defect the transaction exists against.
+    """
+    config = colliding(tmp_path)
+    found = namespaced(config, "strategy", "S")
+    before = (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+    (tmp_path / "STRATEGY.md").write_text("# Strategy\n\nSomebody else's.\n", encoding="utf-8")
+
+    with pytest.raises(StaleFile):
+        found.save()
+
+    assert (tmp_path / "roadkeep.toml").read_text(encoding="utf-8") == before
 
 
 def test_the_three_states_it_will_not_guess_at_are_refused(tmp_path, capsys):

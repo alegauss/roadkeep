@@ -62,7 +62,7 @@ from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING
 
 from roadkeep.backlog import Whereabouts
-from roadkeep.config import PROSE_ROLES, Config
+from roadkeep.config import PROSE_ROLES, Config, readable
 from roadkeep.kernel.document import Document, Heading, UnknownBlock, blank, save_all
 from roadkeep.kernel.schema import (
     OUTLINE_ANCHOR_RE,
@@ -77,6 +77,8 @@ from roadkeep.kernel.schema import (
 )
 
 if TYPE_CHECKING:  # imported for the annotation alone: `history` reads this module back
+    from pathlib import Path
+
     from roadkeep.history import Anchor
 
 #: Openers that are a shape whatever follows them: a table row, a blockquote, a fence. No
@@ -2683,8 +2685,8 @@ class Namespaced:
 
     role: str
     namespace: str
-    #: The file, with the citations rewritten. Saved by the caller, so the config write and this
-    #: one land together or not at all.
+    #: The file, with the citations rewritten. Written by :meth:`save` and no longer by the
+    #: handler (RK1633), so the config write and this one land together or not at all.
     document: Document
     #: What was re-addressed, as `(anchor, line)`, so the report names every one.
     carried: tuple[tuple[str, int], ...]
@@ -2692,19 +2694,49 @@ class Namespaced:
     #: insertion and never a serialiser, for `bump_version`'s reason: the rest of somebody's
     #: `roadkeep.toml` has to come back byte-identical.
     config_text: str
+    #: The `roadkeep.toml` the other half of this transaction rewrites, and the root it is read
+    #: against — the two primitives :func:`~roadkeep.config.readable` takes, carried for that
+    #: function's own reason: this record is composed against a `Config` and saved without one.
+    source: Path
+    root: Path
+
+    def save(self) -> tuple[Path, ...]:
+        """Both files, prose first and the key last, and answer every path that took (RK1633).
+
+        Here rather than at the handler, which is where it was. This was the one write in
+        `verbs/` that was not a `.save()` on a record a domain module had composed, and for
+        exactly that reason it is the config writer every enumeration of them missed: RK1533
+        named `govern`, RK1576's design counted four more and put the number at five, and only
+        an AST sweep found six. A record returning a rendered string claims nothing about it
+        landing, so the transaction was compose, validate, save with the last two steps owed by
+        a caller — and two tasks looking straight at this one forgot them.
+
+        **The order is a property of the save.** A prose file this cannot rewrite leaves the key
+        undeclared, which is the state the project was already in; a key declared over a file
+        that was not carried is the defect. So the failure lands on the side that changes
+        nothing — the rule `declare` keeps one module over about a scaffold's two files.
+
+        **And the config is read back before it lands** (RK1576): a `[refs]` key this parser
+        refuses would close the file behind every verb, and the prose just rewritten would be
+        the half that stayed.
+        """
+        wrote = save_all(self.document)
+        readable(self.config_text, self.root, self.source, f"declaring refs.{self.role}")
+        self.source.write_text(self.config_text, encoding="utf-8", newline="")
+        return (*wrote, self.source)
 
     def stated(self, config: Config, wrote: Sequence[Path]) -> str:
         """The key declared, and every citation carried into it (RK1168).
 
-        Beside :meth:`payload` since RK1170. The config's own path joins the staging line here
-        and not in :attr:`config_text`'s write: it is the file this transaction's *other* half
-        touched, and a commit that staged the prose and left the key is the half-declared state.
+        Beside :meth:`payload` since RK1170. The config's own path is in ``wrote`` since RK1633,
+        where :meth:`save` puts it rather than each reader appending it: it is the file this
+        transaction's *other* half touched, and a commit that staged the prose and left the key
+        is the half-declared state.
         """
         from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
 
         where = config.relative(config.path(self.role))
-        source = config.relative(config.source)
-        rows = [f'{source}  [refs] {self.role} = "{self.namespace}"']
+        rows = [f'{config.relative(config.source)}  [refs] {self.role} = "{self.namespace}"']
         # Named and not counted: this is a rewrite inside somebody's prose, and a number alone
         # is the diff a reviewer has to reconstruct to see what moved.
         rows += [
@@ -2713,7 +2745,7 @@ class Namespaced:
         ]
         if not self.carried:
             rows.append(f"  carried  nothing: {where} cites none of its own sections")
-        rows += _staging_rows([where, source])
+        rows += _staging_rows([config.relative(one) for one in wrote])
         return "\n".join(rows)
 
     def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
@@ -2728,7 +2760,7 @@ class Namespaced:
             "carried": [
                 {"anchor": anchor, "line": line} for anchor, line in self.carried
             ],
-            **_wrote_json(config, (*wrote, config.source)),
+            **_wrote_json(config, wrote),
         }
 
 
@@ -2740,6 +2772,8 @@ def namespaced(config: Config, role: str, prefix: str) -> Namespaced:
     citation is already qualified and there is nothing to carry — and a *different* namespace,
     which is a re-addressing whose citations carry the old prefix and whose answer is a different
     transaction from this one.
+
+    Composes and validates; :meth:`Namespaced.save` writes (RK1633).
     """
     if role not in PROSE_ROLES or not config.has(role):
         raise ValueError(
@@ -2762,6 +2796,11 @@ def namespaced(config: Config, role: str, prefix: str) -> Namespaced:
             f"{role} already lives in `{already}:`, and moving it to `{prefix}:` re-addresses "
             f"citations that carry the old namespace — a different transaction from declaring one"
         )
+    if config.source is None:
+        # Beside the other three refusals since RK1633, and no longer inside the renderer: the
+        # record carries the file it will write, so an unconfigured project is answered before
+        # one is constructed rather than by the composition of its text.
+        raise ValueError("this project declares no roadkeep.toml to add a namespace to")
     document = config.document(role)
     own = {section.anchor for section in anchored(document)}
     carried: list[tuple[str, int]] = []
@@ -2783,7 +2822,9 @@ def namespaced(config: Config, role: str, prefix: str) -> Namespaced:
         namespace=prefix,
         document=document,
         carried=tuple(carried),
-        config_text=_with_namespace(config, role, prefix),
+        config_text=_with_namespace(config.source, role, prefix),
+        source=config.source,
+        root=config.root,
     )
 
 
@@ -2792,17 +2833,18 @@ def namespaced(config: Config, role: str, prefix: str) -> Namespaced:
 _NAMESPACE_RE = re.compile(r"^[A-Za-z0-9]+$")
 
 
-def _with_namespace(config: Config, role: str, prefix: str) -> str:
+def _with_namespace(source: Path, role: str, prefix: str) -> str:
     """This project's `roadkeep.toml` with one key added, and every other byte as it was.
 
     A targeted insertion and never a serialiser, which is `bump_version`'s rule about the two
     files that state a version: a `tomllib` round-trip is not one — it drops the comments a
     scaffolded config is mostly made of, and rewriting somebody's file to add a line is the
     destructive formatting L3 refuses one layer down.
+
+    The file and not the `Config` since RK1633: the one thing this reads is the bytes there, and
+    the absence of a config file is a refusal :func:`namespaced` makes before it composes.
     """
-    if config.source is None:
-        raise ValueError("this project declares no roadkeep.toml to add a namespace to")
-    text = config.source.read_text(encoding="utf-8")
+    text = source.read_text(encoding="utf-8")
     row = f'{role} = "{prefix}"\n'
     if "\n[refs]\n" in text or text.startswith("[refs]\n"):
         at = text.index("[refs]\n") + len("[refs]\n")

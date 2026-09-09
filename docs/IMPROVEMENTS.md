@@ -671,32 +671,6 @@ report saying 7.24 when the rule says 3.89 is the part that misleads.
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-### §RK1633 The one write outside the layer
-
-`declare refs` is the only handler in `verbs/` that writes a file. The thirty other
-writes there are `.save()` on a record a domain module composed and validated; this one
-takes `namespaced`'s `config_text` and calls `write_text` on `config.source` itself.
-
-That is why it is absent from every count of this file's writers. RK1533 named `govern`;
-RK1576's design enumerated four more and put the number at five; the AST sweep found
-six. The extra one is exactly the write that does not look like a write from the domain
-module's side — `namespaced` returns a string and claims nothing about it landing.
-
-The asymmetry is the finding, not the missing check, which RK1576 closed. `Written`,
-`Declared`, `Opened` and every other record here own their save: the transaction is
-compose, validate, save, and a caller holding a rendered string can forget the middle
-step. This one did, across two tasks looking straight at it.
-
-So the shape is `namespaced` returning a record that saves both files, the way
-`declare`'s `Retrofitted` already does, and `_refs` calling `.save()` like its thirty
-siblings. The ordering its docstring argues for — prose file first, config last, so a
-failure lands on the side that changes nothing — becomes a property of that save, which
-is where a test holds it.
-
-What it must not become is a `Document` for the config: that file is TOML, its
-round-trip is `readable`, and a parse-render pair would drop the comments a scaffold is
-made of.
-
 ### §RK1636 The import a def silently ate
 
 RK1581 added `from roadkeep.config import declares` to `installing`, which already has a

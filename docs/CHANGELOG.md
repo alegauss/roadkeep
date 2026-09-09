@@ -1148,6 +1148,7 @@
 - ✅ **RK1615** **the served surface reads a handler's answer by capturing the stdout it printed for a terminal** — The served surface takes a handler's Result instead of the stdout it printed for a terminal, and the nine still answering in a code are named, unserved, and each for a stated reason.
 - ✅ **RK1616** **nothing refuses a handler whose answer is not a result, so the shape is held by review alone** — The sweep asks the parser what is registered as a handler instead of asking the source what one looks like, so the shape is refused where a verb is declared.
 - ✅ **RK1629** **two modules walk back from a file's last blank line under two names, and the kernel that owns blank has no name for it** — Document.written_end is the third of the three end readers and the one about the whole file, so the two modules that append a section ask it instead of walking back twice.
+- ✅ **RK1633** **one verb handler writes a governed file itself, and it is the writer every enumeration of the config's has missed** — The write moved onto Namespaced.save, so the config's writers are one layer again and the ordering is a property a test holds.
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 

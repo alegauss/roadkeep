@@ -27,7 +27,7 @@ from roadkeep.blocking import (
     open_block,
 )
 from roadkeep.briefing import non_goals
-from roadkeep.config import PROSE_ROLES, Config, readable
+from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.queueing import (
     add as add_priority,
     declared as declared_queue,
@@ -166,24 +166,16 @@ def _refs(config: Config, args: argparse.Namespace) -> Result | int:
     dangling citations and twenty-one that resolved into the other file — the second population
     being the one nothing reported until `ref.crossed`.
 
-    **The config last.** A prose file this cannot rewrite leaves the key undeclared, which is the
-    state the project was already in; a key declared over a file that was not carried is the
-    defect. So the order makes the failure land on the side that changes nothing, which is the
-    rule `init` keeps one module over about a scaffold's directories.
-
-    **And read back before it lands** (RK1576). This is the sixth config writer and the one the
-    decision's own reading missed: it was counted as four plus `govern`, and the sweep that was
-    the honest form of the fix is what named it. The order above is why it matters least here
-    and is kept anyway — a `[refs]` key this parser refuses would close the file behind every
-    verb, and the prose file it just rewrote would be the half that landed.
+    **Both files are the record's save** (RK1633). This handler wrote `roadkeep.toml` itself
+    until then — the one write in `verbs/` that was not a `.save()` on a record a domain module
+    had composed, and for exactly that reason the config writer every enumeration of them
+    missed. The ordering it kept and the read-back RK1576 added are now properties of
+    :meth:`~roadkeep.sections.Namespaced.save`, which is where a test can hold them and where
+    the thirty other writes here already put theirs.
     """
     try:
         found = namespaced(config, args.role, args.namespace)
-        wrote = found.document.save()
-        readable(
-            found.config_text, config.root, config.source, f"declaring refs.{args.role}"
-        )
-        config.source.write_text(found.config_text, encoding="utf-8", newline="")
+        wrote = found.save()
     except REFUSALS as error:
         return _refused(error)
 

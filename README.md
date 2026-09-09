@@ -123,13 +123,13 @@ called unbuilt were already in the ledger.
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 162 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 2 | 42 | 1 |
+| H — The tool's own shape (what one verb costs to change) | 1 | 43 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 27 | 1113 | 24 |
+| **Total** | 26 | 1114 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1633** (deps: —) **one verb handler writes a governed file itself, and it is the writer every enumeration of the config's has missed** — RK1576 counted five and the sweep found six: the extra one is the single write in verbs that is not a save the domain module owns. → §RK1633
+- 📋 **RK1634** (deps: —) **a ship deletes the design section and names nothing that was in it, so the last look at it never happens** — Three flags carry a design's durable half and all three are optional, so a section goes to a caller who was never shown it was about to. → §RK1634
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
