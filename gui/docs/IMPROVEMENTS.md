@@ -11,26 +11,6 @@ rather than pretending it is safe. Spawning without a shell removes the quoting 
 but not the encoding one. What proves it is a round trip: write a symptom carrying an
 accent, an apostrophe and an em dash, read it back with show, and compare the bytes.
 
-### §RG75 Ids that stop being true
-
-RG23 shipped, and a test asserting RG23 was in progress failed with nothing changed to
-cause it. RG24 fixed that one and found the same shape in three more assertions of its
-own. The subject of a live test is this repository's backlog, and every commit moves it.
-
-Two kinds of id are safe to write down. A shipped id stays shipped — nothing unships one
-— and an id no file carries stays absent, which is what the refusal test rests on.
-Everything else is a claim about today: open, blocked, in progress, carrying a design.
-
-So a live test asks the engine for its subject instead. `brief` with no id picks an open
-line, and an open line in this backlog always has a design; `list --marker` names one in
-a given state; a state nothing here has — a line taken with `--claim` — is built in a
-fixture rather than found. What is left is `RG9`, named twice for a dep pointing outside
-this backlog. Exactly two lines carry one, and the fix is to find them by that rather
-than to write down which.
-
-The value of these tests is that they read the real thing, so the answer is never to
-move them onto fixtures. It is to stop asserting about a line by its number.
-
 ### §RG78 One seam for a live read
 
 Twenty-five live test files now open the same way: resolve the repository root, build a
@@ -251,6 +231,27 @@ replace it with different contention.
 
 Not a fourth answer either: whichever verbs it serves, the client above it must not be
 able to tell which transport replied.
+
+### §RG104 A teardown that reds a green file
+
+Forty-one live files ran and one reported failure: `rows-live.test.ts`, whose five tests
+all passed and whose `afterAll` threw `EPERM` removing the temp directory its fixture
+built. The next run of the same file was green, and nothing in it had changed.
+
+`dispose` is `rmSync(root, { recursive: true, force: true })`, and `force` forgives a
+path that is not there — not one Windows will not let go of yet. A directory the engine
+had as its cwd, or one an indexer opened a moment ago, is still held when the last test
+returns, and a removal that would have worked a second later throws instead.
+
+Two things are wrong here and only one is the lock. `rmSync` takes `maxRetries` and
+`retryDelay` for exactly this — Node documents them as the answer to EBUSY, ENOTEMPTY
+and EPERM on Windows — and neither is passed. And a teardown failure is reported as a
+test failure, so a file that proved everything it set out to prove reads as broken. That
+is the shape RG75 removed from this suite one commit ago, arriving again as a directory
+that stopped being removable rather than an id that stopped being true.
+
+Swallowing the error is not the fix: temp directories nothing removes are a leak nobody
+sees. Retrying is.
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

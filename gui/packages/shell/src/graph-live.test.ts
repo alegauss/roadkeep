@@ -35,9 +35,9 @@ async function graphOf(id: string): Promise<Graph> {
 /**
  * Ids found rather than written down.
  *
- * `RG9` was named here once and it is open today, which is exactly the claim that stops
- * being true the day it ships. So the states under test are located by asking every line
- * in the backlog for its graph, and the assertions are about the states rather than
+ * An id was named here once, and naming one asserts it is still open — the claim that
+ * stops being true the day it ships. So the states under test are located by asking every
+ * line in the backlog for its graph, and the assertions are about the states rather than
  * about which id happens to be in one.
  */
 let outside: Graph | undefined
