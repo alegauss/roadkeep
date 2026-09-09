@@ -491,6 +491,7 @@
 - ✅ **RK1630** **a read payload names neither the root it answered about nor the build that answered** — One helper on the two readers of a payload leads every mapping with the absolute root and the build that answered, keeping the two verbs that already name one, and hands a list back untouched.
 - ✅ **RK1631** **no one call says whether a path is governed and where its root is, so a client reads it off a null** — config states governed and the roles [files] declares, so the probe is one call: with RK1630's root and version already on it, a client meeting a path before a project has all four.
 - ✅ **RK1650** **one of forty read-only verbs now refuses, and the rule that reading is never refused is prose in three places** — The rule is one sentence in verbs/refusing.py with its two grounds, held over asking.QUESTIONS against a project that declared only the scaffold.
+- ✅ **RK1651** **three readings of one source claim to be complements of each other and no test holds any of the three claims** — The two scans read one _shown_at, so they are complements by construction, and a property over surface.modules holds that they tile every non-prose string.
 
 ## Block D — The gate
 

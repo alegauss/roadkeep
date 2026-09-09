@@ -169,6 +169,23 @@ INVARIANTS: tuple[Invariant, ...] = (
         held_by="test_configured::test_no_composed_command_carries_a_value_this_project_decides",
     ),
     Invariant(
+        stated="RK1651",
+        rule=(
+            "the two readings the three rules above share tile a module's string constants: "
+            "none is read twice and none is read by neither"
+        ),
+        # The rows above are three rules over two scans, and this is the claim that keeps
+        # them from being three rules over a gap: `_shown`'s docstring said the two were
+        # complements and nothing held it, so RK1609 changed what both read and the answer
+        # was taken by hand, after the change. Total is the half that matters — a string
+        # neither reads is a value both exemptions let through, which is what RK1558 and
+        # RK1609 were each one instance of.
+        over="surface.modules",
+        held_by=(
+            "test_configured::test_the_two_readings_of_a_module_are_one_partition_of_its_strings"
+        ),
+    ),
+    Invariant(
         stated="RK1558",
         rule=(
             "no command a help string offers carries a marker, an id or a governed file's "

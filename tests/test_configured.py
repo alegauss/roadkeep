@@ -86,34 +86,66 @@ IS_AN_ID = re.compile(r"^[A-Z]{1,4}\d+$")
 IS_A_GOVERNED_FILE = re.compile(r"\b(ROADMAP|CHANGELOG|IMPROVEMENTS|STRATEGY)\.md\b")
 
 
-def _values(source: str) -> list[tuple[int, str]]:
-    """Every string constant a module *uses*, with its line — prose excluded.
+def _prose(tree: ast.AST) -> set[int]:
+    """Every docstring node of this tree, by id — the prose half of what a scan drops.
 
-    Two exclusions and each is the same argument RK488's own sweep makes: a docstring is
-    written for a reader of this source, so a comment recording what a defect was is not the
-    defect; and a help string is written for a caller of the CLI, where nothing is derivable.
-    Read from the AST rather than the text, because a grep cannot tell those apart.
+    Its own function since RK1651, where the partition became a property: the two readings
+    below tile a module's string constants *outside* prose, so which nodes are prose is a
+    third answer the claim needs and neither scan reports.
     """
-    tree = ast.parse(source)
-    skip = {
+    return {
         id(node.body[0].value)
         for node in ast.walk(tree)
         if isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
         and ast.get_docstring(node) is not None
     }
-    for node in ast.walk(tree):
-        if not isinstance(node, ast.Call):
-            continue
-        for keyword in node.keywords:
-            if keyword.arg in SHOWN:
-                skip |= {id(inner) for inner in ast.walk(keyword.value)}
+
+
+def _shown_at(tree: ast.AST) -> list[ast.expr]:
+    """Every argument expression a parser shows a caller, in source order (RK1651).
+
+    **The one reading of `SHOWN` both scans take.** :func:`_values` drops what this finds and
+    :func:`_shown` reports exactly it, which is what makes them complements — and until this
+    function existed each walked for the keyword itself, so the complementarity was a sentence
+    in a docstring and a measurement somebody had taken once by hand. RK1609 changed what two
+    of the three readings here read and whether it survived was answered afterwards.
+    """
     return [
-        (node.lineno, node.value)
+        keyword.value
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call)
+        for keyword in node.keywords
+        if keyword.arg in SHOWN
+    ]
+
+
+def _valued(tree: ast.AST) -> list[ast.Constant]:
+    """Every string constant a module *uses*, as the nodes — prose and shown words excluded.
+
+    Two exclusions and each is the same argument RK488's own sweep makes: a docstring is
+    written for a reader of this source, so a comment recording what a defect was is not the
+    defect; and a help string is written for a caller of the CLI, where nothing is derivable.
+    Read from the AST rather than the text, because a grep cannot tell those apart.
+
+    The **nodes** and not the pairs since RK1651: identity is what the partition property is
+    stated over, two scans reporting one string at one line being the thing it has to tell
+    apart from two readings of two strings.
+    """
+    skip = _prose(tree) | {
+        id(inner) for value in _shown_at(tree) for inner in ast.walk(value)
+    }
+    return [
+        node
         for node in ast.walk(tree)
         if isinstance(node, ast.Constant)
         and isinstance(node.value, str)
         and id(node) not in skip
     ]
+
+
+def _values(source: str) -> list[tuple[int, str]]:
+    """:func:`_valued` as the `(line, text)` rows every caller here reads."""
+    return [(node.lineno, node.value) for node in _valued(ast.parse(source))]
 
 
 def _leaks(surface, matches) -> dict[str, list[str]]:
@@ -328,8 +360,12 @@ SPANS = re.compile(r"`([^`]+)`")
 def _shown(source: str) -> list[tuple[int, str]]:
     """Every string a parser shows a caller, with its line — exactly what :func:`_values` skips.
 
-    The complement of that function's exemption, so the two cannot drift apart: one reads
-    every string a module uses and drops these, this one reads these and nothing else.
+    The complement of that function's exemption, and since RK1651 by **construction** rather
+    than by agreement: both read :func:`_shown_at`, one dropping every node it finds and this
+    one reporting them, so a sixth `SHOWN` keyword reaches the two together. That the two tile
+    a module's non-prose strings is
+    `test_the_two_readings_of_a_module_are_one_partition_of_its_strings`, which is the claim
+    this docstring used to make on its own.
 
     **An f-string is one string here, not its parts** (RK1609). This walked to every
     `ast.Constant`, so a `help=` f-string whose backticked command carries a literal marker
@@ -340,26 +376,21 @@ def _shown(source: str) -> list[tuple[int, str]]:
     :func:`_literal` is the joining, shared with the scan that already did it.
     """
     out = []
-    for node in ast.walk(ast.parse(source)):
-        if not isinstance(node, ast.Call):
-            continue
-        for keyword in node.keywords:
-            if keyword.arg not in SHOWN:
-                continue
-            for inner in ast.walk(keyword.value):
-                if isinstance(inner, ast.JoinedStr):
-                    out.append((inner.lineno, _literal(inner)))
-                elif isinstance(inner, ast.Constant) and isinstance(inner.value, str):
-                    # A constant **inside** an f-string is one of the parts joined above, so
-                    # reading it again would report the same text twice — once whole and once
-                    # in pieces, the second of which is the reading this task removed.
-                    if not any(
-                        inner is part
-                        for one in ast.walk(keyword.value)
-                        if isinstance(one, ast.JoinedStr)
-                        for part in one.values
-                    ):
-                        out.append((inner.lineno, inner.value))
+    for value in _shown_at(ast.parse(source)):
+        for inner in ast.walk(value):
+            if isinstance(inner, ast.JoinedStr):
+                out.append((inner.lineno, _literal(inner)))
+            elif isinstance(inner, ast.Constant) and isinstance(inner.value, str):
+                # A constant **inside** an f-string is one of the parts joined above, so
+                # reading it again would report the same text twice — once whole and once
+                # in pieces, the second of which is the reading this task removed.
+                if not any(
+                    inner is part
+                    for one in ast.walk(value)
+                    if isinstance(one, ast.JoinedStr)
+                    for part in one.values
+                ):
+                    out.append((inner.lineno, inner.value))
     return out
 
 
@@ -485,6 +516,44 @@ def test_no_module_names_a_governed_file_by_its_default_name():
     """`[files]` says where a backlog lives, and a module that spells one has answered for
     somebody else's repository. Green on the first run, and held so it stays that way."""
     assert _leaks(modules(), lambda text: bool(IS_A_GOVERNED_FILE.search(text))) == {}
+
+
+def test_the_two_readings_of_a_module_are_one_partition_of_its_strings():
+    """RK1651. Two of the three scans here claim to be complements — `_shown`'s docstring said
+    so and nothing held it — and RK1609 changed what both of them read, so whether the claim
+    survived was answered afterwards, by hand, once. It did. That is a fact about one revision.
+
+    Two halves, and the second is the one that matters. **Disjoint** says no string is read
+    twice, which is the cheap half: a value counted by both scans is reported twice and the
+    duplicate is visible. **Total** says no string is read by neither — which is invisible, is
+    what RK1558 and RK1609 were each one instance of, and is the shape a third exemption
+    added to either function would take.
+
+    Over the nodes and not the rows, because identity is what tells one string read twice from
+    two strings that happen to spell the same words on one line. The f-string is why: `_shown`
+    reports a joined literal that is no node's own text, so its parts are covered *by it* and
+    the reading a row-level property would report is two strings neither scan claims.
+    """
+    for module in modules():
+        tree = ast.parse(module.text)
+        valued = {id(node) for node in _valued(tree)}
+        shown = {id(inner) for value in _shown_at(tree) for inner in ast.walk(value)}
+        strings = {
+            id(node)
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Constant) and isinstance(node.value, str)
+        }
+        assert not valued & shown, f"{module.where}: a string both scans read"
+        left = strings - valued - shown - _prose(tree)
+        assert not left, (
+            f"{module.where}: {len(left)} string(s) neither scan reads — a value both "
+            f"exemptions let through, which is the gap RK1609 closed one instance of"
+        )
+    # And the third reading is not a third tile, which is the question RK1651 had to decide:
+    # it reports **findings** rather than a reading of the set — the f-strings that compose a
+    # command round a value — so it is empty on this package by law, and a property asserting
+    # it tiled anything would be asserting that this package leaks.
+    assert _composed_values('x = f"take `status RK1 {one}`"'), "the third reading is a finding"
 
 
 def test_the_two_modules_that_may_declare_a_default_are_the_two_that_do():

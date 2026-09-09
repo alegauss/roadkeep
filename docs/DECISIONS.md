@@ -72,6 +72,7 @@ on the prose roles.
 - ✅ **RK1556** **a project whose open set spells no partial marker ships a partial in silence, and the line keeps the marker it had** — A shape's second member is what turns two copies of a rule into one function; the first gets a good sentence.
 - ✅ **RK1558** **one marker scan skips what a caller is shown and the one beside it does not, with nothing saying they differ** — Where two scans of one rule disagree, the line between them is drawn by measuring what the code already does.
 - ✅ **RK1650** **one of forty read-only verbs now refuses, and the rule that reading is never refused is prose in three places** — A read refuses only where the question cannot be asked of this project: a word its declarations exclude, or state that has to be made first — never an empty answer.
+- ✅ **RK1651** **three readings of one source claim to be complements of each other and no test holds any of the three claims** — The two string readings are a partition and the third is a finding scan: total is the half that matters, a string neither reads being a value both exemptions let through.
 
 ### §RK1362 Why a projection and not a wider read
 
@@ -187,6 +188,23 @@ list`, `criterion list` and `block list` each said it about themselves.
 
 The guard made the claim to an agent and its width is budgeted, so it says what it is
 for instead: no barrier stands in front of a read.
+
+### §RK1651 Two tiles and a finding
+
+The third reading decided itself, once each was asked what it returns. `_values` and
+`_shown` report a *reading of the source*, and their union is a claim about it;
+`_composed_values` reports **findings** — the f-strings that build a command round a
+value — and is empty here by law. A property claiming three tiles would assert this
+package leaks.
+
+So the partition is over two, and by construction: both read one `_shown_at`, so a sixth
+`SHOWN` keyword reaches them together. What the test adds is the half construction
+cannot give — that nothing is left over. Measured with a third exemption pencilled into
+`_valued`: 216 strings would go unread and none reported.
+
+Over the nodes and not the rows. `_shown` joins an f-string into a literal that is no
+node's own text, so its parts are covered by it, and a row-level reading would report
+two strings neither scan claims.
 
 ## Block D — The gate
 

@@ -101,30 +101,6 @@ already built, and already the shape every other door that leaves a pointer owin
 
 ## Block C — Query
 
-### §RK1651 The complement nothing checks
-
-`test_configured` reads the package three ways for one rule. `_values` takes every
-string a module uses and drops what a caller is shown. `_shown` takes exactly those and
-nothing else — its docstring says *the complement of that function's exemption, so the
-two cannot drift apart*. `_composed_values` reads the f-strings that build a command.
-
-Nothing holds the claim. RK1609 changed what two of the three read — `_shown` now joins
-an f-string's parts, `_composed_values` now asks about three value kinds instead of one
-— and whether the complementarity survived was answered by measuring it once, by hand,
-after the change. It did: zero nodes are read by both. That is a fact about today and
-about nothing else.
-
-The measurement is cheap and the property is one line: over `surface.modules`, the pairs
-`_values` reports and the pairs `_shown` reports do not intersect, and together they
-cover every string constant outside a docstring. The second half is the one that matters
-more — a string neither reads is a value both exemptions let through, and that is the
-shape RK1558 and RK1609 were each one instance of.
-
-What needs deciding is whether the third reading joins the property or stays apart. It
-answers a different question — *does this f-string build a command* rather than *is this
-string a value* — so a partition over two and a claim about the third may be the honest
-shape, rather than one property pretending all three tile the same set.
-
 ### §RK1653 The exemption wider than the collision
 
 `test_advisories` sweeps the suite for a test asserting over **every** note the gate

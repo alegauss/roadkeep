@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 233 | 2 |
-| C — Query (consult without reading the file) | 5 | 188 | 7 |
+| C — Query (consult without reading the file) | 4 | 189 | 7 |
 | D — The gate | 7 | 308 | 7 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 163 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 44 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 13 | 1131 | 24 |
+| **Total** | 12 | 1132 | 24 |
 
 **Next ready:**
 
-- 💭 **RK1651** (deps: —) **three readings of one source claim to be complements of each other and no test holds any of the three claims** — RK1609 changed what two of them read and the claim survived by luck, the measurement that says so having been taken by hand once. → §RK1651
+- 💭 **RK1652** (deps: —) **a config refusal now names the table a key belongs under, and no verb moves it there** — RK1610 ends in a hand edit to the one file govern and declare exist so nobody hand-edits, and a served session has no editor at all. → §RK1652
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
