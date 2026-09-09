@@ -12,6 +12,11 @@ packages/shell/src/captured/
 # from, so the gate says the surfaces are behind when only a formatter has been past.
 .claude/skills/roadkeep/
 
+# The design system writes these, for the same reason and with the same consequence:
+# `viglet-ds-page-reference` rewrites them from the package and reports a difference as
+# drift, so a formatter passing over one turns the gate red against nothing.
+.claude/skills/viglet-ds-pages/
+
 # The source of a published design canvas, and a formatter would rewrite it into something
 # that canvas never published — the two ends would stop round-tripping. One artboard is the
 # harder case: it shows a governed section with the wrapping the file stores, inside a
