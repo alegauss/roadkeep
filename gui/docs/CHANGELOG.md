@@ -105,6 +105,7 @@
   checked **A dropped isolation flag fails the suite instead of shipping** The built app is launched with a debugging port and asked what the page actually has; turning off sandbox and contextIsolation in the source turned eight of these red, which is the whole argument for asking the window rather than reading its configuration.
   checked **The checks run by hand for RG44 and RG59 now run on every change** The bridge's surface, its round trip, the absent Node globals, a navigation outside the bundle and a remote script are all asked of the running page — and CI builds before it tests, with a virtual framebuffer on the runner that has no desktop.
 - ✅ **RG111** **the lint gate reads the engine CI checks out beside the packages and fails on code this repo did not write** — Both halves of the lint step skip the engine CI checks out, so the gate judges this repository's files alone — verified with a checkout in place (design recorded in `.github/workflows/ci.yml`).
+- ✅ **RG112** **nothing pins the line endings, so a Windows runner checks out CRLF and Prettier reports every text file** — `* text=auto eol=lf` makes every checkout LF, so the gate reads the same bytes on a runner as locally — proven on a clone with the runner's `core.autocrlf` (design recorded in `.gitattributes`).
 
 ## Block H — The look (a design system for governed prose)
 
