@@ -7,6 +7,30 @@ in the module a verb can import without importing the command surface.
 :data:`REFUSALS` is listed once for the same reason it always was: fourteen writing commands
 catch the same set, so adding a class to it is one edit rather than fourteen and thirteen of
 them enough.
+
+**And what a read may refuse on** (RK1650). *Reading is never refused* was stated four times,
+each about one verb, and RK1608 made it false on purpose: `pick --have <word>` refuses where
+`[requirements] declared` names a vocabulary the word is not in. Measured over the forty
+read-only verbs against a project that declared only what `init` scaffolds, three reads refuse
+and every other answers — `claim <id>` on a line nobody holds, `budget --defer` and `list
+--stale` on a store nothing declared. So the rule is two grounds:
+
+* the caller **named something this project's declarations exclude** — a word outside a
+  declared vocabulary, a role `[files]` does not name;
+* the read is **about state that has to be made first** — a claim nobody took, a store nobody
+  opened.
+
+**And never an empty answer.** A project that has not opted in gets the emptiness said, with
+the door that fills it (RK1307): a caller refused there cannot learn that the list is the
+thing they have not declared, which is `non-goal list`'s reason, `criterion list`'s and
+`block list`'s. A **verdict** is an answer too — `lint` returning 1 read the files and they
+did not pass, which is the split `cli._may_offer` already makes between a verdict and a fault.
+
+Whichever it is, the refusal **names the absence it met**: the word, the role or the line, so a
+question this project cannot be asked is told from an answer that is empty. Held over
+`asking.QUESTIONS` by `tests/test_reading.py`, and registered in `test_invariants.INVARIANTS`
+as this rule's row — a rule stated in four docstrings and swept by nothing is the state that
+file exists to make visible.
 """
 
 from __future__ import annotations

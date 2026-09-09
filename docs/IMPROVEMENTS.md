@@ -101,30 +101,6 @@ already built, and already the shape every other door that leaves a pointer owin
 
 ## Block C — Query
 
-### §RK1650 Where a read may say no
-
-*Reading is never refused* is a real rule here and it is stated four times, each about
-one verb. `block list`'s docstring says a project with no block answers rather than
-refuses. `criterion list`'s says a project that has not opted in prints an empty answer,
-**because a read that refused would leave the caller unable to discover that the list is
-the thing they have not declared**. The guard prints the sentence to an agent that tried
-to hand-edit a governed file, and `budgeting` measures its width as part of that advice.
-
-RK1608 added the first exception, deliberately: `pick --have <word>` refuses where
-`[requirements] declared` names a vocabulary the word is not in, because that is a
-caller who typed something this project cannot mean — and it stays a *row* where the
-project declared no vocabulary at all, which is the discovery case the rule protects.
-
-So the rule as stated is now false, and the distinction that makes it right is written
-in one verb's docstring. Forty verbs are read-only; nothing says which of them may
-refuse or on what grounds.
-
-The shape is a sentence somewhere every one of them can be held against, and the
-candidate line is already visible in the two halves: a read refuses a caller who named
-something the project's own declarations exclude, and never a caller asking about
-something the project has not declared at all. Whether that is the whole rule is what
-the reading has to find out.
-
 ### §RK1651 The complement nothing checks
 
 `test_configured` reads the package three ways for one rule. `_values` takes every

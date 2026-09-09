@@ -98,6 +98,12 @@ INSIDE = {
         ("code", "file", "line", "column", "message", "remedy"),
     ),),
     "stats": (("blocks", ("block", "counted")),),
+    # The list only a **held line** puts in this payload (RK1650's session met it): who is
+    # holding what, and for how long, which is what an editor greys out and what a second
+    # session reads before it takes a line. Unpromised until a run of this suite happened to
+    # have a live claim — the derived population is what found it, and the rows are empty on
+    # every checkout nobody is working in, which is why a maintained list never named it.
+    "pick": (("held", ("id", "age", "since")),),
     # The second list the derived reading found (RK1645): every workflow step calling the
     # action, and the ref each pins it at — which is what an editor shows when it says a
     # checkout gates on a copy other than the one answering, and what nothing here promised.
@@ -148,6 +154,31 @@ def payload(*argv: str, root: Path | None = None, expected: int = EXIT_OK) -> di
         code = main(["-C", str(root or HERE), *argv, "--json"])
     assert code == expected, f"{argv}: exited {code}"
     return json.loads(out.getvalue())
+
+
+@pytest.fixture(scope="module")
+def claimed() -> Path:
+    """A project with a line somebody is holding, for the list `docs/` publishes empty.
+
+    Its own root and never this checkout: taking a claim here would write a marker onto a real
+    line and a row into the registry this session's own `pick` reads. Two lines, because the
+    verb answers about the one it can still offer and the row is about the one it cannot.
+    """
+    root = Path(tempfile.mkdtemp())
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    for symptom in ("a symptom plainly long enough to read", "a second, equally long symptom"):
+        assert (
+            main(
+                [
+                    "-C", str(root), "add", "--block", "A", "--symptom", symptom,
+                    "--why", "Because a held line needs a neighbour to be told from.",
+                ]
+            )
+            == EXIT_OK
+        )
+    assert main(["-C", str(root), "status", "RK1", "\U0001f6e0"]) == EXIT_OK
+    yield root
+    shutil.rmtree(root, ignore_errors=True)
 
 
 @pytest.fixture(scope="module")
@@ -288,7 +319,7 @@ def test_a_list_payload_is_handed_back_as_the_list_it_is(populated):
     "verb, field, keys",
     [(verb, field, keys) for verb, lists in sorted(INSIDE.items()) for field, keys in lists],
 )
-def test_the_keys_inside_a_row_are_there_too(verb, field, keys, dirty, populated):
+def test_the_keys_inside_a_row_are_there_too(verb, field, keys, dirty, populated, claimed):
     """A client walks into `tasks` and `findings`, so a rename one level down breaks it just
     as hard — and one level is where it stops: nothing here reads a remedy's doors, so those
     stay free to move until something outside says otherwise.
@@ -300,8 +331,16 @@ def test_the_keys_inside_a_row_are_there_too(verb, field, keys, dirty, populated
     One sweep over every list since RK1645, where there were two over one each: `config` holds
     three, so a table shaped *one per verb* wanted a second of itself the moment a second list
     arrived, and a third would have wanted a third.
+
+    And a **third state** since RK1650, for `pick.held`: a checkout nobody is working in
+    publishes an empty list, so the row is unexhibited exactly where `docs/` would answer.
+    Keyed on the pair and not the verb — `pick`'s other lists are about the backlog and read
+    off `populated` like everything else — which is the shape the `lint` branch already has.
     """
-    where, code = (dirty, EXIT_GATE) if verb == "lint" else (populated, EXIT_OK)
+    if (verb, field) == ("pick", "held"):
+        where, code = claimed, EXIT_OK
+    else:
+        where, code = (dirty, EXIT_GATE) if verb == "lint" else (populated, EXIT_OK)
     rows = payload(*_argv(verb, where), root=where, expected=code)[field]
     assert rows, f"{verb}: the fixture produced no {field} to read"
     missing = [key for key in keys if key not in rows[0]]

@@ -2207,7 +2207,10 @@ def deny_cost(config: Config) -> Denied:
 #: for `installing._skill`'s reason: a table that grew a row would move every number keyed on
 #: a position, and a sentence that moved is a `ValueError` here rather than a wrong figure.
 _SHELL_TABLE = "Or the same engine in a shell"
-_READING = "Reading is never refused"
+#: RK1650 reworded it: the sentence is about the barrier that prints it and no longer a claim
+#: about forty verbs, three of which do refuse. Matched on the clause rather than the whole,
+#: for the reason above — the reads it names are spelled per surface.
+_READING = "No barrier stands in front of a read"
 
 
 @dataclass(frozen=True, slots=True)

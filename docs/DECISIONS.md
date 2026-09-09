@@ -71,6 +71,7 @@ on the prose roles.
 - ✅ **RK1547** **a pause carries a reason with no date and no expiry, so nothing ever asks whether it still holds** — A reading that costs a git call belongs on a read taken once, never on the path a loop runs every iteration.
 - ✅ **RK1556** **a project whose open set spells no partial marker ships a partial in silence, and the line keeps the marker it had** — A shape's second member is what turns two copies of a rule into one function; the first gets a good sentence.
 - ✅ **RK1558** **one marker scan skips what a caller is shown and the one beside it does not, with nothing saying they differ** — Where two scans of one rule disagree, the line between them is drawn by measuring what the code already does.
+- ✅ **RK1650** **one of forty read-only verbs now refuses, and the rule that reading is never refused is prose in three places** — A read refuses only where the question cannot be asked of this project: a word its declarations exclude, or state that has to be made first — never an empty answer.
 
 ### §RK1362 Why a projection and not a wider read
 
@@ -170,6 +171,22 @@ built before any config is read.
 
 That closed a hole neither scan covered: a *literal* marker inside a help string's
 command. The new property holds all three values, which leak alike.
+
+### §RK1650 The two grounds, measured
+
+Measured before it was stated. Against a project holding only what `init` scaffolds,
+three of the forty reads refuse — `claim <id>` on a line nobody holds, `budget --defer`
+and `list --stale` on a store nothing declared — and every other one answers: a project
+declaring no vocabulary has nothing to exclude a word with, so RK1608 is the rule and
+not its exception.
+
+The grounds are two, which is why `list --role <undeclared>` is not a third: a role
+`[files]` does not name is a word the declarations exclude, as an undeclared requirement
+is. What the rule protects is the empty answer, and the reason is discovery — `non-goal
+list`, `criterion list` and `block list` each said it about themselves.
+
+The guard made the claim to an agent and its width is budgeted, so it says what it is
+for instead: no barrier stands in front of a read.
 
 ## Block D — The gate
 

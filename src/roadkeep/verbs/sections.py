@@ -521,9 +521,11 @@ def _criterion_drop(config: Config, args: argparse.Namespace) -> Result | int:
 def _criterion_list(config: Config, args: argparse.Namespace) -> Result | int:
     """What would finish a block — one block's list, or every one this file declares.
 
-    Reading is never refused, exactly as `non-goal list` is not: a project that has not opted in
-    prints an empty answer and says so, because a read that refused would leave the caller
-    unable to discover that the list is the thing they have not declared.
+    An empty answer and never a refusal, exactly as `non-goal list` is not refused: a project
+    that has not opted in prints an empty answer and says so, because a read that refused would
+    leave the caller unable to discover that the list is the thing they have not declared. Which
+    is the sentence :mod:`roadkeep.verbs.refusing` now states for all forty reads (RK1650) —
+    this docstring was one of the four places it was written, each about one verb.
     """
     try:
         about = _addressed(args)
@@ -1124,7 +1126,7 @@ def declare_places(subcommands: argparse._SubParsersAction) -> None:
             "moment a task starts: until RK69 only `brief <id>` printed it, so the rule was "
             "carried by a sentence in a file. Presence, not enforcement — whether a proposal "
             "violates a constraint is a judgement about meaning, and this tool has no model "
-            "(L4). Reading is never refused, so an ungoverned list prints and says so."
+            "(L4). An ungoverned list prints and says so, and is never refused."
         ),
     )
     scope_list.add_argument(
@@ -1316,7 +1318,8 @@ def declare_places(subcommands: argparse._SubParsersAction) -> None:
         description=(
             "The queue `pick` applies, in order, with the file it came from — because a "
             "project that wrote a section and is still being ordered by its config has a "
-            "fact to learn and no other way to learn it. Reading is never refused."
+            "fact to learn and no other way to learn it, so an unordered one prints and "
+            "says so."
         ),
     )
     queue_list.add_argument("--json", action="store_true", help=_JSON_HELP)

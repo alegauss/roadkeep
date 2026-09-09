@@ -1188,9 +1188,10 @@ class Catalogue:
 def catalogue(config: Config) -> Catalogue:
     """Every block this project declares, titled and counted (RK1188).
 
-    Read-only, and reading is never refused: a project with no block at all answers with the
-    empty catalogue and the command that opens the first heading, because the caller who most
-    needs this verb is the one who has nothing to grep for.
+    Read-only, and the empty answer rather than the refusal — which is the half
+    :mod:`roadkeep.verbs.refusing` states the rule for (RK1650): a project with no block at all
+    answers with the empty catalogue and the command that opens the first heading, because the
+    caller who most needs this verb is the one who has nothing to grep for.
 
     The walk is :func:`_labels`', so the order and the membership are the ones the three
     writes in this module already resolve against, and the counts are

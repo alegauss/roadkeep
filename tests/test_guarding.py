@@ -41,6 +41,7 @@ from asking import verbs
 
 from conftest import git_commit, git_init, shelled
 
+from roadkeep.budgeting import _READING
 from roadkeep.cli import EXIT_OK, build_parser, main
 from roadkeep.guarding import (
     _INSTEAD,
@@ -607,7 +608,11 @@ def test_a_refusal_reads_as_an_answer_and_says_reading_is_free():
     # L5: the reason an agent reaches for `Edit` is often to *read* around a line, and a
     # refusal that does not say the query surface exists sends it to open the file. Which
     # spelling names them is per session since RK477, so what is asserted here is the verbs.
-    tail = reason[reason.index("Reading is never refused") :]
+    #
+    # Off `_READING`, which is the clause `budgeting` splits the denial on (RK1650): the
+    # sentence was reworded when the rule it claimed stopped being true, and three tests
+    # indexed on the words. One declaration, and a rewording moves all four together.
+    tail = reason[reason.index(_READING) :]
     assert all(read in tail for read in ("brief", "show", "list"))
 
 
@@ -1008,7 +1013,7 @@ def test_the_reads_a_denial_closes_on_are_named_in_the_spelling_this_session_has
     said = str(Refusal(tool="Edit", path=ROADMAP, role="roadmap", served="mcp__roadkeep__"))
     for read in ("brief", "show", "list"):
         assert f"mcp__roadkeep__{read}" in said, read
-    tail = said[said.index("Reading is never refused") :]
+    tail = said[said.index(_READING) :]
     assert not shelled(tail), tail
     # Fields and not an argv, which is RK476's finding in prose: a caller here passes
     # arguments, so `<id>` and `--block <x>` would be a spelling it cannot use.
@@ -1020,7 +1025,7 @@ def test_the_same_reads_at_a_terminal_stay_the_line_a_shell_runs(tmp_path):
     """Per table, like the repair route above it: a session with no tools is the one the
     shell form was always right for, and RK477 may not cost it that."""
     said = str(Refusal(tool="Edit", path=ROADMAP, role="roadmap", served=""))
-    tail = said[said.index("Reading is never refused") :]
+    tail = said[said.index(_READING) :]
     assert f"{invocation()} brief <id>" in tail
     assert "mcp__" not in tail
 

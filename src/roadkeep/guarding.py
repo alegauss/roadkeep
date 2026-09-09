@@ -47,7 +47,9 @@ The same process answers `SessionStart` (RK82), because the barrier only ever sp
 session that had already decided to write: :class:`Notice` states which files are governed
 here, once, before the first read. The other candidate — a `PreToolUse` matcher on the
 reading tools — is not taken, on the argument `Bash` gets above: paying on every read to
-catch what one resident line already said is a tax, and reading is never refused anyway.
+catch what one resident line already said is a tax, and this barrier denies no read anyway
+(RK1650 — what a read may refuse on is :mod:`roadkeep.verbs.refusing`'s own rule, and it is
+never this hook).
 
 That start is also where a **drifted vendored copy** is named (RK234). `install --check` was
 the gate holding the copy in step and no adopting project ran it, so a session read a skill
@@ -441,6 +443,13 @@ class Refusal:
         a served name drops the arguments a shell line shows, so what each verb takes has to
         be said in words there and is already visible here. That difference is prose, which
         is the one thing a renderer may not decide.
+
+        It opened *Reading is never refused* until RK1650, which is a claim this tool's own
+        rule no longer makes: three reads refuse on a project that declared nothing and
+        `pick --have` refuses a word outside a declared vocabulary. What the sentence is *for*
+        is the permission — an agent that has just been denied a write, learning that no
+        barrier stands in front of the three reads below — so it says that instead, and the
+        sentence is true of the hook that prints it rather than nearly true of forty verbs.
         """
         brief, show, listing = alongside(
             (
@@ -452,12 +461,12 @@ class Refusal:
         )
         if self.served:
             return (
-                f"Reading is never refused: `{brief}` starts a task in one call and "
-                f"`{show}` joins the line to its rationale, both taking the id; "
+                f"No barrier stands in front of a read: `{brief}` starts a task in one call "
+                f"and `{show}` joins the line to its rationale, both taking the id; "
                 f"`{listing}` prints them verbatim, and takes a block."
             )
         return (
-            f"Reading is never refused: `{brief}` starts a task in one call, "
+            f"No barrier stands in front of a read: `{brief}` starts a task in one call, "
             f"`{show}` joins the line to its rationale, `{listing}` prints them "
             f"verbatim."
         )

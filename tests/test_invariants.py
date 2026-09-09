@@ -132,6 +132,20 @@ INVARIANTS: tuple[Invariant, ...] = (
         held_by="test_asking::test_every_declared_question_is_answered_by_a_command_that_only_reads",
     ),
     Invariant(
+        stated="RK1650",
+        rule=(
+            "a read refuses only where the question cannot be asked of this project, and an "
+            "empty answer is never one of those"
+        ),
+        # L5's row one property along, over the same inventory and asked of a *run*: that one
+        # holds that every written-down question has a command which only reads, off the
+        # parser, needing no repository. This runs those argvs against the project a
+        # first-time adopter has — which is the state the rule is about, and the one the
+        # inventory's own rows say their positionals are never run against.
+        over="asking.QUESTIONS",
+        held_by="test_reading::test_every_question_answers_or_names_the_absence_it_met",
+    ),
+    Invariant(
         stated="L6",
         rule=(
             "prefix, paths, markers and limits are read from roadkeep.toml and never "
