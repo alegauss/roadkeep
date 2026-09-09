@@ -224,27 +224,6 @@ reading.
 
 ## Block D — The gate
 
-### §RK1645 The second list nothing promised
-
-`tests/test_payloads.INSIDE` says what its docstring says: *the keys inside the one
-object each of those carries a list of*. One per verb, which was true of every payload
-until `config`, and `config` now carries three — `keys`, `tables` and `fixed`.
-
-RK1603 met the limit and worked around it, adding `BESIDE` for `tables` and a second
-parametrized sweep beside the first. That is two tables and two tests for one claim, and
-a fourth list would want a third of each. What it did not do is notice the one already
-there: `fixed` has been in that payload since RK1381, six keys per row — `name`, `at`,
-`sample`, `percentile`, `reading`, `why` — and neither `PROMISED` nor `INSIDE` names it.
-A consumer reading `fixed[0].reading` is reading a field nothing here holds, which is
-exactly the breakage these tables exist to make red.
-
-So the shape is one question and the population is one payload. `INSIDE` could take a
-tuple of lists per verb rather than one, which folds `BESIDE` back in and makes `fixed`
-a row somebody has to fill; or the two could stay apart and `fixed` get a third. What
-decides it is whether *the object a payload holds a list of* was ever the right singular
-— the editor host reads two of `config`'s three, and the promise is about what a reader
-outside this process depends on.
-
 ### §RK1646 The guard that stops at the package
 
 RK1604 folded `config.has(role) and config.path(role).is_file()` into `Config.on_disk`

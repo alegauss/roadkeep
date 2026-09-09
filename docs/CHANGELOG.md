@@ -804,6 +804,7 @@
 - ✅ **RK1642** **the preventive read a refusal names for seven codes is in the sentence and in no field of the payload** — The read goes out under doors, which is where a payload publishes a command a caller has not yet chosen.
 - ✅ **RK1643** **the orientation is held at a ceiling and the two pages it points at, six times its size, are held by nothing** — Each page carries its own figure beside the orientation's, and a page past it is a page to split.
 - ✅ **RK1644** **nine guards over this package's source read its characters where twenty-two read its syntax** — Five guards whose subject was a code shape now read the syntax, and the population that reads characters is empty.
+- ✅ **RK1645** **config publishes three lists of objects and the promise table holds one slot per verb, so one list's rows are unpromised** — One table with a row per list, and the population read off the payloads — which found a second list nothing promised.
 
 ## Block E — Adoption
 

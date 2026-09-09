@@ -139,32 +139,26 @@ def test_every_verb_the_host_runs_is_one_this_cli_parses():
 def test_the_host_reads_only_keys_a_payload_promises():
     """The join RK1005 exists for. Every key this reader walks is one that test holds, so a
     rename is red in Python before it is a broken view in another language."""
-    from test_payloads import BESIDE, INSIDE, PROMISED
+    from test_payloads import INSIDE, PROMISED
 
     source = _code()
-    # The host's **own** two rows, which no payload ever carried: `notice` is the message it
-    # shows instead of an empty tree when the read failed, and `group` is a block heading it
-    # made by grouping what `list` returned. Named here so the set below is payload keys.
-    promised = (
-        set(PROMISED["list"])
-        | set(INSIDE["list"][1])
-        | set(PROMISED["deps"])
-        | set(PROMISED["lint"])
-        | set(INSIDE["lint"][1])
-        | set(PROMISED["budget"])
-        | set(PROMISED["stats"])
-        | set(INSIDE["budget"][1])
-        | set(INSIDE["stats"][1])
-        | set(PROMISED["engines"])
-        # RK1271. The shape of the config file, which the completion and hover providers read
-        # key by key — so a renamed field there is red here before it is a dead list in TOML.
-        | set(PROMISED["config"])
-        | set(INSIDE["config"][1])
-        # RK1603. The table's own sentence, which the hover joins to on `table` — the payload
-        # sends it once per table now instead of on every key row under one.
-        | set(BESIDE["config"][1])
-        | {"notice", "group", "engine", "detail", "count"}
-    )
+    #: The verbs this host reads. `config` is among them for RK1271's reason: the completion
+    #: and hover providers read the config's shape key by key, so a renamed field there is red
+    #: here before it is a dead list in TOML.
+    read_by_host = ("list", "deps", "lint", "budget", "stats", "engines", "config")
+    # Derived since RK1645, where this was a union of fourteen `set(...)` terms — two per verb,
+    # plus a fifteenth for the second list `config` grew and a sixteenth waiting for the third.
+    # The host's **own** two rows are named beside them, being keys no payload ever carried:
+    # `notice` is the message it shows instead of an empty tree when the read failed, and
+    # `group` is a block heading it made by grouping what `list` returned.
+    promised = {
+        key
+        for verb in read_by_host
+        for key in (
+            *PROMISED[verb],
+            *(one for _, keys in INSIDE.get(verb, ()) for one in keys),
+        )
+    } | {"notice", "group", "engine", "detail", "count"}
     # The receivers a payload is bound to, named rather than matched by `.value.` alone: an
     # input box also has a `value`, and `box.value.length` is a string's length, not a key.
     holders = ("answer", "budget", "blocks", "engines", "counted")

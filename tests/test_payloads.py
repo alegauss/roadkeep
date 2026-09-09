@@ -13,6 +13,14 @@ shape. A payload that gains a field is compatible and stays green; one that lose
 key goes red. What this file reads **is** the contract, and every key it does not read stays
 free to move — which is the point of listing them rather than snapshotting the object.
 
+**And the population of lists is derived** (RK1645). `INSIDE` was written when every payload
+carried one list of objects, so it mapped a verb to *the* one — and `config` now carries three.
+RK1603 met that with a second table and a second sweep beside the first, and neither noticed
+`fixed`, published since RK1381 and named nowhere: a consumer reading `fixed[0].reading`
+depended on a field nothing here held. The tables are one again, one row per list, and the
+lists a promised payload actually answers with are read off the payloads — which found
+`engines.gates` the same way, unpromised for as long.
+
 Two fixtures are not `docs/`, and both are states this repository cannot be in. A **finding**
 is one: the gate passes here by law (`lint` must be clean), so a payload carrying one has to
 come from a project that has one, and it is the smallest possible — a line waiting on an id
@@ -64,44 +72,73 @@ PROMISED = {
     "config": ("version", "source", "governed", "files", "keys", "tables"),
 }
 
-#: The keys inside the one object each of those carries a list of. Held apart from the top
+#: The keys inside **every** object a payload here carries a list of. Held apart from the top
 #: level because a client walks into these, and a rename here is exactly as breaking.
+#:
+#: A tuple of lists per verb since RK1645, and that is the whole of that task. This mapped a
+#: verb to *the* object it holds a list of — one per verb, true of every payload until `config`
+#: — so RK1603 met the limit and worked around it with a second table and a second sweep
+#: beside this one. Two tables and two tests for one claim, and neither of them noticed the
+#: list already there: `config.fixed` has been published since RK1381 and was named nowhere, so
+#: a consumer reading `fixed[0].reading` depended on a field nothing here held.
+#:
+#: :func:`test_every_list_of_objects_a_promised_payload_carries_has_a_row` is what makes that
+#: impossible twice: the population is derived from the payloads, so a fourth list is a red
+#: with one question in it rather than a table somebody has to remember.
 INSIDE = {
-    "list": ("tasks", ("id", "block", "status", "symptom", "why", "deps", "line")),
+    "list": ((
+        "tasks",
+        ("id", "block", "status", "symptom", "why", "deps", "line"),
+    ),),
     # `column` and `remedy` joined when the gate became a problems panel (RK1007): a
     # diagnostic is anchored by the first and a quick fix is composed from the second, so
     # both are keys a reader outside this process now depends on.
-    "lint": ("findings", ("code", "file", "line", "column", "message", "remedy")),
-    "stats": ("blocks", ("block", "counted")),
+    "lint": ((
+        "findings",
+        ("code", "file", "line", "column", "message", "remedy"),
+    ),),
+    "stats": (("blocks", ("block", "counted")),),
+    # The second list the derived reading found (RK1645): every workflow step calling the
+    # action, and the ref each pins it at — which is what an editor shows when it says a
+    # checkout gates on a copy other than the one answering, and what nothing here promised.
+    "engines": (("gates", ("file", "ref")),),
     # `left`, `limit`, `aim` and `unit` are what a prompt counts down beside the words
     # somebody is typing — the whole of L1 arriving before the sentence exists.
-    "budget": ("fields", ("field", "limit", "left", "aim", "unit")),
-    # `address` is what a completion inserts, so it is a key a reader outside this process now
-    # depends on (RK1271). `note` was here beside it and is not any more (RK1603): it is a
-    # sentence about the *table*, so it was the same paragraph on every key under one — six
-    # copies for `[files]` — and it now rides `tables` below, joined on `table`.
-    # `set` joined when the shape learned what a declared key says (RK1278): a hover shows the
-    # number in use, so it is a key a reader outside this process now depends on.
+    "budget": ((
+        "fields",
+        ("field", "limit", "left", "aim", "unit"),
+    ),),
     "config": (
-        "keys",
+        # `address` is what a completion inserts, so it is a key a reader outside this process
+        # now depends on (RK1271). `note` was here beside it and is not any more (RK1603): it
+        # is a sentence about the *table*, so it was the same paragraph on every key under one
+        # — six copies for `[files]` — and it now rides `tables`, joined on `table`.
+        # `set` joined when the shape learned what a declared key says (RK1278): a hover shows
+        # the number in use, so it is a key a reader outside this process now depends on.
         (
-            "table",
-            "key",
-            "address",
-            "type",
-            "default",
-            "declared",
-            "set",
-            # RK1282. How many addresses wrote one, which is the fact where the value is not.
-            "addresses",
+            "keys",
+            (
+                "table",
+                "key",
+                "address",
+                "type",
+                "default",
+                "declared",
+                "set",
+                # RK1282. How many addresses wrote one, which is the fact where the value is
+                # not.
+                "addresses",
+            ),
         ),
+        # The table each key joins to for the sentence a hover shows (RK1603).
+        ("tables", ("table", "note")),
+        # And the figure a limit was chosen against (RK1381, named by RK1645): a reading, what
+        # it was taken over, and why that number — which is what an editor shows beside a
+        # ceiling somebody is about to change, and what nothing here promised for four
+        # hundred tasks.
+        ("fixed", ("name", "at", "sample", "percentile", "reading", "why")),
     ),
 }
-
-#: The second list a payload here carries, for the one answer with two (RK1603). `INSIDE` maps
-#: a payload to *the* object it holds a list of, and `config` now holds two — the keys, and the
-#: table each of them joins to for the sentence a hover shows.
-BESIDE = {"config": ("tables", ("table", "note"))}
 
 
 def payload(*argv: str, root: Path | None = None, expected: int = EXIT_OK) -> dict:
@@ -247,8 +284,11 @@ def test_a_list_payload_is_handed_back_as_the_list_it_is(populated):
     assert got, "explain answered with no codes: this asserts nothing"
 
 
-@pytest.mark.parametrize("verb", sorted(INSIDE))
-def test_the_keys_inside_a_row_are_there_too(verb, dirty, populated):
+@pytest.mark.parametrize(
+    "verb, field, keys",
+    [(verb, field, keys) for verb, lists in sorted(INSIDE.items()) for field, keys in lists],
+)
+def test_the_keys_inside_a_row_are_there_too(verb, field, keys, dirty, populated):
     """A client walks into `tasks` and `findings`, so a rename one level down breaks it just
     as hard — and one level is where it stops: nothing here reads a remedy's doors, so those
     stay free to move until something outside says otherwise.
@@ -256,8 +296,11 @@ def test_the_keys_inside_a_row_are_there_too(verb, dirty, populated):
     The rows have to exist for any of that to be a claim, and `docs/` stopped producing them
     the day a block shipped its last line (RK1098) — so the root is `populated`, which is this
     repository whenever it has an open line and a stand-in when it does not.
+
+    One sweep over every list since RK1645, where there were two over one each: `config` holds
+    three, so a table shaped *one per verb* wanted a second of itself the moment a second list
+    arrived, and a third would have wanted a third.
     """
-    field, keys = INSIDE[verb]
     where, code = (dirty, EXIT_GATE) if verb == "lint" else (populated, EXIT_OK)
     rows = payload(*_argv(verb, where), root=where, expected=code)[field]
     assert rows, f"{verb}: the fixture produced no {field} to read"
@@ -265,19 +308,43 @@ def test_the_keys_inside_a_row_are_there_too(verb, dirty, populated):
     assert not missing, f"{verb}.{field} no longer carries {missing}"
 
 
-@pytest.mark.parametrize("verb", sorted(BESIDE))
-def test_the_second_list_a_payload_carries_is_promised_the_same_way(verb, populated):
-    """RK1603. `config` grew a list beside its keys when the harvested note moved off them, and
-    a client walks into it exactly as hard: a hover reads a table's sentence there now.
+def test_every_list_of_objects_a_promised_payload_carries_has_a_row(dirty, populated):
+    """RK1645. `config.fixed` was published for four hundred tasks and named in no table here,
+    because the population was a list somebody maintained: `INSIDE` was written when every
+    payload carried one list, RK1603 added a second table beside it when `config` grew a
+    second, and the third — already there — was in neither.
 
-    Its own parametrize rather than a widened `INSIDE`, because that mapping's whole shape is
-    *the* object a payload holds a list of — one per verb — and relaxing it to a list of lists
-    would make every other row read as a special case of a thing it is not."""
-    field, keys = BESIDE[verb]
-    rows = payload(*_argv(verb, populated), root=populated, expected=EXIT_OK)[field]
-    assert rows, f"{verb}: the fixture produced no {field} to read"
-    missing = [key for key in keys if key not in rows[0]]
-    assert not missing, f"{verb}.{field} no longer carries {missing}"
+    So the population is **derived**. Every key of every promised payload whose value is a
+    non-empty list of objects is a list a client can walk into, which is the claim `INSIDE`
+    makes — and a fourth is a red here with one question in it: which of its keys does a
+    reader outside this process depend on.
+
+    Read off the same fixtures the sweep above uses, so what is quantified over is the payloads
+    this build actually answers with rather than a second reading of what they should hold."""
+    unpromised: dict[str, list[str]] = {}
+    for verb in sorted(PROMISED):
+        where, code = (dirty, EXIT_GATE) if verb == "lint" else (populated, EXIT_OK)
+        got = payload(*_argv(verb, where), root=where, expected=code)
+        named = {field for field, _ in INSIDE.get(verb, ())}
+        for field, value in sorted(got.items()):
+            if not isinstance(value, list) or not value:
+                continue
+            if not isinstance(value[0], dict) or field in named:
+                continue
+            unpromised.setdefault(verb, []).append(field)
+    assert unpromised == {}, (
+        "these payloads carry a list of objects nothing here promises, so a client walking "
+        f"into one depends on keys no test holds: {unpromised}"
+    )
+
+
+def test_the_derived_reading_finds_the_lists_the_table_names():
+    """The half that makes the sweep above worth having: a reader that found no list at all
+    would pass while covering nothing. Held on the table, because the two answers have to
+    agree in both directions — the assertion above is *derived ⊆ named*, and this is that the
+    named set is not simply everything."""
+    assert sum(len(lists) for lists in INSIDE.values()) >= 7, INSIDE
+    assert len(INSIDE["config"]) == 3, INSIDE["config"]
 
 
 def test_a_payload_is_the_whole_of_stdout_and_parses_as_one_object(populated):

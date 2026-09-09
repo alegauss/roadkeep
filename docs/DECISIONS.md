@@ -198,6 +198,7 @@ command. The new property holds all three values, which leak alike.
 - ✅ **RK1642** **the preventive read a refusal names for seven codes is in the sentence and in no field of the payload** — A foresee read is published under doors and the retry keeps its own key: one is an offer, the other is the caller's own call with a token replaced.
 - ✅ **RK1643** **the orientation is held at a ceiling and the two pages it points at, six times its size, are held by nothing** — A trigger-loaded page has a cadence ceiling of its own, held per file in tests and never summed: a turn that opens one does not pay for the other.
 - ✅ **RK1644** **nine guards over this package's source read its characters where twenty-two read its syntax** — A guard over this package's source reads its syntax where its subject is a code shape: surface.calling, naming and bodies are the readers, and the population is held empty.
+- ✅ **RK1645** **config publishes three lists of objects and the promise table holds one slot per verb, so one list's rows are unpromised** — A payload promises every list of objects it carries, one row per list, and the population is derived from the payloads rather than maintained beside them.
 
 ### §RK1394 Proof, not age
 

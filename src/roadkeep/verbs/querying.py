@@ -1854,9 +1854,11 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     # caller moving from the price to the write was refused by the parser for the name it had
     # been told to use one call earlier. An alias and not a rename; the first spelling is what
     # the served schema publishes, so the surface is unchanged.
-    # Printed by argparse itself, which is the half an alias needs to be findable: `--body,
-    # --section-body BODY` stands in the option list, so neither `help` restates it and neither
-    # pays for it over a transport where no flag is ever typed.
+    # Printed by argparse itself, which is the half an alias needs to be findable: both
+    # spellings stand on one line of the option list — the metavar named once after 3.13 and
+    # repeated per spelling before it, which is the interpreter's shape and not this option's —
+    # so neither `help` restates it and neither pays for it over a transport where no flag is
+    # ever typed.
     budget_parser.add_argument(
         "--body",
         "--section-body",

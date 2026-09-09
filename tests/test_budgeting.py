@@ -2333,8 +2333,17 @@ def test_the_alias_is_printed_where_a_caller_would_look(tmp_path, capsys):
     with pytest.raises(SystemExit):
         main(["-C", str(tmp_path), "budget", "--help"])
     said = capsys.readouterr().out
-    assert "--body, --section-body" in said
-    assert "--body-file, --section-body-file" in said
+    for flag, alias, metavar in (
+        ("--body", "--section-body", "BODY"),
+        ("--body-file", "--section-body-file", "PATH"),
+    ):
+        # Both spellings on one line is the invariant; where argparse puts the metavar is not.
+        # It repeated it per spelling until 3.13 and names it once after, and the floor here is
+        # 3.11 — so asserting the newer shape alone reads the interpreter, not the option.
+        assert (
+            f"{flag}, {alias} {metavar}" in said
+            or f"{flag} {metavar}, {alias} {metavar}" in said
+        ), flag
 
 
 def test_the_served_surface_publishes_one_spelling(tmp_path):
