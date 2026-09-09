@@ -64,6 +64,7 @@ from pathlib import Path
 
 import pytest
 
+from asking import verbs
 from conftest import git_commit, git_init
 from roadkeep.cli import _one_answer, build_parser, main
 from roadkeep.verbs.querying import _cost as _cost_handler
@@ -498,49 +499,25 @@ REQUIRED = {"criterion add": 2, "cost": 7}
 FILLED = {"criterion add": ["--lead", "Unplaced", "--why", "Nowhere yet."], "cost": []}
 
 
-def leaves() -> dict[str, argparse.ArgumentParser]:
-    """Every parser that dispatches, by the words a caller types — `criterion add` included.
-
-    :func:`subcommands` reaches the top level alone, and one of the two verbs declaring a
-    required subject is two words in: a survey that could not see it would be a survey of the
-    other one, reporting a population of one about a rule with two members.
-    """
-    found: dict[str, argparse.ArgumentParser] = {}
-
-    def walk(prefix: str, parser: argparse.ArgumentParser) -> None:
-        # On the action's type and not on `choices` being set, which any argument declared
-        # with a fixed set of values also has: a verb taking one would otherwise be walked
-        # into as though its values were subcommands.
-        inner = [
-            one
-            for one in parser._actions  # noqa: SLF001
-            if isinstance(one, argparse._SubParsersAction)  # noqa: SLF001
-        ]
-        if not inner:
-            found[prefix] = parser
-            return
-        for name, child in inner[0].choices.items():
-            walk(f"{prefix} {name}".strip(), child)
-
-    walk("", build_parser())
-    return found
-
-
 def test_every_verb_that_requires_a_subject_is_one_this_table_names():
     """The population, total against the parsers, so a third verb is a red here with the
     question RK1649 answered in it: whether a required choice is enough of a shape to declare.
-    It is asked of a **leaf** parser, which is where the sixteen declarations live."""
+
+    Off `asking.verbs`, which walks the whole tree: :func:`subcommands` reaches the top level
+    alone, and one of the two verbs declaring a required subject is two words in — a survey
+    that could not see it would be a survey of the other one, reporting a population of one
+    about a rule with two members. Read from there rather than walked again here, which is
+    RK1647's finding one survey over: three files had each rebuilt one walk of the same tree."""
     declared = {
         name: len(parser.get_default("subjects") or ())
-        for name, parser in leaves().items()
+        for name, parser in verbs().items()
         if parser.get_default("subjects_required") is not None
     }
     assert declared == REQUIRED
     assert set(FILLED) == set(REQUIRED)
-    # And the sweep reaches further than the top level, which is the whole of what `leaves`
+    # And the walk reaches further than the top level, which is what reading it from there
     # buys: `criterion add` is two words and `subcommands` cannot see it.
-    assert "criterion add" in leaves()
-    assert "criterion" not in leaves()
+    assert "criterion add" in verbs()
 
 
 def test_the_dispatcher_refuses_a_bare_call_with_the_reason_and_every_door(capsys):
