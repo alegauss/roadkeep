@@ -2,7 +2,7 @@ import path from 'node:path'
 
 import {
   createClient,
-  explainFailure,
+  explainUnreadable,
   type Client,
   type Transport,
   type VerbAnswers,
@@ -26,8 +26,8 @@ import { createProcessTransport } from './process-transport'
  *
  * **The message is why this is one place and not thirty.** A shape that moved upstream has
  * to name the key and the build that moved it, and a copy that quietly says `undefined` is
- * the one that wastes an afternoon. `explainFailure` composes that sentence and this is
- * where it is reached for.
+ * the one that wastes an afternoon. Since RG99 the client carries the half about the key
+ * and `explainUnreadable` adds the half about the build; this is where it is reached for.
  *
  * **The assertions are not here.** What a file asserts is its own; what it opens on is
  * this. A file that needs a transport of its own — one that counts calls, one that caches,
@@ -101,24 +101,17 @@ export interface EngineReading {
 
 /** Ask the engine what it is. The one call this suite makes that is not about a project. */
 async function askTheEngine(): Promise<EngineReading> {
-  let answer
-  try {
-    answer = await liveClient.call(REPO, 'engines', {}, { timeoutMs: CEILING })
-  } catch (cause) {
-    // Unspawnable or past the ceiling: no python, or a launcher that cannot import.
-    return { named: '', unresolved: `it could not be started — ${String(cause)}` }
+  // No `try`: since RG99 the client answers `unreadable` where the call never happened,
+  // which is what no python and a launcher that cannot import both look like.
+  const answer = await liveClient.call(REPO, 'engines', {}, { timeoutMs: CEILING })
+  if (answer.kind === 'unreadable') {
+    return { named: '', unresolved: answer.unreadable.message }
   }
-  if (!answer.ok) {
-    return {
-      named: '',
-      unresolved: explainFailure(answer.failure, { verb: 'engines', engineVersion: '' }),
-    }
-  }
-  if (answer.value.kind === 'refused') {
-    return { named: '', unresolved: `it refused \`engines\`: ${answer.value.refusal.said}` }
+  if (answer.kind === 'refused') {
+    return { named: '', unresolved: `it refused \`engines\`: ${answer.refusal.said}` }
   }
 
-  const { version, revision } = answer.value.value.writing
+  const { version, revision } = answer.value.writing
   return { named: revision === '' ? version : `${version} (${revision})`, unresolved: '' }
 }
 
@@ -182,11 +175,14 @@ export async function read<K extends VerbName>(
 
   const answer = await client.call(root, verb, input, { timeoutMs: over.timeoutMs ?? CEILING })
 
-  if (!answer.ok) {
-    throw new Error(explainFailure(answer.failure, { verb, engineVersion: reading.named }))
+  if (answer.kind === 'unreadable') {
+    // One composer for the sentence, in `core` beside the state it explains: the build is
+    // named because the usual cause is this app being behind the engine, and saying which
+    // one answered is what saves the afternoon.
+    throw new Error(explainUnreadable(answer.unreadable, { verb, engineVersion: reading.named }))
   }
-  if (answer.value.kind === 'refused') {
-    throw new Error(`\`${verb}\` was refused: ${answer.value.refusal.said}`)
+  if (answer.kind === 'refused') {
+    throw new Error(`\`${verb}\` was refused: ${answer.refusal.said}`)
   }
-  return answer.value.value
+  return answer.value
 }

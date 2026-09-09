@@ -47,36 +47,27 @@ async function rowFor(projectPath: string): Promise<ProjectRow> {
     ['pick', pickRead],
     ['lint', lintRead],
   ] as const) {
-    if (!answer.ok) {
-      throw new Error(
-        `${verb} on ${projectPath} did not read: expected ${answer.failure.expected} at ` +
-          `${answer.failure.path || '(the answer)'}, found ${answer.failure.got}`,
-      )
+    if (answer.kind === 'unreadable') {
+      throw new Error(`${verb} on ${projectPath} did not read: ${answer.unreadable.message}`)
     }
-    if (answer.value.kind === 'refused') {
-      throw new Error(`${verb} on ${projectPath} was refused: ${answer.value.refusal.said}`)
+    if (answer.kind === 'refused') {
+      throw new Error(`${verb} on ${projectPath} was refused: ${answer.refusal.said}`)
     }
   }
-  if (!statsRead.ok || !pickRead.ok || !lintRead.ok) throw new Error('unreachable')
-  if (
-    statsRead.value.kind === 'refused' ||
-    pickRead.value.kind === 'refused' ||
-    lintRead.value.kind === 'refused'
-  ) {
+  if (statsRead.kind !== 'read' || pickRead.kind !== 'read' || lintRead.kind !== 'read') {
     throw new Error('unreachable')
   }
 
   // The gate goes through the ledger rather than straight onto the row: a verdict is
   // dated against the files it was taken from, which is what lets a row say it is stale.
   const ledger = createGateLedger(rootKey)
-  ledger.note(projectPath, recordGate(lintRead.value.value, 'live', new Date().toISOString()))
+  ledger.note(projectPath, recordGate(lintRead.value, 'live', new Date().toISOString()))
 
   return readRow(recorded(projectPath), {
-    stats: statsRead.value.value,
-    pick: pickRead.value.value,
+    stats: statsRead.value,
+    pick: pickRead.value,
     gate: ledger.healthOf(projectPath, 'live'),
-    engines:
-      enginesRead.ok && enginesRead.value.kind === 'payload' ? enginesRead.value.value : null,
+    engines: enginesRead.kind === 'read' ? enginesRead.value : null,
   })
 }
 

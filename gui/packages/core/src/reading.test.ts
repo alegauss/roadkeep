@@ -4,7 +4,6 @@ import {
   aNumber,
   aString,
   dictionaryOf,
-  explainFailure,
   listOf,
   orMissing,
   orNull,
@@ -90,29 +89,5 @@ describe('RG3: what a shape refuses, and how it says so', () => {
     expect(parsed.ok).toBe(false)
     if (parsed.ok) return
     expect(parsed.failure.expected).toBe('JSON')
-  })
-})
-
-describe('RG3: the sentence a refusal turns into', () => {
-  it('blames the version gap and names the engine, not the project', () => {
-    const message = explainFailure(
-      { path: 'tasks[2].symptom', expected: 'a string', got: 'nothing' },
-      WHERE,
-    )
-
-    expect(message).toContain('`tasks[2].symptom`')
-    expect(message).toContain('a string')
-    expect(message).toContain('roadkeep 0.2.358')
-    expect(message).toContain('behind')
-  })
-
-  it('still says something useful when no version is known', () => {
-    const message = explainFailure(
-      { path: '', expected: 'an object', got: 'null' },
-      { verb: 'stats', engineVersion: '' },
-    )
-
-    expect(message).toContain("`stats`'s answer")
-    expect(message).toContain('unknown version')
   })
 })

@@ -28,13 +28,13 @@ async function briefing(input: Parameters<typeof claimingBrief>[0] | undefined, 
     claim ? claimingBrief(input) : input === undefined ? {} : { id: input },
     { timeoutMs: CEILING },
   )
-  if (!result.ok) throw new Error('brief did not read at all')
-  return result.value
+  if (result.kind === 'unreadable') throw new Error(result.unreadable.message)
+  return result
 }
 
 async function taking(id?: string): Promise<Handover> {
   const answer = await briefing(id, true)
-  if (answer.kind !== 'payload') throw new Error('the claim was refused')
+  if (answer.kind !== 'read') throw new Error('the claim was refused')
   return handoverOf(answer.value)
 }
 
@@ -49,7 +49,7 @@ afterAll(() => {
 describe('RG41: reading and taking are one call', () => {
   it('answers with the whole brief and moves the marker in the same transaction', async () => {
     const before = await briefing('FX1', false)
-    if (before.kind !== 'payload') throw new Error('unreachable')
+    if (before.kind !== 'read') throw new Error('unreachable')
 
     const handover = await taking('FX1')
 
@@ -60,7 +60,7 @@ describe('RG41: reading and taking are one call', () => {
 
     // And it is a whole brief: the claim did not cost the read it came with.
     const after = await briefing('FX1', false)
-    if (after.kind !== 'payload') throw new Error('unreachable')
+    if (after.kind !== 'read') throw new Error('unreachable')
     expect(after.value.status).toBe(handover.to)
     expect(after.value.symptom).toBe(before.value.symptom)
   })
@@ -92,8 +92,8 @@ describe('RG41: a claim is an expiry, and nothing re-dates a live one', () => {
   it('still reads the line without the flag, which is what the refusal says to do', async () => {
     const read = await briefing('FX3', false)
 
-    expect(read.kind).toBe('payload')
-    if (read.kind !== 'payload') throw new Error('unreachable')
+    expect(read.kind).toBe('read')
+    if (read.kind !== 'read') throw new Error('unreachable')
     // A read carries no claim of its own: `claimed` is null where nothing was taken.
     expect(read.value.claimed).toBeNull()
     expect(handoverOf(read.value).taken).toBe(false)
@@ -103,7 +103,7 @@ describe('RG41: a claim is an expiry, and nothing re-dates a live one', () => {
 describe('RG41: a held line is named before a second session is offered it', () => {
   it('offers a line nobody is on', async () => {
     const read = await briefing('FX2', false)
-    if (read.kind !== 'payload') throw new Error('unreachable')
+    if (read.kind !== 'read') throw new Error('unreachable')
     const handover = handoverOf(read.value)
 
     expect(handover.held).toEqual([])
@@ -115,7 +115,7 @@ describe('RG41: a held line is named before a second session is offered it', () 
     // The marker moved and `held` stayed empty, which is RG74's whole point: a claim is
     // dated on a window and a marker is not, so the two answer different questions.
     const read = await briefing('FX1', false)
-    if (read.kind !== 'payload') throw new Error('unreachable')
+    if (read.kind !== 'read') throw new Error('unreachable')
 
     expect(read.value.held).toEqual([])
     expect(mayHandOver(handoverOf(read.value))).toBe(true)

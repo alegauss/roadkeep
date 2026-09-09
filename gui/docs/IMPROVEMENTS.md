@@ -11,27 +11,6 @@ rather than pretending it is safe. Spawning without a shell removes the quoting 
 but not the encoding one. What proves it is a round trip: write a symptom carrying an
 accent, an apostrophe and an em dash, read it back with show, and compare the bytes.
 
-### §RG99 Two doors into one read
-
-RG66 gave `client.call` the verb's own shape and three answers: a payload, a refusal, a
-failure naming the field. What it did not give it is the fourth state, and that is the
-one a portfolio is made of — the call that never happened, timed out or was cancelled
-still leaves this as a thrown `EngineCallFailed`. A screen drawing twenty projects has
-to draw nineteen when one of them hangs, so every caller wraps every call in a `try`.
-
-`attemptRead` is the other door and it has the missing state. It answers `ProjectRead` —
-the value, or an `Unreadable` carrying the reason, the elapsed time, the argv and what
-the engine said on stderr, which is everything a row needs to explain itself. What it
-does not have is the shape: the reader is a parameter, which is the hole RG66 closed for
-the client and left open here. Neither has a production caller yet, so nothing has had
-to choose.
-
-The shape of the answer is what to decide, not which file wins. `applyWrite` already
-returns applied, refused or unreadable for a write, and a read has the same three plus
-nothing. Whether that means `call` grows the state, `attemptRead` grows the table, or
-the two become one function is open — what is not open is that a screen should not have
-to know which door it came in by.
-
 ### §RG100 Absent, or never looked for
 
 `filingOf` asks three listings in turn — the roadmap, the ledger, the store — and

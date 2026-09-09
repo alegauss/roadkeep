@@ -164,22 +164,3 @@ export function readPayload<T>(
   }
   return reader(source, '')
 }
-
-/**
- * The failure as a sentence a person can act on.
- *
- * What it refuses is the payload and never the project: a shape this build does not
- * recognise means this app is behind the engine that answered, and naming that version is
- * what turns the message into something somebody can do.
- */
-export function explainFailure(
-  failure: PayloadFailure,
-  where: { readonly verb: string; readonly engineVersion: string },
-): string {
-  const at = failure.path === '' ? `\`${where.verb}\`'s answer` : `\`${failure.path}\``
-  return (
-    `This app could not read ${at}: it expected ${failure.expected} and found ${failure.got}. ` +
-    `The engine answering here is roadkeep ${where.engineVersion || 'of an unknown version'}, ` +
-    'so this app is most likely behind it.'
-  )
-}

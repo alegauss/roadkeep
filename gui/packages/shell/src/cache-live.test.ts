@@ -42,10 +42,8 @@ beforeAll(async () => {
   fixture = await buildFixture(engine, { open: 2, shipped: 1, deferred: 0 })
 
   const config = await createClient(engine).call(fixture.root, 'config', {}, { timeoutMs: CEILING })
-  if (!config.ok || config.value.kind === 'refused') {
-    throw new Error('config did not answer with a payload')
-  }
-  governed = Object.values(governedFiles(config.value.value))
+  if (config.kind !== 'read') throw new Error('config did not answer with a payload')
+  governed = Object.values(governedFiles(config.value))
 }, 180000)
 
 afterAll(() => {
@@ -76,7 +74,7 @@ describe('RG7: a read that does not happen twice', () => {
     expect(calls()).toBe(1)
     // The same answer, and a real one: a cache handing back a shape it invented would be
     // caught by the verb's own reader before the equality below could hide it.
-    expect(first.ok && first.value.kind).toBe('payload')
+    expect(first.kind).toBe('read')
     expect(second).toEqual(first)
   })
 

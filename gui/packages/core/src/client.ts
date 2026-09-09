@@ -1,6 +1,7 @@
 import { ANSWERS, type VerbAnswers } from './answers'
-import type { Parsed, Reader } from './reading'
-import { readAnswer, type Answer } from './refusals'
+import { attemptRead, type Unreadable } from './limits'
+import type { Reader } from './reading'
+import { readAnswerFrom, type Refusal } from './refusals'
 import type { CancelSignal, Transport } from './transport'
 import { spell, VERBS, VERB_WORDS, type VerbInputs, type VerbName } from './verbs'
 
@@ -27,22 +28,38 @@ export interface CallOptions {
   readonly signal?: CancelSignal
 }
 
+/**
+ * What one read answered — the same three states `applyWrite` gives a write, spelled the
+ * same way, because a screen drawing a read and a screen drawing a write are one screen
+ * (RG99).
+ */
+export type ReadOutcome<T> =
+  | { readonly kind: 'read'; readonly value: T; readonly durationMs: number }
+  /** The engine declined, naming the fields where it named any. */
+  | { readonly kind: 'refused'; readonly refusal: Refusal; readonly durationMs: number }
+  /**
+   * The call did not happen, ran past its deadline, or answered something this app cannot
+   * read. One state for the three because what a row does with them is the same: say so,
+   * and say what it was doing — which is what `Unreadable` carries.
+   */
+  | { readonly kind: 'unreadable'; readonly unreadable: Unreadable }
+
 export interface Client {
   /**
    * Run one verb and read what it answered.
    *
-   * Three outcomes and they are not the same: a payload, a refusal the engine composed,
-   * and an answer this app could not read — the last being a failure that names the field,
-   * because a client that is behind the engine has to say which key moved. A call that
-   * could not happen at all still raises `EngineCallFailed`: it is the transport's failure
-   * and it is not an answer.
+   * **Nothing raises.** A call that never happened, one that ran past its deadline and one
+   * whose answer this app could not read are all `unreadable`, because a portfolio drawing
+   * twenty projects has to draw nineteen when one of them hangs — and a caller that had to
+   * wrap every call in a `try` would be every caller (RG99). The transport still throws
+   * `EngineCallFailed`; it stops here.
    */
   call<K extends VerbName>(
     root: string,
     verb: K,
     input: VerbInputs[K],
     options?: CallOptions,
-  ): Promise<Parsed<Answer<VerbAnswers[K]>>>
+  ): Promise<ReadOutcome<VerbAnswers[K]>>
 }
 
 /**
@@ -90,14 +107,27 @@ export function buildArgv<K extends VerbName>(
 export function createClient(transport: Transport): Client {
   return {
     async call(root, verb, input, options = {}) {
-      const result = await transport.run({
-        root,
-        argv: buildArgv(root, verb, input),
-        ...(options.timeoutMs === undefined ? {} : { timeoutMs: options.timeoutMs }),
-        ...(options.signal === undefined ? {} : { signal: options.signal }),
-      })
       const reader = ANSWERS[verb] as Reader<VerbAnswers[typeof verb]>
-      return readAnswer(reader, result)
+
+      // Through `attemptRead` rather than beside it: it already turns a call that did not
+      // happen, one that ran out and one whose stdout is not JSON into the same state, with
+      // the engine's own stderr carried. What is handed in is the *answer* reader, so the
+      // refusal split happens inside that one parse instead of in a second one here.
+      const read = await attemptRead(
+        transport,
+        {
+          root,
+          argv: buildArgv(root, verb, input),
+          ...(options.timeoutMs === undefined ? {} : { timeoutMs: options.timeoutMs }),
+          ...(options.signal === undefined ? {} : { signal: options.signal }),
+        },
+        (source, path) => readAnswerFrom(reader, source, path),
+      )
+
+      if (!read.ok) return { kind: 'unreadable', unreadable: read.unreadable }
+      return read.value.kind === 'refused'
+        ? { kind: 'refused', refusal: read.value.refusal, durationMs: read.durationMs }
+        : { kind: 'read', value: read.value.value, durationMs: read.durationMs }
     },
   }
 }

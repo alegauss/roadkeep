@@ -1,12 +1,9 @@
 import type { GateHealth } from './gate'
 import type { RecordedProject } from './catalogue'
-import type { CallOptions } from './client'
+import type { CallOptions, ReadOutcome } from './client'
+import { saidBy, type Unreadable } from './limits'
 import type { OpenProject } from './opening'
 import { fillRow, readRow, unreadableRow, type ProjectRow } from './portfolio'
-import type { Parsed } from './reading'
-import type { Answer } from './refusals'
-import { saidBy, type Unreadable } from './limits'
-import { EngineCallFailed } from './transport'
 
 /**
  * Filling a row out of a project that is already open, in two moments rather than four.
@@ -34,39 +31,33 @@ import { EngineCallFailed } from './transport'
  */
 
 /**
- * A read that cannot take a screen down with it.
+ * A read, as the thing that draws a row needs it.
  *
- * `client.call` raises where the call never happened — unspawnable, past its ceiling,
- * cancelled — because that is the transport failing and not an answer (RG99). A list over
- * twenty projects has to draw nineteen when one of them hangs, so the raise ends here and
- * becomes the state the row is in. RG99 is about giving every caller one door instead of
- * this; until it does, this is the door a row uses.
+ * RG99 gave `client.call` the state a call that never happened leaves, so the `try` and the
+ * three sentences that used to be here are gone. What is left is naming the verb: an
+ * `Unreadable` carries the argv the transport was handed, and a row that says `stats` is one
+ * somebody can act on where a row showing a whole command line is not.
  */
 async function ask<T>(
-  call: () => Promise<Parsed<Answer<T>>>,
+  call: () => Promise<ReadOutcome<T>>,
   verb: string,
 ): Promise<{ ok: true; value: T } | { ok: false; why: Unreadable }> {
-  let answer: Parsed<Answer<T>>
-  try {
-    answer = await call()
-  } catch (cause) {
-    if (!(cause instanceof EngineCallFailed)) throw cause
-    return {
-      ok: false,
-      why: {
-        reason: cause.reason,
-        message: cause.message,
-        elapsedMs: cause.durationMs,
-        argv: [verb],
-        said: '',
-      },
-    }
-  }
+  const answer = await call()
+  if (answer.kind === 'read') return { ok: true, value: answer.value }
 
-  const failed = whyNot(verb, answer)
-  if (failed !== null) return { ok: false, why: failed }
-  if (!answer.ok || answer.value.kind === 'refused') return { ok: false, why: never(verb) }
-  return { ok: true, value: answer.value.value }
+  return {
+    ok: false,
+    why:
+      answer.kind === 'refused'
+        ? {
+            reason: 'unreadable-payload',
+            message: `\`${verb}\` was refused`,
+            elapsedMs: answer.durationMs,
+            argv: [verb],
+            said: saidBy(answer.refusal.said),
+          }
+        : { ...answer.unreadable, argv: [verb] },
+  }
 }
 
 /** The counts and the engine: enough to draw a row somebody is scanning past. */
@@ -101,44 +92,4 @@ export async function withNext(
   // A row that could not learn its next line is still a row: the counts are true, and
   // drawing it as unreadable would throw away what the first pass already knew.
   return pick.ok ? fillRow(row, { pick: pick.value, gate }) : fillRow(row, { gate })
-}
-
-/**
- * Why a read did not answer, or null where it did.
- *
- * The two failures are different sentences and a screen shows both: a payload this app
- * could not read means it is behind the engine, and a refusal means the engine declined.
- */
-function whyNot<T>(verb: string, answer: Parsed<Answer<T>>): Unreadable | null {
-  if (!answer.ok) {
-    return {
-      reason: 'unreadable-payload',
-      message:
-        `\`${verb}\` answered with ${answer.failure.got} where ` +
-        `${answer.failure.path || 'the answer'} should have been ${answer.failure.expected}`,
-      elapsedMs: 0,
-      argv: [verb],
-      said: '',
-    }
-  }
-  if (answer.value.kind === 'refused') {
-    return {
-      reason: 'unreadable-payload',
-      message: `\`${verb}\` was refused`,
-      elapsedMs: 0,
-      argv: [verb],
-      said: saidBy(answer.value.refusal.said),
-    }
-  }
-  return null
-}
-
-function never(verb: string): Unreadable {
-  return {
-    reason: 'unreadable-payload',
-    message: `\`${verb}\` answered nothing this app can read`,
-    elapsedMs: 0,
-    argv: [verb],
-    said: '',
-  }
 }

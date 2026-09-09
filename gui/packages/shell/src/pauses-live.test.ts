@@ -119,9 +119,9 @@ describe('RG80: opening a task the engine will not open', () => {
   /** The refusal a real `brief` answers with, for an id that is not in the roadmap. */
   async function refusalOf(root: string, id: string): Promise<Refusal> {
     const answer = await liveClient.call(root, 'brief', { id }, { timeoutMs: CEILING })
-    if (!answer.ok) throw new Error('brief did not read at all')
-    if (answer.value.kind !== 'refused') throw new Error(`brief on ${id} answered a payload`)
-    return answer.value.refusal
+    if (answer.kind === 'unreadable') throw new Error(answer.unreadable.message)
+    if (answer.kind !== 'refused') throw new Error(`brief on ${id} answered a payload`)
+    return answer.refusal
   }
 
   it('refuses with every typed field empty, which is what this task is about', async () => {

@@ -53,9 +53,9 @@ describe('RG103: opening a real project in one call', () => {
 
     const answer = await opened.project.client.call(fixture.root, 'list', {}, {})
 
-    expect(answer.ok).toBe(true)
-    if (!answer.ok || answer.value.kind === 'refused') return
-    expect(listedTasks(answer.value.value).length).toBeGreaterThan(0)
+    expect(answer.kind).toBe('read')
+    if (answer.kind !== 'read') return
+    expect(listedTasks(answer.value).length).toBeGreaterThan(0)
   })
 
   it('says which build this is, and that this app can run every verb it sends', async () => {
@@ -94,7 +94,7 @@ describe('RG103: what an open project stops paying for', () => {
     if (opened.kind !== 'open') return
 
     const before = await opened.project.client.call(fixture.root, 'list', {}, {})
-    if (!before.ok || before.value.kind === 'refused') return
+    if (before.kind !== 'read') return
 
     await engine.run({
       root: fixture.root,
@@ -114,11 +114,11 @@ describe('RG103: what an open project stops paying for', () => {
     })
 
     const after = await opened.project.client.call(fixture.root, 'list', {}, {})
-    if (!after.ok || after.value.kind === 'refused') return
+    if (after.kind !== 'read') return
 
     // Not a timer and not a count of this app's own writes: the file moved, so the stamp
     // moved, and a write from anywhere — a terminal, an agent — is caught the same way.
-    expect(listedTasks(after.value.value).length).toBe(listedTasks(before.value.value).length + 1)
+    expect(listedTasks(after.value).length).toBe(listedTasks(before.value).length + 1)
   })
 
   it('never remembers the read that takes the line', async () => {
@@ -128,17 +128,16 @@ describe('RG103: what an open project stops paying for', () => {
     const first = await opened.project.client.call(fixture.root, 'brief', { claim: true }, {})
     const again = await opened.project.client.call(fixture.root, 'brief', { claim: true }, {})
 
-    expect(first.ok).toBe(true)
-    expect(again.ok).toBe(true)
-    if (!first.ok || !again.ok) return
-    if (first.value.kind !== 'payload' || again.value.kind !== 'payload') return
+    expect(first.kind).toBe('read')
+    expect(again.kind).toBe('read')
+    if (first.kind !== 'read' || again.kind !== 'read') return
 
     // Both calls reached the engine, and the second line is the proof: a claim moves the
     // marker, so an unclaimed `brief` answers about the next line. Served from a cache the
     // second would be the first again, reporting one claim as though it were two.
-    expect(first.value.value.claimed?.taken).toBe(true)
-    expect(again.value.value.claimed?.taken).toBe(true)
-    expect(again.value.value.id).not.toBe(first.value.value.id)
+    expect(first.value.claimed?.taken).toBe(true)
+    expect(again.value.claimed?.taken).toBe(true)
+    expect(again.value.id).not.toBe(first.value.id)
   })
 })
 

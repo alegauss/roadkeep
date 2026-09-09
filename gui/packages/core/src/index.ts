@@ -114,7 +114,7 @@ export { accountOf, deferred, leftPointing, resumed, retired, shipped } from './
 export type { Departure, Edit, Leaving } from './leaving'
 export { aboutNoInput, movedFrom, openMarkers, saidOfMove, workingMarker } from './marking'
 export type { ClaimEffect, Moved } from './marking'
-export { attemptRead, DEFAULT_LIMITS, saidBy, withLimits } from './limits'
+export { attemptRead, DEFAULT_LIMITS, explainUnreadable, saidBy, withLimits } from './limits'
 export type { ProjectRead, ReadLimits, Unreadable } from './limits'
 export { howListed, ledgerFrom, reversedFrom, undoneBy } from './memory'
 export type { Delivery, Ledger, Reversed } from './memory'
@@ -216,7 +216,7 @@ export type { Hit, SearchableProject, SearchAnswer, SearchField } from './search
 export { DEFAULT_POLICY, mayEnter, scan, SCAN_WIDTH } from './scanning'
 export type { Found, Listing, Look, ScanOptions, ScanPolicy, ScanResult } from './scanning'
 export { buildArgv, createClient } from './client'
-export type { CallOptions, Client } from './client'
+export type { CallOptions, Client, ReadOutcome } from './client'
 export { ANSWERS } from './answers'
 export type { VerbAnswers } from './answers'
 export { openProject, readsOnly } from './opening'
@@ -335,7 +335,7 @@ export type {
   TaskLine,
   Unblocks,
 } from './payloads'
-export { explainFailure, readPayload } from './reading'
+export { readPayload } from './reading'
 export type { Parsed, PayloadFailure, Reader } from './reading'
 export {
   fieldsRefused,

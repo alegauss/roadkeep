@@ -95,6 +95,26 @@ export function saidBy(stderr: string): string {
   return said.length <= SAID_CEILING ? said : `${said.slice(0, SAID_CEILING)}…`
 }
 
+/**
+ * The state as a sentence a person can act on.
+ *
+ * What it blames is the payload and never the project: a shape this build does not
+ * recognise means this app is behind the engine that answered, and naming that version is
+ * what turns the message into something somebody can do. It reads an `Unreadable` because
+ * that is what crosses a boundary since RG99 — a bare failure no longer does.
+ */
+export function explainUnreadable(
+  unreadable: Unreadable,
+  where: { readonly verb: string; readonly engineVersion: string },
+): string {
+  const behind =
+    unreadable.reason === 'unreadable-payload' ? ', so this app is most likely behind it' : ''
+  return (
+    `This app could not read \`${where.verb}\`: ${unreadable.message}. The engine answering ` +
+    `here is roadkeep ${where.engineVersion || 'of an unknown version'}${behind}.`
+  )
+}
+
 export type ProjectRead<T> =
   | { readonly ok: true; readonly value: T; readonly durationMs: number }
   | { readonly ok: false; readonly unreadable: Unreadable }

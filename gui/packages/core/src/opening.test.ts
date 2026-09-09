@@ -99,7 +99,7 @@ describe('RG103: the order a project opens in', () => {
 
     const answer = await opened.project.client.call('/proj', 'list', {})
 
-    expect(answer.ok && answer.value.kind).toBe('payload')
+    expect(answer.kind).toBe('read')
     expect(held.verbs()).toEqual(['engines', 'config', 'commands', 'list'])
   })
 
@@ -212,7 +212,10 @@ describe('RG103: a project that does not open', () => {
     expect(opened.kind).toBe('unreadable')
     if (opened.kind !== 'unreadable') return
     expect(opened.engine.payload.writing.version).toBe('0.2.400')
-    expect(opened.unreadable.message).toContain('config')
+    // The sentence is the reader's now rather than this file's, so what is held is that it
+    // names the key that moved. Which verb was being read is `argv`, beside it.
+    expect(opened.unreadable.message).toContain('expected an array')
+    expect(opened.unreadable.argv.join(' ')).toContain('config')
   })
 
   it('opens against a build too old to publish what it can run', async () => {

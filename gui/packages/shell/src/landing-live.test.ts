@@ -34,10 +34,10 @@ let files: string[] = []
 /** Read the line as it stands, or as the refusal that says it has gone. */
 async function readingOf(id: string): Promise<Reading> {
   const answer = await client.call(fixture.root, 'brief', { id }, { timeoutMs: CEILING })
-  if (!answer.ok) throw new Error('brief did not read at all')
-  return answer.value.kind === 'payload'
-    ? { kind: 'read', payload: answer.value.value }
-    : { kind: 'gone', refusal: answer.value.refusal }
+  if (answer.kind === 'unreadable') throw new Error(answer.unreadable.message)
+  return answer.kind === 'read'
+    ? { kind: 'read', payload: answer.value }
+    : { kind: 'gone', refusal: answer.refusal }
 }
 
 beforeAll(async () => {

@@ -782,12 +782,12 @@ describe('RG5: a refusal, against a live engine', () => {
   it('marks nothing for a refusal the engine did not attach to a field', async () => {
     const parsed = await client.call(fixture.root, 'show', { id: 'FX999' }, { timeoutMs: CEILING })
 
-    expect(parsed.ok).toBe(true)
-    if (!parsed.ok || parsed.value.kind !== 'refused') {
+    expect(parsed.kind).toBe('refused')
+    if (parsed.kind !== 'refused') {
       throw new Error('expected a refusal, got a payload')
     }
-    expect(fieldsRefused(parsed.value.refusal)).toEqual([])
-    expect(parsed.value.refusal.said).not.toBe('')
+    expect(fieldsRefused(parsed.refusal)).toEqual([])
+    expect(parsed.refusal.said).not.toBe('')
   })
 
   it('reads the doors that close the code a refusal named', async () => {

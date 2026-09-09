@@ -149,18 +149,20 @@ export async function openProject(
 
   // Uncached, because what the cache is keyed on is exactly what this read answers.
   const config = await createClient(pooled).call(root, 'config', {}, call)
-  if (!config.ok) {
-    return { kind: 'unreadable', root, engine, unreadable: couldNotRead('config', config.failure) }
+  // Since RG99 the client carries the call that never happened as a state too, so this is
+  // the whole of what can go wrong here rather than the two thirds a `try` used to leave.
+  if (config.kind === 'unreadable') {
+    return { kind: 'unreadable', root, engine, unreadable: config.unreadable }
   }
-  if (config.value.kind === 'refused') {
+  if (config.kind === 'refused') {
     return {
       kind: 'unreadable',
       root,
       engine,
-      unreadable: refusedBy('config', config.value.refusal.said),
+      unreadable: refusedBy('config', config.refusal.said),
     }
   }
-  const governed = governedFiles(config.value.value)
+  const governed = governedFiles(config.value)
 
   const files = Object.values(governed)
   const stampFor = options.stampFor
@@ -178,13 +180,8 @@ export async function openProject(
 
   const client = createClient(cached ?? pooled)
   const commands = await client.call(root, 'commands', {}, call)
-  if (!commands.ok) {
-    return {
-      kind: 'unreadable',
-      root,
-      engine,
-      unreadable: couldNotRead('commands', commands.failure),
-    }
+  if (commands.kind === 'unreadable') {
+    return { kind: 'unreadable', root, engine, unreadable: commands.unreadable }
   }
 
   return {
@@ -196,13 +193,13 @@ export async function openProject(
       // `capabilitiesOf` has no way to say — so a refusal here is `unsupported` with the
       // version `engines` already gave, and the project still opens.
       capabilities:
-        commands.value.kind === 'refused'
+        commands.kind === 'refused'
           ? {
               kind: 'unsupported',
               version: engine.payload.writing.version,
-              reason: commands.value.refusal.said,
+              reason: commands.refusal.said,
             }
-          : capabilitiesOf(commands.value.value),
+          : capabilitiesOf(commands.value),
       governed,
       client,
       invalidate: () => {
@@ -214,21 +211,13 @@ export async function openProject(
   }
 }
 
-function couldNotRead(
-  verb: string,
-  failure: { readonly path: string; readonly expected: string; readonly got: string },
-): Unreadable {
-  return {
-    reason: 'unreadable-payload',
-    message:
-      `\`${verb}\` answered with ${failure.got} where ` +
-      `${failure.path || 'the answer'} should have been ${failure.expected}`,
-    elapsedMs: 0,
-    argv: [verb],
-    said: '',
-  }
-}
-
+/**
+ * A refusal, said as the state a project is in.
+ *
+ * The other two ways a read can fail no longer need a builder here: since RG99 the client
+ * hands back an `Unreadable` already carrying the argv, the elapsed time and whatever the
+ * engine wrote — all of which this had to leave empty.
+ */
 function refusedBy(verb: string, said: string): Unreadable {
   return {
     reason: 'unreadable-payload',

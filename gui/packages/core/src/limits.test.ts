@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { attemptRead, DEFAULT_LIMITS, withLimits } from './limits'
+import { attemptRead, DEFAULT_LIMITS, explainUnreadable, withLimits } from './limits'
 import { readListPayload } from './payloads'
 import { aString, record } from './reading'
 import { EngineCallFailed, type EngineResult, type Transport } from './transport'
@@ -186,5 +186,61 @@ describe('RG8: a project that was read', () => {
     if (!read.ok) return
     expect(read.value.name).toBe('ok')
     expect(read.durationMs).toBe(361)
+  })
+})
+
+describe('RG99: the state as a sentence', () => {
+  it('blames the version gap and names the engine, not the project', () => {
+    // A shape this build does not recognise means this app is behind the one that answered,
+    // and naming that version is what turns a message into something somebody can do.
+    const said = explainUnreadable(
+      {
+        reason: 'unreadable-payload',
+        message: 'tasks[2].symptom: expected a string, found nothing',
+        elapsedMs: 12,
+        argv: ['-C', '/w', 'list', '--json'],
+        said: '',
+      },
+      { verb: 'list', engineVersion: '0.2.358' },
+    )
+
+    expect(said).toContain('tasks[2].symptom')
+    expect(said).toContain('a string')
+    expect(said).toContain('roadkeep 0.2.358')
+    expect(said).toContain('behind')
+  })
+
+  it('still says something useful when no version is known', () => {
+    const said = explainUnreadable(
+      {
+        reason: 'unreadable-payload',
+        message: 'the answer: expected an object, found null',
+        elapsedMs: 3,
+        argv: ['-C', '/w', 'stats', '--json'],
+        said: '',
+      },
+      { verb: 'stats', engineVersion: '' },
+    )
+
+    expect(said).toContain('`stats`')
+    expect(said).toContain('unknown version')
+  })
+
+  it('does not blame the version for a call that never happened', () => {
+    // A timeout says nothing about which build answered, because none did. Telling somebody
+    // they are behind the engine sends them to read a changelog for a hung process.
+    const said = explainUnreadable(
+      {
+        reason: 'timeout',
+        message: 'it ran past 15000ms',
+        elapsedMs: 15000,
+        argv: ['-C', '/w', 'list', '--json'],
+        said: '',
+      },
+      { verb: 'list', engineVersion: '0.2.358' },
+    )
+
+    expect(said).toContain('ran past')
+    expect(said).not.toContain('behind')
   })
 })

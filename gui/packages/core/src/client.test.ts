@@ -196,10 +196,10 @@ describe('RG66: the shape a verb declares, applied by the call itself', () => {
   it('hands back the payload rather than stdout for somebody to interpret', async () => {
     const answer = await createClient(answering(LINTED)).call('/w', 'lint', {})
 
-    expect(answer.ok).toBe(true)
-    if (!answer.ok || answer.value.kind !== 'payload') return
-    expect(answer.value.value.clean).toBe(false)
-    expect(answer.value.value.checked).toEqual(['docs/ROADMAP.md'])
+    expect(answer.kind).toBe('read')
+    if (answer.kind !== 'read') return
+    expect(answer.value.clean).toBe(false)
+    expect(answer.value.checked).toEqual(['docs/ROADMAP.md'])
   })
 
   it('reads a non-zero exit as an answer, because `lint` exits 1 by design', async () => {
@@ -207,7 +207,7 @@ describe('RG66: the shape a verb declares, applied by the call itself', () => {
 
     // The exit code never reaches this decision: `said` is what tells a refusal apart, and
     // reading the code as a verdict is how a gate's own findings become an error.
-    expect(answer.ok && answer.value.kind).toBe('payload')
+    expect(answer.kind).toBe('read')
   })
 
   it('tells a refusal from a payload without the caller asking', async () => {
@@ -217,9 +217,9 @@ describe('RG66: the shape a verb declares, applied by the call itself', () => {
     })
     const answer = await createClient(answering(refused, 2)).call('/w', 'show', { id: 'RG9999' })
 
-    expect(answer.ok).toBe(true)
-    if (!answer.ok || answer.value.kind !== 'refused') return
-    expect(answer.value.refusal.refused[0]?.code).toBe('id.unknown')
+    expect(answer.kind).toBe('refused')
+    if (answer.kind !== 'refused') return
+    expect(answer.refusal.refused[0]?.code).toBe('id.unknown')
   })
 
   it('names the field it could not read, rather than handing back a string', async () => {
@@ -229,10 +229,13 @@ describe('RG66: the shape a verb declares, applied by the call itself', () => {
       {},
     )
 
-    expect(answer.ok).toBe(false)
-    if (answer.ok) return
-    expect(answer.failure.path).toBe('clean')
-    expect(answer.failure.expected).toBe('a boolean')
+    expect(answer.kind).toBe('unreadable')
+    if (answer.kind !== 'unreadable') return
+    // The field and the type it wanted are in the sentence rather than in fields of their
+    // own: since RG99 what comes back is an `Unreadable`, which is what a row draws.
+    expect(answer.unreadable.message).toContain('clean')
+    expect(answer.unreadable.message).toContain('a boolean')
+    expect(answer.unreadable.reason).toBe('unreadable-payload')
   })
 
   it('reads each verb with its own shape and never a neighbour’s', async () => {
@@ -252,7 +255,7 @@ describe('RG66: the shape a verb declares, applied by the call itself', () => {
     const asPick = await client.call('/w', 'pick', {})
     const asList = await client.call('/w', 'list', {})
 
-    expect(asPick.ok).toBe(true)
-    expect(asList.ok).toBe(false)
+    expect(asPick.kind).toBe('read')
+    expect(asList.kind).toBe('unreadable')
   })
 })

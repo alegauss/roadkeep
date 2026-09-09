@@ -71,7 +71,28 @@ export type Answer<T> =
   | { readonly kind: 'payload'; readonly value: T }
   | { readonly kind: 'refused'; readonly refusal: Refusal }
 
-/** Read one engine result as either the verb's payload or the refusal it answered with. */
+/**
+ * Read one already-parsed answer as the verb's payload or the refusal it carried.
+ *
+ * A `Reader<Answer<T>>`, which is what lets the split be handed to something that already
+ * runs the call and parses the JSON — `attemptRead` — instead of being a second place that
+ * does both (RG99).
+ */
+export function readAnswerFrom<T>(
+  reader: Reader<T>,
+  source: unknown,
+  path = '',
+): Parsed<Answer<T>> {
+  if (looksRefused(source)) {
+    const refusal = readRefusal(source, path)
+    return refusal.ok ? { ok: true, value: { kind: 'refused', refusal: refusal.value } } : refusal
+  }
+
+  const payload = reader(source, path)
+  return payload.ok ? { ok: true, value: { kind: 'payload', value: payload.value } } : payload
+}
+
+/** The same read, of a result whose stdout has still to be parsed. */
 export function readAnswer<T>(reader: Reader<T>, result: EngineResult): Parsed<Answer<T>> {
   let source: unknown
   try {
@@ -87,13 +108,7 @@ export function readAnswer<T>(reader: Reader<T>, result: EngineResult): Parsed<A
     }
   }
 
-  if (looksRefused(source)) {
-    const refusal = readRefusal(source, '')
-    return refusal.ok ? { ok: true, value: { kind: 'refused', refusal: refusal.value } } : refusal
-  }
-
-  const payload = reader(source, '')
-  return payload.ok ? { ok: true, value: { kind: 'payload', value: payload.value } } : payload
+  return readAnswerFrom(reader, source)
 }
 
 function looksRefused(source: unknown): boolean {

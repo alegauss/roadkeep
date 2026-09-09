@@ -1,4 +1,4 @@
-import { buildArgv, explainFailure, listedTasks, type VerbInputs, type VerbName } from '@rk/core'
+import { buildArgv, explainUnreadable, listedTasks, type VerbInputs, type VerbName } from '@rk/core'
 import { describe, expect, it } from 'vitest'
 
 import { REPO, engineReading, liveClient as client, liveEngine as engine } from './live'
@@ -53,12 +53,14 @@ describe('RG1: a payload this app can actually fetch', () => {
     // moved upstream is only actionable when the message says which revision moved it.
     const { named } = await engineReading()
     expect(
-      answer.ok,
-      answer.ok ? '' : explainFailure(answer.failure, { verb: 'list', engineVersion: named }),
+      answer.kind === 'read',
+      answer.kind === 'unreadable'
+        ? explainUnreadable(answer.unreadable, { verb: 'list', engineVersion: named })
+        : '',
     ).toBe(true)
-    if (!answer.ok || answer.value.kind === 'refused') return
-    expect(listedTasks(answer.value.value).length).toBeGreaterThan(0)
-    expect(answer.value.value.standing?.block).toBe('A')
+    if (answer.kind !== 'read') return
+    expect(listedTasks(answer.value).length).toBeGreaterThan(0)
+    expect(answer.value.standing?.block).toBe('A')
   })
 
   it('answers about the project it was given, not the directory the test runs in', async () => {
@@ -93,11 +95,9 @@ describe('RG1: a payload this app can actually fetch', () => {
     // caller that forgot would have read `show`'s own gate finding as a broken payload.
     const answer = await client.call(REPO, 'show', { id: 'RG9999' }, { timeoutMs: CEILING })
 
-    expect(answer.ok).toBe(true)
-    if (!answer.ok) return
-    expect(answer.value.kind).toBe('refused')
-    if (answer.value.kind !== 'refused') return
-    expect(answer.value.refusal.said).toContain('RG9999')
+    expect(answer.kind).toBe('refused')
+    if (answer.kind !== 'refused') return
+    expect(answer.refusal.said).toContain('RG9999')
   })
 
   it('carries a non-zero exit back as an answer, which is how the gate reads', async () => {
@@ -109,6 +109,6 @@ describe('RG1: a payload this app can actually fetch', () => {
 
     // And the payload survives the exit code: an answer is what `said` decides, not `code`.
     const answer = await client.call(REPO, 'lint', {}, { timeoutMs: CEILING })
-    expect(answer.ok && answer.value.kind).toBe('payload')
+    expect(answer.kind).toBe('read')
   })
 })
