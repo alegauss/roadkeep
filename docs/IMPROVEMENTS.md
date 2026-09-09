@@ -738,30 +738,6 @@ report saying 7.24 when the rule says 3.89 is the part that misleads.
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-### §RK1629 The trim two files spell twice
-
-RK1573 gave `scoping` a heading to open and, with it, the question `criteria` had
-already answered: where does a section appended to a roadmap go? Both files now carry
-the same four lines — walk back from the end while the line is blank — under two names,
-`criteria._trimmed` and `scoping._end`, and the second was written by reading the first.
-
-Nothing forced the copy. `criteria` reaches into `scoping` for `HEADING` and cannot be
-reached back into, so the shared answer has nowhere to sit between them. One layer down
-it has somewhere: `kernel/document.py` owns `blank`, and its docstring says why that is
-public — *every writer has to reason about it*, a doubled blank being a change the
-round-trip cannot catch because both spellings round-trip. The index one past the last
-non-blank line is that reasoning finished, asked by every verb appending a section
-rather than inserting one.
-
-So the fix is a reader on `Document` and two call sites deleted. What it is not is a
-sweep: `criteria` has two more loops walking back from a **region's** end and
-`governing` and `queueing` have one each, and those answer a different question — where
-one section stops, not where the file does. Folding those into the same name would be
-the fold that stops folding, which is the shape RK1565 had to undo one file over.
-
-RK1602's instance is a literal spelled twice; this is a rule implemented twice, which
-the gate cannot see at all.
-
 ### §RK1633 The one write outside the layer
 
 `declare refs` is the only handler in `verbs/` that writes a file. The thirty other

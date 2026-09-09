@@ -123,13 +123,13 @@ called unbuilt were already in the ledger.
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 162 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 3 | 41 | 1 |
+| H — The tool's own shape (what one verb costs to change) | 2 | 42 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 31 | 1109 | 24 |
+| **Total** | 30 | 1110 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1629** (deps: —) **two modules walk back from a file's last blank line under two names, and the kernel that owns blank has no name for it** — RK1573 gave scoping a heading to open and the answer criteria had already written, so the copy was made by reading it. → §RK1629
+- 📋 **RK1630** (deps: —) **a read payload names neither the root it answered about nor the build that answered** — lint carries root and config carries version; list, show, brief, stats, export and pick carry neither, so a client holding several projects' answers cannot tell whose it holds. → §RK1630
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

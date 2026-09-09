@@ -769,26 +769,13 @@ def _open(document: Document) -> Document:
     on a file carrying only blocks and with the criteria lists on one carrying those too, so
     there is no third answer for it to pick between and no section it moves.
     """
-    at = _end(document)
+    at = document.written_end
     updated = document
     if at > 0 and not blank(document.lines[at - 1]):
         updated = updated.insert_line(at, "")
         at += 1
     updated = updated.insert_line(at, OPENED)
     return updated.insert_line(at + 1, "")
-
-
-def _end(document: Document) -> int:
-    """The index one past the file's last non-blank line — where a section appended goes.
-
-    `criteria._trimmed`, which is the same question about the same file: trailing blanks are
-    the author's and a heading written after them would leave a run inside the document rather
-    than at its end, which round-trips and reads as a gap nobody made (L3's own care).
-    """
-    end = len(document.lines)
-    while end > 0 and blank(document.lines[end - 1]):
-        end -= 1
-    return end
 
 
 def _bullets(document: Document) -> tuple[NonGoal, ...]:

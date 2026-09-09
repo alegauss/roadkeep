@@ -834,6 +834,56 @@ def test_the_predicate_agrees_with_the_tuple_it_replaces_reading():
         assert document.holds(label) == bool(document.block(label)), label
 
 
+def test_where_a_file_ends_is_asked_of_the_document_and_not_walked_twice():
+    """RK1629. `criteria` walked back from the last blank line to place a section it appends,
+    RK1573 gave `scoping` the same question, and the second was written by reading the first —
+    four lines under two names, in two modules that cannot reach each other: `criteria` imports
+    `scoping` and not the reverse, so the shared answer had nowhere to sit between them.
+
+    One layer down it does. This class owns `blank`, whose docstring already says why that is
+    public — every writer has to reason about it, a doubled blank being a change the round-trip
+    cannot catch because both spellings round-trip — and this is that reasoning finished."""
+    from roadkeep.kernel.document import blank
+
+    schema = Schema()
+    # Trailing blanks are the author's: a heading written after them would leave a run inside
+    # the document rather than at its end, which round-trips and reads as a gap nobody made.
+    trailing = Document.parse("# Roadmap\n\n## Block A\n\n\n", schema=schema)
+    assert trailing.written_end == 3
+    assert blank(trailing.lines[trailing.written_end])
+    # A file ending on content ends where it ends, with nothing to walk back over.
+    tight = Document.parse("# Roadmap\n\n## Block A\n", schema=schema)
+    assert tight.written_end == len(tight.lines)
+    # And a file that is nothing but blanks has no written line to be one past.
+    assert Document.parse("\n\n\n", schema=schema).written_end == 0
+    assert Document.parse("", schema=schema).written_end == 0
+
+
+def test_the_two_places_a_section_is_appended_read_that_one_answer(tmp_path):
+    """The join, and what makes the lift more than a tidy: both verbs that open a heading at
+    the end of a roadmap now place it at the same index because they ask the same thing, and a
+    rule implemented twice is one the gate cannot see at all (RK1602's instance is a literal
+    spelled twice; this was a rule)."""
+    import ast
+    import inspect
+
+    from roadkeep import criteria, scoping
+
+    for module in (criteria, scoping):
+        source = inspect.getsource(module)
+        # No second walk left behind: what stays in these two files are the loops that ask
+        # where a *region* stops, which is a different question and keeps its own name.
+        tree = ast.parse(source)
+        walkers = [
+            node.name
+            for node in ast.walk(tree)
+            if isinstance(node, ast.FunctionDef)
+            and "one past the file's last non-blank line" in (ast.get_docstring(node) or "")
+        ]
+        assert not walkers, (module.__name__, walkers)
+        assert "written_end" in source, module.__name__
+
+
 def test_the_two_readers_of_it_are_the_only_two():
     """The guarantee the rationale asked for, and a test is how it stays one: RK269's note and
     RK38's event line both answer "is that block empty", and nothing else may spell it again.

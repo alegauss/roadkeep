@@ -760,19 +760,11 @@ def _regions_end(document: Document) -> int:
         # a second one — the doubled blank both spellings round-trip through, which is exactly
         # why nothing downstream would catch it (`scoping._remove_span`'s care, inverted).
         end = _region_end(document, regions[-1][0])
-        return end if end < len(document.lines) else _trimmed(document)
+        return end if end < len(document.lines) else document.written_end
     for heading in document.headings:
         if NON_GOALS.match(heading.text):
             return heading.lineno - 1
-    return _trimmed(document)
-
-
-def _trimmed(document: Document) -> int:
-    """The index one past the file's last non-blank line — where a section appended goes."""
-    end = len(document.lines)
-    while end > 0 and blank(document.lines[end - 1]):
-        end -= 1
-    return end
+    return document.written_end
 
 
 def _regions(document: Document) -> tuple[tuple[int, str], ...]:

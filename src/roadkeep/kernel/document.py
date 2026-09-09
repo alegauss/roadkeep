@@ -876,6 +876,35 @@ class Document:
         """
         return self._ends_before(heading, lambda later: True)
 
+    @property
+    def written_end(self) -> int:
+        """The index one past the last non-blank line — where a section **appended** goes.
+
+        The third of the three "where does this end" answers and the only one about the whole
+        file: :meth:`subtree_end` and :meth:`prose_end` stop at the next heading, and this
+        stops at the last line somebody wrote.
+
+        Here because this class owns :func:`blank`, whose docstring already says why that is
+        public — *every writer has to reason about it*, a doubled blank being a change the
+        round-trip cannot catch because both spellings round-trip. This is that reasoning
+        finished, and it was implemented twice: `criteria` wrote it and RK1573 gave `scoping`
+        the same question, whose answer was made by reading the first. Neither module can
+        reach the other — `criteria` imports `scoping` and not the reverse — so the shared
+        answer had nowhere to sit between them and one layer down is where it does.
+
+        What it is **not** is a fold over every backward walk here. `criteria` has two more
+        and `governing` and `queueing` one each, and those ask where a *region* stops rather
+        than where the file does — one name for both would be the fold that stops folding.
+
+        Trailing blanks are the author's: a heading written after them would leave a run
+        inside the document rather than at its end, which round-trips and reads as a gap
+        nobody made (L3's own care).
+        """
+        end = len(self.lines)
+        while end > 0 and blank(self.lines[end - 1]):
+            end -= 1
+        return end
+
     def _ends_before(self, heading: Heading, stops: Callable[[Heading], bool]) -> int:
         """The one loop the two rules above differ only in the predicate of.
 
