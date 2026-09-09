@@ -482,32 +482,6 @@ string the package draws. The dep stands until that lands.
 **`react-router-dom` is not installed.** A declared peer npm did not pull; routing
 arrives with this line.
 
-### §RG88 Two translation systems on one screen
-
-RG51 built a small typed catalogue in `core` and it does what it was built for: the base
-is the type, the fallback is per key, and a pseudo-locale fails the run a literal is
-typed into a screen. None of that is in doubt.
-
-What was not checked is that `i18next`, `react-i18next` and
-`i18next-browser-languagedetector` are already dependencies of `@rk/ui`, declared when
-the design system was adopted, because that package translates its own components with
-them. So a screen mixing this app's components with the package's has two translation
-systems on it, each with its own idea of the current locale — which is exactly the shape
-of the theme problem in [[RG87]], and the package's own notes describe the harm: two
-systems agreeing only by luck.
-
-**i18next holds the locale.** The package's components read it from there and cannot be
-told otherwise, so there is one answer to what language this window is in, and the
-catalogue is fed the same tag rather than keeping its own. Its fifty-line lookup stays:
-replacing it would spend the type and the pseudo-locale run for nothing.
-
-Which leaves where a string lives, and the rule is **whoever draws it**. A string this
-app's own components render is a `MessageKey`. A string the package renders is an
-i18next key, including the nav labels this app writes and `BentoNavItem` resolves —
-which is what [[RG63]] was waiting to know.
-
-`initVigI18n` is the entry point's call, and nothing makes it yet.
-
 ### §RG90 A token pair that fails before anything uses it
 
 RG54's contrast test computes every pair this app renders. It also found one it does

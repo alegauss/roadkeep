@@ -1,5 +1,7 @@
-import { translator, type Translate, type Wording } from '@rk/core'
+import { translator, wordingFor, type Translate, type Wording } from '@rk/core'
 import { createContext, useContext, useMemo, type ReactNode } from 'react'
+
+import { useSpokenLocale } from './speaking'
 
 /**
  * How a screen reaches the wording.
@@ -7,6 +9,11 @@ import { createContext, useContext, useMemo, type ReactNode } from 'react'
  * One context, one hook, and the lookup itself belongs to `core`. What lives here is only
  * the React-shaped part — the renderer is the only package that has React, and the
  * catalogue is not allowed to depend on which framework draws it.
+ *
+ * **The tag comes from i18next and not from a second place.** The design system's own
+ * components read the language off the shared instance, so a provider that took its tag
+ * anywhere else would be a second translation system on the same screen — see `speaking`,
+ * which is where that answer is kept.
  *
  * **There is no default that means English-by-accident.** A component rendered outside the
  * provider gets the base wording, which is right, but the provider is what a test replaces
@@ -19,13 +26,20 @@ export function WordingProvider({
   over,
   children,
 }: {
-  /** The translation in force. Absent is English. */
+  /**
+   * The translation to force, which is a test's door. Absent is whatever i18next is
+   * speaking — the base included, since `en` is the catalogue itself and not a translation.
+   */
   readonly over?: Wording
   readonly children: ReactNode
 }) {
+  const spoken = useSpokenLocale()
+  const wording = over ?? wordingFor(spoken)
+
   // Rebuilt only when the translation itself changes: a lookup that was a new function on
-  // every render would re-render every screen that reads one.
-  const say = useMemo(() => translator(over), [over])
+  // every render would re-render every screen that reads one. `wordingFor` returns the
+  // stored object, so the identity is stable for as long as the tag is.
+  const say = useMemo(() => translator(wording), [wording])
 
   return <Wording.Provider value={say}>{children}</Wording.Provider>
 }

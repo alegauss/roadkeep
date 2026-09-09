@@ -74,6 +74,7 @@ inherits its permissions.
 - ✅ **RG39** **there is no design system, so every screen decides its own type, spacing and colour on the spot** — The design system is @viglet/viglet-design-system, a dependency shared with Turing, Shio and Dumont: this app declares no colour, type scale, spacing or radius of its own.
 - ✅ **RG52** **there is one ground, so somebody who works in dark reads this app in light** — The design system owns the theme switch; this app resolves the setting and never mounts a second theme system.
 - ✅ **RG86** **the locale setting reaches no screen, so choosing one changes nothing** — A locale ships inside the bundle and nothing reads a translation off disk, so adding a language is a release.
+- ✅ **RG88** **one screen has two translation systems, and only one of them was chosen** — A string belongs to whoever draws it: this app's own components read a MessageKey, the design system's read an i18next key, and one instance holds the locale both take.
 
 ### §RG39 A shared design system, not a copied one
 
@@ -104,3 +105,21 @@ rather than a compile error. So the list is written in `core`, one line per lang
 and adding one is editing this repository. The cost is real: a translation waits for a
 release. What buys it is that every string is in the bundle that was tested, and
 `untranslated` and `stale` run over all of them at once.
+
+### §RG88 Two catalogues, one locale
+
+The alternative was one catalogue: drop RG51's typed lookup for i18next, or re-declare
+the package's strings as `MessageKey`s. Both were rejected, for opposite reasons.
+
+Dropping RG51 spends what it bought. `MessageKey` is a type, so a key nobody wrote fails
+to compile, and the pseudo-locale run fails on a literal typed into a component. i18next
+resolves a missing key to the key itself, at runtime, on screen.
+
+Re-declaring the package's strings is worse: its components resolve their own keys
+internally and cannot be handed a translation, so the copy drifts on the release that
+rewords one.
+
+So two catalogues, divided by who renders the element — checkable by reading the JSX
+rather than by remembering a rule. What is never two is the locale: the package reads it
+off the shared i18next instance and cannot be told otherwise, so that instance is the
+source the catalogue is fed from.

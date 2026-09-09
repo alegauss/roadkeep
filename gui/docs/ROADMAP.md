@@ -43,8 +43,7 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- 📋 **RG63** (deps: RG39 ✅, RG88) **there is no page chrome, so the first real screen will invent a shape the design system already has** — The bento layer is the shared page vocabulary and its own guidance is to adopt the shell before the pages, which is a thing to do once and early. → §RG63
-- 📋 **RG88** (deps: RG51 ✅) **one screen has two translation systems, and only one of them was chosen** — The design system translates its own components with i18next, a declared dependency here, and RG51 built a second catalogue beside it without ever asking which of the two owns a string. → §RG88
+- 📋 **RG63** (deps: RG39 ✅, RG88 ✅) **there is no page chrome, so the first real screen will invent a shape the design system already has** — The bento layer is the shared page vocabulary and its own guidance is to adopt the shell before the pages, which is a thing to do once and early. → §RG63
 - 📋 **RG90** (deps: RG54 ✅, the design system darkening the muted foreground) **muted text on a muted panel is 4.33 to 1, which no screen renders yet and one will** — Those two tokens are named as a pair and miss AA on the light ground, so the first panel using both ships a pale label looking like a style. → §RG90
 - 📋 **RG105** (deps: RG54 ✅) **the rail marks where you are in the package's neutral, so the shell reads as another product's console** — The bento layer keys that mark to --primary and expects a product to have claimed it, and this app keyed only the accent, so the mark is the package's own grey. → §RG105
 - 📋 **RG106** (deps: RG86 ✅) **the window mounts nothing until the bridge answers, so a call that never returns leaves it blank** — The locale is asked for before the first render with no deadline, so a main process that hangs shows a window painted its background colour and nothing else. → §RG106
