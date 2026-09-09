@@ -11,20 +11,15 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { CEILING, liveEngine as engine } from './live'
 import { buildFixture, type Fixture } from './fixture'
 import { stampGoverned } from './governed-stamp'
-import { createProcessTransport } from './process-transport'
 
 /**
  * RG7 against a real project: the cache has to save actual interpreter starts, and it has
  * to stop saving them the moment a governed file moves. Both halves are only true together
  * — a cache that never expires is fast and wrong, and one that never hits is neither.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
 
 /** Wraps the real transport and counts how many calls actually reach it. */
 function counted(inner: Transport): { transport: Transport; calls: () => number } {

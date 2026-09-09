@@ -1,10 +1,7 @@
-import path from 'node:path'
-
 import {
   applyWrite,
   changeLine,
   composeWrite,
-  createClient,
   createWatching,
   governedFiles,
   landingBetween,
@@ -19,9 +16,9 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { CEILING, liveClient as client, liveEngine as engine, read } from './live'
 import { buildFixture, type Fixture } from './fixture'
 import { createGovernedWatcher, REAL_CLOCK } from './governed-watch'
-import { createProcessTransport } from './process-transport'
 
 /**
  * What a session did, read the way this app will read it: real writes through the real
@@ -30,12 +27,6 @@ import { createProcessTransport } from './process-transport'
  * The writes stand in for an agent's. That is the point rather than a shortcut — an agent
  * ships through the same verbs a person does, so a write here is the same evidence.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
-const client = createClient(engine)
 
 let fixture: Fixture
 let files: string[] = []
@@ -52,9 +43,7 @@ async function readingOf(id: string): Promise<Reading> {
 beforeAll(async () => {
   fixture = await buildFixture(engine, { open: 4, shipped: 0, deferred: 0 })
 
-  const answer = await client.call(fixture.root, 'config', {}, { timeoutMs: CEILING })
-  if (!answer.ok || answer.value.kind === 'refused') throw new Error('config did not read')
-  files = watchedFiles(Object.values(governedFiles(answer.value.value)))
+  files = watchedFiles(Object.values(governedFiles(await read(fixture.root, 'config', {}))))
 }, 180000)
 
 afterAll(() => {

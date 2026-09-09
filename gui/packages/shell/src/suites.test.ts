@@ -30,6 +30,9 @@ const ROOTS = ['packages/core/src', 'packages/shell/src', 'packages/ui/src']
 const REACHES_OUT: readonly { readonly what: string; readonly found: RegExp }[] = [
   { what: 'a child process', found: /from 'node:child_process'/ },
   { what: 'the engine', found: /createProcessTransport/ },
+  // RG78 moved the transport into one module, so most live files no longer name the thing
+  // that builds one. Opening on the seam is the same reach: it hands back an engine.
+  { what: 'the live seam', found: /from '\.\/live'/ },
   { what: 'Electron', found: /spawnElectron|startApp\(/ },
   { what: 'an HTTP handler', found: /serveEngine/ },
   { what: 'a built fixture', found: /buildFixture/ },

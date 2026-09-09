@@ -1,8 +1,5 @@
-import path from 'node:path'
-
 import {
   backlogFrom,
-  createClient,
   insteadOf,
   listedTasks,
   narrowingOfList,
@@ -12,8 +9,8 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { liveEngine as engine, read } from './live'
 import { buildFixture, type Fixture } from './fixture'
-import { createProcessTransport } from './process-transport'
 
 /**
  * RG67: the answer shape no repository here produces.
@@ -30,16 +27,10 @@ import { createProcessTransport } from './process-transport'
  * the honest answer is that there is no smaller call to make. A shape written from one of
  * them alone is a shape that fails on the other.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
 
 /** Measured: this fixture's whole listing is ~1440 characters and each block's is ~970. */
 const ROOMY = 1200
 const TIGHT = 400
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
-const client = createClient(engine)
 
 let roomy: Fixture
 let tight: Fixture
@@ -57,14 +48,7 @@ afterAll(() => {
 
 /** One listing, read with the shape the verb declares. A bound is an answer, not a refusal. */
 async function listing(root: string, input: Record<string, unknown> = {}): Promise<ListPayload> {
-  const answer = await client.call(root, 'list', input, { timeoutMs: CEILING })
-  if (!answer.ok) {
-    throw new Error(`list did not read: ${answer.failure.path} ${answer.failure.expected}`)
-  }
-  if (answer.value.kind === 'refused') {
-    throw new Error(`list was refused: ${answer.value.refusal.said}`)
-  }
-  return answer.value.value
+  return read(root, 'list', input)
 }
 
 describe('RG67: a listing past the bound the project declares', () => {

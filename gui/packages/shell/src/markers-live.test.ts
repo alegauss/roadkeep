@@ -1,7 +1,4 @@
-import path from 'node:path'
-
 import {
-  createClient,
   isOpen,
   markersOf,
   meaningOf,
@@ -11,7 +8,7 @@ import {
 } from '@rk/core'
 import { beforeAll, describe, expect, it } from 'vitest'
 
-import { createProcessTransport } from './process-transport'
+import { read, REPO } from './live'
 
 /**
  * RG53: the marker set, read off a real engine.
@@ -20,18 +17,11 @@ import { createProcessTransport } from './process-transport'
  * that governs this repository, which is the only build the reading can be true about — and
  * asserts about the *shape*, never about which emoji this project chose.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const client = createClient(createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] }))
 
 let config: ConfigPayload
 
 beforeAll(async () => {
-  const answer = await client.call(REPO, 'config', {}, { timeoutMs: CEILING })
-  if (!answer.ok || answer.value.kind === 'refused') throw new Error('config did not read')
-  config = answer.value.value
+  config = await read(REPO, 'config', {})
 }, 120000)
 
 describe('RG53: what a real config says about markers', () => {

@@ -1,10 +1,10 @@
 import path from 'node:path'
 
-import { createClient, promptFor, sessionCall, type SessionEvent } from '@rk/core'
+import { promptFor, sessionCall, type SessionEvent } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { read, REPO } from './live'
 import { fakeClaude, type FakeBehaviour } from './fake-claude'
-import { createProcessTransport } from './process-transport'
 import { startSession, type RunningSession } from './session-process'
 
 /**
@@ -17,12 +17,6 @@ import { startSession, type RunningSession } from './session-process'
  * The prompt, though, is built from a real `brief` against this repository: it is the one
  * input that has to be right, and a fixture's would not exercise the join.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
-const client = createClient(engine)
 
 let prompt = ''
 const disposals: (() => void)[] = []
@@ -36,9 +30,7 @@ function run(behaviour: FakeBehaviour = {}, watcher = {}): RunningSession {
 }
 
 beforeAll(async () => {
-  const answer = await client.call(REPO, 'brief', {}, { timeoutMs: CEILING })
-  if (!answer.ok || answer.value.kind === 'refused') throw new Error('brief did not read')
-  prompt = promptFor(answer.value.value)
+  prompt = promptFor(await read(REPO, 'brief', {}))
 }, 180000)
 
 afterAll(() => {

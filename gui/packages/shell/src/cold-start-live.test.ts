@@ -16,6 +16,7 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { CEILING, REPO, liveEngine as engine } from './live'
 import { buildFixture, type Fixture } from './fixture'
 import { machineWidth } from './machine'
 import { createProcessTransport } from './process-transport'
@@ -24,11 +25,7 @@ import { createProcessTransport } from './process-transport'
  * A cold start over real projects: no cache, every read a fresh interpreter, all of it
  * through the same pool every other read goes through.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
 
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
 const pooled = createPooledTransport(engine, { width: machineWidth() })
 
 const recorded = (projectPath: string): RecordedProject => ({

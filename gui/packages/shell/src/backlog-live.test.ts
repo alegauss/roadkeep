@@ -1,11 +1,11 @@
 import { appendFileSync } from 'node:fs'
 import path from 'node:path'
 
-import { allLines, backlogFrom, createClient, refusedSummary, type Backlog } from '@rk/core'
+import { allLines, backlogFrom, refusedSummary, type Backlog } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { liveEngine as engine, read, REPO } from './live'
 import { buildFixture, type Fixture } from './fixture'
-import { createProcessTransport } from './process-transport'
 
 /**
  * A real backlog read out of a real file, including the half that is easy to lose: a
@@ -13,24 +13,11 @@ import { createProcessTransport } from './process-transport'
  * on purpose — it is exactly what a person editing a governed file by mistake produces,
  * and it is the case a listing must not quietly drop.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
-const client = createClient(engine)
 
 let fixture: Fixture
 
 async function backlogOf(root: string, input = {}): Promise<Backlog> {
-  const answer = await client.call(root, 'list', input, { timeoutMs: CEILING })
-  if (!answer.ok) {
-    throw new Error(`list did not read: ${answer.failure.path} ${answer.failure.expected}`)
-  }
-  if (answer.value.kind === 'refused') {
-    throw new Error(`list was refused: ${answer.value.refusal.said}`)
-  }
-  return backlogFrom(answer.value.value)
+  return backlogFrom(await read(root, 'list', input))
 }
 
 beforeAll(async () => {

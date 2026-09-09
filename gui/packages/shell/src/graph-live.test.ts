@@ -1,35 +1,16 @@
-import path from 'node:path'
-
-import { createClient, graphFrom, listedTasks, routeOf, type Graph } from '@rk/core'
+import { graphFrom, listedTasks, routeOf, type Graph } from '@rk/core'
 import { beforeAll, describe, expect, it } from 'vitest'
 
-import { createProcessTransport } from './process-transport'
+import { read, REPO } from './live'
 
 /**
  * The graph read against this repository's own backlog, which has every edge worth
  * drawing: shipped deps, a line blocked on an open one, and two lines waiting on work in
  * another repository that shipping here can never satisfy.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
-const client = createClient(engine)
 
 async function graphOf(id: string): Promise<Graph> {
-  const answer = await client.call(REPO, 'deps', { id }, { timeoutMs: CEILING })
-  if (!answer.ok) {
-    throw new Error(
-      `deps did not read: expected ${answer.failure.expected} at ` +
-        `${answer.failure.path || '(the answer)'}, found ${answer.failure.got}`,
-    )
-  }
-  if (answer.value.kind === 'refused') {
-    throw new Error(`deps was refused: ${answer.value.refusal.said}`)
-  }
-  const parsed = answer.value
-  return graphFrom(parsed.value)
+  return graphFrom(await read(REPO, 'deps', { id }))
 }
 
 /**
@@ -45,9 +26,7 @@ let blocked: Graph | undefined
 let leverage: Graph | undefined
 
 beforeAll(async () => {
-  const listed = await client.call(REPO, 'list', {}, { timeoutMs: CEILING })
-  if (!listed.ok || listed.value.kind === 'refused') throw new Error('list did not read')
-  const ids = listedTasks(listed.value.value).map((one) => one.id)
+  const ids = listedTasks(await read(REPO, 'list', {})).map((one) => one.id)
 
   for (const id of ids) {
     const graph = await graphOf(id)

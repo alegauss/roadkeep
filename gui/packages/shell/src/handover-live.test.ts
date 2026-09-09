@@ -1,9 +1,6 @@
-import path from 'node:path'
-
 import {
   aboutNoInput,
   claimingBrief,
-  createClient,
   handoverOf,
   heldBy,
   mayHandOver,
@@ -12,20 +9,14 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { CEILING, liveClient as client, liveEngine as engine } from './live'
 import { buildFixture, type Fixture } from './fixture'
-import { createProcessTransport } from './process-transport'
 
 /**
  * Taking a line against a real engine, on a fixture. `--claim` writes, so it runs nowhere
  * else — and the interesting assertions are about the second call, which is the one that
  * proves nothing re-dates a live claim.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
-const client = createClient(engine)
 
 let fixture: Fixture
 

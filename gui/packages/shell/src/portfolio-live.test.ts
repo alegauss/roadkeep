@@ -2,7 +2,6 @@ import path from 'node:path'
 
 import {
   candidateBoard,
-  createClient,
   createGateLedger,
   pendingRow,
   recordGate,
@@ -13,8 +12,8 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { CEILING, liveClient as client, liveEngine as engine, read, REPO } from './live'
 import { buildFixture, type Fixture } from './fixture'
-import { createProcessTransport } from './process-transport'
 import { rootKey } from './root-paths'
 
 /**
@@ -22,12 +21,6 @@ import { rootKey } from './root-paths'
  * Two is enough to make the point the whole block rests on — a screen over more than one
  * backlog — and every number on both rows has to have come off a payload.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
-const client = createClient(engine)
 
 const recorded = (projectPath: string): RecordedProject => ({
   path: projectPath,
@@ -112,9 +105,7 @@ describe('RG16: rows over more than one project', () => {
 
   it('carries a number no screen computed', async () => {
     const row = await rowFor(fixture.root)
-    const stats = await client.call(fixture.root, 'stats', {}, { timeoutMs: CEILING })
-    if (!stats.ok || stats.value.kind === 'refused') throw new Error('stats did not read')
-    const printed = stats.value.value
+    const printed = await read(fixture.root, 'stats', {})
 
     // The criterion, checked rather than asserted: the number on the row is the number
     // the verb printed, not one derived from it.

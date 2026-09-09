@@ -1,5 +1,3 @@
-import path from 'node:path'
-
 import {
   allLines,
   backlogFrom,
@@ -13,7 +11,7 @@ import {
 } from '@rk/core'
 import { beforeAll, describe, expect, it } from 'vitest'
 
-import { createProcessTransport } from './process-transport'
+import { liveEngine as engine, read, REPO } from './live'
 
 /**
  * Filters against this repository's own backlog, which is the one place a narrowing can be
@@ -21,12 +19,8 @@ import { createProcessTransport } from './process-transport'
  * passed — the unit tests hold that — but that the answer a filter produces is the same
  * answer the command gives, because it *is* that answer.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
 
 let calls = 0
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
 const counted = createCachingTransport(
   {
     run: (request) => {
@@ -42,24 +36,12 @@ let config: ConfigPayload
 let stats: StatsPayload
 
 async function listWith(filter: BacklogFilter) {
-  const answer = await client.call(REPO, 'list', filterAsInput(filter), { timeoutMs: CEILING })
-  if (!answer.ok) throw new Error(`list did not read: ${answer.failure.path}`)
-  if (answer.value.kind === 'refused') throw new Error('list was refused')
-  return backlogFrom(answer.value.value)
+  return backlogFrom(await read(REPO, 'list', filterAsInput(filter), { client }))
 }
 
 beforeAll(async () => {
-  const configRead = await client.call(REPO, 'config', {}, { timeoutMs: CEILING })
-  if (!configRead.ok || configRead.value.kind === 'refused') {
-    throw new Error('config did not read')
-  }
-  config = configRead.value.value
-
-  const statsRead = await client.call(REPO, 'stats', {}, { timeoutMs: CEILING })
-  if (!statsRead.ok || statsRead.value.kind === 'refused') {
-    throw new Error('stats did not read')
-  }
-  stats = statsRead.value.value
+  config = await read(REPO, 'config', {}, { client })
+  stats = await read(REPO, 'stats', {}, { client })
 }, 180000)
 
 describe('RG22: what this project offers as filters', () => {

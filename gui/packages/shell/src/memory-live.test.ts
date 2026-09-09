@@ -1,55 +1,20 @@
-import path from 'node:path'
-
-import {
-  createClient,
-  howListed,
-  ledgerFrom,
-  reversedFrom,
-  undoneBy,
-  type Answer,
-  type Ledger,
-  type Parsed,
-  type Reversed,
-} from '@rk/core'
+import { howListed, ledgerFrom, reversedFrom, undoneBy, type Ledger, type Reversed } from '@rk/core'
 import { describe, expect, it } from 'vitest'
 
-import { createProcessTransport } from './process-transport'
+import { read, REPO } from './live'
 
 /**
  * The ledger and the decisions file, read against this repository. Its changelog has real
  * deliveries under every live block and no reversals, which is the ordinary shape and the
  * one a reader most needs drawn correctly.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
-const client = createClient(engine)
-
-function must<T>(verb: string, answer: Parsed<Answer<T>>): T {
-  if (!answer.ok) {
-    throw new Error(
-      `${verb} did not read: expected ${answer.failure.expected} at ` +
-        `${answer.failure.path || '(the answer)'}, found ${answer.failure.got}`,
-    )
-  }
-  if (answer.value.kind === 'refused') {
-    throw new Error(`${verb} was refused: ${answer.value.refusal.said}`)
-  }
-  return answer.value.value
-}
 
 async function ledgerOf(block: string, near?: string): Promise<Ledger> {
-  const input = near === undefined ? { block } : { block, near }
-  const answer = await client.call(REPO, 'delivered', input, { timeoutMs: CEILING })
-  return ledgerFrom(must('delivered', answer))
+  return ledgerFrom(await read(REPO, 'delivered', near === undefined ? { block } : { block, near }))
 }
 
 async function reversedOf(id?: string): Promise<Reversed> {
-  const input = id === undefined ? {} : { id }
-  const answer = await client.call(REPO, 'reversals', input, { timeoutMs: CEILING })
-  return reversedFrom(must('reversals', answer))
+  return reversedFrom(await read(REPO, 'reversals', id === undefined ? {} : { id }))
 }
 
 describe('RG27: what a block already delivered', () => {

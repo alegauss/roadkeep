@@ -21,6 +21,7 @@
 - ✅ **RG103** **every caller assembles the engine, the pool, the cache and the reader itself, and no two assemble it alike** — One call resolves the engine, bounds the calls, reads what the project governs, keys the cache on it, and hands back a client (design recorded in `packages/core/src/opening.ts`).
 - ✅ **RG97** **nothing declares which Node this repo needs, so a wrong one fails inside a dependency and not at the door** — Node 26 is declared in package.json, .nvmrc, the CI pin and the gate table, and engine-strict makes npm refuse rather than warn (design recorded in `CLAUDE.md`).
 - ✅ **RG75** **two live tests still name RG9, so the commit that ships it fails a suite nothing changed to break** — Both tests now find their line by the state they are about — a dep resolved, one no ship here can clear — so shipping an id changes which line answers, not whether they pass.
+- ✅ **RG78** **every live test file now carries its own call-and-unwrap, and the sentence a moved key prints is written in each** — Thirty-one live files open on one module, and the sentence a moved key prints is composed once instead of in each (design recorded in `packages/shell/src/live.ts`).
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

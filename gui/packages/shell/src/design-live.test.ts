@@ -1,27 +1,13 @@
-import path from 'node:path'
-
-import {
-  createClient,
-  designFrom,
-  whereDesignLives,
-  wordsAgainstLimit,
-  type Design,
-} from '@rk/core'
+import { designFrom, whereDesignLives, wordsAgainstLimit, type Design } from '@rk/core'
 import { beforeAll, describe, expect, it } from 'vitest'
 
-import { createProcessTransport } from './process-transport'
+import { read, REPO } from './live'
 
 /**
  * The design read against this repository's own rationale file. It is the interesting
  * one: open lines with prose, a shipped line whose section the ship deleted, and a real
  * `[limits] section` the count has to be held against.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
-const client = createClient(engine)
 
 /**
  * The design of whatever is open, and the id it belongs to.
@@ -32,42 +18,16 @@ const client = createClient(engine)
  * belongs to nothing anybody changed.
  */
 async function designOfBrief(id?: string): Promise<Design> {
-  const result = await client.call(REPO, 'brief', id === undefined ? {} : { id }, {
-    timeoutMs: CEILING,
-  })
-  if (!result.ok) {
-    throw new Error(
-      `brief did not read: expected ${result.failure.expected} at ` +
-        `${result.failure.path || '(the answer)'}, found ${result.failure.got}`,
-    )
-  }
-  if (result.value.kind === 'refused') {
-    throw new Error(`brief was refused: ${result.value.refusal.said}`)
-  }
-  const parsed = result.value
-  return designFrom(parsed.value)
+  return designFrom(await read(REPO, 'brief', id === undefined ? {} : { id }))
 }
 
 /** Which line that was, so the `show` reads below ask about the same one. */
 async function openId(): Promise<string> {
-  const answer = await client.call(REPO, 'brief', {}, { timeoutMs: CEILING })
-  if (!answer.ok || answer.value.kind === 'refused') throw new Error('brief did not read')
-  return answer.value.value.id
+  return (await read(REPO, 'brief', {})).id
 }
 
 async function designOfShow(id: string, noBody = false): Promise<Design> {
-  const answer = await client.call(REPO, 'show', { id, noBody }, { timeoutMs: CEILING })
-  if (!answer.ok) {
-    throw new Error(
-      `show did not read: expected ${answer.failure.expected} at ` +
-        `${answer.failure.path || '(the answer)'}, found ${answer.failure.got}`,
-    )
-  }
-  if (answer.value.kind === 'refused') {
-    throw new Error(`show was refused: ${answer.value.refusal.said}`)
-  }
-  const parsed = answer.value
-  return designFrom(parsed.value)
+  return designFrom(await read(REPO, 'show', { id, noBody }))
 }
 
 /** Whatever this repository has open, and its design. Both chosen by the engine. */

@@ -1,10 +1,7 @@
-import path from 'node:path'
-
 import {
   aboutNoInput,
   applyWrite,
   composeWrite,
-  createClient,
   movedFrom,
   openMarkers,
   readStatusPayload,
@@ -13,20 +10,14 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { CEILING, liveEngine as engine, read } from './live'
 import { buildFixture, type Fixture } from './fixture'
-import { createProcessTransport } from './process-transport'
 
 /**
  * Moving a marker against a real engine, and only ever on a fixture. A live test that
  * moved a marker in this repository's own roadmap would be one that governs the file it
  * is testing.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
-const client = createClient(engine)
 
 let fixture: Fixture
 let markers: string[] = []
@@ -61,9 +52,7 @@ async function moved(id: string, marker: string): Promise<Moved> {
 beforeAll(async () => {
   fixture = await buildFixture(engine, { open: 3, shipped: 0, deferred: 0 })
 
-  const answer = await client.call(fixture.root, 'config', {}, { timeoutMs: CEILING })
-  if (!answer.ok || answer.value.kind === 'refused') throw new Error('config did not read')
-  markers = openMarkers(answer.value.value)
+  markers = openMarkers(await read(fixture.root, 'config', {}))
 
   // One at a time: these are writes to one file, and running them together would be two
   // callers on one governed file, which is the thing the claim registry exists about.

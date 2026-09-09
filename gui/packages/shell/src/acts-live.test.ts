@@ -1,20 +1,11 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 
-import {
-  actsIn,
-  actsOf,
-  createClient,
-  governedFiles,
-  sessionCall,
-  touched,
-  type Act,
-  type Marks,
-} from '@rk/core'
+import { actsIn, actsOf, governedFiles, sessionCall, touched, type Act, type Marks } from '@rk/core'
 import { beforeAll, describe, expect, it } from 'vitest'
 
+import { read, REPO } from './live'
 import { fakeClaude } from './fake-claude'
-import { createProcessTransport } from './process-transport'
 import { startSession } from './session-process'
 
 /**
@@ -28,12 +19,6 @@ import { startSession } from './session-process'
  * The marks, though, are read live: which files this project governs is `config`'s answer
  * and never a filename written into a test.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
-const client = createClient(engine)
 
 const CAPTURED = readFileSync(
   path.join(import.meta.dirname, 'captured', 'session-stream.jsonl'),
@@ -45,12 +30,8 @@ const CAPTURED = readFileSync(
 let marks: Marks = { governed: [], engine: [] }
 
 beforeAll(async () => {
-  const answer = await client.call(REPO, 'config', {}, { timeoutMs: CEILING })
-  if (!answer.ok) throw new Error('config did not read')
-  if (answer.value.kind === 'refused') throw new Error('config was refused')
-
   marks = {
-    governed: Object.values(governedFiles(answer.value.value)),
+    governed: Object.values(governedFiles(await read(REPO, 'config', {}))),
     engine: ['roadkeep', 'mcp__roadkeep__'],
   }
 }, 180000)

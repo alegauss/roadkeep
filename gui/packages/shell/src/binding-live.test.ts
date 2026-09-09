@@ -1,60 +1,33 @@
-import path from 'node:path'
-
 import {
   boundsFrom,
-  createClient,
   criteriaAbout,
   finishingFrom,
   whyNothing,
-  type Answer,
   type Bounds,
   type Finishing,
-  type Parsed,
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { liveEngine as engine, read, REPO } from './live'
 import { buildFixture, type Fixture } from './fixture'
-import { createProcessTransport } from './process-transport'
 
 /**
  * The two binding lists against real projects. This repository governs both and has
  * quoted leads; the fixture governs one non-goal and one criterion and nothing else,
  * which is what makes an unasked address reachable.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
-const client = createClient(engine)
 
 let fixture: Fixture
 
-/** The payload, or the sentence a shape mismatch or a refusal would show a person. */
-function must<T>(verb: string, answer: Parsed<Answer<T>>): T {
-  if (!answer.ok) {
-    throw new Error(
-      `${verb} did not read: expected ${answer.failure.expected} at ` +
-        `${answer.failure.path || '(the answer)'}, found ${answer.failure.got}`,
-    )
-  }
-  if (answer.value.kind === 'refused') {
-    throw new Error(`${verb} was refused: ${answer.value.refusal.said}`)
-  }
-  return answer.value.value
-}
-
 async function boundsOf(root: string): Promise<Bounds> {
-  const answer = await client.call(root, 'nonGoalList', {}, { timeoutMs: CEILING })
-  return boundsFrom(must('nonGoalList', answer))
+  return boundsFrom(await read(root, 'nonGoalList', {}))
 }
 
 async function finishingOf(
   root: string,
   input: { block?: string; task?: string } = {},
 ): Promise<Finishing> {
-  const answer = await client.call(root, 'criterionList', input, { timeoutMs: CEILING })
-  return finishingFrom(must('criterionList', answer))
+  return finishingFrom(await read(root, 'criterionList', input))
 }
 
 beforeAll(async () => {

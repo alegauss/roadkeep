@@ -1,5 +1,3 @@
-import path from 'node:path'
-
 import {
   coversEverything,
   createCachingTransport,
@@ -9,20 +7,16 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { liveEngine as counted, read, REPO } from './live'
 import { buildFixture, type Fixture } from './fixture'
-import { createProcessTransport } from './process-transport'
 
 /**
  * Search over two real backlogs. The point being checked is not that substring matching
  * works — the unit tests hold that — but that it runs over payloads already held and does
  * not go back to the engine, which is what makes it usable while somebody types.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
 
 let calls = 0
-const counted = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
 const engine = createCachingTransport(
   {
     run: (request) => {
@@ -38,11 +32,7 @@ let fixture: Fixture
 let projects: SearchableProject[] = []
 
 async function linesOf(projectPath: string) {
-  const answer = await client.call(projectPath, 'list', {}, { timeoutMs: CEILING })
-  if (!answer.ok || answer.value.kind === 'refused') {
-    throw new Error('list did not answer with a payload')
-  }
-  return answer.value.value.tasks
+  return (await read(projectPath, 'list', {}, { client })).tasks
 }
 
 beforeAll(async () => {

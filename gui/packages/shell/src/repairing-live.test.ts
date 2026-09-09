@@ -1,12 +1,9 @@
-import path from 'node:path'
-
 import {
   actionableReport,
   anyRunnable,
   applyWrite,
   composeDoor,
   composeWrite,
-  createClient,
   offerOf,
   passFrom,
   readAddedPayload,
@@ -17,27 +14,19 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { CEILING, liveEngine as engine, read } from './live'
 import { buildFixture, type Fixture } from './fixture'
-import { createProcessTransport } from './process-transport'
 
 /**
  * The gate as a surface, against a real engine. The findings here are made on purpose —
  * a line filed with no section is a `ref.unresolved` the moment it is written — because a
  * clean project cannot show what a report looks like.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
-const client = createClient(engine)
 
 let fixture: Fixture
 
 async function report(): Promise<Actionable[]> {
-  const answer = await client.call(fixture.root, 'lint', {}, { timeoutMs: CEILING })
-  if (!answer.ok || answer.value.kind === 'refused') throw new Error('lint did not read')
-  return actionableReport(answer.value.value)
+  return actionableReport(await read(fixture.root, 'lint', {}))
 }
 
 beforeAll(async () => {
@@ -88,20 +77,13 @@ describe('RG33: a real finding, with the door that closes it', () => {
   })
 
   it('reads what a code means, and answers with doors of the same shape', async () => {
-    const result = await client.call(
-      fixture.root,
-      'explain',
-      { code: 'ref.unresolved' },
-      { timeoutMs: CEILING },
-    )
-    if (!result.ok || result.value.kind === 'refused') throw new Error('explain did not read')
-    const parsed = result.value
+    const explained = await read(fixture.root, 'explain', { code: 'ref.unresolved' })
 
-    expect(parsed.value.code).toBe('ref.unresolved')
-    expect(parsed.value.cause).not.toBe('')
+    expect(explained.code).toBe('ref.unresolved')
+    expect(explained.cause).not.toBe('')
     // One reader for a refusal's doors and a finding's, so they cannot be offered
     // differently in the two places.
-    expect(offerOf(parsed.value.doors[0]!).kind).toBe('fill')
+    expect(offerOf(explained.doors[0]!).kind).toBe('fill')
   })
 })
 

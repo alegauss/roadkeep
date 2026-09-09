@@ -1,8 +1,5 @@
-import path from 'node:path'
-
 import {
   listedTasks,
-  createClient,
   filingOf,
   pauseOf,
   storeFrom,
@@ -12,8 +9,8 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { liveEngine as engine, read } from './live'
 import { buildFixture, type Fixture } from './fixture'
-import { createProcessTransport } from './process-transport'
 
 /**
  * The deferred store against a project that has one. An empty store is exactly the answer
@@ -24,30 +21,13 @@ import { createProcessTransport } from './process-transport'
  * repository until something here was actually set aside, at which point an assertion
  * about "a project that pauses nothing" was an assertion about a backlog that had moved.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
-const client = createClient(engine)
 
 let fixture: Fixture
 /** A project with the store scaffolded and nothing filed into it. */
 let unpaused: Fixture
 
 async function listing(root: string, input: Record<string, unknown> = {}): Promise<ListPayload> {
-  const answer = await client.call(root, 'list', input, { timeoutMs: CEILING })
-  if (!answer.ok) {
-    throw new Error(
-      `list did not read: expected ${answer.failure.expected} at ` +
-        `${answer.failure.path || '(the answer)'}, found ${answer.failure.got}`,
-    )
-  }
-  if (answer.value.kind === 'refused') {
-    throw new Error(`list was refused: ${answer.value.refusal.said}`)
-  }
-  const parsed = answer.value
-  return parsed.value
+  return read(root, 'list', input)
 }
 
 async function storeOf(root: string): Promise<Store> {

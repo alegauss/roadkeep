@@ -5,15 +5,14 @@ import {
   listedTasks,
   applyWrite,
   composeWrite,
-  createClient,
   readAddedPayload,
   type WriteOutcome,
   type AddedPayload,
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { CEILING, liveEngine as engine, read } from './live'
 import { buildFixture, type Fixture } from './fixture'
-import { createProcessTransport } from './process-transport'
 
 /**
  * The write path against a real engine, and never against this repository.
@@ -22,12 +21,6 @@ import { createProcessTransport } from './process-transport'
  * project's own roadmap would be a test that governs the file it is testing, and the
  * failure mode is a governed file with test rows in it that somebody has to find.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
-const client = createClient(engine)
 
 let fixture: Fixture
 
@@ -40,9 +33,7 @@ function add(
 }
 
 async function roadmapIds(): Promise<string[]> {
-  const answer = await client.call(fixture.root, 'list', {}, { timeoutMs: CEILING })
-  if (!answer.ok || answer.value.kind === 'refused') throw new Error('list did not read')
-  return listedTasks(answer.value.value).map((task) => task.id)
+  return listedTasks(await read(fixture.root, 'list', {})).map((task) => task.id)
 }
 
 beforeAll(async () => {

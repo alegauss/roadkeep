@@ -1,7 +1,4 @@
-import path from 'node:path'
-
 import {
-  createClient,
   designOf,
   detailFrom,
   graphOfBrief,
@@ -12,22 +9,16 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { CEILING, liveEngine as engine, read, REPO } from './live'
 import { buildFixture, type Fixture } from './fixture'
-import { createProcessTransport } from './process-transport'
 
 /**
  * The detail read against real backlogs. This repository is the interesting one: it has
  * shipped deps, blocked lines, deps outside the backlog and a claim held by this very
  * session, which between them cover every state the screen has to draw.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
 /** The engine's word for a dep nothing shipped in this backlog will ever satisfy. */
 const UNRESOLVABLE = 'unresolvable'
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
-const client = createClient(engine)
 
 let fixture: Fixture
 /**
@@ -59,19 +50,7 @@ let withDeps: TaskDetail
 let outside: TaskDetail
 
 async function detailOf(root: string, id?: string): Promise<TaskDetail> {
-  const result = await client.call(root, 'brief', id === undefined ? {} : { id }, {
-    timeoutMs: CEILING,
-  })
-  if (!result.ok) {
-    throw new Error(
-      `brief did not read: expected ${result.failure.expected} at ` +
-        `${result.failure.path || '(the answer)'}, found ${result.failure.got}`,
-    )
-  }
-  if (result.value.kind === 'refused') {
-    throw new Error(`brief was refused: ${result.value.refusal.said}`)
-  }
-  return detailFrom(result.value.value)
+  return detailFrom(await read(root, 'brief', id === undefined ? {} : { id }))
 }
 
 /**
@@ -101,12 +80,9 @@ async function takeInFixture(root: string, id: string): Promise<void> {
  * engine's verdict and reading it off the dep's text would be this app resolving deps.
  */
 async function findStates(): Promise<void> {
-  const listed = await client.call(REPO, 'list', {}, { timeoutMs: CEILING })
-  if (!listed.ok || listed.value.kind === 'refused') throw new Error('list did not read')
-
   let resolved: TaskDetail | undefined
   let never: TaskDetail | undefined
-  for (const task of listedTasks(listed.value.value)) {
+  for (const task of listedTasks(await read(REPO, 'list', {}))) {
     if (task.deps.length === 0) continue
     const detail = await detailOf(REPO, task.id)
     if (detail.payload.depsResolved.length === 0) continue

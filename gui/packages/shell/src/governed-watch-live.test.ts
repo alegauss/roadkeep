@@ -5,7 +5,6 @@ import path from 'node:path'
 import {
   applyWrite,
   composeWrite,
-  createClient,
   createWatching,
   governedFiles,
   readAddedPayload,
@@ -13,9 +12,9 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { CEILING, liveEngine as engine, read } from './live'
 import { buildFixture, type Fixture } from './fixture'
 import { createGovernedWatcher, REAL_CLOCK } from './governed-watch'
-import { createProcessTransport } from './process-transport'
 import { stampGoverned } from './governed-stamp'
 
 /**
@@ -25,12 +24,6 @@ import { stampGoverned } from './governed-stamp'
  * seen the same way as one anything else made. So the test writes through the write path
  * and waits for the watch, rather than telling the cache itself.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
-const client = createClient(engine)
 
 let fixture: Fixture
 let files: string[] = []
@@ -54,9 +47,7 @@ function nextChange(watching: ReturnType<typeof createWatching>, ms = 8000): Pro
 beforeAll(async () => {
   fixture = await buildFixture(engine, { open: 2, shipped: 0, deferred: 0 })
 
-  const answer = await client.call(fixture.root, 'config', {}, { timeoutMs: CEILING })
-  if (!answer.ok || answer.value.kind === 'refused') throw new Error('config did not read')
-  files = watchedFiles(Object.values(governedFiles(answer.value.value)))
+  files = watchedFiles(Object.values(governedFiles(await read(fixture.root, 'config', {}))))
 }, 180000)
 
 afterAll(() => {

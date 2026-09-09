@@ -1,13 +1,9 @@
-import path from 'node:path'
-
 import {
   listedTasks,
   VERBS,
   WRITES,
   applyWrite,
   composeWrite,
-  createClient,
-  explainFailure,
   fieldsRefused,
   flagsFor,
   narrowingOfBrief,
@@ -36,6 +32,7 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { CEILING, liveClient as client, liveEngine as transport, read, REPO } from './live'
 import { engineCandidates, samePathPart } from './engine-candidates'
 import { buildFixture, type Fixture } from './fixture'
 import { createProcessTransport } from './process-transport'
@@ -55,12 +52,6 @@ import { createProcessTransport } from './process-transport'
  * A green run here is a claim about one build of roadkeep and never about roadkeep in
  * general, which is why the version that answered is asserted to exist and reported.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const transport = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
-const client = createClient(transport)
 
 let fixture: Fixture
 let engineVersion = ''
@@ -101,17 +92,10 @@ async function readVerb<K extends VerbName>(
   verb: K,
   input: VerbInputs[K],
 ): Promise<VerbAnswers[K]> {
-  const answer = await client.call(fixture.root, verb, input, { timeoutMs: CEILING })
-  const where = { verb, engineVersion }
-
-  // The message is the point of failing: it names the key that moved and the build that
-  // moved it, which is what somebody reading a red suite actually needs.
-  expect(answer.ok, answer.ok ? '' : explainFailure(answer.failure, where)).toBe(true)
-  if (!answer.ok) throw new Error(explainFailure(answer.failure, where))
-  if (answer.value.kind === 'refused') {
-    throw new Error(`\`${verb}\` was refused: ${answer.value.refusal.said}`)
-  }
-  return answer.value.value
+  // The seam is `live.ts`, and the version is what this file adds to it: the message a
+  // moved key prints names the build that moved it, and this is the one file that has
+  // resolved which build answered.
+  return read(fixture.root, verb, input, { engineVersion })
 }
 
 describe('RG4: the build this contract was proven against', () => {
@@ -533,8 +517,8 @@ describe('RG4: every read this client makes, against a live engine', () => {
 
     // `claimed` is null on a brief that only read and an object on one that took, which is
     // the same key answering two ways under a flag.
-    const read = await readVerb('brief', { id })
-    expect(read.claimed).toBeNull()
+    const onlyRead = await readVerb('brief', { id })
+    expect(onlyRead.claimed).toBeNull()
 
     const took = await readVerb('brief', { id, claim: true })
     expect(took.claimed).not.toBeNull()
@@ -686,13 +670,9 @@ describe('RG5: a refusal, against a live engine', () => {
     // The claim the design makes: `explain`'s table and a lint finding's `remedy` are one
     // map at two moments, so one reader covers both. This repository's own gate carries
     // notes with remedies, which is where that gets exercised against real output.
-    const parsed = await client.call(REPO, 'lint', {}, { timeoutMs: CEILING })
+    const linted = await read(REPO, 'lint', {}, { engineVersion })
 
-    expect(parsed.ok).toBe(true)
-    if (!parsed.ok || parsed.value.kind === 'refused') return
-    const withRemedy = [...parsed.value.value.findings, ...parsed.value.value.notes].find(
-      (entry) => entry.remedy !== null,
-    )
+    const withRemedy = [...linted.findings, ...linted.notes].find((entry) => entry.remedy !== null)
     expect(withRemedy?.remedy?.doors.length).toBeGreaterThan(0)
     expect(typeof withRemedy?.remedy?.doors[0]?.what).toBe('string')
   })

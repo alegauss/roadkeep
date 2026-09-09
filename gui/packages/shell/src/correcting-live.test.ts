@@ -1,12 +1,9 @@
-import path from 'node:path'
-
 import {
   listedTasks,
   amended,
   applyWrite,
   composeWrite,
   correctionsOffered,
-  createClient,
   readAmendPayload,
   readRenumberPayload,
   readRestatePayload,
@@ -16,33 +13,23 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { CEILING, liveEngine as engine, read } from './live'
 import { buildFixture, type Fixture } from './fixture'
-import { createProcessTransport } from './process-transport'
 
 /**
  * The three corrections against a real engine, on a fixture. Each keeps an id that
  * retiring would spend, so what these tests check is that the id, the deps, the marker and
  * the design are all still there afterwards.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
-const client = createClient(engine)
 
 let fixture: Fixture
 
 async function shown(id: string) {
-  const answer = await client.call(fixture.root, 'show', { id }, { timeoutMs: CEILING })
-  if (!answer.ok || answer.value.kind === 'refused') throw new Error(`show ${id} did not read`)
-  return answer.value.value
+  return read(fixture.root, 'show', { id })
 }
 
 async function ids(): Promise<string[]> {
-  const answer = await client.call(fixture.root, 'list', {}, { timeoutMs: CEILING })
-  if (!answer.ok || answer.value.kind === 'refused') throw new Error('list did not read')
-  return listedTasks(answer.value.value).map((task) => task.id)
+  return listedTasks(await read(fixture.root, 'list', {})).map((task) => task.id)
 }
 
 beforeAll(async () => {
@@ -55,10 +42,7 @@ afterAll(() => {
 
 describe('RG35: the reason each exists, off the live build', () => {
   it('offers the three with the sentences this engine publishes', async () => {
-    const answer = await client.call(fixture.root, 'commands', {}, { timeoutMs: CEILING })
-    if (!answer.ok || answer.value.kind === 'refused') throw new Error('commands did not read')
-
-    const offered = correctionsOffered(answer.value.value)
+    const offered = correctionsOffered(await read(fixture.root, 'commands', {}))
 
     expect(offered.every((one) => one.callable)).toBe(true)
     expect(offered.every((one) => one.help !== '')).toBe(true)

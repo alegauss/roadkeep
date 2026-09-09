@@ -1,5 +1,3 @@
-import path from 'node:path'
-
 import {
   ANSWERS,
   buildArgv,
@@ -11,10 +9,10 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { CEILING, REPO, liveEngine as overProcess } from './live'
 import { serveEngine, type Handler } from './engine-handler'
 import { buildFixture, type Fixture } from './fixture'
 import { createHttpTransport } from './http-transport'
-import { createProcessTransport } from './process-transport'
 
 /**
  * The seam, proven rather than described.
@@ -27,11 +25,6 @@ import { createProcessTransport } from './process-transport'
  * client reads its answer into a value (RG66), and two values comparing equal would not
  * say whether the same bytes arrived. `buildArgv` composes the identical command line.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const overProcess = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
 
 let fixture: Fixture
 let handler: Handler

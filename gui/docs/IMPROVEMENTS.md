@@ -11,33 +11,6 @@ rather than pretending it is safe. Spawning without a shell removes the quoting 
 but not the encoding one. What proves it is a round trip: write a symptom carrying an
 accent, an apostrophe and an em dash, read it back with show, and compare the bytes.
 
-### §RG78 One seam for a live read
-
-Twenty-five live test files now open the same way: resolve the repository root, build a
-process transport on the launcher, wrap it in a client, redeclare the timeout, and then
-unwrap every call by hand — `if (!answer.ok) throw`, `if (answer.value.kind ===
-'refused') throw`, and the payload two properties down.
-
-RG66 halved this and made the rest uniform. The reader used to be chosen at each call
-site; now the verb carries its own and `client.call` applies it. What was left behind is
-the throwing, which is the part that was drifting anyway. Two files keep a `must` helper
-of their own, `contract-live` calls its copy `readVerb`, and the other twenty-two write
-the guards inline — the sentence they print when a key moves upstream is different in
-every one, some naming the path and the expected type, some saying `list did not read`,
-one saying nothing.
-
-What belongs in one place is the seam, not the assertions: a module beside `fixture.ts`
-handing back a client already pointed at the launcher, and a `read(root, verb, input)`
-that either returns the payload or fails with the message a person would need. The
-reader is no longer a parameter, which makes that signature smaller than this design
-first assumed.
-
-The failure message is the part worth centralising. A shape that moved upstream has to
-name the key and the build that moved it, and a copy that quietly says `undefined` is
-the one that wastes an afternoon.
-
-On ship: `--recorded-in packages/shell/src/live.ts`.
-
 ### §RG81 One way to spell a command line
 
 `buildArgv` and `composeWrite` both build `['-C', root, ...verb.split(' '), ...args,

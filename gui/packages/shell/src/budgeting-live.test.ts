@@ -1,9 +1,6 @@
-import path from 'node:path'
-
 import {
   anyOver,
   counterFor,
-  createClient,
   overBy,
   saidOfCounter,
   structureOf,
@@ -12,33 +9,19 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { liveEngine as engine, read } from './live'
 import { buildFixture, type Fixture } from './fixture'
-import { createProcessTransport } from './process-transport'
 
 /**
  * The budget read against a real engine. The numbers here are the project's own, so
  * nothing is asserted as a literal that `roadkeep.toml` gets to choose — what is asserted
  * is the arithmetic between them.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
-const client = createClient(engine)
 
 let fixture: Fixture
 
 async function priced(input: VerbInputs['budget']): Promise<BudgetPayload> {
-  const answer = await client.call(fixture.root, 'budget', input, { timeoutMs: CEILING })
-  if (!answer.ok) {
-    throw new Error(`budget did not read: expected ${answer.failure.expected}`)
-  }
-  if (answer.value.kind === 'refused') {
-    throw new Error(`budget was refused: ${answer.value.refusal.said}`)
-  }
-  const parsed = answer.value
-  return parsed.value
+  return read(fixture.root, 'budget', input)
 }
 
 beforeAll(async () => {

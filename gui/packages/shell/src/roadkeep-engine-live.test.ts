@@ -1,16 +1,7 @@
-import path from 'node:path'
-
-import {
-  buildArgv,
-  createClient,
-  explainFailure,
-  listedTasks,
-  type VerbInputs,
-  type VerbName,
-} from '@rk/core'
+import { buildArgv, explainFailure, listedTasks, type VerbInputs, type VerbName } from '@rk/core'
 import { describe, expect, it } from 'vitest'
 
-import { createProcessTransport } from './process-transport'
+import { REPO, liveClient as client, liveEngine as engine } from './live'
 
 /**
  * RG1's symptom is that no code here can fetch a payload. These are the tests that make
@@ -27,11 +18,6 @@ import { createProcessTransport } from './process-transport'
  * skipped around: a test that quietly passes when the engine is absent would report a
  * clean run for the same reason a working one does.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
-const client = createClient(engine)
 
 /** Generous: the engine is a Python start, measured around 360ms, and CI is slower. */
 const CEILING = 30000

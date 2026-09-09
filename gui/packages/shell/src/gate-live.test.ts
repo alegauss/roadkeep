@@ -1,12 +1,12 @@
 import { appendFileSync } from 'node:fs'
 import path from 'node:path'
 
-import { createClient, createGateLedger, governedFiles, recordGate } from '@rk/core'
+import { createGateLedger, governedFiles, recordGate } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { liveEngine as engine, read } from './live'
 import { buildFixture, type Fixture } from './fixture'
 import { stampGoverned } from './governed-stamp'
-import { createProcessTransport } from './process-transport'
 import { rootKey } from './root-paths'
 
 /**
@@ -14,12 +14,6 @@ import { rootKey } from './root-paths'
  * has to show is the sequence a screen actually goes through: unknown, then a verdict,
  * then that verdict going stale the moment a governed file is written.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
-const client = createClient(engine)
 
 let fixture: Fixture
 let governed: string[] = []
@@ -29,21 +23,14 @@ const stamp = () => stampGoverned(fixture.root, governed)
 /** Run the gate once and put the verdict on the ledger, as the watcher would. */
 async function runGate(ledger: ReturnType<typeof createGateLedger>): Promise<void> {
   const taken = stamp()
-  const answer = await client.call(fixture.root, 'lint', {}, { timeoutMs: CEILING })
-  if (!answer.ok || answer.value.kind === 'refused') {
-    throw new Error('lint did not answer with a payload')
-  }
-  ledger.note(fixture.root, recordGate(answer.value.value, taken, new Date().toISOString()))
+  const linted = await read(fixture.root, 'lint', {})
+  ledger.note(fixture.root, recordGate(linted, taken, new Date().toISOString()))
 }
 
 beforeAll(async () => {
   fixture = await buildFixture(engine, { open: 2, shipped: 1, deferred: 0 })
 
-  const config = await client.call(fixture.root, 'config', {}, { timeoutMs: CEILING })
-  if (!config.ok || config.value.kind === 'refused') {
-    throw new Error('config did not answer with a payload')
-  }
-  governed = Object.values(governedFiles(config.value.value))
+  governed = Object.values(governedFiles(await read(fixture.root, 'config', {})))
 }, 180000)
 
 afterAll(() => {

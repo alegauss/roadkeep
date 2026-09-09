@@ -1,9 +1,6 @@
-import path from 'node:path'
-
 import {
   applyWrite,
   composeWrite,
-  createClient,
   readAddedPayload,
   readSectionWritten,
   saidOfWrite,
@@ -14,20 +11,14 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { CEILING, liveEngine as engine, read } from './live'
 import { buildFixture, type Fixture } from './fixture'
-import { createProcessTransport } from './process-transport'
 
 /**
  * Writing rationale against a real engine, on a fixture. The prose in this repository's
  * own improvements file is governed, so a live test that wrote there would be editing the
  * thing it is testing.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
-const client = createClient(engine)
 
 let fixture: Fixture
 
@@ -47,9 +38,7 @@ async function sectionWrite(
 
 /** The prose the file now holds, read back through `show`. */
 async function proseOf(id: string): Promise<string> {
-  const answer = await client.call(fixture.root, 'show', { id }, { timeoutMs: CEILING })
-  if (!answer.ok || answer.value.kind === 'refused') throw new Error('show did not read')
-  return answer.value.value.section?.body ?? ''
+  return (await read(fixture.root, 'show', { id })).section?.body ?? ''
 }
 
 /** A line with no section, so its pointer resolves to nothing until one is written. */

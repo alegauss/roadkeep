@@ -1,11 +1,8 @@
-import path from 'node:path'
-
 import {
   listedTasks,
   accountOf,
   applyWrite,
   composeWrite,
-  createClient,
   deferred,
   leftPointing,
   readDeferPayload,
@@ -18,28 +15,20 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { CEILING, liveEngine as engine, read } from './live'
 import { buildFixture, type Fixture } from './fixture'
-import { createProcessTransport } from './process-transport'
 
 /**
  * The four departures against a real engine, on a fixture and never on this repository.
  * Every one of them is irreversible in the direction that matters, which is exactly why
  * the project they run against is a temporary directory.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
-const client = createClient(engine)
 
 let fixture: Fixture
 
 async function ids(role?: string): Promise<string[]> {
   const input = role === undefined ? {} : { role }
-  const answer = await client.call(fixture.root, 'list', input, { timeoutMs: CEILING })
-  if (!answer.ok || answer.value.kind === 'refused') throw new Error('list did not read')
-  return listedTasks(answer.value.value).map((task) => task.id)
+  return listedTasks(await read(fixture.root, 'list', input)).map((task) => task.id)
 }
 
 beforeAll(async () => {

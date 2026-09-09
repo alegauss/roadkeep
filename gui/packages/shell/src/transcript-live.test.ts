@@ -1,5 +1,3 @@
-import path from 'node:path'
-
 import {
   applyWrite,
   commandLine,
@@ -12,18 +10,13 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { CEILING, liveEngine as engine } from './live'
 import { buildFixture, type Fixture } from './fixture'
-import { createProcessTransport } from './process-transport'
 
 /**
  * The transcript against real calls. What it has to be true about is what actually ran, so
  * every entry here comes from a write that really went to the engine.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
-const CEILING = 60000
-
-const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
 
 let fixture: Fixture
 
