@@ -1,3 +1,4 @@
+import { isOpen, markersOf } from './markers'
 import type { ConfigPayload, StatusPayload } from './payloads'
 import type { Refusal } from './refusals'
 import { fieldsRefused } from './refusals'
@@ -26,20 +27,18 @@ import { fieldsRefused } from './refusals'
  * The open set alone. Shipped and retired are written by `ship` and `retire`, which are
  * transactions across three files, and offering either here would be a door onto a verb
  * that is not this one.
+ *
+ * **One derivation and not two** (RG89). This used to read `markers.open` itself, which was
+ * the same config read a second way and differed in what it tolerated: it took `set` alone,
+ * so a project leaving its open set to the default got a dropdown of nothing from here and
+ * a full set from `markersOf`. A live test kept the two honest, and a test keeping two
+ * derivations equal is a thing somebody has to keep true. This is a filter over the other
+ * one, so nobody has to.
  */
 export function openMarkers(config: ConfigPayload): string[] {
-  const entry = config.keys.find((key) => key.address === 'markers.open')
-  if (entry?.set === undefined || entry.set === null || entry.set === '') return []
-
-  try {
-    const parsed: unknown = JSON.parse(entry.set)
-    if (Array.isArray(parsed)) {
-      return parsed.filter((value): value is string => typeof value === 'string')
-    }
-  } catch {
-    // Not JSON — a bare value the file spells its own way.
-  }
-  return [entry.set.replace(/^["']|["']$/g, '')]
+  return markersOf(config)
+    .filter(isOpen)
+    .map((meaning) => meaning.marker)
 }
 
 /**

@@ -36,7 +36,7 @@ function refusal(over: Record<string, unknown> = {}): Refusal {
   return parsed.value
 }
 
-function config(keys: { address: string; set: string | null }[]): ConfigPayload {
+function config(keys: { address: string; set: string | null; fallback?: string }[]): ConfigPayload {
   const parsed = readConfigPayload(
     {
       version: '0.2.388',
@@ -47,6 +47,8 @@ function config(keys: { address: string; set: string | null }[]): ConfigPayload 
         address: key.address,
         declared: key.set !== null,
         set: key.set,
+        // The engine spells the built-in value `default`; the reader renames it.
+        default: key.fallback ?? null,
       })),
     },
     '',
@@ -77,9 +79,32 @@ describe('RG30: the markers offered are the ones the project declared', () => {
     expect(openMarkers(declared)).toEqual(['📋'])
   })
 
-  it('offers nothing for a project that declares no open set', () => {
+  it('offers nothing where there is no open set at all, declared or built in', () => {
     expect(openMarkers(config([{ address: 'markers.shipped', set: '"✅"' }]))).toEqual([])
     expect(openMarkers(config([{ address: 'markers.open', set: null }]))).toEqual([])
+  })
+
+  it('offers the built-in set to a project that declared none of its own', () => {
+    // RG89: the case the two derivations disagreed about. A project that leaves
+    // `markers.open` alone still has an open set - the build's - and a dropdown of nothing
+    // is a screen saying this backlog has no states.
+    const undeclared = config([
+      { address: 'markers.open', set: null, fallback: '["📋", "💡"]' },
+      { address: 'markers.shipped', set: '"✅"' },
+    ])
+
+    expect(openMarkers(undeclared)).toEqual(['📋', '💡'])
+  })
+
+  it('offers a marker once, however many keys of the open set name it', () => {
+    // `markers.working` names a codepoint `markers.open` already lists, and a dropdown
+    // with the same emoji twice is a list drawn from the config's shape, not the project's.
+    const overlapping = config([
+      { address: 'markers.open', set: '["📋", "🛠"]' },
+      { address: 'markers.working', set: '"🛠"' },
+    ])
+
+    expect(openMarkers(overlapping)).toEqual(['📋', '🛠'])
   })
 
   it('takes a single marker the file spells without a list', () => {

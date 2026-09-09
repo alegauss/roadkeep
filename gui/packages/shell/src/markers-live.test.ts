@@ -37,15 +37,17 @@ describe('RG53: what a real config says about markers', () => {
     }
   })
 
-  it('agrees with the open set the write path reads, which is derived another way', () => {
-    // `openMarkers` reads `markers.open` alone for the status dropdown. Two readings of one
-    // config that disagreed would put a marker in a list the other says is not a state.
+  it('offers the write path a set that is part of the one it renders', () => {
+    // RG89 made `openMarkers` a filter over `markersOf`, so this no longer holds two
+    // derivations equal — there is one. What is still worth asserting against a real config
+    // is that the dropdown's set is non-empty and is drawn from the markers this project
+    // actually has: a filter that matched nothing would leave the status verb with no
+    // marker to offer, and nothing else in the suite would notice.
     const open = openMarkers(config)
-    const byRole = markersOf(config)
-      .filter(isOpen)
-      .map((one) => one.marker)
 
-    expect(byRole.sort()).toEqual([...open].sort())
+    expect(open.length).toBeGreaterThan(0)
+    expect(markersOf(config).map((one) => one.marker)).toEqual(expect.arrayContaining(open))
+    expect(markersOf(config).filter(isOpen)).toHaveLength(open.length)
   })
 
   it('carries a key this project never declared', () => {
