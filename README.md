@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 233 | 2 |
 | C — Query (consult without reading the file) | 5 | 187 | 7 |
-| D — The gate | 12 | 302 | 7 |
+| D — The gate | 11 | 303 | 7 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 162 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 44 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 19 | 1123 | 24 |
+| **Total** | 18 | 1124 | 24 |
 
 **Next ready:**
 
-- 💭 **RK1643** (deps: —) **the orientation is held at a ceiling and the two pages it points at, six times its size, are held by nothing** — RK1437 split them off on a cadence argument and gave the ceiling to the half that shrank, so RK1601 added 2,437 code units to the unbounded half and nothing asked. → §RK1643
+- 💭 **RK1644** (deps: —) **nine guards over this package's source read its characters where twenty-two read its syntax** — RK1602's read lines and missed a compiled pattern, then matched the docstring recording that removal, which is the failure a scan over characters has and one over calls has not. → §RK1644
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

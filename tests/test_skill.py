@@ -135,6 +135,46 @@ def test_the_skill_is_named_for_the_plugin_and_its_own_directory():
 #: size one — a rule that grows belongs on a page, and this number is what says so.
 ORIENTATION_MAX = 13_000
 
+#: What each **page** may cost the turn that opens it, in UTF-16 code units (RK1643). One
+#: figure per file and not a total, which is the whole shape: the pages are trigger-loaded a
+#: cadence further out than the orientation — a turn opens one because the orientation sent it
+#: there — so a sum would charge a turn that read `writing.md` for `asking.md` as well, which
+#: is `cost --session`'s own rule about two figures paid at two moments.
+#:
+#: RK1437 gave the ceiling to the half that shrank and left these two unbounded, six times the
+#: orientation between them. RK1601 is how that read in practice: it added 1,361 units to one
+#: and 1,076 to the other, both correctly, and nothing anywhere could say whether either could
+#: afford them.
+#:
+#: **A cadence number and not a size one**, which is the answer to the objection its own design
+#: raised: a reference refusing a rule because it is full is what `agents.md`'s budget causes on
+#: purpose, and that would be wrong here. It is not what this does. A page past its figure is a
+#: page to *split* — the move RK1437 made on the orientation, one cadence out — so the number
+#: says the reading has grown past what one turn should open, not that the rule may not be
+#: written. Each is the file's own reading plus a section's worth of headroom.
+PAGE_MAX = {"writing.md": 54_000, "asking.md": 26_000}
+
+
+def test_every_page_the_orientation_points_at_has_a_ceiling():
+    """RK1643. `SKILL.md` was held at a number and the two pages it points at were held by
+    nothing, which is RK30's argument one cadence out: a limit nobody counts is a limit that
+    moves. `[budgets]` cannot be where these live — it prices what loads on **every** turn, and
+    a project's table cannot hold a figure about files that ship in the plugin — so they are
+    here, beside the orientation's, one figure per file.
+
+    Total against `PLUGIN_PAGES`, so a third page arrives as a red with one question in it:
+    what may a turn that opens this pay."""
+    assert {page.name for page in PAGES} == set(PAGE_MAX), {
+        "shipped, no ceiling": sorted({page.name for page in PAGES} - set(PAGE_MAX)),
+        "held, no longer shipped": sorted(set(PAGE_MAX) - {page.name for page in PAGES}),
+    }
+    for page in PAGES:
+        size = len(page.read_text(encoding="utf-8").encode("utf-16-le")) // 2
+        assert size <= PAGE_MAX[page.name], (
+            f"{page.name} is {size:,} code units against {PAGE_MAX[page.name]:,} — a page past "
+            f"its figure is a page to split, which is what RK1437 did to the orientation"
+        )
+
 
 def test_the_reference_is_beside_the_orientation_and_not_inside_it():
     """RK1437. A session held all forty-four verbs from turn one, used about fourteen, and

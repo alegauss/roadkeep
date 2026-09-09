@@ -38,7 +38,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK1643** (deps: —) **the orientation is held at a ceiling and the two pages it points at, six times its size, are held by nothing** — RK1437 split them off on a cadence argument and gave the ceiling to the half that shrank, so RK1601 added 2,437 code units to the unbounded half and nothing asked. → §RK1643
 - 💭 **RK1644** (deps: —) **nine guards over this package's source read its characters where twenty-two read its syntax** — RK1602's read lines and missed a compiled pattern, then matched the docstring recording that removal, which is the failure a scan over characters has and one over calls has not. → §RK1644
 - 💭 **RK1645** (deps: —) **config publishes three lists of objects and the promise table holds one slot per verb, so one list's rows are unpromised** — RK1603 added a second list and a second table beside it, and the third — fixed, published since RK1381 — has never been named at all. → §RK1645
 - 💭 **RK1646** (deps: —) **the guard against the folded idiom sweeps the package and not the suite, where two sites still spell it out** — RK1542's equivalent sweeps both and this one copies half of it, so the shape RK1604 took out of forty-one call sites can grow back in a test. → §RK1646

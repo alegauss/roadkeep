@@ -224,26 +224,6 @@ reading.
 
 ## Block D — The gate
 
-### §RK1643 The page that has no number
-
-`SKILL.md` is 11,671 code units against `ORIENTATION_MAX = 13_000` in
-`tests/test_skill.py`. `writing.md` is 47,404 and `asking.md` 20,500, and no test, no
-`[budgets]` key and no reading bounds either. Together they are six times the guidance,
-and the ceiling is on the third that shrank.
-
-RK1601 is how that reads in practice: it added 1,361 units to one page and 1,076 to the
-other, both correctly, and nothing could say whether either could afford them.
-`roadkeep.toml` anticipates the shape, saying `SKILL.md` is absent from `[budgets]`
-because trigger-loaded and holds its ceiling in a test. These are trigger-loaded a
-cadence further out and got neither.
-
-Undecided is the number and who holds it. A test holds the orientation's, one figure per
-file, which a page-cadence ceiling wants; `[budgets]` holds a project's own, and these
-ship in the plugin. **No effort or size field.** does not reach this: that non-goal is
-about a field on a task line, and `lint` already holds a ceiling on two files this tool
-ships. Whether a bound helps is open: a reference refusing a rule because it is full is
-what `agents.md`'s budget causes on purpose, and a page's may not.
-
 ### §RK1644 The guard that reads characters
 
 RK1542 refused a second site recovering `superseded by <id>` by hand, as a regex over

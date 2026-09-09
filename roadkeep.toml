@@ -210,6 +210,11 @@ session = 67200
 # a ceiling all the same, held in tests/test_skill.py where this file's other shape facts are:
 # it is an orientation now and the reference is two pages beside it (RK1437), so what that
 # number holds is the cadence — a rule that grows belongs on a page.
+# And the two pages have one each, in the same place and for the same reason (RK1643): they are
+# trigger-loaded a cadence further out — a turn opens one because the orientation sent it there
+# — so a figure here would charge every turn for a page most never read, and one figure for
+# both would charge the turn that opened `writing.md` for `asking.md` too. A page past its
+# number is a page to split, which is the move RK1437 made on the orientation.
 
 [markers]
 open = ["📋", "💭", "⏳", "🛠"]
