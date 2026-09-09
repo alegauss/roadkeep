@@ -43,7 +43,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK1627** (deps: —) **nothing enumerates the fields a caller composes, so which of them has a validator is answered by remembering** — RK1570 found the block title because a design named it, and the same gap in any other composed field would be as invisible as that one was. → §RK1627
 - 📋 **RK1635** (deps: —) **the composer sweep runs every door through shlex, which is the assumption the door was wrong about** — RK1580 was invisible for a year because the instrument reads a line with the parser whose POSIX default put the bad quote there. → §RK1635
 - 📋 **RK1637** (deps: —) **seven cost subjects each argued they were the Nth cadence nobody counted, and nothing enumerates the cadences** — RK1424, RK1428, RK1491, RK1524 and RK1582 each made that case from scratch and none could say how many were left. → §RK1637
 - 📋 **RK1638** (deps: —) **a prose check finds its span by splitting on a sentence, so a reworded clause empties the test instead of failing it** — RK1585's two readers both address the comment by a phrase somebody wrote, which is the drift they were built to catch one level up. → §RK1638
@@ -59,6 +58,8 @@
 - 💭 **RK1649** (deps: —) **answers() spells at most one of a verb's flags and nothing spells exactly one, so a required choice stays a raise** — RK1607 moved four pairs to the parser and left criterion add's, where argparse's required group answers on a command line and says nothing over MCP. → §RK1649
 - 💭 **RK1652** (deps: —) **a config refusal now names the table a key belongs under, and no verb moves it there** — RK1610 ends in a hand edit to the one file govern and declare exist so nobody hand-edits, and a served session has no editor at all. → §RK1652
 - 💭 **RK1654** (deps: —) **ten functions print to both streams in one body and two go through the helper, nothing saying which of the rest need to** — RK1612 gave the rule a function and left the census it named unbuilt, so the guard catches a stray flush and not a stderr print after a stdout one. → §RK1654
+- 📋 **RK1665** (deps: —) **the backstop reads a code only where it is a literal, so six a write refuses are outside a total that says it is one** — scoping and criteria name their codes as constants on purpose, and the scan widens to the computed set instead of seeing them. → §RK1665
+- 📋 **RK1666** (deps: —) **govern writes a caller's sentence into roadkeep.toml and no validator reads it, so a mangled run lands and stays** — The write re-parses the file and a comment carrying a mojibake run is legal TOML, and lint never reads that file for characters. → §RK1666
 
 ## Block E — Adoption
 

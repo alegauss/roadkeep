@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 3 | 231 | 2 |
 | C — Query (consult without reading the file) | 8 | 184 | 7 |
-| D — The gate | 16 | 294 | 7 |
+| D — The gate | 17 | 295 | 7 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 162 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 3 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 31 | 1107 | 24 |
+| **Total** | 32 | 1108 | 24 |
 
 **Next ready:**
 
-- 💭 **RK1627** (deps: —) **nothing enumerates the fields a caller composes, so which of them has a validator is answered by remembering** — RK1570 found the block title because a design named it, and the same gap in any other composed field would be as invisible as that one was. → §RK1627
+- 📋 **RK1628** (deps: —) **pick offers an idea whose premise a later ship deleted, no answer saying what landed under the line since it was filed** — RK1571 and RK1574 were both designed against a work-list RK1599 emptied, and reading the section was the only way to learn it. → §RK1628
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

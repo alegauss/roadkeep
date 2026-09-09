@@ -587,6 +587,14 @@ PATH_ARGUMENTS: Mapping[str, Mapping[str, str]] = {
     "replay": {"path": "caller"},
     "adopt": {"path": "project", "alongside": "project"},
     "install": {"source": "caller"},
+    # The three the scan below cannot see and this table did not name (RK1627). All `project`,
+    # which is what they already do — `splice_into` resolves a target as `config.root / name`
+    # and `--recorded-in` is asked of the repository as `path.missing` — so what was missing is
+    # the *declaration* and never the behaviour. Found by the census of composed fields, which
+    # is the register that asks what stands between an argument and a file: a path row whose
+    # class nothing states is the question this table exists to answer, unanswered.
+    "export": {"readme": "project", "site": "project"},
+    "ship": {"recorded_in": "project"},
 }
 
 #: The dest spellings a scan can recognise as a path, which is the partial guard above.

@@ -337,30 +337,6 @@ reading.
 
 ## Block D — The gate
 
-### §RK1627 The register the composed fields have not got
-
-RK1570 found the block title by being told where to look. What it could not have found
-is the next one: nothing enumerates the fields a caller composes, so "which of them has
-a validator" is a question answered by remembering.
-
-The population is small and already spelled. A symptom and a why are
-`Schema.validate`'s; a section title and body are `sections`'; a non-goal's lead and why
-and a criterion's are their families'; a block title was nobody's until this task. Every
-one is a string a caller passes as an argument and this tool writes into a governed file
-— a property a sweep can read, the `add_argument` declaring each flag being where every
-one of them enters.
-
-The register for it exists twice over. `test_backstop.py` holds every code a write
-refuses against what the gate says about that state; `tests/composing.py` enumerates
-every site that composes a command. Both are totals over a population read from the
-source, and both caught something the first time they ran. Neither asks the question one
-field over: which composed fields reach a file, and which pass a validator on the way.
-
-A sweep would have named the block title on the day `block add` was written. What it
-costs is deciding what counts as a composed field — a flag whose value is written
-verbatim, most likely — and that decision is the whole task, the sweep after it being an
-`ast` walk of the same shape as the two already here.
-
 ### §RK1635 The reader that is the assumption
 
 RK1498 built an instrument that runs every composed command, and sixteen sittings
@@ -706,6 +682,52 @@ What the reading needs is a run, not a scan: whether a body reaches both streams
 path is a question about execution, and the eight are few enough to drive.
 `tests/test_answers` now has the subprocess that merges the two pipes, which is the
 instrument that was missing when the rule was found the first two times.
+
+### §RK1665 The codes the scan cannot read
+
+`test_backstop._written()` walks every `Violation(…)` in the package and takes the first
+argument where it is a string constant. Where it is not, it widens the found set to
+`COMPUTED` — the three character codes composed from a field name — and moves on.
+
+`scoping` and `criteria` name theirs as module constants: `LEAD = "non-goal.lead"`,
+`SHAPE`, `WHY`, and the three beside them. The comment says why, and it is right — *a
+code spelled twice is a code that drifts once*. So `Violation(LEAD, …)` is invisible to
+the scan, and six codes a write genuinely refuses are outside a register whose whole
+claim is `covered == written`.
+
+Nothing is wrong today: four of the six have rows anyway, and the two `lead` codes were
+found by RK1627 joining to it and failing. What is wrong is that the closure cannot see
+them, so a seventh added to either module would have no row and nothing would say so —
+the silence the register exists to end.
+
+The fix is the scan's and not the modules'. A name resolving to a string constant in the
+same module is readable with the `ast` already parsed, so the reader gains a pass that
+binds module-level string constants and looks one up where the first argument is a
+`Name`. What it must not keep is the fall-through to `COMPUTED` on a name it could not
+resolve: that branch is what hid these.
+
+### §RK1666 The sentence above the key
+
+`govern <key> <n> --because "…"` wraps the caller's argument into comment lines above
+the key and writes `roadkeep.toml`. What refuses a bad value is `readable()`: the
+composed text is parsed back before the bytes land, which catches a value TOML cannot
+carry and is blind to everything inside a comment.
+
+So a mangled run lands. Reproduced on a scaffolded project: `--because "Menu Ã©
+semeado"` wrote `# Menu Ã© semeado`, the write reported success, and `lint` did not list
+`roadkeep.toml` among the files it read. `char.mangled` is a rule this build has and
+applies to a task's fields, a section's title and a block's — every composed field but
+this one.
+
+RK1570 is the same finding one field over, and RK1627's register is what named this: the
+row for `because` is the only `round-trip` kind in it, which is the register saying out
+loud that the strongest thing between this value and a governed file is a TOML parse.
+
+What it wants is the three rules a title already takes — no newline, no leading `#`, and
+the codec rule — because a comment is one line and `#` is what opens it, so the
+vocabulary is already right. `--instead` is the same argument at the same door and takes
+them with it. What is not obvious is whether the gate should read that file for
+characters too, which is a second question about a file no role declares.
 
 ## Block E — Adoption
 
