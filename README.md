@@ -117,7 +117,7 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 2 | 232 | 2 |
+| B — Authoring (insert, never hand-edit) | 1 | 233 | 2 |
 | C — Query (consult without reading the file) | 5 | 187 | 7 |
 | D — The gate | 17 | 295 | 7 |
 | E — Adoption | 0 | 117 | 1 |
@@ -125,11 +125,11 @@ called unbuilt were already in the ledger.
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 1 | 43 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 26 | 1114 | 24 |
+| **Total** | 25 | 1115 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1634** (deps: —) **a ship deletes the design section and names nothing that was in it, so the last look at it never happens** — Three flags carry a design's durable half and all three are optional, so a section goes to a caller who was never shown it was about to. → §RK1634
+- 📋 **RK1635** (deps: —) **the composer sweep runs every door through shlex, which is the assumption the door was wrong about** — RK1580 was invisible for a year because the instrument reads a line with the parser whose POSIX default put the bad quote there. → §RK1635
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

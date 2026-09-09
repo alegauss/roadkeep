@@ -18,6 +18,7 @@
 - ✅ **RK1355** **a task line under Non-goals is read as both, and the door the non-goal finding prints deletes it** — Where two readers claim one line, the specific one wins and the other prints nothing about it.
 - ✅ **RK1361** **a decision is one sentence, so the alternatives rejected and the consequences accepted are kept by hand or not at all** — The decisions role carries both records and the prose about them, and no verb deletes a body while the entry stands.
 - ✅ **RK1363** **an outline project cannot give a decision a body, the id being no address in a file that numbers its own headings** — A record that keeps prose names its address wherever the file numbers its own headings.
+- ✅ **RK1634** **a ship deletes the design section and names nothing that was in it, so the last look at it never happens** — A design's durable half is asked for and never required: the drop names what it takes and the three doors that carry it, and the write lands either way.
 
 ### §RK1361 Why the body and not the design section
 

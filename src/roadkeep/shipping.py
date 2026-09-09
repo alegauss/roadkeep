@@ -1287,6 +1287,20 @@ class Departure:
     def block(self) -> str:
         return self.ledger.entry.task.block
 
+    @property
+    def outlived_by_nothing(self) -> bool:
+        """A design deleted with none of the three doors opened (RK1634).
+
+        :attr:`superseded`, :attr:`recorded_in` and :attr:`decided` are where a design's
+        durable half goes — the code it moved under, the file it belongs beside, the constraint
+        that belongs to no file — and all three are optional on the call that deletes it. So
+        this is the state where the section went and nothing about it survives, which is a
+        reading and not a refusal: the row it prints asks, and the write lands either way.
+        """
+        return self.dropped is not None and (
+            self.superseded is None and self.recorded_in is None and self.decided is None
+        )
+
     def event(self, config: Config) -> dict[str, object]:
         """What the departure did to the block it left (RK38), off the roadmap it wrote."""
         from roadkeep.rendering import _event  # noqa: PLC0415 - RK260
@@ -1305,10 +1319,11 @@ class Departure:
             _cited_rows,
             _decided_body_rows,
             _dequeued_rows,
+            _dropped_rows,
             _unmet_rows,
             _emptied_rows,
             _event_rows,
-            _prose_file,
+            _outlived_rows,
             _scope_rows,
             _quoted_rows,
         )
@@ -1320,7 +1335,7 @@ class Departure:
             f"  removed  {roadmap}:{self.removed_from}",
         ]
         if self.dropped is not None:
-            rows.append(f"  dropped  {self.dropped} from {_prose_file(config, self.prose)}")
+            rows += _dropped_rows(config, self.dropped, self.prose)
             if self.nested:
                 rows.append(f"  nested   {', '.join(f'§{a}' for a in self.nested)} went with it")
             rows += _cited_rows(self.cited)
@@ -1347,6 +1362,9 @@ class Departure:
                 f"{self.decided.lineno}  {self.decided.rendered}"
             )
             rows += _decided_body_rows(self.task_id, self.decided.entry.task.ref or "")
+        # Under the three, because it is about all of them: a design went and none of the doors
+        # that carry its durable half was opened (RK1634).
+        rows += _outlived_rows(self.outlived_by_nothing)
         if self.refreshed:
             rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
         rows += _dequeued_rows(self.dequeued)
@@ -1387,6 +1405,11 @@ class Departure:
                     "title": self.dropped.title,
                     "first": self.dropped.first,
                     "last": self.dropped.last,
+                    # What was in it and not only where it was (RK1634). Both counts, as
+                    # `Section.payload` publishes them: a container's own prose is none of
+                    # its subtree, and a deletion takes the subtree.
+                    "words": self.dropped.words,
+                    "own_words": self.dropped.own_words,
                 },
                 "nested": list(self.nested),
                 "cited": list(self.cited),
@@ -1404,6 +1427,11 @@ class Departure:
                 # anchor: the pair is what types the deletion, so one without the other is
                 # half an answer to the question this write exists to record.
                 "recorded_in": self.recorded_in,
+                # Whether a design went and none of the three doors was opened (RK1634).
+                # Derived here rather than left to a consumer joining three fields — one of
+                # which lives at the payload's top level — so the reading is the same one the
+                # printed row makes.
+                "outlived_by_nothing": self.outlived_by_nothing,
             },
             "refreshed": list(self.refreshed),
             # What left the order with the line (RK327), named because a plan that silently
@@ -1449,8 +1477,8 @@ class Departure:
         those two answers sharing a name because they share a dataclass.
         """
         from roadkeep.rendering import (  # noqa: PLC0415 - RK260
+            _dropped_rows,
             _event_rows,
-            _prose_file,
             _scope_rows,
             _quoted_rows,
         )
@@ -1479,10 +1507,10 @@ class Departure:
                 f"{config.relative(config.path(self.replacement_in))}"
             )
         if self.dropped is not None:
-            rows.append(f"  dropped  {self.dropped} from {_prose_file(config, self.prose)}")
-            # The same deletion on the other door, so the same last reading (RK1488): a
+            # The same deletion on the other door, so the same last reading (RK1488, RK1634): a
             # retirement takes the design out exactly as a shipment does, and an answer that
             # left with an abandoned line is no more re-derivable than one that shipped.
+            rows += _dropped_rows(config, self.dropped, self.prose)
             rows += _quoted_rows(self.quoted)
         if self.dependents:
             # Reported, not refused: a supersession is legitimate and these lines are the
@@ -1868,10 +1896,10 @@ class Closure:
             _cited_rows,
             _decided_body_rows,
             _dequeued_rows,
+            _dropped_rows,
             _unmet_rows,
             _emptied_rows,
             _event_rows,
-            _prose_file,
             _scope_rows,
             _quoted_rows,
         )
@@ -1884,7 +1912,7 @@ class Closure:
             "  ledger   untouched: the entry was already there",
         ]
         if self.dropped is not None:
-            rows.append(f"  dropped  {self.dropped} from {_prose_file(config, self.prose)}")
+            rows += _dropped_rows(config, self.dropped, self.prose)
             if self.nested:
                 rows.append(f"  nested   {', '.join(f'§{a}' for a in self.nested)} went with it")
             rows += _cited_rows(self.cited)

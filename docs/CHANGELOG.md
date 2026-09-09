@@ -292,6 +292,7 @@
 - ✅ **RK1484** **a ship recording a checked criterion wraps the entry, so correcting its sentence costs a span this tool wrote** — record amend asks no count where every continuation is one this tool wrote, so a checked entry is corrected in one call and a hand-wrapped one still costs the span.
 - ✅ **RK1511** **a line filed because the task that found it could not fit it has no door back into that task's criteria** — retire --folds-into moves a line's own claim into another task's criteria and ends the line, in one write.
 - ✅ **RK1632** **add --symptom takes no stdin, the one prose field with no pipe being the one every line leads with** — add --symptom reads the pipe on a dash, as restate --symptom has since RK1187, and the parser's own declaration is what two registers now hold it by.
+- ✅ **RK1634** **a ship deletes the design section and names nothing that was in it, so the last look at it never happens** — The drop names the heading and the size it takes, and a shipment that opened none of the three doors is told so.
 
 ## Block C — Query
 

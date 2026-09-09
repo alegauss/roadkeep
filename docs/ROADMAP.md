@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1634** (deps: —) **a ship deletes the design section and names nothing that was in it, so the last look at it never happens** — Three flags carry a design's durable half and all three are optional, so a section goes to a caller who was never shown it was about to. → §RK1634
 - 📋 **RK1655** (deps: —) **reopen files a line whose pointer resolves to nothing, and has no way to write the design in the same call** — add closes it with --section and this door cannot, so every reopen leaves a ref.unresolved the author closes by hand. → §RK1655
 
 ## Block C — Query (consult without reading the file)

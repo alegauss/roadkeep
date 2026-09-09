@@ -63,6 +63,7 @@ CYCLES: dict[tuple[str, str], str] = {
     ("ids", "rendering"): PRINTER,
     ("merging", "rendering"): PRINTER,
     ("picking", "rendering"): PRINTER,
+    ("rendering", "sections"): PRINTER,
     ("capturing", "cli"): ENTRY,
     ("cli", "serving"): ENTRY,
     ("cli", "verbs.linting"): ENTRY,

@@ -670,6 +670,20 @@ class Section:
     def __str__(self) -> str:
         return f"§{self.anchor} ({self.first}-{self.last})"
 
+    @property
+    def sized(self) -> str:
+        """This section's size, with no limit beside it (RK1634).
+
+        What :meth:`counted` says minus its second half, and the half a **deletion** can use: a
+        `ship` naming what it is about to take is reporting a size, not measuring one against a
+        rule, and the section is going — so a limit in that sentence is a figure the reader can
+        act on nowhere. RK283's rule runs the other way here, and both counts still are said
+        where they differ, for :attr:`nests`' reason.
+        """
+        if not self.nests:
+            return f"{self.words} words"
+        return f"{self.own_words} words, {self.words} with subsections"
+
     def counted(self, limit: int) -> str:
         """This section's size as every verb that prints it says it (RK287).
 
@@ -682,9 +696,7 @@ class Section:
         Here since RK1170: three verb files and a view all print this, and a helper in
         `rendering.py` was the fifth place a fact about a section was spelled.
         """
-        if not self.nests:
-            return f"{self.words} words (limit {limit})"
-        return f"{self.own_words} words, {self.words} with subsections (limit {limit})"
+        return f"{self.sized} (limit {limit})"
 
     def payload(self, where: str) -> dict[str, object]:
         """This section as data, at every door that publishes one (RK1170).

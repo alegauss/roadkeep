@@ -46,7 +46,7 @@ from roadkeep.kernel.schema import (
     width,
 )
 from roadkeep.shipping import AlreadyRecorded, NoQualifier, NoSuchPath, SecondPartial
-from roadkeep.sections import SectionClaimed, SectionOccupied
+from roadkeep.sections import SectionClaimed, SectionOccupied, find as find_section
 from roadkeep.shipping import (
     AlreadySuperseded,
     Divergent,
@@ -665,13 +665,77 @@ def test_the_command_reports_every_edit_it_made(tmp_path, capsys):
     assert SHIPPED_RK1 in read(config, CHANGELOG)
 
 
+def test_the_drop_names_what_it_is_about_to_take(tmp_path, capsys):
+    """RK1634. The row was the address alone, and the address is the one fact about a deleted
+    section a reader can no longer look up: `as_ledger` keeps no pointer, so from the next
+    command on `§RK1` resolves to nothing. The last chance to say what it held is the sentence
+    reporting that it is gone — the heading somebody wrote, and the size of the argument.
+
+    Both counts here, because RK1 has a subsection and a drop takes the subtree: a section's
+    own prose is not what leaves, which is `Section.nests`' whole rule."""
+    config = project(tmp_path)
+    going = find_section(config.document("improvements"), "RK1")
+    assert going is not None and going.nests
+
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "Because of a reason."]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert f"dropped  §RK1 (5-12) from {IMPROVEMENTS}" in out
+    assert "'A first design'" in out
+    # `sized` and not `counted`: the section is going, so a limit beside the figure is a number
+    # the reader can act on nowhere.
+    assert going.sized in out
+    assert "with subsections" in going.sized
+    assert "(limit" not in out
+
+
+def test_a_ship_that_names_none_of_the_three_doors_is_told_so(tmp_path, capsys):
+    """RK1634. `--superseded-design`, `--recorded-in` and `--decides` carry a design's durable
+    half, all three are optional, and the call that deletes mentions none of them — so the only
+    answer arrived after the fact, about prose that was already gone.
+
+    A read and not a gate: the write lands, and the row asks."""
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "Because of a reason."]) == EXIT_OK
+    assert "outlived nothing named: --superseded-design" in capsys.readouterr().out
+
+
+def test_a_door_that_was_opened_answers_the_row(tmp_path, capsys):
+    """Any one of the three, because the row is about all of them: a shipment that said where
+    the durable half went has said it, and repeating the other two doors would be advice about
+    fields this call had no reason to fill."""
+    project(tmp_path)
+    assert main([
+        "-C", str(tmp_path), "ship", "RK1", "--why", "Because of a reason.",
+        "--recorded-in", "src/roadkeep/shipping.py",
+    ]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "recorded the part that outlives it: src/roadkeep/shipping.py" in out
+    assert "outlived" not in out
+
+
+def test_a_ship_that_dropped_nothing_says_nothing_about_the_doors(tmp_path, capsys):
+    """The row is about a deletion. A task that shipped without a rationale section had no
+    durable half to lose, and advice about where one would have gone is a sentence with no
+    subject."""
+    project(tmp_path, improvements="# Improvements\n\n## Block A — The model\n")
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "Because of a reason."]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "kept     nothing dropped" in out
+    assert "outlived" not in out
+
+
 def test_json_carries_every_edit(tmp_path, capsys):
     project(tmp_path)
     assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "Because of another reason.", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload["changelog"]["file"] == CHANGELOG
     assert payload["roadmap"] == {"file": ROADMAP, "removed": 6}
-    assert payload["improvements"]["dropped"]["anchor"] == "RK2"
+    dropped = payload["improvements"]["dropped"]
+    assert dropped["anchor"] == "RK2"
+    # What was in it and not only where it was (RK1634), both counts as `Section.payload`
+    # publishes them — RK2 has no subsection, so here the two agree.
+    assert dropped["words"] == dropped["own_words"] > 0
+    assert payload["improvements"]["outlived_by_nothing"] is True
     assert payload["refreshed"] == []
 
 

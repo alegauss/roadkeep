@@ -60,6 +60,7 @@ from roadkeep.merging import (
 from roadkeep.picking import Choice, Claim
 from roadkeep.provenance import invocation, served_by
 from roadkeep.remedying import Door
+from roadkeep.sections import Section
 from roadkeep.kernel.schema import UTF16_UNITS, width as measured_width
 from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK
 
@@ -660,6 +661,56 @@ def _premise_rows(edits: Sequence[str], design: str) -> list[str]:
         f"is a reading",
         f"  next     {', '.join(f'`{one}`' for one in edits)} "
         f"{'is the edit' if len(edits) == 1 else 'are the edits'}, in this commit",
+    ]
+
+
+def _dropped_rows(config: Config, dropped: Section, prose: Document | None) -> list[str]:
+    """The design a departure deleted, named as it goes (RK1634).
+
+    The address, and then **what was in it**: the heading somebody wrote and the size of the
+    argument under it. The row was the address alone, which is the one fact about a deleted
+    section a reader can no longer look up — `as_ledger` keeps no pointer, so from the next
+    command on there is nothing to resolve `§RK1634` against, and the last chance to say what
+    it held is the sentence reporting that it is gone.
+
+    Spelled once for the three doors that delete one — a shipment, a retirement and a closure
+    against an entry the ledger already had — which is RK1170's rule about a fact spelled per
+    verb. The deletion is the same act at all three, and RK1488 already put its other last
+    sentence here for that reason.
+    """
+    rows = [f"  dropped  {dropped} from {_prose_file(config, prose)}"]
+    # Continued rather than widened: the address and the file are a location, the title and
+    # the count are the thing that was there, and one row carrying all four is a sentence a
+    # reader has to parse to find either.
+    rows.append(f"           {dropped.title!r}, {dropped.sized}")
+    return rows
+
+
+def _outlived_rows(nothing: bool) -> list[str]:
+    """The three ways a design's durable half survives it, where none was used (RK1634).
+
+    Said at the moment the section goes, for :func:`_cited_rows`' reason: `--superseded-design`
+    names the code it moved under, `--recorded-in` the file it belongs beside, and `--decides`
+    the constraint that belongs to no file — all three optional, all three passed to the same
+    call that deletes, and none of them mentioned by it. So the only answer arrived after the
+    fact, about prose that was already gone.
+
+    **A read and not a gate**, which is what this row is instead of a required flag. Demanding
+    `--decides` compels a sentence where there may be no decision, and filler in the one store
+    with no deletion verb is permanent — the ADR curve this format exists against. `--checked`
+    settled the same class one flag over and accepted silence there; what differs here is only
+    that a criterion survives a ship and a section does not, and that asymmetry buys a reading,
+    not a refusal.
+
+    The **reading** is `Departure.outlived_by_nothing`, and this is only its sentence: the
+    record answers whether the three doors were shut, so the printed row and the payload's
+    field cannot come to disagree about it.
+    """
+    if not nothing:
+        return []
+    return [
+        "  outlived nothing named: --superseded-design, --recorded-in and --decides are "
+        "where a design's durable half goes"
     ]
 
 

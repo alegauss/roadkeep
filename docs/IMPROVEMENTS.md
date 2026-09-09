@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1634 The last look at a section, at the moment it goes
-
-A ship deletes the rationale section in the same transaction that writes the ledger
-entry. Three flags carry what was durable in it — `--superseded-design` for the half the
-code moved under, `--recorded-in` for the half belonging beside the code, and
-`--decides` for the constraint belonging to no file. All three are optional, and the
-call that deletes mentions none of them.
-
-So the only answer arrives after the fact: the section is gone and the entry says
-nothing about having held one. The evidence a caller needed was in a section they were
-not shown, in a session about to end.
-
-What is wanted is not a required flag. Requiring `--decides` compels a sentence where
-there may be no decision, and filler in the one store with no deletion verb is permanent
-— which is the ADR curve this format refuses. `--checked` settled the same class one
-flag over: a criterion nobody names reads as unchecked, and silence was accepted there.
-
-The asymmetry arguing for more here is that a criterion survives a ship and a section
-does not. So the cheap form is a read and not a gate: the call names what it is about to
-delete — the title, the word count — and the three doors, before it writes. Whether a
-project may demand the stronger form, and whether an explicit `nothing survives` is an
-assertion worth having or ceremony, is what this design has to weigh.
-
 ### §RK1655 The design a reopen owes
 
 A dismissal carries no design section — that is what a dismissal *is*, the claim being
