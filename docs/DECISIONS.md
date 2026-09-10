@@ -537,6 +537,21 @@ Held as the **fault** rather than the fix. The guard shipped with the helper ref
 `stdout.flush()` written anywhere else, which is the repair; a plain stderr print inside
 a row the census calls both is what shipped four times.
 
+### §RK1665 The reader learns to resolve
+
+The fix is the scan's and the modules keep their constants, which the design argued and
+the measurement confirms: `LEAD = "non-goal.lead"` is right — a code spelled twice is a
+code that drifts once — so what had to learn to read a name was the reader.
+
+The fall-through mattered. On anything but a literal the scan widened its set to the
+three character codes, so six codes it could not see read as three it could, and
+`covered == written` held over a set short by four rows. It raises now, naming the
+module, the line and the expression.
+
+`COMPUTED_FROM` is the one name that stays unresolvable — `_codepoints` picks its code
+from the character it found, so the value is a local and the enumeration beside it is
+the answer. One declared row rather than a branch every unreadable value falls into.
+
 ## Block E — Adoption
 
 - 🗑 **RK1272** **`[limits]`, `[budgets]` and `[markers]` have no verb, so the file governing every write is the ungoverned one** — The argument for a limit goes in the commit that wrote it, never in a comment beside the number (superseded by RK1293).
