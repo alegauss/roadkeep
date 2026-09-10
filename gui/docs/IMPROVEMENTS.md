@@ -206,27 +206,18 @@ not how it is found.
 
 ### §RG128 The engine a session actually got
 
-The launcher resolves an engine in four steps -- `ROADKEEP_HOME`, a vendored
-`.roadkeep/`, the sibling `../roadkeep`, then a clone under the user cache -- and takes
-the first that *answers a probe*. Answering is the test, so a checkout being written
-while the probe runs is a checkout that does not answer, and resolution falls through.
+The launcher resolves an engine in four steps — `ROADKEEP_HOME`, a vendored
+`.roadkeep/`, the sibling `../roadkeep`, then a clone under the user cache — and takes
+the first that *answers a probe*. A checkout being written while the probe runs does not
+answer, so resolution falls through. During RG120 three commands were served by `0.2.4`
+out of `~/.cache/roadkeep-src` while the sibling stood at `0.2.450`; `ROADKEEP_HOME` did
+not help, being a candidate the same probe drops.
 
-It happened during RG120. Three commands in a row were served by `0.2.4` out of
-`~/.cache/roadkeep-src` while the sibling stood at `0.2.450` and imported in half a
-second; a minute later the same command resolved the sibling again. What made it loud
-was luck: a copy that old does not know `[install] wired`, so it refused `roadkeep.toml`
-and named itself. A cache one minor version behind would have answered, and the session
-would have been briefed, linted and shipped by an engine nobody chose -- silently, since
-the version is printed only when something goes wrong.
+**Decided, and the half left is upstream's.** Three levers, measured on 2026-09-10:
 
-Setting `ROADKEEP_HOME` did not change it, which is the part worth understanding before
-proposing a fix: the override is a candidate like the others and is dropped by the same
-probe. So the choice is between making a *named* engine fatal rather than skippable, and
-`install --vendor`, which copies a pinned engine into `.roadkeep/` and takes the
-resolution order out of it. The first is the launcher's own behaviour and belongs
-upstream; the second is this project's to decide, and it costs a copy in the tree.
-
-Worth deciding before a second session shares this checkout.
+- **Vendoring is rejected here.** `.roadkeep/` outranks the sibling, and this project's live suite tests the roadkeep checkout under development on purpose (`live.ts`, RG84). A pin would change what that suite tests without anything saying so, and freeze the engine on the one machine where it moves daily.
+- **The launcher is not this repository's to change.** It is identical to what `roadkeep install` writes today, so an edit here is overwritten by the next refresh. Making a *named* engine fatal rather than skippable is its behaviour, and the dep names it.
+- **The cache is the hazard on this machine.** It still answers — `0.2.4`, from 2026-08-28 — and is the candidate a busy sibling falls to. Removing `~/.cache/roadkeep-src` turns a stale answer into a refusal naming the missing engine: louder, and never wrong. It is a directory outside this repository, so it is named here for whoever owns the machine rather than removed.
 
 ### §RG129 A table that does not carry its own key type
 
