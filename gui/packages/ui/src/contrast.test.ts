@@ -120,13 +120,19 @@ const PAIRS: readonly {
     behind: '--vg-background',
     least: AA_TEXT,
   },
-  // Muted text on a card, which is what this screen renders. Not muted text on `--vg-muted`:
-  // that pair is 4.33:1 in light and nothing here puts them together — filed rather than
-  // enforced, because enforcing a pair nobody renders defends a number for no reason.
   {
     what: 'muted text on a card',
     front: '--vg-muted-foreground',
     behind: '--vg-card',
+    least: AA_TEXT,
+  },
+  // No screen puts these two together yet, and this is the exception to the rule above (RG90):
+  // the package names them as a pair, so the first muted panel reaches for both. It was
+  // 4.33:1 in light until the package darkened the foreground to 0.52 (VDS92, 2026.3.9).
+  {
+    what: 'muted text on a muted panel',
+    front: '--vg-muted-foreground',
+    behind: '--vg-muted',
     least: AA_TEXT,
   },
   {

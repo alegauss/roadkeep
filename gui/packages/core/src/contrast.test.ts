@@ -90,8 +90,9 @@ describe('RG54: the ratio', () => {
   })
 
   it('agrees with the published number for this palette own near-threshold grey', () => {
-    // `--vg-muted-foreground` on `--vg-background` in light, the pair closest to failing.
-    // A test that only checked the comfortable pairs would pass any palette at all.
+    // `--vg-muted-foreground` on `--vg-background` in light as the package shipped it before
+    // VDS92 darkened it to 0.52 — then the pair closest to failing, and still the grey whose
+    // published number this is. A test of only comfortable pairs would pass any maths at all.
     const ratio = contrastOf('oklch(55.6% 0 0)', WHITE)
 
     expect(ratio).toBeGreaterThan(AA_TEXT)

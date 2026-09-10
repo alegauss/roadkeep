@@ -179,3 +179,4 @@
 - ✅ **RG140** **the pseudo-locale run reads the text on screen and never a name, so an aria-label typed into a component passes it** — The run reads every name a screen reader speaks beside the text; it found the notice region named in English, now from the catalogue, and lists Back to top with Close.
   checked **Every name a screen reader speaks is held to the text rule** The run reads aria-label, title, alt, placeholder and their kin over the whole document, and a bare one fails it as bare text does.
   checked **With nothing wrapped, the names alone find something** A guard on the guard, so a green run cannot mean the attributes were never looked at.
+- ✅ **RG90** **muted text on a muted panel is 4.33 to 1, which no screen renders yet and one will** — The package darkened muted text to 0.52 in 2026.3.9, so the pair is 5.05 to 1, and the contrast test now holds it to AA in both grounds.

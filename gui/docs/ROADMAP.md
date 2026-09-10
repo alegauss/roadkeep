@@ -34,7 +34,6 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- 🛠 **RG90** (deps: RG54 ✅, a design system release carrying VDS92) **muted text on a muted panel is 4.33 to 1, which no screen renders yet and one will** — Those two tokens are named as a pair and miss AA on the light ground, so the first panel using both ships a pale label looking like a style. → §RG90
 - 🛠 **RG132** (deps: RG123 ✅, a design system release carrying VDS93) **a dialog says Close in English in every language, and the run that found it can only name it** — The package writes that word into its markup and not its bundle, so the guard carries a listed exception. → §RG132
 
 ## Done when — Block A

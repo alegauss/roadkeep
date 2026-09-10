@@ -30,7 +30,7 @@ const BUNDLE_DIR = path.join(REPO, 'packages', 'ui', 'dist', 'assets')
  * somebody else's package, and a wait nothing watches is a wait nobody re-reads. When this
  * moves, this file fails and the question above is asked again against the new tree.
  */
-const MEASURED_AGAINST = '2026.3.8'
+const MEASURED_AGAINST = '2026.3.9'
 
 /** Strings the unmaintained build carries. Several, so a renamed export does not hide it. */
 const MARKERS = ['xlsx', 'SheetJS', 'sheet_to_json', 'aoa_to_sheet', 'book_new']

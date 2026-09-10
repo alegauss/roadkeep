@@ -244,33 +244,6 @@ digest is then required to carry that set.
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
 
-### §RG90 A token pair that fails before anything uses it
-
-RG54's contrast test computes every pair this app renders. It also found one it does
-not: `--vg-muted-foreground` on `--vg-muted` is 4.33:1 in light, under the 4.5:1 AA
-needs for body text. In dark the same pair is comfortable, so it is a light-ground
-defect only.
-
-The pair is not enforced, and deliberately: nothing on any screen puts those two
-together today, and a test defending a number nobody renders is a number somebody will
-eventually weaken to make an unrelated change land. What is on screen is muted text on a
-card, which clears in both grounds and is enforced.
-
-But the tokens are *named* as a pair — what the shadcn convention means by `x` and
-`x-foreground` — so the first muted panel anybody builds reaches for both, and the label
-is too pale in exactly the way nobody notices in review. `docs/design/Fundos.dc.html`
-draws it on both grounds.
-
-**The fix goes upstream, not into this app's `:root`.** The pair is the package's, and
-Turing, Shio and Dumont render the same 4.33: an override here leaves three consoles
-with the defect and this one out of step with them.
-
-**`--vg-muted-foreground` becomes `oklch(0.52 0 0)`** — 5.05:1 on the muted surface and
-5.51:1 on the ground. Break-even is 0.547, so this buys margin rather than sitting on
-the line. Dark is untouched, the package re-pointing that token there already.
-
-What is left here is adopting the release that carries it, and enforcing the pair.
-
 ### §RG132 The one word this app cannot translate
 
 RG123 pointed the pseudo-locale run at the whole document with the shortcuts sheet and

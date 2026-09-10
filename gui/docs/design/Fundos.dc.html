@@ -70,14 +70,14 @@
 
       <div style="flex:1"></div>
 
-      <div style="border:1px solid rgba(251,44,54,0.45);border-radius:16px;overflow:hidden">
+      <div style="border:1px solid rgba(0,188,125,0.45);border-radius:16px;overflow:hidden">
         <div style="background:#f5f5f5;padding:13px">
-          <div style="font-size:13px;color:#737373">muted-foreground sobre muted — o par que a RG90 mede</div>
+          <div style="font-size:13px;color:#696969">muted-foreground sobre muted — o par que a RG90 mede</div>
         </div>
-        <div style="display:flex;align-items:center;gap:9px;padding:9px 13px;background:rgba(251,44,54,0.06)">
-          <span style="display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 8px;border-radius:6px;background:#fb2c36;color:#ffffff;font-size:10.5px;font-weight:700">FALHA AA</span>
-          <span class="mono" style="font-size:11.5px;color:#c10007;font-weight:600">4.33 : 1</span>
-          <span style="font-size:11px;color:#737373">precisa de 4.5</span>
+        <div style="display:flex;align-items:center;gap:9px;padding:9px 13px;background:rgba(0,188,125,0.08)">
+          <span style="display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 8px;border-radius:6px;background:#00bc7d;color:#052e1c;font-size:10.5px;font-weight:700">PASSA AA</span>
+          <span class="mono" style="font-size:11.5px;color:#007a55;font-weight:600">5.05 : 1</span>
+          <span style="font-size:11px;color:#737373">o pacote desceu 0.556 → 0.52 no claro (VDS92)</span>
         </div>
       </div>
     </div>
@@ -140,22 +140,22 @@
   <div style="margin:14px 24px 18px;border:1px solid #e5e5e5;border-radius:16px;background:#ffffff;padding:13px 16px;display:flex;gap:20px;align-items:flex-start">
     <div style="flex:1">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-        <span class="mk" style="font-size:13px">💭</span>
+        <span class="mk" style="font-size:13px">✅</span>
         <span class="mono" style="font-size:12px;font-weight:600">RG90</span>
-        <span style="font-size:12px;color:#404040">o defeito é só do fundo claro — e ainda não tem desenho escrito</span>
+        <span style="font-size:12px;color:#404040">o defeito era só do fundo claro — corrigido no pacote, não aqui</span>
       </div>
-      <div style="font-size:11.5px;color:#737373;line-height:1.5">O pacote emparelha os dois tokens pelo nome, então o primeiro painel que usar os dois no claro publica um rótulo ilegível que parece um estilo. Nenhuma tela renderiza esse par hoje; uma vai.</div>
+      <div style="font-size:11.5px;color:#737373;line-height:1.5">O pacote emparelha os dois tokens pelo nome, então o primeiro painel que usar os dois vai buscar ambos. Nenhuma tela renderiza esse par hoje, e o teste de contraste o exige mesmo assim.</div>
     </div>
     <div style="width:1px;align-self:stretch;background:#ededed"></div>
     <div style="flex:1">
-      <div class="lbl" style="color:#737373;margin-bottom:5px">UM CANDIDATO A CORREÇÃO — A DECIDIR</div>
+      <div class="lbl" style="color:#737373;margin-bottom:5px">A CORREÇÃO — NO PACOTE DESDE 2026.3.9</div>
       <div style="display:flex;align-items:center;gap:10px">
         <span class="mono" style="font-size:11.5px;color:#a1a1a1;text-decoration:line-through">oklch(0.556 0 0)</span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a1a1a1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 7l5 5-5 5"></path></svg>
         <span class="mono" style="font-size:11.5px;font-weight:600;color:#171717">oklch(0.52 0 0)</span>
-        <span style="display:inline-flex;align-items:center;height:19px;padding:0 8px;border-radius:6px;border:1px solid rgba(0,188,125,0.4);background:rgba(0,188,125,0.1);color:#007a55;font-size:10.5px;font-weight:600">4.96 : 1</span>
+        <span style="display:inline-flex;align-items:center;height:19px;padding:0 8px;border-radius:6px;border:1px solid rgba(0,188,125,0.4);background:rgba(0,188,125,0.1);color:#007a55;font-size:10.5px;font-weight:600">5.05 : 1</span>
       </div>
-      <div style="font-size:11px;color:#737373;line-height:1.45;margin-top:5px">Escurecer o texto vale para todo o app claro, não só para este par — é a escolha que o desenho da RG90 tem de justificar.</div>
+      <div style="font-size:11px;color:#737373;line-height:1.45;margin-top:5px">Escurecer o texto vale para todo o app claro: 5.51 : 1 sobre o fundo, e o escuro não mudou. Em Turing, Shio e Dumont também, por ser do pacote.</div>
     </div>
   </div>
 
