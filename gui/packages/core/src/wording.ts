@@ -61,6 +61,7 @@ export const EN = {
   'shell.home': 'Home',
   'shell.palette': 'Find a line in every backlog',
   'shell.shortcuts': 'Keyboard shortcuts',
+  'shell.notices': 'Notifications',
 
   'ground.system': 'ground: following the desktop',
   'ground.light': 'ground: light',

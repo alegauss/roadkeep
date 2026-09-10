@@ -246,9 +246,13 @@ export function AppShell() {
       {/*
        * One of these, in the chrome, so a notice from any screen has somewhere to land and
        * nothing has to mount a second. It reads the ground from the `next-themes` this app
-       * already has (RG52), which is why it takes nothing here.
+       * already has (RG52), which is why the ground is not passed here.
+       *
+       * Its region's name is, because sonner's default is the English `Notifications` and a
+       * screen reader says it whenever the region is reached (RG140). Sonner appends its own
+       * hotkey after it, `alt+T`, which is a key and stays as the platform names it.
        */}
-      <Toaster />
+      <Toaster containerAriaLabel={say('shell.notices')} />
     </>
   )
 }

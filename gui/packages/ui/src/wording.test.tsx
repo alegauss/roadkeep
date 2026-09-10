@@ -120,6 +120,34 @@ function visibleText(root: HTMLElement): string[] {
 }
 
 /**
+ * The attributes a person reads or hears (RG140).
+ *
+ * `visibleText` is what a sighted reader sees, and a screen reader says more: a button named
+ * by `aria-label`, a field's `placeholder`, a `title`. None is a leaf's text, so the run that
+ * found the package's `Close` walked past its `Back to top` in the same window.
+ */
+const SPOKEN = [
+  'alt',
+  'aria-description',
+  'aria-label',
+  'aria-roledescription',
+  'aria-valuetext',
+  'placeholder',
+  'title',
+] as const
+
+function spokenNames(root: HTMLElement): string[] {
+  const seen = new Set<string>()
+  for (const node of root.querySelectorAll('*')) {
+    for (const attribute of SPOKEN) {
+      const value = node.getAttribute(attribute)?.trim()
+      if (value) seen.add(value)
+    }
+  }
+  return [...seen]
+}
+
+/**
  * The only text on this screen that is a name and not a sentence.
  *
  * The build line joined them at RG118. It is the same characters in every language on
@@ -139,8 +167,12 @@ const IDENTIFIERS = new Set<string>([...PACKAGES, PRODUCT, saidOfBuild(BUILT)])
  * Named here and not fixed here, because it is another repository's string and this run is
  * about the ones this repository types — RG132 is the line. Listed rather than filtered by
  * shape, so the day it is translated this set is what goes stale and gets deleted.
+ *
+ * `Back to top` is the second, found when the run began reading names (RG140): the
+ * package's back-to-top button is `aria-label="Back to top"`. The design system translates
+ * both in VDS93, so the release carrying it empties this set.
  */
-const PACKAGE_LITERALS = new Set<string>(['Close'])
+const PACKAGE_LITERALS = new Set<string>(['Close', 'Back to top'])
 
 /** What the package says for one of its own keys, read off its bundle rather than typed. */
 function packageSays(group: string, key: string): string {
@@ -205,12 +237,15 @@ beforeAll(async () => {
  */
 const KEYCAP = 'KBD'
 
-/** What is on screen that no catalogue accounts for. The whole document, portals included. */
-function bareText(): string[] {
-  return visibleText(document.body).filter(
+/** What no catalogue accounts for, of what was found. The whole document, portals included. */
+function bare(found: readonly string[]): string[] {
+  return found.filter(
     (text) => !isPseudo(text) && !IDENTIFIERS.has(text) && !PACKAGE_LITERALS.has(text),
   )
 }
+
+const bareText = () => bare(visibleText(document.body))
+const bareNames = () => bare(spokenNames(document.body))
 
 /**
  * Every surface this window can show, open at once.
@@ -237,6 +272,7 @@ describe('RG51: nothing on the screen is typed into a component', () => {
     await everySurface()
 
     expect(bareText()).toEqual([])
+    expect(bareNames()).toEqual([])
   })
 
   it('finds the literal a component would have kept', () => {
@@ -245,6 +281,15 @@ describe('RG51: nothing on the screen is typed into a component', () => {
     drawIn(undefined)
 
     expect(bareText().length).toBeGreaterThan(0)
+  })
+
+  it('finds a name a component would have kept, read off its attributes alone', () => {
+    // The same guard for the names (RG140). The shell's two named controls take their names
+    // from the catalogue, so unwrapped they are English — and a run that never read an
+    // attribute would pass here as it passed over the package's back-to-top button.
+    drawIn(undefined)
+
+    expect(bareNames().length).toBeGreaterThan(0)
   })
 
   it('looks inside a portal, which is where two of these surfaces render', async () => {

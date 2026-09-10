@@ -49,6 +49,7 @@ export const PT_BR: Wording = {
   'shell.home': 'Início',
   'shell.palette': 'Encontre uma linha em qualquer backlog',
   'shell.shortcuts': 'Atalhos de teclado',
+  'shell.notices': 'Notificações',
 
   'ground.system': 'fundo: seguindo o sistema',
   'ground.light': 'fundo: claro',
