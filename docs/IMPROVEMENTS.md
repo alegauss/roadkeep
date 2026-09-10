@@ -118,33 +118,6 @@ which is the half that goes red — and that is the reading, not a guess to be r
 
 ## Block D — The gate
 
-### §RK1668 The thirteen doors the census named
-
-RK1640's census cut 406 bare verb-leading spans down to the 27 carrying a field an
-author fills, and read each. Thirteen are commands a caller is being offered — `block
-add <label> --title …` writes the first heading, `section show <anchor>` prints the
-prose as it is, `priority add <token>` writes the first entry — printed with no
-invocation in front of them.
-
-That is RK1589's defect thirteen times over. What it costs is exact: a caller pastes the
-line and their shell has no such command, which on this project's own platform is the
-failure RK1667 measured from the other side. The other fourteen spans are prose for four
-stated reasons and `BARE` says which.
-
-The repair is one token per site and the cost is not there. `census()` is every function
-that calls `invocation()`, and `SITES` is held total against it with every row `run` or
-`deliberate` — a state RK1599 reached by emptying the work-list over sixteen sittings.
-Prefixing thirteen messages adds thirteen sites, and a row that cannot say its door was
-executed reopens that list.
-
-So the question is not whether to prefix but what each new site owes. A door carrying
-the invocation is one `runs` can execute, which is the point; the fixture each needs is
-the refusal's own state, and two of the thirteen refuse about a project that declares no
-config at all.
-
-What it must not become is thirteen `unreached` rows. That is the work-list back, bought
-with a token.
-
 ### §RK1669 The rows a transport does not have
 
 `_one_answer` composes the rows off the declaration, so a call naming no subject is
@@ -183,6 +156,32 @@ have to complete rather than one they can run — which may be an argument for t
 payload's `argv` instead, already published and never quoted.
 
 ## Block E — Adoption
+
+### §RK1673 The two tables no verb tunes
+
+`declare non_goals` on a project that already has the table refuses, and named `govern
+non_goals.lead <n>` from RK1328 on. `governing.GOVERNED` is `limits`, `budgets.<path>`,
+`tools`, `claims`, `reads` — so that call has always exited 2, with `no governed number
+at 'non_goals.lead'`. `declare --help` says the same thing in its own words: *a table
+arrives empty, and `govern` tunes what is in it*.
+
+RK1668 found it by running the line rather than reading it: the span was bare, so it was
+no `census` site, so nothing had ever executed it. The door is now `config`, a read that
+is true, and what the two sentences claimed is still missing.
+
+What it costs is exact. `[non_goals] lead` and `[criteria] lead` are word limits like
+every `[limits]` key, and the only route to either is a hand edit of `roadkeep.toml` —
+the act L1 exists against, and over MCP not an act at all (RK1264's argument, one table
+over).
+
+The question the repair answers is whether `GOVERNED`'s claim is wrong or its membership
+is. It reads *every other table holds a name, a path or a flag — a decision with no
+reading behind it*, and that is false of these two: `budget --non-goal --lead` already
+prices one and `lint` already refuses a lead over the number. So the reading exists, and
+it is not where the write is.
+
+What must not happen is a third spelling: a `declare --lead` beside `govern` would put
+two verbs on one number.
 
 ## Block F — The plugin
 

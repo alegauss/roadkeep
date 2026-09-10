@@ -1130,12 +1130,21 @@ class Catalogue:
         return bool(self.blocks)
 
     def stated(self, config: Config) -> str:
-        """The rows, and the labels an `add` would still refuse (RK1188)."""
+        """The rows, and the labels an `add` would still refuse (RK1188).
+
+        **The empty answer names no door, because there is none** (RK1668). It read *`block
+        add <label> --title …` writes the first heading*, and on the one state that reaches
+        this branch that call refuses by name: the level and the separator are read off a
+        heading that exists, and composing the first would be this tool inventing a
+        convention (RK405, :func:`open_block`). Bare, so nothing had ever run it — which is
+        the population RK1498 is about, met one prefix in.
+        """
         where = config.relative(config.path("roadmap"))
         if not self.blocks:
             return (
-                f"{where}: no block is declared — `block add <label> --title …` writes the "
-                f"first heading, and every other write refuses until one exists"
+                f"{where}: no block is declared, and no file this project declares carries "
+                f"a heading to read the level and the separator off — so the first one is "
+                f"written by hand, and every other write refuses until it is"
             )
         pad = max(len(one.named) for one in self.blocks)
         titles = max(len(one.title) for one in self.blocks)
@@ -1156,8 +1165,8 @@ class Catalogue:
             # The one row an author has to act on before typing `add --block`, said once
             # rather than as a column that is empty on every other line.
             rows.append(
-                f"  not in {where}: {', '.join(elsewhere)} — `block add <label> --title …` "
-                f"re-declares the heading a task can be filed under"
+                f"  not in {where}: {', '.join(elsewhere)} — `{invocation()} block add "
+                f"<label> --title …` re-declares the heading a task can be filed under"
             )
         return "\n".join(rows)
 

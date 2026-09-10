@@ -914,6 +914,24 @@ def test_the_named_role_is_what_resolves_it_and_the_only_thing_that_can(tmp_path
     assert body_budget(config, "RK1", "improvements").role == "improvements"
 
 
+def test_the_door_a_doubled_anchor_names_runs(tmp_path, capsys):
+    """RK1668. The refusal named `budget --anchor <a> --role <role>` with no invocation in
+    front of it, which is a line pasted to `command not found` wherever the console script is
+    not on PATH — and one no test had run, a bare span being no `census` site (RK1605).
+
+    Run as printed: `--role` is the caller naming which of the two files they mean, which is
+    the one resolution that is not this verb choosing (L4), and `FILLS` supplies the role
+    every fixture here declares."""
+    from composing import runs
+
+    doubled(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--anchor", "RK1"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert runs(tmp_path, said) == (["budget", "--anchor", "RK1", "--role", "improvements"],), said
+    # And the number that comes back is that role's own, which is what the door was for.
+    assert "improvements" in capsys.readouterr().out
+
+
 def test_the_lines_own_two_fields_survive_an_anchor_nobody_can_price(tmp_path):
     # The ambiguity is about the body, not about the sentence: refusing the whole read would
     # cost the author a `why` budget that is still exactly right.

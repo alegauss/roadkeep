@@ -2662,8 +2662,11 @@ def test_the_id_scheme_sends_the_caller_to_the_verb_that_moves_both_ends(tmp_pat
     with pytest.raises(AnchorIsId) as raised:
         move(config, "improvements", "RK1", "RK9")
 
-    assert "`renumber RK1 --to <id>`" in str(raised.value)
-    assert "`section drop`" in str(raised.value)
+    # Both doors carry the invocation since RK1668, which is what makes them pasteable: a bare
+    # span answers `command not found` wherever the console script is not on PATH.
+    said = str(raised.value)
+    assert f"`{invocation()} renumber RK1 --to <id>`" in said
+    assert f"`{invocation()} section drop RK1 --role <role>`" in said
     assert read(config) == RATIONALE
 
 
@@ -4305,3 +4308,53 @@ def test_the_body_refusal_names_the_read_that_measures_the_same_draft(tmp_path, 
     ]
     assert "budget --anchor <id> --body-file <path>" in row
 
+
+
+# -- the two doors the census named bare (RK1668) -------------------------------
+
+
+def test_the_door_the_id_scheme_names_runs(tmp_path, capsys):
+    """RK1668. Under `ref_scheme = "id"` the anchor *is* the task's, so a re-address belongs to
+    the verb that moves both ends — and the door was printed with no invocation from RK377 on.
+
+    Run as printed, which is what a re-address has to survive: the line, the heading, the
+    subtree and every dep move in one transaction, and `<id>` is the address the caller
+    chooses (L4). The `section drop` beside it is parsed rather than taken — which of two
+    files holds the copy is a reading, and this fixture holds one design."""
+    from composing import commands
+
+    config = project(tmp_path)
+    where = ["-C", str(config.root)]
+    assert main([*where, "section", "move", "RK1", "--to", "RK9"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    (moving,) = [one for one in commands(said) if one[:1] == ["renumber"]]
+    assert main([*where, *[one if one != "<id>" else "RK9" for one in moving]]) == EXIT_OK
+    capsys.readouterr()
+    # The whole transaction, which is what the door claimed: the heading moved with the line.
+    assert "### §RK9 A first design" in read(config)
+    assert "**RK9**" in read(config, ROADMAP)
+
+    # And the alternative, parsed by the real parser: the anchor is the refusal's own and
+    # `--role` is the caller saying which file holds the copy.
+    (dropping,) = [one for one in commands(said) if one[:2] == ["section", "drop"]]
+    assert build_parser().parse_args(
+        [one if one != "<role>" else "improvements" for one in dropping]
+    )
+
+
+def test_the_read_a_search_that_carries_nothing_names_runs(tmp_path, capsys):
+    """RK1668. An empty `section find` is a fact about the files and not a failure, so the row
+    names the read that prints the prose as it is — bare from RK1310 on, and the one door in
+    this family a caller meets on an exit 0.
+
+    Run with an anchor the same project declares, which is what makes naming the verb worth
+    anything: the word is right, and the section it prints is one that is there."""
+    from composing import commands
+
+    config = project(tmp_path)
+    where = ["-C", str(config.root)]
+    assert main([*where, "section", "find", "nothing in this file carries this"]) == EXIT_OK
+    said = capsys.readouterr().out
+    (argv,) = commands(said)
+    assert main([*where, *[one if one != "<anchor>" else "RK1" for one in argv]]) == EXIT_OK
+    assert "A first design" in capsys.readouterr().out

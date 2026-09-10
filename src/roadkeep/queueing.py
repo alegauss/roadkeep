@@ -107,18 +107,22 @@ class NoQueue(KeyError):
     """
 
     def __init__(self, where: str, tokens: tuple[str, ...] = ()) -> None:
+        from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
         self.tokens = tokens
         if tokens:
             listed = ", ".join(tokens)
             super().__init__(
-                f"this project's queue is still `priority` in roadkeep.toml ({listed}), "
-                f"which no verb writes: `priority migrate` moves it into {where} as the "
-                f"section RK325 introduced, and then every queue verb reaches it"
+                f"this project's queue is still the priority key in roadkeep.toml "
+                f"({listed}), which no verb writes: `{invocation()} priority migrate` "
+                f"moves it into {where} as the section RK325 introduced, and then every "
+                f"queue verb reaches it"
             )
             return
         super().__init__(
             f"no priority heading in {where}, so there is no order to take a token out of: "
-            f"`priority add <token>` opens the section and writes the first entry (RK1014)"
+            f"`{invocation()} priority add <token>` opens the section and writes the first "
+            f"entry (RK1014)"
         )
 
 
@@ -663,9 +667,12 @@ class NothingToMigrate(KeyError):
     """Neither file declares a queue: there is no order to move."""
 
     def __init__(self, where: str) -> None:
+        from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
         super().__init__(
-            f"roadkeep.toml declares no `priority`, so nothing is waiting to move into "
-            f"{where}: `priority add <token>` writes the first entry of a new one"
+            f"roadkeep.toml declares no priority key, so nothing is waiting to move into "
+            f"{where}: `{invocation()} priority add <token>` writes the first entry of a "
+            f"new one"
         )
 
 

@@ -42,6 +42,7 @@ from roadkeep.config import Config
 from roadkeep.kernel.document import Continuation
 from roadkeep.history import gaps
 from roadkeep.linting import lint
+from roadkeep.provenance import invocation
 from roadkeep.kernel.schema import RETIRED, SHIPPED, SchemaError
 from roadkeep.shipping import (
     Ambiguous,
@@ -1026,8 +1027,35 @@ def test_the_drop_refusal_offers_both_doors(tmp_path, capsys):
     project(tmp_path, roadmap=BARE_ROADMAP, ledger=DELIVERIES)
     assert main(["-C", str(tmp_path), "record", "drop", "RK1"]) == EXIT_USAGE
     err = capsys.readouterr().err
-    assert "record drop RK1 --line <n>" in err and "record renumber RK1" in err
+    # Prefixed since RK1668: both were bare, so both answered `command not found` wherever the
+    # console script is not on PATH — and neither had ever been run from what was printed.
+    assert f"`{invocation()} record drop RK1 --line <n>`" in err
+    assert f"`{invocation()} record renumber RK1 --line <n>`" in err
     assert read(tmp_path, "CHANGELOG.md") == DELIVERIES
+
+
+@pytest.mark.parametrize("verb, lineno, then", [("drop", "5", "removed"), ("renumber", "6", "→")])
+def test_each_door_the_doubled_entry_names_runs(tmp_path, capsys, verb, lineno, then):
+    """RK1668. Two entries under one id that do not say the same thing can be one slip or two
+    deliveries, and only a reader knows which — so the refusal names both answers and neither
+    is a default (RK129).
+
+    Each on its own tree, because they are **alternatives**: a sweep that took one would be
+    asserting the other away, and printing two doors is only better than printing one if both
+    of them land. `<n>` is the entry the caller picks, which is the whole judgement here."""
+    from composing import commands
+
+    project(tmp_path, roadmap=BARE_ROADMAP, ledger=DELIVERIES)
+    where = ["-C", str(tmp_path)]
+    assert main([*where, "record", "drop", "RK1"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    (argv,) = [one for one in commands(said) if one[:2] == ["record", verb]]
+    assert main([*where, *[one if one != "<n>" else lineno for one in argv]]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert then in printed, printed
+    # And the file moved, which is what makes it a door: the ledger no longer states one id
+    # at two lines that disagree.
+    assert read(tmp_path, "CHANGELOG.md") != DELIVERIES
 
 
 # -- the move `amend` would not call a correction (RK143) ---------------------

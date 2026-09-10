@@ -2672,3 +2672,37 @@ def test_this_repository_can_now_exercise_the_rule_it_proves(tmp_path):
     assert "README.md" in ours
     # And nothing has swallowed the source tree: a commit touching code is still reported.
     assert "src/roadkeep/history.py" not in ours
+
+
+# -- the close the report already has the evidence for (RK1668) -----------------
+
+
+def test_the_door_a_line_git_already_names_gets_runs(tmp_path, capsys):
+    """RK1668. `unclosed` is the report whose every row is a line the history says landed, and
+    the door under them is the departure — printed with no invocation from RK420 on, so the
+    line a reader pastes at the end of the one report built to be acted on answered `command
+    not found` wherever the console script is not on PATH.
+
+    Run as printed. `<id>` is the row's own and `--why` is the author's (L4), so the harness
+    supplies one and substitutes the other, and what proves the door is the ledger entry."""
+    from composing import commands, filled, supplied
+    from roadkeep.cli import EXIT_OK, main
+
+    config = repo(tmp_path)
+    propose(config, "RK1", "docs: file RK1")
+    (tmp_path / "thing.py").write_text("x = 1\n", encoding="utf-8")
+    git_commit(config.root, "feat(RK1): the thing works now")
+    capsys.readouterr()
+
+    assert main(["-C", str(tmp_path), "unclosed"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "already have commits naming them" in said, said
+    (argv,) = [one for one in commands(said) if one[:1] == ["ship"]]
+    taken = supplied(filled([one if one != "<id>" else "RK1" for one in argv]))
+    assert main(["-C", str(tmp_path), *taken]) == EXIT_OK
+    capsys.readouterr()
+    # And the row is gone, which is the only proof the door was the right command (RK393):
+    # the line the history had evidence for is now the entry the ledger records.
+    assert "RK1" in config.path("changelog").read_text(encoding="utf-8")
+    assert main(["-C", str(tmp_path), "unclosed"]) == EXIT_OK
+    assert "0 of 0" in capsys.readouterr().out

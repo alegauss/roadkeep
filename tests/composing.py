@@ -152,9 +152,29 @@ SITES: tuple[Site, ...] = (
     # first non-goal opens the list, as `criterion add` and `priority add` already did — so
     # this now runs against the bare project, which is the population the table is opened for.
     Site("adopting.py:Opened.stated", "run"),
+    # RK1668, the census's own thirteen. `init` on a configured tree sends the caller to the
+    # estimate instead, with the backlog file left as theirs — run by `test_adopting`, which
+    # substitutes the roadmap it wrote and takes it: `adopt` writes nothing and never fails,
+    # so the whole of what the door owes is landing.
+    Site("adopting.py:AlreadyConfigured.__init__", "run"),
+    # And the row beside it, whose door was `govern {table}.lead <n>` and whose command has
+    # never existed: `governing.GOVERNED` is four tables and neither opt-in table is among
+    # them, so the one sentence a caller reads named a call that exits 2. Bare, which is why
+    # nothing had run it. `config` is the read that is true, and `test_adopting` runs it.
+    Site("adopting.py:TableDeclared.__init__", "run"),
     # RK1223. Run by `test_blocking`, which executes the `--organise` call this refusal names
     # rather than matching it — the reading this whole file is about.
     Site("blocking.py:BlockExists.__init__", "run"),
+    # RK1668. The catalogue's two rows, and they went opposite ways: the label declared
+    # everywhere but the roadmap names a `block add` that lands, and `test_blocking` runs it.
+    # The empty answer named the same call and it refuses by name there — no file carries a
+    # heading to read the level off — so that branch now names no door at all, which is the
+    # other thing running a printed line can find.
+    Site("blocking.py:Catalogue.stated", "run"),
+    # RK1668. Two prose files declaring one anchor, where `--role` is the only thing that can
+    # resolve it (L4). Run by `test_budgeting` against the doubled fixture it already had:
+    # `FILLS` fills the flag, so the printed line is taken as printed.
+    Site("budgeting.py:AmbiguousAnchor.__init__", "run"),
     # The `add` that files a task prints the `section add` closing the pointer it just made —
     # composed in `owed_rows` since RK1655, which is where the second door that leaves a
     # pointer owing reads it from. Run by `test_authoring` through `add` and by
@@ -194,6 +214,16 @@ SITES: tuple[Site, ...] = (
     # types the printed line back and the state moves to the delivery it always was. Where the
     # capture recorded none the repository is a placeholder — the half no project can derive.
     Site("capturing.py:qualifying", "run"),
+    # RK1668, and :data:`KEPT_BECAUSE` is why it is a function: a door written into a row of a
+    # module-level table is a string no composer reaches, so the `unfiled` reason offered a
+    # bare `capture filed <path> --as ID` — a line a caller pastes to `command not found`, and
+    # one no sweep here could see. Run by `test_capturing`, which types the printed line back
+    # with the id supplied and reads the state move off the next sweep.
+    Site("capturing.py:recording", "run"),
+    # RK1668. A claim carries a scope and the read prints it back, so a task holding none is
+    # offered the declaration — the one door here on a **successful** read of an in-progress
+    # line. Run by `test_claiming`, which takes it and reads the path back.
+    Site("claiming.py:Claimed.stated", "run"),
     # RK1235. Run by `test_installing`, which executes the read this refusal names — the
     # door that keeps a pinned project's guard from being a wall.
     Site("cli.py:_behind", "run"),
@@ -288,6 +318,11 @@ SITES: tuple[Site, ...] = (
     # the line lands (RK1598). It now names the command that acts and says what the gate says
     # meanwhile, which is `ref.unresolved` and not a refusal at the door.
     Site("history.py:opens", "run"),
+    # RK1668. The close every line git already names is still open under: `unclosed` finds the
+    # commits and the door is the departure they were leading up to. Run by `test_history`,
+    # which substitutes the id off the row above it — the one token no table fills, being the
+    # caller's own line — and reads the ledger entry the ship then writes.
+    Site("history.py:Unclosed.stated", "run"),
     # RK1230. Run by `test_installing`, which asserts the line it composes *is* the copy the
     # registry names — the one composed command here whose whole point is being pasted.
     Site("installing.py:Engines.invoke", "run"),
@@ -371,6 +406,13 @@ SITES: tuple[Site, ...] = (
     # which puts a line in the store and executes the listing the row names. `resume` rides in
     # the same sentence and is not run: ending a pause is a decision, and a sweep that made one
     # would be this suite taking the judgement the row deliberately leaves to the reader.
+    # RK1668, the queue's two refusals and its three doors. A project with no priority heading
+    # is offered the write that opens one; one whose order is still the config key is offered
+    # the migration, which was bare in the same function and invisible to `unprefixed` the
+    # moment the branch beside it became a site; and the migration with nothing to move names
+    # the same write. All run by `test_queueing`, against the two states it already builds.
+    Site("queueing.py:NoQueue.__init__", "run"),
+    Site("queueing.py:NothingToMigrate.__init__", "run"),
     Site("rendering.py:_set_aside_rows", "run"),
     # RK1490. The two doors under a line the ranking set aside for a requirement — take the
     # whole thing, or take the half that does not need it — run by `test_picking`, which
@@ -390,6 +432,15 @@ SITES: tuple[Site, ...] = (
     # RK1378: the read it names is the branch where `anchors` could not be read, and the one
     # `test_the_refusal_names_the_free_address_and_not_only_the_family` exercises is the other
     # — where the address is stated and no command is composed at all.
+    # RK1668. The scheme where the anchor *is* the id, so the move belongs to the verb that
+    # takes both ends: `test_sections` runs the `renumber` and reads the line, the heading and
+    # the deps at their new address. The `section drop` beside it is the doubled-anchor answer
+    # and was bare in the same sentence — prefixed with the anchor now, and parsed rather than
+    # taken, `--role` being which of the two files holds the copy (L4).
+    Site("sections.py:AnchorIsId.__init__", "run"),
+    # RK1668. The read a `section find` that carries nothing names, which is the whole of what
+    # an empty answer owes: run by `test_sections` with an anchor the same project declares.
+    Site("sections.py:Found.stated", "run"),
     Site("sections.py:NotASibling.__init__", "deliberate", UNASKABLE),
     Site("sections.py:UnknownParent.__init__", "run"),
     Site("sections.py:_the_path_into", "run"),
@@ -415,6 +466,10 @@ SITES: tuple[Site, ...] = (
     # RK1511. The one refusal a fold has, and the door it names is the *other* answer about
     # where the work went: run by `test_retiring`, which folds into a line that has shipped and
     # then executes the supersession the message offers.
+    # RK1668. Two entries under one id that do not say the same thing, and the two doors are
+    # alternatives — one entry goes, or the other gets its own address — so `test_recording`
+    # runs each on its own tree, which is the only reading that says both are real.
+    Site("shipping.py:NotRedundant.__init__", "run"),
     Site("shipping.py:NotAbsorbable.__init__", "run"),
     Site("shipping.py:AlreadyRecorded.__init__", "run"),
     Site("shipping.py:AlsoPaused.__init__", "run"),
@@ -486,6 +541,10 @@ FILLS: dict[str, str] = {
     "--reason": "Because of a reason.",
     "--lead": "No second backlog.",
     "--part": "the first half",
+    # RK1668. The one door whose blank is a **choice between two files** and not prose: an
+    # anchor two prose roles declare is resolved by the caller naming which they mean, and
+    # `improvements` is the role every fixture here declares.
+    "--role": "improvements",
 }
 
 #: The tokens this tool prints where the author's own words go. Both spellings: `…` is what
@@ -1012,14 +1071,21 @@ def unprefixed() -> list[str]:
       for and this suite runs, so a bare span beside a composed one there is not silent.
     * **Carrying a placeholder**, which is the measurement. 406 spans in this package have no
       sibling door; 27 of them carry a field an author fills, and reading those 27 is what the
-      design asked for. The result contradicts its own sampling: they are not all prose. Half
-      are commands a caller is being offered — `` `block add <label> --title …` writes the
-      first heading ``, `` `section show <anchor>` prints the prose as it is `` — printed
-      without the prefix, which is RK1589's defect exactly and still standing.
+      design asked for. The result contradicted its own sampling: they were not all prose.
+      Thirteen were commands a caller is being offered, printed without the prefix — RK1589's
+      defect exactly, standing thirteen times.
+
+    **Those thirteen are closed** (RK1668), and what closing them cost is not the token: each
+    prefixed door makes its function a :func:`census` site owing a `SITES` row, the pair rule
+    forces every verb-leading span in the same message to be decided with it, and running two
+    of the thirteen found the command did not exist — `govern {table}.lead` names a table
+    `governing.GOVERNED` has never held, and `block add` refuses by name on the one state the
+    catalogue's empty answer is about. Which is the argument for executing a printed line
+    rather than reading it, met twice in thirteen.
 
     Returned as `<owner>: <span>`, deduplicated, so the population is a set a table can be
-    total against. `tests/test_composing.BARE` is the verdict per row, because which of the 27
-    was *meant* as a door is a reading and not something this can decide (RK1590).
+    total against. `tests/test_composing.BARE` is the verdict per row, because which of the
+    fourteen left is *meant* as a door is a reading and not something this can decide (RK1590).
     """
     prefix = invocation()
     verbs = _verbs()
@@ -1063,7 +1129,8 @@ def beyond() -> list[str]:
     refuse the sentences this tool needs to write. What is checkable inside it is
     :func:`inconsistent`'s narrower claim and :func:`unprefixed`'s narrower one — the second
     being RK1640's measurement, which found the twenty-seven spans carrying a field an author
-    fills and read each: thirteen are doors, which is what the count outside them bounds.
+    fills and read each: thirteen were doors, RK1668 closed them, and the fourteen left are
+    prose for four stated reasons.
     """
     sites = set(census())
     verbs = _verbs()

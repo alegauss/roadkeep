@@ -1652,3 +1652,65 @@ def test_a_block_the_ledger_never_recorded_says_nothing_about_an_ending(tmp_path
         drop_block(config, "B")
     assert caught.value.ending == ""
     assert "ends as" not in str(caught.value)
+
+
+# -- the catalogue's two rows, executed (RK1668) --------------------------------
+
+
+def test_the_door_a_label_the_roadmap_does_not_carry_names_runs(tmp_path, capsys):
+    """RK1668. A label some file declares and the roadmap does not is the one row an author
+    has to act on before typing `add --block`, and the door was printed with no invocation —
+    a line that answers `command not found` wherever the console script is not on PATH.
+
+    Run as printed, which is what makes it a door: the label is the caller's and the title is
+    theirs (L4), and everything around them has to land."""
+    from composing import commands, filled, supplied
+
+    project(
+        tmp_path,
+        roadmap="# Roadmap\n\n## Block A — The model\n",
+        changelog="# Shipped\n\n## Block A — The model\n\n## Block B — Authoring\n",
+        improvements="# Improvements\n\n## Block A — The model\n",
+    )
+    where = ["-C", str(tmp_path)]
+    assert main([*where, "block", "list"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "not in" in said, said
+    (argv,) = commands(said)
+    # `<label>` is the label the row above it named, which is the caller's to read off and not
+    # this harness's to derive: filled, and the title comes out of `FILLS`.
+    taken = supplied(filled([one if one != "<label>" else "B" for one in argv]))
+    assert main([*where, *taken]) == EXIT_OK
+    # And the row is gone from the next listing, which is the only proof it was the right
+    # command (RK393): a door that parses and leaves its own row standing is the retry loop.
+    capsys.readouterr()
+    assert main([*where, "block", "list"]) == EXIT_OK
+    assert "not in" not in capsys.readouterr().out
+
+
+def test_the_empty_catalogue_names_no_door_because_there_is_none(tmp_path, capsys):
+    """RK1668, and the other thing executing a printed line finds. This row read *`block add
+    <label> --title …` writes the first heading* from RK1188 on, and on the one state that
+    reaches it that call refuses **by name**: no file carries a heading to read the level and
+    the separator off, and composing the first would be this tool inventing a convention
+    (RK405). Both spellings refuse — with `--organise`, `open_block` says so; without it,
+    `BlockExists` answers *already declared in no file*, which is a sentence about nothing.
+
+    So the row names what is true and nothing else. Held as the absence, because a door here
+    is the defect: what a reader needs is that the first heading is theirs."""
+    project(
+        tmp_path,
+        roadmap="# Roadmap\n",
+        changelog="# Shipped\n",
+        improvements="# Improvements\n",
+    )
+    where = ["-C", str(tmp_path)]
+    assert main([*where, "block", "list"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "no block is declared" in said and "written by hand" in said
+    assert "block add" not in said, said
+    # And the call it used to name, refused — which is what the sentence above now says.
+    assert main([
+        *where, "block", "add", "A", "--title", "A title", "--organise", "roadmap"
+    ]) == EXIT_USAGE
+    assert "not this verb's to compose" in capsys.readouterr().err

@@ -1599,6 +1599,32 @@ def test_the_two_readers_that_only_report_now_name_the_stamp(tmp_path, capsys) -
     assert UNKNOWN_REPOSITORY in door and "RK1128" in door
 
 
+def test_the_door_an_unfiled_capture_names_runs(tmp_path, capsys, monkeypatch) -> None:
+    """RK1668. The `unfiled` row is where three of the four states' doors are composed and this
+    one was not: :data:`KEPT_BECAUSE` is a module-level table, so the line it carried —
+    `capture filed <path> --as ID` — was a string no composer reached. Bare, uncounted by the
+    census, and unrunnable as printed on any machine without the console script.
+
+    `capturing.recording` is the composer, which is why it is a function rather than a token in
+    the row: a site is what `SITES` can say it executed. Run here, with the id supplied — the
+    one half no artefact carries, an unfiled capture having no stamp by definition — and the
+    state moves off the next sweep, which is the only proof it was the right command."""
+    from composing import commands
+
+    root = _swept(tmp_path)
+    main(["-C", str(root), "report", "--symptom", SYMPTOM, "--why", WHY, "--", "lint"])
+    monkeypatch.chdir(root)
+    capsys.readouterr()
+    main(["-C", str(root), "capture", "sweep", "--check"])
+    offered = capsys.readouterr().out
+    (argv,) = [one for one in commands(offered) if one[:2] == ["capture", "filed"]]
+    # The path is the row's own, so the only blank is the id — and `RK5` is what this ledger
+    # records as shipped, which is the state a filed capture then reads as.
+    assert main([*[one if one != "<id>" else "RK5" for one in argv]]) == EXIT_OK
+    capsys.readouterr()
+    assert [read.state for read in sweep(Config.discover(root)).read] == [""]
+
+
 def test_a_capture_that_recorded_where_it_went_is_not_asked_for_it_again(
     tmp_path, capsys, monkeypatch
 ) -> None:

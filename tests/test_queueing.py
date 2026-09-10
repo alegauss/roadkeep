@@ -795,3 +795,62 @@ def test_the_queue_stops_claiming_a_line_its_own_verbs_decline(tmp_path):
     # The read is untouched: both lines are still named as ones the queue could not take.
     found = read(config.document("roadmap"), config)
     assert {lineno for lineno, _ in found.rejects} == {misfiled, unshaped}
+
+
+# -- the three doors the queue's refusals name (RK1668) -------------------------
+
+
+def test_the_door_a_project_with_no_queue_names_runs(tmp_path, capsys):
+    """RK1668. Every queue verb refuses on a project that has no priority section, and the door
+    is the write that opens one — printed with no invocation from RK1014 on, which is a line
+    pasted to `command not found` on this project's own platform.
+
+    Run as printed: `<token>` is an id or `Block X` and which line jumps the order is the
+    author's (L4), so the token is substituted and the rest of the argv has to land."""
+    from composing import commands
+
+    project(tmp_path, roadmap=NONE)
+    where = ["-C", str(tmp_path)]
+    assert main([*where, "priority", "drop", "RK1"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    (argv,) = [one for one in commands(said) if one[:1] == ["priority"]]
+    assert main([*where, *[one if one != "<token>" else "RK1" for one in argv]]) == EXIT_OK
+    capsys.readouterr()
+    # And the section is there, which is what the door claimed it would write.
+    assert "## Priority\n\n- RK1\n" in text(tmp_path)
+
+
+def test_the_door_a_queue_still_in_the_config_names_runs(tmp_path, capsys):
+    """RK1668, the same function one branch over. The migration was spelled bare in a message
+    whose sibling branch is now a `census` site, which would have made it invisible to both
+    rules at once — `unprefixed` skips a site's spans and `inconsistent` never saw the pair,
+    the two branches being two strings.
+
+    Run as printed, and it is a complete argv: which file the order lives in is not a
+    judgement, so there is nothing here for the caller to fill."""
+    from composing import runs
+
+    config = _legacy(tmp_path)
+    where = ["-C", str(config.root)]
+    assert main([*where, "priority", "drop", "DX2"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert runs(config.root, said) == (["priority", "migrate"],), said
+    capsys.readouterr()
+    # And the verb that refused now reaches the section the migration wrote.
+    assert main([*where, "priority", "drop", "DX2"]) == EXIT_OK
+
+
+def test_the_door_a_migration_with_nothing_to_move_names_runs(tmp_path, capsys):
+    """RK1668. `priority migrate` on a project whose config declares no order has nothing to
+    move, so the refusal names the write that opens a queue from scratch — the third bare door
+    in this file and the same one the first test takes, reached from the other side."""
+    from composing import commands
+
+    config = _legacy(tmp_path, priority="")
+    where = ["-C", str(config.root)]
+    assert main([*where, "priority", "migrate"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    (argv,) = [one for one in commands(said) if one[:1] == ["priority"]]
+    assert main([*where, *[one if one != "<token>" else "DX1" for one in argv]]) == EXIT_OK
+    capsys.readouterr()
+    assert "- DX1\n" in config.path("roadmap").read_text(encoding="utf-8")

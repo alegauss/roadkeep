@@ -682,6 +682,7 @@ class Claimed:
         return chr(10).join(dict.fromkeys((*self.scope.mine, *self.wrote)))
 
     def stated(self) -> str:
+        from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
         from roadkeep.rendering import _scope_rows  # noqa: PLC0415 - RK260
 
         idle = set(self.scope.idle)
@@ -699,8 +700,8 @@ class Claimed:
         rows += _scope_rows(self.scope, self.wrote)
         if not self.scope.mine:
             rows.append(
-                f"  none declared: `claim {self.task_id} --path <p>` says what this "
-                f"commit owns"
+                f"  none declared: `{invocation()} claim {self.task_id} --path <p>` says "
+                f"what this commit owns"
             )
         return chr(10).join(rows)
 

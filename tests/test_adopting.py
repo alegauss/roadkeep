@@ -45,6 +45,7 @@ from roadkeep.config import Config, Scope
 from roadkeep.kernel.schema import CODE_POINTS, UTF16_UNITS, WORDS, Schema
 from roadkeep.kernel.document import Document, ledger_slots
 from roadkeep.linting import lint
+from roadkeep.provenance import invocation
 from roadkeep.sections import unanchored, words
 
 SHIO = Path("D:/Git/viglet/shio/latest/docs/ROADMAP.md")
@@ -2722,8 +2723,10 @@ def test_a_table_already_open_is_refused_and_not_written_twice(tmp_path: Path, c
     assert main([*where, "declare", "criteria"]) == EXIT_USAGE
     said = capsys.readouterr().err
     assert "already declares [criteria]" in said
-    # And it names the verb that *does* change what is in it.
-    assert "govern criteria.lead" in said
+    # And it names the read that answers about what is in it. It named `govern criteria.lead
+    # <n>` until RK1668 ran the line: `govern` writes four tables and neither opt-in table is
+    # one of them, so the door had always exited 2 — bare, which is why nothing found it.
+    assert f"{invocation()} config" in said
 
 
 def test_the_refusal_that_sent_a_caller_here_names_the_command(tmp_path: Path, capsys) -> None:
@@ -3159,3 +3162,55 @@ def test_the_row_and_the_payload_answer_one_condition(tmp_path, capsys):
     briefs = json.loads(capsys.readouterr().out)["briefs"]
     assert briefs["floor"] == ["deps", "design"], briefs
     assert "changelog" in briefs["absent"], briefs
+
+
+# -- the two doors the census named bare (RK1668) -------------------------------
+
+
+def test_the_door_a_configured_tree_names_runs(tmp_path, capsys) -> None:
+    """RK1668. `init` on a project that already declares the format sends the caller to the
+    estimate, and the file to measure is theirs — so the door carried a placeholder and no
+    invocation, which is a line pasted to `command not found` on this project's own platform.
+
+    Run rather than matched (RK1209), which is the whole reading: `adopt` writes nothing and
+    never fails, so landing is the entirety of what the door owes."""
+    from composing import commands
+
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n', encoding="utf-8"
+    )
+    (tmp_path / "ROADMAP.md").write_text(CONFORMING, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "init"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    (argv,) = [one for one in commands(said) if one[:1] == ["adopt"]]
+    # `<file>` is the one token no table fills: which backlog is being adopted is the caller's,
+    # and a harness that guessed it would be running a different command from the one printed.
+    taken = [one if one != "<file>" else "ROADMAP.md" for one in argv]
+    assert main(["-C", str(tmp_path), *taken]) == EXIT_OK
+    assert "read" in capsys.readouterr().out
+
+
+def test_the_read_a_table_already_open_names_runs(tmp_path, capsys) -> None:
+    """RK1668, and the door it replaces. This refusal named `govern <table>.lead <n>` from
+    RK1328 on and **that command has never existed**: `governing.GOVERNED` is four tables —
+    limits, budgets, tools, claims, reads — and neither opt-in table is among them, so the one
+    sentence a caller who opens a table twice reads named a call that exits 2.
+
+    Invisible because it was bare: a span with no invocation is not a `census` site, so no test
+    in this suite had ever run it (RK1605). What is true is the read — `config` states the
+    number, the fallback and the file that declares it — and the tuning this refusal claimed is
+    a defect filed on its own."""
+    from composing import runs
+
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n[non_goals]\nlead = 8\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text(CONFORMING, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "declare", "non_goals"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "govern" not in said, said
+    assert runs(tmp_path, said) == (["config"],), said
+    # And the read answers about the table, which is what makes naming it better than naming
+    # nothing: the number this project declared, beside the one this build falls back to.
+    assert "lead" in capsys.readouterr().out

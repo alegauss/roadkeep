@@ -1365,6 +1365,8 @@ class Unclosed:
         return tuple(one for one in self.rows if one.stale)
 
     def stated(self) -> str:
+        from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
         if not self.searched:
             # The count rides on it (RK1625): *no history to read* alone leaves a reader
             # unable to tell a backlog this cannot speak for from one with nothing in it, and
@@ -1387,8 +1389,8 @@ class Unclosed:
             # The door, as every finding this tool prints carries one (RK420): what closes a
             # line is `ship`, and what closes it *honestly* where only half landed is `--part`.
             rows.append(
-                "  close    `ship <id> --why …` records the outcome, or `--part` where only "
-                "half of it landed"
+                f"  close    `{invocation()} ship <id> --why …` records the outcome, or "
+                f"`--part` where only half of it landed"
             )
         rows += self._idle_rows()
         return chr(10).join(rows)

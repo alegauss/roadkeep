@@ -909,8 +909,9 @@ class NotRedundant(ValueError):
         super().__init__(
             f"{where} states {task_id} at {lines}, and those entries do not say the same "
             f"thing: two entries for one id can be one slip or two deliveries, and only a "
-            f"reader knows which — `record drop {task_id} --line <n>` removes the one you "
-            f"name, `record renumber {task_id} --line <n>` gives the other its own address"
+            f"reader knows which — `{invocation()} record drop {task_id} --line <n>` "
+            f"removes the one you name, `{invocation()} record renumber {task_id} --line "
+            f"<n>` gives the other its own address"
         )
 
 

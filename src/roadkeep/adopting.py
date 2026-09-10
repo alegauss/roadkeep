@@ -160,11 +160,14 @@ class AlreadyConfigured(ValueError):
     """`init` scaffolds; a project that already declares the format wants `adopt`."""
 
     def __init__(self, source: Path) -> None:
+        from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
         self.source = source
         super().__init__(
-            f"{source} already configures roadkeep: `init` writes a scaffold and would "
-            f"overwrite the declaration this project is already governed by — `adopt "
-            f"<file>` reports what an existing backlog must change instead"
+            f"{source} already configures roadkeep: init writes a scaffold and would "
+            f"overwrite the declaration this project is already governed by — "
+            f"`{invocation()} adopt <file>` reports what an existing backlog must change "
+            f"instead"
         )
 
 
@@ -198,13 +201,22 @@ class TableDeclared(ValueError):
     :class:`RoleDeclared`'s twin one table over, and the answer is not a write for its reason:
     a table already there governs its list, and writing it again would either replace the
     numbers a project tuned or leave two of it.
+
+    **The door was `govern {table}.lead <n>` and that command has never existed** (RK1668).
+    `governing.GOVERNED` is four tables and neither opt-in table is among them, so the one
+    sentence a caller who opens a table twice reads named a call that exits 2 — printed bare,
+    which is why nothing in this suite had ever run it. The read that is true is `config`: it
+    states the number, what this build falls back to, and which file declares it.
     """
 
     def __init__(self, table: str) -> None:
+        from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
         self.table = table
         super().__init__(
-            f"this project already declares [{table}]: `declare` opens the table and one "
-            f"that is open needs no opening — `govern {table}.lead <n>` tunes what is in it"
+            f"this project already declares [{table}]: declare opens the table and one "
+            f"that is open needs no opening — `{invocation()} config` states the numbers "
+            f"under it and what this build holds them to"
         )
 
 

@@ -2206,3 +2206,34 @@ def test_a_project_whose_open_set_spells_no_working_marker_says_so(tmp_path, cap
 
 def _entries(config: Config):
     return config.document("roadmap").entries
+
+
+# -- the declaration a scope-less claim names (RK1668) --------------------------
+
+
+def test_the_door_a_claim_with_no_scope_names_runs(tmp_path, capsys):
+    """RK1668. `claim <id>` reads the scope back and a task holding none is offered the write
+    that declares one — the door on a **successful** read rather than a refusal, and printed
+    with no invocation in front of it from RK280 on. A bare span is no `census` site (RK1605),
+    so nothing in this suite had run it, on the one message whose whole purpose is being
+    pasted before a commit.
+
+    Run as printed, with the path the caller's own: `git add` is what a scope is for, and a
+    harness that guessed which files this commit owns would be answering L4's question."""
+    from composing import commands
+
+    project(tmp_path, BLOCKS + line("RK1"))
+    where = ["-C", str(tmp_path)]
+    # The marker is what takes the claim, and a claim is what carries a scope (RK280) — so the
+    # read below is about a line this session holds and not about one nobody has picked up.
+    assert main([*where, "status", "RK1", IN_PROGRESS]) == EXIT_OK
+    capsys.readouterr()
+    assert main([*where, "claim", "RK1"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "none declared" in said, said
+    (argv,) = [one for one in commands(said) if one[:1] == ["claim"]]
+    assert main([*where, *[one if one != "<p>" else "ROADMAP.md" for one in argv]]) == EXIT_OK
+    # And the read that offered it now answers with the path, which is the only proof the door
+    # was the right command (RK393): the row it was printed under is gone.
+    taken = capsys.readouterr().out
+    assert "ROADMAP.md" in taken and "none declared" not in taken

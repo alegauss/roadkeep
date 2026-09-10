@@ -2058,34 +2058,17 @@ def test_the_quote_is_the_one_every_shell_reads():
 #: RK1640 is the narrower measurement it left: of the 406 with no sibling door, 27 carry a
 #: field an author fills, which is what a caller substitutes and a flag family never has.
 #:
-#: **The design expected them to be prose and they are not.** Thirteen are commands a caller is
-#: being offered, printed without the prefix — RK1589's defect, thirteen times, standing. The
-#: other fourteen are prose for four different reasons, and naming which is the whole value: a
-#: census where every row said `prose` would be RK1590's limit restated, and one where every
-#: row said `door` would be the gate rule this project already refused.
+#: **The design expected them to be prose and they were not.** Thirteen were commands a caller
+#: is offered, printed without the prefix — RK1589's defect, thirteen times. RK1668 closed
+#: every one, and the fourteen left are prose for four different reasons. Naming which is the
+#: whole value: a census where every row said `prose` would be RK1590's limit restated, and one
+#: where every row said `door` would be the gate rule this project already refused.
 #:
-#: Total against :func:`~composing.unprefixed`, so the twenty-eighth is a red here with one
-#: question in it: is this a door.
+#: `door` is no longer a verdict a row may take, which is what closing them means: a span that
+#: is a door carries the prefix, is a `census` site, and is executed by `SITES`. So a row here
+#: is one of the four reasons a span stays bare, and a fifteenth arrives as a red with one
+#: question in it — is this a door — asked of the reader and not of the scan.
 BARE: dict[str, str] = {
-    # -- doors, printed bare. Each is a command a caller pastes, and none of them runs as
-    # printed on a machine where the console script is not on the path (RK1667's shell
-    # measurement is the other half of what a pasted line costs). RK1668 is what closes them,
-    # and it is a task rather than a token: prefixing one makes its function a `census` site,
-    # so thirteen of them owe thirteen `SITES` rows that can say their door was executed —
-    # and a row that cannot is the work-list RK1599 emptied, back.
-    "adopting.py:AlreadyConfigured.__init__: adopt <file>": "door",
-    "adopting.py:TableDeclared.__init__: govern {}.lead <n>": "door",
-    "blocking.py:Catalogue.stated: block add <label> --title …": "door",
-    "budgeting.py:AmbiguousAnchor.__init__: budget --anchor {} --role <role>": "door",
-    "capturing.py: capture filed <path> --as ID": "door",
-    "claiming.py:Claimed.stated: claim {} --path <p>": "door",
-    "history.py:Unclosed.stated: ship <id> --why …": "door",
-    "queueing.py:NoQueue.__init__: priority add <token>": "door",
-    "queueing.py:NothingToMigrate.__init__: priority add <token>": "door",
-    "sections.py:AnchorIsId.__init__: renumber {} --to <id>": "door",
-    "sections.py:Found.stated: section show <anchor>": "door",
-    "shipping.py:NotRedundant.__init__: record drop {} --line <n>": "door",
-    "shipping.py:NotRedundant.__init__: record renumber {} --line <n>": "door",
     # -- a usage line, read under `<verb> --help`. The caller reached it *by* the invocation,
     # so repeating it in the sentence describing the verb's own arguments is noise.
     "verbs/authoring.py:declare_lines: status <id> <marker>": "usage",
@@ -2113,11 +2096,10 @@ BARE: dict[str, str] = {
     "kernel/document.py:UnknownBlock.__init__: block add {} --title \"<its title>\"{}": "kernel",
 }
 
-#: What each verdict means, so a row is a reading and not a label. `door` is the defect; the
-#: other four are reasons a span stays bare, and each is a property of *where* it is rather
-#: than a judgement about the sentence.
+#: What each verdict means, so a row is a reading and not a label. Four, since RK1668 took the
+#: fifth out by closing every row that held it, and each is a property of *where* the span is
+#: rather than a judgement about the sentence.
 VERDICTS = {
-    "door": "a command a caller is offered, printed with no invocation — RK1589's defect",
     "usage": "a usage line under `<verb> --help`, reached by the invocation already",
     "example": "a shape typed inside a remedy's sentence, beside the door that carries it",
     "beside": "the same command carried prefixed by the remedy row for this finding's code",
@@ -2126,10 +2108,10 @@ VERDICTS = {
 
 
 def test_every_bare_span_that_looks_like_a_door_is_read_and_named():
-    """RK1640. The measurement RK1590 left, and its answer is not the one the design expected:
-    the placeholder tell cuts 406 spans to 27 and the 27 are **not** all prose.
+    """RK1640. The measurement RK1590 left, and its answer was not the one the design expected:
+    the placeholder tell cut 406 spans to 27 and the 27 were **not** all prose.
 
-    Total, so this is a census and not a sample. A twenty-eighth span arrives as a red with one
+    Total, so this is a census and not a sample. A fifteenth span arrives as a red with one
     question in it — is this a door — which is the question RK1590 argued no scan can answer
     and this table answers by hand, once, per row."""
     assert set(unprefixed()) == set(BARE), {
@@ -2156,16 +2138,25 @@ def test_the_reading_narrows_and_does_not_replace_the_pair_rule():
     assert len(unprefixed()) == len(BARE)
 
 
-def test_every_verdict_is_one_of_the_five_and_the_defect_is_the_named_half():
+def test_every_verdict_is_one_of_the_four_and_no_bare_span_is_a_door():
     """A row is a reading, so the vocabulary is closed and each word means something stated.
-    And the count that makes the census worth having: thirteen are doors, which is the finding
-    — a table whose every row said `prose` would be RK1590's limit written out again."""
+
+    **`door` is not in it** (RK1668). RK1640's finding was that thirteen of the twenty-seven
+    were commands a caller is offered with no invocation in front of them, and closing all
+    thirteen is what takes the word out: a span that is a door now carries the prefix, which
+    makes its function a `census` site, which puts it in `SITES` and runs it. So the rule this
+    file holds from here is the stronger one — every bare span left is prose, for one of four
+    reasons — and a row that has to say `door` fails the containment above rather than being
+    counted."""
     assert set(BARE.values()) <= set(VERDICTS)
     assert set(VERDICTS) == set(BARE.values()), sorted(set(VERDICTS) - set(BARE.values()))
     for verdict, why in VERDICTS.items():
         assert len(why.split()) >= 8, verdict
-    doors = [one for one, verdict in BARE.items() if verdict == "door"]
-    assert len(doors) == 13, sorted(doors)
+    # The thirteen, as the number they now are. Not `"door" not in BARE.values()`, which the
+    # containment already says: what is asserted is that the population is *only* prose, so a
+    # door slipped in bare is a red on the census above and never a row that reads as read.
+    assert "door" not in set(VERDICTS)
+    assert len(BARE) == 14, sorted(BARE)
 
 
 # -- the reader that is the assumption (RK1635) --------------------------------

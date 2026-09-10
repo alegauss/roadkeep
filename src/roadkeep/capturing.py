@@ -1159,6 +1159,18 @@ def qualifying(path: str, stamp: str, upstream: str = "") -> str:
     )
 
 
+def recording(path: str) -> str:
+    """The command that stamps a capture nobody has answered yet (RK1668).
+
+    :func:`qualifying`'s sibling one state over, and its own function for the reason that one
+    is: :data:`KEPT_BECAUSE` is a module-level table, so a door written into a row there is a
+    string no composer reaches — bare, uncounted by the census, and a line a caller pastes to
+    `command not found`. The path is the row's own and the id is the author's, which is the
+    one half no artefact carries: an unfiled capture has no stamp by definition.
+    """
+    return joined([*shlex.split(invocation()), "capture", "filed", path, "--as", "<id>"])
+
+
 @dataclass(frozen=True, slots=True)
 class Read:
     """One capture, and what this project can honestly say about it (RK1162).
@@ -1366,8 +1378,8 @@ def debt(config: Config) -> Debt:
 #: the reason a capture survives is the only thing they cannot see by listing the directory.
 KEPT_BECAUSE = {
     "unfiled": (
-        "no `filed` stamp, so nothing says this was ever answered — `capture filed <path> "
-        "--as ID` records it, and rotation is what a capture that never gets one waits for"
+        "no `filed` stamp, so nothing says this was ever answered — `{records}` records it, "
+        "and rotation is what a capture that never gets one waits for"
     ),
     "open": (
         "filed as {id}, which this backlog still holds open — the capture is the evidence "
@@ -1377,13 +1389,15 @@ KEPT_BECAUSE = {
         "delivered to {repo}, which this project cannot read — filed by construction and "
         "never provably spent, so the evidence stays"
     ),
-    # The one kept state whose reason ends in a complete argv (RK1395, RK420). The others
-    # cannot: `unfiled` has no id to qualify, `open` is waiting on a ship and `elsewhere` is
-    # already as answered as this project can see. Here the id is in the artefact and only the
-    # repository is missing, so the sentence is followed by the command that supplies it.
+    # The one kept state whose reason ends in a **complete** argv (RK1395, RK420): `open` is
+    # waiting on a ship and `elsewhere` is already as answered as this project can see. Here
+    # the id is in the artefact and only the repository is missing, so the sentence is
+    # followed by the command that supplies it. Backticked since RK1668, for the reason every
+    # composed command in this tool is: a door printed without them is invisible to `commands`
+    # and to every sweep built on it, so the one above it was scanned and this one was not.
     "unknown": (
         "filed as {id}, which no governed file holds — a link to nothing is not a delivery, "
-        "so this is read as unfiled; where it named another backlog, {door}"
+        "so this is read as unfiled; where it named another backlog, `{door}`"
     ),
 }
 
@@ -1414,12 +1428,17 @@ class Verdict:
         A method and no longer a property (RK1395): the `unknown` reason ends in the command
         that closes it, and a command has to name the file by the same spelling the row above
         it does — which is the project's and not this record's to know.
+
+        Both composers are passed and never chosen between (RK1668): `format` ignores a field
+        the row does not name, so which door a state carries stays a property of the row's own
+        sentence rather than a branch here that has to be kept in step with the table.
         """
         template = SPENT_BECAUSE if self.spent else KEPT_BECAUSE[self.state]
         return template.format(
             id=self.filed,
             repo=delivered(self.filed),
             door=qualifying(where, self.filed, self.aimed),
+            records=recording(where),
         )
 
 

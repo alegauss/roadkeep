@@ -140,12 +140,14 @@ class AmbiguousAnchor(ValueError):
     """
 
     def __init__(self, anchor: str, files: Sequence[str]) -> None:
+        from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
         self.anchor, self.files = anchor, tuple(files)
         super().__init__(
             f"§{anchor} is declared by {' and '.join(self.files)}: one anchor names one "
             f"section, and a budget for the first of two prices a section the pointer does "
-            f"not reach — `budget --anchor {anchor} --role <role>` is which of the two "
-            f"you mean"
+            f"not reach — `{invocation()} budget --anchor {anchor} --role <role>` is which "
+            f"of the two you mean"
         )
 
 

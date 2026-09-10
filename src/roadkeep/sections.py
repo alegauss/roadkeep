@@ -531,13 +531,16 @@ class AnchorIsId(ValueError):
     """
 
     def __init__(self, anchor: str, where: str = "") -> None:
+        from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
         self.anchor = anchor
         file = f" in {where}" if where else ""
         super().__init__(
             f"§{anchor}{file} is addressed by its task's id, so the address is not this "
-            f"verb's to move: `renumber {anchor} --to <id>` moves the line, the heading, the "
-            f"subtree and every dep together, and a second file holding the same design is "
-            f"`section drop`"
+            f"verb's to move: `{invocation()} renumber {anchor} --to <id>` moves the line, "
+            f"the heading, the subtree and every dep together, and where a second file "
+            f"holds the same design `{invocation()} section drop {anchor} --role <role>` "
+            f"takes the copy"
         )
 
 
@@ -1369,10 +1372,12 @@ class Found:
         return tuple(one for one in self.carriers if one.count == 1)
 
     def stated(self) -> str:
+        from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
         if not self.carriers:
             return (
                 f"no section in {', '.join(self.roles)} carries {self.text!r} — "
-                f"`section show <anchor>` prints the prose as it is"
+                f"`{invocation()} section show <anchor>` prints the prose as it is"
             )
         rows = [
             f"{self.total} occurrence(s) of {self.text!r} in "
