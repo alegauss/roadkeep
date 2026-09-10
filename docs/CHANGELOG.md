@@ -820,6 +820,7 @@
 - ✅ **RK1666** **govern writes a caller's sentence into roadkeep.toml and no validator reads it, so a mangled run lands and stays** — The argument takes the two character rules every other composed field does, refused before the reading, and no field is left to the round-trip alone.
 - ✅ **RK1667** **the report door mangles a symptom carrying a backtick in the shell this repository is developed in** — The door replaces a token no shell delivers with a placeholder and names the flag, so the line it prints arrives intact in every shell on the machine.
 - ✅ **RK1668** **thirteen printed doors name a command with no invocation, so a caller pastes a line their shell has no such command for** — Thirteen bare doors carry the invocation, twelve new census sites run them, and running two found commands that had never existed.
+- ✅ **RK1669** **a subjectless served call is answered with rows naming subjects that transport withholds** — A served refusal offers the subjects that transport exposes, subtracted off a slot the surface records per verb.
 
 ## Block E — Adoption
 

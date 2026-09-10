@@ -96,6 +96,19 @@ _INVOKED: tuple[str, ...] = ()
 #: wanted*, so RK1584's payload was published everywhere except the surface it was filed for.
 _ASKED_FIELDS: bool = False
 
+#: Which of a verb's arguments the caller in front of this run can actually pass, as `(verb,
+#: dests)` — or `None` for *every one the parser declares*, which is a terminal and is what
+#: nothing set means (RK1669). A third question about one run, beside what was typed and which
+#: register was asked for: the served surface exposes a subset per tool and withholds the rest
+#: with reasons, so a refusal listing what the verb takes was listing flags that caller is
+#: refused by name for passing.
+#:
+#: The **verb** rides with the dests because one call can dispatch another: `repair` re-enters
+#: the dispatcher per step (`verbs/linting._step`), so a subset recorded for the tool the caller
+#: named would be subtracted from a different verb's subjects one frame down. Answered per verb,
+#: so a set that is not this one's is no answer at all.
+_REACHABLE: tuple[str, tuple[str, ...]] | None = None
+
 
 def _codecs() -> tuple[tuple[str, str], ...]:
     """`name -> encoding/errors` for the three streams, as they are right now.
@@ -421,6 +434,43 @@ def asking(fields: bool) -> None:
 def asked_fields() -> bool:
     """Whether this run asked for fields, `False` being *no surface said* (RK1613)."""
     return _ASKED_FIELDS
+
+
+def reachable(dests: Sequence[str] | None, verb: str = "") -> None:
+    """Record which of ``verb``'s arguments this run's caller may pass (RK1669).
+
+    :func:`asking`'s arrangement one question over, under :func:`invoked`'s rules: one slot,
+    written by the surface that owns the answer, read only where a refusal is being rendered,
+    set before dispatch so nothing reads an earlier call's.
+
+    `None` is **every argument the parser declares**, which is what a terminal has and what
+    nothing-set has to mean: a subtraction whose default was the empty tuple would refuse to
+    offer a caller anything on the surface where they can pass it all.
+
+    A third slot and not a flag read off either of the other two, for RK1613's reason: what a
+    caller typed, which register they asked for and what their transport exposes are three
+    facts, and the served surface is the one with an answer to this one — `Tool.exposed` is
+    read per project, so a conditional argument a `declare` opened is in and a withheld one
+    never is.
+
+    ``verb`` is what :func:`reachable_dests` answers against, and it is not decoration: a
+    `repair` step re-enters the dispatcher with another verb's argv, so an unqualified subset
+    would be subtracted from subjects it says nothing about.
+    """
+    global _REACHABLE
+    _REACHABLE = None if dests is None else (verb, tuple(dests))
+
+
+def reachable_dests(verb: str) -> tuple[str, ...] | None:
+    """What :func:`reachable` recorded **for ``verb``** (RK1669).
+
+    `None` is *every argument that verb declares*, which is both a terminal and a run whose
+    recorded subset belongs to some other verb — the two states a subtraction has to treat the
+    same, because neither of them says anything about this verb's arguments.
+    """
+    if _REACHABLE is None or _REACHABLE[0] != verb:
+        return None
+    return _REACHABLE[1]
 
 
 

@@ -15,7 +15,8 @@ about — one declaration, and three surfaces interpreting it.
 from __future__ import annotations
 
 import argparse
-from dataclasses import dataclass
+from collections.abc import Sequence
+from dataclasses import dataclass, replace
 from typing import NoReturn
 
 from roadkeep.verbs.refusing import EXIT_USAGE
@@ -287,6 +288,23 @@ class Answer:
 
     def holds(self, dest: str) -> bool:
         return any(one == dest for one, _, _ in self.flags)
+
+    def within(self, reachable: Sequence[str] | None) -> Answer | None:
+        """This subject as the caller in front of it can pass it, or `None` (RK1669).
+
+        The subtraction the served surface needs, made on the **flags** and not on the subject:
+        a group is two flags answering one question (`export --readme --site`), so a transport
+        exposing one of them can still be offered the question — under the name it has there,
+        which is what :meth:`option` then renders. A group with nothing left is not a subject
+        that caller has, and a row naming it is a flag they are refused by name for passing.
+
+        ``None`` in is a terminal, where every argument the parser declares is reachable — so
+        the answer is this subject unchanged rather than a filtered copy of it.
+        """
+        if reachable is None:
+            return self
+        flags = tuple(one for one in self.flags if one[0] in reachable)
+        return replace(self, flags=flags) if flags else None
 
     def asked(self, args: argparse.Namespace) -> str:
         return f"{self.what} ({', '.join(self.given(args))})"

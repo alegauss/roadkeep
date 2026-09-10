@@ -74,6 +74,7 @@ from roadkeep.serving import (
     serve,
     serves,
     tool_named,
+    withheld,
 )
 
 ROADMAP = "docs/ROADMAP.md"
@@ -3262,3 +3263,63 @@ def test_the_prose_beside_the_guard_names_the_collisions_the_table_finds():
     verbs = _commands()
     for word in re.findall(r"`([a-z][a-z-]*)`(?=[^`]{0,40}?command here)", guard):
         assert word in verbs, f"the prose calls `{word}` a command here and the parser has none"
+
+
+# -- the subjects a transport does not have (RK1669) ---------------------------
+
+
+def test_a_subjectless_call_is_offered_only_the_subjects_this_surface_exposes(tmp_path):
+    """RK1669. `_one_answer` composes the rows off the declaration, so a call naming no subject
+    was answered with every subject its parser declares. At a terminal that is the whole set
+    and correct. Here it is not: `cost` declares seven cadences and this tool exposes four,
+    `deny`, `notes` and `near` being withheld with reasons that say why a caller over this
+    transport is not offered them — so three of seven rows named fields that caller cannot
+    pass, and the retry is refused by `additionalProperties: false` before the reason is read.
+
+    One rule and two surfaces, which is RK1260's arrangement one field over: the pipe clause is
+    *unsaid* over a transport with no stdin rather than said and qualified. The dispatcher is
+    the wrong place to make the subtraction — it does not know which surface it is on — so the
+    surface states what it exposes and the refusal reads it."""
+    root = project(tmp_path)
+    said = text_of(called(root, "cost"))
+    withheld_here = withheld()["cost"]
+    assert set(withheld_here) == {"deny", "notes", "near"}
+    for dest in withheld_here:
+        assert f"--{dest}" not in said, (dest, said)
+    for dest in tool_named("cost").exposed(Config.discover(root)):
+        assert f"--{dest}" in said, (dest, said)
+    # The count in the sentence is the number of rows under it (RK1669): *one of these (7)*
+    # over four rows is a reader counting them to find out which figure is wrong.
+    assert "takes one of these (4)" in said, said
+    # And the row a caller acts on is still there, which is what makes the subtraction a
+    # narrowing rather than a silence: every remaining subject is one this tool takes.
+    assert len([line for line in said.splitlines() if line.startswith("  --")]) == 4
+
+
+def test_the_same_call_at_a_terminal_is_offered_all_seven(tmp_path, capsys):
+    """The other half, and the reason the subtraction is a slot rather than a rule in the
+    dispatcher: what the caller can pass is a fact about the surface, and the terminal's answer
+    has to stay the whole set. A subtraction that had leaked here would hide three cadences
+    from the reader who is spending the number they price."""
+    root = project(tmp_path)
+    assert main(["-C", str(root), "cost"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "takes one of these (7)" in said, said
+    for dest in withheld()["cost"]:
+        assert f"--{dest}" in said, dest
+
+
+def test_a_repair_step_is_not_subtracted_against_the_tool_that_asked_for_it(tmp_path):
+    """The re-entry the slot has to survive. `verbs/linting._step` dispatches another verb's
+    argv inside one call, so a subset recorded for the tool the caller named would be subtracted
+    from subjects it says nothing about — which is why `reachable` carries the verb and
+    `reachable_dests` answers only for that one."""
+    from roadkeep.provenance import reachable, reachable_dests
+
+    reachable(("tools", "brief"), "cost")
+    assert reachable_dests("cost") == ("tools", "brief")
+    # Another verb in the same run reads *no* answer, which is the terminal's state and the
+    # only honest one: a set about `cost` says nothing about what `declare` takes.
+    assert reachable_dests("declare") is None
+    reachable(None)
+    assert reachable_dests("cost") is None

@@ -47,7 +47,8 @@ from roadkeep.attesting import attest
 from roadkeep.capturing import offer
 from roadkeep.config import Config, ConfigError
 from roadkeep.locking import LockBusy, exclusive
-from roadkeep.provenance import asking, engine, invocation, invoked, read_by
+from roadkeep.provenance import asking, engine, invocation, invoked, reachable, read_by
+from roadkeep.provenance import reachable_dests
 from roadkeep.rendering import Result, addressed
 from roadkeep.serving import Prose
 from roadkeep.remaining import declared
@@ -439,6 +440,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     # purpose, so a refusal asking it whether to publish its payload was told *no* on the one
     # surface RK1584 was filed for.
     asking("--json" in argv)
+    # And what this caller can pass, which at a terminal is everything the parser declares
+    # (RK1669). Stated rather than left unset, under the rule the two slots above keep: a
+    # served call in the same process sets its own subset before dispatching, and a terminal
+    # run that inherited it would offer a caller four of seven flags they have all of.
+    reachable(None)
     faulted = False
     try:
         code = dispatch(config, args)
@@ -829,6 +835,16 @@ def _one_answer(args: argparse.Namespace) -> int | None:
     while *at least one* stayed a `ValueError` and a `print`, invisible to every reader of the
     declaration. The rows are the subjects, which is the affordance `cost` composed by hand: a
     caller told only that something is missing has to go and read the help to find out what.
+
+    **The rows are the subjects the caller can pass, which is not always all of them**
+    (RK1669). One rule and two surfaces: `cost` declares seven cadences and the MCP tool
+    exposes four, `--deny`, `--notes` and `--near` being withheld with reasons that say why a
+    caller there is not offered them — so three of seven rows named flags that caller is
+    refused by name for passing, and `additionalProperties: false` refuses the retry before
+    the reason is read. Subtracted and never explained, which is RK1260's arrangement one
+    field over: the pipe clause is *unsaid* over a transport that has no stdin rather than
+    said and qualified. `provenance.reachable_dests` is where the surface states it, because
+    the dispatcher does not know which one it is on.
     """
     subjects: tuple[Answer, ...] = getattr(args, "subjects", ())
     given = [one for one in subjects if one.given(args)]
@@ -841,12 +857,18 @@ def _one_answer(args: argparse.Namespace) -> int | None:
         return EXIT_USAGE
     needed: Requirement | None = getattr(args, "subjects_required", None)
     if not given and needed is not None:
+        # Both the count and the rows, off one subtraction: a sentence saying *one of these
+        # (7)* over four rows is a reader counting them to find out which number is wrong.
+        within = reachable_dests(needed.verb)
+        offered = [
+            one for one in (subject.within(within) for subject in subjects) if one is not None
+        ]
         print(
             "\n".join(
                 [
-                    f"roadkeep: {needed.verb} takes one of these ({len(subjects)}), and this "
+                    f"roadkeep: {needed.verb} takes one of these ({len(offered)}), and this "
                     f"call named none: {needed.why}",
-                    *(one.offered() for one in subjects),
+                    *(one.offered() for one in offered),
                 ]
             ),
             file=sys.stderr,

@@ -2547,6 +2547,13 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
             is_error=True,
             served=_spelled(tool),
         )
+    # What this caller may pass, stated for the refusals composed below it (RK1669). The same
+    # reading `argv` validates against, so a call refused for naming no subject is offered the
+    # subjects this tool has rather than the ones the verb declares: `cost` declares seven
+    # cadences and exposes four here, and the three withheld are flags this caller is refused
+    # by name for passing. Per project, because `exposed` is — a conditional argument a
+    # `declare` opened is in the set and a withheld one never is.
+    provenance.reachable(tool.exposed(config), tool.command)
     # One build for the whole call (RK198), and then one for the whole process (RK202). The
     # argv is rendered through the subcommands and parsed through the root they belong to,
     # and until this was threaded each of those three lookups built the entire CLI — 10.2 ms

@@ -66,6 +66,7 @@ import pytest
 
 from asking import verbs
 from conftest import git_commit, git_init
+from roadkeep import provenance
 from roadkeep.cli import _one_answer, build_parser, main
 from roadkeep.verbs.querying import _cost as _cost_handler
 
@@ -543,7 +544,13 @@ def test_the_dispatcher_refuses_a_bare_call_with_the_reason_and_every_door(capsy
     The reason is asserted as well as the flags, because it is what a boolean declaration
     would have thrown away: told only that a subject is missing, a caller has to go and read
     the help to find out which of them answers what.
+
+    **The surface is stated** (RK1669). The rows are the subjects the caller in front of the
+    run can pass, and this asks the dispatcher directly rather than through either surface — so
+    it says which one it is asking about, exactly as `main` does before it dispatches. Left
+    unsaid, the assertion below would be about whatever the last call in this process recorded.
     """
+    provenance.reachable(None)
     parser = build_parser()
     for command, count in REQUIRED.items():
         args = parser.parse_args([*command.split(), *FILLED[command]])
@@ -562,12 +569,51 @@ def test_a_call_that_named_a_subject_is_not_refused_for_wanting_one():
     namespace rather than typed, because what `given` reads is the dest against the parser's
     own default: one of these subjects takes a value and the other seven are flags, and typing
     each correctly would be this file holding a second opinion about their arity."""
+    provenance.reachable(None)
     parser = build_parser()
     for command in REQUIRED:
         args = parser.parse_args([*command.split(), *FILLED[command]])
         dest, _option, default = args.subjects[0].flags[0]
         setattr(args, dest, "A" if default is None else not default)
         assert _one_answer(args) is None, command
+
+
+def test_the_rows_are_the_subjects_the_caller_in_front_of_the_run_can_pass(capsys):
+    """RK1669. One rule and two surfaces, which is the arrangement RK1260 already met one field
+    over: the pipe clause is *unsaid* over a transport that has no stdin. `cost` declares seven
+    cadences and its MCP tool exposes four — `--deny`, `--notes` and `--near` are withheld with
+    reasons that say why a caller there is not offered them — so three of seven rows named flags
+    that caller is refused by name for passing, and `additionalProperties: false` refuses the
+    retry before the reason is read.
+
+    Subtracted and never explained: a clause about the four it *does* have would spend the room
+    the withholding was for. Read off `Tool.exposed`, which is the same reading `argv` validates
+    against, so a row and a refusal cannot come to disagree about what a tool takes."""
+    from roadkeep.config import Config
+    from roadkeep.serving import TOOLS
+
+    config = Config.discover(Path.cwd())
+    served = {one.command: one for one in TOOLS}
+    parser = build_parser()
+    for command, count in REQUIRED.items():
+        tool = served[command]
+        exposed = tool.exposed(config)
+        provenance.reachable(exposed, command)
+        args = parser.parse_args([*command.split(), *FILLED[command]])
+        assert _one_answer(args) == 2, command
+        said = capsys.readouterr().err
+        offered = [one for one in args.subjects if any(f[0] in exposed for f in one.flags)]
+        assert len(offered) <= count, command
+        # The count in the sentence is the number of rows under it: *one of these (7)* over
+        # four rows is a reader counting them to find out which figure is wrong.
+        assert f"({len(offered)})" in said, (command, said)
+        for one in args.subjects:
+            assert (one.option in said) == (one in offered), (command, one.option)
+    # And `cost` is the verb this is about, so the subtraction is asserted as a real one and
+    # not as an identity that happens to hold on three verbs.
+    assert len([one for one in parser.parse_args(["cost"]).subjects]) == 7
+    assert len(served["cost"].exposed(config)) == 4
+    provenance.reachable(None)
 
 
 # -- the cadences a table now counts (RK1637) ----------------------------------
