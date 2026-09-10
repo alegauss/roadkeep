@@ -193,6 +193,9 @@ export type { Lost, Reset, Settings, SettingsRead, Theme } from './settings'
 export {
   BASE,
   BASE_LOCALE,
+  bundleGaps,
+  bundlePaths,
+  bundleSays,
   EN,
   fill,
   isPseudo,
@@ -209,7 +212,7 @@ export {
   translator,
   untranslated,
 } from './wording'
-export type { Fill, MessageKey, Translate, Wording } from './wording'
+export type { Bundle, BundleGaps, Fill, MessageKey, Translate, Wording } from './wording'
 export { LOCALE_NAMES, LOCALE_TAGS, LOCALES, wordingFor } from './locales'
 export { PT_BR, PT_BR_LOCALE } from './pt-br'
 export { coversEverything, search } from './search'

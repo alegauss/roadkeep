@@ -287,27 +287,6 @@ the line. Dark is untouched, the package re-pointing that token there already.
 
 What is left here is adopting the release that carries it, and enforcing the pair.
 
-### §RG125 The other half of the wording has no completeness check
-
-The wording is two halves and only one is held complete. `PT_BR` is a `Partial` of the
-base and a test walks every key of `BASE` to find one nobody translated, which is what
-makes adding a string safe. `AREA_WORDING` is the other half -- this app's strings that
-the design system's own components resolve -- and it is two hand-written objects, `en`
-and `pt`, that nothing compares.
-
-RG88 created that half and left it empty, so the gap cost nothing. RG116 put a string in
-it: the language menu names itself with `language.toggle`, in both languages, because
-the package ships no `language` namespace and its fallback is an English sentence. A
-second key added to `en` alone would draw English inside a Portuguese window, and the
-guard that would otherwise catch it does not look here -- RG51's pseudo-locale run wraps
-the bundle for the base locale, which is the language it renders in.
-
-The answer has the shape of the one that already works: walk the keys of `en`, require
-each in `pt`, and fail with the path of the one that is missing. Two details are worth
-deciding rather than assuming: whether a value identical in both is an error, since an
-endonym is the same word in either; and where the check goes, the catalogue's own being
-in `core` while this object lives in `ui`.
-
 ### §RG126 The window above the routes is still written twice
 
 RG117 made the routes one array and left the tree above them written twice. `main.tsx`

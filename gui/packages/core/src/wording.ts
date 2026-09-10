@@ -204,6 +204,71 @@ export function stale(over: Wording): readonly string[] {
 }
 
 /**
+ * The other half of the wording, and the same two questions asked of it (RG125).
+ *
+ * This app's strings reach the screen two ways: through the catalogue above, and through an
+ * i18next bundle the design system's own components resolve — the nav labels, and the name
+ * the language menu gives itself. The second half is nested rather than flat, is written
+ * once per language rather than as a `Partial` of a base, and had nothing comparing the
+ * copies at all: a key added to `en` and missed in `pt` drew English inside a Portuguese
+ * window, and RG51's run could not see it, wrapping the base locale being the language it
+ * renders in.
+ *
+ * **The rules are the catalogue's, not new ones.** A path the base names and a translation
+ * does not is `untranslated`; a path a translation names and the base no longer does is
+ * `stale`; and a value identical in both is the case `app.name` already settles — a name is
+ * the same word in either language, and everything else identical is a translation nobody
+ * wrote. All three come off one walk, because the answer wanted is all three at once.
+ *
+ * Here rather than beside the object it is asked about, for the reason every rule in this
+ * package is: comparing two trees of strings needs no DOM and no i18next.
+ */
+
+/** A bundle as i18next takes one: a tree whose leaves are strings. */
+export interface Bundle {
+  readonly [key: string]: string | Bundle
+}
+
+export interface BundleGaps {
+  /** Paths the base names and this translation does not. */
+  readonly untranslated: readonly string[]
+  /** Paths this translation names that the base does not. */
+  readonly stale: readonly string[]
+  /** Paths both name with the same string. A name, or a translation nobody wrote. */
+  readonly identical: readonly string[]
+}
+
+/** Every path to a string in a bundle, dotted, in the order they were written. */
+export function bundlePaths(bundle: Bundle, under = ''): readonly string[] {
+  return Object.entries(bundle).flatMap(([key, value]) => {
+    const path = under === '' ? key : `${under}.${key}`
+    return typeof value === 'string' ? [path] : bundlePaths(value, path)
+  })
+}
+
+/** What a bundle says at a dotted path, or `undefined` where it says nothing there. */
+export function bundleSays(bundle: Bundle, path: string): string | undefined {
+  let at: string | Bundle | undefined = bundle
+  for (const step of path.split('.')) {
+    if (at === undefined || typeof at === 'string') return undefined
+    at = at[step]
+  }
+  return typeof at === 'string' ? at : undefined
+}
+
+/** One translation against the base it is a translation of. A report, never a refusal. */
+export function bundleGaps(base: Bundle, over: Bundle): BundleGaps {
+  const mine = bundlePaths(base)
+  const theirs = bundlePaths(over)
+
+  return {
+    untranslated: mine.filter((path) => bundleSays(over, path) === undefined),
+    stale: theirs.filter((path) => bundleSays(base, path) === undefined),
+    identical: mine.filter((path) => bundleSays(over, path) === bundleSays(base, path)),
+  }
+}
+
+/**
  * A locale nobody speaks, which is what proves the screens read from here.
  *
  * Every value is wrapped and every hole is kept, so rendering under it leaves anything

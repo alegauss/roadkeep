@@ -1,3 +1,4 @@
+import type { Bundle } from '@rk/core'
 import type { BentoNavGroup, BentoNavItem } from '@viglet/viglet-design-system/bento'
 
 /**
@@ -49,8 +50,14 @@ export function surfacesIn(groups: readonly BentoNavGroup[]): BentoNavItem[] {
  * ships no `language` namespace at all -- so without these two lines its only name is an
  * English default, in every language. The merge is shallow per top-level key and there is
  * nothing there to overwrite.
+ *
+ * **`en` is the base here, as it is in the catalogue** (RG125). Nothing compared these two
+ * objects until then: a key added to `en` and missed in `pt` drew English inside a
+ * Portuguese window, and the pseudo-locale run could not see it. `areas.test.ts` walks them
+ * with `bundleGaps` now, which is the same pair of questions `locales.test.ts` asks of the
+ * catalogue -- so adding a language means adding an object and nothing else.
  */
-export const AREA_WORDING: Readonly<Record<'en' | 'pt', Record<string, unknown>>> = {
+export const AREA_WORDING: Readonly<Record<'en' | 'pt', Bundle>> = {
   en: { language: { toggle: 'Change the language' } },
   pt: { language: { toggle: 'Mudar o idioma' } },
 }

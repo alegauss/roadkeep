@@ -3,6 +3,10 @@ import { describe, expect, it } from 'vitest'
 import {
   BASE,
   BASE_LOCALE,
+  type Bundle,
+  bundleGaps,
+  bundlePaths,
+  bundleSays,
   EN,
   fill,
   isPseudo,
@@ -125,5 +129,70 @@ describe('RG51: the locale nobody speaks', () => {
 
   it('is not mistaken for a real string', () => {
     expect(isPseudo(BASE['app.name'])).toBe(false)
+  })
+})
+
+describe('RG125: the other half of the wording, compared', () => {
+  /** A bundle shaped like the real one: nested, and one language per top-level object. */
+  const base: Bundle = {
+    language: { toggle: 'Change the language' },
+    nav: { backlog: 'Backlog', task: 'Task' },
+  }
+
+  it('reads a nested bundle as the paths i18next resolves', () => {
+    // Dotted, because that is what a component asks for: `t('nav.backlog')`. A test that
+    // compared objects would say a language is missing something without saying what.
+    expect(bundlePaths(base)).toEqual(['language.toggle', 'nav.backlog', 'nav.task'])
+  })
+
+  it('says nothing for a path that is not there, and nothing for a path that is a branch', () => {
+    expect(bundleSays(base, 'nav.backlog')).toBe('Backlog')
+    expect(bundleSays(base, 'nav.missing')).toBeUndefined()
+    expect(bundleSays(base, 'nav.backlog.deeper')).toBeUndefined()
+    // A branch is not a string, and reporting `nav` as translated would hide every leaf
+    // under it.
+    expect(bundleSays(base, 'nav')).toBeUndefined()
+  })
+
+  it('names the path a translation is missing, not the count', () => {
+    const gaps = bundleGaps(base, {
+      language: { toggle: 'Mudar o idioma' },
+      nav: { backlog: 'Backlog' },
+    })
+
+    expect(gaps.untranslated).toEqual(['nav.task'])
+    expect(gaps.stale).toEqual([])
+  })
+
+  it('names a path the base no longer has, which is a string that outlived its screen', () => {
+    const gaps = bundleGaps(base, {
+      language: { toggle: 'Mudar o idioma' },
+      nav: { backlog: 'Backlog', task: 'Tarefa', archive: 'Arquivo' },
+    })
+
+    expect(gaps.stale).toEqual(['nav.archive'])
+    expect(gaps.untranslated).toEqual([])
+  })
+
+  it('names a value identical in both, which is a name or a translation nobody wrote', () => {
+    // Reported and not refused, for the reason `app.name` is the catalogue's exception:
+    // a name is the same word in either language. Whether one of these is that is a
+    // judgement, and this is the list somebody makes it against.
+    const gaps = bundleGaps(base, {
+      language: { toggle: 'Mudar o idioma' },
+      nav: { backlog: 'Backlog', task: 'Tarefa' },
+    })
+
+    expect(gaps.identical).toEqual(['nav.backlog'])
+  })
+
+  it('holds a bundle against itself as wholly identical and wholly translated', () => {
+    // The control: a copy of the base has nothing missing, nothing stale, and every path
+    // identical — so a `pt` written by copying `en` reports every line of itself.
+    const gaps = bundleGaps(base, base)
+
+    expect(gaps.untranslated).toEqual([])
+    expect(gaps.stale).toEqual([])
+    expect(gaps.identical).toEqual(bundlePaths(base))
   })
 })

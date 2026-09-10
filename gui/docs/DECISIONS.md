@@ -81,6 +81,7 @@ inherits its permissions.
 - ✅ **RG116** **there is no control for the language, so choosing one means editing the settings file by hand** — A control the design system owns may keep its own cache; the settings file is the source, and the write back hangs on whatever holds the state rather than on the control.
 - ✅ **RG123** **a sentence shown in a toast is English whatever the window is speaking, and the run that would catch it looks elsewhere** — A settings loss crosses as a code and its fields, and the pseudo-locale run reads document.body with the sheet, the palette and a toast open.
 - ✅ **RG124** **a design system control draws its flags from a CDN, so a screen adopting one shows the image the policy refused** — Every host the built renderer names is accounted for by name in a live test, and no image source in it may carry one.
+- ✅ **RG125** **the i18next half of the wording is two hand-written objects, so a key added to one and missed in the other is silent** — Both halves of the wording are held complete by one rule in core: every path of the base in every language, and a copied value is an error unless it is a name.
 
 ### §RG39 A shared design system, not a copied one
 
