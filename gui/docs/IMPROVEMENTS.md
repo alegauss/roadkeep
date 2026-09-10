@@ -247,31 +247,6 @@ reason on it, so the guard stays green about the one string it can do nothing ab
 red about every other. That set is the thing to delete: when this is fixed, the run says
 so by failing to find what the exception excused.
 
-### §RG133 The icon that arrives over the network
-
-RG124's check found what it was built to find, and it was not the flag CDN. The built
-renderer names `api.iconify.design`, `api.simplesvg.com` and `api.unisvg.com` —
-Iconify's default resource list, shipped inside `@iconify/react`, which the bento layer
-imports.
-
-Nothing fetches today, and the reason is a prop. `BentoNavRail` and the tiles render
-`<Icon icon={…}>` when a caller gives an item an `icon` string and a bundled
-`@tabler/icons-react` component when it does not. `AREAS` is empty, so no name has ever
-been passed. The first screen in blocks C to F that writes `icon: 'mdi:folder'` on a nav
-item turns three hosts the packaged policy refuses into a request per icon, and what it
-draws instead is nothing at all.
-
-That makes this worse than the flag it was found beside. `LanguageSelect` is a component
-somebody has to adopt deliberately; this is one string on a data structure this app
-already owns, in a file whose other fields are ordinary.
-
-Two answers and they compose. **Say it where the array is**: `areas.ts` is where an
-`icon` would be typed, and its own doc is what the next person reads. **And hold it**:
-the icon a bento item carries can be a tabler component rather than a name, so a test
-over `AREAS` asserting no item names a string is a check on this repository's own data
-rather than on somebody's bundle — cheap, fast, and it fails on the line being written
-rather than after a build.
-
 ### §RG136 A mark only the drawings have
 
 `Main.dc.html` and `Shell.dc.html` open the header with a 28px amber square — a folder

@@ -88,7 +88,7 @@ const ACCOUNTED: readonly { readonly host: string; readonly kind: string; readon
     {
       host: 'api.iconify.design',
       kind: 'fetched',
-      why: "Iconify's default API, reached only for an `icon` name a caller passes — see RG133.",
+      why: "Iconify's default API, reached for an `icon` name given an entity tile or shell — RG133's rule forbids one.",
     },
     { host: 'api.simplesvg.com', kind: 'fetched', why: "The second of Iconify's three, same." },
     { host: 'api.unisvg.com', kind: 'fetched', why: "The third of Iconify's three, same." },

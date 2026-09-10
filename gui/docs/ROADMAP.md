@@ -34,7 +34,6 @@
 
 - 📋 **RG90** (deps: RG54 ✅, the design system darkening the muted foreground) **muted text on a muted panel is 4.33 to 1, which no screen renders yet and one will** — Those two tokens are named as a pair and miss AA on the light ground, so the first panel using both ships a pale label looking like a style. → §RG90
 - 📋 **RG132** (deps: RG123 ✅, the design system translating its dialog close button) **a dialog says Close in English in every language, and the run that found it can only name it** — The package writes that word into its markup and not its bundle, so the guard carries a listed exception. → §RG132
-- 📋 **RG133** (deps: RG124 ✅, RG59 ✅) **the renderer ships three icon API endpoints, and one prop on a nav item is what starts fetching from them** — Every bento component takes an icon name it hands to Iconify, which fetches per name, and the policy refuses all three hosts. → §RG133
 - 📋 **RG136** (deps: RG127 ✅) **the artboards draw a brand mark beside the wordmark that the window does not render, and nothing says which is right** — RG127 holds the drawn controls to the window and a mark is not a control, so 58px of header stay measured wrong. → §RG136
 
 ## Done when — Block A

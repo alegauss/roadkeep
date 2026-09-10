@@ -87,6 +87,7 @@ inherits its permissions.
 - ✅ **RG125** **the i18next half of the wording is two hand-written objects, so a key added to one and missed in the other is silent** — Both halves of the wording are held complete by one rule in core: every path of the base in every language, and a copied value is an error unless it is a name.
 - ✅ **RG126** **the provider stack is spelled twice, so one added to the window is missing from every test that renders it** — The window's providers and route tree are one component each; a caller supplies only its router and whether it runs under StrictMode.
 - ✅ **RG127** **the artboards draw a header the window no longer has, and they are what the next screen is designed against** — An artboard marks each control the window renders with data-control; one drawn but not rendered yet is dashed and left unmarked.
+- ✅ **RG133** **the renderer ships three icon API endpoints, and one prop on a nav item is what starts fetching from them** — This app passes a Tabler component to a bento icon and never an Iconify name; a file handing an entity tile or shell an icon fails the suite.
 
 ### §RG39 A shared design system, not a copied one
 
