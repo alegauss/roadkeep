@@ -35,6 +35,7 @@
 - ✅ **RG134** **the contract reads this repository's own lint for a finding, so a clean gate leaves it nothing to assert** — The contract builds a fixture of its own, writes one line into it by hand, and reads the remedy lint answers for that line.
 - ✅ **RG130** **the live gate runs one file at a time because every read in it spawns a python, and that is most of ten minutes** — Suite reads go through a held engine and files run one per four cores: 433s became 87s here, and CI stays serial (design recorded in `packages/shell/vitest.live.config.ts`).
 - ✅ **RG131** **a read cancelled after it reaches the held engine runs to the end, and only the transport that spawns kills one** — A cancelled held read rejects as aborted at once and its late answer is dropped; the cancel notice is sent too, though this build ignores it.
+- ✅ **RG135** **a project whose engine cannot hold a session reads at spawn speed, and nothing says the held surface was refused** — The held transport keeps why each root could not be held, with the engine's last stderr line, and drains that stream so a chatty server never blocks.
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

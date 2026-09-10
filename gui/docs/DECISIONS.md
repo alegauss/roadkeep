@@ -10,6 +10,7 @@
 - ✅ **RG134** **the contract reads this repository's own lint for a finding, so a clean gate leaves it nothing to assert** — A contract test produces the state it asserts about; it never reads this repository's own gate for one.
 - ✅ **RG130** **the live gate runs one file at a time because every read in it spawns a python, and that is most of ten minutes** — The live suite reads through a held engine and writes by spawning; files in flight are bounded by cores, one per four, never fewer than one.
 - ✅ **RG131** **a read cancelled after it reaches the held engine runs to the end, and only the transport that spawns kills one** — A cancelled read is let go in flight by every transport, the pool and the held engine refuse it before it starts anything, and a held engine outlives the cancel.
+- ✅ **RG135** **a project whose engine cannot hold a session reads at spawn speed, and nothing says the held surface was refused** — A fall-through keeps its reason where the caller can read it; a transport never swallows why it chose the slow path.
 
 ### §RG65 What a path means is not core's to know
 

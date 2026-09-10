@@ -124,9 +124,25 @@ export interface McpTransport extends Transport {
   releaseSync(root: string): void
   /** How many engines are held, which is one per root that has been read. */
   readonly held: number
+  /**
+   * The roots this could not hold, and why, in the engine's own words where it had any
+   * (RG135).
+   *
+   * A root here reads at spawn speed for the rest of this transport's life — seven hundred
+   * milliseconds against six — and that is the right call, since slow beats broken. What was
+   * wrong was that nothing kept the reason: a screen could not say why one project was slow,
+   * and a test that expected the held path failed with `1` is not `0`.
+   */
+  readonly unheld: ReadonlyMap<string, string>
 }
 
 const PROTOCOL = '2024-11-05'
+
+/**
+ * How much of a server's stderr is kept: the end of it, which is where a traceback names
+ * its cause. Bounded because it is a stream nobody promised a size for.
+ */
+const SAID_TAIL = 2000
 
 /** One server, its process, and the calls waiting on it. */
 class Held {
@@ -137,6 +153,10 @@ class Held {
   private nextId = 0
   private readonly ready: Promise<void>
   private ended: Error | null = null
+  /** The end of what the server wrote on stderr, which is its own account of dying. */
+  private said = ''
+  /** Settled once every stream has closed — which is when `said` is complete. */
+  private readonly drained: Promise<void>
 
   constructor(
     engine: readonly string[],
@@ -156,6 +176,18 @@ class Held {
     this.child.stdout?.on('data', (chunk: string) => {
       this.take(chunk)
     })
+    // Read, and not only for the reason it gives (RG135). A pipe nobody drains is a pipe
+    // that fills, and a server that has written sixty-four kilobytes of warnings then blocks
+    // on its next line — a hang this app would have reported as a timeout on a healthy engine.
+    this.child.stderr?.setEncoding('utf8')
+    this.child.stderr?.on('data', (chunk: string) => {
+      this.said = `${this.said}${chunk}`.slice(-SAID_TAIL)
+    })
+    this.drained = new Promise<void>((done) => {
+      this.child.once('close', () => {
+        done()
+      })
+    })
     this.child.on('error', (cause) => {
       this.die(cause)
     })
@@ -174,6 +206,24 @@ class Held {
   /** Whether the process is gone, as against a call that merely ran out of time. */
   get gone(): boolean {
     return this.ended !== null
+  }
+
+  /**
+   * Why this server could not be held, said the way a person would want it (RG135).
+   *
+   * The failure that ended the handshake, and then the server's own last words where it
+   * had any — a traceback's final line names the module that would not import, which is
+   * the whole diagnosis, and without it the sentence is only that something exited.
+   */
+  async refusal(cause: unknown): Promise<string> {
+    // After the streams close and not only the process: `exit` can be emitted with stderr
+    // still in the pipe, and the line that names the cause is the last one written. Bounded,
+    // because a server that was never started has no streams to close.
+    await Promise.race([this.drained, new Promise((done) => setTimeout(done, 1000).unref())])
+
+    const why = cause instanceof Error ? cause.message : String(cause)
+    const said = this.said.trim().split('\n').at(-1)?.trim() ?? ''
+    return said === '' ? why : `${why}: ${said}`
   }
 
   /**
@@ -389,8 +439,8 @@ function textOf(frame: Frame): string {
 
 export function createMcpTransport(options: McpTransportOptions): McpTransport {
   const engines = new Map<string, Held>()
-  /** Roots whose engine never got through the handshake. Asked once, not once a read. */
-  const unheldable = new Set<string>()
+  /** Roots whose engine never got through the handshake, and why. Asked once, not per read. */
+  const unheldable = new Map<string, string>()
   const ceiling = options.timeoutMs ?? 60000
 
   const engineFor = (root: string): Held => {
@@ -406,13 +456,14 @@ export function createMcpTransport(options: McpTransportOptions): McpTransport {
     const held = engineFor(root)
     try {
       return (await held.publishes(tool)) ? held : null
-    } catch {
+    } catch (cause) {
       // The handshake did not answer, so there is no surface here to speak to — an engine
       // with no `mcp`, an interpreter that could not start, a server that wrote something
-      // else. Given back, remembered, and every read for this root spawns from now on.
+      // else. Given back, remembered with its reason, and every read for this root spawns
+      // from now on.
       engines.delete(root)
-      unheldable.add(root)
       await held.stop()
+      unheldable.set(root, await held.refusal(cause))
       return null
     }
   }
@@ -497,6 +548,10 @@ export function createMcpTransport(options: McpTransportOptions): McpTransport {
 
     get held() {
       return engines.size
+    },
+
+    get unheld(): ReadonlyMap<string, string> {
+      return unheldable
     },
   }
 }

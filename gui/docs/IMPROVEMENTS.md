@@ -11,29 +11,30 @@ rather than pretending it is safe. Spawning without a shell removes the quoting 
 but not the encoding one. What proves it is a round trip: write a symptom carrying an
 accent, an apostrophe and an em dash, read it back with show, and compare the bytes.
 
-### §RG135 The fallback that forgets why it fell back
+### §RG137 The reason that stops one layer short of the screen
 
-RG122 made a failed handshake a fall-through: an engine too old to have `mcp`, one whose
-interpreter cannot start, or one caught mid-save answers nothing at `initialize`, the
-root goes into `unheldable`, and every read after it spawns. That was the right call for
-the app — slow beats broken — and it is silent in both directions that matter.
+RG135 made the held transport keep why it could not hold a root: the exit, and the last
+line the engine wrote on stderr. That answers the test that failed with `1` is not `0`,
+and nobody on a screen, because the transport is `shell`'s and what a screen reads is
+`OpenProject`, which is `core`'s and has no field for it.
 
-**A screen cannot say why a project is slow.** Seven hundred milliseconds a read against
-six is the whole reason the held engine exists, and a project that fell back pays the
-first number forever with nothing to show that it is the exception. The engine's version
-is already on screen from resolution; that this project's engine refused the held
-surface, and what it said, is not.
+It matters at the moment the portfolio exists for. A project whose engine cannot hold a
+session reads at seven hundred milliseconds where the rest read at six, for every read,
+while the window is open. One row lagging behind sixteen is what a person notices, and
+the row is where the engine's version already sits.
 
-**And a test cannot say it either.** The live gate went red on `mcp-live` with `expected
-1 to be +0`: a `list` that should have been answered held was spawned. Alone the file is
-23 of 23. Roadkeep's checkout was being edited during the run — a commit three minutes
-before it, seven engine modules modified — and a server started mid-save does not
-import. That took a `git log` in another repository to learn, because the one place that
-knew threw the reason away.
+**The shape is the stamp's, not a new seam.** `openProject` already takes what it cannot
+compute as arguments — the candidates, the transport, the stamp and, since RG122, the
+closing. A fifth, `heldBy: () => string | null`, lets `openHere` answer from
+`McpTransport.unheld` and a web service answer nothing, and `OpenProject` carries it as
+data. Nothing in `core` learns what a process is.
 
-So the transport keeps it: one reason per root it could not hold, readable beside
-`held`. The counting test then fails naming the handshake, and an open project can carry
-the sentence to a row.
+**And it is a question, not a snapshot.** A handshake fails on the first read of a root,
+which is after the project opened — so the field is read when the row is drawn, the way
+`invalidate` is called when the disk moves, rather than stamped once at open.
+
+Worth doing with the first row that draws engine health; before that there is nowhere to
+put the sentence.
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

@@ -229,6 +229,40 @@ describe('RG131: a read somebody stopped wanting', () => {
   })
 })
 
+describe('RG135: an engine that cannot hold a session', () => {
+  it('reads anyway, and keeps why in the engine`s own words', async () => {
+    // What a checkout caught mid-save looks like from here: a process that writes a
+    // traceback and exits before the handshake. Spelled as its own Python rather than
+    // waited for, and answered by a fallback that says what it is.
+    const traceback = 'ModuleNotFoundError: No module named roadkeep.backlog'
+    const broken = [
+      'python',
+      '-c',
+      `import sys; sys.stderr.write("Traceback (most recent call last):\\n${traceback}\\n"); sys.exit(3)`,
+    ]
+    const fellBack = { code: 0, stdout: '{"fell":"back"}', stderr: '', durationMs: 1 }
+    const unheldable = createMcpTransport({
+      engine: broken,
+      fallback: { run: () => Promise.resolve(fellBack) },
+      timeoutMs: CEILING,
+    })
+
+    try {
+      // Slow beats broken, which is RG122's call and stays: the read is answered.
+      expect(await unheldable.run(asked('list'))).toEqual(fellBack)
+      expect(unheldable.held).toBe(0)
+
+      // And the reason is kept — the exit, then the traceback's own last line, which names
+      // the module that would not import and is the whole of the diagnosis.
+      const why = unheldable.unheld.get(fixture.root) ?? ''
+      expect(why).toContain('exited with 3')
+      expect(why).toContain(traceback)
+    } finally {
+      await unheldable.close()
+    }
+  })
+})
+
 describe('RG101: a call it cannot serve', () => {
   it('sends a request with no tool call to the transport that spawns', async () => {
     // A door's own argv is composed by the engine, and nothing here turned it into a tool.
@@ -301,7 +335,13 @@ describe('RG101: a call it cannot serve', () => {
 
     try {
       const published = await routed.run(asked('list'))
-      expect(spawned).toBe(0)
+      // Named when it fails (RG135). This went red once as `expected 1 to be +0` with nothing
+      // near it changed — a server started mid-save that did not import — and learning that
+      // took a `git log` in another repository. The reason is kept now; this prints it.
+      expect(
+        spawned,
+        `a read the surface publishes was spawned: ${routed.unheld.get(fixture.root) ?? 'no handshake failed'}`,
+      ).toBe(0)
       expect(payload(published.stdout)).not.toBe('')
 
       const unpublished = await routed.run(asked('stats'))
