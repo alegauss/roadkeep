@@ -14,6 +14,8 @@ import { EngineCallFailed, type EngineRequest, type EngineResult, type Transport
  * **No shell.** `shell: false` with argv as an array, because this app puts prose a person
  * typed into those elements and a shell is where quoting defects live. An argument holding
  * `&&`, a quote or a `$(...)` reaches the engine as those characters and never as syntax.
+ * `prose-live.test.ts` holds that as a round trip (RG9) — which is why prose does not move to
+ * stdin: the engine takes one field per call there, and nothing on this path needs it.
  *
  * **The root is the working directory.** The client also passes `-C`, so an answer is
  * about the project on screen twice over.

@@ -11,6 +11,7 @@
 - ✅ **RG130** **the live gate runs one file at a time because every read in it spawns a python, and that is most of ten minutes** — The live suite reads through a held engine and writes by spawning; files in flight are bounded by cores, one per four, never fewer than one.
 - ✅ **RG131** **a read cancelled after it reaches the held engine runs to the end, and only the transport that spawns kills one** — A cancelled read is let go in flight by every transport, the pool and the held engine refuse it before it starts anything, and a held engine outlives the cancel.
 - ✅ **RG135** **a project whose engine cannot hold a session reads at spawn speed, and nothing says the held surface was refused** — A fall-through keeps its reason where the caller can read it; a transport never swallows why it chose the slow path.
+- ✅ **RG9** **prose a person typed goes out through argv, which is where RK1474 recorded bytes arriving as different bytes** — Prose a person typed goes in as argv elements with no shell between, held by a live round trip; stdin takes one field per call and is not the route.
 
 ### §RG65 What a path means is not core's to know
 
@@ -26,6 +27,22 @@ never wrong anywhere. `root-paths.ts` had answered the same question for folders
 recording why. This is the second instance, and the constraint is general: a rule about
 paths belongs to whoever has the filesystem, even written as pure string work that would
 compile in `core` untouched.
+
+### §RG9 Argv with no shell, and why not stdin
+
+Three routes were weighed for getting a person's words to the engine unchanged.
+
+**Stdin, field by field**, was the plan the line was filed with. It cannot carry an
+`add`: the engine reads one field per call from stdin and refuses a second dash as a
+pipe clash, and an `add` has a symptom, a why and a section body.
+
+**A body file** would take the paragraph off the command line. It costs the shell a
+temporary file for every write, which is a path this app then owns and cleans up, for a
+gain nobody had measured.
+
+**Argv with no shell** is what the app already did, and the one measured: no shell reads
+`$(…)`, `%PATH%` or a quote, and a live round trip through `show` returns them, accents
+and CJK byte for byte. A failure there is the reason to reopen this.
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

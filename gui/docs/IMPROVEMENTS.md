@@ -2,15 +2,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-### §RG9 Getting a person's words in unchanged
-
-Prose fields go in on stdin wherever the verb offers it: the why, a section body and
-restate's symptom all read a dash. The add verb's symptom does not, which is filed
-upstream, and until that lands this app composes that one field as argv and says so
-rather than pretending it is safe. Spawning without a shell removes the quoting layer
-but not the encoding one. What proves it is a round trip: write a symptom carrying an
-accent, an apostrophe and an em dash, read it back with show, and compare the bytes.
-
 ### §RG137 The reason that stops one layer short of the screen
 
 RG135 made the held transport keep why it could not hold a root: the exit, and the last

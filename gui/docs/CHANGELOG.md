@@ -42,6 +42,7 @@
 - ✅ **RG142** **a brief with no id on a backlog with nothing ready answers empty, and the reader calls that this app being behind** — A brief with nothing to hand over reads as its own shape with the engine's reason, and the contract now holds that and the null-tier pick live.
   checked **A brief with nothing to hand over reads as that and not as unreadable** The payload the engine printed reads in a unit test, and a fixture with no open line is briefed live in the contract and the handover.
   checked **No handover can be built from an answer that may be empty** The type holds it: a compile-time assertion that the answer does not extend what handoverOf takes.
+- ✅ **RG9** **prose a person typed goes out through argv, which is where RK1474 recorded bytes arriving as different bytes** — Every prose field of an add round-trips byte for byte through argv, shell syntax included, held by a live test (design superseded: the shell-less spawn never changed a byte).
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

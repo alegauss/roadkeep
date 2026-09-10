@@ -4,7 +4,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-- 💭 **RG9** (deps: RG1 ✅, roadkeep RK1632) **prose a person typed goes out through argv, which is where RK1474 recorded bytes arriving as different bytes** — why and section-body each read stdin on a dash and symptom does not, so the field every line leads with is the one with no safe path in. → §RG9
 - 📋 **RG137** (deps: RG135 ✅, RG122 ✅, RG15) **an open project does not carry why its engine could not be held, so a row cannot say why it reads slowly** — RG135 keeps the reason on the held transport in shell, and OpenProject in core has no field it could arrive in. → §RG137
 
 ## Block B — Discovery (which checkouts on this machine are governed)
