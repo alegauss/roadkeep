@@ -222,20 +222,20 @@
     {
       // Where asserting a type just proved is the work (RG121).
       //
-      // Three families, and every file here was read once to decide it belonged:
+      // Two families, and every file here was read once to decide it belonged:
       //
       //   `reading.ts` is the validator itself — it checks a value and narrows it, which
-      //   is the whole of what it does, and `asRecord` and `keysOf` are the two narrowings
-      //   the rest of the project was writing out by hand until they moved here.
+      //   is the whole of what it does, and `asRecord`, `keysOf` and `tableOf` are the
+      //   narrowings the rest of the project was writing out by hand until they moved here.
       //
       //   The readers of an outside shape: a wire frame, a command's JSON, a file this app
       //   did not write, or whatever a `catch` was handed. `settings.ts` and
       //   `cold-start.ts` in `core`; in `shell`, the transports and the two harnesses that
       //   read a CDP or an npm payload. Each checks before it narrows.
       //
-      //   `capabilities.ts` narrows the keys of its own table, which `keysOf` cannot do for
-      //   it: `CALLED` is declared `Record<string, …>` because it is two tables spread
-      //   together, so the key type is a claim the declaration does not carry.
+      // There was a third, of one file: `capabilities.ts` narrowed the keys of a table declared
+      // `Record<string, …>`. It came off at RG129 — the table is declared by its key type, so
+      // `keysOf` answers for it, and its accumulator is `tableOf`'s.
       //
       // A file added here is a file somebody read. The point of the rule being on
       // everywhere else is that an assertion in a screen, a hook or a pure rule is a
@@ -244,7 +244,6 @@
         "packages/core/src/reading.ts",
         "packages/core/src/settings.ts",
         "packages/core/src/cold-start.ts",
-        "packages/core/src/capabilities.ts",
         "packages/shell/src/advisories.ts",
         "packages/shell/src/engine-handler.ts",
         "packages/shell/src/fixture.ts",

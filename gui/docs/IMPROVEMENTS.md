@@ -219,31 +219,6 @@ not help, being a candidate the same probe drops.
 - **The launcher is not this repository's to change.** It is identical to what `roadkeep install` writes today, so an edit here is overwritten by the next refresh. Making a *named* engine fatal rather than skippable is its behaviour, and the dep names it.
 - **The cache is the hazard on this machine.** It still answers — `0.2.4`, from 2026-08-28 — and is the candidate a busy sibling falls to. Removing `~/.cache/roadkeep-src` turns a stale answer into a refusal naming the missing engine: louder, and never wrong. It is a directory outside this repository, so it is named here for whoever owns the machine rather than removed.
 
-### §RG129 A table that does not carry its own key type
-
-`CALLED` is `{ ...VERBS, ...WRITES }` declared as `Record<string, (input: never) =>
-readonly string[]>`, and `CalledName` is `VerbName | WriteName` written separately. The
-two agree today because a person kept them agreeing. Nothing checks it, and the file has
-to assert its own key type to publish `CALLED_NAMES` -- which is what keeps
-`capabilities.ts` on RG121's exempt list while `wording.ts` and `opening.ts`, whose
-tables carry their key types, came off it by calling `keysOf`.
-
-Two smaller assertions in the same file have the same root. `flagsFor` widens a builder
-to `(input: unknown) => readonly string[]` because the table's value type says `never`,
-and `capabilitiesOf` starts its accumulator as an empty object asserted into a full
-`Record<CalledName, Capability>`.
-
-The shape is to declare the table by the type it is: `Record<CalledName, (input: never)
-=> readonly string[]>`. Then `keysOf` answers `CalledName[]`, the widening in `flagsFor`
-has a real type to narrow from, and a verb added to `VERBS` without a name in
-`CalledName` is a compile error rather than a key that silently answers `string`. The
-accumulator is separate and its own small choice -- `Object.fromEntries` over
-`CALLED_NAMES`, or a `Map`.
-
-Worth doing when something else touches this file: the win is a compile error nobody has
-needed yet, and the risk is that `never` in the value position makes the spread refuse
-to typecheck, which is the thing to find out first.
-
 ## Block H — The look (a design system for governed prose)
 
 ### §RG62 Joining the checks the other consoles already answer to

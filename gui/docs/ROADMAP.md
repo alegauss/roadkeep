@@ -31,7 +31,6 @@
 - 💭 **RG50** (deps: RG46 ✅) (requires: published-artifact) **nothing updates, so a fix reaches a person only if they go and look for one** — A desktop build that cannot update is one whose defects live on every machine that installed it until somebody notices. → §RG50
 - 💭 **RG119** (deps: RG91 ✅) (requires: macos-machine) **no macOS build of this app has ever been made, so what it needs is a guess** — electron-builder.yml names a dmg target nobody has run, and the two things a Mac build turns out to want are learned by making one. → §RG119
 - 📋 **RG128** (deps: RG120 ✅, roadkeep's launcher treating a named engine as fatal) **a checkout busy when the probe runs is skipped, so the launcher answers from a cache 446 versions old** — Resolution takes the first engine that answers, so a session can be briefed by a copy nobody chose. → §RG128
-- 📋 **RG129** (deps: RG121 ✅) **the verb table is declared with string keys, so the file owning it asserts its own key type and nothing checks the pair** — CALLED and CalledName are written separately and agree because somebody kept them agreeing, which is why keysOf cannot answer for that table. → §RG129
 
 ## Block H — The look (a design system for governed prose)
 

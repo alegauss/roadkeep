@@ -64,6 +64,22 @@ export function keysOf<T extends object>(table: T): (keyof T & string)[] {
   return Object.keys(table) as (keyof T & string)[]
 }
 
+/**
+ * A table with one entry for every key given, each made by a function of its key (RG129).
+ *
+ * `keysOf` run the other way, and here for the same reason. `Object.fromEntries` answers
+ * `{ [k: string]: V }` because it cannot know which keys it was handed; a caller mapping a
+ * closed list of them knows the table holds exactly those, and was saying so by starting an
+ * accumulator as `{}` asserted to be the finished record. The claim is made once, here,
+ * beside what proves it — every key in `keys` was given a value on the line above.
+ */
+export function tableOf<K extends string, V>(
+  keys: readonly K[],
+  valueOf: (key: K) => V,
+): Record<K, V> {
+  return Object.fromEntries(keys.map((key) => [key, valueOf(key)])) as Record<K, V>
+}
+
 const ok = <T>(value: T): Parsed<T> => ({ ok: true, value })
 
 function fail(path: string, expected: string, value: unknown): Parsed<never> {

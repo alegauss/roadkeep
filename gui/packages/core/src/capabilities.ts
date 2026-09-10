@@ -2,14 +2,23 @@ import {
   aBoolean,
   aString,
   anything,
+  keysOf,
   listOf,
   orMissing,
   record,
+  tableOf,
   type Parsed,
   type Reader,
 } from './reading'
-import { EVERY_INPUT, publishedAs, VERBS, VERB_WORDS, type VerbName } from './verbs'
-import { EVERY_WRITE_INPUT, WRITES, WRITE_WORDS, type WriteName } from './writes'
+import {
+  EVERY_INPUT,
+  publishedAs,
+  VERBS,
+  VERB_WORDS,
+  type VerbInputs,
+  type VerbName,
+} from './verbs'
+import { EVERY_WRITE_INPUT, WRITES, WRITE_WORDS, type WriteInputs, type WriteName } from './writes'
 
 /**
  * What this build of roadkeep can actually do, asked once when a project is opened.
@@ -109,8 +118,29 @@ export const readCommandsPayload: Reader<CommandsPayload> = record<CommandsPaylo
  */
 export type CalledName = VerbName | WriteName
 
-const CALLED: Record<string, (input: never) => readonly string[]> = { ...VERBS, ...WRITES }
-const CALLED_INPUT: Record<string, unknown> = { ...EVERY_INPUT, ...EVERY_WRITE_INPUT }
+/**
+ * What each of those takes. The two sets of names are disjoint, so this is each verb's own
+ * input and never a blend of a read's and a write's.
+ */
+type CalledInputs = VerbInputs & WriteInputs
+
+/**
+ * The two builder tables as one, declared by the type it is (RG129).
+ *
+ * It was `Record<string, (input: never) => …>`, which made the key type a claim this file
+ * asserted rather than one the declaration carried — `CalledName` written beside the table
+ * and agreeing with it because somebody kept them agreeing. Mapped over `CalledName` the way
+ * `VERBS` and `WRITES` are each mapped over their own names, a verb added to either without
+ * a name here fails to compile, `keysOf` answers the names, and indexing with a generic verb
+ * pairs a builder with its own input — which is what lets `flagsFor` call one unasserted.
+ */
+type Builders = { [K in CalledName]: (input: CalledInputs[K]) => readonly string[] }
+
+const CALLED: Builders = { ...VERBS, ...WRITES }
+const CALLED_INPUT: { [K in CalledName]: CalledInputs[K] } = {
+  ...EVERY_INPUT,
+  ...EVERY_WRITE_INPUT,
+}
 const CALLED_WORDS = { ...VERB_WORDS, ...WRITE_WORDS }
 
 /**
@@ -132,7 +162,7 @@ export function publishedName(verb: CalledName): string {
  * or a screen enumerating the reads alone would go on reporting a build complete while
  * the write it is about to offer is one this engine has never heard of.
  */
-export const CALLED_NAMES = Object.keys(CALLED) as CalledName[]
+export const CALLED_NAMES: readonly CalledName[] = keysOf(CALLED)
 
 /** What this build offers for one verb this app calls. */
 export interface Capability {
@@ -171,9 +201,23 @@ export type CapabilityReport =
  * builder. `--json` is added because the client appends it to every call.
  */
 export function flagsFor(verb: CalledName): string[] {
-  const build = CALLED[verb] as (input: unknown) => readonly string[]
-  const emitted = build(CALLED_INPUT[verb]).filter((part) => part.startsWith('--'))
-  return [...new Set([...emitted, '--json'])]
+  const sent = emitted(CALLED[verb], CALLED_INPUT[verb]).filter((part) => part.startsWith('--'))
+  return [...new Set([...sent, '--json'])]
+}
+
+/**
+ * One builder over one input, named by the same verb.
+ *
+ * Generic so the two are read as one verb's pair: inside, `Builders[K]` is a builder taking
+ * exactly `CalledInputs[K]`, and the call needs no assertion. Written in the verb's own
+ * lookup it would not be — each index answers the whole union on its own, and a builder
+ * from that union takes an input fitting every verb at once, which is `never`.
+ */
+function emitted<K extends CalledName>(
+  build: Builders[K],
+  input: CalledInputs[K],
+): readonly string[] {
+  return build(input)
 }
 
 /**
@@ -186,37 +230,38 @@ export function flagsFor(verb: CalledName): string[] {
  */
 export function capabilitiesOf(payload: CommandsPayload): CapabilityReport {
   const published = new Map(payload.commands.map((command) => [command.command, command]))
-  const byVerb = {} as Record<CalledName, Capability>
-  let complete = true
+  const byVerb = tableOf(CALLED_NAMES, (verb) =>
+    capabilityOf(verb, published.get(publishedName(verb))),
+  )
+  // Complete is every verb runnable with every flag it would send, which is a question about
+  // the table once it is built rather than a flag somebody has to remember to lower in a loop.
+  const complete = CALLED_NAMES.every(
+    (verb) => byVerb[verb].callable && byVerb[verb].missingFlags.length === 0,
+  )
 
-  for (const verb of CALLED_NAMES) {
-    const command = published.get(publishedName(verb))
-    if (command === undefined || !command.runs) {
-      byVerb[verb] = {
-        verb,
-        callable: false,
-        onToolSurface: command?.published ?? false,
-        writes: false,
-        missingFlags: [],
-      }
-      complete = false
-      continue
-    }
+  return { kind: 'known', version: payload.version, byVerb, complete }
+}
 
-    const accepted = new Set(command.arguments.flatMap((argument) => argument.spelling))
-    const missingFlags = flagsFor(verb).filter((flag) => !accepted.has(flag))
-    if (missingFlags.length > 0) complete = false
-
-    byVerb[verb] = {
+/** One verb against the command this build published for it, or against its absence. */
+function capabilityOf(verb: CalledName, command: PublishedCommand | undefined): Capability {
+  if (command === undefined || !command.runs) {
+    return {
       verb,
-      callable: true,
-      onToolSurface: command.published,
-      writes: command.writes,
-      missingFlags,
+      callable: false,
+      onToolSurface: command?.published ?? false,
+      writes: false,
+      missingFlags: [],
     }
   }
 
-  return { kind: 'known', version: payload.version, byVerb, complete }
+  const accepted = new Set(command.arguments.flatMap((argument) => argument.spelling))
+  return {
+    verb,
+    callable: true,
+    onToolSurface: command.published,
+    writes: command.writes,
+    missingFlags: flagsFor(verb).filter((flag) => !accepted.has(flag)),
+  }
 }
 
 /**
