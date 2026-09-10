@@ -23,6 +23,7 @@ function withBridge(parts: Partial<RendererBridge>): void {
     identify: () => Promise.resolve({ transport: 'ipc', build: BUILT }),
     settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: BASE_LOCALE }),
     saveTheme: () => Promise.resolve(),
+    saveLocale: () => Promise.resolve(),
     ...parts,
   }
   Object.defineProperty(window, 'roadkeep', { value: bridge, configurable: true })

@@ -1,5 +1,5 @@
 import { THEME_TEXT } from '@rk/core'
-import { Button, Toaster, toast } from '@viglet/viglet-design-system'
+import { Button, LanguageSwitcher, Toaster, toast } from '@viglet/viglet-design-system'
 import {
   BentoBackToTop,
   BentoCommandPalette,
@@ -12,6 +12,7 @@ import { Outlet } from 'react-router-dom'
 import { AREAS, HOME_ROUTE, surfacesIn } from './areas'
 import { useGround } from './ground'
 import { noticesAtLaunch } from './launch'
+import { SPOKEN_LOCALES } from './speaking'
 import { useWording } from './wording'
 
 /**
@@ -66,6 +67,9 @@ function typingInto(target: EventTarget | null): boolean {
     target instanceof HTMLSelectElement
   )
 }
+
+/** A prop, so it is built once: a fresh array per render re-renders the menu. */
+const LOCALE_ROWS = [...SPOKEN_LOCALES]
 
 export function AppShell() {
   const say = useWording()
@@ -147,6 +151,19 @@ export function AppShell() {
         >
           <kbd className="font-mono text-xs">?</kbd>
         </Button>
+
+        {/*
+         * The language, beside the ground, which is where `authoring.md` puts a second
+         * global control (RG116). Until this the app spoke two languages and offered no way
+         * to say which: choosing one meant editing the settings file by hand.
+         *
+         * It holds nothing and takes no handler, which is right rather than a gap - it
+         * moves i18next, i18next holds the language, and `speaking` keeps whatever it is
+         * now speaking. The alternative in the package, `LanguageSelect`, draws each row's
+         * flag from `flagcdn.com`: a network request out of a desktop app that reads local
+         * repositories, on a screen that works offline by design.
+         */}
+        <LanguageSwitcher languages={LOCALE_ROWS} />
 
         {/*
          * The ground says which of the three it is set to and not which of the two it

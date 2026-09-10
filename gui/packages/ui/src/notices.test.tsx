@@ -22,6 +22,7 @@ function bridge(over: Partial<RendererBridge> = {}): RendererBridge {
     identify: () => Promise.reject(new Error('not asked')),
     settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: 'en' }),
     saveTheme: () => Promise.resolve(),
+    saveLocale: () => Promise.resolve(),
     ...over,
   }
 }

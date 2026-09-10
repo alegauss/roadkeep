@@ -92,6 +92,7 @@ function recordingBridge(): { kept: Theme[] } {
       kept.push(theme)
       return Promise.resolve()
     },
+    saveLocale: () => Promise.resolve(),
   }
   Object.defineProperty(window, 'roadkeep', { value: bridge, configurable: true })
   return { kept }

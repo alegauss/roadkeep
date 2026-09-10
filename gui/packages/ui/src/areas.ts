@@ -43,8 +43,14 @@ export function surfacesIn(groups: readonly BentoNavGroup[]): BentoNavItem[] {
  *
  * Keyed `en` and `pt` because those are the two `initVigI18n` merges into; the catalogue's
  * own `pt-BR` resolves to `pt` there, which is what makes one tag serve both systems.
+ *
+ * `language.toggle` is not a nav label and is here for the same reason (RG116): the language
+ * menu is the package's `LanguageSwitcher`, it names itself with that key, and the package
+ * ships no `language` namespace at all -- so without these two lines its only name is an
+ * English default, in every language. The merge is shallow per top-level key and there is
+ * nothing there to overwrite.
  */
 export const AREA_WORDING: Readonly<Record<'en' | 'pt', Record<string, unknown>>> = {
-  en: {},
-  pt: {},
+  en: { language: { toggle: 'Change the language' } },
+  pt: { language: { toggle: 'Mudar o idioma' } },
 }

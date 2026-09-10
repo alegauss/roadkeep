@@ -15,9 +15,12 @@ import {
   wordingFor,
 } from '@rk/core'
 import { screen } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import i18next from 'i18next'
+import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import { AREA_WORDING } from './areas'
 import { drawWindow } from './harness'
+import { startSpeaking } from './speaking'
 
 /**
  * RG51: the test the design rests on.
@@ -26,6 +29,11 @@ import { drawWindow } from './harness'
  * wrapped in brackets. Anything visible without them is a string somebody typed into a
  * component — which this sees on the run after they type it, rather than on the day a
  * second locale is added and every screen has to be reopened.
+ *
+ * **Both halves of the wording, since RG116.** This app's strings reach the screen two ways:
+ * the catalogue, and the i18next bundle the package's own components resolve. The second was
+ * empty until the language menu arrived and needed a name, so the run now wraps that bundle
+ * too — otherwise adding a string there would be adding one this guard cannot see.
  */
 const BUILT = identityFrom({ version: '0.0.0', commit: 'abc1234', signed: 'unsigned' })
 
@@ -34,6 +42,7 @@ function withBridge(parts: Partial<RendererBridge>): void {
     identify: () => Promise.resolve({ transport: 'ipc', build: BUILT }),
     settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: BASE_LOCALE }),
     saveTheme: () => Promise.resolve(),
+    saveLocale: () => Promise.resolve(),
     ...parts,
   }
   Object.defineProperty(window, 'roadkeep', { value: bridge, configurable: true })
@@ -75,6 +84,25 @@ function visibleText(root: HTMLElement): string[] {
 
 /** The only text on this screen that is a name and not a sentence. */
 const IDENTIFIERS = new Set<string>(PACKAGES)
+
+/** The same brackets `pseudo` uses, over the nested shape an i18next bundle has. */
+function pseudoDeep(bundle: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(bundle).map(([key, value]) => [
+      key,
+      typeof value === 'string'
+        ? `${PSEUDO_OPEN}${value}${PSEUDO_CLOSE}`
+        : pseudoDeep(value as Record<string, unknown>),
+    ]),
+  )
+}
+
+beforeAll(async () => {
+  // The package's components read i18next and nothing else, so the wrapped bundle has to
+  // be in the instance itself rather than handed to a provider.
+  await startSpeaking(BASE_LOCALE)
+  i18next.addResourceBundle(BASE_LOCALE, 'translation', pseudoDeep(AREA_WORDING.en), true, true)
+})
 
 /**
  * A key on the keyboard is not a sentence.

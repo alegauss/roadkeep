@@ -47,9 +47,36 @@ afterAll(() => {
   fixture.dispose()
 })
 
+/** Every word a line carries anywhere, which is more than what `search` reads and is meant to be. */
+function wordsIn(line: unknown): string[] {
+  return (
+    JSON.stringify(line)
+      .toLowerCase()
+      .match(/[a-z]{2,}/g) ?? []
+  )
+}
+
+/**
+ * A word this repository's backlog has and the fixture's has not, taken from the data.
+ *
+ * Written down, it is a word that ships. This searched for `renderer` until the last line
+ * whose symptom carried it left the roadmap for the changelog, and then failed for a reason
+ * that had nothing to do with searching — the same lesson the id below already records.
+ * Chosen against both backlogs because what is asserted is that every hit is this one's.
+ */
+function onlyHereWord(): string {
+  const theirs = new Set((projects[1]?.lines ?? []).flatMap(wordsIn))
+  for (const line of projects[0]?.lines ?? []) {
+    for (const word of wordsIn(line)) {
+      if (word.length > 5 && !theirs.has(word)) return word
+    }
+  }
+  throw new Error('every word in this backlog is also in the fixture, which cannot be')
+}
+
 describe('RG20: searching two real backlogs', () => {
   it('finds a line in this repository by a word in its symptom', () => {
-    const answer = search(projects, 'renderer')
+    const answer = search(projects, onlyHereWord())
 
     expect(answer.hits.length).toBeGreaterThan(0)
     expect(answer.hits.every((hit) => hit.project === REPO)).toBe(true)
@@ -79,7 +106,7 @@ describe('RG20: searching two real backlogs', () => {
 
   it('costs no engine calls at all', () => {
     const before = calls
-    for (const query of ['renderer', 'gate', 'question', 'nothing at all matches this']) {
+    for (const query of [onlyHereWord(), 'gate', 'question', 'nothing at all matches this']) {
       search(projects, query)
     }
 
@@ -91,7 +118,7 @@ describe('RG20: searching two real backlogs', () => {
   it('names a project it could not cover', () => {
     const answer = search(
       [...projects, { path: '/code/never-read', name: 'never-read', lines: null }],
-      'renderer',
+      onlyHereWord(),
     )
 
     expect(answer.unsearched).toEqual(['/code/never-read'])

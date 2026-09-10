@@ -37,7 +37,7 @@ describe('RG60: what the renderer was given', () => {
     // reviewed. Read off the running object rather than off the type.
     const methods = await app.evaluate<string[]>(`Object.keys(window['${BRIDGE_KEY}']).sort()`)
 
-    expect(methods).toEqual(['identify', 'saveTheme', 'settings'])
+    expect(methods).toEqual(['identify', 'saveLocale', 'saveTheme', 'settings'])
   })
 
   it('round-trips a call through it', async () => {
@@ -104,6 +104,35 @@ describe('RG60: what the renderer was given', () => {
 
     expect(after.settings?.theme).toBe('light')
   })
+
+  it('keeps a language the page chose, which is the second write and the same path', async () => {
+    // RG116. The menu is the design system's and moves i18next; what reaches the file is
+    // this call, and only a running app can say that the channel, the handler and the
+    // rewrite all line up. `pt-BR` because a tag with a region is the one a careless
+    // comparison against the package's `pt` would drop.
+    await app.evaluate<null>(`window['${BRIDGE_KEY}'].saveLocale('pt-BR')`)
+
+    const after = await app.evaluate<{ settings?: { locale?: string } }>(
+      `window['${BRIDGE_KEY}'].settings()`,
+    )
+
+    expect(after.settings?.locale).toBe('pt-BR')
+  })
+
+  it('refuses a language this build cannot draw, rather than writing it', async () => {
+    // A tag nobody wrote reads back as English at the next launch, so storing it would
+    // look exactly like the setting having never been saved. Refused at the handler, where
+    // `LOCALE_TAGS` is the same list the reader uses.
+    await app.evaluate<null>(`window['${BRIDGE_KEY}'].saveLocale('en')`)
+    await app.evaluate<null>(`window['${BRIDGE_KEY}'].saveLocale('ja')`)
+
+    const after = await app.evaluate<{ locale?: string; settings?: { locale?: string } }>(
+      `window['${BRIDGE_KEY}'].settings()`,
+    )
+
+    expect(after.settings?.locale).toBe('en')
+    expect(LOCALE_TAGS).toContain(after.locale)
+  })
 })
 
 describe('RG60: what the renderer was not given', () => {
@@ -125,7 +154,7 @@ describe('RG60: what the renderer was not given', () => {
       `Object.values(window['${BRIDGE_KEY}']).map((one) => typeof one)`,
     )
 
-    expect(reachable).toEqual(['function', 'function', 'function'])
+    expect(reachable).toEqual(['function', 'function', 'function', 'function'])
   })
 })
 

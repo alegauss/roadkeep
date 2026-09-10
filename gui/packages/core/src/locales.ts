@@ -37,6 +37,22 @@ export const LOCALES: Readonly<Record<string, Wording>> = {
 export const LOCALE_TAGS: readonly string[] = Object.keys(LOCALES)
 
 /**
+ * What each locale calls itself, for a menu of them (RG116).
+ *
+ * **An endonym and not a translated name.** A language menu is read by somebody who cannot
+ * read the language currently on screen — that is why they opened it — so a Portuguese
+ * reader stuck in an English window has to find `Português (Brasil)` and not `Portuguese`.
+ * The consequence is that these do not belong in `Wording`: a name that is the same in
+ * every locale is not a string to translate, and putting it there would invite one.
+ *
+ * One line per locale, beside the tag, which is the same rule the list above keeps.
+ */
+export const LOCALE_NAMES: Readonly<Record<string, string>> = {
+  [BASE_LOCALE]: 'English',
+  [PT_BR_LOCALE]: 'Português (Brasil)',
+}
+
+/**
  * The lookup for a tag, already resolved.
  *
  * Returns the stored object rather than a copy: the renderer memoises its translator on

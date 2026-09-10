@@ -275,29 +275,6 @@ the line. Dark is untouched, the package re-pointing that token there already.
 
 What is left here is adopting the release that carries it, and enforcing the pair.
 
-### §RG116 The language has a setting, a source and no switch
-
-RG86 made `Settings.locale` reach every screen and RG88 made i18next the one place the
-tag lives, so the reading half is finished. Nothing writes it. A person who wants
-Portuguese opens `settings.json`, types a tag and restarts, which is the state the
-ground was in before RG87.
-
-Three of the four pieces are already here, which is why this is worth stating rather
-than discovering later. `changeLanguage` moves both catalogues at once and a screen
-follows it — `speaking.test.tsx` holds that. The write back has a shape to copy:
-`saveTheme` on the bridge, validated in the main process against `core`'s own set, the
-file re-read so no other field is lost. And the control itself is the design system's:
-it ships `LanguageSelect` and `LanguageSwitcher`, so building one here would be the
-duplicate [[RG39]] exists to refuse.
-
-What is undecided is the fourth. `saveTheme` was deliberately one field, and its own
-note says widening the bridge to a settings patch is a decision for whoever needs the
-second write — this is that caller. A second narrow method keeps the surface honest and
-starts a list; a patch method hands the renderer the roots as well. Neither is obviously
-right, and the answer wants to be given once rather than twice.
-
-Where the control sits is [[RG63]]'s, since there is no chrome to put it in yet.
-
 ### §RG117 One route table, read three ways
 
 RG63 left the routes written out in three files. `main.tsx` mounts them, `harness.tsx`
@@ -344,3 +321,46 @@ The second is the one to fix first: it is a line of scope in a test that already
 and it is what would have caught the first. `document.body` rather than `container`,
 with the portalled surfaces opened — which means the run has to open them, and that is
 the work.
+
+### §RG124 A control that reaches the network for a picture
+
+`LanguageSelect` and the `BadgeLocale` inside it draw every row's flag as `<img
+src="https://flagcdn.com/w40/br.png">`. That is a request per row to a host RG59's
+policy refuses, so what a screen adopting one draws is the component's own fallback -- a
+globe -- after a load that failed, and on a machine with no network it is the same
+picture and a slower one.
+
+Nothing is broken today: RG116 tried that control, found this, and took
+`LanguageSwitcher` instead, which draws no image. What is missing is anything that would
+tell the next person before they spend an afternoon on it. The vendored page reference
+does not say which components fetch; the duplicate check reads exports and not hosts;
+and the refusal lands in a console during a dev run served from a host the dev policy
+allows, which is the one run where it may not appear at all.
+
+Three answers, in the order they are worth trying. A note beside those components in the
+bento reference is the cheap one, and RG110 already keeps that file current. A check is
+the one that generalises: the renderer is a single bundle, and a test reading it for an
+absolute `https://` inside an image source would catch any adopted component that
+reaches out. The third is upstream -- a flag set shipped in the package, or a prop to
+draw none -- which is the only fix that also helps Turing and Shio.
+
+### §RG125 The other half of the wording has no completeness check
+
+The wording is two halves and only one is held complete. `PT_BR` is a `Partial` of the
+base and a test walks every key of `BASE` to find one nobody translated, which is what
+makes adding a string safe. `AREA_WORDING` is the other half -- this app's strings that
+the design system's own components resolve -- and it is two hand-written objects, `en`
+and `pt`, that nothing compares.
+
+RG88 created that half and left it empty, so the gap cost nothing. RG116 put a string in
+it: the language menu names itself with `language.toggle`, in both languages, because
+the package ships no `language` namespace and its fallback is an English sentence. A
+second key added to `en` alone would draw English inside a Portuguese window, and the
+guard that would otherwise catch it does not look here -- RG51's pseudo-locale run wraps
+the bundle for the base locale, which is the language it renders in.
+
+The answer has the shape of the one that already works: walk the keys of `en`, require
+each in `pt`, and fail with the path of the one that is missing. Two details are worth
+deciding rather than assuming: whether a value identical in both is an error, since an
+endonym is the same word in either; and where the check goes, the catalogue's own being
+in `core` while this object lives in `ui`.

@@ -1,4 +1,10 @@
-import { BRIDGE_CHANNELS, isTheme, type BridgeIdentity, type LaunchSettings } from '@rk/core'
+import {
+  BRIDGE_CHANNELS,
+  isTheme,
+  LOCALE_TAGS,
+  type BridgeIdentity,
+  type LaunchSettings,
+} from '@rk/core'
 import { app, ipcMain } from 'electron'
 
 import { localeChoice } from './locale'
@@ -36,5 +42,14 @@ export function registerBridge(): void {
     if (!isTheme(theme)) return
     const userData = app.getPath('userData')
     saveSettings(userData, { ...loadSettings(userData).settings, theme })
+  })
+
+  // The same shape for the language (RG116), and the same reason for checking here: a tag
+  // is the renderer's word, and one this build does not ship reads back as English at the
+  // next launch — which looks like the setting was never saved.
+  ipcMain.handle(BRIDGE_CHANNELS.saveLocale, (_event, locale: unknown): void => {
+    if (typeof locale !== 'string' || !LOCALE_TAGS.includes(locale)) return
+    const userData = app.getPath('userData')
+    saveSettings(userData, { ...loadSettings(userData).settings, locale })
   })
 }

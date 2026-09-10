@@ -15,6 +15,7 @@ function answering(locale: string, theme: Theme = DEFAULT_SETTINGS.theme): Rende
     settings: () =>
       Promise.resolve({ settings: { ...DEFAULT_SETTINGS, theme }, reset: [], locale }),
     saveTheme: () => Promise.reject(new Error('not asked')),
+    saveLocale: () => Promise.reject(new Error('not asked')),
   }
 }
 
@@ -22,6 +23,7 @@ const CLOSED: RendererBridge = {
   identify: () => Promise.reject(new Error('channel closed')),
   settings: () => Promise.reject(new Error('channel closed')),
   saveTheme: () => Promise.reject(new Error('channel closed')),
+  saveLocale: () => Promise.reject(new Error('channel closed')),
 }
 
 describe('RG86: the locale the window opens in', () => {
@@ -56,6 +58,7 @@ describe('RG87: the ground the window opens in', () => {
         })
       },
       saveTheme: () => Promise.resolve(),
+      saveLocale: () => Promise.resolve(),
     }
 
     expect(await choicesFromBridge(counting)).toEqual({
@@ -86,6 +89,7 @@ describe('RG106: an answer that never comes', () => {
       identify: () => Promise.reject(new Error('not asked')),
       settings: () => new Promise(() => undefined),
       saveTheme: () => Promise.resolve(),
+      saveLocale: () => Promise.resolve(),
     }
 
     const opened = await choicesFromBridge(silent, 20)
@@ -111,6 +115,7 @@ describe('RG106: an answer that never comes', () => {
           ),
         ),
       saveTheme: () => Promise.resolve(),
+      saveLocale: () => Promise.resolve(),
     }
 
     expect(await choicesFromBridge(slow, 500)).toEqual({
@@ -126,6 +131,7 @@ describe('RG106: an answer that never comes', () => {
       identify: () => Promise.reject(new Error('not asked')),
       settings: () => new Promise(() => undefined),
       saveTheme: () => Promise.resolve(),
+      saveLocale: () => Promise.resolve(),
     }
 
     const startedAt = Date.now()

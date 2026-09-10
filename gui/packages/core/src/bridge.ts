@@ -72,6 +72,20 @@ export interface RendererBridge {
    * does not exist yet — widening this is a decision that belongs to whoever builds it.
    */
   saveTheme(theme: Theme): Promise<void>
+  /**
+   * Keep the language somebody just chose (RG116).
+   *
+   * The second of these and not a settings patch, which is the decision `saveTheme` left to
+   * whoever needed the second write. A patch would hand the renderer the roots and the
+   * ignore list as well, and the screen that needs those still does not exist — so the
+   * surface grows by one method that names what it writes. A third would be the moment to
+   * ask again; two is a pair, not a list.
+   *
+   * A tag this build does not ship is refused rather than stored: `Settings.locale` is read
+   * back through `localeFor`, so a value nobody can draw would silently become English at
+   * the next launch and look like the setting had not been saved.
+   */
+  saveLocale(locale: string): Promise<void>
 }
 
 /**
@@ -82,4 +96,5 @@ export const BRIDGE_CHANNELS = {
   identify: 'roadkeep:identify',
   settings: 'roadkeep:settings',
   saveTheme: 'roadkeep:save-theme',
+  saveLocale: 'roadkeep:save-locale',
 } as const satisfies Record<keyof RendererBridge, string>
