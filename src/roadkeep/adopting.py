@@ -665,24 +665,36 @@ class Retrofitted:
     #: The block headings mirrored in, as the roadmap already spells them. Read and never
     #: composed, for `block add`'s reason: the level and the separator are the project's.
     blocks: tuple[str, ...]
+    #: Whether the key was already there and only the file was written (RK1675). The answer
+    #: says so and stages the one file, because a report claiming a `[files]` key it did not
+    #: write is a diff a reviewer then goes looking for and does not find.
+    restored: bool = False
 
     def stated(self, config: Config) -> str:
         from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
 
+        where = config.relative(self.path)
         # The header, and every row under it at the column every other write uses (RK1372,
         # RK1376): this answer was flat, so its `stage` line did not line up with the one
         # `_staging_rows` composes anywhere else — the same row, two offsets, per verb.
-        rows = [
-            f"declared {self.role} = \"{config.relative(self.path)}\"  "
-            f"{self.config.name}",
-            f"  created  {config.relative(self.path)}  {len(self.blocks)} block heading(s)",
-        ]
+        rows = (
+            [
+                f"restored {self.role} = \"{where}\"  the key was already declared",
+                f"  created  {where}  {len(self.blocks)} block heading(s)",
+            ]
+            if self.restored
+            else [
+                f"declared {self.role} = \"{where}\"  {self.config.name}",
+                f"  created  {where}  {len(self.blocks)} block heading(s)",
+            ]
+        )
         # The verb this role exists for, which is the question a caller has next and the one
         # the refusal that sent them here was about.
         opens = _ROLE_OPENS.get(self.role)
         if opens is not None:
             rows.append(f"  opens    `{invocation()} {opens}`")
-        rows.append(f"  stage    git add -- {config.relative(self.path)} {self.config.name}")
+        staged = where if self.restored else f"{where} {self.config.name}"
+        rows.append(f"  stage    git add -- {staged}")
         return "\n".join(rows)
 
     def payload(self, config: Config) -> dict[str, object]:
@@ -691,6 +703,7 @@ class Retrofitted:
             "path": config.relative(self.path),
             "config": self.config.as_posix(),
             "blocks": list(self.blocks),
+            "restored": self.restored,
         }
 
 
@@ -1292,14 +1305,26 @@ def declare(
     written whose key never landed is an untracked Markdown file and the state the project was
     already in, while a key declared over a file that does not exist is `file.missing` on the
     next lint — so the failure falls on the side that changes nothing.
+
+    **And a declared role whose file is gone gets its file back** (RK1675), which is the other
+    half of that sentence: `file.missing` named `init`, `init` refuses a configured project,
+    and this verb refused the role as already declared — so the finding named a command that
+    could not run and no command could, and the route back was `git checkout` or the hand edit
+    the guard denies. The same write minus the key, at the path the key already names: the key
+    is the project's statement of where the file goes, and a `--path` elsewhere would be the
+    repointing this verb has always refused. Never over anything — the path is empty by
+    construction, and a directory standing there is refused like any other occupant.
     """
     if role not in ROLES:
         raise NoSuchRole(role, ROLES)
-    if config.has(role):
+    if config.has(role) and config.on_disk(role):
         raise RoleDeclared(role, config.relative(config.path(role)))
     if config.source is None:
         raise Unconfigured(config.root)
-    target = config.locate(path or _DEFAULT_FOR[role])
+    restoring = config.has(role)
+    if restoring and path and config.locate(path).resolve() != config.path(role).resolve():
+        raise RoleDeclared(role, config.relative(config.path(role)))
+    target = config.path(role) if restoring else config.locate(path or _DEFAULT_FOR[role])
     if target.exists():
         raise WouldOverwrite([target], config.root)
     if (parent := blocking(target)) is not None:
@@ -1312,6 +1337,18 @@ def declare(
     body = "\n".join(
         [f"# {_TITLES[role]}", "", *(f"{'#' * one.level} {one.text}\n" for one in declaring)]
     )
+    if restoring:
+        # The key is already the project's, so the only write is the file — and the only read
+        # back needed is the one the key already passed when it was written.
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(body, encoding="utf-8", newline="")
+        return Retrofitted(
+            role=role,
+            path=target,
+            config=config.source,
+            blocks=tuple(one.label or "" for one in declaring),
+            restored=True,
+        )
     # Read back before either file lands (RK1576, RK1533's rule at the second of five writers):
     # `[files]` is a table the parser has rules about, and a row it refuses would close the
     # config behind every verb — this one among them, so the role could not be withdrawn by a

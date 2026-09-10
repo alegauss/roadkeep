@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1675** (deps: —) **The door file.missing names is init, which refuses on the configured project that emits the finding** — A declared file gone from disk is refused by init as already configured and by declare as already declared, so repair runs nothing and the route back is a hand edit or git. → §RK1675
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

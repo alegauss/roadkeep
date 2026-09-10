@@ -263,6 +263,50 @@ def test_a_role_already_declared_is_refused_and_so_is_one_nothing_governs(tmp_pa
     assert not (tmp_path / "docs" / "DEFERRED.md").exists()
 
 
+def test_a_declared_role_whose_file_is_gone_gets_its_file_back(tmp_path: Path, capsys) -> None:
+    """RK1675. `file.missing` named `init`, `init` refuses a configured project, and `declare`
+    refused the role as already declared — so the finding named a command that could not run
+    and no command could, and the route back was `git checkout` or the hand edit the guard
+    denies.
+
+    The same write minus the key: the file lands at the path the key already names, with the
+    headings the roadmap carries, and the config is not touched — so the answer stages the one
+    file, a report claiming a key it did not write being a diff a reviewer then goes hunting."""
+    from roadkeep.adopting import declare
+
+    init(tmp_path, blocks=("A",))
+    before = (tmp_path / "roadkeep.toml").read_bytes()
+    (tmp_path / "docs" / "IMPROVEMENTS.md").unlink()
+
+    restored = declare(Config.discover(tmp_path), "improvements")
+    assert restored.restored and restored.blocks == ("A",)
+    assert (tmp_path / "docs" / "IMPROVEMENTS.md").is_file()
+    assert (tmp_path / "roadkeep.toml").read_bytes() == before
+    said = restored.stated(Config.discover(tmp_path))
+    assert "restored improvements" in said
+    assert said.splitlines()[-1].strip() == "stage    git add -- docs/IMPROVEMENTS.md"
+    assert lint(Config.discover(tmp_path)).clean
+
+
+def test_a_restore_is_never_a_move_and_never_over_an_occupant(tmp_path: Path) -> None:
+    """The two ways the restore could become the write `declare` has always refused. A
+    `--path` elsewhere is a repointing — the key says where the file goes, and a second place
+    is two answers to one question — and anything standing at the path, a directory included,
+    is somebody's, so it is refused the way every other occupant is."""
+    from roadkeep.adopting import RoleDeclared, declare
+
+    init(tmp_path, blocks=("A",))
+    (tmp_path / "docs" / "IMPROVEMENTS.md").unlink()
+    config = Config.discover(tmp_path)
+    with pytest.raises(RoleDeclared):
+        declare(config, "improvements", "docs/ELSEWHERE.md")
+    assert not (tmp_path / "docs" / "ELSEWHERE.md").exists()
+
+    (tmp_path / "docs" / "IMPROVEMENTS.md").mkdir()
+    with pytest.raises(WouldOverwrite):
+        declare(Config.discover(tmp_path), "improvements")
+
+
 def test_a_file_already_there_is_never_overwritten(tmp_path: Path) -> None:
     """`init`'s own rule at this door: the role is undeclared and the path is taken, which is a
     project that made the file by hand and never got the key — so the write refuses and the

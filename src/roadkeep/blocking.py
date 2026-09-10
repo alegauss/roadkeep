@@ -242,7 +242,7 @@ class NotOrganisable(ValueError):
         roles: Sequence[str],
         *,
         spelling: bool = False,
-        declarable: bool = False,
+        door: str = "",
     ) -> None:
         self.role = role
         self.roles = tuple(roles)
@@ -254,13 +254,13 @@ class NotOrganisable(ValueError):
             )
             return
         known = ", ".join(self.roles) or "none"
-        # The door where it lands (RK1674). Three states reach this sentence and `declare`
-        # answers one: a block role the project never declared. A role declared with its file
-        # gone is refused by `declare` as already there, and a word that is no role is refused
-        # as neither — so those two keep the explanation, which is about the argument.
+        # The door where it lands (RK1674, RK1675). Three states reach this sentence and
+        # `declare` answers two: a block role the project never declared, and one declared with
+        # its file gone, which it writes at the declared path. A word that is no role is refused
+        # as neither a role nor a table, so that one keeps the explanation — about the argument.
         then = (
-            f"{role_door(role)}, and `--organise {role}` then has a file to write into"
-            if declarable
+            f"{door}, and `--organise {role}` then has a file to write into"
+            if door
             else "the argument names a role, which is how [files] names one"
         )
         super().__init__(
@@ -1446,7 +1446,11 @@ def open_block(
             raise NotOrganisable(
                 role,
                 sorted(readable),
-                declarable=role in BLOCK_ROLES and declarable(config, role),
+                door=(
+                    role_door(role, restoring=config.has(role))
+                    if role in BLOCK_ROLES and declarable(config, role)
+                    else ""
+                ),
             )
     # The project's own convention, read before anything is written and off the first file
     # that has one — `BLOCK_ROLES` order, so it is the roadmap wherever the roadmap has

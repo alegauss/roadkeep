@@ -714,8 +714,9 @@ BY_LINES = (
 
 #: What one wrongly shaped **project** reaches, which is the other kind of state (RK1641). A
 #: ledger with no heading for a block the roadmap plans under, and a line pointing at a section
-#: that is not there.
-BY_SHAPE = ("block.unorganised", "ref.unresolved")
+#: that is not there. And a declared role with no file on disk (RK1675), whose door was `init`
+#: — refused by every configured project, which is the only kind that can emit the finding.
+BY_SHAPE = ("block.unorganised", "file.missing", "ref.unresolved")
 
 
 def test_the_doors_of_a_wrongly_shaped_project_close_the_gate(tmp_path, capsys):
@@ -731,9 +732,12 @@ def test_the_doors_of_a_wrongly_shaped_project_close_the_gate(tmp_path, capsys):
     enumerate its states because two markers and a ledger is a product of nine cells, and a
     finding code is not a cell of anything."""
     root = tmp_path
+    # A deferred store declared and never written, which is `file.missing`'s state: the key is
+    # the project's statement of where the file goes, and the door writes it there (RK1675).
     (root / "roadkeep.toml").write_text(
         'prefix = "TT"\n[files]\nroadmap = "ROADMAP.md"\n'
-        'changelog = "CHANGELOG.md"\nimprovements = "IMPROVEMENTS.md"\n',
+        'changelog = "CHANGELOG.md"\nimprovements = "IMPROVEMENTS.md"\n'
+        'deferred = "DEFERRED.md"\n',
         encoding="utf-8",
     )
     # No heading at all, which is the state `block.unorganised` is about: the ledger is
@@ -766,9 +770,10 @@ def test_the_reach_of_every_door_fixture_is_a_number_and_not_a_sentence():
     `runnable` on a door found refusing in the field, and the sweep written to catch that never
     reached the rows.
 
-    So the gap is a figure this suite states. Seven of eighty-five dispatchable codes have a door
-    executed here, and the eighty-five is derived from the table rather than written down — a
-    row added tomorrow lowers the fraction rather than leaving it true by omission.
+    So the gap is a figure this suite states. Eight of eighty-five dispatchable codes have a door
+    executed here — `file.missing` the eighth, since RK1675 gave it a door that runs — and the
+    eighty-five is derived from the table rather than written down: a row added tomorrow lowers
+    the fraction rather than leaving it true by omission.
 
     Not a floor to be raised by weakening it: the reach is declared per fixture and asserted
     exactly, so a code that stops closing is a name that left."""
@@ -778,7 +783,7 @@ def test_the_reach_of_every_door_fixture_is_a_number_and_not_a_sentence():
     assert len(every) >= 80, len(every)
     # Where door coverage stands. Stated as both halves, because a fraction alone hides which
     # moved: a row added to the table and a fixture added here are the same number falling.
-    assert len(reached) == 7, sorted(reached)
+    assert len(reached) == 8, sorted(reached)
 
 
 #: Doors whose blank sits in a positional, which `filled` cannot supply from a table keyed by

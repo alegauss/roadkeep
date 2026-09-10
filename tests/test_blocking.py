@@ -1738,29 +1738,40 @@ def test_the_door_an_undeclared_role_to_organise_names_runs(tmp_path, capsys):
     assert main(asked) == EXIT_OK
 
 
-@pytest.mark.parametrize(
-    "role, declared",
-    [("deferredd", ""), ("deferred", 'deferred = "DEFERRED.md"\n')],
-    ids=["no-role", "declared-file-missing"],
-)
-def test_the_two_states_declare_would_refuse_name_no_door(tmp_path, capsys, role, declared):
-    """The other two states that reach the same sentence, and `declare` answers neither: a word
-    that is no role is refused as neither a role nor a table, and a role declared with its file
-    gone is refused as already there — the absence is the file, which is not `declare`'s to
-    write. A command printed where it refuses is the defect every door here is swept for."""
+def test_a_word_that_is_no_role_to_organise_names_no_door(tmp_path, capsys):
+    """The state that reaches the same sentence and that `declare` cannot answer: a word that is
+    no role is refused as neither a role nor a table. A command printed where it refuses is the
+    defect every door here is swept for, so the explanation is about the argument alone."""
     from composing import commands
+
+    project(tmp_path)
+    assert main([
+        "-C", str(tmp_path), "block", "add", "C", "--title", "Third", "--organise", "deferredd"
+    ]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "the argument names a role" in said, said
+    assert not [one for one in commands(said) if one[:1] == ["declare"]], said
+
+
+def test_the_door_a_declared_role_with_its_file_gone_names_runs(tmp_path, capsys):
+    """RK1675. RK1674 left this state door-less, `declare` refusing a role already in `[files]`
+    — and that refusal was true and unhelpful at once, the absence being the file. `declare`
+    writes it at the declared path now, so the door is named with the sentence that says what
+    it writes: the file the key names, and never a second key."""
+    from composing import runs
 
     project(
         tmp_path,
         config=(
             'prefix = "RK"\n[files]\n'
             f'roadmap = "{ROADMAP}"\nchangelog = "{CHANGELOG}"\n'
-            f'improvements = "{IMPROVEMENTS}"\n{declared}'
+            f'improvements = "{IMPROVEMENTS}"\ndeferred = "DEFERRED.md"\n'
         ),
     )
-    assert main([
-        "-C", str(tmp_path), "block", "add", "C", "--title", "Third", "--organise", role
-    ]) == EXIT_USAGE
+    asked = ["-C", str(tmp_path), "block", "add", "C", "--title", "Third", "--organise", "deferred"]
+    assert main(asked) == EXIT_USAGE
     said = capsys.readouterr().err
-    assert "the argument names a role" in said, said
-    assert not [one for one in commands(said) if one[:1] == ["declare"]], said
+    assert "writes the file its `[files]` key names" in said, said
+    assert runs(tmp_path, said) == (["declare", "deferred"],), said
+    capsys.readouterr()
+    assert main(asked) == EXIT_OK

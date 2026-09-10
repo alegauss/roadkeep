@@ -909,9 +909,10 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
             "scaffold time was otherwise a hand edit. A role's file arrives with the block "
             "headings the roadmap carries, spelled as that file spells one; a table arrives "
             "empty, which is what opting in means, and `govern` tunes what is in it. The "
-            "config keeps every other byte. Refused where it is already declared — and "
-            "`--move` is the one write that runs while the file does not parse, which is what "
-            "a misplaced key leaves every other verb refusing."
+            "config keeps every other byte. Refused where it is already declared and on disk "
+            "— a declared role whose file is gone gets the file back at the path its key "
+            "names — and `--move` is the one write that runs while the file does not parse, "
+            "which is what a misplaced key leaves every other verb refusing."
         ),
     )
     # Not argparse `choices`, for `--role`'s own reason (RK304) read one step further: what is

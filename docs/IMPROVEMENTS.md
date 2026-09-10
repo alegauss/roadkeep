@@ -81,31 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1675 The declared file no verb restores
-
-`lint` reports a declared file that is not on disk as `file.missing`, and the remedy row
-names `roadkeep init`. Run on the state that emits it — a scaffolded project with
-`docs/IMPROVEMENTS.md` deleted — `init` refuses with `AlreadyConfigured`, and `repair`
-reports `0 repair(s) ran, 1 left for you`.
-
-The other verb that writes a governed file refuses too: `declare improvements` answers
-that the role is already declared, which is true — the absence is the file and not the
-key. RK1674 met this as the third state its `declarable` excludes, and named no door
-there because none lands.
-
-So the finding names a command that cannot run and no command could. The route back is
-`git checkout` or a hand edit the guard denies, which is RK393's loop: a remedy whose
-command refuses leaves its finding standing.
-
-The question is which verb owes it. `init` scaffolds a project and refuses one that
-exists; `declare` retrofits a role and refuses one that is there. Writing the file with
-the headings the roadmap carries is what `declare` already does for a new role, so the
-smallest door may be `declare` taking a declared role whose file is absent — the one
-state it refuses today with nothing to offer.
-
-What must not happen is a door that writes over a file somebody moved on purpose: an
-entry pointing at a path that is gone may be the entry that is wrong.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

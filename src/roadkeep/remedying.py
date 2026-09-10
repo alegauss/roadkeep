@@ -1547,10 +1547,15 @@ _TABLE: Mapping[str, _Rule] = {
         "the codepoint is deleted, which is the whole of what made it unreadable",
     ),
     # ---------------------------------------------------------------------------- the files
-    "file.missing": _compose(
-        ("init",),
-        "a declared file is not on disk: scaffold it, or take the entry out of "
-        "`[files]` in roadkeep.toml",
+    # `declare` and never `init` (RK1675). `init` scaffolds a project and refuses one that is
+    # configured — the only kind that can declare a file and lose it — so the door named here
+    # refused on every finding this code produces, and `repair` reported *0 ran, 1 left*. The
+    # sentence keeps the other answer, because a key pointing at a path that is gone may be
+    # the key that is wrong: a file moved on purpose is restored by moving the key, not by this.
+    "file.missing": _run(
+        ("declare", "{id}"),
+        "a declared file is not on disk: this writes it at the path its key names, with the "
+        "block headings the roadmap carries — or, where the file moved, the key is what to change",
     ),
     # `record amend` and never `amend` (RK1203). This finding fires on the **ledger alone** —
     # `_paths` reads `documents["changelog"]` and nothing else, a roadmap naming an artefact

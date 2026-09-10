@@ -2176,17 +2176,22 @@ def _voided(document: Document) -> bool:
 
 
 def _absent(config: Config, tree: Tree) -> list[Finding]:
-    """A declared file that is not on disk (`init` creates it: RK18).
+    """A declared file that is not on disk (RK18).
 
     Asked of the tree and not of disk, so a baseline says *was it there then*: a governed
     file deleted since the ref is a finding this change made, and one added since is a file
     the ref cannot be asked to account for.
+
+    **The role is the subject** (RK1675), which is what the door takes: `declare <role>`
+    writes a declared role's missing file at the path its key names. The door was `init` and
+    `init` refuses a configured project, which is the only kind that can emit this.
     """
     return [
         Finding(
             "file.missing",
             config.relative(config.path(role)),
             f"declared as the {role} file and not on disk",
+            subject=role,
         )
         for role in ROLES
         if config.has(role) and not tree.present(config.path(role))

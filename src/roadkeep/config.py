@@ -605,7 +605,7 @@ PATH_ARGUMENTS: Mapping[str, Mapping[str, str]] = {
 PATH_SPELLINGS = ("path", "paths", "file", "files", "directory")
 
 
-def role_door(role: str) -> str:
+def role_door(role: str, *, restoring: bool = False) -> str:
     """The door every refusal over an undeclared role names, spelled once (RK1674).
 
     Not `declaring`, which `sections` and `authoring` each already spell for a different
@@ -620,23 +620,30 @@ def role_door(role: str) -> str:
     Only where :func:`declarable` says the call would land. The door is a *command*, and a
     command printed where it refuses is the defect every composed door in this package is
     swept for.
+
+    ``restoring`` is the role whose key is already there and whose file is not (RK1675): the
+    same call writes the file alone, and a sentence claiming it writes the key too would name
+    a diff a reviewer then looks for and does not find.
     """
     from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260, the refusal path only
 
-    return f"`{invocation()} declare {role}` writes the file and the `[files]` key"
+    written = "the file its `[files]` key names" if restoring else "the file and the `[files]` key"
+    return f"`{invocation()} declare {role}` writes {written}"
 
 
 def declarable(config: Config, role: str) -> bool:
     """Whether `declare <role>` lands on this project, which is when :func:`role_door` is named.
 
-    Two states reach the refusals that name it and are not this one, and both were met by
-    running the door rather than reading it (RK1674). A **typo** reaches `Config.path` through
-    every `--role` flag argparse does not constrain — `section drop --role strategey` was
-    offered `declare strategey`, which `declare` refuses as neither a role nor a table. And a
-    role **declared with its file missing** reaches `block add --organise`, where `declare`
-    refuses the role as already there: the absence is the file, and that is not its to write.
+    A **typo** does not, and was met by running the door rather than reading it (RK1674):
+    every `--role` flag argparse does not constrain reaches `Config.path`, so `section drop
+    --role strategey` was offered `declare strategey`, which `declare` refuses as neither a role
+    nor a table.
+
+    A role **declared with its file gone** does since RK1675, which is why the question is
+    `on_disk` and no longer `has`: `declare` writes the file at the path the key names, so the
+    one state it used to refuse with nothing to offer is now the state it answers.
     """
-    return role in ROLES and not config.has(role)
+    return role in ROLES and not config.on_disk(role)
 
 
 @dataclass(frozen=True, slots=True)

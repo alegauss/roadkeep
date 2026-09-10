@@ -825,6 +825,7 @@
 - ✅ **RK1668** **thirteen printed doors name a command with no invocation, so a caller pastes a line their shell has no such command for** — Thirteen bare doors carry the invocation, twelve new census sites run them, and running two found commands that had never existed.
 - ✅ **RK1669** **a subjectless served call is answered with rows naming subjects that transport withholds** — A served refusal offers the subjects that transport exposes, subtracted off a slot the surface records per verb.
 - ✅ **RK1672** **the retry a refusal hands back carries a token no shell delivers, one line above the door that does not** — The retry row replaces a token no shell delivers and names the field to retype, one rule with the capture offer; the payload keeps it verbatim.
+- ✅ **RK1675** **The door file.missing names is init, which refuses on the configured project that emits the finding** — declare writes a declared role's missing file at the path its key names, so file.missing names a door repair runs and the gate closes.
 
 ## Block E — Adoption
 
