@@ -287,28 +287,6 @@ the line. Dark is untouched, the package re-pointing that token there already.
 
 What is left here is adopting the release that carries it, and enforcing the pair.
 
-### §RG124 A control that reaches the network for a picture
-
-`LanguageSelect` and the `BadgeLocale` inside it draw every row's flag as `<img
-src="https://flagcdn.com/w40/br.png">`. That is a request per row to a host RG59's
-policy refuses, so what a screen adopting one draws is the component's own fallback -- a
-globe -- after a load that failed, and on a machine with no network it is the same
-picture and a slower one.
-
-Nothing is broken today: RG116 tried that control, found this, and took
-`LanguageSwitcher` instead, which draws no image. What is missing is anything that would
-tell the next person before they spend an afternoon on it. The vendored page reference
-does not say which components fetch; the duplicate check reads exports and not hosts;
-and the refusal lands in a console during a dev run served from a host the dev policy
-allows, which is the one run where it may not appear at all.
-
-Three answers, in the order they are worth trying. A note beside those components in the
-bento reference is the cheap one, and RG110 already keeps that file current. A check is
-the one that generalises: the renderer is a single bundle, and a test reading it for an
-absolute `https://` inside an image source would catch any adopted component that
-reaches out. The third is upstream -- a flag set shipped in the package, or a prop to
-draw none -- which is the only fix that also helps Turing and Shio.
-
 ### §RG125 The other half of the wording has no completeness check
 
 The wording is two halves and only one is held complete. `PT_BR` is a `Partial` of the
@@ -399,3 +377,28 @@ Until one of them lands, `wording.test.tsx` carries the word in a named set with
 reason on it, so the guard stays green about the one string it can do nothing about and
 red about every other. That set is the thing to delete: when this is fixed, the run says
 so by failing to find what the exception excused.</section_body> </invoke>
+
+### §RG133 The icon that arrives over the network
+
+RG124's check found what it was built to find, and it was not the flag CDN. The built
+renderer names `api.iconify.design`, `api.simplesvg.com` and `api.unisvg.com` —
+Iconify's default resource list, shipped inside `@iconify/react`, which the bento layer
+imports.
+
+Nothing fetches today, and the reason is a prop. `BentoNavRail` and the tiles render
+`<Icon icon={…}>` when a caller gives an item an `icon` string and a bundled
+`@tabler/icons-react` component when it does not. `AREAS` is empty, so no name has ever
+been passed. The first screen in blocks C to F that writes `icon: 'mdi:folder'` on a nav
+item turns three hosts the packaged policy refuses into a request per icon, and what it
+draws instead is nothing at all.
+
+That makes this worse than the flag it was found beside. `LanguageSelect` is a component
+somebody has to adopt deliberately; this is one string on a data structure this app
+already owns, in a file whose other fields are ordinary.
+
+Two answers and they compose. **Say it where the array is**: `areas.ts` is where an
+`icon` would be typed, and its own doc is what the next person reads. **And hold it**:
+the icon a bento item carries can be a tabler component rather than a name, so a test
+over `AREAS` asserting no item names a string is a check on this repository's own data
+rather than on somebody's bundle — cheap, fast, and it fails on the line being written
+rather than after a build.</section_body> </invoke>

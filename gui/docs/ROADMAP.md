@@ -35,11 +35,11 @@
 ## Block H — The look (a design system for governed prose)
 
 - 📋 **RG90** (deps: RG54 ✅, the design system darkening the muted foreground) **muted text on a muted panel is 4.33 to 1, which no screen renders yet and one will** — Those two tokens are named as a pair and miss AA on the light ground, so the first panel using both ships a pale label looking like a style. → §RG90
-- 📋 **RG124** (deps: RG59 ✅, RG39 ✅) **a design system control draws its flags from a CDN, so a screen adopting one shows the image the policy refused** — LanguageSelect and BadgeLocale request flagcdn.com per row, which the packaged policy blocks and an offline desktop app should not be asking for at all. → §RG124
 - 📋 **RG125** (deps: RG88 ✅, RG116 ✅) **the i18next half of the wording is two hand-written objects, so a key added to one and missed in the other is silent** — A test walks every base key to hold PT_BR complete, AREA_WORDING has no such guard, and RG116 put the first string in it. → §RG125
 - 📋 **RG126** (deps: RG117 ✅, RG63 ✅) **the provider stack is spelled twice, so one added to the window is missing from every test that renders it** — main and the harness each mount the ground, the wording and a router, and a tree the harness lacks fails nothing: the assertions pass against a smaller window. → §RG126
 - 📋 **RG127** (deps: RG118 ✅, RG116 ✅) **the artboards draw a header the window no longer has, and they are what the next screen is designed against** — RG63, RG116 and RG118 each added a control or a region and none redrew Main or Shell, so a screen laid out against them opens inside a different chrome. → §RG127
 - 📋 **RG132** (deps: RG123 ✅, the design system translating its dialog close button) **a dialog says Close in English in every language, and the run that found it can only name it** — The package writes that word into its markup and not its bundle, so the guard carries a listed exception. → §RG132
+- 📋 **RG133** (deps: RG124 ✅, RG59 ✅) **the renderer ships three icon API endpoints, and one prop on a nav item is what starts fetching from them** — Every bento component takes an icon name it hands to Iconify, which fetches per name, and the policy refuses all three hosts. → §RG133
 
 ## Done when — Block A
 
