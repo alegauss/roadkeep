@@ -119,6 +119,27 @@ export const aBoolean: Reader<boolean> = (value, path) =>
 /** Anything at all, kept as `unknown`. For a field this app carries but does not read into. */
 export const anything: Reader<unknown> = (value) => ok(value)
 
+/** `true` and nothing else: the flag a second shape of one verb's answer is told apart by. */
+export const literalTrue: Reader<true> = (value, path) =>
+  value === true ? ok(true) : fail(path, 'true', value)
+
+/**
+ * One of two shapes, chosen by a flag the payload carries (RG142).
+ *
+ * Chosen and not tried: reading the second shape after the first failed would report the
+ * second's failure for a payload that was the first shape with one field wrong, which is the
+ * sentence that sends somebody to the wrong half. The engine says which shape it printed, so
+ * that is what decides.
+ */
+export function whenFlagged<A, B>(
+  flag: string,
+  flagged: Reader<A>,
+  otherwise: Reader<B>,
+): Reader<A | B> {
+  return (value, path) =>
+    asRecord(value)?.[flag] === true ? flagged(value, path) : otherwise(value, path)
+}
+
 /**
  * `null` or the value. This is the default reading rather than the exception: `standing`,
  * `over`, `picked` and `section` all come back null in ordinary answers.

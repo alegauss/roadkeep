@@ -9,7 +9,7 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import { CEILING, liveEngine as engine, openWithDesign, read, REPO } from './live'
+import { aLine, CEILING, liveEngine as engine, openWithDesign, read, REPO } from './live'
 import { buildFixture, type Fixture } from './fixture'
 
 /**
@@ -50,7 +50,7 @@ let withDeps: TaskDetail
 let outside: TaskDetail
 
 async function detailOf(root: string, id?: string): Promise<TaskDetail> {
-  return detailFrom(await read(root, 'brief', id === undefined ? {} : { id }))
+  return detailFrom(aLine(await read(root, 'brief', id === undefined ? {} : { id })))
 }
 
 /**

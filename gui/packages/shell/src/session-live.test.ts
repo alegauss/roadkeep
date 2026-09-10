@@ -3,7 +3,7 @@ import path from 'node:path'
 import { promptFor, sessionCall, type SessionEvent } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import { openWithDesign, read, REPO } from './live'
+import { aLine, openWithDesign, read, REPO } from './live'
 import { fakeClaude, type FakeBehaviour } from './fake-claude'
 import { startSession, type RunningSession } from './session-process'
 
@@ -30,7 +30,7 @@ function run(behaviour: FakeBehaviour = {}, watcher = {}): RunningSession {
 }
 
 beforeAll(async () => {
-  prompt = promptFor(await read(REPO, 'brief', { id: await openWithDesign() }))
+  prompt = promptFor(aLine(await read(REPO, 'brief', { id: await openWithDesign() })))
 }, 180000)
 
 afterAll(() => {

@@ -36,27 +36,6 @@ which is after the project opened — so the field is read when the row is drawn
 Worth doing with the first row that draws engine health; before that there is nowhere to
 put the sentence.
 
-### §RG142 The brief that has nothing to hand over
-
-`claimingBrief()` with no id is the handover's whole point: the tier that chooses a line
-and the claim that takes it are one call. On a backlog with nothing ready the engine
-does not answer that call with a brief at all. It prints `brief: null`, `empty: true`, a
-`reason`, and the `held` and `lacking` lists that say why — and `readBriefPayload`,
-which holds `id` to a string, refuses it. The client then reports the answer as
-unreadable, and `explainUnreadable` says this app is most likely behind the engine: the
-wrong sentence about the most ordinary state a finished or blocked backlog is in.
-
-No screen asks for it yet, which is why RG141 left it. The first one that offers "start
-the next task" will.
-
-**The fix is a second shape for the same verb, not a looser first one.** The brief
-answer becomes a union — a line, or nothing with the engine's reason and what each
-lacking line is missing — read by trying the empty shape on `empty: true` before the
-line's. `handoverOf` takes only the line half, so the type makes a caller say what
-"nothing to take" looks like before it compiles. A unit test reads the empty payload the
-engine printed on this repository the day RG140 shipped, and a live test briefs a
-fixture with no open line.
-
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 ### §RG13 The cheap no

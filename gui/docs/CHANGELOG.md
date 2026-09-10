@@ -39,6 +39,9 @@
 - ✅ **RG141** **a backlog with nothing ready answers pick with a null tier, so the portfolio draws a waiting project as unreadable** — A waiting backlog reads as a row with no next line; the live files take their subject off the listing and two fixtures, so they hold when nothing here is ready.
   checked **A project with nothing ready reads as a row with no next line** A fixture with no open line is read live, and its row is read, its next id null and its path under nothing to pick.
   checked **No live file needs this backlog to have a line ready** The subjects come off the listing and the two candidates off two fixtures, so the suite holds on the day nothing is ready.
+- ✅ **RG142** **a brief with no id on a backlog with nothing ready answers empty, and the reader calls that this app being behind** — A brief with nothing to hand over reads as its own shape with the engine's reason, and the contract now holds that and the null-tier pick live.
+  checked **A brief with nothing to hand over reads as that and not as unreadable** The payload the engine printed reads in a unit test, and a fixture with no open line is briefed live in the contract and the handover.
+  checked **No handover can be built from an answer that may be empty** The type holds it: a compile-time assertion that the answer does not extend what handoverOf takes.
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

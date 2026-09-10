@@ -3,13 +3,14 @@ import {
   claimingBrief,
   handoverOf,
   heldBy,
+  lineOf,
   mayHandOver,
   saidOfHandover,
   type Handover,
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import { CEILING, liveClient as client, liveEngine as engine } from './live'
+import { aLine, CEILING, liveClient as client, liveEngine as engine } from './live'
 import { buildFixture, type Fixture } from './fixture'
 
 /**
@@ -29,7 +30,8 @@ async function briefing(input: Parameters<typeof claimingBrief>[0] | undefined, 
     { timeoutMs: CEILING },
   )
   if (result.kind === 'unreadable') throw new Error(result.unreadable.message)
-  return result
+  // Every line here is one the fixture has open, so an answer is a line; `aLine` says so if not.
+  return result.kind === 'read' ? { ...result, value: aLine(result.value) } : result
 }
 
 async function taking(id?: string): Promise<Handover> {
@@ -72,6 +74,24 @@ describe('RG41: reading and taking are one call', () => {
 
     expect(handover.id).toMatch(/^FX\d+$/)
     expect(handover.taken).toBe(true)
+  })
+
+  it('has nothing to hand over on a backlog with nothing open, and reads as that', async () => {
+    // RG142: the engine answers this call with `brief: null` and `empty: true`, and the reader
+    // held `id` to a string — so the most ordinary state a finished backlog is in read as
+    // this app being behind the engine.
+    const done = await buildFixture(engine, { open: 0, shipped: 1, deferred: 1 })
+    try {
+      const answer = await client.call(done.root, 'brief', claimingBrief(), { timeoutMs: CEILING })
+
+      expect(answer.kind).toBe('read')
+      if (answer.kind !== 'read') throw new Error('unreachable')
+      expect(lineOf(answer.value)).toBeNull()
+      if (!('empty' in answer.value)) throw new Error('unreachable')
+      expect(answer.value.reason).not.toBe('')
+    } finally {
+      done.dispose()
+    }
   })
 })
 

@@ -5,6 +5,7 @@ import { buildArgv, listedTasks, type Opening, type OpenProject } from '@rk/core
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { buildFixture, type Fixture } from './fixture'
+import { aLine } from './live'
 import { openHere, type OpenHereOptions } from './open-here'
 import { createProcessTransport } from './process-transport'
 
@@ -176,9 +177,10 @@ describe('RG103: what an open project stops paying for', () => {
     // Both calls reached the engine, and the second line is the proof: a claim moves the
     // marker, so an unclaimed `brief` answers about the next line. Served from a cache the
     // second would be the first again, reporting one claim as though it were two.
-    expect(first.value.claimed?.taken).toBe(true)
-    expect(again.value.claimed?.taken).toBe(true)
-    expect(again.value.id).not.toBe(first.value.id)
+    const [took, tookAgain] = [aLine(first.value), aLine(again.value)]
+    expect(took.claimed?.taken).toBe(true)
+    expect(tookAgain.claimed?.taken).toBe(true)
+    expect(tookAgain.id).not.toBe(took.id)
   })
 })
 

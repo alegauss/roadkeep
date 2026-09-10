@@ -1,7 +1,7 @@
 import { designFrom, whereDesignLives, wordsAgainstLimit, type Design } from '@rk/core'
 import { beforeAll, describe, expect, it } from 'vitest'
 
-import { openWithDesign, read, REPO } from './live'
+import { aLine, openWithDesign, read, REPO } from './live'
 
 /**
  * The design read against this repository's own rationale file. It is the interesting
@@ -10,7 +10,7 @@ import { openWithDesign, read, REPO } from './live'
  */
 
 async function designOfBrief(id: string): Promise<Design> {
-  return designFrom(await read(REPO, 'brief', { id }))
+  return designFrom(aLine(await read(REPO, 'brief', { id })))
 }
 
 async function designOfShow(id: string, noBody = false): Promise<Design> {

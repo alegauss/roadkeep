@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 
 import {
+  lineOf,
   listedTasks,
   VERBS,
   WRITES,
@@ -34,7 +35,14 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import { CEILING, engineReading, liveClient as client, liveEngine as transport, read } from './live'
+import {
+  aLine,
+  CEILING,
+  engineReading,
+  liveClient as client,
+  liveEngine as transport,
+  read,
+} from './live'
 import { buildFixture, type Fixture } from './fixture'
 
 /**
@@ -88,6 +96,10 @@ const SECOND_SHAPES = {
   'reversals <id>': '`asked`: null over the whole ledger, the id when one was named',
   'ship --part': '`roadmap`: a line removed on a closure, a line still open on a partial',
   'brief on a shipped line': '`budget`: an object while the design is there, null once it is gone',
+  // Not a flag this time but the backlog's state: nothing to offer is a second answer too,
+  // and each was found the day this repository had nothing ready (RG141, RG142).
+  'brief with nothing to hand over': '`empty` and `reason` in place of a line, with no `id`',
+  'pick with nothing ready': '`tier`: the word that chose on a pick, null beside a null pick',
 } as const
 
 type SecondShape = keyof typeof SECOND_SHAPES
@@ -282,8 +294,28 @@ describe('RG4: every read this client makes, against a live engine', () => {
     covers('show --no-body')
   })
 
+  it('reads a backlog with nothing to offer, in both of the verbs that choose', async () => {
+    // A fixture with no open line: every open line waiting on something answers the same way.
+    const done = await buildFixture(transport, { open: 0, shipped: 1, deferred: 1 })
+    try {
+      const brief = await read(done.root, 'brief', {})
+      expect(lineOf(brief)).toBeNull()
+      if (!('empty' in brief)) throw new Error('unreachable')
+      expect(brief.reason).not.toBe('')
+      expect(Array.isArray(brief.lacking)).toBe(true)
+      covers('brief with nothing to hand over')
+
+      const pick = await read(done.root, 'pick', {})
+      expect(pick.pick).toBeNull()
+      expect(pick.tier).toBeNull()
+      covers('pick with nothing ready')
+    } finally {
+      done.dispose()
+    }
+  })
+
   it('reads a brief, including what it left out', async () => {
-    const payload = await readVerb('brief', {})
+    const payload = aLine(await readVerb('brief', {}))
 
     expect(payload.id).not.toBe('')
     expect(payload.readiness).not.toBe('')
@@ -519,8 +551,8 @@ describe('RG4: every read this client makes, against a live engine', () => {
     const shipped = listedTasks(await readVerb('list', { role: 'changelog' }))[0]?.id ?? ''
     expect(shipped).not.toBe('')
 
-    const closed = await readVerb('brief', { id: shipped })
-    const open = await readVerb('brief', {})
+    const closed = aLine(await readVerb('brief', { id: shipped }))
+    const open = aLine(await readVerb('brief', {}))
 
     expect(closed.shipped).toBe(true)
     expect(closed.budget).toBeNull()
@@ -659,10 +691,10 @@ describe('RG4: every read this client makes, against a live engine', () => {
 
     // `claimed` is null on a brief that only read and an object on one that took, which is
     // the same key answering two ways under a flag.
-    const onlyRead = await readVerb('brief', { id })
+    const onlyRead = aLine(await readVerb('brief', { id }))
     expect(onlyRead.claimed).toBeNull()
 
-    const took = await readVerb('brief', { id, claim: true })
+    const took = aLine(await readVerb('brief', { id, claim: true }))
     expect(took.claimed).not.toBeNull()
     expect(typeof took.claimed?.taken).toBe('boolean')
     expect(took.claimed?.to).not.toBe('')

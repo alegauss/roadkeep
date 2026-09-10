@@ -4,9 +4,11 @@ import {
   aString,
   dictionaryOf,
   listOf,
+  literalTrue,
   orMissing,
   orNull,
   record,
+  whenFlagged,
   type Reader,
 } from './reading'
 import { offerable, readDoor, readRemedy, type Door, type Remedy } from './refusals'
@@ -725,6 +727,57 @@ export const readBriefPayload: Reader<BriefPayload> = record<BriefPayload>(
     doneWhenElided: 'done_when_elided',
   },
 )
+
+/** A line that would be ready, and what this caller lacks to be offered it. */
+export interface LackingLine {
+  readonly id: string
+  readonly missing: readonly string[]
+}
+
+/**
+ * What `brief` with no id answers when there is nothing to hand over (RG142).
+ *
+ * Not a brief with its fields left empty: a different shape — `brief: null` beside
+ * `empty: true` — carrying why nothing was chosen and what each line that would be ready is
+ * waiting on this caller for. A reader holding `id` to a string called it unreadable, and the
+ * sentence that produced blamed this app's version for the most ordinary state a finished or
+ * blocked backlog is in.
+ */
+export interface EmptyBrief {
+  readonly empty: true
+  /** Why nothing was chosen, in the engine's words. */
+  readonly reason: string
+  readonly lacking: readonly LackingLine[]
+}
+
+export const readEmptyBrief: Reader<EmptyBrief> = record<EmptyBrief>({
+  empty: literalTrue,
+  reason: orMissing(aString, ''),
+  lacking: orMissing(
+    listOf(record<LackingLine>({ id: aString, missing: orMissing(listOf(aString), []) })),
+    [],
+  ),
+})
+
+/**
+ * A brief's answer: the line, or nothing to hand over.
+ *
+ * Two shapes rather than one looser one, so a caller cannot read an empty answer as a line
+ * whose id is the empty string — it has to say what nothing looks like before it compiles.
+ * Only a brief with no id can be the second; one naming its id answers the line or refuses.
+ */
+export type BriefAnswer = BriefPayload | EmptyBrief
+
+export const readBriefAnswer: Reader<BriefAnswer> = whenFlagged(
+  'empty',
+  readEmptyBrief,
+  readBriefPayload,
+)
+
+/** The line a brief answered, or null where the backlog had nothing to hand over. */
+export function lineOf(answer: BriefAnswer): BriefPayload | null {
+  return 'empty' in answer ? null : answer
+}
 
 /** One entry in the ledger: what a block delivered, and whether it held. */
 export interface DeliveredEntry {

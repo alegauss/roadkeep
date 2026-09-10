@@ -4,6 +4,8 @@ import {
   createClient,
   explainUnreadable,
   listedTasks,
+  type BriefAnswer,
+  type BriefPayload,
   type Client,
   type Transport,
   type VerbAnswers,
@@ -217,6 +219,18 @@ export async function read<K extends VerbName>(
     throw new Error(`\`${verb}\` was refused: ${answer.refusal.said}`)
   }
   return answer.value
+}
+
+/**
+ * A brief's answer as the line it has to be here (RG142).
+ *
+ * Every file that briefs a named id, or a fixture with lines open, is asking for a line, and
+ * the answer's type now says it could be nothing to hand over. That is a premise failing, not
+ * a shape, so it is said as one — with the engine's own reason — rather than asserted around.
+ */
+export function aLine(answer: BriefAnswer): BriefPayload {
+  if ('empty' in answer) throw new Error(`brief had nothing to hand over: ${answer.reason}`)
+  return answer
 }
 
 /**

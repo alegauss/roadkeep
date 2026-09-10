@@ -1,7 +1,7 @@
 import { readCommandsPayload, type CommandsPayload } from './capabilities'
 import { readEnginesPayload, type EnginesPayload } from './engines'
 import {
-  readBriefPayload,
+  readBriefAnswer,
   readBudgetPayload,
   readConfigPayload,
   readCriteriaPayload,
@@ -14,7 +14,7 @@ import {
   readReversalsPayload,
   readShowPayload,
   readStatsPayload,
-  type BriefPayload,
+  type BriefAnswer,
   type BudgetPayload,
   type ConfigPayload,
   type CriteriaPayload,
@@ -57,7 +57,7 @@ export interface VerbAnswers {
   list: ListPayload
   show: ShowPayload
   stats: StatsPayload
-  brief: BriefPayload
+  brief: BriefAnswer
   deps: DepsPayload
   delivered: DeliveredPayload
   reversals: ReversalsPayload
@@ -76,7 +76,7 @@ export const ANSWERS: { [K in VerbName]: Reader<VerbAnswers[K]> } = {
   list: readListPayload,
   show: readShowPayload,
   stats: readStatsPayload,
-  brief: readBriefPayload,
+  brief: readBriefAnswer,
   deps: readDepsPayload,
   delivered: readDeliveredPayload,
   reversals: readReversalsPayload,

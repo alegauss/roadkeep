@@ -1,8 +1,14 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 
 import { buildArgv } from './client'
 import { claimingBrief, handoverOf, heldBy, mayHandOver, saidOfHandover } from './handover'
-import { readBriefPayload, type BriefPayload } from './payloads'
+import {
+  lineOf,
+  readBriefAnswer,
+  readBriefPayload,
+  type BriefAnswer,
+  type BriefPayload,
+} from './payloads'
 
 /** Captured from a real `brief <id> --claim --json`. */
 const RAW = {
@@ -118,5 +124,70 @@ describe('RG41: a held line is named before a second session is offered it', () 
     const handover = handoverOf(brief({ status: '🛠', held: [], readiness: 'ready' }))
 
     expect(mayHandOver(handover)).toBe(true)
+  })
+})
+
+/**
+ * Captured from `brief --json` on this repository the day RG140 shipped, when every open line
+ * waited on something: nothing to hand over, in a shape of its own (RG142).
+ */
+const EMPTY = {
+  brief: null,
+  empty: true,
+  block: null,
+  designed: false,
+  reason: 'every ready task needs something this caller does not have: signing-cert',
+  standing: null,
+  held: [],
+  lacking: [
+    { id: 'RG49', missing: ['signing-cert'] },
+    { id: 'RG119', missing: ['macos-machine'] },
+  ],
+}
+
+describe('RG142: a brief with nothing to hand over', () => {
+  it('reads as that, and not as a line this app failed to read', () => {
+    const parsed = readBriefAnswer(EMPTY, '')
+
+    // The reader held `id` to a string, so this was unreadable — and the sentence for that
+    // blames this app's version, for the most ordinary state a finished backlog is in.
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) throw new Error('unreachable')
+    expect(lineOf(parsed.value)).toBeNull()
+    expect(parsed.value).toMatchObject({ empty: true, reason: EMPTY.reason })
+    expect('empty' in parsed.value && parsed.value.lacking[0]).toEqual({
+      id: 'RG49',
+      missing: ['signing-cert'],
+    })
+  })
+
+  it('still reads a line as a line', () => {
+    const parsed = readBriefAnswer(RAW, '')
+
+    if (!parsed.ok) throw new Error('unreachable')
+    expect(lineOf(parsed.value)?.id).toBe('RG41')
+  })
+
+  it('reports the line shape for a line with a field wrong, not the empty one', () => {
+    // Chosen by the flag and not tried in turn: trying the second shape after the first
+    // failed would name `empty` for a payload that was a line with `status` missing.
+    const parsed = readBriefAnswer({ ...RAW, status: undefined }, '')
+
+    expect(parsed.ok).toBe(false)
+    if (parsed.ok) throw new Error('unreachable')
+    expect(parsed.failure.path).toBe('status')
+  })
+
+  it('builds a handover from the line half only', () => {
+    // The type is the claim, checked by the compiler rather than at run time: a caller has
+    // to say what nothing to take looks like before it can ask for a handover, so an empty
+    // answer cannot become one whose id is the empty string.
+    expectTypeOf<BriefAnswer>().not.toExtend<Parameters<typeof handoverOf>[0]>()
+    expectTypeOf<BriefPayload>().toExtend<Parameters<typeof handoverOf>[0]>()
+
+    const parsed = readBriefAnswer(EMPTY, '')
+    if (!parsed.ok) throw new Error('unreachable')
+    const line = lineOf(parsed.value)
+    expect(line === null ? 'nothing to take' : handoverOf(line).id).toBe('nothing to take')
   })
 })

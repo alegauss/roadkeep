@@ -16,7 +16,7 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import { CEILING, liveClient as client, liveEngine as engine, read } from './live'
+import { aLine, CEILING, liveClient as client, liveEngine as engine, read } from './live'
 import { buildFixture, type Fixture } from './fixture'
 import { createGovernedWatcher, REAL_CLOCK } from './governed-watch'
 
@@ -36,7 +36,7 @@ async function readingOf(id: string): Promise<Reading> {
   const answer = await client.call(fixture.root, 'brief', { id }, { timeoutMs: CEILING })
   if (answer.kind === 'unreadable') throw new Error(answer.unreadable.message)
   return answer.kind === 'read'
-    ? { kind: 'read', payload: answer.value }
+    ? { kind: 'read', payload: aLine(answer.value) }
     : { kind: 'gone', refusal: answer.refusal }
 }
 
