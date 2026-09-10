@@ -1,7 +1,9 @@
 import type { ReactElement } from 'react'
+import { Route, Routes } from 'react-router-dom'
 
 import { App } from './App'
 import { HOME_ROUTE } from './areas'
+import { AppShell } from './Shell'
 
 /**
  * Every route this app serves, written once (RG117).
@@ -36,3 +38,28 @@ export const SURFACES: readonly Surface[] = [{ path: HOME_ROUTE, element: <App /
 
 /** Just the paths, which is what a check about the map needs and all it needs. */
 export const ROUTED: readonly string[] = SURFACES.map((surface) => surface.path)
+
+/**
+ * The chrome, as the layout route's element. Built once for the reason `Surface.element`
+ * is: the router reads it as configuration, and a fresh one per render is a remounted shell.
+ */
+const SHELL = <AppShell />
+
+/**
+ * The table above as the router sees it: the shell as a layout, every surface inside it.
+ *
+ * Mounted by `main` and by the test harness alike (RG126), each inside its own router. It
+ * was written out in both until then, beside two copies of the providers above it, so the
+ * array was one and the tree that mounts it was still two.
+ */
+export function RoutedSurfaces() {
+  return (
+    <Routes>
+      <Route element={SHELL}>
+        {SURFACES.map((surface) => (
+          <Route key={surface.path} path={surface.path} element={surface.element} />
+        ))}
+      </Route>
+    </Routes>
+  )
+}

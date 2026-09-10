@@ -1,12 +1,10 @@
 import type { Theme, Wording } from '@rk/core'
 import { render, type RenderResult } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { MemoryRouter } from 'react-router-dom'
 
 import { HOME_ROUTE } from './areas'
-import { GroundProvider } from './ground'
-import { SURFACES } from './routes'
-import { AppShell } from './Shell'
-import { WordingProvider } from './wording'
+import { RoutedSurfaces } from './routes'
+import { ProviderStack } from './stack'
 
 /**
  * The whole window, as a test renders it.
@@ -23,10 +21,12 @@ import { WordingProvider } from './wording'
  * **The routes are `routes`' and not a second list** (RG117). It used to spell them out
  * beside `main`'s copy, which meant a surface could be added to the window and missed here
  * — and the test that would have caught it renders through this.
+ *
+ * **And the providers are `stack`'s** (RG126), for the same reason one level up: this
+ * mounted the ground, the wording and the route tree beside `main`'s own copy, so a provider
+ * added to the window was missing from every test and failed none of them. What is left
+ * here is the one thing only a test has — a router with no location bar to start from.
  */
-// A `Route`'s `element` is configuration the router reads rather than a prop a component
-// renders, so the one this adds is built once.
-const SHELL = <AppShell />
 
 /** Where a render starts unless a test says otherwise, which is the one surface so far. */
 const AT_HOME = [HOME_ROUTE]
@@ -57,18 +57,10 @@ export function drawWindow(
   } = {},
 ): RenderResult {
   return render(
-    <GroundProvider initial={options.initial}>
-      <WordingProvider over={options.over}>
-        <MemoryRouter initialEntries={entriesAt(options.at ?? HOME_ROUTE)}>
-          <Routes>
-            <Route element={SHELL}>
-              {SURFACES.map((surface) => (
-                <Route key={surface.path} path={surface.path} element={surface.element} />
-              ))}
-            </Route>
-          </Routes>
-        </MemoryRouter>
-      </WordingProvider>
-    </GroundProvider>,
+    <ProviderStack initial={options.initial} over={options.over}>
+      <MemoryRouter initialEntries={entriesAt(options.at ?? HOME_ROUTE)}>
+        <RoutedSurfaces />
+      </MemoryRouter>
+    </ProviderStack>,
   )
 }

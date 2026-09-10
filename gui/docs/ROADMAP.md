@@ -7,6 +7,7 @@
 - 💭 **RG9** (deps: RG1 ✅, roadkeep RK1632) **prose a person typed goes out through argv, which is where RK1474 recorded bytes arriving as different bytes** — why and section-body each read stdin on a dash and symptom does not, so the field every line leads with is the one with no safe path in. → §RG9
 - 📋 **RG130** (deps: RG122 ✅, RG64 ✅) **the live gate runs one file at a time because every read in it spawns a python, and that is most of ten minutes** — RG122 held the engine on the app's open path and 41 of the 43 files here never call it, so the setting that serialises the suite cannot go. → §RG130
 - 📋 **RG131** (deps: RG122 ✅) **a read cancelled after it reaches the held engine runs to the end, and only the transport that spawns kills one** — The pool refuses a queued call and the process transport kills a child mid-flight, so the one every screen now reads through ignores the signal. → §RG131
+- 📋 **RG135** (deps: RG122 ✅) **a project whose engine cannot hold a session reads at spawn speed, and nothing says the held surface was refused** — RG122 falls back on a failed handshake and keeps no reason, so a screen cannot say why a read is slow and a test says 1 is not 0. → §RG135
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
@@ -35,7 +36,6 @@
 ## Block H — The look (a design system for governed prose)
 
 - 📋 **RG90** (deps: RG54 ✅, the design system darkening the muted foreground) **muted text on a muted panel is 4.33 to 1, which no screen renders yet and one will** — Those two tokens are named as a pair and miss AA on the light ground, so the first panel using both ships a pale label looking like a style. → §RG90
-- 📋 **RG126** (deps: RG117 ✅, RG63 ✅) **the provider stack is spelled twice, so one added to the window is missing from every test that renders it** — main and the harness each mount the ground, the wording and a router, and a tree the harness lacks fails nothing: the assertions pass against a smaller window. → §RG126
 - 📋 **RG127** (deps: RG118 ✅, RG116 ✅) **the artboards draw a header the window no longer has, and they are what the next screen is designed against** — RG63, RG116 and RG118 each added a control or a region and none redrew Main or Shell, so a screen laid out against them opens inside a different chrome. → §RG127
 - 📋 **RG132** (deps: RG123 ✅, the design system translating its dialog close button) **a dialog says Close in English in every language, and the run that found it can only name it** — The package writes that word into its markup and not its bundle, so the guard carries a listed exception. → §RG132
 - 📋 **RG133** (deps: RG124 ✅, RG59 ✅) **the renderer ships three icon API endpoints, and one prop on a nav item is what starts fetching from them** — Every bento component takes an icon name it hands to Iconify, which fetches per name, and the policy refuses all three hosts. → §RG133

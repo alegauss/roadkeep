@@ -64,6 +64,30 @@ The protocol has `notifications/cancelled`. Whether this build's server acts on 
 the first thing to measure, and refusing the promise locally is the floor if it does
 not.</section_body> </invoke>
 
+### §RG135 The fallback that forgets why it fell back
+
+RG122 made a failed handshake a fall-through: an engine too old to have `mcp`, one whose
+interpreter cannot start, or one caught mid-save answers nothing at `initialize`, the
+root goes into `unheldable`, and every read after it spawns. That was the right call for
+the app — slow beats broken — and it is silent in both directions that matter.
+
+**A screen cannot say why a project is slow.** Seven hundred milliseconds a read against
+six is the whole reason the held engine exists, and a project that fell back pays the
+first number forever with nothing to show that it is the exception. The engine's version
+is already on screen from resolution; that this project's engine refused the held
+surface, and what it said, is not.
+
+**And a test cannot say it either.** The live gate went red on `mcp-live` with `expected
+1 to be +0`: a `list` that should have been answered held was spawned. Alone the file is
+23 of 23. Roadkeep's checkout was being edited during the run — a commit three minutes
+before it, seven engine modules modified — and a server started mid-save does not
+import. That took a `git log` in another repository to learn, because the one place that
+knew threw the reason away.
+
+So the transport keeps it: one reason per root it could not hold, readable beside
+`held`. The counting test then fails naming the handshake, and an open project can carry
+the sentence to a row.</section_body> </invoke>
+
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 ### §RG13 The cheap no
@@ -286,28 +310,6 @@ with the defect and this one out of step with them.
 the line. Dark is untouched, the package re-pointing that token there already.
 
 What is left here is adopting the release that carries it, and enforcing the pair.
-
-### §RG126 The window above the routes is still written twice
-
-RG117 made the routes one array and left the tree above them written twice. `main.tsx`
-mounts `GroundProvider`, `WordingProvider` and a router; `harness.tsx` mounts the same
-three so a test renders the same window. The harness's own note says why that matters --
-it exists precisely so a piece added to the shell is not missing from half the suite --
-and the stack it renders is the one thing it restates rather than reads.
-
-The failure is quiet in the direction that matters. A provider added to `main` and
-missed here fails nothing: every test renders a window slightly unlike the one that
-ships, and the assertions keep passing against the smaller tree.
-
-Two differences are deliberate and have to survive any fix. `main` wraps in `StrictMode`
-and the harness does not, because a double mount is what the launch notices are guarded
-against and a test asserting one toast would see two. And the routers differ:
-`HashRouter` because a packaged build is loaded from `file://`, `MemoryRouter` because a
-test has no location bar. So the shape is a component taking the router as its child --
-everything common inside, the two differences passed in -- rather than a flag naming
-which caller it is, which is the version that grows a second flag.
-
-Worth doing when a third provider arrives, or sooner if one is ever missed.
 
 ### §RG127 The drawings are behind the chrome they drew
 
