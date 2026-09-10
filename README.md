@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 234 | 2 |
-| C — Query (consult without reading the file) | 1 | 194 | 7 |
-| D — The gate | 0 | 316 | 7 |
+| C — Query (consult without reading the file) | 0 | 195 | 7 |
+| D — The gate | 1 | 316 | 7 |
 | E — Adoption | 0 | 118 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 163 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 44 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 1 | 1147 | 24 |
+| **Total** | 1 | 1148 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1674** (deps: —) **Two more refusals over an undeclared role name the vocabulary and not the verb that adds one** — RK1670 closed Config.path and defer's store; anchors --role and block add --organise still print the declared roles alone, where declare writes the file and the key. → §RK1674
+- 📋 **RK1675** (deps: —) **The door file.missing names is init, which refuses on the configured project that emits the finding** — A declared file gone from disk is refused by init as already configured and by declare as already declared, so repair runs nothing and the route back is a hand edit or git. → §RK1675
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

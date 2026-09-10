@@ -2706,3 +2706,45 @@ def test_the_door_a_line_git_already_names_gets_runs(tmp_path, capsys):
     assert "RK1" in config.path("changelog").read_text(encoding="utf-8")
     assert main(["-C", str(tmp_path), "unclosed"]) == EXIT_OK
     assert "0 of 0" in capsys.readouterr().out
+
+
+# -- the door an address read has where no prose file is (RK1674) ---------------
+
+
+@pytest.mark.parametrize(
+    "asked, opens",
+    [((), "improvements"), (("--role", "strategy"), "strategy")],
+    ids=["no-prose-file", "a-named-role"],
+)
+def test_the_door_an_address_read_with_nowhere_to_look_names_runs(tmp_path, capsys, asked, opens):
+    """RK1674. `anchors` refused with the vocabulary — *improvements, strategy, decisions is
+    what an anchor lives in* — which is the half a caller who typed the flag already had, and
+    `declare` is the verb written for exactly this refusal.
+
+    Two branches taking two doors: a named prose role the project has not got is that role's
+    `declare`, and a project with **no** prose file is `declare improvements`, a free address
+    having to live somewhere and that being the role `init` writes. Run, and then the read that
+    was refused answers — the only proof a door is the right command (RK393)."""
+    from composing import runs
+    from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
+
+    repo(tmp_path)
+    assert main(["-C", str(tmp_path), "anchors", *asked]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert runs(tmp_path, said) == (["declare", opens],), said
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "anchors", *asked]) == EXIT_OK
+
+
+def test_a_word_that_is_no_prose_role_is_offered_no_door(tmp_path, capsys):
+    """The flag is unconstrained, so a typo reaches the same refusal — and `declare strategey`
+    is refused as neither a role nor a table. The vocabulary is the answer there, being the
+    half the caller got wrong, and nothing is offered to run."""
+    from composing import commands
+    from roadkeep.cli import EXIT_USAGE, main
+
+    repo(tmp_path)
+    assert main(["-C", str(tmp_path), "anchors", "--role", "strategey"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "is what an anchor lives in" in said
+    assert not commands(said), said

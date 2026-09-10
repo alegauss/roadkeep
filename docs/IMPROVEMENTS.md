@@ -79,33 +79,32 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1674 The two role refusals RK1670 did not reach
-
-RK1670 closed the two refusals its design reached: the path resolver every read and
-write comes through, and `deferring.NoStore`, which had copied its rule from the class
-carrying the door and not the door. Two are left, and both are met before a path is ever
-resolved.
-
-`verbs/querying._anchors` prints *this project declares no strategy file (improvements,
-strategy, decisions is what an anchor lives in)* — the vocabulary, which is the half a
-caller who typed `--role strategy` already had. `blocking.NotOrganisable` prints *this
-project declares no such file on disk (it declares: …) — the argument names a role,
-which is how `[files]` names one*, which explains the argument and not the absence.
-
-Neither names `declare`, and `declare`'s own description says *reach for it when a verb
-refuses over an undeclared role or table*. So the verb written for it is named by two of
-the four sites that make it.
-
-`_anchors` has two branches taking different doors: a named role the project has not got
-is `declare <role>`, and a project with **no** prose file is `declare improvements`, a
-free address having to live somewhere and that being the role `init` writes. The second
-is the branch a scaffolded project cannot be in, so it is the one a reading has to
-decide rather than assume.
-
-What must not happen is a fifth spelling of the same sentence: four sites already say
-*declares no <role>* four ways, and RK1670 added the door to two of them by hand.
-
 ## Block D — The gate
+
+### §RK1675 The declared file no verb restores
+
+`lint` reports a declared file that is not on disk as `file.missing`, and the remedy row
+names `roadkeep init`. Run on the state that emits it — a scaffolded project with
+`docs/IMPROVEMENTS.md` deleted — `init` refuses with `AlreadyConfigured`, and `repair`
+reports `0 repair(s) ran, 1 left for you`.
+
+The other verb that writes a governed file refuses too: `declare improvements` answers
+that the role is already declared, which is true — the absence is the file and not the
+key. RK1674 met this as the third state its `declarable` excludes, and named no door
+there because none lands.
+
+So the finding names a command that cannot run and no command could. The route back is
+`git checkout` or a hand edit the guard denies, which is RK393's loop: a remedy whose
+command refuses leaves its finding standing.
+
+The question is which verb owes it. `init` scaffolds a project and refuses one that
+exists; `declare` retrofits a role and refuses one that is there. Writing the file with
+the headings the roadmap carries is what `declare` already does for a new role, so the
+smallest door may be `declare` taking a declared role whose file is absent — the one
+state it refuses today with nothing to offer.
+
+What must not happen is a door that writes over a file somebody moved on purpose: an
+entry pointing at a path that is gone may be the entry that is wrong.
 
 ## Block E — Adoption
 

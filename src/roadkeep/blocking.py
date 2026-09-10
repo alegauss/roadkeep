@@ -76,7 +76,7 @@ from pathlib import Path
 
 from roadkeep.authoring import _after_preamble, remove_entry
 from roadkeep.backlog import Backlog, Stage, Standing as Became
-from roadkeep.config import Config
+from roadkeep.config import Config, declarable, role_door
 from roadkeep.criteria import without as criteria_without
 from roadkeep.kernel.document import (
     Document,
@@ -236,7 +236,14 @@ class NotOrganisable(ValueError):
     guesses the shape of.
     """
 
-    def __init__(self, role: str, roles: Sequence[str], *, spelling: bool = False) -> None:
+    def __init__(
+        self,
+        role: str,
+        roles: Sequence[str],
+        *,
+        spelling: bool = False,
+        declarable: bool = False,
+    ) -> None:
         self.role = role
         self.roles = tuple(roles)
         if spelling:
@@ -247,9 +254,18 @@ class NotOrganisable(ValueError):
             )
             return
         known = ", ".join(self.roles) or "none"
+        # The door where it lands (RK1674). Three states reach this sentence and `declare`
+        # answers one: a block role the project never declared. A role declared with its file
+        # gone is refused by `declare` as already there, and a word that is no role is refused
+        # as neither — so those two keep the explanation, which is about the argument.
+        then = (
+            f"{role_door(role)}, and `--organise {role}` then has a file to write into"
+            if declarable
+            else "the argument names a role, which is how [files] names one"
+        )
         super().__init__(
             f"--organise {role}: this project declares no such file on disk (it declares: "
-            f"{known}) — the argument names a role, which is how [files] names one"
+            f"{known}) — {then}"
         )
 
 
@@ -1427,7 +1443,11 @@ def open_block(
     asked = tuple(dict.fromkeys(organise))
     for role in asked:
         if role not in readable:
-            raise NotOrganisable(role, sorted(readable))
+            raise NotOrganisable(
+                role,
+                sorted(readable),
+                declarable=role in BLOCK_ROLES and declarable(config, role),
+            )
     # The project's own convention, read before anything is written and off the first file
     # that has one — `BLOCK_ROLES` order, so it is the roadmap wherever the roadmap has
     # blocks. A file being organised for the first time has no heading of its own to copy.

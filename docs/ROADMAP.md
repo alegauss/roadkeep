@@ -28,9 +28,9 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1674** (deps: —) **Two more refusals over an undeclared role name the vocabulary and not the verb that adds one** — RK1670 closed Config.path and defer's store; anchors --role and block add --organise still print the declared roles alone, where declare writes the file and the key. → §RK1674
-
 ## Block D — The gate
+
+- 📋 **RK1675** (deps: —) **The door file.missing names is init, which refuses on the configured project that emits the finding** — A declared file gone from disk is refused by init as already configured and by declare as already declared, so repair runs nothing and the route back is a hand edit or git. → §RK1675
 
 ## Block E — Adoption
 

@@ -30,7 +30,7 @@ from roadkeep.budgeting import (
     notice_budget,
     non_goal_budget,
 )
-from roadkeep.config import Config, PROSE_ROLES
+from roadkeep.config import Config, PROSE_ROLES, declarable, role_door
 from roadkeep.counting import Census
 from roadkeep.kernel.document import StaleFile, write_all
 from roadkeep.exporting import DEFAULTS, project, spec, splice_into
@@ -1189,9 +1189,20 @@ def _anchors(config: Config, args: argparse.Namespace) -> Result | int:
     asked = [one for one in PROSE_ROLES if config.has(one)]
     role = args.role or ""
     if (role and not config.has(role)) or not asked:
+        # The door where it lands (RK1674), which is two branches taking two: a prose role the
+        # project has not got is that role's `declare`, and a project with **no** prose file is
+        # `declare improvements` — a free address has to live somewhere, and that is the role
+        # `init` writes. A word that is no prose role keeps the vocabulary alone, being the half
+        # the caller got wrong; `--role` is unconstrained here, so a typo reaches this line.
+        wanted = role or "improvements"
+        door = (
+            f" — {role_door(wanted)}"
+            if wanted in PROSE_ROLES and declarable(config, wanted)
+            else ""
+        )
         print(
             f"roadkeep: this project declares no {role or 'prose'} file "
-            f"({', '.join(PROSE_ROLES)} is what an anchor lives in)",
+            f"({', '.join(PROSE_ROLES)} is what an anchor lives in){door}",
             file=sys.stderr,
         )
         return EXIT_USAGE

@@ -498,6 +498,7 @@
 - ✅ **RK1663** **the per-block half of a pin's shape counts the roadmap's headings, so a finished block's entries land in no row** — The rows are over both files' labels and account for both totals, so Turing reads as 105 blocks and not 3 and Shio's 668 delivered all land in a row.
 - ✅ **RK1670** **the refusal over an undeclared role names what the project has and not the verb that adds one** — The undeclared-role refusal names declare, and defer's own store refusal stops reading out the hand edit it copied its rule from.
 - ✅ **RK1671** **three tests assert on this checkout's live backlog and go red when it drains** — A census of the thirty-one tests reading this backlog says what a drain does to each, measured by running the suite against a drained copy.
+- ✅ **RK1674** **Two more refusals over an undeclared role name the vocabulary and not the verb that adds one** — One composer names declare at all five role refusals and only where it lands, which also closes a typo RK1670 was offering declare for.
 
 ## Block D — The gate
 

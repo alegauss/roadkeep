@@ -49,7 +49,7 @@ from roadkeep.authoring import (
     remove_entry,
 )
 from roadkeep.backlog import Backlog, Whereabouts
-from roadkeep.config import Config
+from roadkeep.config import Config, role_door
 from roadkeep.ids import Derivation, Promise, derivation
 from roadkeep.kernel.document import Document, Entry, save_all
 from roadkeep.markers import refresh
@@ -93,9 +93,8 @@ class NoStore(ValueError):
     def __init__(self, what: str) -> None:
         super().__init__(
             f"{what}: this project declares no dismissed store — "
-            f"`{invocation()} declare dismissed` writes the file and the `[files]` key "
-            f"together, and a finding worth recording is worth a store that outlives the "
-            f"session that traced it"
+            f"{role_door('dismissed')} together, and a finding worth recording is worth a "
+            f"store that outlives the session that traced it"
         )
 
 

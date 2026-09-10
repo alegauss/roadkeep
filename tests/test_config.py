@@ -1117,15 +1117,58 @@ def test_the_door_is_composed_on_the_raise_and_not_on_the_read(tmp_path):
     is reached inside the `except` alone — a PATH lookup on the hot path to spell a message
     nobody is reading is RK260's measurement backwards.
 
-    Held on the source rather than timed: the import is where the raise is, and a call that
-    resolves a declared role composes nothing at all."""
-    from surface import calling, modules
+    Held on the source rather than timed: the composer is reached from the `except`, and a call
+    that resolves a declared role composes nothing at all. `config.role_door` since RK1674,
+    where the door stopped being spelled at each of five sites."""
+    import ast
+
+    from surface import modules
 
     (module,) = [one for one in modules() if one.where == "config.py"]
-    lines = module.text.splitlines()
-    (found,) = [
-        one for one in calling(module.text, "invocation") if "declare {role}" in lines[one - 1]
+    tree = ast.parse(module.text)
+    (path,) = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.FunctionDef) and node.name == "path"
     ]
-    # The composition sits under a `raise`, which is what "on the raise alone" means: the
-    # happy path of this method is two statements and neither is a PATH lookup.
-    assert "raise KeyError(" in "\n".join(lines[found - 4 : found])
+    (guarded,) = [node for node in path.body if isinstance(node, ast.Try)]
+    calls = {
+        child.func.id
+        for child in ast.walk(guarded)
+        if isinstance(child, ast.Call) and isinstance(child.func, ast.Name)
+    }
+    # Reached under the handler and nowhere else in the method: the happy path of `path` is a
+    # dict lookup, and a PATH lookup paid there would be RK260's cost backwards.
+    handled = {
+        child.func.id
+        for handler in guarded.handlers
+        for child in ast.walk(handler)
+        if isinstance(child, ast.Call) and isinstance(child.func, ast.Name)
+    }
+    assert "role_door" in handled and "role_door" in calls
+    assert not any(
+        isinstance(child, ast.Call) and getattr(child.func, "id", "") == "role_door"
+        for child in (node for stmt in guarded.body for node in ast.walk(stmt))
+    )
+
+
+def test_a_word_that_is_no_role_is_told_the_vocabulary_and_offered_no_door(tmp_path, capsys):
+    """RK1674, and the hole RK1670 left: four `--role` flags reach `Config.path` unconstrained,
+    so `section drop --role strategey` was offered `declare strategey` — a door `declare`
+    refuses as neither a role nor a table. Found by running the printed line, which is the
+    argument `tests/composing` is built on.
+
+    What the caller got wrong is the word, so the answer is the vocabulary and nothing runs."""
+    from composing import commands
+
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "TT"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text("# Roadmap\n\n## Block A\n", encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text("# Shipped\n\n## Block A\n", encoding="utf-8")
+    assert main(["-C", str(tmp_path), "section", "drop", "TT1", "--role", "strategey"]) \
+        == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "'strategey' is no role" in said and "strategy" in said, said
+    assert not [one for one in commands(said) if one[:1] == ["declare"]], said

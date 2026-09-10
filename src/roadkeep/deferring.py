@@ -43,7 +43,7 @@ from pathlib import Path
 from roadkeep import claiming, queueing
 from roadkeep.authoring import Insertion, place, remove_entry
 from roadkeep.backlog import Backlog, NotOpen, Whereabouts
-from roadkeep.config import DESIGN_ROLES, Config
+from roadkeep.config import DESIGN_ROLES, Config, role_door
 from roadkeep.kernel.document import Document, Entry, save_all
 from roadkeep.markers import refresh
 from roadkeep.provenance import invocation
@@ -94,13 +94,11 @@ class NoStore(ValueError):
     """
 
     def __init__(self, task_id: str) -> None:
-        from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
-
         self.task_id = task_id
         super().__init__(
             f"{task_id} cannot be set aside: no deferred store is declared — "
-            f"`{invocation()} declare deferred` writes the file and the `[files]` key "
-            f"together, or retire the line if the pause is really an abandonment"
+            f"{role_door('deferred')} together, or retire the line if the pause is really "
+            f"an abandonment"
         )
 
 
