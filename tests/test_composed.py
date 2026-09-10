@@ -115,16 +115,19 @@ def test_the_paths_are_the_ones_the_config_already_classifies():
     }
 
 
-def test_the_one_field_with_no_validator_is_named_rather_than_absent():
-    """RK1627's own first finding, kept as the row that found it. `govern --because` wraps a
-    sentence into comment lines above a key and the whole file is re-parsed before the bytes
-    land (RK1533/RK1576) — which refuses a value TOML cannot carry and sees nothing about the
-    prose. A mangled run lands, and `lint` does not read `roadkeep.toml` for one.
+def test_no_field_is_left_to_the_round_trip_alone():
+    """RK1627's own first finding, and RK1666 closing it — which is what this test was written
+    to make visible. `govern --because` wraps a sentence into comment lines above a key and the
+    whole file is re-parsed before the bytes land (RK1533/RK1576); that refuses a value TOML
+    cannot carry and saw nothing about the prose, so a mangled run landed in a file `lint`
+    reads for budgets and not for characters.
 
-    Asserted so that closing it moves this test rather than passing quietly: a register whose
-    weakest row can be strengthened without anybody noticing is a register nobody re-reads."""
+    **Empty now**, which is a state and not an achievement: the two rows take the pair of
+    character rules `characters()` names, and the next field composed with nothing but the
+    round-trip behind it is a row here somebody has to write down. Asserted so that closing
+    one moves this test rather than passing quietly."""
     weak = sorted(dest for dest, row in FIELDS.items() if row.kind == "round-trip")
-    assert weak == ["because", "instead"], weak
+    assert weak == [], weak
 
 
 @pytest.mark.parametrize(

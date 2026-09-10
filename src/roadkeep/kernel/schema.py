@@ -2257,8 +2257,7 @@ class Schema:
                     "does not silently rewrite text it did not author)",
                 )
             )
-        out += _codepoints(field, value)
-        out += mangled(field, value)
+        out += characters(field, value)
         if width(measured) > limit:
             out.append(
                 Violation(
@@ -2276,6 +2275,23 @@ class Schema:
                 )
             )
         return out
+
+
+def characters(field: str, value: str) -> list[Violation]:
+    """The two character rules every composed field takes, over one value (RK1666).
+
+    :func:`_codepoints` and :func:`mangled`, which `_check_text` already applies in this order
+    and which RK1531 applied to a section's title one field over. Named as a pair because that
+    is what a *composed* field is checked for wherever the rest of the rules do not reach: a
+    value with no length limit, no sentence rule and no line to fit is still bytes that
+    arrived through a codec and codepoints a reader cannot see.
+
+    The caller that wanted it is `govern --because`, whose sentence is wrapped into comment
+    lines above a key in `roadkeep.toml`: `readable()` parses the file back before the bytes
+    land and a comment is legal TOML whatever is in it, so `--because "Menu Ã© semeado"`
+    landed and stayed. Every other composed field this build has takes these two.
+    """
+    return _codepoints(field, value) + mangled(field, value)
 
 
 def _codepoints(field: str, value: str) -> list[Violation]:

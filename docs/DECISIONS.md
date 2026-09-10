@@ -306,6 +306,7 @@ reading of the two files: the open work first, the history behind it.
 - ✅ **RK1652** **a config refusal now names the table a key belongs under, and no verb moves it there** — The verb that repairs roadkeep.toml runs on a config that did not load, and a run which cannot say which files are governed attests none of them.
 - ✅ **RK1654** **ten functions print to both streams in one body and two go through the helper, nothing saying which of the rest need to** — A guard on a stream order holds the fault and not the fix: the census says which functions write both in one run, and each of those owes its stderr to beneath.
 - ✅ **RK1665** **the backstop reads a code only where it is a literal, so six a write refuses are outside a total that says it is one** — A closure that widens its found set on a value it cannot read is a closure agreeing with itself: an unresolvable code raises, and what it may be is declared.
+- ✅ **RK1666** **govern writes a caller's sentence into roadkeep.toml and no validator reads it, so a mangled run lands and stays** — A composed field with no length, sentence or line rule still takes the character pair: bytes through the wrong codec and codepoints a reader cannot see.
 
 ### §RK1394 Proof, not age
 
@@ -551,6 +552,22 @@ module, the line and the expression.
 `COMPUTED_FROM` is the one name that stays unresolvable — `_codepoints` picks its code
 from the character it found, so the value is a local and the enumeration beside it is
 the answer. One declared row rather than a branch every unreadable value falls into.
+
+### §RK1666 Two rules, and the gate untouched
+
+Two rules and not the design's three. A newline is already flattened — the wrap joins
+the argument's whitespace before composing a line — so refusing one refuses what the
+tool normalises, and a leading `#` is doubled rather than corrupting. What survives the
+wrap is a codec run and an invisible codepoint — the pair `characters()` names.
+
+The gate is **not** widened, which was the design's second question. `--because` and
+`--instead` are the only writers of a caller's prose into that file, so the door covers
+every route this tool has; what is left is a hand edit to the one file the barrier tells
+an author is theirs.
+
+So the register's weakest kind is empty. `round-trip` alone was one row's answer and is
+now nobody's, and the next field composed with nothing but a parse behind it is a row
+somebody writes down rather than a silence.
 
 ## Block E — Adoption
 

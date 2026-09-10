@@ -130,18 +130,23 @@ FIELDS: dict[str, Composed] = {
         "the bolded head of a non-goal or a criterion, which is also its address",
         "non-goal.lead", "non-goal.shape", "criterion.lead", "criterion.shape",
     ),
-    # -- prose nothing reads as a field ------------------------------------------
-    # RK1627's own finding, and the row this register exists to be able to make. `govern`
+    # -- prose held to the two character rules and nothing else -------------------
+    # RK1627's own finding, and the row this register exists to be able to make: `govern`
     # wraps the sentence into comment lines above the key and re-parses the whole file before
-    # the bytes land, which refuses a value TOML cannot carry and sees nothing about the
-    # prose: a mangled run lands, and `lint` does not read that file for one.
-    "because": Composed(
-        "round-trip",
+    # the bytes land, which refuses a value TOML cannot carry and saw nothing about the prose
+    # — so a mangled run landed, in a file `lint` reads for budgets and not for characters.
+    #
+    # `schema` since RK1666, and the codes are the shared `char.*` family with the field
+    # naming the argument: what a comment cannot be held to is a length, a sentence count or
+    # a line to fit — there is no line, the wrap makes one — and what it can be held to is the
+    # two rules every other composed field takes. `characters()` is that pair, named once.
+    "because": _schema(
         "your argument for a number, wrapped into comments above the key in roadkeep.toml",
+        "char.mangled", "char.invisible", "char.tab", "char.space",
     ),
-    "instead": Composed(
-        "round-trip",
+    "instead": _schema(
         "the same sentence, replacing the run above the key rather than stacking on it",
+        "char.mangled", "char.invisible", "char.tab", "char.space",
     ),
     # -- addresses: what is named, not what is written ----------------------------
     "id": _address("the task this write is about, resolved against the files that hold one"),

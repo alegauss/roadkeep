@@ -118,29 +118,6 @@ which is the half that goes red — and that is the reading, not a guess to be r
 
 ## Block D — The gate
 
-### §RK1666 The sentence above the key
-
-`govern <key> <n> --because "…"` wraps the caller's argument into comment lines above
-the key and writes `roadkeep.toml`. What refuses a bad value is `readable()`: the
-composed text is parsed back before the bytes land, which catches a value TOML cannot
-carry and is blind to everything inside a comment.
-
-So a mangled run lands. Reproduced on a scaffolded project: `--because "Menu Ã©
-semeado"` wrote `# Menu Ã© semeado`, the write reported success, and `lint` did not list
-`roadkeep.toml` among the files it read. `char.mangled` is a rule this build has and
-applies to a task's fields, a section's title and a block's — every composed field but
-this one.
-
-RK1570 is the same finding one field over, and RK1627's register is what named this: the
-row for `because` is the only `round-trip` kind in it, which is the register saying out
-loud that the strongest thing between this value and a governed file is a TOML parse.
-
-What it wants is the three rules a title already takes — no newline, no leading `#`, and
-the codec rule — because a comment is one line and `#` is what opens it, so the
-vocabulary is already right. `--instead` is the same argument at the same door and takes
-them with it. What is not obvious is whether the gate should read that file for
-characters too, which is a second question about a file no role declares.
-
 ### §RK1667 The quote no one spelling carries
 
 RK1635 built the instrument and the instrument answered. `provenance.quoted` spells one

@@ -36,7 +36,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 from roadkeep.config import Config, Unwritable, readable
-from roadkeep.kernel.schema import width
+from roadkeep.kernel.schema import SchemaError, characters, width
 from roadkeep.provenance import invocation
 
 __all__ = ["Declared", "Measured", "NoSuchKey", "Violated", "govern", "reading"]
@@ -813,6 +813,15 @@ def govern(
             "this project declares no roadkeep.toml, so there is no table to write a number "
             f"into: `{invocation()} init` scaffolds one, and every limit is declared there"
         )
+    # **The argument's own bytes, before anything is read** (RK1666). What refuses a bad value
+    # here is `readable()` — the composed text parsed back before it lands — and a comment is
+    # legal TOML whatever is in it, so a sentence that arrived through the wrong codec landed
+    # and stayed: reproduced as `--because "Menu Ã© semeado"`, written, reported as a success,
+    # and in a file `lint` reads for budgets and not for characters. First because it is the
+    # cheapest refusal and the one that is wrong whatever the number turns out to be.
+    argued = characters("because" if because else "instead", because or instead)
+    if argued:
+        raise SchemaError(argued)
     measured = reading(config, address, file=file, role=role)
     if measured.over(at):
         raise Violated(address, at, measured.worst, measured.where, 1)

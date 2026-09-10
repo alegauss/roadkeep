@@ -20,6 +20,7 @@ import pytest
 from roadkeep import adopting, governing
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
+from roadkeep.kernel.schema import SchemaError
 from surface import modules
 
 ROADMAP = "docs/ROADMAP.md"
@@ -347,6 +348,33 @@ def test_the_argument_lands_above_the_key_in_the_author_s_own_words(tmp_path):
 
     after = written(Config.discover(tmp_path))
     assert "# P90 of the lines that read well.\nsymptom = 90\n" in after
+
+
+def test_the_argument_takes_the_character_rules_every_composed_field_does(tmp_path):
+    """RK1666. `readable()` parses the whole file back before the bytes land, and a comment is
+    legal TOML whatever is in it — so a sentence that arrived through the wrong codec landed,
+    was reported as a success, and stayed in a file `lint` reads for budgets and not for
+    characters. Reproduced exactly as `--because "Menu Ã© semeado"`.
+
+    The two rules and not the prose ones: there is no length here, no sentence count and no
+    line to fit, the wrap making one — and what a comment *can* be held to is the pair
+    `characters()` names, which every other composed field already takes.
+
+    Nothing written, which is the half that makes it L1: the refusal is ahead of the reading
+    and of the number, because a mangled sentence is wrong whatever the number turns out to be.
+    """
+    config = project(tmp_path)
+    before = written(config)
+    with pytest.raises(SchemaError) as caught:
+        governing.govern(config, "limits.why", 180, because="Menu Ã© semeado")
+    assert [one.code for one in caught.value.violations] == ["char.mangled"]
+    assert [one.field for one in caught.value.violations] == ["because"]
+    assert written(Config.discover(tmp_path)) == before
+    # The same door one flag over, which is the same sentence placed the other way.
+    with pytest.raises(SchemaError) as also:
+        governing.govern(config, "limits.why", 180, instead="a zero​width space")
+    assert [one.code for one in also.value.violations] == ["char.invisible"]
+    assert [one.field for one in also.value.violations] == ["instead"]
 
 
 def test_a_new_argument_stacks_on_the_one_that_argued_the_number_before(tmp_path):
