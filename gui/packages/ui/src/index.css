@@ -151,6 +151,26 @@ body,
   min-height: 100%;
 }
 
+/*
+ * RG118: the column the footer is measured against.
+ *
+ * `AppFooter` is written `mt-auto`, which is the last of the three reasons named above and
+ * the one that stayed inert until something mounted it. A flex column is what gives that
+ * margin room to push against, so the footer sits at the bottom of a short page and after
+ * the content of a long one, with no fixed position and no height anybody wrote down.
+ *
+ * **`100dvh` and not the `100%` above, which does not reach here.** A percentage
+ * `min-height` resolves against the parent's *height*, and `body`'s height is `auto` — so
+ * the rule above leaves `#root` as tall as its content and the window measured 66px of
+ * ground below the footer. The viewport unit asks the window directly, which is the
+ * question being asked.
+ */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
 body {
   margin: 0;
 }

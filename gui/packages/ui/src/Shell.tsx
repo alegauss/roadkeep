@@ -1,5 +1,5 @@
-import { THEME_TEXT } from '@rk/core'
-import { Button, LanguageSwitcher, Toaster, toast } from '@viglet/viglet-design-system'
+import { PRODUCT, saidOfVersion, THEME_TEXT } from '@rk/core'
+import { AppFooter, Button, LanguageSwitcher, Toaster, toast } from '@viglet/viglet-design-system'
 import {
   BentoBackToTop,
   BentoCommandPalette,
@@ -13,6 +13,7 @@ import { AREAS, HOME_ROUTE, surfacesIn } from './areas'
 import { useGround } from './ground'
 import { noticesAtLaunch } from './launch'
 import { SPOKEN_LOCALES } from './speaking'
+import { useIdentity } from './useTransport'
 import { useWording } from './wording'
 
 /**
@@ -39,6 +40,17 @@ import { useWording } from './wording'
  * takes the corner it would have had: the package's own answer for reaching that sheet is
  * the user menu, and with no user menu the only way in would be a keyboard shortcut nothing
  * on screen mentions.
+ *
+ * **And it names the build** (RG118). `AppFooter` is the package's own answer and the one
+ * region `authoring.md` leaves unsettled, its rule being that either the shell carries a
+ * footer for every page or the chrome has none — so it is mounted here, where every screen
+ * inherits it, and never by a page. What it prints is the line `core` composes for a defect
+ * report, because a person quoting a version and being asked for the commit is a report
+ * that has become a conversation about which build they have.
+ *
+ * The header was the alternative, and `docs/design/Main.dc.html` turns out not to draw this
+ * there: the pill on its trailing edge is the *engine's* version behind a status dot, which
+ * is a different fact about a different program.
  *
  * **And it carries the notice surface** (RG115). A setting that could not be read, and a
  * choice that could not be saved, are both things the app knew and nobody was told — the
@@ -74,6 +86,7 @@ const LOCALE_ROWS = [...SPOKEN_LOCALES]
 export function AppShell() {
   const say = useWording()
   const { theme, cycle } = useGround()
+  const identified = useIdentity()
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const mac = isMac()
@@ -187,6 +200,16 @@ export function AppShell() {
           <Outlet />
         </main>
       </div>
+
+      {/*
+       * Named, always; versioned once the bridge answers. A build nobody has been told
+       * about yet is drawn as the product alone rather than as a guess or a blank — which
+       * is also what a plain browser tab shows, honestly, for as long as it has no bridge.
+       */}
+      <AppFooter
+        productName={PRODUCT}
+        version={identified.kind === 'known' ? saidOfVersion(identified.identity.build) : undefined}
+      />
 
       <BentoCommandPalette
         open={paletteOpen}

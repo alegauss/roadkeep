@@ -131,27 +131,6 @@ replaces itself while somebody is reading a backlog is one that loses their plac
 it must not do is phone anywhere on launch by default: this app reads a person's
 repositories, and a network call it did not need is one that has to be explained.
 
-### §RG118 The build the window is, said on screen
-
-Block G's own criterion is that a user can say which build they are running and where it
-came from, and every part of the answer is already in hand. `readStamp` composes it in
-the main process, `identify` carries it across the bridge beside the transport name, and
-a live test asserts the field is there. Nothing renders it. So the criterion is unmet by
-a screen and not by a mechanism.
-
-It matters most in the case it was written for. A person reporting that a read came back
-wrong has a version, a commit and a signed-or-not to quote, and without a surface they
-quote none of them — which is when the report becomes a conversation about which build
-they have rather than about the defect.
-
-RG63 gave it a home and left it empty. The bento layer's own answer is `AppFooter` — a
-hairline, then the product name, its version and a few links — and its guidance is
-explicit that the choice is the shell's: either every page carries the footer or the
-chrome has none, and what must not happen is one page growing its own. That is the
-decision to make here, and the alternative worth weighing is the header's trailing edge,
-where `BentoUserMenu` would have gone and where `docs/design/Main.dc.html` draws a
-version.
-
 ### §RG119 The build nobody has made
 
 `electron-builder.yml` declares a `dmg` target with a category beside it, and that is
@@ -362,3 +341,28 @@ everything common inside, the two differences passed in -- rather than a flag na
 which caller it is, which is the version that grows a second flag.
 
 Worth doing when a third provider arrives, or sooner if one is ever missed.
+
+### §RG127 The drawings are behind the chrome they drew
+
+`docs/design/Main.dc.html` draws the header as a wordmark, the palette, a pill, `EN` and
+a ground button. The window now draws a wordmark, the palette, a `?` button, a language
+menu and a ground button, and carries a footer naming the build under every page. RG63
+added the first of those, RG116 the second, RG118 the third; none of them redrew the
+artboard.
+
+That is the same class RG109 closed once and it will recur, because the drawings are the
+input to work and the chrome is the output of it. It matters more than a stale picture
+usually would: these files are what the next screen is designed against, so a person
+laying out the project surface measures a header that has one control fewer than the one
+their screen will open inside.
+
+One correction is already known rather than guessed. The pill on that trailing edge is
+`roadkeep 0.2.411` behind an amber dot -- the *engine*'s version and its agreement
+state, which RG118's own design misread as the app's build and nearly put in the header
+for that reason. A redraw should keep it and label it, because that chip is a real thing
+this app will need and it is not this one.
+
+The cheap fix is to redraw the two artboards that carry chrome, `Main` and `Shell`. The
+question worth answering first is whether anything can hold them:
+`viglet-ds-page-reference --check` keeps the vendored `vds-` pages current, and nothing
+at all watches this repository's own.

@@ -8,8 +8,10 @@ import {
   pseudo,
   PSEUDO_CLOSE,
   PSEUDO_OPEN,
+  PRODUCT,
   PT_BR,
   type RendererBridge,
+  saidOfBuild,
   translator,
   type Wording,
   wordingFor,
@@ -82,8 +84,15 @@ function visibleText(root: HTMLElement): string[] {
   return [...seen]
 }
 
-/** The only text on this screen that is a name and not a sentence. */
-const IDENTIFIERS = new Set<string>(PACKAGES)
+/**
+ * The only text on this screen that is a name and not a sentence.
+ *
+ * The build line joined them at RG118. It is the same characters in every language on
+ * purpose — a version, a commit, `packaged` or `source`, `signed` or not — because what it
+ * is for is being pasted into a defect report, and a translated stamp is one that has to be
+ * read back before it can be used. `build.test.ts` holds what it says.
+ */
+const IDENTIFIERS = new Set<string>([...PACKAGES, PRODUCT, saidOfBuild(BUILT)])
 
 /** The same brackets `pseudo` uses, over the nested shape an i18next bundle has. */
 function pseudoDeep(bundle: Record<string, unknown>): Record<string, unknown> {

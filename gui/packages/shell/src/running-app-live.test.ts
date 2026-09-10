@@ -209,6 +209,46 @@ describe('RG60: what the page may load', () => {
     expect(policyText(PACKAGED_POLICY)).toContain("script-src 'self'")
   })
 
+  it('names the build on screen, which is the criterion a mechanism could not meet', async () => {
+    // RG118, asked of the window rather than of a component: the stamp is read in the main
+    // process, crosses the bridge and is drawn by the renderer, and only a running app
+    // exercises all three. The version comes from the package this was built from, so it
+    // is read from the identity rather than written down here.
+    const said = await app.evaluate<string>(`
+      (async () => {
+        const identity = await window['${BRIDGE_KEY}'].identify()
+        const footer = document.querySelector('footer')
+        return JSON.stringify([footer ? footer.textContent : '', identity.build.version])
+      })()
+    `)
+    const [drawn, version] = JSON.parse(said) as [string, string]
+
+    expect(drawn).toContain(version)
+    expect(drawn).toContain('source')
+  })
+
+  it('leaves no ground below the footer, which is the half jsdom cannot answer', async () => {
+    // `AppFooter` is written `mt-auto` and there is no layout in a unit test, so this is
+    // the only place that margin can be checked at all -- and it was wrong when written:
+    // a percentage `min-height` resolves against `body`'s auto height, so the chain stopped
+    // short and the window drew 66px of ground under the footer.
+    //
+    // At or below the fold, not exactly at it: a page taller than the window puts the
+    // footer past the bottom, which is the same rule and not a second one.
+    const measured = await app.evaluate<string>(`
+      (() => {
+        const footer = document.querySelector('footer')
+        return JSON.stringify({
+          bottom: Math.round(footer.getBoundingClientRect().bottom),
+          viewport: document.documentElement.clientHeight,
+        })
+      })()
+    `)
+    const { bottom, viewport } = JSON.parse(measured) as { bottom: number; viewport: number }
+
+    expect(bottom).toBeGreaterThanOrEqual(viewport - 1)
+  })
+
   it('has run its own bundle, which the same policy had to allow', async () => {
     // The control on the control: a policy that blocked everything would also pass the
     // case above, and this is the assertion that says it did not.

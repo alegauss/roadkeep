@@ -44,6 +44,16 @@ export interface BuildIdentity {
 export const UNSTAMPED = 'unstamped'
 
 /**
+ * What this app is called where a name is wanted rather than a wordmark.
+ *
+ * The package name and not `app.name`: the wordmark says `roadkeep`, and a defect report
+ * quoting that names the engine as often as the window. Not a `MessageKey` either -- a
+ * product name is the same word in every language, and one in the catalogue is an
+ * invitation to translate it.
+ */
+export const PRODUCT = 'roadkeep-gui'
+
+/**
  * Read what the build was stamped with.
  *
  * Takes the values rather than reading a global, so the same function answers for the real
@@ -65,11 +75,23 @@ export function identityFrom(stamped: {
 }
 
 /**
+ * Everything but the name: the version and the three answers behind it.
+ *
+ * Split out because a surface may already be saying what this app is (RG118). The footer
+ * takes a product name and a version as two props and prints them side by side, so the
+ * alternative was this sentence written twice -- once here and once in a component -- which
+ * is how the two come to disagree about what a build is.
+ */
+export function saidOfVersion(identity: BuildIdentity): string {
+  return `${identity.version} (${identity.commit}, ${identity.from}, ${identity.signed})`
+}
+
+/**
  * One line naming the build, for an about surface and for a defect report.
  *
  * Everything a person would have to be asked for otherwise. Short enough to paste into an
  * issue, which is the point of it existing at all.
  */
 export function saidOfBuild(identity: BuildIdentity): string {
-  return `roadkeep-gui ${identity.version} (${identity.commit}, ${identity.from}, ${identity.signed})`
+  return `${PRODUCT} ${saidOfVersion(identity)}`
 }
