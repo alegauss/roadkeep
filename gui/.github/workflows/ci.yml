@@ -3,14 +3,18 @@
 # Every assertion this plan rests on is a command a person can run: `npm run typecheck`,
 # `npm test`, `npm run build`, `roadkeep lint`. None of them is defined here — this file
 # only refuses to forget them, which is the whole of what CI is for.
+#
+# The last of them runs beside this file rather than in it: `roadkeep.yml` is what
+# `roadkeep install` writes, and it is the gate (RG120).
 name: ci
 
 on:
   push:
     branches: [main]
-    # A tag is what asks for an installer (RG91). The gate and the suite run on every
-    # change; the package job below runs only here and on demand, because an installer per
-    # platform per push is runner minutes spent on an artefact nobody downloads.
+    # A tag is what asks for an installer (RG91). The suite runs on every change, and so
+    # does the gate beside it; the package job below runs only here and on demand, because
+    # an installer per platform per push is runner minutes spent on an artefact nobody
+    # downloads.
     tags: ['v*']
   pull_request:
   # The other way to ask for one, and the way somebody gets a build to try without a
@@ -37,24 +41,18 @@ env:
   # carrying a `.git` as a source, so that trades a red lint for a red `engines` row.
   ROADKEEP_CHECKOUT: roadkeep
 
+# The gate is not here any more (RG120). `roadkeep install` writes
+# `.github/workflows/roadkeep.yml`, which is this same job — a checkout and the action —
+# and a second copy would run one lint twice on every push. What was recorded here and is
+# worth keeping: the `@main` in it is deliberate, because this project tracks roadkeep's
+# main (`[install] wired` in roadkeep.toml records a commit, not a release, the tool
+# cutting none), so a pinned tag would gate documents written by a much later engine
+# against a much earlier one. The cost is stated: that job can go red because roadkeep
+# moved, and that is a thing worth being told.
+#
+# The two places that depended on the job say so themselves: `package` calls the action
+# directly, and `suite` holds the copied surfaces against the engine it already installed.
 jobs:
-  # The gate, through roadkeep's own action rather than a `run:` block copied here. That
-  # surface exists so every adopting repository calls one thing; a hand-rolled step is the
-  # per-repository drift it was built to stop.
-  #
-  # `@main` and not a tag on purpose. This project tracks roadkeep's main — `[install]
-  # wired` in roadkeep.toml records a commit, not a release, because the tool cuts none —
-  # so pinning `v0.2.0` here would gate documents written by a much later engine against a
-  # much earlier one. The cost is stated: this job can go red because roadkeep moved, and
-  # that is a thing worth being told.
-  gate:
-    name: roadkeep gate
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: alegauss/roadkeep@main
-
   suite:
     name: suite on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -116,6 +114,24 @@ jobs:
       # duplicates gate fails on a component this app re-declared.
       - name: lint
         run: npm run lint
+
+      # The other half of RG120, and the one that stops the drift coming back: the skill,
+      # the guard and the launcher this repository commits are copies, and `--check` writes
+      # nothing and exits non-zero on any of them that the engine would rewrite. Here rather
+      # than in a job of its own because the engine is already installed two steps up, and
+      # it is the same checkout the live suite spawns — so what is checked against is what
+      # will answer.
+      #
+      # `--source` names that checkout rather than letting the command look for its own:
+      # the engine is `pip install`ed here, and the surfaces it copies are repository files
+      # beside the package — a plugin manifest, the skill's pages — which a wheel does not
+      # carry. Without it the step fails looking for what it ships.
+      #
+      # It can go red on a day nobody edited a skill, roadkeep's main having moved under it.
+      # That is the same cost the gate states and the same answer: run `roadkeep install`.
+      - name: the wired surfaces are the engine's own
+        run: roadkeep install --check --source ./${{ env.ROADKEEP_CHECKOUT }}
+        shell: bash
 
       # Ubuntu 24.04 restricts unprivileged user namespaces through AppArmor, and an Electron
       # installed by npm carries no SUID `chrome-sandbox` to fall back to — so Chromium cannot
@@ -188,8 +204,11 @@ jobs:
     name: package on ${{ matrix.os }}
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     # Nothing is packaged from a tree whose suite is red, which is the whole reason the
-    # artefact is worth keeping.
-    needs: [gate, suite]
+    # artefact is worth keeping. The gate is the other half of that and cannot be a `needs:`
+    # any more — it runs in `roadkeep.yml` now, and a job cannot wait on another workflow —
+    # so this job calls the action itself, below. Rare enough to cost nothing: this runs on
+    # a tag or on demand and never on a push.
+    needs: [suite]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     strategy:
@@ -203,6 +222,11 @@ jobs:
           # a HEAD — but a build whose stamp says `unstamped` is the one thing this job
           # exists to produce correctly, so the history is fetched rather than assumed.
           fetch-depth: 0
+
+      # The gate, in the job that needs it. An installer built from a tree whose governed
+      # files drifted is the one artefact worth refusing, and `needs:` cannot reach across
+      # workflows to the job that would have said so.
+      - uses: alegauss/roadkeep@main
 
       - uses: actions/setup-node@v4
         with:
