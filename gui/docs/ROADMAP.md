@@ -29,7 +29,6 @@
 - 💭 **RG50** (deps: RG46 ✅) (requires: published-artifact) **nothing updates, so a fix reaches a person only if they go and look for one** — A desktop build that cannot update is one whose defects live on every machine that installed it until somebody notices. → §RG50
 - 💭 **RG119** (deps: RG91 ✅) (requires: macos-machine) **no macOS build of this app has ever been made, so what it needs is a guess** — electron-builder.yml names a dmg target nobody has run, and the two things a Mac build turns out to want are learned by making one. → §RG119
 - 📋 **RG128** (deps: RG120 ✅, roadkeep's launcher treating a named engine as fatal) **a checkout busy when the probe runs is skipped, so the launcher answers from a cache 446 versions old** — Resolution takes the first engine that answers, so a session can be briefed by a copy nobody chose. → §RG128
-- 📋 **RG139** (deps: RG138 ✅, the maintainer naming the author) **the executable names GitHub, Inc. as its company, because the manifest names no author to replace Electron's** — RG138 made the edit that writes version resources, and CompanyName comes from an author field package.json does not have. → §RG139
 
 ## Block H — The look (a design system for governed prose)
 

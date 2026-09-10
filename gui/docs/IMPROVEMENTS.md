@@ -167,31 +167,6 @@ not help, being a candidate the same probe drops.
 - **The launcher is not this repository's to change.** It is identical to what `roadkeep install` writes today, so an edit here is overwritten by the next refresh. Making a *named* engine fatal rather than skippable is its behaviour, and the dep names it.
 - **The cache is the hazard on this machine.** It still answers — `0.2.4`, from 2026-08-28 — and is the candidate a busy sibling falls to. Removing `~/.cache/roadkeep-src` turns a stale answer into a refusal naming the missing engine: louder, and never wrong. It is a directory outside this repository, so it is named here for whoever owns the machine rather than removed.
 
-### §RG139 Who the executable says made it
-
-RG138 turned on the edit that writes an icon into the Windows executable, and the same
-edit writes its version resources. Measured on the unpacked build: `ProductName` is
-`roadkeep` and `FileVersion` is `0.0.0`, which is this repository speaking — and
-`CompanyName` is `GitHub, Inc.`, which is Electron's default surviving because nothing
-replaced it.
-
-electron-builder takes that field from the `author` in `package.json`, and there is
-none. So the file-properties dialog, the installer's publisher line and anything that
-inventories installed software say GitHub made this app, which is untrue in the one
-field that exists to say who did.
-
-Before RG138 the executable was untouched Electron and said `Electron` as its product
-too, so this is not a regression so much as the first time the question is visible.
-
-**It is one line and a decision.** The line is `"author"` in the root `package.json`,
-which electron-builder also reads for the Linux maintainer and the macOS copyright. The
-decision is what it says — a person's name and address, or a project name with no
-address — and that is a statement made in public on every installer, so it is not a
-default to pick on somebody's behalf.
-
-A test beside `icon.test.ts` can then hold the manifest to naming one, the way that file
-holds the icon to reaching the executable.
-
 ## Block H — The look (a design system for governed prose)
 
 ### §RG62 Joining the checks the other consoles already answer to
