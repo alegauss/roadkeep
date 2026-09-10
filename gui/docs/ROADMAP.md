@@ -28,8 +28,8 @@
 - 💭 **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — An unsigned build is one most people will not run, and no amount of code in this repository substitutes for the certificate. → §RG49
 - 💭 **RG50** (deps: RG46 ✅) (requires: published-artifact) **nothing updates, so a fix reaches a person only if they go and look for one** — A desktop build that cannot update is one whose defects live on every machine that installed it until somebody notices. → §RG50
 - 💭 **RG119** (deps: RG91 ✅) (requires: macos-machine) **no macOS build of this app has ever been made, so what it needs is a guess** — electron-builder.yml names a dmg target nobody has run, and the two things a Mac build turns out to want are learned by making one. → §RG119
-- 📋 **RG121** (deps: RG94 ✅) **the one type-aware rule left off covers the whole tree, so an unsafe assertion outside a reader is unreported too** — It was switched off for the payload readers, where asserting a type just proved is the design, and that turns it off for every other file as well. → §RG121
 - 📋 **RG128** (deps: RG120 ✅) **a checkout busy when the probe runs is skipped, so the launcher answers from a cache 446 versions old** — Resolution takes the first engine that answers and ROADKEEP_HOME is dropped by the same probe, so a session can be briefed and linted by a copy nobody chose. → §RG128
+- 📋 **RG129** (deps: RG121 ✅) **the verb table is declared with string keys, so the file owning it asserts its own key type and nothing checks the pair** — CALLED and CalledName are written separately and agree because somebody kept them agreeing, which is why keysOf cannot answer for that table. → §RG129
 
 ## Block H — The look (a design system for governed prose)
 

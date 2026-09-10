@@ -21,6 +21,7 @@
 
 import type { PackageName } from './packages'
 import type { Theme } from './settings'
+import { keysOf } from './reading'
 
 /** Named holes, filled by name. Positional would be a promise about word order. */
 export type Fill = Readonly<Record<string, string | number>>
@@ -98,7 +99,7 @@ export const BASE_LOCALE = 'en'
 
 /** Every key there is, in the order they were written. */
 export function keys(): readonly MessageKey[] {
-  return Object.keys(BASE) as MessageKey[]
+  return keysOf(BASE)
 }
 
 /**

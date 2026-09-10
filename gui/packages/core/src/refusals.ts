@@ -1,7 +1,8 @@
 import {
   aBoolean,
-  anything,
   aString,
+  anything,
+  asRecord,
   listOf,
   orMissing,
   orNull,
@@ -112,8 +113,8 @@ export function readAnswer<T>(reader: Reader<T>, result: EngineResult): Parsed<A
 }
 
 function looksRefused(source: unknown): boolean {
-  if (typeof source !== 'object' || source === null || Array.isArray(source)) return false
-  const record_ = source as Record<string, unknown>
+  const record_ = asRecord(source)
+  if (record_ === null) return false
   return typeof record_['said'] === 'string' && Array.isArray(record_['refused'])
 }
 

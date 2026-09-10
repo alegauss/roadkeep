@@ -126,6 +126,7 @@
 - ✅ **RG115** **the sentences a bad settings file composes cross the bridge and no screen shows one** — A launch that lost a field says so in the chrome's own notice surface, one sentence per loss, and a ground that could not be saved says so too (design recorded in `packages/ui/src/Shell.tsx`).
 - ✅ **RG118** **no screen names the build, so a defect report cannot say which one it came from** — Every page carries a footer naming the build: the product, the version, the commit, packaged or source, and whether it was signed (design recorded in `packages/ui/src/Shell.tsx`).
 - ✅ **RG120** **the wired skill and hook are behind the engine answering here, and only a command somebody remembers fixes it** — The copied surfaces are refreshed, and a CI step holds them against the engine answering: install --check writes nothing and exits non-zero (design recorded in `.github/workflows/ci.yml`).
+- ✅ **RG121** **the one type-aware rule left off covers the whole tree, so an unsafe assertion outside a reader is unreported too** — On everywhere but thirteen named readers and the tests, with two shared narrowings replacing twelve written by hand (design recorded in `.oxlintrc.json`).
 
 ## Block H — The look (a design system for governed prose)
 

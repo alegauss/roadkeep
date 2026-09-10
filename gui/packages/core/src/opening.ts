@@ -11,7 +11,8 @@ import { saidBy, type Unreadable } from './limits'
 import { governedFiles } from './payloads'
 import { createPooledTransport } from './pool'
 import type { CancelSignal } from './transport'
-import { spell, VERBS, VERB_WORDS, type VerbName } from './verbs'
+import { keysOf } from './reading'
+import { spell, VERBS, VERB_WORDS } from './verbs'
 
 /**
  * Opening one project: the six pieces, in the one order that composes them.
@@ -110,7 +111,7 @@ export function readsOnly(argv: readonly string[]): boolean {
   // The one place that reads the wrapper `wrapArgv` writes, rather than writing one: the
   // leading `-C <root>` is skipped so the verb's own words line up at the head.
   const words = argv.slice(argv[0] === '-C' ? 2 : 0)
-  return (Object.keys(VERBS) as VerbName[]).some((verb) => {
+  return keysOf(VERBS).some((verb) => {
     const spelled = spell(verb, VERB_WORDS)
     return spelled.every((word, index) => words[index] === word)
   })

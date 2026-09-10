@@ -1,5 +1,6 @@
 import type { Spelling } from './verbs'
 import { spell } from './verbs'
+import { asRecord } from './reading'
 
 /**
  * The same call, spelled for the engine's other surface (RG101).
@@ -50,10 +51,11 @@ export function argumentName(field: string): string {
  * one to a validator.
  */
 export function argumentsFor(input: unknown): Record<string, unknown> {
-  if (typeof input !== 'object' || input === null) return {}
+  const fields = asRecord(input)
+  if (fields === null) return {}
 
   const out: Record<string, unknown> = {}
-  for (const [field, value] of Object.entries(input as Record<string, unknown>)) {
+  for (const [field, value] of Object.entries(fields)) {
     if (value !== undefined) out[argumentName(field)] = value
   }
   return out

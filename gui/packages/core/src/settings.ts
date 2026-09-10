@@ -1,6 +1,7 @@
 import { DEFAULT_LIMITS } from './limits'
 import { DEFAULT_DEPTH, DEPTH_CEILING, NO_DEFAULT_ROOTS, type ScanRoot } from './roots'
 import { DEFAULT_POLICY } from './scanning'
+import { asRecord } from './reading'
 
 /**
  * The one thing this app owns.
@@ -75,12 +76,6 @@ const THEMES = new Set<Theme>(['system', 'light', 'dark'])
  */
 export function isTheme(value: unknown): value is Theme {
   return typeof value === 'string' && THEMES.has(value as Theme)
-}
-
-function asRecord(value: unknown): Record<string, unknown> | null {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : null
 }
 
 /** One root, or null where it is not one. A bad entry is dropped, not the whole list. */

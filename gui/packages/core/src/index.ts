@@ -338,7 +338,7 @@ export type {
   TaskLine,
   Unblocks,
 } from './payloads'
-export { readPayload } from './reading'
+export { asRecord, keysOf, readPayload } from './reading'
 export type { Parsed, PayloadFailure, Reader } from './reading'
 export {
   fieldsRefused,

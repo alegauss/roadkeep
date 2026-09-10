@@ -1,4 +1,5 @@
 import type { BriefPayload } from './payloads'
+import { asRecord } from './reading'
 
 /**
  * What a Claude Code session is handed, and what it says back.
@@ -100,19 +101,22 @@ export type SessionEvent =
   | { readonly kind: 'other'; readonly type: string; readonly line: string }
 
 function textOf(message: unknown): string {
-  if (typeof message !== 'object' || message === null) return ''
-  const content = (message as { content?: unknown }).content
+  const object = asRecord(message)
+  if (object === null) return ''
+  const content = object['content']
   if (!Array.isArray(content)) return ''
-  return content
-    .filter(
-      (part): part is { type: string; text: string } =>
-        typeof part === 'object' &&
-        part !== null &&
-        (part as { type?: unknown }).type === 'text' &&
-        typeof (part as { text?: unknown }).text === 'string',
-    )
-    .map((part) => part.text)
-    .join('')
+
+  // Read part by part rather than filtered by a predicate that asserted its own answer
+  // (RG121): `Array.isArray` on an `unknown` narrows to `any[]`, so every field reached
+  // through one of those elements was a field nothing had checked.
+  const spoken: string[] = []
+  for (const element of content) {
+    const part = asRecord(element)
+    if (part === null || part['type'] !== 'text') continue
+    const text = part['text']
+    if (typeof text === 'string') spoken.push(text)
+  }
+  return spoken.join('')
 }
 
 function stringAt(source: Record<string, unknown>, key: string): string {
@@ -142,9 +146,8 @@ export function readSessionLine(line: string): SessionEvent | null {
   } catch {
     return null
   }
-  if (typeof source !== 'object' || source === null || Array.isArray(source)) return null
-
-  const object = source as Record<string, unknown>
+  const object = asRecord(source)
+  if (object === null) return null
   const type = stringAt(object, 'type')
   const sessionId = stringAt(object, 'session_id')
 

@@ -8,9 +8,19 @@ export const shellRoot = path.resolve(import.meta.dirname, '..')
 // The `electron` module means two different things depending on who loads it. Inside
 // the app it is the Electron API, which is what its type declarations describe; loaded
 // from Node it is a one-line module exporting the path of the binary, which is what a
-// launcher needs and what no declaration covers. `createRequire` asks for the second
-// one, and the cast is the price of a module that lies about itself in this direction.
-const electronPath = createRequire(import.meta.url)('electron') as unknown as string
+// launcher needs and what no declaration covers. `createRequire` asks for the second one.
+//
+// Checked rather than asserted (RG121). The declarations describe the other module, so
+// there is nothing here to trust: if this ever stops being a path, every launch fails on
+// a spawn with an object for a command, and the sentence below is the one worth reading
+// instead.
+const required: unknown = createRequire(import.meta.url)('electron')
+if (typeof required !== 'string') {
+  throw new TypeError(
+    `the electron module resolved to ${typeof required} and not the path of the binary`,
+  )
+}
+const electronPath = required
 
 /**
  * Spawn the app and hand back the child.

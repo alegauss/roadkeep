@@ -1,7 +1,7 @@
 import {
   aBoolean,
-  anything,
   aString,
+  anything,
   listOf,
   orMissing,
   record,

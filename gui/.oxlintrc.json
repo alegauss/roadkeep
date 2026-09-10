@@ -71,13 +71,16 @@
     "typescript/await-thenable": "error",
     "typescript/no-unnecessary-condition": "error",
 
-    // The one type-aware rule turned off, and the reason is this codebase's shape rather
-    // than the size of the sweep. `reading.ts` is a validator: it checks a value and then
-    // asserts the type it just proved, which is what a reader *is*, and every payload shape
-    // in `payloads.ts` is read through it. The rule reported fifty of those and nothing
-    // else — a run made green by suppressing fifty deliberate assertions would say less
-    // than no rule at all.
-    "typescript/no-unsafe-type-assertion": "off",
+    // On everywhere, and off in the files named at the bottom of this config (RG121).
+    //
+    // It was off project-wide, for a real reason — `reading.ts` checks a value and asserts
+    // the type it just proved, which is what a reader *is*, and a run made green by
+    // suppressing fifty deliberate assertions says less than no rule at all — but the
+    // reason did not reach every file the switch did. Turning it back on reported 62, and
+    // reading each one closed twelve of them: `asRecord` and `keysOf` in `reading.ts` now
+    // hold the two idioms that were being written out per call site, and three files stop
+    // asserting anything at all. What is left is named, per file, in `overrides`.
+    "typescript/no-unsafe-type-assertion": "error",
 
     // The dev run and the build steps print to a terminal on purpose.
     "no-console": "off",
@@ -203,10 +206,57 @@
     {
       // A test may reach for whatever it is testing against — `ui`'s own read the stylesheet
       // off disk, and `core`'s drive fakes that stand in for Node.
+      //
+      // `no-unsafe-type-assertion` joins them for a reason of its own (RG121). Twenty of
+      // these assert the shape of something the test itself just produced — `JSON.parse` of
+      // a command's stdout, an evaluate's answer, a bundle the design system ships — and in
+      // a test a wrong assertion is a red test, which is the check the rule would be adding.
+      // Held here rather than exempted file by file, the list otherwise being most of them.
       "files": ["**/*.test.ts", "**/*.test.tsx"],
       "rules": {
         "no-restricted-imports": "off",
-        "typescript/no-explicit-any": "off"
+        "typescript/no-explicit-any": "off",
+        "typescript/no-unsafe-type-assertion": "off"
+      }
+    },
+    {
+      // Where asserting a type just proved is the work (RG121).
+      //
+      // Three families, and every file here was read once to decide it belonged:
+      //
+      //   `reading.ts` is the validator itself — it checks a value and narrows it, which
+      //   is the whole of what it does, and `asRecord` and `keysOf` are the two narrowings
+      //   the rest of the project was writing out by hand until they moved here.
+      //
+      //   The readers of an outside shape: a wire frame, a command's JSON, a file this app
+      //   did not write, or whatever a `catch` was handed. `settings.ts` and
+      //   `cold-start.ts` in `core`; in `shell`, the transports and the two harnesses that
+      //   read a CDP or an npm payload. Each checks before it narrows.
+      //
+      //   `capabilities.ts` narrows the keys of its own table, which `keysOf` cannot do for
+      //   it: `CALLED` is declared `Record<string, …>` because it is two tables spread
+      //   together, so the key type is a claim the declaration does not carry.
+      //
+      // A file added here is a file somebody read. The point of the rule being on
+      // everywhere else is that an assertion in a screen, a hook or a pure rule is a
+      // finding, and none of those is on this list.
+      "files": [
+        "packages/core/src/reading.ts",
+        "packages/core/src/settings.ts",
+        "packages/core/src/cold-start.ts",
+        "packages/core/src/capabilities.ts",
+        "packages/shell/src/advisories.ts",
+        "packages/shell/src/engine-handler.ts",
+        "packages/shell/src/fixture.ts",
+        "packages/shell/src/http-transport.ts",
+        "packages/shell/src/live.ts",
+        "packages/shell/src/mcp-transport.ts",
+        "packages/shell/src/running-app.ts",
+        "packages/shell/src/scratch.ts",
+        "packages/shell/src/stamp.ts"
+      ],
+      "rules": {
+        "typescript/no-unsafe-type-assertion": "off"
       }
     }
   ]

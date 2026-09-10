@@ -32,6 +32,38 @@ export type Parsed<T> =
 
 export type Reader<T> = (value: unknown, path: string) => Parsed<T>
 
+/**
+ * A value as a record of unknown fields, or null where it is not one (RG121).
+ *
+ * The check every reader begins with, written once. Four files had their own copy of it —
+ * two identical `asRecord` functions and two inline pairs of the same two lines — and each
+ * carried the same assertion, which is the shape this module exists to hold: the type is
+ * asserted immediately after being proved, in view of the proof.
+ *
+ * An array is not a record here. It is an object to `typeof` and never what a caller
+ * asking for named fields means, and every copy this replaced excluded it.
+ */
+export function asRecord(value: unknown): Record<string, unknown> | null {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null
+}
+
+/**
+ * The keys of a table, typed as that table's own (RG121).
+ *
+ * `Object.keys` answers `string[]`, and it has to: a value that crossed a wire may carry
+ * keys its type never mentioned. A table written in this repository beside the type that
+ * names it is the case where that cannot happen, and eight call sites were each asserting
+ * so on their own line. Asserted once here instead, where the reason is written down.
+ *
+ * Not for a payload. `record` reads those, field by field, and a key list taken off one
+ * would be a claim about somebody else's build.
+ */
+export function keysOf<T extends object>(table: T): (keyof T & string)[] {
+  return Object.keys(table) as (keyof T & string)[]
+}
+
 const ok = <T>(value: T): Parsed<T> => ({ ok: true, value })
 
 function fail(path: string, expected: string, value: unknown): Parsed<never> {
@@ -134,7 +166,7 @@ export function record<T>(
     }
     const source = value as Record<string, unknown>
     const built: Partial<T> = {}
-    for (const key of Object.keys(shape) as (keyof T & string)[]) {
+    for (const key of keysOf(shape)) {
       const from = sourceKeys[key] ?? key
       const parsed = shape[key](source[from], path === '' ? from : `${path}.${from}`)
       if (!parsed.ok) return parsed

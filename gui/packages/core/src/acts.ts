@@ -20,6 +20,8 @@
  * to work around.
  */
 
+import { asRecord } from './reading'
+
 /**
  * What this project counts as its own, so nothing here is a literal.
  *
@@ -77,12 +79,6 @@ export type Act =
     }
   /** Read and drawn as nothing more: thinking, rate limits, accounting. */
   | { readonly kind: 'note'; readonly seq: number; readonly about: string; readonly line: string }
-
-function asRecord(value: unknown): Record<string, unknown> | null {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : null
-}
 
 function contentOf(object: Record<string, unknown>): unknown[] {
   const message = asRecord(object['message'])

@@ -152,29 +152,6 @@ package`, opens what comes out, and writes down what it took. Adding `macos-late
 the package matrix is the last step and not the first — it is how the answer is kept,
 not how it is found.
 
-### §RG121 The rule that is off in more places than it needs to be
-
-RG94 turned `typescript/no-unsafe-type-assertion` off across the project, for a real
-reason: `reading.ts` checks a value and then asserts the type it just proved, every
-payload shape in `payloads.ts` is read through it, and a run made green by suppressing
-fifty deliberate assertions would have said less than no rule at all.
-
-The reason does not reach every file the switch does. Among those fifty were three of a
-different kind — `session.ts` and two tests asserting *from `any`*, which the rule
-reports with its own sentence and which no validator argument covers: an `any` has been
-proved nothing about. Those are exactly the ones worth seeing, and today nothing shows
-them.
-
-The shape is an `overrides` entry rather than a project-wide switch. The reader files
-are a short, nameable list — `reading.ts`, `payloads.ts`, and whichever of `acts.ts`,
-`capabilities.ts`, `settings.ts`, `cold-start.ts`, `opening.ts` and `session.ts` turn
-out to be reading rather than converting — and the rule stays on everywhere else. Which
-is which is the work: each of the fifty has to be read once, and a file that lands on
-the exempt list because it was easier is the outcome this is trying to avoid.
-
-Worth doing while the findings are cheap to reproduce: `oxlint --type-aware` with the
-rule back on prints the whole list in a second.
-
 ### §RG128 The engine a session actually got
 
 The launcher resolves an engine in four steps -- `ROADKEEP_HOME`, a vendored
@@ -198,6 +175,31 @@ resolution order out of it. The first is the launcher's own behaviour and belong
 upstream; the second is this project's to decide, and it costs a copy in the tree.
 
 Worth deciding before a second session shares this checkout.
+
+### §RG129 A table that does not carry its own key type
+
+`CALLED` is `{ ...VERBS, ...WRITES }` declared as `Record<string, (input: never) =>
+readonly string[]>`, and `CalledName` is `VerbName | WriteName` written separately. The
+two agree today because a person kept them agreeing. Nothing checks it, and the file has
+to assert its own key type to publish `CALLED_NAMES` -- which is what keeps
+`capabilities.ts` on RG121's exempt list while `wording.ts` and `opening.ts`, whose
+tables carry their key types, came off it by calling `keysOf`.
+
+Two smaller assertions in the same file have the same root. `flagsFor` widens a builder
+to `(input: unknown) => readonly string[]` because the table's value type says `never`,
+and `capabilitiesOf` starts its accumulator as an empty object asserted into a full
+`Record<CalledName, Capability>`.
+
+The shape is to declare the table by the type it is: `Record<CalledName, (input: never)
+=> readonly string[]>`. Then `keysOf` answers `CalledName[]`, the widening in `flagsFor`
+has a real type to narrow from, and a verb added to `VERBS` without a name in
+`CalledName` is a compile error rather than a key that silently answers `string`. The
+accumulator is separate and its own small choice -- `Object.fromEntries` over
+`CALLED_NAMES`, or a `Map`.
+
+Worth doing when something else touches this file: the win is a compile error nobody has
+needed yet, and the risk is that `never` in the value position makes the spread refuse
+to typecheck, which is the thing to find out first.
 
 ## Block H — The look (a design system for governed prose)
 
