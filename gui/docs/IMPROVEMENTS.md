@@ -11,30 +11,58 @@ rather than pretending it is safe. Spawning without a shell removes the quoting 
 but not the encoding one. What proves it is a round trip: write a symptom carrying an
 accent, an apostrophe and an em dash, read it back with show, and compare the bytes.
 
-### §RG122 The held engine, and who closes it
+### §RG130 The suite that spawns, and why holding the app's engine did not help it
 
-RG101 built the transport and measured it: eight reads of this repository cost 5904ms
-spawned and 45ms held, which is 738ms against 6ms. It is held by `mcp-live.test.ts` over
-every read verb and by nothing else. `openProject` still builds `createPooledTransport`
-over the process one, so every screen to come pays the spawn.
+The live gate takes 436 seconds for 43 files, one at a time. `fileParallelism: false`
+was bought by a real failure: half of these build a fixture with a dozen engine calls
+and then read it with several more, so running them together puts twenty-odd
+interpreters on eight cores, and the reads that lose that race fail for being starved
+rather than for being wrong.
 
-What stands in the way is not the reading, which is done. It is that a held process is
-state this app owns, and three things follow that nobody has settled.
+RG122 held the engine for the app's own open path and did not touch this. Two files call
+`openHere`; the other forty-one read through `live.ts`'s transport, which spawns per
+call, and build their fixtures with the same one. Every interpreter the setting exists
+for is still started.
 
-**Who closes it.** `OpenProject` has `invalidate` and no `close`; a window that opened
-seventeen projects would hold seventeen engines, and closing that window has to end
-them. On Windows that means killing the tree — the launcher spawns rather than `execv`s
-— which RG101 records and which the app would now be doing at shutdown.
+What would move it is the suite reading the way the app now does. `live.ts` already
+publishes one shared transport and one door, `read`, that most files go through — a held
+engine behind those two would answer `list` in six milliseconds instead of seven
+hundred, with no test changing.
 
-**Whether the pool still makes sense.** `createPooledTransport` bounds calls in flight
-because twenty interpreters starve eight cores. One process per project is a different
-shape, and the width that was right for spawning may be wrong or unnecessary here.
+Two things stand in the way. The fixture builder writes — `init`, `add`, `ship` — and
+that surface withholds writes on purpose, so building stays a spawn. And a held engine
+per fixture root is a process to give back per file, which nothing here owns: `dispose`
+removes a directory, and Windows will not remove one a server stands in.
 
-**And whether the live suite's `fileParallelism: false` can go**, which exists for the
-same reason and is most of why that suite takes ten minutes.
+Measure the suite either side rather than assuming. The win RG122 measured is per call,
+and most of this may be the fixture builds.</section_body> </invoke>
 
-Measure before and after rather than assuming: one process serialises what twenty did in
-parallel, and the win above is per call and not per suite.
+### §RG131 The signal the held transport does not read
+
+`EngineRequest` carries a `signal` because a screen redrawing while reads are in flight
+is the ordinary case, and two of the three transports honour it. The pool checks it
+after the wait, so a call cancelled while queued never becomes a process. The process
+transport listens for `abort` and kills the child it started. The held transport does
+neither: `send` writes a frame, sets a timer and waits, and a cancellation reaches
+nothing.
+
+Since RG122 that is the transport every read goes through, so the app's own open path is
+the one that cannot cancel.
+
+What it costs is worth naming rather than guessing at. A held read is about six
+milliseconds, so the work a cancelled call finishes is six milliseconds of one server's
+time — not an interpreter start, and not a screen anybody waits on. What is left over is
+the frame: the reply arrives, `deliver` finds no waiter, and it is dropped, which is
+what a timed-out call already does.
+
+So this is a consistency defect before it is a performance one. A caller passing a
+signal is told nothing about which transport it landed on, and a portfolio read that
+cancels seventeen projects still pays all seventeen — small, but the number a person
+predicts from reading `transport.ts` is zero.
+
+The protocol has `notifications/cancelled`. Whether this build's server acts on it is
+the first thing to measure, and refusing the promise locally is the floor if it does
+not.</section_body> </invoke>
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

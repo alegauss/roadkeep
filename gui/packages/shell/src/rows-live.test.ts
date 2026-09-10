@@ -1,7 +1,7 @@
 import path from 'node:path'
 
 import { glanceRow, withNext, type OpenProject, type RecordedProject } from '@rk/core'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { buildFixture, type Fixture } from './fixture'
 import { openHere } from './open-here'
@@ -42,15 +42,29 @@ afterAll(() => {
   fixture.dispose()
 })
 
+/**
+ * Every project this file opened, closed after each test.
+ *
+ * Since RG122 an open project holds a `roadkeep mcp` whose working directory is the
+ * fixture, and the teardown is what enforces the closing: Windows will not remove a
+ * directory a live process is standing in, so a forgotten close is a red run.
+ */
+const held: OpenProject[] = []
+
+afterEach(async () => {
+  await Promise.all(held.splice(0).map((project) => project.close()))
+})
+
 /** One project, opened, with every call it makes counted from here on. */
 async function opened(): Promise<{ project: OpenProject; calls: () => number }> {
-  const held = await openHere(fixture.root, { timeoutMs: CEILING })
-  if (held.kind !== 'open') throw new Error(`the fixture did not open: ${held.kind}`)
+  const opening = await openHere(fixture.root, { timeoutMs: CEILING })
+  if (opening.kind !== 'open') throw new Error(`the fixture did not open: ${opening.kind}`)
+  held.push(opening.project)
 
   let calls = 0
-  const client = held.project.client
+  const client = opening.project.client
   const counted: OpenProject = {
-    ...held.project,
+    ...opening.project,
     client: {
       call(root, verb, input, options) {
         calls += 1
@@ -76,14 +90,13 @@ describe('RG73: what one row costs', () => {
   })
 
   it('carries the engine resolution already read, rather than asking again', async () => {
-    const held = await openHere(fixture.root, { timeoutMs: CEILING })
-    if (held.kind !== 'open') return
+    const { project } = await opened()
 
-    const row = await glanceRow(recorded(fixture.root), held.project, { timeoutMs: CEILING })
+    const row = await glanceRow(recorded(fixture.root), project, { timeoutMs: CEILING })
 
     // The same payload, not a second answer to the same question.
-    expect(row.engine?.version).toBe(held.project.engine.payload.writing.version)
-    expect(row.engine?.home).toBe(held.project.engine.payload.writing.home)
+    expect(row.engine?.version).toBe(project.engine.payload.writing.version)
+    expect(row.engine?.home).toBe(project.engine.payload.writing.home)
   })
 
   it('adds the next line in a second call, keeping what was already drawn', async () => {
@@ -121,9 +134,11 @@ describe('RG73: what one row costs', () => {
     const { project } = await opened()
     const glanced = await glanceRow(recorded(fixture.root), project, { timeoutMs: CEILING })
 
-    // A ceiling nothing can answer under. The counts are still true, so the row is still
-    // a row — drawing it as unreadable would throw away what was already known.
-    const filled = await withNext(glanced, project, null, { timeoutMs: 1 })
+    // A read that never happens, which is what a screen redrawing before its second pass
+    // lands looks like: the pool refuses a cancelled call rather than starting one. This
+    // was a one millisecond ceiling until RG122 held the engine — a read of this fixture
+    // now answers inside one, so the ceiling stopped standing for a read that failed.
+    const filled = await withNext(glanced, project, null, { signal: AbortSignal.abort() })
 
     expect(filled.state).toBe('read')
     expect(filled.counts).toEqual(glanced.counts)

@@ -18,13 +18,21 @@ import { EngineCallFailed, type EngineRequest, type EngineResult, type Transport
  *
  * **The answer is the same document.** `tools/call` returns the payload as text, and it is
  * what `--json` prints apart from the newline `print` adds — which is what makes this a
- * transport swap rather than a second reader. An error answer becomes a non-zero exit with
- * the message on stderr, because that is how the CLI says the same thing.
+ * transport swap rather than a second reader. An answer that is not clean is not translated
+ * at all: the CLI splits a refused document from a sentence about the call across two
+ * streams and this surface has one field for both, so the call is made again where that
+ * distinction survives.
  *
  * **It serves fewer verbs than the CLI, and falls back for the rest.** `stats` and
  * `commands` are reads the tool set does not publish. Asked at the handshake and remembered,
  * so a verb this surface cannot answer goes to the transport that spawns rather than coming
  * back as a refusal the caller cannot act on.
+ *
+ * **And fewer arguments, which the handshake cannot tell it.** A tool publishes a schema and
+ * the schema is narrower than the flags: `brief` takes no `claim` — withheld on purpose,
+ * since a read that writes is one a caller stops making freely — and `brief --claim` is the
+ * one read this app makes that writes. Nothing at the handshake says so; what says so is the
+ * server refusing the call, which is why a refusal is a fall-through and not an answer.
  *
  * **One process per root and no `-C`.** The MCP surface takes no project argument: the
  * server answers about the directory it was started in. So this holds a process per root,
@@ -33,6 +41,18 @@ import { EngineCallFailed, type EngineRequest, type EngineResult, type Transport
  * **A process that dies is a process that restarts.** It is state this app owns, which is
  * the cost of keeping it; what that buys is that a crash costs one call rather than the
  * session, and every waiting call is failed with the reason rather than left hanging.
+ *
+ * **A process that merely missed its deadline is not one of those.** A read that ran out is
+ * a read that ran out: the server is alive, still holds this project, and answers the next
+ * call. Dropping it for that would leave an engine running with nothing holding it and
+ * start a second one beside it — measured as two Pythons per project against a one
+ * millisecond ceiling, which is what a screen that redrew looks like.
+ *
+ * **And a handshake that never answers is this surface being absent, not the read failing**
+ * (RG122). An engine too old to have `mcp`, or one whose interpreter cannot start, exits
+ * before it says anything; every read then goes to the transport that spawns, which is the
+ * app working slowly rather than the app not working. Remembered per root, so the cost of
+ * learning it is one process start and not one per read.
  */
 
 /** What a server answers with, of which this reads two shapes. */
@@ -85,7 +105,7 @@ class Held {
   private buffer = ''
   private nextId = 0
   private readonly ready: Promise<void>
-  private gone: Error | null = null
+  private ended: Error | null = null
 
   constructor(
     engine: readonly string[],
@@ -113,6 +133,16 @@ class Held {
     })
 
     this.ready = this.handshake()
+    // A handshake nobody is waiting on still rejects — a server stopped before its first
+    // call, an engine that has no `mcp` — and an unhandled rejection in the main process is
+    // the whole app going down for a process that was given back on purpose. The rejection
+    // still reaches whoever awaits `ready`; this only says it is expected.
+    this.ready.catch(() => {})
+  }
+
+  /** Whether the process is gone, as against a call that merely ran out of time. */
+  get gone(): boolean {
+    return this.ended !== null
   }
 
   /**
@@ -178,7 +208,7 @@ class Held {
 
   /** Fail every call in flight with the same reason, and refuse the ones after it. */
   private die(cause: Error): void {
-    this.gone ??= cause
+    this.ended ??= cause
     for (const held of this.waiting.values()) {
       if (held.timer !== null) clearTimeout(held.timer)
       held.fail(cause)
@@ -187,7 +217,7 @@ class Held {
   }
 
   private send(method: string, params: unknown, timeoutMs: number): Promise<Frame> {
-    if (this.gone !== null) return Promise.reject(this.gone)
+    if (this.ended !== null) return Promise.reject(this.ended)
 
     const id = (this.nextId += 1)
     return new Promise<Frame>((resolve, reject) => {
@@ -247,12 +277,32 @@ function textOf(frame: Frame): string {
 
 export function createMcpTransport(options: McpTransportOptions): McpTransport {
   const engines = new Map<string, Held>()
+  /** Roots whose engine never got through the handshake. Asked once, not once a read. */
+  const unheldable = new Set<string>()
   const ceiling = options.timeoutMs ?? 60000
 
   const engineFor = (root: string): Held => {
     const held = engines.get(root) ?? new Held(options.engine, root)
     engines.set(root, held)
     return held
+  }
+
+  /** The server for this root once it has said it publishes the tool, or null to spawn. */
+  const speaking = async (root: string, tool: string): Promise<Held | null> => {
+    if (unheldable.has(root)) return null
+
+    const held = engineFor(root)
+    try {
+      return (await held.publishes(tool)) ? held : null
+    } catch {
+      // The handshake did not answer, so there is no surface here to speak to — an engine
+      // with no `mcp`, an interpreter that could not start, a server that wrote something
+      // else. Given back, remembered, and every read for this root spawns from now on.
+      engines.delete(root)
+      unheldable.add(root)
+      await held.stop()
+      return null
+    }
   }
 
   return {
@@ -263,8 +313,8 @@ export function createMcpTransport(options: McpTransportOptions): McpTransport {
       // And a verb this surface does not publish. `stats` and `commands` are two of the
       // reads the CLI runs and the tool set does not carry, so refusing them here would
       // turn a working read into an error for a reason no caller could see.
-      const held = engineFor(request.root)
-      if (!(await held.publishes(request.call.tool))) return options.fallback.run(request)
+      const held = await speaking(request.root, request.call.tool)
+      if (held === null) return options.fallback.run(request)
 
       const startedAt = Date.now()
       const elapsed = () => Date.now() - startedAt
@@ -277,10 +327,12 @@ export function createMcpTransport(options: McpTransportOptions): McpTransport {
           request.timeoutMs ?? ceiling,
         )
       } catch (cause) {
-        // The process is gone, so the next call starts a new one. What this call gets is
-        // the failure, named — not a silent retry, which would hide an engine that cannot
-        // start at all behind a loop.
-        engines.delete(request.root)
+        // A process that is gone is dropped, so the next call starts a new one. One that is
+        // still alive is kept: a call that ran past its ceiling is a call that ran past its
+        // ceiling, and forgetting the server for it would leave it running with nothing
+        // holding it. Either way this call gets the failure, named — not a silent retry,
+        // which would hide an engine that cannot start at all behind a loop.
+        if (held.gone) engines.delete(request.root)
         const said = cause instanceof Error ? cause.message : String(cause)
         throw new EngineCallFailed(
           said.includes('within') ? 'timeout' : 'unspawnable',
@@ -289,29 +341,31 @@ export function createMcpTransport(options: McpTransportOptions): McpTransport {
         )
       }
 
-      // A protocol error is the server refusing the call itself — an unknown tool, or
-      // arguments its schema would not take. The CLI says that with a non-zero exit and a
-      // sentence on stderr, and so does this, because the client above reads the answer.
-      if (frame.error !== undefined) {
-        return {
-          code: 2,
-          stdout: '',
-          stderr: frame.error.message ?? 'the engine refused the call',
-          durationMs: elapsed(),
-        }
+      // **Anything that is not a clean answer is the CLI's.** A protocol error is the server
+      // refusing the call — an unknown tool, or an argument its schema does not publish —
+      // and `isError` is the tool refusing what the call asked for. Both were reported here
+      // as a non-zero exit with the text on stderr, and both then arrived at a reader that
+      // could make nothing of them: the CLI keeps a refused *document* on stdout and a
+      // sentence about the call on stderr, and this surface has one field for the two.
+      //
+      // Measured on the one read that writes. `brief --claim` takes the line; the tool
+      // publishes `id`, `block`, `designed` and `have`, and answers `claim is declared by
+      // this verb and withheld from this surface` — a working read arriving as unreadable.
+      // Falling back costs a spawn on the unhappy path and gets the answer every reader in
+      // this app was written against, which is the trade this makes deliberately.
+      if (frame.error !== undefined || frame.result?.isError === true) {
+        return options.fallback.run(request)
       }
 
-      // `isError` is the tool's own refusal, which the CLI prints on stderr and exits
-      // non-zero for. The text is the engine's whole sentence either way.
-      const text = textOf(frame)
-      return frame.result?.isError === true
-        ? { code: 1, stdout: '', stderr: text, durationMs: elapsed() }
-        : { code: 0, stdout: text, stderr: '', durationMs: elapsed() }
+      return { code: 0, stdout: textOf(frame), stderr: '', durationMs: elapsed() }
     },
 
     async close() {
       const stopping = [...engines.values()].map((held) => held.stop())
       engines.clear()
+      // A root that could not be held is a fact about a process that no longer exists, so a
+      // transport closed and read again asks the engine rather than the last answer.
+      unheldable.clear()
       await Promise.all(stopping)
     },
 

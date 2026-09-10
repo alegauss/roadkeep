@@ -5,7 +5,8 @@
 ## Block A — The client (payloads in, types out)
 
 - 💭 **RG9** (deps: RG1 ✅, roadkeep RK1632) **prose a person typed goes out through argv, which is where RK1474 recorded bytes arriving as different bytes** — why and section-body each read stdin on a dash and symptom does not, so the field every line leads with is the one with no safe path in. → §RG9
-- 📋 **RG122** (deps: RG101 ✅, RG103 ✅) **the transport that reads in 6ms is proven by a test and reached by nothing a person would run** — openProject builds the one that spawns, so a screen still pays 738ms a read, and what stands between them is a process lifetime nobody owns. → §RG122
+- 📋 **RG130** (deps: RG122 ✅, RG64 ✅) **the live gate runs one file at a time because every read in it spawns a python, and that is most of ten minutes** — RG122 held the engine on the app's open path and 41 of the 43 files here never call it, so the setting that serialises the suite cannot go. → §RG130
+- 📋 **RG131** (deps: RG122 ✅) **a read cancelled after it reaches the held engine runs to the end, and only the transport that spawns kills one** — The pool refuses a queued call and the process transport kills a child mid-flight, so the one every screen now reads through ignores the signal. → §RG131
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

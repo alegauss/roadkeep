@@ -179,6 +179,44 @@ describe('RG101: a call it cannot serve', () => {
     expect(payload(byFallback.stdout)).toBe(payload(bySpawn.stdout))
   })
 
+  it('spawns for an argument the tool schema does not publish (RG122)', async () => {
+    // The gap the handshake cannot see. `brief` is published, so the tool set says yes —
+    // and its schema takes `id`, `block`, `designed` and `have` and no `claim`, which is
+    // withheld from this surface on purpose because a read that writes is a read a caller
+    // stops making freely. Nothing but calling it says so, so a refusal has to be a
+    // fall-through: reported here, the one read that writes reached the client as
+    // unreadable prose.
+    let spawned = 0
+    const counting = {
+      run: async (request: Parameters<typeof overProcess.run>[0]) => {
+        spawned += 1
+        return overProcess.run(request)
+      },
+    }
+    const routed = createMcpTransport({
+      engine: ['python', LAUNCHER],
+      fallback: counting,
+      timeoutMs: CEILING,
+    })
+
+    try {
+      const claimed = await routed.run({
+        root: fixture.root,
+        argv: buildArgv(fixture.root, 'brief', { claim: true }),
+        call: buildCall('brief', { claim: true }),
+        timeoutMs: CEILING,
+      })
+
+      expect(spawned).toBe(1)
+      // The whole point of falling back: what comes out is the document the CLI prints,
+      // and the claim actually happened.
+      expect(claimed.code).toBe(0)
+      expect(JSON.parse(payload(claimed.stdout))).toMatchObject({ claimed: { taken: true } })
+    } finally {
+      await routed.close()
+    }
+  })
+
   it('spawns for a verb the tool set does not publish, and not for one it does', async () => {
     // The case the design named: the CLI runs verbs this surface does not. `stats` is one
     // of two reads in that gap, and what makes the transport a drop-in rather than a

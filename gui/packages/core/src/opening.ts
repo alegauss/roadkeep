@@ -36,9 +36,23 @@ import { spell, VERBS, VERB_WORDS } from './verbs'
  * RG65 spent a task removing. So this returns something a window keeps, and `invalidate`
  * is how a file watcher tells it the disk moved.
  *
- * **Nothing here has a process or a filesystem.** The candidates, the transport and the
- * stamp all arrive as arguments, exactly as `resolveEngine` takes its transport — which is
- * what keeps the composition itself in the half a web service would keep.
+ * **And since RG122 it holds a process, so it is something to give back.** The transport a
+ * screen reads through keeps a `roadkeep mcp` per project — six milliseconds a read against
+ * seven hundred and thirty-eight — and a window that opened seventeen projects holds
+ * seventeen engines. `close` is that, and the four states that are not `open` call it
+ * themselves: `config` is read *before* this knows whether the project opens, so a caller
+ * holding no project would have nothing to close an engine with.
+ *
+ * **The pool stays, and what it bounds has changed.** A held engine multiplexes by frame
+ * id, so four calls in flight to one process are not four interpreters. What is still
+ * bounded is every read that surface does not publish — `stats` and `commands` among them —
+ * which falls through to the transport that spawns, underneath the pool, exactly where a
+ * portfolio read would otherwise fan a hundred candidates into a hundred processes.
+ *
+ * **Nothing here has a process or a filesystem.** The candidates, the transport, the stamp
+ * and now the closing all arrive as arguments, exactly as `resolveEngine` takes its
+ * transport — which is what keeps the composition itself in the half a web service would
+ * keep.
  */
 
 export interface OpenProject {
@@ -53,6 +67,15 @@ export interface OpenProject {
   readonly client: Client
   /** Forget what was remembered about this project. What a file watcher calls. */
   invalidate(): void
+  /**
+   * Give back what this project holds — the engine process the transport kept for it.
+   *
+   * Awaited rather than fired off, because on Windows a killed-but-not-yet-exited server
+   * still holds the project as its working directory, and whoever closes a project is often
+   * the one about to remove or move it. Safe to call twice: a window closing and a process
+   * quitting are two owners of one lifetime.
+   */
+  close(): Promise<void>
 }
 
 export type Opening =
@@ -92,6 +115,14 @@ export interface OpenOptions {
   stampFor?: (root: string, governed: readonly string[]) => Promise<string>
   /** Whether an argv's answer may be remembered. Defaults to `readsOnly`. */
   cacheable?: (argv: readonly string[]) => boolean
+  /**
+   * How to give back everything the transports this open built are holding.
+   *
+   * Injected for the reason the transport itself is: a held engine is a process, and this
+   * package does not have one. Absent, `close` is a no-op — which is the truth for a
+   * transport that spawns per call and keeps nothing.
+   */
+  closing?: () => Promise<void>
 }
 
 /** Four is a floor a machine can raise, and it is what a portfolio read already allows. */
@@ -120,6 +151,11 @@ export function readsOnly(argv: readonly string[]): boolean {
 /**
  * Resolve, compose, and ask the two questions every later read depends on.
  *
+ * The whole of this function is the lifetime, and `compose` below is the order. They are
+ * separate because the order has four ways to end without a project and every one of them
+ * can already have started an engine: one `close` on the way out is a promise nothing can
+ * forget, and four of them are four places to forget it.
+ *
  * @param candidates command lines to try for this project, in order. Discovering them
  *   needs a filesystem, so it belongs to whoever has one.
  * @param transportFor a transport for one command line. Making one needs a process.
@@ -129,6 +165,27 @@ export async function openProject(
   candidates: readonly (readonly string[])[],
   transportFor: TransportFor,
   options: OpenOptions = {},
+): Promise<Opening> {
+  const closing = options.closing
+  let closed: Promise<void> | null = null
+  // Once, and the promise is the memory: two owners closing at the same moment wait on the
+  // same kill rather than racing a second one against a process that is already going.
+  const close = (): Promise<void> => (closed ??= closing === undefined ? RESOLVED : closing())
+
+  const opening = await compose(root, candidates, transportFor, options, close)
+  if (opening.kind !== 'open') await close()
+  return opening
+}
+
+const RESOLVED: Promise<void> = Promise.resolve()
+
+/** The order, which is the whole content of the rest of this file. */
+async function compose(
+  root: string,
+  candidates: readonly (readonly string[])[],
+  transportFor: TransportFor,
+  options: OpenOptions,
+  close: () => Promise<void>,
 ): Promise<Opening> {
   const call = {
     ...(options.timeoutMs === undefined ? {} : { timeoutMs: options.timeoutMs }),
@@ -208,6 +265,7 @@ export async function openProject(
         // a watcher should not have to know whether this project cached anything.
         cached?.invalidate(root)
       },
+      close,
     },
   }
 }

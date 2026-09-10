@@ -31,6 +31,7 @@
 - ✅ **RG100** **an id in a project whose listing was bounded reads as one nothing in that project ever carried** — An id in none of the listings reads as unfiled only where all three were read whole, and as unknown otherwise, which is a sentence about the read (design recorded in `packages/core/src/pauses.ts`).
 - ✅ **RG101** **every call spends a second and a half starting Python, and the engine publishes a mode that starts once** — A third transport holds one roadkeep mcp per project: 6ms a read against 738ms spawned, same payload, spawning for what it cannot serve (design recorded in `packages/shell/src/mcp-transport.ts`).
 - ✅ **RG104** **removing a fixture directory throws EPERM on Windows, so a file whose tests all passed reports as a failed suite** — One removal waits out a lock Windows has not dropped, and a live test holds it against a child standing in the directory (design recorded in `packages/shell/src/scratch.ts`).
+- ✅ **RG122** **the transport that reads in 6ms is proven by a test and reached by nothing a person would run** — The app's open path keeps one roadkeep mcp per project, reads at six milliseconds instead of seven hundred, and hands back a close that ends it (design recorded in `packages/shell/src/open-here.ts`).
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

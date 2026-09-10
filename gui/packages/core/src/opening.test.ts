@@ -234,6 +234,77 @@ describe('RG103: a project that does not open', () => {
   })
 })
 
+describe('RG122: giving the engine back', () => {
+  /** A machine plus the closing this open was handed, counted. */
+  function closable(answers: Record<string, string> = {}) {
+    const held = machine(answers)
+    let closes = 0
+    return {
+      ...held,
+      closes: () => closes,
+      closing: () => {
+        closes += 1
+        return Promise.resolve()
+      },
+    }
+  }
+
+  it('closes what the open built, once, however many owners ask', async () => {
+    const held = closable()
+
+    const opened = await openProject('/proj', [LAUNCHER], held.transportFor, {
+      closing: held.closing,
+    })
+    if (opened.kind !== 'open') return
+
+    // A window closing and the process quitting are two owners of one lifetime, and the
+    // second must not kill a process the first already killed.
+    await Promise.all([opened.project.close(), opened.project.close()])
+    await opened.project.close()
+
+    expect(held.closes()).toBe(1)
+  })
+
+  it('closes a project that answered and then said something unreadable', async () => {
+    // The leak this is about: `config` is read before anything knows whether the project
+    // opens, so by the time this state is reached an engine is already held — and the
+    // caller has no project to close it with.
+    const held = closable({ config: '{"version":"0.2.400"}' })
+
+    const opened = await openProject('/proj', [LAUNCHER], held.transportFor, {
+      closing: held.closing,
+    })
+
+    expect(opened.kind).toBe('unreadable')
+    expect(held.closes()).toBe(1)
+  })
+
+  it('closes a project nothing answered for', async () => {
+    const held = closable({ engines: undefined as unknown as string })
+
+    const opened = await openProject('/proj', [LAUNCHER], held.transportFor, {
+      closing: held.closing,
+    })
+
+    // Resolution asks with an argv and no tool call, so a held transport starts nothing
+    // here. Closing anyway is what keeps that a fact about the transport rather than a rule
+    // this composition depends on.
+    expect(opened.kind).toBe('unresolved')
+    expect(held.closes()).toBe(1)
+  })
+
+  it('closes to a no-op where the transport keeps nothing', async () => {
+    const held = machine()
+
+    const opened = await openProject('/proj', [LAUNCHER], held.transportFor)
+    if (opened.kind !== 'open') return
+
+    // A transport that spawns per call holds nothing between them, and a caller should not
+    // have to know which kind it was handed.
+    await expect(opened.project.close()).resolves.toBeUndefined()
+  })
+})
+
 describe('RG103: which answers may be remembered', () => {
   it('remembers a read', () => {
     expect(readsOnly(['-C', '/proj', 'list', '--json'])).toBe(true)

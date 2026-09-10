@@ -24,6 +24,12 @@ export default defineConfig({
     // interpreters on a machine that has eight cores — and the reads that lose that race
     // fail for being starved rather than for being wrong. Observed: the portfolio row test
     // passing alone and failing in a full run, twice.
+    //
+    // **RG122 asked whether the held engine lets this go, and it does not.** What it holds
+    // is the engine the *app* opens a project with, and 41 of the 43 files here never call
+    // that: they read through `live.ts`'s transport and build their fixtures with it, both
+    // of which spawn per call. So the interpreters this setting exists for are all still
+    // started. It goes when the suite's own reads are held, not when the app's are.
     fileParallelism: false,
     // Two things settled once and spent by every worker, both travelling as environment
     // variables because that is what crosses a fork.
