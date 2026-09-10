@@ -20,7 +20,7 @@
  */
 
 import type { PackageName } from './packages'
-import type { Theme } from './settings'
+import type { Lost, Theme } from './settings'
 import { keysOf } from './reading'
 
 /** Named holes, filled by name. Positional would be a promise about word order. */
@@ -43,6 +43,20 @@ export const EN = {
 
   'settings.reset': 'Some settings could not be read, so they are back to their defaults.',
   'settings.unsaved': 'That choice could not be saved, so the next launch will not have it.',
+
+  'settings.lost.unparsable': '{file} is not readable as JSON, so it is left alone',
+  'settings.lost.file':
+    'the settings file is not an object, so every setting is back to its default',
+  'settings.lost.unversioned':
+    'the settings file names no version, so it is read as this build writes them',
+  'settings.lost.version':
+    'the settings file is version {found} and this build reads {reads}, so the file is left alone',
+  'settings.lost.roots': 'the roots were not a list, so none were read',
+  'settings.lost.dropped': '{count} root(s) could not be read and were dropped',
+  'settings.lost.skip': 'the skip list was not a list of names, so the default one is used',
+  'settings.lost.width': 'the pool width was not a whole number, so it is back to {width}',
+  'settings.lost.theme': 'the theme was not one this build knows, so it is back to {theme}',
+  'settings.lost.locale': 'the locale was not a string, so the desktop decides',
 
   'shell.home': 'Home',
   'shell.palette': 'Find a line in every backlog',
@@ -86,6 +100,31 @@ export const THEME_TEXT: Readonly<Record<Theme, MessageKey>> = {
   system: 'ground.system',
   light: 'ground.light',
   dark: 'ground.dark',
+}
+
+/**
+ * What a settings file lost, said in this app's own voice (RG123).
+ *
+ * The same arrangement as the theme and for a sharper reason: these sentences used to be
+ * composed where the file is read, which is `core` for nine of them and `shell` for the
+ * tenth, and neither has a locale. RG115 draws them under a translated frame, so a window
+ * in Portuguese said the frame in Portuguese and the detail in English.
+ *
+ * Spelled out rather than built from the code, so a loss added without a sentence fails to
+ * compile — and the values carry the holes the reader fills, which is why the reader hands
+ * back fields and not prose.
+ */
+export const RESET_TEXT: Readonly<Record<Lost, MessageKey>> = {
+  unparsable: 'settings.lost.unparsable',
+  file: 'settings.lost.file',
+  unversioned: 'settings.lost.unversioned',
+  version: 'settings.lost.version',
+  roots: 'settings.lost.roots',
+  dropped: 'settings.lost.dropped',
+  skip: 'settings.lost.skip',
+  width: 'settings.lost.width',
+  theme: 'settings.lost.theme',
+  locale: 'settings.lost.locale',
 }
 
 /** A translation. Partial because a translation in progress is still worth shipping. */

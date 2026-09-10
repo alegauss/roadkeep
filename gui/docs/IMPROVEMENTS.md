@@ -287,29 +287,6 @@ the line. Dark is untouched, the package re-pointing that token there already.
 
 What is left here is adopting the release that carries it, and enforcing the pair.
 
-### §RG123 The strings the pseudo-locale run cannot see
-
-RG115 put the settings notices on screen and left two holes of the same shape.
-
-**The sentences are not translatable.** `readSettings` composes one per field it reset —
-*the pool width was not a whole number, so it is back to 4* — in `core`, as prose rather
-than as a `MessageKey`. RG115 shows them under a translated frame, so a window in
-Portuguese says the frame in Portuguese and the detail in English. Each carries an
-interpolated value, which is why they are not four more keys and are instead a small
-shape: a code and its fields, resolved through the catalogue the way `THEME_TEXT`
-resolves a marker.
-
-**And the run that holds this cannot see them.** RG51's pseudo-locale test renders the
-window under a locale where every catalogue value is bracketed and fails on anything
-unwrapped — but it reads `container`, and a toast renders in a portal outside it. So
-does a dialog, and the shortcuts sheet is already one. A literal typed into any of them
-is invisible to the one test that exists to find literals.
-
-The second is the one to fix first: it is a line of scope in a test that already works,
-and it is what would have caught the first. `document.body` rather than `container`,
-with the portalled surfaces opened — which means the run has to open them, and that is
-the work.
-
 ### §RG124 A control that reaches the network for a picture
 
 `LanguageSelect` and the `BadgeLocale` inside it draw every row's flag as `<img
@@ -399,3 +376,26 @@ The cheap fix is to redraw the two artboards that carry chrome, `Main` and `Shel
 question worth answering first is whether anything can hold them:
 `viglet-ds-page-reference --check` keeps the vendored `vds-` pages current, and nothing
 at all watches this repository's own.
+
+### §RG132 The one word this app cannot translate
+
+RG123 pointed the pseudo-locale run at the whole document with the shortcuts sheet and
+the command palette open. It found one bare string: `Close`.
+
+It is the dialog's close button, and the package writes it as `<span
+class="sr-only">Close</span>` rather than resolving a key —
+`vigDesignSystemTranslations` has no entry for it. So a window in Portuguese has a
+control whose only name, and the only thing a screen reader says for it, is English. It
+is small, and it is exactly the class of defect that run exists to find; what is unusual
+is that this repository cannot fix it.
+
+Three ways out, in the order they should be tried. **Ask the package** — the wording
+lives there, `bento.shortcuts` and `common` are already full of strings, and one more
+key is the whole change. **Or pass a label**, if the component takes one: RG124 is the
+shape of that answer for the flags, where a prop turned out to be the door. **Or stop
+using its dialog**, which costs a screen and should lose.
+
+Until one of them lands, `wording.test.tsx` carries the word in a named set with the
+reason on it, so the guard stays green about the one string it can do nothing about and
+red about every other. That set is the thing to delete: when this is fixed, the run says
+so by failing to find what the exception excused.</section_body> </invoke>

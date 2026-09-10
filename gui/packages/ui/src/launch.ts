@@ -1,4 +1,4 @@
-import { BASE_LOCALE, type RendererBridge, type Theme } from '@rk/core'
+import { BASE_LOCALE, type RendererBridge, type Reset, type Theme } from '@rk/core'
 
 import { getBridge } from './bridge'
 
@@ -43,13 +43,15 @@ export interface LaunchChoices {
    */
   readonly theme: Theme | null
   /**
-   * What reading the settings file lost, each said as a sentence (RG115).
+   * What reading the settings file lost, each as a code and its fields (RG115, RG123).
    *
-   * `readSettings` composes one per field it had to reset and `LaunchSettings` has carried
-   * them across since RG47; until now nothing on this side read them, so somebody whose
-   * roots were dropped found out by noticing the list was short.
+   * `readSettings` names one per field it had to reset and `LaunchSettings` has carried
+   * them across since RG47; until RG115 nothing on this side read them, so somebody whose
+   * roots were dropped found out by noticing the list was short. They arrived as English
+   * prose until RG123, which is a sentence composed where there is no locale — so what
+   * crosses now is what happened, and this side says it.
    */
-  readonly reset: readonly string[]
+  readonly reset: readonly Reset[]
 }
 
 const AT_WORST: LaunchChoices = { locale: BASE_LOCALE, theme: null, reset: [] }
@@ -103,9 +105,9 @@ export async function choicesFromBridge(
  * this is a fact about it — the same reason the locale goes to one i18next instance instead
  * of being threaded through the tree. The chrome asks once, on mount.
  */
-let lost: readonly string[] = []
+let lost: readonly Reset[] = []
 
-export function noticesAtLaunch(): readonly string[] {
+export function noticesAtLaunch(): readonly Reset[] {
   return lost
 }
 

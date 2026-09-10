@@ -52,11 +52,13 @@ export function loadSettings(userData: string): SettingsRead {
   } catch {
     // Kept, not replaced: a file somebody hand-edited into invalidity is a file they may
     // want to fix, and overwriting it is how the fix becomes impossible.
+    //
+    // The one loss this side raises, and it is a code like the other nine rather than the
+    // sentence it used to be (RG123): the notice is shown in whatever language the window
+    // is speaking, and a process with no locale cannot compose one.
     return {
       settings: DEFAULT_SETTINGS,
-      reset: [
-        `${SETTINGS_FILE} is not readable as JSON, so defaults are used and it is left alone`,
-      ],
+      reset: [{ lost: 'unparsable', fields: { file: SETTINGS_FILE } }],
     }
   }
 

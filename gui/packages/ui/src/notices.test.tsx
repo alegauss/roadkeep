@@ -1,4 +1,4 @@
-import { BASE, DEFAULT_SETTINGS, type RendererBridge } from '@rk/core'
+import { BASE, DEFAULT_SETTINGS, fill, type RendererBridge, type Reset } from '@rk/core'
 import { toast } from '@viglet/viglet-design-system'
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -32,7 +32,7 @@ function withBridge(one: RendererBridge): void {
 }
 
 /** The launch is what fills the notice list, so a test that wants one has to run it. */
-async function launched(reset: readonly string[]): Promise<void> {
+async function launched(reset: readonly Reset[]): Promise<void> {
   withBridge(
     bridge({
       settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset, locale: 'en' }),
@@ -56,20 +56,20 @@ afterEach(async () => {
 })
 
 describe('RG115: a settings file that lost a field', () => {
-  it('says so, in the app`s own voice, with the sentence the reader composed', async () => {
-    await launched(['2 root(s) could not be read and were dropped'])
+  it('says so, in the app`s own voice, with the detail in the same voice', async () => {
+    await launched([{ lost: 'dropped', fields: { count: 2 } }])
 
     drawWindow({ initial: 'light' })
 
     expect(await screen.findByText(BASE['settings.reset'])).toBeTruthy()
-    expect(await screen.findByText(/2 root\(s\) could not be read/)).toBeTruthy()
+    // The frame and the detail are both catalogue values now (RG123), and the number the
+    // reader counted is filled into the second — which is what it could not carry when the
+    // sentence was composed where the file is read.
+    expect(await screen.findByText(fill(BASE['settings.lost.dropped'], { count: 2 }))).toBeTruthy()
   })
 
   it('says one thing per field, because two losses are two things to act on', async () => {
-    await launched([
-      'the roots were not a list, so none were read',
-      'the pool width was not a whole number',
-    ])
+    await launched([{ lost: 'roots' }, { lost: 'width', fields: { width: 4 } }])
 
     drawWindow({ initial: 'light' })
 

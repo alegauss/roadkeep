@@ -189,7 +189,7 @@ export {
   settingsText,
   wasReset,
 } from './settings'
-export type { Settings, SettingsRead, Theme } from './settings'
+export type { Lost, Reset, Settings, SettingsRead, Theme } from './settings'
 export {
   BASE,
   BASE_LOCALE,
@@ -199,6 +199,7 @@ export {
   keys as messageKeys,
   localeFor,
   PACKAGE_TEXT,
+  RESET_TEXT,
   THEME_TEXT,
   PSEUDO_CLOSE,
   PSEUDO_LOCALE,

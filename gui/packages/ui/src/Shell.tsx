@@ -1,4 +1,4 @@
-import { PRODUCT, saidOfVersion, THEME_TEXT } from '@rk/core'
+import { PRODUCT, RESET_TEXT, saidOfVersion, THEME_TEXT } from '@rk/core'
 import { AppFooter, Button, LanguageSwitcher, Toaster, toast } from '@viglet/viglet-design-system'
 import {
   BentoBackToTop,
@@ -105,11 +105,12 @@ export function AppShell() {
     if (said.current) return
     said.current = true
 
-    // The frame is this app's own voice and translated; the sentences are the ones
-    // `readSettings` composed, shown as it wrote them. One toast per loss, because two
-    // fields resetting for two reasons is two things a person may want to act on.
+    // Both halves in this window's own voice, since RG123: the frame, and the detail the
+    // reader of the file named as a code with the value it filled in. One toast per loss,
+    // because two fields resetting for two reasons is two things a person may want to act
+    // on.
     for (const lost of noticesAtLaunch()) {
-      toast.warning(say('settings.reset'), { description: lost })
+      toast.warning(say('settings.reset'), { description: say(RESET_TEXT[lost.lost], lost.fields) })
     }
   }, [say])
 

@@ -78,6 +78,7 @@ inherits its permissions.
 - ✅ **RG88** **one screen has two translation systems, and only one of them was chosen** — A string belongs to whoever draws it: this app's own components read a MessageKey, the design system's read an i18next key, and one instance holds the locale both take.
 - ✅ **RG63** **there is no page chrome, so the first real screen will invent a shape the design system already has** — The shell is bento and the content inside it is not: a backlog is drawn as rows, because a 120-character symptom fits in no tile.
 - ✅ **RG116** **there is no control for the language, so choosing one means editing the settings file by hand** — A control the design system owns may keep its own cache; the settings file is the source, and the write back hangs on whatever holds the state rather than on the control.
+- ✅ **RG123** **a sentence shown in a toast is English whatever the window is speaking, and the run that would catch it looks elsewhere** — A settings loss crosses as a code and its fields, and the pseudo-locale run reads document.body with the sheet, the palette and a toast open.
 
 ### §RG39 A shared design system, not a copied one
 

@@ -80,8 +80,9 @@ describe('RG47: a file that cannot be read', () => {
     const read = loadSettings(home)
 
     expect(read.settings).toEqual(DEFAULT_SETTINGS)
-    expect(read.reset).toHaveLength(1)
-    expect(read.reset[0]).toContain('not readable as JSON')
+    // The one loss this side raises, and since RG123 it is a code carrying the file's name
+    // rather than a sentence: the window says it, in whatever language the window speaks.
+    expect(read.reset).toEqual([{ lost: 'unparsable', fields: { file: SETTINGS_FILE } }])
     expect(readFileSync(settingsPath(home), 'utf8')).toBe('{ this is not json')
   })
 
@@ -98,7 +99,7 @@ describe('RG47: a file that cannot be read', () => {
 
     expect(read.settings.roots).toEqual([{ path: 'D:/Git', depth: 2 }])
     expect(read.settings.width).toBe(DEFAULT_SETTINGS.width)
-    expect(read.reset[0]).toContain('pool width')
+    expect(read.reset).toEqual([{ lost: 'width', fields: { width: DEFAULT_SETTINGS.width } }])
   })
 })
 

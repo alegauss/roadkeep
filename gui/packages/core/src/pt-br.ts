@@ -32,6 +32,20 @@ export const PT_BR: Wording = {
   'settings.reset': 'Algumas configurações não puderam ser lidas e voltaram aos valores padrão.',
   'settings.unsaved': 'Essa escolha não pôde ser salva, então a próxima abertura não a terá.',
 
+  'settings.lost.unparsable': '{file} não pode ser lido como JSON, então ele fica intacto',
+  'settings.lost.file':
+    'o arquivo de configurações não é um objeto, então tudo voltou ao valor padrão',
+  'settings.lost.unversioned':
+    'o arquivo de configurações não diz sua versão, então ele é lido como esta build escreve',
+  'settings.lost.version':
+    'o arquivo de configurações é da versão {found} e esta build lê {reads}, então ele fica intacto',
+  'settings.lost.roots': 'as raízes não eram uma lista, então nenhuma foi lida',
+  'settings.lost.dropped': '{count} raiz(es) não puderam ser lidas e foram descartadas',
+  'settings.lost.skip': 'a lista de nomes a ignorar não era uma lista, então vale a lista padrão',
+  'settings.lost.width': 'a largura do pool não era um número inteiro, então voltou para {width}',
+  'settings.lost.theme': 'o fundo não é um que esta build conhece, então voltou para {theme}',
+  'settings.lost.locale': 'o idioma não era um texto, então o sistema decide',
+
   'shell.home': 'Início',
   'shell.palette': 'Encontre uma linha em qualquer backlog',
   'shell.shortcuts': 'Atalhos de teclado',

@@ -16,12 +16,14 @@ import {
   type Wording,
   wordingFor,
 } from '@rk/core'
-import { screen } from '@testing-library/react'
+import { vigDesignSystemTranslations } from '@viglet/viglet-design-system'
+import { fireEvent, screen } from '@testing-library/react'
 import i18next from 'i18next'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { AREA_WORDING } from './areas'
 import { drawWindow } from './harness'
+import { choicesAtLaunch } from './launch'
 import { startSpeaking } from './speaking'
 
 /**
@@ -36,6 +38,15 @@ import { startSpeaking } from './speaking'
  * the catalogue, and the i18next bundle the package's own components resolve. The second was
  * empty until the language menu arrived and needed a name, so the run now wraps that bundle
  * too — otherwise adding a string there would be adding one this guard cannot see.
+ *
+ * **And the whole document, with every surface open, since RG123.** Three of this window's
+ * surfaces were invisible here and each for its own reason. The shortcuts sheet and the
+ * command palette render into a portal, which is a sibling of the render's `container` and
+ * not inside it — measured, and not what the design assumed of the third: `Toaster` renders
+ * in place, so the toast was inside the container all along and the run simply never raised
+ * one. So this reads `document.body`, opens the two dialogs, and launches against a settings
+ * file that lost a field. The first look found two things: a literal in the package's dialog
+ * markup, and the English detail RG123's other half moved into the catalogue.
  */
 const BUILT = identityFrom({ version: '0.0.0', commit: 'abc1234', signed: 'unsigned' })
 
@@ -50,7 +61,31 @@ function withBridge(parts: Partial<RendererBridge>): void {
   Object.defineProperty(window, 'roadkeep', { value: bridge, configurable: true })
 }
 
-afterEach(() => {
+/**
+ * A launch that lost a setting, which is what puts a toast on the screen.
+ *
+ * The notice is the reason this run has to reach a portal at all: the frame is a
+ * `MessageKey` and the detail is what the reader of the settings file said about the field
+ * it reset, so a run that could not see the toast could not see the half of a sentence that
+ * was never in the catalogue.
+ */
+async function launchedWithALoss(): Promise<void> {
+  withBridge({
+    settings: () =>
+      Promise.resolve({
+        settings: DEFAULT_SETTINGS,
+        reset: [{ lost: 'width', fields: { width: DEFAULT_SETTINGS.width } }],
+        locale: BASE_LOCALE,
+      }),
+  })
+  await choicesAtLaunch()
+}
+
+afterEach(async () => {
+  // The notice list lives with the launch, so a clean launch is what empties it for the
+  // next test — the same reason `notices.test.tsx` gives.
+  withBridge({})
+  await choicesAtLaunch()
   Reflect.deleteProperty(window, 'roadkeep')
 })
 
@@ -94,6 +129,39 @@ function visibleText(root: HTMLElement): string[] {
  */
 const IDENTIFIERS = new Set<string>([...PACKAGES, PRODUCT, saidOfBuild(BUILT)])
 
+/**
+ * Text the package draws out of its own markup instead of its own bundle.
+ *
+ * One string, found the moment this run first looked inside a dialog (RG123): the close
+ * button is `<span class="sr-only">Close</span>` in the package's source and is not a key
+ * in `vigDesignSystemTranslations`, so a window in Portuguese reads it out in English.
+ *
+ * Named here and not fixed here, because it is another repository's string and this run is
+ * about the ones this repository types — RG132 is the line. Listed rather than filtered by
+ * shape, so the day it is translated this set is what goes stale and gets deleted.
+ */
+const PACKAGE_LITERALS = new Set<string>(['Close'])
+
+/** What the package says for one of its own keys, read off its bundle rather than typed. */
+function packageSays(group: string, key: string): string {
+  const bundle = vigDesignSystemTranslations.en as Record<string, unknown>
+  const bento = bundle['bento'] as Record<string, Record<string, string>> | undefined
+  return bento?.[group]?.[key] ?? ''
+}
+
+/**
+ * A sentence only the shortcuts sheet says, read at module scope — which is to say before
+ * the wrapping below.
+ *
+ * `initVigI18n` hands i18next the very object `vigDesignSystemTranslations` exposes, and a
+ * deep `addResourceBundle` merges into it: after the wrapping, reading the package's bundle
+ * gives back the bracketed string. Measured as `⟦⟦Keyboard shortcuts⟧⟧`.
+ *
+ * The description and not the title, because `visibleText` reads leaves and the sheet's
+ * heading is not one — the element holding it holds an element.
+ */
+const IN_THE_SHEET = packageSays('shortcuts', 'description')
+
 /** The same brackets `pseudo` uses, over the nested shape an i18next bundle has. */
 function pseudoDeep(bundle: Record<string, unknown>): Record<string, unknown> {
   return Object.fromEntries(
@@ -109,8 +177,23 @@ function pseudoDeep(bundle: Record<string, unknown>): Record<string, unknown> {
 beforeAll(async () => {
   // The package's components read i18next and nothing else, so the wrapped bundle has to
   // be in the instance itself rather than handed to a provider.
+  //
+  // The package's own bundle is wrapped beside this app's (RG123), because the surfaces this
+  // run now opens are the package's: the palette and the shortcuts sheet say a dozen things
+  // out of `vigDesignSystemTranslations`, and unwrapped they would arrive here as a dozen
+  // findings about strings this repository does not own. Wrapped, what is left bare is a
+  // literal somebody typed into a component — which is the claim, whoever typed it.
   await startSpeaking(BASE_LOCALE)
-  i18next.addResourceBundle(BASE_LOCALE, 'translation', pseudoDeep(AREA_WORDING.en), true, true)
+  i18next.addResourceBundle(
+    BASE_LOCALE,
+    'translation',
+    pseudoDeep({
+      ...(vigDesignSystemTranslations.en as Record<string, unknown>),
+      ...AREA_WORDING.en,
+    }),
+    true,
+    true,
+  )
 })
 
 /**
@@ -122,26 +205,60 @@ beforeAll(async () => {
  */
 const KEYCAP = 'KBD'
 
+/** What is on screen that no catalogue accounts for. The whole document, portals included. */
+function bareText(): string[] {
+  return visibleText(document.body).filter(
+    (text) => !isPseudo(text) && !IDENTIFIERS.has(text) && !PACKAGE_LITERALS.has(text),
+  )
+}
+
+/**
+ * Every surface this window can show, open at once.
+ *
+ * Together rather than one render each, because the question is about the window and not
+ * about any one of them — and because three renders are three places to add a fourth
+ * surface and not notice.
+ */
+async function everySurface(): Promise<void> {
+  // The toast first: it is raised on mount, and waiting for its frame is also what says the
+  // launch's notice arrived rather than that the run forgot to cause one.
+  await screen.findByText(`${PSEUDO_OPEN}${BASE['settings.reset']}${PSEUDO_CLOSE}`)
+  fireEvent.click(screen.getByTestId('shortcuts'))
+  fireEvent.click(screen.getByTestId('palette-trigger'))
+  await screen.findAllByRole('dialog')
+}
+
 describe('RG51: nothing on the screen is typed into a component', () => {
   it('wraps every sentence, leaving only the package names bare', async () => {
-    withBridge({ identify: () => Promise.resolve({ transport: 'ipc', build: BUILT }) })
-    const { container } = drawIn(pseudo())
+    await launchedWithALoss()
+    drawIn(pseudo())
     // Wait for the bridge to answer, so the badge is a settled string and not `asking`.
     await screen.findByText(`${PSEUDO_OPEN}${BASE['transport.ipc']}${PSEUDO_CLOSE}`)
+    await everySurface()
 
-    const bare = visibleText(container).filter((text) => !isPseudo(text) && !IDENTIFIERS.has(text))
-
-    expect(bare).toEqual([])
+    expect(bareText()).toEqual([])
   })
 
   it('finds the literal a component would have kept', () => {
     // The guard on the guard: with nothing wrapped, the check above has to fail — otherwise
     // a green run would prove only that the test does not look.
-    const { container } = drawIn(undefined)
+    drawIn(undefined)
 
-    const bare = visibleText(container).filter((text) => !isPseudo(text) && !IDENTIFIERS.has(text))
+    expect(bareText().length).toBeGreaterThan(0)
+  })
 
-    expect(bare.length).toBeGreaterThan(0)
+  it('looks inside a portal, which is where two of these surfaces render', async () => {
+    // The gap RG123 closed, held as its own claim rather than left to the check above: the
+    // sheet and the palette render into `document.body`, so a run reading the render's own
+    // container saw nothing of either — and a literal in one of them read as an empty list.
+    // The one this found on its first look is `Close`, above.
+    await launchedWithALoss()
+    const { container } = drawIn(pseudo())
+    await everySurface()
+    const inTheSheet = `${PSEUDO_OPEN}${IN_THE_SHEET}${PSEUDO_CLOSE}`
+
+    expect(visibleText(container)).not.toContain(inTheSheet)
+    expect(visibleText(document.body)).toContain(inTheSheet)
   })
 
   it('says the same screen in English, which is the base and not a translation', () => {

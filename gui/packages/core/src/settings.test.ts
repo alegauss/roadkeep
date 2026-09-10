@@ -75,8 +75,9 @@ describe('RG47: a bad file resets field by field, and says so', () => {
 
     expect(read.settings.roots).toEqual(WRITTEN.roots)
     expect(read.settings.width).toBe(DEFAULT_SETTINGS.width)
-    expect(read.reset).toHaveLength(1)
-    expect(read.reset[0]).toContain('pool width')
+    // The code and the value it names, since RG123 — the sentence is the catalogue's, and
+    // the default this reset to is the field the sentence has a hole for.
+    expect(read.reset).toEqual([{ lost: 'width', fields: { width: DEFAULT_SETTINGS.width } }])
   })
 
   it('drops the roots it cannot read and counts them, keeping the rest', () => {
@@ -86,7 +87,7 @@ describe('RG47: a bad file resets field by field, and says so', () => {
     })
 
     expect(read.settings.roots).toEqual([{ path: 'D:/Git', depth: 2 }])
-    expect(read.reset[0]).toBe('3 root(s) could not be read and were dropped')
+    expect(read.reset).toEqual([{ lost: 'dropped', fields: { count: 3 } }])
   })
 
   it('holds a root depth to the ceiling rather than dropping the root', () => {
@@ -107,7 +108,14 @@ describe('RG47: a bad file resets field by field, and says so', () => {
       locale: 42,
     })
 
-    expect(read.reset).toHaveLength(5)
+    // One code per field, in the order the fields are read.
+    expect(read.reset.map((lost) => lost.lost)).toEqual([
+      'roots',
+      'skip',
+      'width',
+      'theme',
+      'locale',
+    ])
     expect(read.settings).toEqual(DEFAULT_SETTINGS)
   })
 
@@ -126,7 +134,7 @@ describe('RG47: a bad file resets field by field, and says so', () => {
       const read = readSettings(source)
 
       expect(read.settings).toEqual(DEFAULT_SETTINGS)
-      expect(read.reset).toHaveLength(1)
+      expect(read.reset).toEqual([{ lost: 'file' }])
     }
   })
 })
@@ -138,16 +146,18 @@ describe('RG47: the version is read first', () => {
     const read = readSettings({ ...WRITTEN, version: SETTINGS_VERSION + 1 })
 
     expect(read.settings).toEqual(DEFAULT_SETTINGS)
-    expect(read.reset).toHaveLength(1)
-    expect(read.reset[0]).toContain('left alone')
-    expect(read.reset[0]).toContain(String(SETTINGS_VERSION + 1))
+    // Both versions travel as fields: what the file said and what this build reads, which
+    // is the whole of what makes the sentence worth showing.
+    expect(read.reset).toEqual([
+      { lost: 'version', fields: { found: SETTINGS_VERSION + 1, reads: SETTINGS_VERSION } },
+    ])
   })
 
   it('reads a file that names no version as this build writes them', () => {
     const read = readSettings({ roots: WRITTEN.roots })
 
     expect(read.settings.roots).toEqual(WRITTEN.roots)
-    expect(read.reset[0]).toContain('names no version')
+    expect(read.reset).toEqual([{ lost: 'unversioned' }])
   })
 
   it('reads an older version, because there is nothing yet to migrate', () => {

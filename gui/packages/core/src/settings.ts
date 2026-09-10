@@ -54,15 +54,48 @@ export const DEFAULT_SETTINGS: Settings = {
   locale: '',
 }
 
+/**
+ * What a settings file can lose, as a code rather than a sentence (RG123).
+ *
+ * These were English prose composed here, which put half of every notice outside the
+ * catalogue: RG115 shows them under a translated frame, so a window in Portuguese said the
+ * frame in Portuguese and the detail in English. Each carries an interpolated value — a
+ * count, a version, a default — which is why they are not ten more `MessageKey`s used
+ * directly but a code and its fields, resolved through `RESET_TEXT` the way a theme is.
+ *
+ * `unparsable` is the one this file does not raise: a file that is not JSON at all is a
+ * different failure from one of the wrong shape, and only the second is `core`'s. It is
+ * named here because the sentence belongs to the same notice and the same catalogue.
+ */
+export type Lost =
+  | 'unparsable'
+  | 'file'
+  | 'unversioned'
+  | 'version'
+  | 'roots'
+  | 'dropped'
+  | 'skip'
+  | 'width'
+  | 'theme'
+  | 'locale'
+
+export interface Reset {
+  readonly lost: Lost
+  /**
+   * The values its sentence names, by hole. Absent where it names none, rather than an
+   * empty object: a sentence with no holes is the ordinary case, and `fill` leaves any hole
+   * nobody filled visible.
+   */
+  readonly fields?: Readonly<Record<string, string | number>>
+}
+
 export interface SettingsRead {
   readonly settings: Settings
   /**
-   * What could not be used, each said as a sentence. Empty is a clean read.
-   *
-   * Sentences rather than codes because these are shown: somebody whose roots were dropped
-   * needs to know that, and a code would be a second thing to look up.
+   * What could not be used, each as a code a screen says in its own language. Empty is a
+   * clean read.
    */
-  readonly reset: readonly string[]
+  readonly reset: readonly Reset[]
 }
 
 const THEMES = new Set<Theme>(['system', 'light', 'dark'])
@@ -102,45 +135,47 @@ function field<T>(
   raw: unknown,
   usable: (value: unknown) => boolean,
   fallback: T,
-  lost: string,
-): readonly [T, string | null] {
+  lost: Reset,
+): readonly [T, Reset | null] {
   if (raw === undefined) return [fallback, null]
   return usable(raw) ? [raw as T, null] : [fallback, lost]
 }
 
 /** The roots, keeping the ones that read and counting the ones that did not. */
-function rootsIn(raw: unknown): readonly [readonly ScanRoot[], string | null] {
+function rootsIn(raw: unknown): readonly [readonly ScanRoot[], Reset | null] {
   if (raw === undefined) return [DEFAULT_SETTINGS.roots, null]
-  if (!Array.isArray(raw))
-    return [DEFAULT_SETTINGS.roots, 'the roots were not a list, so none were read']
+  if (!Array.isArray(raw)) return [DEFAULT_SETTINGS.roots, { lost: 'roots' }]
 
   const kept = raw.map(rootOf).filter((root): root is ScanRoot => root !== null)
   const dropped = raw.length - kept.length
-  return [
-    kept,
-    dropped === 0 ? null : `${String(dropped)} root(s) could not be read and were dropped`,
-  ]
+  return [kept, dropped === 0 ? null : { lost: 'dropped', fields: { count: dropped } }]
 }
 
 /**
  * What the file says about its version, or the reason it cannot be read at all.
  *
  * A version above this build's is the one case that stops everything: the fields might
- * mean something else, so the file is left alone and defaults are used.
+ * mean something else, so the file is left alone and defaults are used. Said as two shapes
+ * rather than as a flag beside a nullable, so the caller cannot reach the stop without the
+ * sentence that explains it.
  */
-function versionIn(raw: unknown): readonly [string | null, boolean] {
+type Versioned =
+  /** Usable, with a note where the version itself could not be read. */
+  | { readonly kind: 'read'; readonly said: Reset | null }
+  /** Written by a build that reads more than this one. Nothing else in it is read. */
+  | { readonly kind: 'ahead'; readonly said: Reset }
+
+function versionIn(raw: unknown): Versioned {
   if (typeof raw !== 'number' || !Number.isInteger(raw)) {
-    return ['the settings file names no version, so it is read as this build writes them', false]
+    return { kind: 'read', said: { lost: 'unversioned' } }
   }
   if (raw > SETTINGS_VERSION) {
-    return [
-      `the settings file is version ${String(raw)} and this build reads ${String(
-        SETTINGS_VERSION,
-      )}, so defaults are used and the file is left alone`,
-      true,
-    ]
+    return {
+      kind: 'ahead',
+      said: { lost: 'version', fields: { found: raw, reads: SETTINGS_VERSION } },
+    }
   }
-  return [null, false]
+  return { kind: 'read', said: null }
 }
 
 /**
@@ -153,45 +188,40 @@ function versionIn(raw: unknown): readonly [string | null, boolean] {
 export function readSettings(source: unknown): SettingsRead {
   const file = asRecord(source)
   if (file === null) {
-    return {
-      settings: DEFAULT_SETTINGS,
-      reset: ['the settings file is not an object, so every setting is back to its default'],
-    }
+    return { settings: DEFAULT_SETTINGS, reset: [{ lost: 'file' }] }
   }
 
-  const [saidOfVersion, unreadable] = versionIn(file['version'])
-  if (unreadable) return { settings: DEFAULT_SETTINGS, reset: [saidOfVersion ?? ''] }
+  const version = versionIn(file['version'])
+  if (version.kind === 'ahead') return { settings: DEFAULT_SETTINGS, reset: [version.said] }
 
   const [roots, saidOfRoots] = rootsIn(file['roots'])
   const [skip, saidOfSkip] = field<readonly string[]>(
     file['skip'],
     (value) => Array.isArray(value) && value.every((one) => typeof one === 'string'),
     DEFAULT_SETTINGS.skip,
-    'the skip list was not a list of names, so the default one is used',
+    { lost: 'skip' },
   )
   const [width, saidOfWidth] = field(
     file['width'],
     (value) => typeof value === 'number' && Number.isInteger(value) && value > 0,
     DEFAULT_SETTINGS.width,
-    `the pool width was not a whole number, so it is back to ${String(DEFAULT_SETTINGS.width)}`,
+    { lost: 'width', fields: { width: DEFAULT_SETTINGS.width } },
   )
-  const [theme, saidOfTheme] = field<Theme>(
-    file['theme'],
-    isTheme,
-    DEFAULT_SETTINGS.theme,
-    `the theme was not one this build knows, so it is back to ${DEFAULT_SETTINGS.theme}`,
-  )
+  const [theme, saidOfTheme] = field<Theme>(file['theme'], isTheme, DEFAULT_SETTINGS.theme, {
+    lost: 'theme',
+    fields: { theme: DEFAULT_SETTINGS.theme },
+  })
   const [locale, saidOfLocale] = field(
     file['locale'],
     (value) => typeof value === 'string',
     DEFAULT_SETTINGS.locale,
-    'the locale was not a string, so the desktop decides',
+    { lost: 'locale' },
   )
 
   return {
     settings: { version: SETTINGS_VERSION, roots, skip, width, theme, locale },
-    reset: [saidOfVersion, saidOfRoots, saidOfSkip, saidOfWidth, saidOfTheme, saidOfLocale].filter(
-      (said): said is string => said !== null,
+    reset: [version.said, saidOfRoots, saidOfSkip, saidOfWidth, saidOfTheme, saidOfLocale].filter(
+      (said): said is Reset => said !== null,
     ),
   }
 }
