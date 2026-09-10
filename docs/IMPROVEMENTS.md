@@ -118,29 +118,6 @@ which is the half that goes red — and that is the reading, not a guess to be r
 
 ## Block D — The gate
 
-### §RK1665 The codes the scan cannot read
-
-`test_backstop._written()` walks every `Violation(…)` in the package and takes the first
-argument where it is a string constant. Where it is not, it widens the found set to
-`COMPUTED` — the three character codes composed from a field name — and moves on.
-
-`scoping` and `criteria` name theirs as module constants: `LEAD = "non-goal.lead"`,
-`SHAPE`, `WHY`, and the three beside them. The comment says why, and it is right — *a
-code spelled twice is a code that drifts once*. So `Violation(LEAD, …)` is invisible to
-the scan, and six codes a write genuinely refuses are outside a register whose whole
-claim is `covered == written`.
-
-Nothing is wrong today: four of the six have rows anyway, and the two `lead` codes were
-found by RK1627 joining to it and failing. What is wrong is that the closure cannot see
-them, so a seventh added to either module would have no row and nothing would say so —
-the silence the register exists to end.
-
-The fix is the scan's and not the modules'. A name resolving to a string constant in the
-same module is readable with the `ast` already parsed, so the reader gains a pass that
-binds module-level string constants and looks one up where the first argument is a
-`Name`. What it must not keep is the fall-through to `COMPUTED` on a name it could not
-resolve: that branch is what hid these.
-
 ### §RK1666 The sentence above the key
 
 `govern <key> <n> --because "…"` wraps the caller's argument into comment lines above

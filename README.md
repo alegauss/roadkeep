@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 234 | 2 |
 | C — Query (consult without reading the file) | 2 | 192 | 7 |
-| D — The gate | 5 | 310 | 7 |
+| D — The gate | 4 | 311 | 7 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 163 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 44 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 7 | 1138 | 24 |
+| **Total** | 6 | 1139 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1665** (deps: —) **the backstop reads a code only where it is a literal, so six a write refuses are outside a total that says it is one** — scoping and criteria name their codes as constants on purpose, and the scan widens to the computed set instead of seeing them. → §RK1665
+- 📋 **RK1666** (deps: —) **govern writes a caller's sentence into roadkeep.toml and no validator reads it, so a mangled run lands and stays** — The write re-parses the file and a comment carrying a mojibake run is legal TOML, and lint never reads that file for characters. → §RK1666
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -55,6 +55,14 @@ FIELDS = ("symptom", "why")
 #: the one place this enumeration cannot read the code off the call.
 COMPUTED = ("char.tab", "char.space", "char.invisible")
 
+#: The names a `Violation`'s code may arrive under that no pass here can resolve, with
+#: :data:`COMPUTED` as what each can be (RK1665). One: `_codepoints` picks the code from the
+#: kind of character it found, so the value is a local and the enumeration above is the
+#: answer. Declared rather than fallen through to — that fall-through is what let six codes
+#: named as module constants read as *the three character codes* and leave the register
+#: agreeing with itself about a set that was short.
+COMPUTED_FROM = ("code",)
+
 #: Not a state a governed file can be in: the refusal is about an argument, and the file has
 #: no way to carry the mistake. Stated once, because five rows give the same reason.
 ARGUMENT = "not a state a file can be in: the refusal is about an argument, not about text"
@@ -119,6 +127,15 @@ BACKSTOP: tuple[Backstopped, ...] = (
         # that same rule — which is what keeps the required field required for an entry that
         # arrived by a merge or a hand edit.
         "premise.missing",
+        # The four the scan could not see (RK1665): `scoping` and `criteria` name their codes
+        # as module constants, so `Violation(LEAD, …)` was a `Name` where the reader wanted a
+        # literal. Nothing was wrong — the gate reads the same `validate` for a bullet already
+        # in the file, which is why these are the ordinary shared-code rows — and what was
+        # wrong is that a seventh added to either module would have had no row and no red.
+        "non-goal.lead",
+        "non-goal.why",
+        "criterion.lead",
+        "criterion.why",
         # RK1227. The one code here that is refused about a *body* and reported about a
         # citation inside one — the same defect and the same name, because `section amend`
         # now asks the question `lint` was left to answer three commits later.
@@ -207,6 +224,30 @@ ROADMAP = (
 LEDGER = "# Shipped\n\n## Block A — The model\n"
 
 
+def _named(tree: ast.Module) -> dict[str, str]:
+    """Module-level names bound to a string constant, by name (RK1665).
+
+    The pass the reader below did not have. `scoping` and `criteria` declare their codes as
+    constants — `LEAD = "non-goal.lead"` and five beside them — on the stated argument that a
+    code spelled twice is a code that drifts once, which is right; so `Violation(LEAD, …)` had
+    a `Name` where the scan wanted a literal, and six codes a write genuinely refuses sat
+    outside a register whose whole claim is `covered == written`.
+
+    Module level only, and that is the honest bound: a name bound inside a function is a
+    value this pass cannot resolve without following the call, and what it does about one is
+    fail loudly rather than widen the set (see :func:`_written`).
+    """
+    return {
+        target.id: node.value.value
+        for node in tree.body
+        if isinstance(node, ast.Assign) and len(node.targets) == 1
+        for target in [node.targets[0]]
+        if isinstance(target, ast.Name)
+        and isinstance(node.value, ast.Constant)
+        and isinstance(node.value.value, str)
+    }
+
+
 def _written() -> set[str]:
     """Every code a `Violation` in this package is constructed with, expanded.
 
@@ -214,10 +255,19 @@ def _written() -> set[str]:
     reason: importing the package to find them finds only what happens to have run. A
     `{field}` is expanded over :data:`FIELDS` and the one computed code over
     :data:`COMPUTED`, both of which are declared above rather than guessed at here.
+
+    **A `Name` is resolved and never widened** (RK1665). This fell through to `COMPUTED` on
+    anything that was not a literal, which is the branch that hid the six: a code named as a
+    module constant read as *the three character codes*, so the closure agreed with itself
+    about a set that was missing rows. Now a name resolves through :func:`_named`, and one
+    that does not resolve raises — a scan that cannot read a code has to say so, this
+    register's whole value being that it is total.
     """
     found: set[str] = set()
     for module in modules():
-        for node in ast.walk(ast.parse(module.text)):
+        tree = ast.parse(module.text)
+        bound = _named(tree)
+        for node in ast.walk(tree):
             if not isinstance(node, ast.Call) or not node.args:
                 continue
             func = node.func
@@ -233,8 +283,19 @@ def _written() -> set[str]:
                     for part in first.values
                 )
                 found |= {spelled.replace("{field}", field) for field in FIELDS}
-            else:
+            elif isinstance(first, ast.Name) and first.id in bound:
+                found.add(bound[first.id])
+            elif isinstance(first, ast.Name) and first.id in COMPUTED_FROM:
+                # The one code this scan cannot read off the call: `_codepoints` resolves it
+                # from the kind of character it found, so the three it can be are declared.
                 found |= set(COMPUTED)
+            else:
+                raise AssertionError(
+                    f"{module.where}:{node.lineno} constructs a Violation from "
+                    f"{ast.unparse(first)}, which this scan cannot resolve to a code — "
+                    f"bind it to a module-level string, or name it in COMPUTED_FROM with "
+                    f"the codes it can be"
+                )
     return found
 
 

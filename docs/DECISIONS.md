@@ -305,6 +305,7 @@ reading of the two files: the open work first, the history behind it.
 - ✅ **RK1649** **answers() spells at most one of a verb's flags and nothing spells exactly one, so a required choice stays a raise** — A required choice is declared beside the pair and never published: a required boolean key is present-and-false, the call it refuses, and the skill shows the address filled in.
 - ✅ **RK1652** **a config refusal now names the table a key belongs under, and no verb moves it there** — The verb that repairs roadkeep.toml runs on a config that did not load, and a run which cannot say which files are governed attests none of them.
 - ✅ **RK1654** **ten functions print to both streams in one body and two go through the helper, nothing saying which of the rest need to** — A guard on a stream order holds the fault and not the fix: the census says which functions write both in one run, and each of those owes its stderr to beneath.
+- ✅ **RK1665** **the backstop reads a code only where it is a literal, so six a write refuses are outside a total that says it is one** — A closure that widens its found set on a value it cannot read is a closure agreeing with itself: an unresolvable code raises, and what it may be is declared.
 
 ### §RK1394 Proof, not age
 

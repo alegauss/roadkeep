@@ -816,6 +816,7 @@
 - ✅ **RK1649** **answers() spells at most one of a verb's flags and nothing spells exactly one, so a required choice stays a raise** — One rule on both surfaces: a declaration says one subject is required and the dispatcher refuses a call that named none, where two handlers each raised their own.
 - ✅ **RK1652** **a config refusal now names the table a key belongs under, and no verb moves it there** — declare --move puts a misplaced key under the table this build declares it in, and it is the one write that runs while the config does not parse.
 - ✅ **RK1654** **ten functions print to both streams in one body and two go through the helper, nothing saying which of the rest need to** — The census is declared and total, and the five that write both streams in one run go through beneath: every answer with a note had its note above it down a pipe.
+- ✅ **RK1665** **the backstop reads a code only where it is a literal, so six a write refuses are outside a total that says it is one** — The scan resolves a module-level name and raises on one it cannot, so the six codes named as constants are inside the closure and four gained the rows they had none of.
 
 ## Block E — Adoption
 
