@@ -926,12 +926,30 @@ class Config:
         return found is not None and found.is_file()
 
     def path(self, role: str) -> Path:
+        """Where ``role``'s file is, or a `KeyError` naming the verb that declares one.
+
+        **The door, and not only the absence** (RK1670). This said what the project has not
+        got and what stands in its place — two thirds of what a refusal owes, and the third is
+        the one act that answers it. `declare`'s own description says *reach for it when a verb
+        refuses over an undeclared role or table*, so the verb was written for this refusal and
+        this refusal did not name it; RK1328 made the same repair one vocabulary over, where
+        `[non_goals]` named a hand edit to configuration this tool owns the writes to.
+
+        Every read and write that resolves a file comes through here, which is why the door is
+        composed on the **raise** alone: `invocation()` is a PATH lookup behind an
+        `lru_cache`, and paying it on the hot path to spell a message nobody is reading would
+        be the cost RK260 measured, backwards.
+        """
         try:
             return self.paths[role]
         except KeyError:
+            from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260, the raise only
+
             raise KeyError(
                 f"this project declares no {role!r} file (has: "
-                f"{', '.join(sorted(self.paths)) or 'none'})"
+                f"{', '.join(sorted(self.paths)) or 'none'}) — "
+                f"`{invocation()} declare {role}` writes the file and the `[files]` key, "
+                f"and every verb that reads it follows"
             ) from None
 
     def schema_for(self, role: str) -> Schema:

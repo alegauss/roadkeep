@@ -1069,3 +1069,63 @@ def test_a_config_refusal_at_a_terminal_names_the_build_that_read_it(tmp_path, c
     assert main(["-C", str(tmp_path), "list"]) == EXIT_USAGE
     err = capsys.readouterr().err
     assert read_by() in err and str(engine()) in err
+
+
+# -- the door an undeclared role has (RK1670) -----------------------------------
+
+
+def test_the_refusal_over_an_undeclared_role_names_the_verb_that_adds_one(tmp_path, capsys):
+    """RK1670. `Config.path` named the absence and the roles standing in its place — two thirds
+    of what a refusal owes, and the third is the act that answers it. `declare`'s own
+    description says *reach for it when a verb refuses over an undeclared role or table*, so
+    the verb was written for this refusal and this refusal did not name it.
+
+    RK1328 made the same repair one vocabulary over, where `[non_goals]` named a hand edit to
+    configuration this tool owns the writes to (L1). A role reaches further: every read and
+    write that resolves a file comes through here.
+
+    Run and then re-read, which is the only proof a door is the right command (RK393): the
+    store the refusal named is opened and the read that was refused answers."""
+    from composing import runs
+
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "TT"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        'improvements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    for name, body in (
+        ("ROADMAP.md", "# Roadmap\n\n## Block A\n"),
+        ("CHANGELOG.md", "# Shipped\n\n## Block A\n"),
+        ("IMPROVEMENTS.md", "# Improvements\n\n## Block A\n"),
+    ):
+        (tmp_path / name).write_text(body, encoding="utf-8")
+
+    assert main(["-C", str(tmp_path), "section", "find", "a phrase", "--role", "strategy"]) \
+        == EXIT_USAGE
+    said = capsys.readouterr().err
+    # The absence and what stands in its place, unchanged: the caller can still tell the
+    # question apart from an empty answer, which is what those two thirds were for.
+    assert "declares no 'strategy' file" in said and "improvements" in said
+    assert runs(tmp_path, said) == (["declare", "strategy"],), said
+    capsys.readouterr()
+    # And the read that was refused answers now, which is what makes it a door.
+    assert main(["-C", str(tmp_path), "section", "find", "a phrase", "--role", "strategy"]) == 0
+
+
+def test_the_door_is_composed_on_the_raise_and_not_on_the_read(tmp_path):
+    """Every read and write that resolves a file comes through `Config.path`, so `invocation()`
+    is reached inside the `except` alone — a PATH lookup on the hot path to spell a message
+    nobody is reading is RK260's measurement backwards.
+
+    Held on the source rather than timed: the import is where the raise is, and a call that
+    resolves a declared role composes nothing at all."""
+    from surface import calling, modules
+
+    (module,) = [one for one in modules() if one.where == "config.py"]
+    lines = module.text.splitlines()
+    (found,) = [
+        one for one in calling(module.text, "invocation") if "declare {role}" in lines[one - 1]
+    ]
+    # The composition sits under a `raise`, which is what "on the raise alone" means: the
+    # happy path of this method is two statements and neither is a PATH lookup.
+    assert "raise KeyError(" in "\n".join(lines[found - 4 : found])

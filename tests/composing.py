@@ -273,6 +273,12 @@ SITES: tuple[Site, ...] = (
     # against a config holding one. It did not run: the config load is ahead of every handler,
     # so the door gave back the identical refusal — `engines` now tolerates a broken config
     # the way `guard` and `report` do, needing the root and nothing else (RK1598).
+    # RK1670. The refusal every read and write that resolves a file comes through, which named
+    # the absence and what stands in its place and not the verb that answers it — `declare`'s
+    # own description says *reach for it when a verb refuses over an undeclared role*, and this
+    # is that refusal. Run by `test_config`, which takes the door and then makes the read that
+    # was refused answer, which is the only proof it was the right command (RK393).
+    Site("config.py:Config.path", "run"),
     Site("config.py:_skew", "run"),
     # RK1652, and the door RK1610's refusal did not have: a key this build declares one table
     # away named the header to move it under, by hand, in the file no other verb can read past
@@ -295,6 +301,11 @@ SITES: tuple[Site, ...] = (
     # against a roadmap and a store that both hold the id. What running it found is RK1593:
     # the one command it named refuses there, the store still holding the line, so the same
     # call without the flag is the step before it and the refusal now names both in order.
+    # RK1670, the same defect one verb over. `dismissing.NoStore` cites this class for its rule
+    # and carries the door RK1264 built; this one still read out a toml key and a skeleton by
+    # hand, which over MCP is the edit the guard denies. Run by `test_deferring`, which opens
+    # the store the refusal names and then makes the refused `defer` land.
+    Site("deferring.py:NoStore.__init__", "run"),
     Site("deferring.py:NoPlacement.__init__", "run"),
     # RK1618. The second store's four, all run by `test_composing`: the refusal a project with
     # no store meets and the verb that opens one, the `reopen` row every filed entry ends with,

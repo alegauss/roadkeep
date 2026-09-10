@@ -82,17 +82,25 @@ class NoStore(ValueError):
     """A pause with nowhere to go: this project declares no deferred file (RK96).
 
     Refused and not scaffolded on the way past. A governed file is a path in
-    `roadkeep.toml` (L6) and `init` is what writes one — a store a `defer` invented at the
+    `roadkeep.toml` (L6) and `declare` is what writes one — a store a `defer` invented at the
     moment it needed one would be a format decided by a verb, which is the thing Block A
     exists to prevent.
+
+    **And the verb, which this named a hand edit instead of** (RK1670). RK1264 built `declare`
+    for exactly this refusal and :class:`~roadkeep.dismissing.NoStore` — written afterwards,
+    citing this class for its rule — carries the door; the repair was never brought back here,
+    so the one refusal every `defer` on an unopened store reaches read out a toml key and a
+    skeleton by hand. Over MCP that is the edit the guard denies, and so no remedy at all.
     """
 
     def __init__(self, task_id: str) -> None:
+        from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
         self.task_id = task_id
         super().__init__(
-            f"{task_id} cannot be set aside: no deferred store is declared — add "
-            f'`deferred = "<path>"` under [files] and create the file with its block '
-            f"headings, or retire the line if the pause is really an abandonment"
+            f"{task_id} cannot be set aside: no deferred store is declared — "
+            f"`{invocation()} declare deferred` writes the file and the `[files]` key "
+            f"together, or retire the line if the pause is really an abandonment"
         )
 
 

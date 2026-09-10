@@ -459,6 +459,26 @@ def test_a_pause_with_nowhere_to_go_is_refused_and_not_scaffolded(tmp_path):
         defer(config, "RK1", reason="it waits")
 
 
+def test_the_door_a_project_with_no_store_names_runs(tmp_path, capsys):
+    """RK1670, and the defect is the one `dismissing.NoStore` was written to avoid: that class
+    cites this one for its rule and carries the door RK1264 built, while this refusal still
+    read out `deferred = "<path>"` under `[files]` and a skeleton by hand. Over MCP that is
+    the edit the guard denies, and so no remedy at all.
+
+    Run and then re-read, which is the only proof a door is the right command (RK393): the
+    store is opened by the verb the refusal names, and the `defer` that was refused lands."""
+    from composing import runs
+
+    declare = DECLARE.replace('deferred = "DEFERRED.md"\n', "")
+    project(tmp_path, declare=declare)
+    where = ["-C", str(tmp_path)]
+    assert main([*where, "defer", "RK1", "--reason", "it waits on something else"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert runs(tmp_path, said) == (["declare", "deferred"],), said
+    capsys.readouterr()
+    assert main([*where, "defer", "RK1", "--reason", "it waits on something else"]) == EXIT_OK
+
+
 def test_a_line_the_ledger_already_recorded_has_neither_door(tmp_path):
     shipped = LEDGER + (
         f"\n- {SHIPPED} **RK1** **A first symptom** — Because of a reason.\n"

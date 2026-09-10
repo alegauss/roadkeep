@@ -496,6 +496,7 @@
 - ✅ **RK1653** **five classes answer to notes and one is a gate report, so a sweep over the name is off for three whole test modules** — The exemption is keyed by the receiver and held total against the suite, so three whole modules are swept again and a called notes() is not a list.
 - ✅ **RK1656** **a dep on a ruled-out finding resolves as unknown, which says nothing can answer about a file that answers exactly** — A dep on a dismissal resolves unresolvable with the premise in its sentence, and the finding that names it stopped asserting a departure that did not happen.
 - ✅ **RK1663** **the per-block half of a pin's shape counts the roadmap's headings, so a finished block's entries land in no row** — The rows are over both files' labels and account for both totals, so Turing reads as 105 blocks and not 3 and Shio's 668 delivered all land in a row.
+- ✅ **RK1670** **the refusal over an undeclared role names what the project has and not the verb that adds one** — The undeclared-role refusal names declare, and defer's own store refusal stops reading out the hand edit it copied its rule from.
 
 ## Block D — The gate
 

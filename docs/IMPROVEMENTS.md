@@ -79,25 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1670 The door an undeclared role has
-
-`Config.path` raises `this project declares no 'deferred' file (has: changelog,
-improvements, roadmap)`, which is two thirds of what a refusal owes: it names the
-absence and what stands in its place, so the caller can tell the question apart from an
-empty answer. What it does not name is the verb — and `declare`'s own description says
-outright *reach for it when a verb refuses over an undeclared role or table*, so the
-door exists and the one refusal it was written for does not point at it.
-
-RK1328 made the same repair one table over: `criteria.NotGoverned` said *`declare
-criteria` opens the table* rather than naming a hand edit to configuration this tool
-owns the writes to. A role is the same shape and reaches more callers — every read and
-write that resolves a path goes through here.
-
-What has to be decided is the site. This raise is in `config.py`, below `remedying` and
-`provenance`, so a `Door` here would be an import the layering does not have; the plain
-backticked verb `criteria.py` uses needs none, but `test_composing` holds its census
-total over every function that composes a command, so the row and its run come with it.
-
 ### §RK1671 The suite that shipping breaks
 
 Three tests went red in one sitting of shipping, none of them about the code that
@@ -115,6 +96,32 @@ and the three above reached the live state directly.
 Measured: 24 reads of `Config.discover(<checkout>)` across six modules, 18 of them in
 `test_budgeting`. What is not known is how many of those assert a **non-empty** answer,
 which is the half that goes red — and that is the reading, not a guess to be repaired.
+
+### §RK1674 The two role refusals RK1670 did not reach
+
+RK1670 closed the two refusals its design reached: the path resolver every read and
+write comes through, and `deferring.NoStore`, which had copied its rule from the class
+carrying the door and not the door. Two are left, and both are met before a path is ever
+resolved.
+
+`verbs/querying._anchors` prints *this project declares no strategy file (improvements,
+strategy, decisions is what an anchor lives in)* — the vocabulary, which is the half a
+caller who typed `--role strategy` already had. `blocking.NotOrganisable` prints *this
+project declares no such file on disk (it declares: …) — the argument names a role,
+which is how `[files]` names one*, which explains the argument and not the absence.
+
+Neither names `declare`, and `declare`'s own description says *reach for it when a verb
+refuses over an undeclared role or table*. So the verb written for it is named by two of
+the four sites that make it.
+
+`_anchors` has two branches taking different doors: a named role the project has not got
+is `declare <role>`, and a project with **no** prose file is `declare improvements`, a
+free address having to live somewhere and that being the role `init` writes. The second
+is the branch a scaffolded project cannot be in, so it is the one a reading has to
+decide rather than assume.
+
+What must not happen is a fifth spelling of the same sentence: four sites already say
+*declares no <role>* four ways, and RK1670 added the door to two of them by hand.
 
 ## Block D — The gate
 
