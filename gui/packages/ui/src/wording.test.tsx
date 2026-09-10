@@ -157,22 +157,13 @@ function spokenNames(root: HTMLElement): string[] {
  */
 const IDENTIFIERS = new Set<string>([...PACKAGES, PRODUCT, saidOfBuild(BUILT)])
 
-/**
- * Text the package draws out of its own markup instead of its own bundle.
- *
- * One string, found the moment this run first looked inside a dialog (RG123): the close
- * button is `<span class="sr-only">Close</span>` in the package's source and is not a key
- * in `vigDesignSystemTranslations`, so a window in Portuguese reads it out in English.
- *
- * Named here and not fixed here, because it is another repository's string and this run is
- * about the ones this repository types — RG132 is the line. Listed rather than filtered by
- * shape, so the day it is translated this set is what goes stale and gets deleted.
- *
- * `Back to top` is the second, found when the run began reading names (RG140): the
- * package's back-to-top button is `aria-label="Back to top"`. The design system translates
- * both in VDS93, so the release carrying it empties this set.
- */
-const PACKAGE_LITERALS = new Set<string>(['Close', 'Back to top'])
+// And no exception for the package's own words, which there was until RG132. The close
+// button was `<span class="sr-only">Close</span>` in its markup, found the moment this run
+// first looked inside a dialog (RG123), and `aria-label="Back to top"` joined it when the
+// run began reading names (RG140). Both were listed rather than filtered by shape, so the
+// day they were translated the list would go stale and be deleted. The design system moved
+// both into its bundle (VDS93, 2026.3.9): a bare word from the package is now a finding like
+// any other.
 
 /** What the package says for one of its own keys, read off its bundle rather than typed. */
 function packageSays(group: string, key: string): string {
@@ -239,9 +230,7 @@ const KEYCAP = 'KBD'
 
 /** What no catalogue accounts for, of what was found. The whole document, portals included. */
 function bare(found: readonly string[]): string[] {
-  return found.filter(
-    (text) => !isPseudo(text) && !IDENTIFIERS.has(text) && !PACKAGE_LITERALS.has(text),
-  )
+  return found.filter((text) => !isPseudo(text) && !IDENTIFIERS.has(text))
 }
 
 const bareText = () => bare(visibleText(document.body))
@@ -296,7 +285,7 @@ describe('RG51: nothing on the screen is typed into a component', () => {
     // The gap RG123 closed, held as its own claim rather than left to the check above: the
     // sheet and the palette render into `document.body`, so a run reading the render's own
     // container saw nothing of either — and a literal in one of them read as an empty list.
-    // The one this found on its first look is `Close`, above.
+    // The one this found on its first look was the package's `Close`, translated since RG132.
     await launchedWithALoss()
     const { container } = drawIn(pseudo())
     await everySurface()

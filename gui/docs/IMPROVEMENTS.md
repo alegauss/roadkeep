@@ -243,26 +243,3 @@ digest is then required to carry that set.
 
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
-
-### §RG132 The one word this app cannot translate
-
-RG123 pointed the pseudo-locale run at the whole document with the shortcuts sheet and
-the command palette open. It found one bare string: `Close`.
-
-It is the dialog's close button, and the package writes it as `<span
-class="sr-only">Close</span>` rather than resolving a key —
-`vigDesignSystemTranslations` has no entry for it. So a window in Portuguese has a
-control whose only name, and the only thing a screen reader says for it, is English. It
-is small, and it is exactly the class of defect that run exists to find; what is unusual
-is that this repository cannot fix it.
-
-Three ways out, in the order they should be tried. **Ask the package** — the wording
-lives there, `bento.shortcuts` and `common` are already full of strings, and one more
-key is the whole change. **Or pass a label**, if the component takes one: RG124 is the
-shape of that answer for the flags, where a prop turned out to be the door. **Or stop
-using its dialog**, which costs a screen and should lose.
-
-Until one of them lands, `wording.test.tsx` carries the word in a named set with the
-reason on it, so the guard stays green about the one string it can do nothing about and
-red about every other. That set is the thing to delete: when this is fixed, the run says
-so by failing to find what the exception excused.

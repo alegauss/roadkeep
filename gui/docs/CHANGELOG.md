@@ -180,3 +180,4 @@
   checked **Every name a screen reader speaks is held to the text rule** The run reads aria-label, title, alt, placeholder and their kin over the whole document, and a bare one fails it as bare text does.
   checked **With nothing wrapped, the names alone find something** A guard on the guard, so a green run cannot mean the attributes were never looked at.
 - ✅ **RG90** **muted text on a muted panel is 4.33 to 1, which no screen renders yet and one will** — The package darkened muted text to 0.52 in 2026.3.9, so the pair is 5.05 to 1, and the contrast test now holds it to AA in both grounds.
+- ✅ **RG132** **a dialog says Close in English in every language, and the run that found it can only name it** — The package puts Close and Back to top in its bundle since 2026.3.9, so the pseudo-locale run lists no exception and a bare word from it is a finding.
