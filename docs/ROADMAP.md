@@ -33,7 +33,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1667** (deps: —) **the report door mangles a symptom carrying a backtick in the shell this repository is developed in** — RK1635 measured it in three shells: inside double quotes a backtick substitutes in sh and escapes in PowerShell, and this project's prose is backticks. → §RK1667
 - 📋 **RK1668** (deps: —) **thirteen printed doors name a command with no invocation, so a caller pastes a line their shell has no such command for** — RK1640's census read the 27 bare spans carrying a placeholder and thirteen are commands a caller is offered, which is RK1589's defect standing thirteen times. → §RK1668
 - 📋 **RK1669** (deps: —) **a subjectless served call is answered with rows naming subjects that transport withholds** — The refusal reads every subject off the declaration, and cost exposes four of seven over MCP, so three rows name flags the caller cannot pass. → §RK1669
 

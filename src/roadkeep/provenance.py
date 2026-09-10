@@ -37,6 +37,7 @@ handshake and a provenance line is not worth a session's tools.
 
 from __future__ import annotations
 
+import re
 import shutil
 import sys
 import time
@@ -511,6 +512,38 @@ def quoted(word: str) -> str:
 #: quote itself because it would end the span; the backslash because a POSIX shell reads it as
 #: an escape and every absolute path on this platform is made of them.
 _NEEDS_QUOTING = (" ", "\t", "\n", "\r", '"', "\\")
+
+#: What no double-quoted spelling delivers to every shell, measured per shell by RK1635 and
+#: declared here by RK1667 — `tests/test_composing.UNQUOTABLE` is the same five rows run
+#: through each shell on the machine, and this is what a composer asks before it prints a line.
+#:
+#: A `"` breaks PowerShell's span, `$` expands there and in a POSIX shell, a backtick is an
+#: escape in one and a command substitution in the other, and a trailing backslash escapes the
+#: quote it would close in all three. `%NAME%` is `cmd`'s and is matched as the **pair**: a
+#: lone `%` is literal everywhere, and `95%` is a figure this project's own lines carry.
+_EXPANDED = ('"', "$", "`")
+_CMD_VARIABLE = re.compile(r"%[A-Za-z_][A-Za-z0-9_]*%")
+
+
+def survives(word: str) -> bool:
+    """Whether every shell on any machine reads this token back as itself (RK1667).
+
+    :func:`quoted`'s boundary, asked rather than disclaimed. That function spells one
+    double-quoted span for every shell and says out loud that it is no general quoter; RK1635
+    measured which shapes it misses and RK1667 is what a *composer* does about one — a caller
+    pasting a line is handed a placeholder for the token no spelling carries, rather than bytes
+    the shell ate on the way in.
+
+    The one thing this must not become is a quoter that guesses which shell a reader is at:
+    this module refuses to describe a machine, and a spelling right in one family and silently
+    wrong in another is that description made anyway. So the answer is *no shell*, and the
+    remedy is the caller's own field typed back rather than a guess about their prompt.
+    """
+    if word.endswith("\\"):
+        return False
+    if any(one in word for one in _EXPANDED):
+        return False
+    return not _CMD_VARIABLE.search(word)
 
 
 def joined(argv: Sequence[str]) -> str:

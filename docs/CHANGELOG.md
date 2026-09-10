@@ -818,6 +818,7 @@
 - ✅ **RK1654** **ten functions print to both streams in one body and two go through the helper, nothing saying which of the rest need to** — The census is declared and total, and the five that write both streams in one run go through beneath: every answer with a note had its note above it down a pipe.
 - ✅ **RK1665** **the backstop reads a code only where it is a literal, so six a write refuses are outside a total that says it is one** — The scan resolves a module-level name and raises on one it cannot, so the six codes named as constants are inside the closure and four gained the rows they had none of.
 - ✅ **RK1666** **govern writes a caller's sentence into roadkeep.toml and no validator reads it, so a mangled run lands and stays** — The argument takes the two character rules every other composed field does, refused before the reading, and no field is left to the round-trip alone.
+- ✅ **RK1667** **the report door mangles a symptom carrying a backtick in the shell this repository is developed in** — The door replaces a token no shell delivers with a placeholder and names the flag, so the line it prints arrives intact in every shell on the machine.
 
 ## Block E — Adoption
 

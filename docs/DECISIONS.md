@@ -307,6 +307,7 @@ reading of the two files: the open work first, the history behind it.
 - ✅ **RK1654** **ten functions print to both streams in one body and two go through the helper, nothing saying which of the rest need to** — A guard on a stream order holds the fault and not the fix: the census says which functions write both in one run, and each of those owes its stderr to beneath.
 - ✅ **RK1665** **the backstop reads a code only where it is a literal, so six a write refuses are outside a total that says it is one** — A closure that widens its found set on a value it cannot read is a closure agreeing with itself: an unresolvable code raises, and what it may be is declared.
 - ✅ **RK1666** **govern writes a caller's sentence into roadkeep.toml and no validator reads it, so a mangled run lands and stays** — A composed field with no length, sentence or line rule still takes the character pair: bytes through the wrong codec and codepoints a reader cannot see.
+- ✅ **RK1667** **the report door mangles a symptom carrying a backtick in the shell this repository is developed in** — A composed command never carries a token no shell delivers: the token is a placeholder and the flag is named, because printing a line that will not arrive is the defect.
 
 ### §RK1394 Proof, not age
 
@@ -568,6 +569,22 @@ an author is theirs.
 So the register's weakest kind is empty. `round-trip` alone was one row's answer and is
 now nobody's, and the next field composed with nothing but a parse behind it is a row
 somebody writes down rather than a silence.
+
+### §RK1667 The token nobody can paste
+
+Three shapes were open and a measurement closed one of them: refusing the character at
+the write would refuse **346 of this project's own fields** — 309 `why`s and 37 symptoms
+carry a backtick, which is how it writes about its own verbs. A limit these lines cannot
+express is the wrong limit, so L1 was not the answer here.
+
+Per-shell quoting was refused for the reason `provenance` refuses everything of that
+kind: a spelling right in one family and silently wrong in another is a description of a
+machine, made anyway.
+
+What is left is `_transient`'s answer at a second door (RK484): the token becomes `…`,
+the clause under it names the flag, and the caller types back one field they are looking
+at. The instrument RK1635 built now holds the stronger property: the printed line
+arrives intact in every shell, the ones this table named included.
 
 ## Block E — Adoption
 

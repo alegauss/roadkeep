@@ -50,7 +50,7 @@ from roadkeep import capturing
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, build_parser, main
 from roadkeep.config import Config
 from roadkeep.linting import Finding, lint
-from roadkeep.provenance import invocation, joined, quoted
+from roadkeep.provenance import invocation, joined, quoted, survives
 from roadkeep.remedying import BLANK, codes, remedy
 
 
@@ -2206,6 +2206,11 @@ def test_the_door_a_fault_prints_delivers_the_argv_it_composed(shell, tmp_path):
 #: asserted (RK1635): the token, the shells that do not deliver it, and what each of them does.
 #: The boundary `provenance.quoted` states in prose, as a value a reader can check — and a row
 #: here is a claim about this machine's shells, not about a design.
+#:
+#: Since RK1667 it is also the population `provenance.survives` decides, which is the rule a
+#: **composer** asks before printing a line: the door replaces a token no shell delivers with
+#: `…` and names the flag it dropped, so what is held below is that the printed line arrives
+#: intact in every shell on the machine rather than which of them ate it.
 UNQUOTABLE = (
     ('a claim that says "no" out loud', ("powershell",), "a backslash is not its escape"),
     ("a claim with $HOME in it", ("powershell", "sh"), "both expand it inside double quotes"),
@@ -2216,40 +2221,34 @@ UNQUOTABLE = (
 
 
 @pytest.mark.parametrize("field, mangles, why", UNQUOTABLE)
-def test_the_shapes_no_one_spelling_survives_are_the_ones_measured(field, mangles, why, tmp_path):
-    """`quoted`'s disclaimer, taken as a measurement (RK1635). It claims no general quoter, on
-    the ground that `$`, a backtick, an embedded `"` and a trailing backslash are not shapes the
-    fields it quotes take — and the instrument above is the first thing here that can say
-    whether that is so.
+def test_a_field_no_spelling_carries_is_a_placeholder_and_the_line_still_runs(
+    field, mangles, why, tmp_path
+):
+    """RK1635 measured it and RK1667 is what the composer does about it. `quoted` claims no
+    general quoter on the ground that `$`, a backtick, an embedded `"` and a trailing backslash
+    are not shapes the fields it quotes take — true of a path, and **false of prose**: a
+    `report` door carries the failing argv verbatim, and 346 of this project's own fields carry
+    a backtick, which is a command substitution in the POSIX shell this repository is developed
+    at and an escape in PowerShell.
 
-    For a path it is. For **prose** it is not: a `report` door carries the failing argv
-    verbatim, so a symptom with a backtick in it — which is how this project writes about its
-    own verbs — is delivered wrong by PowerShell *and* by the POSIX shell this repository is
-    developed in, where a backtick inside double quotes is a command substitution.
+    No single spelling closes that table, so the door stops printing a line that will not
+    arrive: the token becomes `…`, the clause under it names the flag, and what is asserted
+    here is that the line then delivers **in every shell** — including the ones this row says
+    would have eaten it. `_transient`'s rule for the other undeliverable argv (RK484): printing
+    a command that fails is the defect being fixed.
 
-    A reading and not a red, because no single spelling fixes the table: each of the three
-    expands something inside a double quote that the other two keep literal. What has to stay
-    true is that the population is **known** — a row that starts agreeing is a row to delete,
-    and a shape that starts disagreeing is a red here.
-
-    Per shell and never as *some shell disagrees*, because which one is the whole of what an
-    author reading this needs."""
+    The row's own `mangles` and `why` stay, because they are the measurement that decided this:
+    they say which shell ate what, and a shape that starts agreeing is a row to delete."""
+    assert not survives(field), (field, why)
     door = capturing.offer(("add", "--symptom", field)).splitlines()[1].strip()
-    want = ["report", "--symptom", "…", "--why", "…", "--", "add", "--symptom", field]
+    want = ["report", "--symptom", "…", "--why", "…", "--", "add", "--symptom", "…"]
     ran = 0
-    for shell in SHELLS:
-        try:
-            delivered = argv_after(shell, door, at=tmp_path)
-        except AssertionError:
-            # The shell refused the line outright, which is a mangling as much as a wrong token
-            # is: an unterminated string is how two of the three answer a trailing backslash.
-            assert shell in mangles, (shell, why)
-            ran += 1
-            continue
+    for shell in mangles:
+        delivered = argv_after(shell, door, at=tmp_path)
         if delivered is None:
             continue
         ran += 1
-        assert (delivered != want) == (shell in mangles), (shell, why, delivered)
+        assert delivered == want, (shell, why, delivered)
     assert ran, "no shell in this table is on this machine, so nothing was measured"
 
 

@@ -61,7 +61,15 @@ from pathlib import Path
 
 from roadkeep import __version__
 from roadkeep.config import Config, ConfigError, find_config
-from roadkeep.provenance import STARTUP_CODECS, Engine, engine, invocation, joined, quoted
+from roadkeep.provenance import (
+    STARTUP_CODECS,
+    Engine,
+    engine,
+    invocation,
+    joined,
+    quoted,
+    survives,
+)
 from roadkeep.kernel.schema import Schema, Task, Violation
 
 #: How much of the failing command's output is kept. A capture is read by a person, and a
@@ -601,12 +609,55 @@ def offer(argv: Sequence[str]) -> str:
     """
     if _transient(argv):
         return "\n".join([_OFFER, f"  {_MERGE_OFFER}"])
-    return "\n".join(
-        [
-            _OFFER,
-            f'  {invocation()} report --symptom "…" --why "…" -- {joined(argv)}',
-        ]
-    )
+    spelled, eaten = _deliverable(argv)
+    rows = [
+        _OFFER,
+        f'  {invocation()} report --symptom "…" --why "…" -- {joined(spelled)}',
+    ]
+    if eaten:
+        # `_transient`'s rule for the other undeliverable argv (RK1667): a line that does not
+        # survive the paste is not printed, and what stands in its place says so. The token is
+        # the caller's own prose and they are looking at it — retyping one field costs less
+        # than a claim that arrived with a span silently gone.
+        rows.append(
+            f"  the {_named(eaten)} above is `…` because no double-quoted spelling of it "
+            f"reaches every shell — `$`, a backtick and a `\"` expand or escape inside quotes "
+            f"in one shell or another, so type that one field back rather than pasting bytes "
+            f"the shell would eat"
+        )
+    return "\n".join(rows)
+
+
+def _deliverable(argv: Sequence[str]) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    """The argv with every token no shell delivers replaced, and what those were (RK1667).
+
+    `provenance.survives` is the rule and this is the one composer that acts on it: measured
+    per shell by RK1635, a `report` door carrying a symptom with a backtick in it — which is
+    how this project writes about its own verbs, in 346 of its own fields — runs the span as a
+    command substitution in the POSIX shell this repository is developed at, and hands the tool
+    a claim with the words gone.
+
+    The **flag** it belongs to and not the position, where there is one: what a reader has to
+    retype is `--symptom`, and a `…` in the fourth slot is a placeholder they have to count to.
+    """
+    out: list[str] = []
+    eaten: list[str] = []
+    for index, word in enumerate(argv):
+        if survives(word):
+            out.append(word)
+            continue
+        out.append("…")
+        before = argv[index - 1] if index else ""
+        eaten.append(before if before.startswith("--") else f"argument {index + 1}")
+    return tuple(out), tuple(dict.fromkeys(eaten))
+
+
+def _named(eaten: Sequence[str]) -> str:
+    """`--symptom`, or `--symptom and --why`, as the clause above reads them."""
+    spelled = [f"`{one}`" if one.startswith("--") else one for one in eaten]
+    if len(spelled) == 1:
+        return spelled[0]
+    return f"{', '.join(spelled[:-1])} and {spelled[-1]}"
 
 
 #: git's own name for the files it hands a merge driver. Matched rather than assumed from the

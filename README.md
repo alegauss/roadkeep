@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 234 | 2 |
 | C — Query (consult without reading the file) | 2 | 192 | 7 |
-| D — The gate | 3 | 312 | 7 |
+| D — The gate | 2 | 313 | 7 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 163 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 44 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 5 | 1140 | 24 |
+| **Total** | 4 | 1141 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1667** (deps: —) **the report door mangles a symptom carrying a backtick in the shell this repository is developed in** — RK1635 measured it in three shells: inside double quotes a backtick substitutes in sh and escapes in PowerShell, and this project's prose is backticks. → §RK1667
+- 📋 **RK1668** (deps: —) **thirteen printed doors name a command with no invocation, so a caller pastes a line their shell has no such command for** — RK1640's census read the 27 bare spans carrying a placeholder and thirteen are commands a caller is offered, which is RK1589's defect standing thirteen times. → §RK1668
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -118,30 +118,6 @@ which is the half that goes red — and that is the reading, not a guess to be r
 
 ## Block D — The gate
 
-### §RK1667 The quote no one spelling carries
-
-RK1635 built the instrument and the instrument answered. `provenance.quoted` spells one
-double-quoted span for every shell, and a door run through `cmd`, PowerShell and `sh` in
-turn does not arrive intact in all three: an embedded quote and a trailing backslash
-break two of them, a dollar sign expands in two, `%VAR%` expands in one, and a backtick
-is a command substitution in `sh` and an escape in PowerShell.
-
-The backtick is the row that costs something. This project writes about its own verbs in
-backticks, so a failing `add --symptom` whose claim names `pick` composes a `report`
-door that, pasted into the Git Bash prompt this repository is developed at, runs
-whatever is between them and hands the tool a symptom with the span gone.
-
-No single double-quoted spelling closes the table, because each of the three expands
-inside quotes what the other two keep literal. So the shapes are the question: whether
-the door is composed differently per shell, whether the argv is carried some way other
-than a pasted line, or whether the fields that reach a door are refused these characters
-at the write — which is L1's own answer and the one this format already gives to an
-invisible codepoint.
-
-What it must not become is a quoter that guesses which shell a reader is at:
-`provenance` refuses to describe a machine, and a spelling right in one family and
-silently wrong in another is that description made anyway.
-
 ### §RK1668 The thirteen doors the census named
 
 RK1640's census cut 406 bare verb-leading spans down to the 27 carrying a field an
