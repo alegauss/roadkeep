@@ -145,6 +145,24 @@ What has to be decided is the site. This raise is in `config.py`, below `remedyi
 backticked verb `criteria.py` uses needs none, but `test_composing` holds its census
 total over every function that composes a command, so the row and its run come with it.
 
+### §RK1671 The suite that shipping breaks
+
+Three tests went red in one sitting of shipping, none of them about the code that
+shipped: `test_ranking` asserted that at least half the differing rows are unreachable
+at any width and the backlog reached one differing row; two note-cost tests asserted
+this project's gate says a note, and pricing the last open line silenced the last of
+them. Each repair was a guard or a skip, and each was written by whoever met the red.
+
+RK1098 met this once and built the answer: `conftest.populated` is this repository
+whenever its backlog has an open line and a three-line stand-in when it does not, so *an
+emptied roadmap changes which files are read and never whether the contract is
+asserted*. RK1630 met it again and moved a claim to a pinned corpus. Neither is a rule,
+and the three above reached the live state directly.
+
+Measured: 24 reads of `Config.discover(<checkout>)` across six modules, 18 of them in
+`test_budgeting`. What is not known is how many of those assert a **non-empty** answer,
+which is the half that goes red — and that is the reading, not a guess to be repaired.
+
 ## Block D — The gate
 
 ### §RK1665 The codes the scan cannot read
