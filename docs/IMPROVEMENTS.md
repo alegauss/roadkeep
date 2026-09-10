@@ -79,29 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1663 The blocks a finished label is not in
-
-RK1622 reads a pin's shape and gives it a row per block. The rows are the **roadmap's**
-headings, so a label whose work is finished — its heading kept in the ledger and gone
-from the roadmap — contributes to the total and to no row. Measured at the pins: Shio's
-rows hold 280 of 668 delivered and Turing's 55 of 901.
-
-The totals are right and the rows are not wrong about what they say; what they are is a
-shape a reader would take for the corpus's. *Three blocks, 55 delivered* reads as a
-small backlog, and the file it is about carries nine hundred entries.
-
-RK429 is this distinction already made once. `Stage` tells a block that finished from
-one that never existed, and `Census.elsewhere` exists exactly for the label the other
-file declares — so the machinery for the honest answer is there and this reading did not
-reach for it.
-
-**What to decide is which set the rows are over.** The union of both files' headings
-answers the corpus's shape and makes a row for every label; the roadmap's alone answers
-*where the open work is*, which is a different and also useful question. A shape that
-means to be cited should probably say both — open rows over the roadmap, delivered rows
-over the union — and the cost of that is one more number per row rather than a second
-reading.
-
 ### §RK1670 The door an undeclared role has
 
 `Config.path` raises `this project declares no 'deferred' file (has: changelog,

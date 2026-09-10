@@ -265,16 +265,38 @@ class Shape:
     open: int
     #: Entries the ledger holds at the pin — shipped and retired, which is what a ledger is.
     delivered: int
-    #: `(label, open, delivered)` per block the roadmap declares, in file order. The same
-    #: question one level down, because "a long backlog" is as often a claim about one block
-    #: as about a file — and a corpus whose work is all under one label is a different fixture
-    #: from one that spreads it, whatever the totals say.
+    #: `(label, open, delivered)` per block **either file** declares, the roadmap's in its
+    #: own file order and then the labels only the ledger has. The same question one level
+    #: down, because "a long backlog" is as often a claim about one block as about a file —
+    #: and a corpus whose work is all under one label is a different fixture from one that
+    #: spreads it, whatever the totals say.
+    #:
+    #: **The union and no longer the roadmap's alone** (RK1663). A block whose work is
+    #: finished keeps its heading in the ledger and loses the roadmap's, so it counted towards
+    #: `delivered` and appeared in no row: Shio's rows held 280 of 668 and Turing's 55 of 901.
+    #: The totals were right and the rows were not wrong about what they said — what they were
+    #: is a shape a reader takes for the corpus's, and *three blocks, 55 delivered* reads as a
+    #: small backlog about a file carrying nine hundred entries. RK429 is this distinction
+    #: already made once: `Stage` tells a block that finished from one that never existed.
     blocks: tuple[tuple[str, int, int], ...] = ()
 
     def __str__(self) -> str:
         return (
             f"{self.corpus}@{self.rev} holds {self.open} open against {self.delivered} "
             f"delivered, over {len(self.blocks)} block(s)"
+        )
+
+    @property
+    def accounted(self) -> tuple[int, int]:
+        """What the rows sum to, as `(open, delivered)` — the pair the totals are checked on.
+
+        A property and not a second loop at each caller (RK1663): the whole finding was a row
+        set that did not account for its own total, so *do the rows add up* is the question
+        this shape has to be able to answer about itself.
+        """
+        return (
+            sum(count for _, count, _ in self.blocks),
+            sum(count for _, _, count in self.blocks),
         )
 
 
@@ -296,6 +318,10 @@ def shape(corpus: Corpus) -> Shape:
     ledger = (
         Census.read(settings, "changelog") if has(corpus, "changelog") else None
     )
+    # The roadmap's labels in file order, then the ledger's own (RK1663): `dict.fromkeys`
+    # keeps the first order and adds the finished blocks after it, so the rows a reader
+    # already knew stay where they were and the ones that were missing follow.
+    labels = dict.fromkeys((*roadmap.blocks, *(() if ledger is None else ledger.blocks)))
     return Shape(
         corpus=corpus.name,
         rev=corpus.rev,
@@ -309,7 +335,7 @@ def shape(corpus: Corpus) -> Shape:
                 if ledger is None
                 else sum(1 for one in ledger.counted if one.task.block == label),
             )
-            for label in roadmap.blocks
+            for label in labels
         ),
     )
 

@@ -28,7 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1663** (deps: —) **the per-block half of a pin's shape counts the roadmap's headings, so a finished block's entries land in no row** — Turing's rows account for 55 of 901 delivered, the rest filed under labels whose last line shipped and whose roadmap heading went with it. → §RK1663
 - 📋 **RK1670** (deps: —) **the refusal over an undeclared role names what the project has and not the verb that adds one** — Config.path names the absence and the roles that stand in its place, where declare exists for exactly this refusal and is not named. → §RK1670
 - 📋 **RK1671** (deps: —) **three tests assert on this checkout's live backlog and go red when it drains** — RK1098 built the fixture that answers this and it is not a rule, so each red was repaired by whoever met it. → §RK1671
 

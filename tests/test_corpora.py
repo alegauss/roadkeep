@@ -188,13 +188,26 @@ def test_the_shape_a_design_cites_is_read_at_the_pin(corpus):
     if corpora.has(corpus, "changelog"):
         assert found.delivered == len(corpora.document(corpus, "changelog").entries)
     # And the same question one level down, which is where "a long backlog" is as often a
-    # claim: every block the roadmap declares is a row, empty ones included.
-    assert [label for label, _, _ in found.blocks] == list(
-        dict.fromkeys(
-            one.label for one in corpora.document(corpus, "roadmap").headings if one.label
+    # claim: every block **either file** declares is a row, empty ones included, the roadmap's
+    # in file order and the finished ones after (RK1663).
+    labelled = [
+        list(
+            dict.fromkeys(
+                one.label
+                for one in corpora.document(corpus, role).headings
+                if one.label
+            )
         )
+        for role in ("roadmap", "changelog")
+        if role == "roadmap" or corpora.has(corpus, role)
+    ]
+    assert [label for label, _, _ in found.blocks] == list(
+        dict.fromkeys(label for one in labelled for label in one)
     )
-    assert sum(count for _, count, _ in found.blocks) == found.open
+    # **The rows account for both totals**, which is the whole of RK1663: a label whose work
+    # is finished keeps its heading in the ledger and loses the roadmap's, so it counted
+    # towards `delivered` and appeared in no row — 280 of 668 on Shio, 55 of 901 on Turing.
+    assert found.accounted == (found.open, found.delivered)
 
 
 @pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda c: c.name)

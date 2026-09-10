@@ -91,6 +91,7 @@ line already there. Its refusal names `section add` against that line's own anch
 - ✅ **RK1651** **three readings of one source claim to be complements of each other and no test holds any of the three claims** — The two string readings are a partition and the third is a finding scan: total is the half that matters, a string neither reads being a value both exemptions let through.
 - ✅ **RK1653** **five classes answer to notes and one is a gate report, so a sweep over the name is off for three whole test modules** — A sweep over a name exempts the receiver and never the file, and the register is total: a receiver nobody classified is a red, where a file-keyed row was a silence.
 - ✅ **RK1656** **a dep on a ruled-out finding resolves as unknown, which says nothing can answer about a file that answers exactly** — A dep on a recorded decision not to file is unresolvable and not deferred: a pause is revivable by resume, and what would lift this one is the premise breaking.
+- ✅ **RK1663** **the per-block half of a pin's shape counts the roadmap's headings, so a finished block's entries land in no row** — A per-block reading of a corpus is over the union of both files' headings: a finished block keeps its heading in the ledger, and the rows have to sum to the totals.
 
 ### §RK1362 Why a projection and not a wider read
 
@@ -255,6 +256,21 @@ rather than that nothing will.
 a dismissal, which never entered the roadmap; the widened cause says what the four cases
 share and the detail says which one was met. A rename would spend an adopter's turn —
 their baseline and their `explain` spell it — to improve a word.
+
+### §RK1663 One row set, and it adds up
+
+The union, and one row set rather than two. The design weighed *open rows over the
+roadmap, delivered rows over the union* — two sets, and a reader would then have to know
+which question each row answered. One row per label either file declares, carrying both
+numbers, says the same thing in a table that can be added up.
+
+What makes it checkable is that sum, which is where the defect was: the rows accounted
+for 280 of Shio's 668 and 55 of Turing's 901, and nothing asked whether they added up.
+`Shape.accounted` answers that about itself now.
+
+The order is the roadmap's and then the ledger's own, so a reader who knew these rows
+keeps them where they were and the finished blocks arrive after — which is the honest
+reading of the two files: the open work first, the history behind it.
 
 ## Block D — The gate
 
