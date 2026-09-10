@@ -7,6 +7,7 @@
 - ✅ **RG75** **two live tests still name RG9, so the commit that ships it fails a suite nothing changed to break** — A live test names no open id: it asks the engine for a line in the state it is about.
 - ✅ **RG84** **every live file resolves the engine itself, so one being rebuilt mid-run reds the suite four ways** — The live suite asks its engine what it is once per run and spends that one reading; it never resolves an engine of its own.
 - ✅ **RG122** **the transport that reads in 6ms is proven by a test and reached by nothing a person would run** — An open project holds an engine process and is closed by whoever opened it; the pool now bounds only the reads that fall back to a spawn.
+- ✅ **RG134** **the contract reads this repository's own lint for a finding, so a clean gate leaves it nothing to assert** — A contract test produces the state it asserts about; it never reads this repository's own gate for one.
 
 ### §RG65 What a path means is not core's to know
 

@@ -32,6 +32,7 @@
 - ✅ **RG101** **every call spends a second and a half starting Python, and the engine publishes a mode that starts once** — A third transport holds one roadkeep mcp per project: 6ms a read against 738ms spawned, same payload, spawning for what it cannot serve (design recorded in `packages/shell/src/mcp-transport.ts`).
 - ✅ **RG104** **removing a fixture directory throws EPERM on Windows, so a file whose tests all passed reports as a failed suite** — One removal waits out a lock Windows has not dropped, and a live test holds it against a child standing in the directory (design recorded in `packages/shell/src/scratch.ts`).
 - ✅ **RG122** **the transport that reads in 6ms is proven by a test and reached by nothing a person would run** — The app's open path keeps one roadkeep mcp per project, reads at six milliseconds instead of seven hundred, and hands back a close that ends it (design recorded in `packages/shell/src/open-here.ts`).
+- ✅ **RG134** **the contract reads this repository's own lint for a finding, so a clean gate leaves it nothing to assert** — The contract builds a fixture of its own, writes one line into it by hand, and reads the remedy lint answers for that line.
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

@@ -1,3 +1,6 @@
+import { readFileSync, writeFileSync } from 'node:fs'
+import path from 'node:path'
+
 import {
   listedTasks,
   VERBS,
@@ -31,14 +34,7 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import {
-  CEILING,
-  engineReading,
-  liveClient as client,
-  liveEngine as transport,
-  read,
-  REPO,
-} from './live'
+import { CEILING, engineReading, liveClient as client, liveEngine as transport, read } from './live'
 import { buildFixture, type Fixture } from './fixture'
 
 /**
@@ -137,6 +133,30 @@ async function readVerb<K extends VerbName>(
   input: VerbInputs[K],
 ): Promise<VerbAnswers[K]> {
   return read(fixture.root, verb, input)
+}
+
+/**
+ * Put a line into a fixture's roadmap without going through a write verb (RG134).
+ *
+ * The one thing this suite writes by hand, and what makes that the right thing here: `lint`
+ * is the backstop for whatever bypassed `add`, so producing a finding means bypassing
+ * `add`. A fixture is a temp directory with no hook over it, which is where that is safe —
+ * this repository's own governed files refuse the edit, as they should.
+ *
+ * Beside the first bullet rather than at the top of the block, because a file where *no*
+ * line reads is reported as one written under another format: a different finding, about
+ * the grammar rather than about the line.
+ */
+function handWrite(root: string, line: string): void {
+  const file = path.join(root, 'docs', 'ROADMAP.md')
+  const lines = readFileSync(file, 'utf8').split('\n')
+  const first = lines.findIndex((one) => one.startsWith('- '))
+  if (first === -1) {
+    throw new Error(`${file} carries no line to write beside, so this fixture is not the shape`)
+  }
+
+  lines.splice(first + 1, 0, line)
+  writeFileSync(file, lines.join('\n'), 'utf8')
 }
 
 describe('RG4: the build this contract was proven against', () => {
@@ -801,13 +821,35 @@ describe('RG5: a refusal, against a live engine', () => {
 
   it('reads a gate finding through the same door shape', async () => {
     // The claim the design makes: `explain`'s table and a lint finding's `remedy` are one
-    // map at two moments, so one reader covers both. This repository's own gate carries
-    // notes with remedies, which is where that gets exercised against real output.
-    const linted = await read(REPO, 'lint', {})
+    // map at two moments, so one reader covers both.
+    //
+    // **The finding is made here and not waited for** (RG134). This read `lint` over this
+    // repository and took the first entry carrying a remedy, which for a long time was the
+    // `engine.disagreement` note — raised while the copy answering is a modified checkout,
+    // and gone the moment roadkeep's author committed. It went red on a run that touched
+    // nothing near it, saying `received "undefined"` about two empty lists.
+    //
+    // A fixture is a governed project in a temp directory with no hook over it, so a line
+    // written into its roadmap by hand is exactly what `lint` is the backstop for: it
+    // answers `line.unparsed`, whose doors are `lint --fix` and `audit`.
+    const own = await buildFixture(transport, { open: 2, shipped: 0, deferred: 0 })
+    try {
+      handWrite(own.root, '- \u{1F4CB} **FX9** a line somebody typed by hand')
+      const linted = await read(own.root, 'lint', {})
 
-    const withRemedy = [...linted.findings, ...linted.notes].find((entry) => entry.remedy !== null)
-    expect(withRemedy?.remedy?.doors.length).toBeGreaterThan(0)
-    expect(typeof withRemedy?.remedy?.doors[0]?.what).toBe('string')
+      const withRemedy = [...linted.findings, ...linted.notes].find(
+        (entry) => entry.remedy !== null,
+      )
+      expect(
+        withRemedy,
+        'nothing this lint reported carries a remedy, so the door shape has nothing to be' +
+          ' read out of. The hand-written line above is what produces one.',
+      ).toBeDefined()
+      expect(withRemedy?.remedy?.doors.length).toBeGreaterThan(0)
+      expect(typeof withRemedy?.remedy?.doors[0]?.what).toBe('string')
+    } finally {
+      own.dispose()
+    }
   })
 })
 
