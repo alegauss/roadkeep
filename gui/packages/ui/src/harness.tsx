@@ -2,9 +2,9 @@ import type { Theme, Wording } from '@rk/core'
 import { render, type RenderResult } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 
-import { App } from './App'
 import { HOME_ROUTE } from './areas'
 import { GroundProvider } from './ground'
+import { SURFACES } from './routes'
 import { AppShell } from './Shell'
 import { WordingProvider } from './wording'
 
@@ -18,27 +18,53 @@ import { WordingProvider } from './wording'
  * **It renders the shell and not just the page.** Since RG63 the ground control, the palette
  * trigger and the rail are chrome, so a test that rendered `App` alone would be asserting
  * against half a window. `MemoryRouter` rather than `HashRouter` because the routed
- * components render `Link` and a test has no location bar to start from; it takes the routes
- * `main` mounts, so a route added there and not here fails a test rather than a window.
+ * components render `Link` and a test has no location bar to start from.
+ *
+ * **The routes are `routes`' and not a second list** (RG117). It used to spell them out
+ * beside `main`'s copy, which meant a surface could be added to the window and missed here
+ * — and the test that would have caught it renders through this.
  */
-// The same routes `main` mounts, built once: a `Route`'s `element` is configuration the
-// router reads rather than a prop a component renders.
+// A `Route`'s `element` is configuration the router reads rather than a prop a component
+// renders, so the one this adds is built once.
 const SHELL = <AppShell />
-const HOME = <App />
 
-/** Where a render starts. One route so far, so this is the whole of it. */
+/** Where a render starts unless a test says otherwise, which is the one surface so far. */
 const AT_HOME = [HOME_ROUTE]
 
+/**
+ * One array per path, kept rather than made.
+ *
+ * `initialEntries` is a prop, and a fresh array on every render is a router asked to start
+ * somewhere new each time — which is also what `react-perf` refuses to let past.
+ */
+const ENTRIES = new Map<string, string[]>([[HOME_ROUTE, AT_HOME]])
+
+function entriesAt(route: string): string[] {
+  const known = ENTRIES.get(route)
+  if (known) return known
+
+  const made = [route]
+  ENTRIES.set(route, made)
+  return made
+}
+
 export function drawWindow(
-  options: { readonly initial?: Theme; readonly over?: Wording } = {},
+  options: {
+    readonly initial?: Theme
+    readonly over?: Wording
+    /** Which surface to open on, for a test about a route rather than about the chrome. */
+    readonly at?: string
+  } = {},
 ): RenderResult {
   return render(
     <GroundProvider initial={options.initial}>
       <WordingProvider over={options.over}>
-        <MemoryRouter initialEntries={AT_HOME}>
+        <MemoryRouter initialEntries={entriesAt(options.at ?? HOME_ROUTE)}>
           <Routes>
             <Route element={SHELL}>
-              <Route path={HOME_ROUTE} element={HOME} />
+              {SURFACES.map((surface) => (
+                <Route key={surface.path} path={surface.path} element={surface.element} />
+              ))}
             </Route>
           </Routes>
         </MemoryRouter>

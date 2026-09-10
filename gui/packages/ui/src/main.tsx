@@ -2,11 +2,10 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { HashRouter, Route, Routes } from 'react-router-dom'
 
-import { App } from './App'
-import { HOME_ROUTE } from './areas'
 import { GroundProvider } from './ground'
 import './index.css'
 import { choicesAtLaunch } from './launch'
+import { SURFACES } from './routes'
 import { AppShell } from './Shell'
 import { startSpeaking } from './speaking'
 import { WordingProvider } from './wording'
@@ -17,9 +16,10 @@ if (!host) {
 }
 
 // A `Route`'s `element` is configuration the router reads, not a prop a component renders,
-// so these are built once here rather than on every pass through the tree.
+// so this is built once here rather than on every pass through the tree. The routed
+// elements are built the same way, in `routes` (RG117), which is the one place they are
+// written: this file mounts what that array says and knows no path of its own.
 const SHELL = <AppShell />
-const HOME = <App />
 
 // Both settings are asked for before anything mounts, so the first frame is already in the
 // right language and on the right ground. One call for the two: they come out of one file,
@@ -43,7 +43,9 @@ void choicesAtLaunch().then(async ({ locale, theme }) => {
           <HashRouter>
             <Routes>
               <Route element={SHELL}>
-                <Route path={HOME_ROUTE} element={HOME} />
+                {SURFACES.map((surface) => (
+                  <Route key={surface.path} path={surface.path} element={surface.element} />
+                ))}
               </Route>
             </Routes>
           </HashRouter>

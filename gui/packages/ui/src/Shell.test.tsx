@@ -3,8 +3,9 @@ import { bentoNavTarget } from '@viglet/viglet-design-system/bento'
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { AREAS, HOME_ROUTE, surfacesIn } from './areas'
+import { AREAS, surfacesIn } from './areas'
 import { drawWindow } from './harness'
+import { ROUTED } from './routes'
 
 /**
  * RG63: the chrome, before any screen is written against it.
@@ -15,8 +16,13 @@ import { drawWindow } from './harness'
  * components themselves carry the package's own tests.
  */
 
-/** Every route this app serves, which is what a nav entry has to point at. */
-const ROUTES = new Set<string>([HOME_ROUTE])
+/**
+ * Every route this app serves, read off the table the window mounts (RG117).
+ *
+ * Written out here, this was a third copy — and the one that decided whether the check
+ * below passed, which is the worst of the three to let drift.
+ */
+const ROUTES = new Set<string>(ROUTED)
 
 beforeEach(() => {
   localStorage.clear()
@@ -142,6 +148,18 @@ describe('RG63: the map is this app`s and it is one array', () => {
       .filter((route) => !ROUTES.has(route))
 
     expect(missing).toEqual([])
+  })
+
+  it('serves every route the table names, which is what makes this window the window', () => {
+    // The other half of RG117. One table is only worth having if what it says is what
+    // mounts, so each path is opened and asked for the page inside the chrome — an entry
+    // whose element does not render is a route the router matches and nobody can read.
+    for (const route of ROUTED) {
+      const { container, unmount } = drawWindow({ at: route })
+
+      expect(container.querySelector('main')?.childElementCount).toBeGreaterThan(0)
+      unmount()
+    }
   })
 
   it('hands the palette the same surfaces the rail was given', () => {

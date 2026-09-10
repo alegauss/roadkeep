@@ -35,10 +35,10 @@
 ## Block H — The look (a design system for governed prose)
 
 - 📋 **RG90** (deps: RG54 ✅, the design system darkening the muted foreground) **muted text on a muted panel is 4.33 to 1, which no screen renders yet and one will** — Those two tokens are named as a pair and miss AA on the light ground, so the first panel using both ships a pale label looking like a style. → §RG90
-- 📋 **RG117** (deps: RG63 ✅) **the route table is spelled three times, so a surface can be routed and still be missing from the map** — main mounts the routes, the harness mounts them again and the shell's test keeps a third list to check a nav entry against, and only one of the three is what a window runs. → §RG117
 - 📋 **RG123** (deps: RG115 ✅, RG51 ✅) **a sentence shown in a toast is English whatever the window is speaking, and the run that would catch it looks elsewhere** — readSettings composes its prose in core outside the catalogue, and the pseudo-locale test reads the container while a toast renders in a portal. → §RG123
 - 📋 **RG124** (deps: RG59 ✅, RG39 ✅) **a design system control draws its flags from a CDN, so a screen adopting one shows the image the policy refused** — LanguageSelect and BadgeLocale request flagcdn.com per row, which the packaged policy blocks and an offline desktop app should not be asking for at all. → §RG124
 - 📋 **RG125** (deps: RG88 ✅, RG116 ✅) **the i18next half of the wording is two hand-written objects, so a key added to one and missed in the other is silent** — A test walks every base key to hold PT_BR complete, AREA_WORDING has no such guard, and RG116 put the first string in it. → §RG125
+- 📋 **RG126** (deps: RG117 ✅, RG63 ✅) **the provider stack is spelled twice, so one added to the window is missing from every test that renders it** — main and the harness each mount the ground, the wording and a router, and a tree the harness lacks fails nothing: the assertions pass against a smaller window. → §RG126
 
 ## Done when — Block A
 
