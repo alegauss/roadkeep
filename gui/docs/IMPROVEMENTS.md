@@ -35,7 +35,7 @@ per fixture root is a process to give back per file, which nothing here owns: `d
 removes a directory, and Windows will not remove one a server stands in.
 
 Measure the suite either side rather than assuming. The win RG122 measured is per call,
-and most of this may be the fixture builds.</section_body> </invoke>
+and most of this may be the fixture builds.
 
 ### §RG131 The signal the held transport does not read
 
@@ -62,7 +62,7 @@ predicts from reading `transport.ts` is zero.
 
 The protocol has `notifications/cancelled`. Whether this build's server acts on it is
 the first thing to measure, and refusing the promise locally is the floor if it does
-not.</section_body> </invoke>
+not.
 
 ### §RG135 The fallback that forgets why it fell back
 
@@ -86,7 +86,7 @@ knew threw the reason away.
 
 So the transport keeps it: one reason per root it could not hold, readable beside
 `held`. The counting test then fails naming the handshake, and an open project can carry
-the sentence to a row.</section_body> </invoke>
+the sentence to a row.
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
@@ -298,7 +298,7 @@ using its dialog**, which costs a screen and should lose.
 Until one of them lands, `wording.test.tsx` carries the word in a named set with the
 reason on it, so the guard stays green about the one string it can do nothing about and
 red about every other. That set is the thing to delete: when this is fixed, the run says
-so by failing to find what the exception excused.</section_body> </invoke>
+so by failing to find what the exception excused.
 
 ### §RG133 The icon that arrives over the network
 
@@ -323,7 +323,7 @@ Two answers and they compose. **Say it where the array is**: `areas.ts` is where
 the icon a bento item carries can be a tabler component rather than a name, so a test
 over `AREAS` asserting no item names a string is a check on this repository's own data
 rather than on somebody's bundle — cheap, fast, and it fails on the line being written
-rather than after a build.</section_body> </invoke>
+rather than after a build.
 
 ### §RG136 A mark only the drawings have
 
@@ -346,4 +346,4 @@ drawing drops it to measure like the window.
 What should not survive is the third state, the one now: drawn in one place and absent
 in the other, with nothing saying which is the intent. Whichever lands, the artboard's
 header gains a `data-region="brand"` and the check grows a line, so the next divergence
-at that end is a red run and not a person measuring.</section_body> </invoke>
+at that end is a red run and not a person measuring.
