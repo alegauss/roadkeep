@@ -19,6 +19,7 @@
 - ✅ **RK1361** **a decision is one sentence, so the alternatives rejected and the consequences accepted are kept by hand or not at all** — The decisions role carries both records and the prose about them, and no verb deletes a body while the entry stands.
 - ✅ **RK1363** **an outline project cannot give a decision a body, the id being no address in a file that numbers its own headings** — A record that keeps prose names its address wherever the file numbers its own headings.
 - ✅ **RK1634** **a ship deletes the design section and names nothing that was in it, so the last look at it never happens** — A design's durable half is asked for and never required: the drop names what it takes and the three doors that carry it, and the write lands either way.
+- ✅ **RK1655** **reopen files a line whose pointer resolves to nothing, and has no way to write the design in the same call** — A door that files a line with no design writes it in the same call or names the anchor it left owing: the gate reporting it later is the same fact arriving twice.
 
 ### §RK1361 Why the body and not the design section
 
@@ -47,6 +48,21 @@ rule exactly: the pointer is demanded at the write and the body is the follow-up
 gate holds you to. The cost accepted is that an outline project cannot file a decision
 it means to leave bodiless. The namespace question needed nothing: `[refs]` already keys
 on the prose roles.
+
+### §RK1655 add's flags, at the other door
+
+`add`'s three flags and not a fourth spelling of them: the same reader, the same limits,
+and `_with_section` is the function both doors call — so every refusal the prose file
+has arrives before either file is written, which is what makes it a transaction rather
+than two writes with a dangling pointer between them.
+
+The rows that were `Insertion`'s are `owed_rows` and `follow_ups` now. A second door
+leaving a pointer owing is what turned two methods into two functions, and a copy of
+those spellings here is how a follow-up comes to differ by which verb printed it.
+
+The reconciling path refuses the flag, on `--marker`'s argument exactly: that call files
+no line, so it has no pointer for a section to answer, and the design belongs to the
+line already there. Its refusal names `section add` against that line's own anchor.
 
 ## Block C — Query (consult without reading the file)
 

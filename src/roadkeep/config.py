@@ -563,6 +563,10 @@ PATH_ARGUMENTS: Mapping[str, Mapping[str, str]] = {
     # — a `-C` elsewhere does not make somebody's argument project-relative.
     "add": {"section_body_file": "caller", "capture": "caller"},
     "capture filed": {"path": "caller"},
+    # `add`'s row one door over (RK1655): the design a reopen writes in the same
+    # transaction is read from a file the caller names, and a path handed to this process
+    # is one the process resolves.
+    "reopen": {"section_body_file": "caller"},
     # A file *of the project* and resolved against its root (RK1264): this names where a
     # governed file is to be created, which is the same class every `[files]` value is — and
     # over MCP the caller's directory is not the tree `-C` selected, so the caller class would

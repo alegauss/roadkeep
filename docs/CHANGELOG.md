@@ -293,6 +293,7 @@
 - ✅ **RK1511** **a line filed because the task that found it could not fit it has no door back into that task's criteria** — retire --folds-into moves a line's own claim into another task's criteria and ends the line, in one write.
 - ✅ **RK1632** **add --symptom takes no stdin, the one prose field with no pipe being the one every line leads with** — add --symptom reads the pipe on a dash, as restate --symptom has since RK1187, and the parser's own declaration is what two registers now hold it by.
 - ✅ **RK1634** **a ship deletes the design section and names nothing that was in it, so the last look at it never happens** — The drop names the heading and the size it takes, and a shipment that opened none of the three doors is told so.
+- ✅ **RK1655** **reopen files a line whose pointer resolves to nothing, and has no way to write the design in the same call** — reopen --section writes the design in the transaction that files the line, and a reopen without one reports the anchor nothing answers.
 
 ## Block C — Query
 

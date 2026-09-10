@@ -296,7 +296,10 @@ the `why` limit, and an entry that reaches the file without one is `premise.miss
 `declare dismissed` opens the store and no scaffold ever writes it, a project having ruled
 nothing out on the day it is created. `reopen <id> [--marker <m>]` files the entry as work
 when the premise breaks, reporting the premise once and leaving it behind — the line arrives
-carrying the subject and the reason, with the design still to write. `show <id>` on a
+carrying the subject and the reason. **Its design has to be written in the same call**:
+`reopen <id> --section "<title>" --section-body-file <path>` writes both halves, because a
+dismissal carries no design by definition, so a reopen without one leaves a pointer the gate
+reports as `ref.unresolved` and the write says which anchor owes it. `show <id>` on a
 dismissed id says where it is and names both doors, rather than answering *never written*
 about an entry sitting in the file. Reach for
 `retire`

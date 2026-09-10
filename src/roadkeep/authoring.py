@@ -428,31 +428,12 @@ class Insertion:
         role are both fields here, and a helper in the door was the *third* place that pair had
         to be read together.
         """
-        if self.needs is None:
-            return None
-        return f"section add {self.needs} --title …{self._named()}"
-
-    def _named(self) -> str:
-        return "" if self.needs_role in (None, "improvements") else f" --role {self.needs_role}"
+        found = follow_ups(self.needs, self.needs_role, self.opens)
+        return found[-1] if found else None
 
     def follow_ups(self) -> tuple[str, ...]:
-        """Every call between this write and a pointer that resolves, in order (RK1205).
-
-        One normally, and that one is :meth:`follow_up`. Two where the anchor extends a family
-        no prose file declares yet: `section add` refuses that child with `UnknownParent`, so
-        the single command this used to hand over was one the author would run and be refused
-        by — worse than silence, because a printed call is read as a call that works.
-
-        The parent's own title is not composed here and never could be (L4): what is derived
-        is that a call is needed and what its address is, which is everything except the words.
-        """
-        if self.needs is None:
-            return ()
-        opening = (
-            () if self.opens is None
-            else (f"section add {self.opens} --title …{self._named()}",)
-        )
-        return (*opening, f"section add {self.needs} --title …{self._named()}")
+        """Every call between this write and a pointer that resolves, in order (RK1205)."""
+        return follow_ups(self.needs, self.needs_role, self.opens)
 
     def event(self, config: Config) -> dict[str, object]:
         """What this write did to the block it landed in (RK38), off the file it wrote."""
@@ -500,20 +481,9 @@ class Insertion:
                 f"{self.section.words} words"
             )
         elif self.needs is not None:
-            # Backticked and carrying the invocation, like every other route this tool composes
-            # (RK476): the bare argv is the *field*, and a line printed for a reader is the form
-            # `serving._rerouted` already spells as a tool where there is no shell.
-            # Every call and not the last one (RK1205): where the anchor extends a family this
-            # file has not opened, the closing command refuses until the opening one has run,
-            # and naming one of the two is the staircase RK1198 took out of the door above.
-            rows += [
-                f"  needs    `{invocation()} {one}`  "
-                f"(the pointer above resolves to nothing until then)"
-                if one == self.follow_ups()[-1]
-                else f"  needs    `{invocation()} {one}`  "
-                f"(§{self.needs} extends it, and no prose file declares it yet)"
-                for one in self.follow_ups()
-            ]
+            # `owed_rows` since RK1655, which is where the two spellings live now: a second
+            # door leaves a pointer owing, and the rows it prints are these.
+            rows += owed_rows(self.needs, self.follow_ups())
             # And the call that would not have needed any of them (RK1218). `add --section`
             # has written both halves in one transaction since RK93, and this row — printed on
             # every `add` that omits it — named only the *follow-up*, so what the tool taught,
@@ -1358,6 +1328,56 @@ class Rereadable:
 
     def __call__(self) -> str:
         return self.read()
+
+
+def follow_ups(needs: str | None, role: str | None, opens: str | None) -> tuple[str, ...]:
+    """Every call between a write and a pointer that resolves, in order (RK1205).
+
+    One normally: the `section add` that answers the anchor. Two where that anchor extends a
+    family no prose file declares yet — `section add` refuses the child with `UnknownParent`,
+    so a single command handed over would be one the author runs and is refused by, which is
+    worse than silence because a printed call reads as a call that works.
+
+    `--role` only where it is not the default, which keeps the sentence every project sees the
+    one it already saw, and makes the exception the case that needs it: a project whose only
+    prose file is the strategy one would otherwise be handed `section add`'s default and a role
+    it does not declare.
+
+    A free function since RK1655, so the **second** door that leaves a pointer owing composes
+    the same calls: `reopen` files a line for a finding that has no design by definition, and a
+    copy of these two spellings there is how a follow-up comes to differ by verb.
+
+    The parent's own title is not composed here and never could be (L4): what is derived is
+    that a call is needed and what its address is, which is everything except the words.
+    """
+    if needs is None:
+        return ()
+    named = "" if role in (None, "improvements") else f" --role {role}"
+    opening = () if opens is None else (f"section add {opens} --title …{named}",)
+    return (*opening, f"section add {needs} --title …{named}")
+
+
+def owed_rows(needs: str, calls: Sequence[str]) -> list[str]:
+    """The `needs` rows a write prints for a pointer nothing answers yet (RK1205, RK1655).
+
+    Backticked and carrying the invocation, like every other route this tool composes (RK476):
+    the bare argv is the *field*, and a line printed for a reader is the form
+    `serving._rerouted` already spells as a tool where there is no shell.
+
+    Every call and not the last one: where the anchor extends a family the prose file has not
+    opened, the closing command refuses until the opening one has run, and naming one of the
+    two is the staircase RK1198 took out of the door above.
+    """
+    from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
+    return [
+        f"  needs    `{invocation()} {one}`  "
+        f"(the pointer above resolves to nothing until then)"
+        if one == calls[-1]
+        else f"  needs    `{invocation()} {one}`  "
+        f"(§{needs} extends it, and no prose file declares it yet)"
+        for one in calls
+    ]
 
 
 def _refuse_together(

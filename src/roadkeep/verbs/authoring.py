@@ -261,8 +261,22 @@ def _dismiss(config: Config, args: argparse.Namespace) -> Result | int:
 
 
 def _reopen(config: Config, args: argparse.Namespace) -> Result | int:
+    # `_add`'s clash and its reason (RK1655): two ways to hand over one paragraph is two
+    # answers, and the refusal names the flags as the caller typed them.
+    clash = _one_body("--section-body", args.section_body, args.section_body_file)
+    if clash is not None:
+        print(f"roadkeep: {clash}", file=sys.stderr)
+        return EXIT_USAGE
     try:
-        filed = reopen(config, args.id, marker=args.marker, ref=args.ref)
+        section = None
+        if args.section is not None:
+            section = (
+                args.section,
+                _body_reader(args.section_body, args.section_body_file),
+            )
+        filed = reopen(
+            config, args.id, marker=args.marker, ref=args.ref, section=section
+        )
         wrote = filed.save()
     except REFUSALS as error:
         return _refused(error)
@@ -712,6 +726,34 @@ def declare_lines(subcommands: argparse._SubParsersAction) -> None:
             "a dismissal carries no design, so nothing here can derive one for you"
         ),
     )
+    # The design a reopen owes, in the same transaction (RK1655). `add`'s three flags, by the
+    # same reader and under the same limits: a dismissal carries no design, so the line this
+    # files points at an anchor **nothing** answers until one is written.
+    reopen_parser.add_argument(
+        "--section",
+        metavar="TITLE",
+        help=(
+            "write the rationale under this heading, in the same transaction: a dismissal "
+            "carries no design, so without it the pointer this line arrives with resolves to "
+            "nothing until a `section add` closes it"
+        ),
+    )
+    reopen_parser.add_argument(
+        "--section-body",
+        help="the rationale prose; omitted or '-' reads stdin. Read only with --section",
+    )
+    reopen_parser.add_argument(
+        "--section-body-file",
+        metavar="PATH",
+        help=_BODY_FILE.format(what="rationale"),
+    )
     reopen_parser.add_argument("--json", action="store_true", help="every edit, as data")
-    reopen_parser.set_defaults(handler=_reopen)
+    # No `narrows` on the two body flags, which is `add`'s arrangement and not an omission:
+    # `Prose(gated_by="section")` is what says the pipe is read only where a title was passed,
+    # and a narrowing declared here would refuse the pair on a verb that declares no subjects
+    # for it to be narrowing towards.
+    reopen_parser.set_defaults(
+        handler=_reopen,
+        reads_stdin=(Prose(dest="section_body", gated_by="section", unless="section_body_file"),),
+    )
 

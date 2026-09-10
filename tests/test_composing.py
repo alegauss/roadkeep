@@ -377,6 +377,54 @@ def test_the_door_a_misplaced_key_names_moves_it_and_the_config_then_loads(tmp_p
     assert Config.discover(root).schema.id_pad == 3, "the key is in force, one table over"
 
 
+def test_the_door_a_reopen_that_places_no_line_names_for_a_section_runs(tmp_path, capsys):
+    """RK1655. `--section` writes the design the filed line points at, and the reconciling path
+    files no line — so the refusal names `section add` against the anchor the open line already
+    carries, and running it closes the pointer that line was left with.
+
+    The state is the one a crash between two saves leaves: the roadmap carries the id and the
+    store still holds its copy."""
+    root = tmp_path / "project"
+    root.mkdir()
+    (root / "roadkeep.toml").write_text(
+        'prefix = "TT"\n[files]\nroadmap = "ROADMAP.md"\nimprovements = "IMPROVEMENTS.md"\n'
+        'dismissed = "DISMISSED.md"\n',
+        encoding="utf-8",
+        newline="",
+    )
+    (root / "ROADMAP.md").write_text(
+        "# Roadmap\n\n## Block A\n\n"
+        "- 📋 **TT7** (deps: —) **A finding filed as work** — Because the premise broke. → §TT7\n",
+        encoding="utf-8",
+        newline="",
+    )
+    (root / "IMPROVEMENTS.md").write_text(
+        "# Improvements\n\n## Block A\n", encoding="utf-8", newline=""
+    )
+    (root / "DISMISSED.md").write_text(
+        "# Ruled out\n\n## Block A\n\n"
+        "- 🚫 **TT7** **A finding filed as work** — "
+        "holds while (the caller validates first): because the premise broke.\n",
+        encoding="utf-8",
+        newline="",
+    )
+    assert main(
+        ["-C", str(root), "reopen", "TT7", "--section", "A design", "--section-body", "Prose."]
+    ) == EXIT_USAGE
+    said = capsys.readouterr().err
+    ran = runs(root, said)
+    assert ran and ran[0][:3] == ["section", "add", "TT7"], said
+    capsys.readouterr()
+    # The pointer that line carried now resolves, which is what the door was for — and what is
+    # left is the contradiction this fixture is made of, which the call without the flag
+    # settles. Both, in the order the two messages print: the door, then the act.
+    left = {one.code for one in lint(Config.discover(root)).findings}
+    assert left == {"id.dismissed-and-open"}, left
+    assert main(["-C", str(root), "reopen", "TT7"]) == EXIT_OK
+    capsys.readouterr()
+    assert lint(Config.discover(root)).clean
+
+
 # -- the doors of a departure that cannot happen (RK1498) ---------------------
 
 #: A governed project on the id scheme, whole: a pointer that resolves and a design under it,

@@ -155,8 +155,16 @@ SITES: tuple[Site, ...] = (
     # RK1223. Run by `test_blocking`, which executes the `--organise` call this refusal names
     # rather than matching it — the reading this whole file is about.
     Site("blocking.py:BlockExists.__init__", "run"),
-    # The `add` that files a task prints the `section add` closing the pointer it just made.
-    Site("authoring.py:Insertion.added", "run"),
+    # The `add` that files a task prints the `section add` closing the pointer it just made —
+    # composed in `owed_rows` since RK1655, which is where the second door that leaves a
+    # pointer owing reads it from. Run by `test_authoring` through `add` and by
+    # `test_dismissing` through `reopen`, which is the whole reason it is one function.
+    Site("authoring.py:owed_rows", "run"),
+    # And the flag that would have needed neither call, refused where this one places no line
+    # (RK1655): a reconciling `reopen` has no pointer of its own, so the design belongs to the
+    # line already there and the refusal names the verb that writes it. Run by
+    # `test_composing`, against the state a crash between two saves leaves.
+    Site("dismissing.py:NoSectionHere.__init__", "run"),
     # The two doors under the neighbours an `add` volunteers — `delivered <block>` for the
     # shipped half and `list --block <block>` for the open one (RK1528). Its own site since
     # RK1582 lifted the rows out of `Insertion.added` so `cost --near` could price them

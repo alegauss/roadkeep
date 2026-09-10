@@ -480,7 +480,13 @@ MEASURING_FILES = {
         "- ✅ **RK9** **A shipped symptom** — The store is the repository.\n"
     ),
     "DEFERRED.md": "# Deferred\n\n## Block A\n",
-    "DISMISSED.md": "# Ruled out\n\n## Block A\n",
+    # One entry, because RK1655 gave `reopen` a section to measure: a body over its limit has
+    # to reach the write, and a store holding only a heading refuses at the id first.
+    "DISMISSED.md": (
+        "# Ruled out\n\n## Block A\n\n"
+        "- \U0001F6AB **RK7** **A finding traced and left alone** — "
+        "holds while (the caller validates first): the path is unreachable.\n"
+    ),
 }
 
 OVER = ("a word that is plainly far too long to fit " * 4).strip() + "."
@@ -507,6 +513,11 @@ MEASURED: dict[tuple[str, str], list[str]] = {
     ("dismiss", "reason"): [
         "dismiss", "--block", "A", "--symptom", "A symptom",
         "--premise", "the guard runs first", "--reason", OVER,
+    ],
+    # RK1655. `add`'s section row at the door that had no way to write one, so the body is
+    # measured against the same prose limit before either file is touched.
+    ("reopen", "section_body"): [
+        "reopen", "RK7", "--section", "The premise that broke", "--section-body", OVER_BODY,
     ],
     ("retire", "reason"): ["retire", "RK1", "--reason", OVER],
     ("ship", "why"): ["ship", "RK1", "--why", OVER],

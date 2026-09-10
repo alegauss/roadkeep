@@ -36,13 +36,25 @@ from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 
-from roadkeep.authoring import Insertion, place, remove_entry
+from roadkeep.authoring import (
+    Insertion,
+    Rationale,
+    _unopened,
+    _unresolved,
+    _with_section,
+    follow_ups,
+    owed_rows,
+    place,
+    prose_role,
+    remove_entry,
+)
 from roadkeep.backlog import Backlog, Whereabouts
 from roadkeep.config import Config
 from roadkeep.ids import Derivation, Promise, derivation
 from roadkeep.kernel.document import Document, Entry, save_all
 from roadkeep.markers import refresh
 from roadkeep.provenance import invocation
+from roadkeep.sections import Section
 from roadkeep.kernel.schema import (
     DISMISSED_CLOSE,
     DISMISSED_OPEN,
@@ -154,6 +166,24 @@ class NoPlacement(ValueError):
         )
 
 
+class NoSectionHere(ValueError):
+    """`--section` on a reopen that places no line (RK1655), which is `NoPlacement`'s rule.
+
+    The reconciling path removes the store's stale copy and leaves the roadmap alone, so there
+    is no pointer of this call's to answer. The open line has a design or owes one either way,
+    and writing it is `section add`'s — addressed to the anchor that line already carries.
+    """
+
+    def __init__(self, task_id: str, where: str, lineno: int) -> None:
+        self.task_id = task_id
+        super().__init__(
+            f"--section writes the design the line this call files would point at, and this "
+            f"call files none: {task_id} is already open at {where}:{lineno} and only the "
+            f"store's copy would go — `{invocation()} section add {task_id} --title …` writes "
+            f"a design for the line that is already there"
+        )
+
+
 @dataclass(frozen=True, slots=True)
 class Dismissal:
     """Everything filing one finding writes, as data, before it is written."""
@@ -244,11 +274,31 @@ class Reopening:
     #: Whether this call **reconciled** a contradiction rather than filing work: the roadmap
     #: already carried the id, so the store entry was the stale half and only it was removed.
     reconciled: bool = False
+    #: The prose file as this write leaves it and the section it gained, both `None` unless
+    #: `--section` was passed (RK1655) — `Insertion`'s own pair, carried here because the
+    #: transaction is the same one: a line whose pointer answers, or neither.
+    prose: Document | None = None
+    section: Section | None = None
+    #: The anchor nothing answers, where no section was written — and the prose role it would
+    #: be written in. `Insertion.needs`' pair exactly: a dismissal carries no design, so every
+    #: `reopen` without a section leaves a pointer the gate reports, and the write that made it
+    #: is where a caller reads about it rather than one run later (RK420's rule at this door).
+    needs: str | None = None
+    needs_role: str | None = None
+    #: The address one level up, where the family the anchor sits in is not open yet.
+    opens: str | None = None
 
     def save(self) -> tuple[Path, ...]:
         # The roadmap first and the store's removal second, which is `resume`'s order and its
         # reason (RK118): a line in both files is a state a reader can see and a second
         # `reopen` can finish, and a line in neither is one nobody can.
+        #
+        # The prose **first of all** where there is any (RK1655), which is `Insertion.save`'s
+        # own order: a section written whose line never landed is a paragraph somebody deletes,
+        # and a line pointing at a section that was not written is the dangling pointer this
+        # flag exists to close.
+        if self.prose is not None:
+            return save_all(self.prose, self.roadmap, self.store)
         return save_all(self.roadmap, self.store)
 
     def standing(self, config: Config) -> Entry | None:
@@ -283,6 +333,25 @@ class Reopening:
                 f"under Block {block}",
                 f"  removed  {store}:{self.removed_from}",
             ]
+        # The design, or the pointer that owes one (RK1655), in `add`'s own two spellings and
+        # above the premise: what the caller does next is write the section, and the premise is
+        # the last place a decision's history is visible rather than something to act on.
+        if self.section is not None:
+            rows.append(
+                f"  design   §{self.section.anchor} → "
+                f"{config.relative(config.path(prose_role(config) or 'improvements'))}:"
+                f"{self.section.first}  {self.section.words} words"
+            )
+        elif self.needs is not None:
+            rows += owed_rows(self.needs, follow_ups(self.needs, self.needs_role, self.opens))
+            # The flag that would have needed none of them, which is RK1218's row at this
+            # door: a dismissal carries no design by definition, so **every** reopen without
+            # this flag leaves a pointer the gate reports — the one write here where the
+            # two-command path is the default rather than the omission.
+            rows.append(
+                '  or       pass `--section "<its title>"` to `reopen` next time: both halves '
+                "in one transaction, under the same limits"
+            )
         if self.was is not None:
             rows.append(f"  was      ruled out while {self.was}")
         if self.refreshed:
@@ -311,6 +380,29 @@ class Reopening:
             "was": self.was,
             "reconciled": self.reconciled,
             "refreshed": list(self.refreshed),
+            # The design or the pointer owing one, as fields (RK1655): the plain register's
+            # rows are prose and a consumer reading this payload had no way to tell a reopen
+            # that closed its own pointer from one that left `ref.unresolved` behind.
+            "section": None
+            if self.section is None
+            else {
+                "anchor": self.section.anchor,
+                "line": self.section.first,
+                "words": self.section.words,
+            },
+            # `absent` and never a null pair, which is `rendering._reading_door`'s rule for a
+            # door: a consumer reading the key at all is one that acts on it.
+            **(
+                {}
+                if self.needs is None
+                else {
+                    "needs": self.needs,
+                    "doors": [
+                        {"argv": one.split(), "what": "the design this pointer resolves to"}
+                        for one in follow_ups(self.needs, self.needs_role, self.opens)
+                    ],
+                }
+            ),
             **_wrote_json(config, wrote),
             "event": self.event(config),
         }
@@ -377,7 +469,12 @@ def dismiss(
 
 
 def reopen(
-    config: Config, task_id: str, *, marker: str | None = None, ref: str | None = None
+    config: Config,
+    task_id: str,
+    *,
+    marker: str | None = None,
+    ref: str | None = None,
+    section: Rationale | None = None,
 ) -> Reopening:
     """File a ruled-out finding as work. The premise broke, so the entry stops holding.
 
@@ -389,6 +486,13 @@ def reopen(
     derives one here — the dismissal carries no design, that being what a dismissal *is* — so
     under `ref_scheme = "outline"` the line would be refused for a pointer no verb could
     supply, and the store would hold an entry with no door out.
+
+    ``section`` is that absence closed in the same transaction (RK1655), and it is `add`'s
+    flag by the same reader: a dismissal carries no design, so the line this filed pointed at
+    `§<id>` and **nothing answered it** — `ref.unresolved` on every reopen this tool would ever
+    perform, arriving one run later as the file's problem rather than at the door that made it.
+    Where none is passed the anchor is reported instead, which is `Insertion.needs` and already
+    the shape every door that leaves a pointer owing uses. The prose stays the author's (L4).
     """
     if not config.has("dismissed"):
         raise NoStore(f"{task_id} cannot be reopened")
@@ -404,6 +508,13 @@ def reopen(
     if open_line is not None:
         if marker is not None:
             raise NoPlacement(
+                task_id, config.relative(config.path("roadmap")), open_line.lineno
+            )
+        if section is not None:
+            # `NoPlacement`'s rule for the other flag (RK1655): this call places no line, so
+            # there is no pointer of its own for a section to answer — and the open line's
+            # design is `section add`'s, that line having been filed by something else.
+            raise NoSectionHere(
                 task_id, config.relative(config.path("roadmap")), open_line.lineno
             )
         # The roadmap already says what a reopen would write, so the store entry is the stale
@@ -429,6 +540,21 @@ def reopen(
         role="roadmap",
         config=config,
     )
+    # After the roadmap's own refusal, which is `add`'s order and its reason (RK380, RK381):
+    # every refusal the prose file has — the word budget, an undeclared block, an anchor
+    # already taken — arrives before either file is written, so a run that filed the line and
+    # then refused the section cannot leave the dangling pointer this closes.
+    owing: dict[str, str | None] = {}
+    if section is not None:
+        insertion = _with_section(config, insertion, *section)
+    elif insertion.entry.task.ref and (
+        role := _unresolved(config, insertion.entry.task.ref)
+    ):
+        owing = {
+            "needs": insertion.entry.task.ref,
+            "needs_role": role,
+            "opens": _unopened(config, role, insertion.entry.task.ref),
+        }
     remaining = remove_entry(store, held)
     refreshed = refresh(
         replace(backlog, roadmap=insertion.document, dismissals=remaining)
@@ -443,6 +569,9 @@ def reopen(
         refreshed=tuple(name for name in refreshed.changed if name != task_id),
         marker=status,
         was=dismissal_premise(held.task.why),
+        prose=insertion.prose,
+        section=insertion.section,
+        **owing,
     )
 
 

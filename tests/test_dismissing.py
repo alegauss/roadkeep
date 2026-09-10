@@ -330,6 +330,61 @@ def test_a_marker_on_a_call_that_places_nothing_is_refused(tmp_path):
         reopen(Config.discover(tmp_path), "RK7", marker="🛠")
 
 
+def test_the_design_a_reopen_owes_is_written_in_the_same_transaction(tmp_path):
+    """RK1655. A dismissal carries no design — that is what a dismissal *is* — so the line
+    `reopen` files points at `§<id>` and nothing answers it: `ref.unresolved` on every reopen
+    this tool would ever perform, reported by the gate one run after the write that made it.
+
+    `add`'s flag by the same reader and under the same limits, and the whole claim is the
+    transaction: the gate is clean immediately, with no second command in between."""
+    config = project(tmp_path)
+    filed = reopen(
+        config,
+        "RK7",
+        section=("The premise that broke", "The path is reachable after all, on this route."),
+    )
+    filed.save()
+    assert filed.section is not None
+    assert filed.needs is None
+    settled = Config.discover(tmp_path)
+    assert lint(settled).clean, [one.code for one in lint(settled).findings]
+    assert "The premise that broke" in (tmp_path / "IMPROVEMENTS.md").read_text(encoding="utf-8")
+
+
+def test_a_reopen_with_no_section_names_the_pointer_it_leaves_owing(tmp_path, capsys):
+    """The other half, and the one every reopen without the flag gets: the state is not wrong —
+    a finding that has just become real has a design still to write, and inventing one would be
+    this tool writing prose (L4). What was wrong is that the write said nothing about it, so the
+    caller read a clean answer and the gate reported a finding on the next run.
+
+    Both registers, because the payload is what an agent reads: the plain one names the command
+    and the flag that needs none, and the fields carry the anchor and the door."""
+    from roadkeep.cli import main
+
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "reopen", "RK7"]) == 0
+    said = capsys.readouterr().out
+    assert "section add RK7 --title" in said
+    assert '`--section "<its title>"`' in said, "the flag that needs no follow-up"
+    assert "ref.unresolved" in {one.code for one in lint(Config.discover(tmp_path)).findings}
+
+
+def test_a_section_on_a_call_that_places_nothing_is_refused(tmp_path):
+    """`--marker`'s rule for the other flag: the reconciling path files no line, so there is no
+    pointer of this call's for a section to answer — and the open line's design is `section
+    add`'s, addressed to the anchor that line already carries."""
+    config = project(tmp_path)
+    reopen(config, "RK7").save()
+    with (tmp_path / "DISMISSED.md").open("w", encoding="utf-8", newline="") as handle:
+        handle.write(STORE)
+    with pytest.raises(ValueError, match="files none"):
+        reopen(
+            Config.discover(tmp_path),
+            "RK7",
+            section=("A title", "A body that never lands."),
+        )
+
+
 def test_reopen_names_where_an_id_it_does_not_hold_actually_is(tmp_path):
     config = project(tmp_path)
     with pytest.raises(NotDismissed, match="open in the roadmap"):

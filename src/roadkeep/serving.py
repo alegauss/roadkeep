@@ -519,7 +519,15 @@ TOOLS: tuple[Tool, ...] = (
         conditional=("task_id",),
         needs="dismissed",
     ),
-    Tool("reopen", ("id", "marker", "ref"), needs="dismissed"),
+    # The three `add` exposes for the same pair of halves (RK1655), and this transport is
+    # the argument for them: a dismissal carries no design, so a reopen without one leaves
+    # a pointer nothing answers — and closing it afterwards is a second call whose prose
+    # has to be re-sent.
+    Tool(
+        "reopen",
+        ("id", "marker", "ref", "section", "section_body", "section_body_file"),
+        needs="dismissed",
+    ),
     # `supersedes` rides with it because the revert is one transaction (RK395): the entry that
     # says the work did not hold and the pointer on the entry that says it shipped are two
     # edits an agent cannot make separately — the second one is a hand edit the guard denies.

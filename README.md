@@ -117,7 +117,7 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 233 | 2 |
+| B — Authoring (insert, never hand-edit) | 0 | 234 | 2 |
 | C — Query (consult without reading the file) | 3 | 190 | 7 |
 | D — The gate | 5 | 310 | 7 |
 | E — Adoption | 0 | 117 | 1 |
@@ -125,11 +125,11 @@ called unbuilt were already in the ledger.
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 44 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 9 | 1135 | 24 |
+| **Total** | 8 | 1136 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1655** (deps: —) **reopen files a line whose pointer resolves to nothing, and has no way to write the design in the same call** — add closes it with --section and this door cannot, so every reopen leaves a ref.unresolved the author closes by hand. → §RK1655
+- 📋 **RK1656** (deps: —) **a dep on a ruled-out finding resolves as unknown, which says nothing can answer about a file that answers exactly** — RK92 gave the resolver a fifth answer for a paused target, and the seventh role arrived with no sixth. → §RK1656
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

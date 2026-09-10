@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1655** (deps: —) **reopen files a line whose pointer resolves to nothing, and has no way to write the design in the same call** — add closes it with --section and this door cannot, so every reopen leaves a ref.unresolved the author closes by hand. → §RK1655
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1656** (deps: —) **a dep on a ruled-out finding resolves as unknown, which says nothing can answer about a file that answers exactly** — RK92 gave the resolver a fifth answer for a paused target, and the seventh role arrived with no sixth. → §RK1656

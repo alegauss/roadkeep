@@ -77,28 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1655 The design a reopen owes
-
-A dismissal carries no design section — that is what a dismissal *is*, the claim being
-that no work was filed. So the line `reopen` places points at `§<id>` and nothing
-answers it, and the gate reports `ref.unresolved` on every single reopen this tool will
-ever perform.
-
-`add` met the same problem and closed it: `--section <title>` writes the rationale in
-the same transaction, and without it the follow-up is named in the write's own report
-rather than left to the gate. `reopen` has neither half — no flag, and no `needs` row
-saying what is owed.
-
-The state is not wrong. A finding that has just become real has a design still to write,
-and inventing one would be this tool writing prose (L4). What is wrong is that the write
-says nothing about it: the caller reads a clean answer, the gate reports a finding on
-the next run, and the two are the same fact arriving twice.
-
-**So the flag and the sentence, both from `add`.** `reopen <id> --section "<title>"`
-with the prose on stdin writes the section in the transaction that files the line, and a
-`reopen` without it reports the anchor nothing answers — which is `Insertion.needs`,
-already built, and already the shape every other door that leaves a pointer owing uses.
-
 ## Block C — Query
 
 ### §RK1656 The answer a dismissed target has none of

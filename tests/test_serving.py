@@ -1543,6 +1543,10 @@ def test_the_paths_that_could_reach_it_are_the_ones_declared():
         # RK1618. Its `--reason` is the author's sentence with a derived premise wrapped round
         # it, so it reaches the pipe for the reason `defer`'s does one store over.
         "dismiss",
+        # And the direction back (RK1655): a reopen writes the design the dismissal never
+        # carried, so its `--section-body` reaches the pipe exactly as `add`'s does — gated on
+        # a title, because a reopen with no rationale must never block on a stream.
+        "reopen",
         # The decisions file's correction door (RK1453): its `--decides` is the one sentence
         # in that file, and it reaches the pipe for the same reason every `--why` does.
         "revise",
