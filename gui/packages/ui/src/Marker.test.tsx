@@ -13,6 +13,8 @@ import { Marker } from './Marker'
 const CONFIG: ConfigPayload = {
   version: '0.2.400',
   source: 'roadkeep.toml',
+  governed: true,
+  root: '/code/app',
   keys: [
     {
       table: 'markers',

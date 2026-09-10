@@ -24,6 +24,8 @@ const key = (table: string, name: string, set: string | null): ConfigKey => ({
 const CONFIG: ConfigPayload = {
   version: '0.2.366',
   source: 'roadkeep.toml',
+  governed: true,
+  root: '/code/app',
   keys: [
     key('files', 'roadmap', '"docs/ROADMAP.md"'),
     key('files', 'changelog', '"docs/CHANGELOG.md"'),
@@ -138,7 +140,13 @@ describe('RG22: what a filter may be set to', () => {
   })
 
   it('survives a config that declares almost nothing', () => {
-    const bare: ConfigPayload = { version: '0.1.0', source: 'roadkeep.toml', keys: [] }
+    const bare: ConfigPayload = {
+      version: '0.1.0',
+      source: 'roadkeep.toml',
+      governed: true,
+      root: '/code/app',
+      keys: [],
+    }
 
     expect(filterChoices(bare)).toEqual({
       blocks: [],

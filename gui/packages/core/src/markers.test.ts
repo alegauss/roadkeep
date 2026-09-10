@@ -16,7 +16,7 @@ function key(partial: Partial<ConfigKey> & { key: string }): ConfigKey {
 }
 
 function config(...keys: ConfigKey[]): ConfigPayload {
-  return { version: '0.2.400', source: 'roadkeep.toml', keys }
+  return { version: '0.2.400', source: 'roadkeep.toml', governed: true, root: '/code/app', keys }
 }
 
 /** This repository's own markers, spelled the way `config` spells them. */

@@ -39,7 +39,7 @@ import { spell, VERBS, VERB_WORDS } from './verbs'
  * **And since RG122 it holds a process, so it is something to give back.** The transport a
  * screen reads through keeps a `roadkeep mcp` per project — six milliseconds a read against
  * seven hundred and thirty-eight — and a window that opened seventeen projects holds
- * seventeen engines. `close` is that, and the four states that are not `open` call it
+ * seventeen engines. `close` is that, and the five ways of not opening call it
  * themselves: `config` is read *before* this knows whether the project opens, so a caller
  * holding no project would have nothing to close an engine with.
  *
@@ -97,6 +97,15 @@ export type Opening =
       readonly engine: ResolvedEngine
       readonly unreadable: Unreadable
     }
+  /**
+   * An engine answered, and said no roadkeep project governs this folder (RG13).
+   *
+   * An answer and not a failure: the engine's own `governed`, read off the one call that
+   * says it, before anything that needs a project is asked. Until then it arrived as a
+   * `config` this app could not read — a folder rejected by a read failing, and the sentence
+   * that came with it said this app was behind the engine.
+   */
+  | { readonly kind: 'ungoverned'; readonly root: string; readonly engine: ResolvedEngine }
   | { readonly kind: 'open'; readonly project: OpenProject }
 
 export interface OpenOptions {
@@ -152,9 +161,9 @@ export function readsOnly(argv: readonly string[]): boolean {
  * Resolve, compose, and ask the two questions every later read depends on.
  *
  * The whole of this function is the lifetime, and `compose` below is the order. They are
- * separate because the order has four ways to end without a project and every one of them
+ * separate because the order has five ways to end without a project and every one of them
  * can already have started an engine: one `close` on the way out is a promise nothing can
- * forget, and four of them are four places to forget it.
+ * forget, and five of them are five places to forget it.
  *
  * @param candidates command lines to try for this project, in order. Discovering them
  *   needs a filesystem, so it belongs to whoever has one.
@@ -220,6 +229,9 @@ async function compose(
       unreadable: refusedBy('config', config.refusal.said),
     }
   }
+  // The cheap no (RG13). Asked of the engine, which owns the rule for what governs a folder
+  // — this never looks for a `roadkeep.toml` above the one it was given.
+  if (!config.value.governed) return { kind: 'ungoverned', root, engine }
   const governed = governedFiles(config.value)
 
   const files = Object.values(governed)

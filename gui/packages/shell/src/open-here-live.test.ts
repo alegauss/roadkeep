@@ -1,13 +1,15 @@
-import { existsSync } from 'node:fs'
+import { existsSync, mkdtempSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
 
-import { buildArgv, listedTasks, type Opening, type OpenProject } from '@rk/core'
+import { buildArgv, listedTasks, openProject, type Opening, type OpenProject } from '@rk/core'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { buildFixture, type Fixture } from './fixture'
 import { aLine } from './live'
 import { openHere, type OpenHereOptions } from './open-here'
 import { createProcessTransport } from './process-transport'
+import { removeTree } from './scratch'
 
 /**
  * RG103: the composition, against a real engine.
@@ -194,6 +196,26 @@ describe('RG103: a project that does not open', () => {
     if (opened.kind !== 'unresolved') return
     expect(opened.reason).toContain('unknown')
     expect(opened.tried).toEqual([['no-such-engine-anywhere']])
+  })
+
+  it('says a folder the engine answers for and nothing governs is ungoverned', async () => {
+    // RG13. `engines` answers happily about any directory, so resolution succeeds and it is
+    // `config` that says no — whose null `source` made this `unreadable` until then, with a
+    // sentence blaming this app's version. The launcher is this repository's, named, because
+    // an empty folder has none and PATH is not a thing a test gets to assume.
+    const empty = mkdtempSync(path.join(tmpdir(), 'rk-ungoverned-'))
+    try {
+      const opened = await openProject(
+        empty,
+        [['python', path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')]],
+        (line) => createProcessTransport({ command: line[0] ?? '', prefixArgs: line.slice(1) }),
+        { timeoutMs: CEILING },
+      )
+
+      expect(opened.kind).toBe('ungoverned')
+    } finally {
+      removeTree(empty)
+    }
   })
 })
 

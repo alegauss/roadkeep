@@ -1,7 +1,9 @@
-import { readFileSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
 
 import {
+  createClient,
   lineOf,
   listedTasks,
   VERBS,
@@ -44,6 +46,7 @@ import {
   read,
 } from './live'
 import { buildFixture, type Fixture } from './fixture'
+import { removeTree } from './scratch'
 
 /**
  * RG4: where a rename is allowed to go red.
@@ -100,6 +103,8 @@ const SECOND_SHAPES = {
   // and each was found the day this repository had nothing ready (RG141, RG142).
   'brief with nothing to hand over': '`empty` and `reason` in place of a line, with no `id`',
   'pick with nothing ready': '`tier`: the word that chose on a pick, null beside a null pick',
+  'config on a folder nothing governs':
+    '`source`: the file on a project, null with `governed` false',
 } as const
 
 type SecondShape = keyof typeof SECOND_SHAPES
@@ -311,6 +316,24 @@ describe('RG4: every read this client makes, against a live engine', () => {
       covers('pick with nothing ready')
     } finally {
       done.dispose()
+    }
+  })
+
+  it('reads the config of a folder nothing governs, as that and not as a failure', async () => {
+    // RG13: `source` is null there, which the reader held to a string — so a folder was
+    // rejected by this read failing. Through the spawning transport, so no engine is left
+    // standing in a directory this case is about to remove.
+    const empty = mkdtempSync(path.join(tmpdir(), 'rk-ungoverned-'))
+    try {
+      const answer = await createClient(transport).call(empty, 'config', {}, { timeoutMs: CEILING })
+
+      expect(answer.kind).toBe('read')
+      if (answer.kind !== 'read') throw new Error('unreachable')
+      expect(answer.value.governed).toBe(false)
+      expect(answer.value.source).toBeNull()
+      covers('config on a folder nothing governs')
+    } finally {
+      removeTree(empty)
     }
   })
 

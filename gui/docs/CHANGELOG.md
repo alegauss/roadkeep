@@ -54,6 +54,9 @@
 - ✅ **RG72** **a family is drawn in the order it was found, so a version list can read newest last or newest first by luck** — The member the stable name points at reads first, then the rest by path with digit runs read as numbers, newest first (design recorded in `packages/core/src/families.ts`).
 - ✅ **RG89** **two readings derive the marker set from one config, and only a test keeps them agreeing** — openMarkers is a filter over markersOf, so one config is read one way and a project that left its open set to the default is offered it (design recorded in `packages/core/src/marking.ts`).
 - ✅ **RG102** **the walk yields now and the three reads around it do not, over the same paths a person named** — The three reads around the walk are asynchronous under one bound on the disk, so a sleeping drive no longer holds the process the window talks to (design recorded in `packages/shell/src/probing.ts`).
+- ✅ **RG13** **a candidate is judged governed by a read that fails, so rejecting a folder costs the work of a whole lint** — A folder nothing governs opens as ungoverned off the engine's own config, before commands is asked, and its null source no longer reads as a failure.
+  checked **A folder nothing governs opens as that, before any read a project needs** A unit test sees engines and config asked and nothing after, and a live one opens an empty folder as ungoverned.
+  checked **Nothing here looks for a config above the folder it was given** The engine's governed is the answer; the scan's marker is in the folder itself, and opening asks config and walks nowhere.
 
 ## Block C — The portfolio (many backlogs in one view)
 

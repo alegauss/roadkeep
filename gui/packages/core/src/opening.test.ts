@@ -234,6 +234,45 @@ describe('RG103: a project that does not open', () => {
   })
 })
 
+/**
+ * Printed by `config --json` in an empty temporary folder, trimmed to what this reads: the
+ * engine answers happily, says nothing governs it, and `source` is null (RG13).
+ */
+const UNGOVERNED = JSON.stringify({
+  root: 'C:/Users/somebody/AppData/Local/Temp/tmp.SXAqlBw0sh',
+  version: '0.2.460',
+  governed: false,
+  source: null,
+  files: {},
+  keys: [],
+})
+
+describe('RG13: the cheap no', () => {
+  it('says a folder no roadkeep governs is that, and asks nothing past config', async () => {
+    const held = machine({ config: UNGOVERNED })
+
+    const opened = await openProject('/tmp/folder', [LAUNCHER], held.transportFor)
+
+    // An answer, not a failure: until RG13 the null `source` made this `unreadable`, with a
+    // sentence saying this app was behind the engine. And `commands` is never asked, because
+    // nothing after `config` means anything for a folder that is not a project.
+    expect(opened.kind).toBe('ungoverned')
+    expect(held.verbs()).toEqual(['engines', 'config'])
+  })
+
+  it('reads an engine from before RK1631 by its null source, and a missing one as governed', async () => {
+    // The older build said `governed` only through `source`, so a null there is the same
+    // answer — and a key that is merely absent is never taken for one.
+    const older = machine({
+      config: JSON.stringify({ version: '0.2.300', source: null, keys: [] }),
+    })
+    const quiet = machine({ config: JSON.stringify({ version: '0.2.300', keys: [] }) })
+
+    expect((await openProject('/f', [LAUNCHER], older.transportFor)).kind).toBe('ungoverned')
+    expect((await openProject('/f', [LAUNCHER], quiet.transportFor)).kind).toBe('open')
+  })
+})
+
 describe('RG122: giving the engine back', () => {
   /** A machine plus the closing this open was handed, counted. */
   function closable(answers: Record<string, string> = {}) {
@@ -276,6 +315,17 @@ describe('RG122: giving the engine back', () => {
     })
 
     expect(opened.kind).toBe('unreadable')
+    expect(held.closes()).toBe(1)
+  })
+
+  it('closes a folder the engine said nothing governs', async () => {
+    const held = closable({ config: UNGOVERNED })
+
+    const opened = await openProject('/tmp/folder', [LAUNCHER], held.transportFor, {
+      closing: held.closing,
+    })
+
+    expect(opened.kind).toBe('ungoverned')
     expect(held.closes()).toBe(1)
   })
 

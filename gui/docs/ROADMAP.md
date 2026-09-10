@@ -8,19 +8,30 @@
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
-- 💭 **RG13** (deps: RG11 ✅, roadkeep RK1631) **a candidate is judged governed by a read that fails, so rejecting a folder costs the work of a whole lint** — config answers with a null and engines answers happily about an ungoverned directory, so the cheap probe a scan wants does not exist yet. → §RG13
-- 💭 **RG15** (deps: RG2 ✅, RG13) **which copy of roadkeep each project runs is never read, so a disagreement engines can name is averaged away** — This block will not be finished until the version, the home and the verdict sit beside a project's counts, and nothing reads them yet. → §RG15
+- 💭 **RG15** (deps: RG2 ✅, RG13 ✅) **which copy of roadkeep each project runs is never read, so a disagreement engines can name is averaged away** — This block will not be finished until the version, the home and the verdict sit beside a project's counts, and nothing reads them yet. → §RG15
+- 📋 **RG146** (deps: RG145, RG47 ✅) **roots are read and never written, so Add a root and Rescan roots are buttons nothing can honour** — The project list is meant to be the person's statement, and today the only way to make it is to edit the settings file by hand. → §RG146
 
 ## Block C — The portfolio (many backlogs in one view)
+
+- 📋 **RG145** (deps: RG143, RG16 ✅, RG17 ✅, RG18 ✅) **the window opens on a scaffold naming three packages, so the portfolio core already computes is drawn nowhere** — Main.dc.html draws the one screen this app exists for, and every reader behind its columns shipped with no route to show it. → §RG145
+- 📋 **RG147** (deps: RG145, RG20 ✅) **the palette says it finds a line in every backlog and lists only surfaces, so search over all projects reaches no one** — RG20 shipped search across every open project, and the one box a person types into is fed from AREAS alone. → §RG147
 
 ## Block D — The project surface (one backlog, read)
 
 - ⏳ **RG28** (deps: roadkeep publishing the stale ordering in the payload) **the deferred store has no order, so which pause has stood longest is a question only a terminal can ask** — How long each pause has stood, which --stale orders by and prints for a terminal, putting none of it in the payload. → §RG28
 - 💭 **RG77** (deps: roadkeep publishing a non-goal's reason) **a non-goal arrives as a lead alone, so the sentence that argues it stays in the file** — The reason is the half that settles whether a proposal is forbidden, and criterion list publishes its why while non-goal list does not. → §RG77
+- 📋 **RG148** (deps: RG145, RG21 ✅, RG22 ✅, RG74 ✅) **a project cannot be opened in the window, so its lines, blocks and filters exist only as readers in core** — Projeto.dc.html draws one backlog as rows with readiness in the engine's words, and nothing routes from a portfolio row to it. → §RG148
+- 📋 **RG149** (deps: RG148, RG27 ✅) **the changelog, decisions, improvements and deferred tabs are drawn as labels with nothing behind them** — RG27 and RG28 shipped readers for the ledger, the decisions and the paused lines, and the project surface draws only the roadmap. → §RG149
+- 📋 **RG150** (deps: RG148, RG23 ✅, RG24 ✅, RG76 ✅) **a task opens nowhere in the window, so brief's join of deps, design and binding lists is read by nobody** — Tarefa.dc.html draws the detail as one brief read, and detailFrom already returns every part of it. → §RG150
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
+- 📋 **RG151** (deps: RG148, RG32 ✅, RG34 ✅, RG36 ✅) **no screen composes a write, so a line is still filed in a terminal though its budget, argv and doors are built** — Escrita.dc.html draws the form with counters, the command before it runs and the refusal's doors, and block E shipped each. → §RG151
+- 📋 **RG152** (deps: RG151, RG33 ✅) **Run the gate is a button with nothing behind it, so a finding and the doors it names are still read in a terminal** — RG33 shipped findings as actions, and no screen draws one; the write path's doors column is the shape to reuse, not a second one. → §RG152
+
 ## Block F — The agent surface (handing one task to Claude Code)
+
+- 📋 **RG153** (deps: RG150, RG144, RG40 ✅, RG41 ✅) **nothing in the window hands a task to Claude Code or shows the session, so block F's acts and landings reach no one** — Sessao.dc.html draws the handover, the stream as acts and what moved in the backlog beside it, and every reader for them has shipped. → §RG153
 
 ## Block G — The shell (an executable now, a service later)
 
@@ -28,6 +39,8 @@
 - 💭 **RG50** (deps: RG46 ✅) (requires: published-artifact) **nothing updates, so a fix reaches a person only if they go and look for one** — A desktop build that cannot update is one whose defects live on every machine that installed it until somebody notices. → §RG50
 - 💭 **RG119** (deps: RG91 ✅) (requires: macos-machine) **no macOS build of this app has ever been made, so what it needs is a guess** — electron-builder.yml names a dmg target nobody has run, and the two things a Mac build turns out to want are learned by making one. → §RG119
 - 📋 **RG128** (deps: RG120 ✅, roadkeep's launcher treating a named engine as fatal) **a checkout busy when the probe runs is skipped, so the launcher answers from a cache 446 versions old** — Resolution takes the first engine that answers, so a session can be briefed by a copy nobody chose. → §RG128
+- 📋 **RG143** (deps: RG122 ✅, RG103 ✅) **the bridge carries no roadkeep call, so no screen can ask a project anything and every reader in core runs only in tests** — RendererBridge answers identify, settings and two saves, and openHere, scanRoots and the held engine are reached by no path a window runs. → §RG143
+- 📋 **RG144** (deps: RG143, RG45 ✅) **the bridge only answers when asked, so a session's stream and a governed file changing have no way to reach a screen** — startSession and the governed watcher both hear events in main, and every bridge method is a single invoke with a single answer. → §RG144
 
 ## Block H — The look (a design system for governed prose)
 

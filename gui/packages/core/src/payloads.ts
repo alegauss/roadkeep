@@ -1575,13 +1575,32 @@ export interface ConfigKey {
 
 export interface ConfigPayload {
   readonly version: string
-  readonly source: string
+  /**
+   * The file the configuration came from, and **null where nothing governs the folder**.
+   * Held to a string until RG13, so the one answer that says "not a project" read as a
+   * payload this app could not parse — and a folder was rejected by a read failing.
+   */
+  readonly source: string | null
+  /**
+   * Whether a roadkeep project governs the folder asked about (RK1631). An engine from
+   * before it did not say, and its null `source` is the same answer, so that is what this
+   * falls back to — only a null, and never a key that is merely absent.
+   */
+  readonly governed: boolean
+  /** The project root the engine resolved the folder to, in the engine's spelling. */
+  readonly root: string
   readonly keys: readonly ConfigKey[]
 }
 
-export const readConfigPayload: Reader<ConfigPayload> = record<ConfigPayload>({
+interface ConfigAsPrinted extends Omit<ConfigPayload, 'governed'> {
+  readonly governed: boolean | null
+}
+
+const readConfigAsPrinted: Reader<ConfigAsPrinted> = record<ConfigAsPrinted>({
   version: aString,
-  source: orMissing(aString, ''),
+  source: orMissing(orNull(aString), ''),
+  governed: orMissing(orNull(aBoolean), null),
+  root: orMissing(aString, ''),
   keys: listOf(
     record<ConfigKey>(
       {
@@ -1598,6 +1617,13 @@ export const readConfigPayload: Reader<ConfigPayload> = record<ConfigPayload>({
     ),
   ),
 })
+
+export const readConfigPayload: Reader<ConfigPayload> = (value, path) => {
+  const printed = readConfigAsPrinted(value, path)
+  if (!printed.ok) return printed
+  const { governed, ...rest } = printed.value
+  return { ok: true, value: { ...rest, governed: governed ?? rest.source !== null } }
+}
 
 /**
  * The governed files this project declares, by role.
