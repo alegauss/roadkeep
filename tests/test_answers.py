@@ -43,6 +43,7 @@ from pathlib import Path
 
 import pytest
 
+from composing import SHELLS, argv_after
 from surface import scoped
 
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
@@ -719,6 +720,60 @@ def test_a_refusal_that_derived_no_address_publishes_no_retry_key(project):
     payload, said = _refusal(project, ("show", "RK9999", "--json"))
     assert "retry" not in payload
     assert "retry" not in said
+
+
+# -- the retry a paste would mangle (RK1672) -----------------------------------
+
+#: A symptom the way this project writes about its own verbs — a backtick around one, which is
+#: a command substitution in the POSIX shell this repository is developed at and an escape in
+#: PowerShell. 346 of this project's own fields carry one (RK1667's count).
+BACKTICKED = (
+    "add", "--block", "A", "--symptom", "the read that names `pick` and nothing else",
+    "--why", "Because a backtick is how this project writes about a verb.", "--json",
+)
+
+
+def _retry_line(said: str) -> str:
+    """The command inside the retry row: the label off the front, the clause off the back."""
+    row = next(one for one in said.splitlines() if one.strip().startswith("retry"))
+    return row.strip()[len("retry") :].strip().split("  (", 1)[0]
+
+
+def test_the_retry_row_carries_no_token_a_shell_would_eat(outlined):
+    """RK1672. RK1667 taught the capture offer to ask `provenance.survives` before printing a
+    line, and one refused write prints two: the retry, and that offer under it. Only the second
+    asked — so the same symptom arrived as `…` in the offer and verbatim in the retry two lines
+    above it, where a paste runs the span and hands the tool a claim with the words gone.
+
+    The same answer and not a different one, because the argument is the same: the field is the
+    caller's prose and they are looking at it. What the row stops being is pasteable *whole*,
+    and the clause beside it says which field to type back.
+
+    And the payload is the call **verbatim** — a list is not pasted, so the shape no shell
+    carries is one that channel delivers exactly. The two registers were split for the quoting
+    (RK1600), and this is the split doing the work it was made for."""
+    payload, said = _refusal(outlined, BACKTICKED)
+    row = next(one for one in said.splitlines() if one.strip().startswith("retry"))
+    assert "`pick`" not in _retry_line(said), row
+    assert "--symptom …" in row and "(type `--symptom` back" in row, row
+    assert "the read that names `pick` and nothing else" in payload["retry"]["argv"]
+    # A retry whose every field survives is the row it always was: no clause, nothing replaced.
+    _, plain = _refusal(outlined, _unanchored(outlined))
+    assert "type `" not in plain and "…" not in _retry_line(plain), plain
+
+
+@pytest.mark.parametrize("shell", SHELLS)
+def test_the_retry_row_arrives_in_every_shell_as_printed(outlined, tmp_path_factory, shell):
+    """The claim the substitution makes, checked where it is made: in each shell on this
+    machine, the line the row prints delivers the argv it composed — the caller's own call,
+    the address this run derived, and a `…` in the one slot no spelling carries. RK1635's
+    instrument, one door over."""
+    payload, said = _refusal(outlined, BACKTICKED)
+    delivered = argv_after(shell, _retry_line(said), at=tmp_path_factory.mktemp("echo"))
+    if delivered is None:
+        pytest.skip(f"{shell} is not on this machine")
+    assert delivered[delivered.index("--symptom") + 1] == "…", delivered
+    assert delivered[-2:] == ["--ref", payload["retry"]["address"]], delivered
 
 
 # -- the other command in the same refusal (RK1642) ---------------------------

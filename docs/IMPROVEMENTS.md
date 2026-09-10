@@ -107,26 +107,6 @@ What must not happen is a fifth spelling of the same sentence: four sites alread
 
 ## Block D — The gate
 
-### §RK1672 The other pasted line
-
-RK1667 taught `capturing.offer` to ask `provenance.survives` before printing a line, and
-one refused `add` prints **both** doors: the retry row, and the capture offer under it.
-Measured on an outline project with a symptom naming `pick` in backticks — the offer
-replaced the token and said so, and the retry two lines above it carried the span
-verbatim.
-
-The retry is the door that costs most to get wrong. RK1149 built it because the refusal
-had already derived the one token the caller was missing, and the alternative was a
-sentence to read, extract and retype; RK1600 published the argv beside it for the same
-reason. So it is composed *to be pasted*, and pasting it into the shell this repository
-is developed at runs whatever the backticks enclose.
-
-What is not obvious is whether it takes RK1667's answer unchanged. That door replaces
-the token with `…` and asks for one field back; here the caller's own prose is the
-*whole* of what the retry re-sends, and a retry with a placeholder in it is a call they
-have to complete rather than one they can run — which may be an argument for the
-payload's `argv` instead, already published and never quoted.
-
 ## Block E — Adoption
 
 ### §RK1673 The two tables no verb tunes

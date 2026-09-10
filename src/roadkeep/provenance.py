@@ -596,6 +596,62 @@ def survives(word: str) -> bool:
     return not _CMD_VARIABLE.search(word)
 
 
+def deliverable(argv: Sequence[str]) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    """The argv with every token no shell delivers replaced, and what those were (RK1667).
+
+    :func:`survives` is the rule and this is it over a whole call. Measured per shell by
+    RK1635: a door carrying a symptom with a backtick in it — which is how this project writes
+    about its own verbs, in 346 of its own fields — runs the span as a command substitution in
+    the POSIX shell this repository is developed at, and hands the tool a claim with the words
+    gone.
+
+    The **flag** it belongs to and not the position, where there is one: what a reader has to
+    retype is `--symptom`, and a `…` in the fourth slot is a placeholder they have to count to.
+
+    Here rather than in :mod:`roadkeep.capturing` since RK1672, which is the task that found
+    the second composer: one refused write prints two pasteable lines — the retry, and the
+    capture offer under it — and only the second one asked. Two spellings of one rule is what
+    that cost, so the rule is one function and the two rows render it.
+    """
+    out: list[str] = []
+    eaten: list[str] = []
+    for index, word in enumerate(argv):
+        if survives(word):
+            out.append(word)
+            continue
+        out.append("…")
+        before = argv[index - 1] if index else ""
+        eaten.append(before if before.startswith("--") else f"argument {index + 1}")
+    return tuple(out), tuple(dict.fromkeys(eaten))
+
+
+def named_flags(eaten: Sequence[str]) -> str:
+    """`--symptom`, or `--symptom and --why`, as a clause about them reads them (RK1667).
+
+    Not `named`, which this module already spells for a module path: two questions, and the
+    collision is not hypothetical — the first spelling of this shadowed it and every refusal
+    in the package raised a `TypeError` out of `witness`.
+    """
+    spelled = [f"`{one}`" if one.startswith("--") else one for one in eaten]
+    if len(spelled) == 1:
+        return spelled[0]
+    return f"{', '.join(spelled[:-1])} and {spelled[-1]}"
+
+
+def retype(eaten: Sequence[str]) -> str:
+    """The clause a **retry** carries where a token of it does not survive the paste (RK1672).
+
+    Short, and that is the decision rather than an omission. The capture offer's own clause
+    argues the whole case — a reader there is being told *not* to paste bytes the shell would
+    eat — and this row is the caller's own call with one address changed, printed to be run: an
+    author who wrote the field is looking at it, so what they need is which one to type back.
+
+    Self-sufficient all the same. The longer sentence is one line further down and only where
+    that offer fires, so a row that leaned on it would explain itself by proximity.
+    """
+    return f"type {named_flags(eaten)} back: no shell delivers it as printed"
+
+
 def joined(argv: Sequence[str]) -> str:
     """A whole argv as one line every shell reads back as that argv (RK1580).
 

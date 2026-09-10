@@ -37,10 +37,11 @@ from __future__ import annotations
 
 import json
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
 from roadkeep import provenance
+from roadkeep.provenance import deliverable, retype
 from roadkeep.kernel.document import RoundTripError, StaleFile
 from roadkeep.kernel.schema import SchemaError
 
@@ -113,6 +114,30 @@ class _Retry:
     #: to compare it against its own to learn what this run worked out.
     address: str
 
+    @property
+    def row(self) -> str:
+        """The line the sentence carries: the call, spelled for a shell to run **verbatim**.
+
+        Every token no shell delivers is replaced here and nowhere else (RK1672). RK1667 taught
+        `capturing.offer` to ask `provenance.survives` before printing a line, and one refused
+        write prints two: this row, and that offer under it. Only the second one asked — so a
+        symptom naming a verb in backticks, which is how this project writes about its own,
+        arrived as `…` in the offer and verbatim in the row two lines above it, where a paste
+        runs the span as a command substitution and hands the tool a claim with the words gone.
+
+        The same answer and not a different one, because the argument is the same: the field is
+        the caller's own prose and they are looking at it, so retyping one costs less than a
+        retry that arrives with a span silently gone. What a retry with a `…` in it stops being
+        is *pasteable whole*, and that is what :attr:`eaten` says out loud.
+        """
+        spelled, _ = deliverable(self.door.argv)
+        return replace(self.door, argv=spelled).quoted
+
+    @property
+    def eaten(self) -> tuple[str, ...]:
+        """The flags of :attr:`row` whose value a paste would not deliver, in order (RK1672)."""
+        return deliverable(self.door.argv)[1]
+
     def payload(self) -> dict[str, object]:
         """``argv`` as a list, because every argv this package publishes goes on the wire as
         one — a consumer runs it (RK1324).
@@ -124,6 +149,12 @@ class _Retry:
         list would leave a consumer unable to tell *run this instead* from *run this first
         next time*. `what` is dropped for the same reason: a remedy door's sentence says what
         choosing it means, and here there is nothing to choose.
+
+        **Verbatim, where the row substitutes** (RK1672): a list on the wire is not quoted and
+        is not pasted, so the shape no shell carries is one this channel delivers exactly. The
+        two registers were already split for the quoting (RK1600) and this is that split doing
+        the work it was made for — a consumer that ran the row's `…` would be asking about a
+        literal ellipsis.
         """
         return {"argv": list(self.door.argv), "address": self.address}
 
@@ -190,6 +221,22 @@ def _retrying(error: Exception) -> _Retry | None:
         Door(argv=tuple(argv), what="the same call, with the address it was refused for"),
         offered,
     )
+
+
+def _retry_row(retry: _Retry) -> str:
+    """The retry as the sentence prints it, with the clause a substituted token earns (RK1672).
+
+    One function for the two branches of :func:`_refused`, which is the whole reason it is one:
+    a `SchemaError` and a `ValueError` both carry a retry, both rendered it inline, and a rule
+    added to one of them would have held on half the refusals that print one.
+
+    The clause is short and the capture offer's is not, deliberately — see
+    :func:`~roadkeep.provenance.retype`. It rides in parentheses after the line, which is where
+    a `foresee` row already puts what choosing it means.
+    """
+    eaten = retry.eaten
+    clause = f"  ({retype(eaten)})" if eaten else ""
+    return f"  retry    {retry.row}{clause}"
 
 
 def _foreseeing(error: SchemaError) -> Door | None:
@@ -335,7 +382,7 @@ def _refused(error: Exception) -> int:
             )
         retry = _retrying(error)
         if retry is not None:
-            rows.append(f"  retry    {retry.door.quoted}")
+            rows.append(_retry_row(retry))
         said = "\n".join(rows)
         print(said, file=sys.stderr)
         _payload(error, said, retry, foresee)
@@ -355,7 +402,7 @@ def _refused(error: Exception) -> int:
     # the SchemaError branch, because that is where `SectionExists` arrives — a ValueError.
     retry = _retrying(error)
     if retry is not None:
-        rows.append(f"  retry    {retry.door.quoted}")
+        rows.append(_retry_row(retry))
     said = "\n".join(rows)
     print(said, file=sys.stderr)
     # With an empty `refused` and not with a key omitted (RK1584): a refusal this class raises
