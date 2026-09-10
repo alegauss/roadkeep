@@ -79,30 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1656 The answer a dismissed target has none of
-
-`Backlog.resolve` reads the roadmap, the ledger and the deferred store, and a dep naming
-an id none of them holds is `deps.unknown`: *in neither the roadmap nor the changelog,
-so nothing can say whether it is done*. The dismissed store makes that sentence false —
-it says precisely what was decided, and names the premise under which it stays decided.
-
-RK92 is the same finding one store earlier. Before it, a dep on a paused line read as a
-missing id: the gate reported it, `pick` could not rank the line waiting on it, and the
-fix was a fifth `DepStatus` plus a `blocked-paused` readiness. The seventh role arrived
-without the sixth.
-
-What it costs is smaller than RK92's and is the same shape. Nothing *should* depend on a
-dismissal — the entry is a finding nobody filed — so the honest answer is not
-`DEFERRED`'s: a dep on one is work waiting on something this project decided not to do,
-which is closer to `deps.retired` than to a pause. That distinction is the design:
-whether the resolver gains a sixth status or the existing unresolvable branch gains a
-second sentence.
-
-**The measurement first.** Neither adopting corpus declares this store yet, so the
-population is this tool's own suite — which is exactly the state RK1084 found for the
-pair it wrote a rule for anyway, on the argument that a contradiction the format can
-express should not be silent.
-
 ### §RK1663 The blocks a finished label is not in
 
 RK1622 reads a pin's shape and gives it a row per block. The rows are the **roadmap's**

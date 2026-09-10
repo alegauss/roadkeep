@@ -90,6 +90,7 @@ line already there. Its refusal names `section add` against that line's own anch
 - ✅ **RK1650** **one of forty read-only verbs now refuses, and the rule that reading is never refused is prose in three places** — A read refuses only where the question cannot be asked of this project: a word its declarations exclude, or state that has to be made first — never an empty answer.
 - ✅ **RK1651** **three readings of one source claim to be complements of each other and no test holds any of the three claims** — The two string readings are a partition and the third is a finding scan: total is the half that matters, a string neither reads being a value both exemptions let through.
 - ✅ **RK1653** **five classes answer to notes and one is a gate report, so a sweep over the name is off for three whole test modules** — A sweep over a name exempts the receiver and never the file, and the register is total: a receiver nobody classified is a red, where a file-keyed row was a silence.
+- ✅ **RK1656** **a dep on a ruled-out finding resolves as unknown, which says nothing can answer about a file that answers exactly** — A dep on a recorded decision not to file is unresolvable and not deferred: a pause is revivable by resume, and what would lift this one is the premise breaking.
 
 ### §RK1362 Why a projection and not a wider read
 
@@ -238,6 +239,22 @@ Six of the twenty-five reads were never lists. `remedying.notes()` and
 `describing.notes()` return populations, and one of those calls was a whole module's
 exemption on its own — an attribute being called is not an attribute being read, which
 is the structural half of this repair and the half that needed no table at all.
+
+### §RK1656 Retired's answer, with the premise
+
+No sixth status, which was the open question. RK92's three clauses read the other way
+here: a dismissal is recorded, so not unknown; **not** revivable the way a pause is,
+`resume` being a door and a broken premise a judgement; and never in the roadmap at all.
+That is `retired`'s answer, and the fourth thing `UNRESOLVABLE` now names.
+
+What the sentence carries is the difference a status cannot: the **premise**, the claim
+whose breaking a `reopen` needs — so the dependent's reader is told what would change
+rather than that nothing will.
+
+`deps.retired` keeps its name and loses its claim. *Left without shipping* was false of
+a dismissal, which never entered the roadmap; the widened cause says what the four cases
+share and the detail says which one was met. A rename would spend an adopter's turn —
+their baseline and their `explain` spell it — to improve a word.
 
 ## Block D — The gate
 

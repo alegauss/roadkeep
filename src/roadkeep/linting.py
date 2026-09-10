@@ -3575,7 +3575,14 @@ def _deps(backlog: Backlog, task: Task, file: str, lineno: int) -> list[Finding]
                 Finding(
                     "deps.retired",
                     file,
-                    f"waits on {dep.id}, which left without shipping: "
+                    # *Nothing open will satisfy it* and no longer *left without shipping*
+                    # (RK1656): a dismissal never entered the roadmap, so the departure this
+                    # sentence asserted did not happen — and the detail beside it already says
+                    # which of the three cases it is. The code keeps its name for
+                    # `DepStatus.UNRESOLVABLE`'s reason, widened once already: an adopting
+                    # project has it in a baseline and an `explain`, and a rename spends their
+                    # turn to improve a word.
+                    f"waits on {dep.id}, which nothing open will satisfy: "
                     f"{resolution.detail}",
                     lineno,
                     task.id,

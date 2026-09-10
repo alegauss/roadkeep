@@ -364,12 +364,15 @@ class DepStatus(StrEnum):
     #: An id of this project that exists in neither file. A lint error (RK8), not a
     #: rendering choice: nothing downstream can tell whether it is done.
     UNKNOWN = "unknown"
-    #: Nothing the roadmap now holds open will satisfy it (RK432). Three things are that:
-    #: an external dep, by construction; a retired task, by decision; and a label with
-    #: nothing filed under it, because there is no line to ship. Widened from "outside the
+    #: Nothing the roadmap now holds open will satisfy it (RK432). **Four** things are that:
+    #: an external dep, by construction; a retired task, by decision; a label with nothing
+    #: filed under it, because there is no line to ship; and a **dismissed** finding (RK1656),
+    #: which is a decision not to file rather than a departure. Widened from "outside the
     #: backlog" when the third joined — a heading with no lines is declared *inside* the
     #: backlog, and what lifts the dependent is a first `add` under the label rather than
-    #: a `ship` of anything now open.
+    #: a `ship` of anything now open. The fourth is what makes the count worth stating: a
+    #: dismissal is recorded, so it is not unknown, and it is not revivable the way a pause
+    #: is — what would lift it is the premise breaking, which is a `reopen` and a judgement.
     UNRESOLVABLE = "unresolvable"
 
 
@@ -379,9 +382,9 @@ class Readiness(StrEnum):
     READY = "ready"
     BLOCKED = "blocked"
     #: Blocked by something that is not an open line, so no `ship` of anything the roadmap
-    #: now holds lifts it — what does is a `retire`, an `amend --dep`, or a first `add`
-    #: under a label declared before its lines (RK432). `pick` (RK11) must not offer these
-    #: as next work.
+    #: now holds lifts it — what does is a `retire`, an `amend --dep`, a first `add` under a
+    #: label declared before its lines (RK432), or a `reopen` where the blocker is a finding
+    #: this project ruled out (RK1656). `pick` (RK11) must not offer these as next work.
     OUTSIDE = "blocked-outside"
     #: Blocked on work somebody set aside (RK92). Not offered either — nobody is working
     #: the blocker — but unlike :attr:`OUTSIDE` the block lifts on a `resume`, so what has
@@ -532,6 +535,15 @@ class Backlog:
         module re-deciding what the file already guarantees.
         """
         return {} if self.store is None else dict(self.store.by_id())
+
+    def dismissed(self) -> dict[str, Entry]:
+        """Ids the dismissed store holds, with the entry that says what was ruled out.
+
+        :meth:`deferred`'s reader one store over and for its reason (RK1656): every line in
+        it, because the store's own status *is* 🚫 and the schema refuses any other there — so
+        filtering by marker would be this module re-deciding what the file guarantees.
+        """
+        return {} if self.dismissals is None else dict(self.dismissals.by_id())
 
     def retired(self) -> dict[str, Entry]:
         """Ids the ledger marks 🗑, with the line that says why they left."""
@@ -714,6 +726,21 @@ class Backlog:
             # it as a gap in the files would send the reader looking for a typo.
             return Resolution(
                 dep, kind, DepStatus.DEFERRED, f"set aside — {_clip(paused.task.why)}"
+            )
+        ruled_out = self.dismissed().get(dep.id)
+        if ruled_out is not None:
+            # **Unresolvable and not deferred** (RK1656), which is the seventh role arriving
+            # where RK92's fifth status did not fit. A pause is revivable — `resume` is the
+            # door and the line comes back with its own design — and a dismissal is a finding
+            # this project decided not to file, so nothing on the roadmap's own path satisfies
+            # a dep on one. That is `retired`'s answer two lines up, and the sentence carries
+            # what a retirement's cannot: the **premise**, which is the claim whose breaking
+            # is what a `reopen` needs, so the dependent's reader is told what would change.
+            return Resolution(
+                dep,
+                kind,
+                DepStatus.UNRESOLVABLE,
+                f"ruled out — {_clip(ruled_out.task.why)}",
             )
         return Resolution(
             dep, kind, DepStatus.UNKNOWN, "in neither the roadmap nor the changelog"

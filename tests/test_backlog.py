@@ -418,6 +418,42 @@ def test_a_block_whose_lines_were_all_set_aside_is_neither_of_the_two(tmp_path):
     assert "1 set aside" in standing.sentence
 
 
+def test_a_dep_on_a_ruled_out_finding_is_unresolvable_and_names_the_premise(tmp_path):
+    """RK1656. `Backlog.resolve` read three files, so a dep naming a dismissal was
+    `deps.unknown` — *in neither the roadmap nor the changelog, so nothing can say whether it
+    is done* — about a store that says precisely what was decided.
+
+    **Unresolvable and not deferred**, which is the answer RK92's fifth status does not give:
+    a pause is revivable and `resume` is its door, and a dismissal is a finding this project
+    decided not to file, so nothing the roadmap holds open satisfies a dep on one. The
+    sentence carries the **premise**, which is what a retirement's cannot: the claim whose
+    breaking is what a `reopen` needs, so the dependent's reader is told what would change.
+    """
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n'
+        'changelog = "CHANGELOG.md"\ndismissed = "DISMISSED.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text(
+        "## Block A — The model\n" + line("RK9", "RK2"), encoding="utf-8"
+    )
+    (tmp_path / "CHANGELOG.md").write_text("## Block A — The model\n", encoding="utf-8")
+    (tmp_path / "DISMISSED.md").write_text(
+        "## Block A — The model\n"
+        "- 🚫 **RK2** **A finding traced and left alone** — "
+        "holds while (the caller validates first): the path is unreachable.\n",
+        encoding="utf-8",
+    )
+    backlog = Backlog.load(Config.discover(tmp_path))
+    (resolution,) = backlog.resolve(backlog.entry("RK9").task)
+    assert resolution.status is DepStatus.UNRESOLVABLE
+    assert "ruled out" in resolution.detail
+    assert "the caller validates first" in resolution.detail, "the premise, which is the half"
+    # And the line is blocked in the sense nothing open lifts, which is what keeps `pick`
+    # from offering it: a `ship` of anything the roadmap holds changes nothing here.
+    assert backlog.readiness(backlog.entry("RK9").task) is Readiness.OUTSIDE
+
+
 def test_the_sentence_each_state_answers_with(tmp_path):
     # Spelled verbatim once, here, where it is written. Every other test asserts the word
     # or the distinguishing prefix, so a reword is one edit rather than four.

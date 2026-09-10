@@ -1343,9 +1343,12 @@ _TABLE: Mapping[str, _Rule] = {
         (("amend", "{id}", "--dep", BLANK), "the dep was mistyped; state the right one"),
         (("gaps",), "read where the id went before deciding it is gone"),
     ),
+    # Three cases and one remedy (RK1656): a retirement, a dismissal, and a label declared
+    # before its lines. The cause says what they share — nothing the roadmap now holds open
+    # satisfies the dep — because the finding's own detail names which one it met.
     "deps.retired": _compose(
         ("amend", "{id}", "--dep", BLANK),
-        "the dep left without shipping, so the line waits on nothing; restate the deps "
+        "nothing open will satisfy the dep, so the line waits on nothing; restate the deps "
         "it actually has",
     ),
     "deps.block": _read(

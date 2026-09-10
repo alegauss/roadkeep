@@ -494,6 +494,7 @@
 - ✅ **RK1650** **one of forty read-only verbs now refuses, and the rule that reading is never refused is prose in three places** — The rule is one sentence in verbs/refusing.py with its two grounds, held over asking.QUESTIONS against a project that declared only the scaffold.
 - ✅ **RK1651** **three readings of one source claim to be complements of each other and no test holds any of the three claims** — The two scans read one _shown_at, so they are complements by construction, and a property over surface.modules holds that they tile every non-prose string.
 - ✅ **RK1653** **five classes answer to notes and one is a gate report, so a sweep over the name is off for three whole test modules** — The exemption is keyed by the receiver and held total against the suite, so three whole modules are swept again and a called notes() is not a list.
+- ✅ **RK1656** **a dep on a ruled-out finding resolves as unknown, which says nothing can answer about a file that answers exactly** — A dep on a dismissal resolves unresolvable with the premise in its sentence, and the finding that names it stopped asserting a departure that did not happen.
 
 ## Block D — The gate
 
