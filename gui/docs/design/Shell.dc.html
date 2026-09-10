@@ -25,7 +25,7 @@
   <div style="width:920px;flex:0 0 auto;padding:26px 0 26px 28px;display:flex;flex-direction:column;gap:12px">
     <div style="display:flex;align-items:baseline;gap:10px">
       <span style="font-size:11px;font-weight:600;letter-spacing:0.09em;color:#b45309">THE SHELL, ADOPTED ONCE</span>
-      <span style="font-size:12px;color:#737373">the rail, the palette, the shortcuts dialog, the back-to-top</span>
+      <span style="font-size:12px;color:#737373">the rail, the palette, the shortcuts dialog, the language menu, the footer, the back-to-top</span>
     </div>
 
     <div style="position:relative;flex:1;border-radius:16px;background:#ffffff;border:1px solid #e5e5e5;overflow:hidden;box-shadow:0 30px 60px -40px rgba(0,0,0,0.45)">
@@ -40,13 +40,19 @@
         <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;color:#737373"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 3.6v2M12 18.4v2M20.4 12h-2M5.6 12h-2M17.9 6.1l-1.4 1.4M7.5 16.5l-1.4 1.4M17.9 17.9l-1.4-1.4M7.5 7.5L6.1 6.1"></path></svg></div>
       </div>
 
-      <!-- header -->
-      <div style="position:absolute;left:0;right:0;top:0;height:80px;z-index:4;display:flex;align-items:center;gap:16px;padding:0 22px 0 18px;background:rgba(255,255,255,0.55);backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%);border-bottom:1px solid rgba(229,229,229,0.4)">
-        <div style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9px;background-image:linear-gradient(to bottom right,#fbbf24,#f59e0b);color:#7c2d12"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V7a2 2 0 0 1 2-2h7l3 3h2a2 2 0 0 1 2 2v9"></path><path d="M4 19h16"></path></svg></div>
+      <!-- header: the window's, control for control (RG127). The shortcuts `?` sits in the
+           corner BentoUserMenu would have had, which is where RG63 put it; `data-control`
+           is what artboards.test.tsx holds against the rendered header. -->
+      <div data-region="header" style="position:absolute;left:0;right:0;top:0;height:80px;z-index:4;display:flex;align-items:center;gap:16px;padding:0 22px 0 18px;background:rgba(255,255,255,0.55);backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%);border-bottom:1px solid rgba(229,229,229,0.4)">
+        <div style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9px;background-image:linear-gradient(to bottom right,#fbbf24,#f59e0b);color:#7c2d12;flex:0 0 auto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V7a2 2 0 0 1 2-2h7l3 3h2a2 2 0 0 1 2 2v9"></path><path d="M4 19h16"></path></svg></div>
         <div style="font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:17px;font-weight:600;letter-spacing:-0.015em;margin-left:10px">roadkeep</div>
-        <div style="flex:1"></div>
-        <div style="display:inline-flex;align-items:center;height:30px;padding:0 11px;border:1px solid #e5e5e5;border-radius:8px;font-size:12px;font-weight:500;background:#ffffff">ground: light</div>
-        <div style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border:1px dashed #d4d4d4;border-radius:8px;color:#c4c4c4;font-size:10px">—</div>
+        <div data-control="palette-trigger" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex:1;min-width:0;height:30px;padding:0 11px;border:1px solid #e5e5e5;border-radius:8px;background:#ffffff;box-shadow:0 1px 2px rgba(0,0,0,0.05)">
+          <span class="clip" style="font-size:12px;font-weight:500;color:#737373">Find a line in every backlog</span>
+          <span class="mono" style="font-size:10.5px;color:#737373">Ctrl K</span>
+        </div>
+        <div data-control="shortcuts" style="display:inline-flex;align-items:center;justify-content:center;height:30px;padding:0 11px;border-radius:8px"><span class="mono" style="font-size:11.5px;color:#0a0a0a">?</span></div>
+        <div data-control="language" style="display:inline-flex;align-items:center;justify-content:center;height:34px;padding:0 14px;border:2px solid #b45309;border-radius:8px;color:#b45309;box-sizing:border-box"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path></svg></div>
+        <div data-control="ground" style="display:inline-flex;align-items:center;height:30px;padding:0 11px;border:1px solid #e5e5e5;border-radius:8px;font-size:12px;font-weight:500;background:#ffffff;box-shadow:0 1px 2px rgba(0,0,0,0.05)">ground: light</div>
       </div>
 
       <!-- dimmed page behind the palette -->
@@ -55,6 +61,12 @@
         <div style="width:400px;height:26px;border-radius:8px;background:#e8e8e8;margin-bottom:10px"></div>
         <div style="width:560px;height:11px;border-radius:999px;background:#f0f0f0;margin-bottom:24px"></div>
         <div style="border:1px solid #ececec;border-radius:24px;height:300px;background:#ffffff"></div>
+      </div>
+      <!-- footer: AppFooter, the build line under every page (RG118). Part of the page, so it is
+           dimmed with it; full width, so the fixed rail draws over its start. -->
+      <div data-region="footer" style="position:absolute;left:0;right:0;bottom:0;z-index:2;background:#ffffff;filter:blur(1.5px);opacity:0.5">
+        <div style="margin:0 24px;border-top:1px solid #e5e5e5"></div>
+        <div style="display:flex;align-items:center;justify-content:center;padding:10px 24px;font-size:11px;line-height:18px;color:rgba(115,115,115,0.7)">roadkeep-gui 0.0.0 (c9583b0, source, unsigned)</div>
       </div>
       <div style="position:absolute;left:64px;right:0;top:80px;bottom:0;background:rgba(10,10,10,0.18)"></div>
 
@@ -110,7 +122,8 @@
       <div style="font-size:11px;font-weight:600;letter-spacing:0.09em;color:#b45309;margin-bottom:9px">ADOPTED, WITH ITS OWN NUMBERS</div>
       <div style="display:flex;flex-direction:column;gap:9px">
         <div style="display:flex;gap:10px"><span class="mono" style="font-size:11px;color:#a1a1a1;width:52px;flex:0 0 auto;padding-top:1px">64px</span><div style="font-size:12.5px;line-height:1.45;color:#404040"><span style="font-weight:600;color:#171717">Nav rail</span> — fixed, hidden below 768px, frosted at 55% with blur(16px); its items start at 80px so the header clears them.</div></div>
-        <div style="display:flex;gap:10px"><span class="mono" style="font-size:11px;color:#a1a1a1;width:52px;flex:0 0 auto;padding-top:1px">80px</span><div style="font-size:12.5px;line-height:1.45;color:#404040"><span style="font-weight:600;color:#171717">Header</span> — spans the rail, same frosting, 1px border at 40% opacity.</div></div>
+        <div style="display:flex;gap:10px"><span class="mono" style="font-size:11px;color:#a1a1a1;width:52px;flex:0 0 auto;padding-top:1px">80px</span><div style="font-size:12.5px;line-height:1.45;color:#404040"><span style="font-weight:600;color:#171717">Header</span> — spans the rail, same frosting. The palette grows into it, then <span class="mono" style="font-size:11px">?</span>, the language menu in a 2px accent outline, and the ground.</div></div>
+        <div style="display:flex;gap:10px"><span class="mono" style="font-size:11px;color:#a1a1a1;width:52px;flex:0 0 auto;padding-top:1px">12px</span><div style="font-size:12.5px;line-height:1.45;color:#404040"><span style="font-weight:600;color:#171717">Footer</span> — <span class="mono" style="font-size:11px">AppFooter</span>, the build line under every page (RG118).</div></div>
         <div style="display:flex;gap:10px"><span class="mono" style="font-size:11px;color:#a1a1a1;width:52px;flex:0 0 auto;padding-top:1px">20px</span><div style="font-size:12.5px;line-height:1.45;color:#404040"><span style="font-weight:600;color:#171717">Command palette</span> — popover at 78%, blur(22px) saturate(180%), Ctrl K.</div></div>
         <div style="display:flex;gap:10px"><span class="mono" style="font-size:11px;color:#a1a1a1;width:52px;flex:0 0 auto;padding-top:1px">24px</span><div style="font-size:12.5px;line-height:1.45;color:#404040"><span style="font-weight:600;color:#171717">Tiles and panels</span> — the package's ladder is 24 here, 20 on the palette, 16 on a card nested inside a panel. A −3px lift on hover, a 600ms entry staggered 20→380ms.</div></div>
         <div style="display:flex;gap:10px"><span class="mono" style="font-size:11px;color:#a1a1a1;width:52px;flex:0 0 auto;padding-top:1px">0→1</span><div style="font-size:12.5px;line-height:1.45;color:#404040"><span style="font-weight:600;color:#171717">Save-bar morph</span> — one scroll-driven property fades the hero out and the sticky bar in.</div></div>
@@ -148,15 +161,8 @@
       <div style="font-size:11px;font-weight:600;letter-spacing:0.09em;color:#c10007;margin-bottom:8px">LEFT OUT ON PURPOSE</div>
       <div style="border:1px solid rgba(251,44,54,0.3);background:rgba(251,44,54,0.05);border-radius:16px;padding:11px 13px">
         <div style="font-size:12.5px;font-weight:600;margin-bottom:4px">BentoUserMenu</div>
-        <div style="font-size:12px;color:#404040;line-height:1.45">Its props are <span class="mono" style="font-size:11px">accountRoute</span> and <span class="mono" style="font-size:11px">logoutUrl</span> — it exists to sign somebody out. The non-goal <span style="color:#c10007">no account, no auth and no remote store in the desktop build</span> forbids exactly that, so it is absent rather than passed empty strings.</div>
-      </div>
-    </div>
-
-    <div>
-      <div style="font-size:11px;font-weight:600;letter-spacing:0.09em;color:#737373;margin-bottom:8px">ARRIVES WITH THIS LINE</div>
-      <div style="display:flex;flex-direction:column;gap:7px">
-        <div style="font-size:12.5px;color:#404040;line-height:1.45"><span class="mono" style="font-size:11.5px;color:#171717">react-router-dom</span> — a declared peer npm did not pull; routing arrives here.</div>
-        <div style="font-size:12.5px;color:#404040;line-height:1.45">Every nav label is an i18next key (<span class="mono" style="font-size:11.5px">titleKey</span>, <span class="mono" style="font-size:11.5px">descriptionKey</span>) resolved by the package's own i18next — which is RG88's question, and why it is a dep.</div>
+        <div style="font-size:12px;color:#404040;line-height:1.45">Its props are <span class="mono" style="font-size:11px">accountRoute</span> and <span class="mono" style="font-size:11px">logoutUrl</span> — it exists to sign somebody out. The non-goal <span style="color:#c10007">no account, no auth and no remote store in the desktop build</span> forbids exactly that, so it is absent rather than passed empty strings, and the shortcuts <span class="mono" style="font-size:11px">?</span> takes its corner.</div>
+        <div style="font-size:12px;color:#404040;line-height:1.45;margin-top:8px"><span style="font-size:12.5px;font-weight:600;color:#0a0a0a">LanguageSelect</span> — each row's flag comes from <span class="mono" style="font-size:11px">flagcdn.com</span>, which the packaged policy refuses (RG124).</div>
       </div>
     </div>
 

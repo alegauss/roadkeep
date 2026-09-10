@@ -311,31 +311,6 @@ the line. Dark is untouched, the package re-pointing that token there already.
 
 What is left here is adopting the release that carries it, and enforcing the pair.
 
-### §RG127 The drawings are behind the chrome they drew
-
-`docs/design/Main.dc.html` draws the header as a wordmark, the palette, a pill, `EN` and
-a ground button. The window now draws a wordmark, the palette, a `?` button, a language
-menu and a ground button, and carries a footer naming the build under every page. RG63
-added the first of those, RG116 the second, RG118 the third; none of them redrew the
-artboard.
-
-That is the same class RG109 closed once and it will recur, because the drawings are the
-input to work and the chrome is the output of it. It matters more than a stale picture
-usually would: these files are what the next screen is designed against, so a person
-laying out the project surface measures a header that has one control fewer than the one
-their screen will open inside.
-
-One correction is already known rather than guessed. The pill on that trailing edge is
-`roadkeep 0.2.411` behind an amber dot -- the *engine*'s version and its agreement
-state, which RG118's own design misread as the app's build and nearly put in the header
-for that reason. A redraw should keep it and label it, because that chip is a real thing
-this app will need and it is not this one.
-
-The cheap fix is to redraw the two artboards that carry chrome, `Main` and `Shell`. The
-question worth answering first is whether anything can hold them:
-`viglet-ds-page-reference --check` keeps the vendored `vds-` pages current, and nothing
-at all watches this repository's own.
-
 ### §RG132 The one word this app cannot translate
 
 RG123 pointed the pseudo-locale run at the whole document with the shortcuts sheet and
@@ -383,3 +358,26 @@ the icon a bento item carries can be a tabler component rather than a name, so a
 over `AREAS` asserting no item names a string is a check on this repository's own data
 rather than on somebody's bundle — cheap, fast, and it fails on the line being written
 rather than after a build.</section_body> </invoke>
+
+### §RG136 A mark only the drawings have
+
+`Main.dc.html` and `Shell.dc.html` open the header with a 28px amber square — a folder
+glyph on the amber gradient — and then the wordmark, 30px apart. The window renders the
+wordmark alone: `<span class="font-brand">roadkeep</span>`, and nothing before it.
+
+RG127 redrew the header control for control and held it with `data-control`, and
+deliberately left the mark alone: the line named controls and regions, and the mark is
+neither. So the check is green over a header whose first 58 pixels are drawn and not
+rendered, which is the class of gap RG127 was about, one step to the left.
+
+It is a decision and not a defect, and it has two honest answers. **The mark is the
+direction.** `Main` is the direction RG63 adopted, the rows below use the same glyph and
+gradient for every project, and the app would carry it too — a small component, and the
+header's first element. **Or the mark was the canvas's.** Nothing in the design system
+ships one, a desktop app has its own icon in the title bar and the taskbar, and the
+drawing drops it to measure like the window.
+
+What should not survive is the third state, the one now: drawn in one place and absent
+in the other, with nothing saying which is the intent. Whichever lands, the artboard's
+header gains a `data-region="brand"` and the check grows a line, so the next divergence
+at that end is a red run and not a person measuring.</section_body> </invoke>

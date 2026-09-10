@@ -176,8 +176,14 @@ export function AppShell() {
          * now speaking. The alternative in the package, `LanguageSelect`, draws each row's
          * flag from `flagcdn.com`: a network request out of a desktop app that reads local
          * repositories, on a screen that works offline by design.
+         *
+         * The span is a handle and not a box: `contents` takes it out of the header's flex
+         * layout, and it gives the one control the package renders a `data-testid` like the
+         * other three — which is what `artboards.test.tsx` holds the drawings against (RG127).
          */}
-        <LanguageSwitcher languages={LOCALE_ROWS} />
+        <span className="contents" data-testid="language">
+          <LanguageSwitcher languages={LOCALE_ROWS} />
+        </span>
 
         {/*
          * The ground says which of the three it is set to and not which of the two it

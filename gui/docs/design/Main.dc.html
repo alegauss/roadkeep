@@ -44,29 +44,38 @@
     </div>
   </nav>
 
-  <!-- header: 80px, frosted, spans the rail -->
-  <header style="position:absolute;left:0;right:0;top:0;height:80px;z-index:5;display:flex;align-items:center;gap:20px;padding:0 28px 0 18px;background:rgba(255,255,255,0.55);backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%);border-bottom:1px solid rgba(229,229,229,0.4)">
+  <!-- header: 80px, frosted, spans the rail. Drawn control for control from the window
+       (RG127): the palette RG63 added, the language menu RG116 added, and the shortcuts button
+       in the corner a user menu would have had. `data-control` names each by the handle the
+       window's own tests find it with, and artboards.test.tsx holds the two sets equal. -->
+  <header data-region="header" style="position:absolute;left:0;right:0;top:0;height:80px;z-index:5;display:flex;align-items:center;gap:16px;padding:0 28px 0 18px;background:rgba(255,255,255,0.55);backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%);border-bottom:1px solid rgba(229,229,229,0.4)">
     <div style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9px;background-image:linear-gradient(to bottom right,#fbbf24,#f59e0b);color:#7c2d12;flex:0 0 auto">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V7a2 2 0 0 1 2-2h7l3 3h2a2 2 0 0 1 2 2v9"></path><path d="M4 19h16"></path></svg>
     </div>
-    <div style="font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:18px;font-weight:600;letter-spacing:-0.015em;margin-left:10px">roadkeep</div>
+    <div style="font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:18px;font-weight:600;letter-spacing:-0.015em;margin-left:14px">roadkeep</div>
 
-    <div style="display:flex;align-items:center;gap:8px;width:440px;height:36px;padding:0 12px;margin-left:24px;border:1px solid #e5e5e5;border-radius:10px;background:#ffffff">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#737373" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.4-4.4"></path></svg>
-      <span style="font-size:13px;color:#737373;flex:1">Find a line in every backlog</span>
-      <span class="mono" style="display:inline-flex;align-items:center;height:20px;padding:0 6px;border:1px solid #e5e5e5;border-radius:6px;font-size:11px;color:#737373">Ctrl K</span>
+    <!-- the palette trigger grows into the header, as `flex-1` makes it in the window -->
+    <div data-control="palette-trigger" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex:1;min-width:0;height:32px;padding:0 12px;border:1px solid #e5e5e5;border-radius:8px;background:#ffffff;box-shadow:0 1px 2px rgba(0,0,0,0.05)">
+      <span class="clip" style="font-size:13px;font-weight:500;color:#737373">Find a line in every backlog</span>
+      <span class="mono" style="font-size:11.5px;color:#737373">Ctrl K</span>
     </div>
 
-    <div style="flex:1"></div>
-
-    <div class="mono" style="display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 10px;border-radius:999px;background:#f5f5f5;color:#525252;font-size:11.5px">
-      <span style="width:6px;height:6px;border-radius:999px;background:#fe9a00"></span>roadkeep 0.2.411
+    <!-- The engine a project answers to — which RG118's design misread as the app's build.
+         Not in the window yet, so it is drawn dashed and carries no data-control: a chip this
+         app will need, and not the build line, which is the footer below. -->
+    <div class="mono" style="display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 10px;border:1px dashed #d4d4d4;border-radius:999px;color:#525252;font-size:11.5px">
+      <span style="width:6px;height:6px;border-radius:999px;background:#fe9a00"></span><span style="font-family:Inter,sans-serif;font-size:9.5px;font-weight:600;letter-spacing:0.08em;color:#a1a1a1">ENGINE</span>roadkeep 0.2.411
     </div>
-    <div style="display:inline-flex;align-items:center;height:32px;padding:0 11px;border:1px solid #e5e5e5;border-radius:8px;font-size:12.5px;font-weight:500">EN</div>
-    <div style="display:inline-flex;align-items:center;height:32px;padding:0 12px;border:1px solid #e5e5e5;border-radius:8px;font-size:12.5px;font-weight:500;color:#0a0a0a">ground: light</div>
+
+    <div data-control="shortcuts" style="display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 12px;border-radius:8px"><span class="mono" style="font-size:12px;color:#0a0a0a">?</span></div>
+    <!-- the package's LanguageSwitcher: an icon, a 2px outline in the accent, no flag (RG124) -->
+    <div data-control="language" style="display:inline-flex;align-items:center;justify-content:center;height:36px;padding:0 16px;border:2px solid #b45309;border-radius:8px;color:#b45309;box-sizing:border-box">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path></svg>
+    </div>
+    <div data-control="ground" style="display:inline-flex;align-items:center;height:32px;padding:0 12px;border:1px solid #e5e5e5;border-radius:8px;background:#ffffff;box-shadow:0 1px 2px rgba(0,0,0,0.05);font-size:12.5px;font-weight:500;color:#0a0a0a">ground: light</div>
   </header>
 
-  <main style="position:absolute;left:64px;right:0;top:80px;bottom:0;overflow:hidden">
+  <main style="position:absolute;left:64px;right:0;top:80px;bottom:45px;overflow:hidden">
     <div style="max-width:1120px;margin:0 auto;height:100%;padding:26px 36px 0">
 
     <!-- hero -->
@@ -330,6 +339,15 @@
 
     </div>
   </main>
+
+  <!-- footer: the package's AppFooter, one build line under every page (RG118). Full width as
+       in the window, where it sits outside the rail's gutter — the fixed rail draws over its
+       start. The line is what `saidOfBuild` composes, read off this repository: version,
+       commit, how it was run, and whether it is signed. -->
+  <footer data-region="footer" style="position:absolute;left:0;right:0;bottom:0;z-index:3;background:#ffffff">
+    <div style="margin:0 24px;border-top:1px solid #e5e5e5"></div>
+    <div style="display:flex;align-items:center;justify-content:center;padding:12px 24px;font-size:12px;line-height:20px;color:rgba(115,115,115,0.7)">roadkeep-gui 0.0.0 (c9583b0, source, unsigned)</div>
+  </footer>
 
   <!-- Required by the shell's set: docs/design/vds-shell.dc.html -->
   <div style="position:absolute;right:24px;bottom:24px;z-index:6;display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:999px;background:rgba(255,255,255,0.86);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(229,229,229,0.7);box-shadow:0 10px 24px -12px rgba(0,0,0,0.3);color:#404040">

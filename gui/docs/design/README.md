@@ -1,13 +1,13 @@
 # The design canvas
 
-Nine artboards drawing this app's screens, and the manifest that lays them out. Published
-as a canvas at <https://claude.ai/code/artifact/30eca0a9-a607-4109-92b2-b489988ccbd5>.
+Nine artboards drawing this app's screens, and the manifest that lays them out.
 
-These files are the source; the published page is generated. Claude Code's `design` skill
-wraps them in an editor with `seed-canvas.mjs`, and that output is two megabytes of
-machinery around content this directory already holds, so it is not kept here. Re-seed from
-these files to republish to the same URL, and extract from the published page when somebody
-has saved a version in the browser — never edit both ends.
+These files are the source, and there is no published canvas: the one they were first
+published to was deleted on 2026-09-09. Each `.dc.html` opens straight from the file tree.
+Claude Code's `design` skill can wrap them in an editor again with `seed-canvas.mjs` — two
+megabytes of machinery around content this directory already holds, so it is not kept here
+— and a canvas published that way is a new address, extracted back into these files when
+somebody saves a version in the browser. Never edit both ends.
 
 Every `.dc.html` is one artboard. `canvas.json` places them, names the two pages and picks
 the view a fresh open lands on.
@@ -30,3 +30,11 @@ shell — `Main.dc.html` is the direction, and the chrome around it is the desig
 The rail's colour was RG105, now shipped: the rail is drawn grey in `Shell.dc.html`
 because that is what the package rendered before it. The face
 became a criterion of block H rather than a task, there being no code to change yet.
+
+**The chrome in `Main` and `Shell` is held to the window** (RG127). Three lines changed the
+header and footer without redrawing either, and a person laying out the next screen measured
+a header a control short. So each control the window renders is drawn with a `data-control`
+naming the handle its tests find it by, the header and footer are marked with
+`data-region`, and `packages/ui/src/artboards.test.tsx` renders the window and requires the
+two to agree in order. Something drawn that the window does not render yet — the engine chip
+in `Main` — is drawn dashed and left unmarked.
