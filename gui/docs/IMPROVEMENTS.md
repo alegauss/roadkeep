@@ -11,33 +11,6 @@ rather than pretending it is safe. Spawning without a shell removes the quoting 
 but not the encoding one. What proves it is a round trip: write a symptom carrying an
 accent, an apostrophe and an em dash, read it back with show, and compare the bytes.
 
-### §RG131 The signal the held transport does not read
-
-`EngineRequest` carries a `signal` because a screen redrawing while reads are in flight
-is the ordinary case, and two of the three transports honour it. The pool checks it
-after the wait, so a call cancelled while queued never becomes a process. The process
-transport listens for `abort` and kills the child it started. The held transport does
-neither: `send` writes a frame, sets a timer and waits, and a cancellation reaches
-nothing.
-
-Since RG122 that is the transport every read goes through, so the app's own open path is
-the one that cannot cancel.
-
-What it costs is worth naming rather than guessing at. A held read is about six
-milliseconds, so the work a cancelled call finishes is six milliseconds of one server's
-time — not an interpreter start, and not a screen anybody waits on. What is left over is
-the frame: the reply arrives, `deliver` finds no waiter, and it is dropped, which is
-what a timed-out call already does.
-
-So this is a consistency defect before it is a performance one. A caller passing a
-signal is told nothing about which transport it landed on, and a portfolio read that
-cancels seventeen projects still pays all seventeen — small, but the number a person
-predicts from reading `transport.ts` is zero.
-
-The protocol has `notifications/cancelled`. Whether this build's server acts on it is
-the first thing to measure, and refusing the promise locally is the floor if it does
-not.
-
 ### §RG135 The fallback that forgets why it fell back
 
 RG122 made a failed handshake a fall-through: an engine too old to have `mcp`, one whose

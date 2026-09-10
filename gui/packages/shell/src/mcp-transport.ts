@@ -1,6 +1,12 @@
 import { spawn, spawnSync, type ChildProcess } from 'node:child_process'
 
-import { EngineCallFailed, type EngineRequest, type EngineResult, type Transport } from '@rk/core'
+import {
+  EngineCallFailed,
+  type CancelSignal,
+  type EngineRequest,
+  type EngineResult,
+  type Transport,
+} from '@rk/core'
 
 /**
  * The third transport: one engine process per project, kept, spoken to over stdio (RG101).
@@ -70,6 +76,23 @@ interface Waiting {
   readonly settle: (frame: Frame) => void
   readonly fail: (cause: Error) => void
   readonly timer: ReturnType<typeof setTimeout> | null
+}
+
+/**
+ * A call that ended without an answer while the server went on living — as against the
+ * process being gone, which is what every other rejection here is.
+ *
+ * Its own type because the two mean different things to `run`: an unanswered call leaves
+ * the engine held and usable, and a dead one is dropped so the next call starts another.
+ * The reason used to be read back out of the message, which is a sentence and not a field.
+ */
+class Unanswered extends Error {
+  constructor(
+    readonly reason: 'timeout' | 'aborted',
+    message: string,
+  ) {
+    super(message)
+  }
 }
 
 export interface McpTransportOptions {
@@ -224,27 +247,88 @@ class Held {
     this.waiting.clear()
   }
 
-  private send(method: string, params: unknown, timeoutMs: number): Promise<Frame> {
+  /**
+   * One request, and the promise its answer settles.
+   *
+   * **A cancellation is honoured here and not only in the pool** (RG131). The pool refuses
+   * a call cancelled while it waited for a slot, and the process transport kills a child
+   * cancelled mid-flight; this did neither, so the transport every read goes through since
+   * RG122 was the one a redraw could not stop. Now the caller is let go at once and the
+   * frame that arrives later finds no waiter and is dropped — which is what a timed-out call
+   * already did.
+   */
+  private send(
+    method: string,
+    params: unknown,
+    timeoutMs: number,
+    signal?: CancelSignal,
+  ): Promise<Frame> {
     if (this.ended !== null) return Promise.reject(this.ended)
+    if (signal?.aborted === true) {
+      return Promise.reject(new Unanswered('aborted', 'the caller cancelled the call'))
+    }
 
     const id = (this.nextId += 1)
     return new Promise<Frame>((resolve, reject) => {
-      const timer =
-        timeoutMs > 0
-          ? setTimeout(() => {
-              this.waiting.delete(id)
-              reject(new Error(`the engine did not answer ${method} within ${String(timeoutMs)}ms`))
-            }, timeoutMs)
-          : null
+      let timer: ReturnType<typeof setTimeout> | null = null
 
-      this.waiting.set(id, { settle: resolve, fail: reject, timer })
+      const onAbort = () => {
+        if (!this.waiting.delete(id)) return
+        if (timer !== null) clearTimeout(timer)
+        // Told as well as abandoned. Measured on 0.2.457: a `lint` cancelled a millisecond
+        // after it was sent was still answered, in full, 125ms later — this build does not
+        // act on the notice. Sent anyway, because it costs one frame and a build that does
+        // act on it stops the work without a line here changing.
+        this.notify('notifications/cancelled', {
+          requestId: id,
+          reason: 'the caller cancelled the call',
+        })
+        reject(new Unanswered('aborted', 'the caller cancelled the call'))
+      }
+
+      if (timeoutMs > 0) {
+        timer = setTimeout(() => {
+          this.waiting.delete(id)
+          signal?.removeEventListener('abort', onAbort)
+          reject(
+            new Unanswered(
+              'timeout',
+              `the engine did not answer ${method} within ${String(timeoutMs)}ms`,
+            ),
+          )
+        }, timeoutMs)
+      }
+
+      signal?.addEventListener('abort', onAbort)
+      this.waiting.set(id, {
+        settle: (frame) => {
+          signal?.removeEventListener('abort', onAbort)
+          resolve(frame)
+        },
+        fail: (cause) => {
+          signal?.removeEventListener('abort', onAbort)
+          reject(cause)
+        },
+        timer,
+      })
       this.child.stdin?.write(`${JSON.stringify({ jsonrpc: '2.0', id, method, params })}\n`)
     })
   }
 
-  async call(tool: string, args: Readonly<Record<string, unknown>>, timeoutMs: number) {
+  /** A frame that expects no answer, which is what a JSON-RPC notification is. */
+  private notify(method: string, params: unknown): void {
+    if (this.ended !== null) return
+    this.child.stdin?.write(`${JSON.stringify({ jsonrpc: '2.0', method, params })}\n`)
+  }
+
+  async call(
+    tool: string,
+    args: Readonly<Record<string, unknown>>,
+    timeoutMs: number,
+    signal?: CancelSignal,
+  ) {
     await this.ready
-    return this.send('tools/call', { name: tool, arguments: args }, timeoutMs)
+    return this.send('tools/call', { name: tool, arguments: args }, timeoutMs, signal)
   }
 
   /**
@@ -338,6 +422,13 @@ export function createMcpTransport(options: McpTransportOptions): McpTransport {
       // A door's own command line, or anything else nobody composed a tool for.
       if (request.call === undefined) return options.fallback.run(request)
 
+      // Cancelled before it began, which is the pool's own rule said again here: a call
+      // nobody still wants must not become a process — and the first read of a root would
+      // start one, handshake and all, for an answer that is then thrown away.
+      if (request.signal?.aborted === true) {
+        throw new EngineCallFailed('aborted', 'the caller cancelled the call', 0)
+      }
+
       // And a verb this surface does not publish. `stats` and `commands` are two of the
       // reads the CLI runs and the tool set does not carry, so refusing them here would
       // turn a working read into an error for a reason no caller could see.
@@ -353,18 +444,18 @@ export function createMcpTransport(options: McpTransportOptions): McpTransport {
           request.call.tool,
           request.call.arguments,
           request.timeoutMs ?? ceiling,
+          request.signal,
         )
       } catch (cause) {
         // A process that is gone is dropped, so the next call starts a new one. One that is
-        // still alive is kept: a call that ran past its ceiling is a call that ran past its
-        // ceiling, and forgetting the server for it would leave it running with nothing
-        // holding it. Either way this call gets the failure, named — not a silent retry,
-        // which would hide an engine that cannot start at all behind a loop.
+        // still alive is kept: a call that ran past its ceiling or was cancelled is only that,
+        // and forgetting the server for it would leave it running with nothing holding it.
+        // Either way this call gets the failure, named — not a silent retry, which would hide
+        // an engine that cannot start at all behind a loop.
         if (held.gone) engines.delete(request.root)
-        const said = cause instanceof Error ? cause.message : String(cause)
         throw new EngineCallFailed(
-          said.includes('within') ? 'timeout' : 'unspawnable',
-          said,
+          cause instanceof Unanswered ? cause.reason : 'unspawnable',
+          cause instanceof Error ? cause.message : String(cause),
           elapsed(),
         )
       }

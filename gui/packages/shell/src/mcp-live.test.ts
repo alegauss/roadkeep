@@ -165,6 +165,70 @@ describe('RG101: what the process being held changes', () => {
   })
 })
 
+describe('RG131: a read somebody stopped wanting', () => {
+  it('lets a call cancelled in flight go at once, and keeps the engine for the next', async () => {
+    // `lint` over this repository is the slowest read the surface serves — about 160ms
+    // held — which is room to cancel one after its frame has gone out.
+    const warm = await overMcp.run({
+      root: REPO,
+      argv: buildArgv(REPO, 'engines', {}),
+      call: buildCall('engines', {}),
+      timeoutMs: CEILING,
+    })
+    expect(warm.code).toBe(0)
+    const holding = overMcp.held
+
+    const stopped = new AbortController()
+    const cancelled = overMcp.run({
+      root: REPO,
+      argv: buildArgv(REPO, 'lint', {}),
+      call: buildCall('lint', {}),
+      timeoutMs: CEILING,
+      signal: stopped.signal,
+    })
+    setTimeout(() => {
+      stopped.abort()
+    }, 5)
+
+    // Refused as a cancellation, which is what the process transport says for the same
+    // thing — and not as an engine that could not start, which is what a caller would then
+    // go and debug.
+    await expect(cancelled).rejects.toMatchObject({ name: 'EngineCallFailed', reason: 'aborted' })
+
+    // The server was only abandoned, never lost: still held, the same count. And the answer
+    // it finishes anyway is dropped, so the call after it gets its own — measured, this build
+    // does answer a cancelled call, which is exactly the frame that must not land elsewhere.
+    expect(overMcp.held).toBe(holding)
+    await new Promise((done) => setTimeout(done, 400))
+    const after = await overMcp.run({
+      root: REPO,
+      argv: buildArgv(REPO, 'config', {}),
+      call: buildCall('config', {}),
+      timeoutMs: CEILING,
+    })
+    expect(JSON.parse(payload(after.stdout))).toHaveProperty('keys')
+  })
+
+  it('starts nothing for a call cancelled before it began', async () => {
+    // The pool's rule, held by the transport too: a call nobody still wants must not become
+    // a process — and a first read of a root would start one, handshake and all.
+    const fresh = createMcpTransport({
+      engine: ['python', LAUNCHER],
+      fallback: overProcess,
+      timeoutMs: CEILING,
+    })
+
+    try {
+      await expect(
+        fresh.run({ ...asked('list'), signal: AbortSignal.abort() }),
+      ).rejects.toMatchObject({ reason: 'aborted' })
+      expect(fresh.held).toBe(0)
+    } finally {
+      await fresh.close()
+    }
+  })
+})
+
 describe('RG101: a call it cannot serve', () => {
   it('sends a request with no tool call to the transport that spawns', async () => {
     // A door's own argv is composed by the engine, and nothing here turned it into a tool.

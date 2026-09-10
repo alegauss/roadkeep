@@ -34,6 +34,7 @@
 - ✅ **RG122** **the transport that reads in 6ms is proven by a test and reached by nothing a person would run** — The app's open path keeps one roadkeep mcp per project, reads at six milliseconds instead of seven hundred, and hands back a close that ends it (design recorded in `packages/shell/src/open-here.ts`).
 - ✅ **RG134** **the contract reads this repository's own lint for a finding, so a clean gate leaves it nothing to assert** — The contract builds a fixture of its own, writes one line into it by hand, and reads the remedy lint answers for that line.
 - ✅ **RG130** **the live gate runs one file at a time because every read in it spawns a python, and that is most of ten minutes** — Suite reads go through a held engine and files run one per four cores: 433s became 87s here, and CI stays serial (design recorded in `packages/shell/vitest.live.config.ts`).
+- ✅ **RG131** **a read cancelled after it reaches the held engine runs to the end, and only the transport that spawns kills one** — A cancelled held read rejects as aborted at once and its late answer is dropped; the cancel notice is sent too, though this build ignores it.
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

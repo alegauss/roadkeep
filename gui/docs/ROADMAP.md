@@ -5,7 +5,6 @@
 ## Block A — The client (payloads in, types out)
 
 - 💭 **RG9** (deps: RG1 ✅, roadkeep RK1632) **prose a person typed goes out through argv, which is where RK1474 recorded bytes arriving as different bytes** — why and section-body each read stdin on a dash and symptom does not, so the field every line leads with is the one with no safe path in. → §RG9
-- 📋 **RG131** (deps: RG122 ✅) **a read cancelled after it reaches the held engine runs to the end, and only the transport that spawns kills one** — The pool refuses a queued call and the process transport kills a child mid-flight, so the one every screen now reads through ignores the signal. → §RG131
 - 📋 **RG135** (deps: RG122 ✅) **a project whose engine cannot hold a session reads at spawn speed, and nothing says the held surface was refused** — RG122 falls back on a failed handshake and keeps no reason, so a screen cannot say why a read is slow and a test says 1 is not 0. → §RG135
 
 ## Block B — Discovery (which checkouts on this machine are governed)
