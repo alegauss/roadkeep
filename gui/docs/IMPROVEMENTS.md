@@ -167,30 +167,30 @@ not help, being a candidate the same probe drops.
 - **The launcher is not this repository's to change.** It is identical to what `roadkeep install` writes today, so an edit here is overwritten by the next refresh. Making a *named* engine fatal rather than skippable is its behaviour, and the dep names it.
 - **The cache is the hazard on this machine.** It still answers — `0.2.4`, from 2026-08-28 — and is the candidate a busy sibling falls to. Removing `~/.cache/roadkeep-src` turns a stale answer into a refusal naming the missing engine: louder, and never wrong. It is a directory outside this repository, so it is named here for whoever owns the machine rather than removed.
 
-### §RG138 The mark stops at the window's edge
+### §RG139 Who the executable says made it
 
-RG136 put roadkeep's mark at the head of the window's header — task lines stopping at a
-gate, from `roadkeep/site/public/assets/roadkeep-mark.svg`, where the site already uses
-it as its favicon. Everything outside the page still says Electron: the taskbar, the
-title bar, Alt-Tab and the installer. `electron-builder.yml` names no icon,
-`BrowserWindow` is given none, and the repository holds no `.ico`, `.icns` or `.png` at
-any size.
+RG138 turned on the edit that writes an icon into the Windows executable, and the same
+edit writes its version resources. Measured on the unpacked build: `ProductName` is
+`roadkeep` and `FileVersion` is `0.0.0`, which is this repository speaking — and
+`CompanyName` is `GitHub, Inc.`, which is Electron's default surviving because nothing
+replaced it.
 
-So the one place a person meets this app before opening it is the one place it is
-anonymous, beside every other Electron app on the machine wearing the same atom.
+electron-builder takes that field from the `author` in `package.json`, and there is
+none. So the file-properties dialog, the installer's publisher line and anything that
+inventories installed software say GitHub made this app, which is untrue in the one
+field that exists to say who did.
 
-**The source exists and the formats do not.** The mark is an SVG that switches palette
-by `prefers-color-scheme` — right for a favicon, wrong for an icon, which is one fixed
-palette. Windows wants a multi-size `.ico`, macOS an `.icns`, Linux a 512 `.png`;
-electron-builder derives all three from one large `build/icon.png`.
+Before RG138 the executable was untouched Electron and said `Electron` as its product
+too, so this is not a regression so much as the first time the question is visible.
 
-**Two decisions come first and neither is code.** Whether the icon is the mark alone or
-the mark on a tile, since a transparent glyph of four thin lines disappears at 16px on a
-light taskbar. And where the rasters are made: committed as files, or generated from the
-SVG at build time — the second keeps one source and costs a converter in the toolchain.
+**It is one line and a decision.** The line is `"author"` in the root `package.json`,
+which electron-builder also reads for the Linux maintainer and the macOS copyright. The
+decision is what it says — a person's name and address, or a project name with no
+address — and that is a statement made in public on every installer, so it is not a
+default to pick on somebody's behalf.
 
-Worth doing before RG49 signs a build, so the first signed installer is the first that
-looks like this app.
+A test beside `icon.test.ts` can then hold the manifest to naming one, the way that file
+holds the icon to reaching the executable.
 
 ## Block H — The look (a design system for governed prose)
 

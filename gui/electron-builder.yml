@@ -13,6 +13,9 @@ copyright: ''
 
 directories:
   output: release
+  # Where `icon.png` is found, by name and without a line naming it (RG138): electron-builder
+  # makes the Windows .ico, the macOS .icns and the Linux PNGs from that one 1024 file.
+  # It is roadkeep's mark on a dark tile, rendered from `build/icon.svg` by `npm run icon`.
   buildResources: build
 
 files:
@@ -44,9 +47,16 @@ win:
     - target: nsis
       arch:
         - x64
-  # An unsigned Windows build. Named rather than left to a default so that turning it on is
-  # an edit somebody makes deliberately.
-  signAndEditExecutable: false
+  # Edited, and still unsigned (RG138). This switch is two things under one name: `rcedit`
+  # writing the icon and the version resources into the .exe, and signtool signing it. Off,
+  # it was an honest unsigned build that also wore Electron's icon and named no version —
+  # the edit is the only way an icon reaches the executable. On, the edit happens and the
+  # signing does not, because nothing here names a certificate: electron-builder says so in
+  # its log, and turning signing on is still RG49's edit, somewhere a certificate is named.
+  #
+  # The edit's tools arrive the way NSIS did, fetched into electron-builder's own cache the
+  # first time and read from there after — which is not the rebuild `npmRebuild` refuses.
+  signAndEditExecutable: true
 
 nsis:
   oneClick: false

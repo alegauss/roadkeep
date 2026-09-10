@@ -133,6 +133,7 @@
 - ✅ **RG120** **the wired skill and hook are behind the engine answering here, and only a command somebody remembers fixes it** — The copied surfaces are refreshed, and a CI step holds them against the engine answering: install --check writes nothing and exits non-zero (design recorded in `.github/workflows/ci.yml`).
 - ✅ **RG121** **the one type-aware rule left off covers the whole tree, so an unsafe assertion outside a reader is unreported too** — On everywhere but thirteen named readers and the tests, with two shared narrowings replacing twelve written by hand (design recorded in `.oxlintrc.json`).
 - ✅ **RG129** **the verb table is declared with string keys, so the file owning it asserts its own key type and nothing checks the pair** — CALLED is declared by CalledName, keysOf answers its names, tableOf builds the report, and capabilities.ts is off RG121's exempt list with no assertion left.
+- ✅ **RG138** **the packaged app wears Electron's icon in the taskbar and installer, though roadkeep's mark now leads its header** — The packaged app wears roadkeep's mark on a dark tile, rendered from an SVG by npm run icon, and the edit that writes it into the .exe is on while it stays unsigned.
 
 ## Block H — The look (a design system for governed prose)
 

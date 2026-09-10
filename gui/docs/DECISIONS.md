@@ -42,6 +42,7 @@ compile in `core` untouched.
 - ✅ **RG37** **there is no application at all: no window, no build and no way to run any of this** — The desktop shell is Electron over Vite and React, not a native toolkit: the renderer has to be the half a web service later serves to a browser unchanged.
 - ✅ **RG85** **the handler proving the seam runs any argv against any root, which a real service cannot** — A service transport refuses what the test handler allows: a root the server was not started with, an argv the verb table did not compose, every write verb, and a bind that is not loopback.
 - ✅ **RG129** **the verb table is declared with string keys, so the file owning it asserts its own key type and nothing checks the pair** — A table this repository writes is declared by its key type; a narrowing it cannot carry lives in reading.ts, never at a call site.
+- ✅ **RG138** **the packaged app wears Electron's icon in the taskbar and installer, though roadkeep's mark now leads its header** — The app icon is build/icon.png, rendered from build/icon.svg, and the Windows executable is edited but never signed without a named certificate.
 
 ### §RG37 Electron, and what it costs
 

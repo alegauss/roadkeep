@@ -29,7 +29,8 @@
     "clean": "tsc -b --clean",
     "stamp": "node packages/shell/dist/stamp-build.js",
     "audit": "npm run build:app && node packages/shell/dist/audit.js",
-    "package": "npm run build && npm run stamp && electron-builder --config electron-builder.yml --publish never"
+    "package": "npm run build && npm run stamp && electron-builder --config electron-builder.yml --publish never",
+    "icon": "electron build/render-icon.cjs"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
