@@ -5,7 +5,6 @@
 ## Block A — The client (payloads in, types out)
 
 - 💭 **RG9** (deps: RG1 ✅, roadkeep RK1632) **prose a person typed goes out through argv, which is where RK1474 recorded bytes arriving as different bytes** — why and section-body each read stdin on a dash and symptom does not, so the field every line leads with is the one with no safe path in. → §RG9
-- 📋 **RG130** (deps: RG122 ✅, RG64 ✅) **the live gate runs one file at a time because every read in it spawns a python, and that is most of ten minutes** — RG122 held the engine on the app's open path and 41 of the 43 files here never call it, so the setting that serialises the suite cannot go. → §RG130
 - 📋 **RG131** (deps: RG122 ✅) **a read cancelled after it reaches the held engine runs to the end, and only the transport that spawns kills one** — The pool refuses a queued call and the process transport kills a child mid-flight, so the one every screen now reads through ignores the signal. → §RG131
 - 📋 **RG135** (deps: RG122 ✅) **a project whose engine cannot hold a session reads at spawn speed, and nothing says the held surface was refused** — RG122 falls back on a failed handshake and keeps no reason, so a screen cannot say why a read is slow and a test says 1 is not 0. → §RG135
 

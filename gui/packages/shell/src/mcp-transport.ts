@@ -1,4 +1,4 @@
-import { spawn, type ChildProcess } from 'node:child_process'
+import { spawn, spawnSync, type ChildProcess } from 'node:child_process'
 
 import { EngineCallFailed, type EngineRequest, type EngineResult, type Transport } from '@rk/core'
 
@@ -91,6 +91,14 @@ export interface McpTransport extends Transport {
    * after `kill` fails with `EPERM`.
    */
   close(): Promise<void>
+  /**
+   * Stop the engine held for one root, without waiting for it to exit (RG130).
+   *
+   * What a fixture calls before removing its directory. `close` gives back every root and
+   * is awaited; this gives back one and is not, because a teardown that removes a directory
+   * is synchronous — and a root nothing read is a no-op rather than an error.
+   */
+  releaseSync(root: string): void
   /** How many engines are held, which is one per root that has been read. */
   readonly held: number
 }
@@ -265,6 +273,26 @@ class Held {
       this.child.kill()
     })
   }
+
+  /**
+   * The same kill, without waiting for the exit (RG130).
+   *
+   * For a teardown, which is synchronous — the reason `scratch.ts` gives for its own loop.
+   * `taskkill /F` has ended the tree by the time it returns; what is left is Windows letting
+   * go of the working directory, and the second of retries `removeTree` already makes is
+   * that wait. On POSIX a directory can be removed with a process standing in it, so a
+   * signal sent is enough.
+   */
+  stopSync(): void {
+    this.die(new Error('the engine was stopped'))
+    if (this.child.exitCode !== null || this.child.signalCode !== null) return
+
+    if (process.platform === 'win32' && this.child.pid !== undefined) {
+      spawnSync('taskkill', ['/pid', String(this.child.pid), '/T', '/F'], { stdio: 'ignore' })
+      return
+    }
+    this.child.kill()
+  }
 }
 
 /** The text a `tools/call` answered with, which is the payload the CLI would have printed. */
@@ -367,6 +395,13 @@ export function createMcpTransport(options: McpTransportOptions): McpTransport {
       // transport closed and read again asks the engine rather than the last answer.
       unheldable.clear()
       await Promise.all(stopping)
+    },
+
+    releaseSync(root: string) {
+      const held = engines.get(root)
+      engines.delete(root)
+      unheldable.delete(root)
+      held?.stopSync()
     },
 
     get held() {

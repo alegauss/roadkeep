@@ -5,6 +5,7 @@ import path from 'node:path'
 import type { Transport } from '@rk/core'
 
 import { cacheDirectory } from './fixture-cache'
+import { liveHeld } from './live'
 
 import { removeTree } from './scratch'
 
@@ -88,6 +89,10 @@ export async function buildFixture(
 ): Promise<Fixture> {
   const root = mkdtempSync(path.join(tmpdir(), 'rk-fixture-'))
   const dispose = () => {
+    // The suite's reads hold a `roadkeep mcp` per root since RG130, and one standing in this
+    // directory is one Windows will not let it be removed from. Given back first, whether or
+    // not anything read here — releasing a root nothing held is a no-op.
+    liveHeld.releaseSync(root)
     removeTree(root)
   }
 

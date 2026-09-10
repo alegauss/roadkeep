@@ -10,6 +10,7 @@ import {
   type VerbName,
 } from '@rk/core'
 
+import { createMcpTransport, type McpTransport } from './mcp-transport'
 import { createProcessTransport } from './process-transport'
 
 /**
@@ -54,14 +55,39 @@ export const CEILING = 60000
  * Shared on purpose. A transport holds no state between calls — it spawns per call, which
  * is what RG101 is about — so one per file bought nothing, and the fixture builder wants a
  * transport before a client exists anyway.
+ *
+ * **Still the one that spawns, and on purpose** (RG130). The fixture builder writes, the
+ * tool surface withholds writes, and a file that compares a transport against the process
+ * — `mcp-live`, `seam-live`, the ceilings — is asserting something about a spawn. Every
+ * one of those reads this, so it did not move.
  */
 export const liveEngine: Transport = createProcessTransport({
   command: 'python',
   prefixArgs: [LAUNCHER],
 })
 
+/**
+ * The same engine held, one `roadkeep mcp` per root, for the suite's reads (RG130).
+ *
+ * Measured before it existed: of 579 engine calls across the live gate, 376 were reads and
+ * took 283 of the run's 433 seconds — at about 770ms each, which is an interpreter start
+ * and very little else. The app has read this way since RG122. A read the surface cannot
+ * express falls through to `liveEngine`, which is the fallback, so `stats`, `commands` and
+ * a claiming `brief` spawn exactly as they did.
+ *
+ * **What it holds, something has to give back.** A fixture's `dispose` releases its root
+ * before removing the directory — Windows will not remove one a server is standing in —
+ * and `live-setup.ts` closes whatever is left when a file ends, which is this repository's
+ * own root and nothing else.
+ */
+export const liveHeld: McpTransport = createMcpTransport({
+  engine: ['python', LAUNCHER],
+  fallback: liveEngine,
+  timeoutMs: CEILING,
+})
+
 /** The client over it, reading each verb with the shape that verb declares. */
-export const liveClient: Client = createClient(liveEngine)
+export const liveClient: Client = createClient(liveHeld)
 
 /**
  * The engine, read once and named for the length of the run (RG84).
@@ -103,7 +129,12 @@ export interface EngineReading {
 async function askTheEngine(): Promise<EngineReading> {
   // No `try`: since RG99 the client answers `unreadable` where the call never happened,
   // which is what no python and a launcher that cannot import both look like.
-  const answer = await liveClient.call(REPO, 'engines', {}, { timeoutMs: CEILING })
+  //
+  // Spawned and not held (RG130). This runs once, in the process that forks the workers,
+  // and a server started here would stand in this repository for the length of the run
+  // with nothing placed to close it — for a read that is asked exactly once.
+  const spawned = createClient(liveEngine)
+  const answer = await spawned.call(REPO, 'engines', {}, { timeoutMs: CEILING })
   if (answer.kind === 'unreadable') {
     return { named: '', unresolved: answer.unreadable.message }
   }

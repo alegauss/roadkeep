@@ -11,32 +11,6 @@ rather than pretending it is safe. Spawning without a shell removes the quoting 
 but not the encoding one. What proves it is a round trip: write a symptom carrying an
 accent, an apostrophe and an em dash, read it back with show, and compare the bytes.
 
-### §RG130 The suite that spawns, and why holding the app's engine did not help it
-
-The live gate takes 436 seconds for 43 files, one at a time. `fileParallelism: false`
-was bought by a real failure: half of these build a fixture with a dozen engine calls
-and then read it with several more, so running them together puts twenty-odd
-interpreters on eight cores, and the reads that lose that race fail for being starved
-rather than for being wrong.
-
-RG122 held the engine for the app's own open path and did not touch this. Two files call
-`openHere`; the other forty-one read through `live.ts`'s transport, which spawns per
-call, and build their fixtures with the same one. Every interpreter the setting exists
-for is still started.
-
-What would move it is the suite reading the way the app now does. `live.ts` already
-publishes one shared transport and one door, `read`, that most files go through — a held
-engine behind those two would answer `list` in six milliseconds instead of seven
-hundred, with no test changing.
-
-Two things stand in the way. The fixture builder writes — `init`, `add`, `ship` — and
-that surface withholds writes on purpose, so building stays a spawn. And a held engine
-per fixture root is a process to give back per file, which nothing here owns: `dispose`
-removes a directory, and Windows will not remove one a server stands in.
-
-Measure the suite either side rather than assuming. The win RG122 measured is per call,
-and most of this may be the fixture builds.
-
 ### §RG131 The signal the held transport does not read
 
 `EngineRequest` carries a `signal` because a screen redrawing while reads are in flight
