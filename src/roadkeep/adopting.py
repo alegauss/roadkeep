@@ -202,11 +202,15 @@ class TableDeclared(ValueError):
     a table already there governs its list, and writing it again would either replace the
     numbers a project tuned or leave two of it.
 
-    **The door was `govern {table}.lead <n>` and that command has never existed** (RK1668).
-    `governing.GOVERNED` is four tables and neither opt-in table is among them, so the one
-    sentence a caller who opens a table twice reads named a call that exits 2 — printed bare,
-    which is why nothing in this suite had ever run it. The read that is true is `config`: it
-    states the number, what this build falls back to, and which file declares it.
+    **The door was `govern {table}.lead <n>` and that command did not exist** (RK1668).
+    `governing.GOVERNED` held neither opt-in table, so the one sentence a caller who opens a
+    table twice reads named a call that exited 2 — printed bare, which is why nothing in this
+    suite had ever run it. RK1668 named `config` instead, the read that was true; RK1673 put
+    the two tables in `govern`, so the door is the verb this refusal always meant.
+
+    **The read and not a write**: `govern <table>.lead` with no number prints what the list
+    holds against the number and writes nothing. Which figure a list should be held to is the
+    author's (L4), so the door is complete where a `<n>` would be a blank to fill.
     """
 
     def __init__(self, table: str) -> None:
@@ -215,8 +219,9 @@ class TableDeclared(ValueError):
         self.table = table
         super().__init__(
             f"this project already declares [{table}]: declare opens the table and one "
-            f"that is open needs no opening — `{invocation()} config` states the numbers "
-            f"under it and what this build holds them to"
+            f"that is open needs no opening — `{invocation()} govern {table}.lead` reads "
+            f"what the list holds against the number and takes a new one after it, and "
+            f"`.why` is the other key"
         )
 
 

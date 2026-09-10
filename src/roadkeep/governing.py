@@ -41,10 +41,22 @@ from roadkeep.provenance import invocation
 
 __all__ = ["Declared", "Measured", "NoSuchKey", "Violated", "govern", "reading"]
 
-#: The four tables this verb writes, and the whole of what it claims. Every other table in
+#: The tables this verb writes, and the whole of what it claims. Every other table in
 #: `describing.TABLES` holds a name, a path or a flag — a decision with no reading behind it,
 #: which is a `declare` or a hand edit and never a measurement.
-GOVERNED = ("limits", "budgets.<path>", "tools", "claims", "reads")
+#:
+#: **The two opt-in tables since RK1673**, and the sentence above is why they were missing and
+#: why that was wrong. It filed `[non_goals]` and `[criteria]` among the names and flags, and
+#: each holds two word limits like every `[limits]` key: `lint` refuses a lead over the number
+#: and `budget --non-goal` prices one. So `declare`'s refusal named `govern non_goals.lead <n>`
+#: and `declare --help` said *govern tunes what is in it* — a verb that exited 2 on both, and
+#: the only route to either number the hand edit L1 exists against.
+GOVERNED = ("limits", "budgets.<path>", "tools", "claims", "reads", "non_goals", "criteria")
+
+#: The two tables whose numbers bound a **list's** bullets rather than a line's fields, and the
+#: module that reads each list. A table and not a branch per name: they are one shape — `Scope`,
+#: two fields, a lead and a reason — and a third opt-in list would be a row here.
+SCOPED = {"non_goals": "roadkeep.scoping", "criteria": "roadkeep.criteria"}
 
 
 class NoSuchKey(KeyError):
@@ -387,6 +399,8 @@ def reading(config: Config, address: str, *, file: str = "", role: str = "") -> 
         found = _tools(config, address, key, declared)
     elif table == "reads":
         found = _reads(config, address, declared, key)
+    elif table in SCOPED:
+        found = _scoped(config, address, table, key, declared)
     else:
         found = Measured(
             address=address,
@@ -410,11 +424,11 @@ def reading(config: Config, address: str, *, file: str = "", role: str = "") -> 
     return replace(
         found,
         because=_because(config, table, key, file=file, role=role),
-        default=_fallback(table, key),
+        default=_fallback(table, key, config),
     )
 
 
-def _fallback(table: str, key: str) -> int | None:
+def _fallback(table: str, key: str, config: Config | None = None) -> int | None:
     """The number this build holds an undeclared key to, where it holds one at all (RK1343).
 
     Only `limits`, and that is the finding rather than an omission here: `[tools]`, `[reads]`
@@ -425,7 +439,18 @@ def _fallback(table: str, key: str) -> int | None:
 
     `prose` is absent from the schema and stays `None`, which is right and is the same fact
     its own row already states: it is a width this tool fills to and no gate refuses.
+
+    **And the two opt-in tables, where the table is open** (RK1673). A declared `[non_goals]`
+    with no `why` written holds its bullets to `Scope`'s default — `validate` reads `config.
+    non_goals or Scope()` — so that number is what a reader is held to. An undeclared table is
+    the other answer: the list is ungoverned and no gate reads it, which is what opting in
+    means, so `None` and the sentence that says the gate is off.
     """
+    if table in SCOPED:
+        from roadkeep.config import Scope  # noqa: PLC0415 - RK260
+
+        opened = config is not None and getattr(config, table) is not None
+        return getattr(Scope(), key) if opened else None
     if table != "limits":
         return None
     from roadkeep.kernel.schema import Schema  # noqa: PLC0415 - RK1065's edge, deferred
@@ -445,6 +470,9 @@ def _current(config: Config, table: str, key: str, *, file: str, role: str) -> i
         return config.list_read if key == "list" else config.brief_read
     if table == "claims":
         return config.held
+    if table in SCOPED:
+        scope = getattr(config, table)
+        return None if scope is None else getattr(scope, key)
     for budget in config.budgets:
         if config.relative(budget.path) == file or budget.path.as_posix().endswith(file):
             return getattr(budget, key)
@@ -743,6 +771,51 @@ def _listings(config: Config, address: str, declared: int | None) -> Measured:
         declared=declared,
         # Over it is where the ledger permanently is, and the whole point of the number.
         refuses=False,
+    )
+
+
+def _scoped(
+    config: Config, address: str, table: str, key: str, declared: int | None
+) -> Measured:
+    """The widest lead or reason the list under one opt-in table holds, now (RK1673).
+
+    Measured **exactly as its validator measures it** — `width` of the lead stripped, and of
+    the reason with its whitespace run together — because a reading that counted the reason's
+    wrapped newlines would call a number wide enough that the gate then refuses, which is the
+    one kind of reading this module exists to stop being wrong in the reassuring direction.
+
+    Over the bullets whose **shape held**, the gate's own population: an unshaped bullet
+    already carries `non-goal.shape` or its twin, whose remedy is the rewrite, and a length
+    read off a bullet the parser could not split would be a number about text nobody wrote.
+    """
+    import importlib  # noqa: PLC0415 - RK260
+
+    reader = importlib.import_module(SCOPED[table])
+    unit = "utf-16 code units, per bullet"
+    if not config.on_disk("roadmap"):
+        return Measured(
+            address=address,
+            unit=unit,
+            declared=declared,
+            unmeasured="no roadmap on disk, so there is no list for a bullet to be measured in",
+        )
+    roadmap = config.document("roadmap")
+    where_file = config.relative(config.path("roadmap"))
+    worst, where, sites = 0, "", 0
+    for bullet in reader.read(roadmap):
+        if not bullet.shaped:
+            continue
+        text = bullet.lead.strip() if key == "lead" else " ".join(bullet.why.split())
+        sites += 1
+        if width(text) > worst:
+            worst, where = width(text), f"{where_file}:{bullet.first}"
+    return Measured(
+        address=address,
+        unit=unit,
+        worst=worst,
+        where=where,
+        sites=sites,
+        declared=declared,
     )
 
 

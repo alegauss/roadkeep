@@ -795,6 +795,14 @@ GOVERNABLE_ROADMAP = """# Roadmap
 ## Block A
 
 - 📋 **RK1** (deps: —) **A symptom that is plainly long enough to read** — Because of a reason. → §RK1
+
+## Done when — Block A
+
+- **The symptom no longer happens** because the line it is filed under ships.
+
+## Non-goals
+
+- **No second backlog.** Two would disagree, and nothing says which one is right.
 """
 
 GOVERNABLE_LEDGER = """# Shipped
@@ -831,6 +839,13 @@ IMPOSSIBLE: dict[str, str] = {
     "reads.list": "[reads]\nlist = 1\n",
     "budgets.bytes": '[budgets]\n"agents.md" = { bytes = 1 }\n',
     "budgets.lines": '[budgets]\n"agents.md" = { lines = 1 }\n',
+    # RK1673. Declaring either key opens its table, which is what governs the list — so the
+    # fixture's one bullet in each is then held to a number nothing is under, and the gate's
+    # own finding is what says the reading's `refuses` is the right answer.
+    "non_goals.lead": "[non_goals]\nlead = 1\n",
+    "non_goals.why": "[non_goals]\nwhy = 1\n",
+    "criteria.lead": "[criteria]\nlead = 1\n",
+    "criteria.why": "[criteria]\nwhy = 1\n",
 }
 
 
@@ -894,6 +909,39 @@ def test_the_flag_agrees_with_whether_a_finding_reads_the_key(tmp_path, address)
         "the gate says": sorted(gated),
         "the flag says": _reading(tightened, address).refuses,
     }
+
+
+@pytest.mark.parametrize("table", ["non_goals", "criteria"])
+def test_the_opt_in_tables_are_governed_against_the_list_they_bound(tmp_path, table):
+    """RK1673. `GOVERNED` filed `[non_goals]` and `[criteria]` among the tables that hold a
+    name, a path or a flag, and each holds two word limits like every `[limits]` key. So the
+    refusal `declare` prints over an open table named `govern <table>.lead <n>` from RK1328 on,
+    `declare --help` said *govern tunes what is in it*, and the call exited 2 on both — leaving
+    the hand edit L1 exists against as the only route to either number.
+
+    The reading is the gate's own: the widest lead, stripped, and the widest reason with its
+    whitespace run together — `validate`'s measurement exactly, so a number the reading calls
+    wide enough is one the gate then accepts."""
+    config = _governable(tmp_path)
+    lead = governing.reading(config, f"{table}.lead")
+    why = governing.reading(config, f"{table}.why")
+    assert (lead.sites, why.sites) == (1, 1), (lead, why)
+    assert lead.where.startswith("ROADMAP.md:")
+    # Undeclared, the list is ungoverned and no gate reads it — which is what opting in means,
+    # so the row says the gate is off rather than naming a default nothing applies.
+    assert lead.declared is None and lead.default is None
+    # A number below the widest is refused, and one at it lands and opens the table.
+    with pytest.raises(governing.Violated):
+        governing.govern(config, f"{table}.lead", lead.worst - 1)
+    governing.govern(config, f"{table}.lead", lead.worst)
+    opened = Config.discover(tmp_path)
+    assert getattr(opened, table).lead == lead.worst
+    # And the key not written is held to `Scope`'s default now the table is open, which is the
+    # number a bullet is actually refused at: `validate` reads `config.<table> or Scope()`.
+    assert governing.reading(opened, f"{table}.why").default == 320
+    from roadkeep.linting import lint
+
+    assert lint(opened).clean, [str(one) for one in lint(opened).findings]
 
 
 def test_the_two_keys_no_gate_reads_say_so_in_the_field_and_not_only_in_prose(tmp_path):

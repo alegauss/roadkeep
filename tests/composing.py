@@ -157,10 +157,10 @@ SITES: tuple[Site, ...] = (
     # substitutes the roadmap it wrote and takes it: `adopt` writes nothing and never fails,
     # so the whole of what the door owes is landing.
     Site("adopting.py:AlreadyConfigured.__init__", "run"),
-    # And the row beside it, whose door was `govern {table}.lead <n>` and whose command has
-    # never existed: `governing.GOVERNED` is four tables and neither opt-in table is among
-    # them, so the one sentence a caller reads named a call that exits 2. Bare, which is why
-    # nothing had run it. `config` is the read that is true, and `test_adopting` runs it.
+    # And the row beside it, whose door was `govern {table}.lead <n>` and whose command did not
+    # exist: `governing.GOVERNED` held neither opt-in table, so the sentence named a call that
+    # exited 2. Bare, which is why nothing had run it. RK1668 pointed it at `config`; RK1673
+    # put both tables in `govern`, and `test_adopting` runs the read the door names now.
     Site("adopting.py:TableDeclared.__init__", "run"),
     # RK1223. Run by `test_blocking`, which executes the `--organise` call this refusal names
     # rather than matching it — the reading this whole file is about.

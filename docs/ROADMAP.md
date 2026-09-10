@@ -34,8 +34,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1673** (deps: —) **No verb writes the two opt-in tables' numbers, and two messages say govern does** — governing.GOVERNED is four tables; RK1668 ran declare's refusal and the govern it named exits 2, so [non_goals] lead and [criteria] lead are reachable only by a hand edit. → §RK1673
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)

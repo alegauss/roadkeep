@@ -124,8 +124,9 @@ files.priority` moves the line to the table that declares it, and `declare --mov
 --to criteria` says which where several do. It is the one write that runs while the config
 does not parse, which is the state a misplaced key leaves every other verb in.
 **`govern <address> [<n>]` is the write beside it**, and the only one on that file besides
-`declare`: the four tables whose
-value is a judgement about a number — `[limits]`, `[budgets]`, `[tools]`, `[claims]` — each
+`declare`: the tables whose
+value is a judgement about a number — `[limits]`, `[budgets]`, `[tools]`, `[claims]`,
+`[reads]`, and the two opt-in lists' `[non_goals]` and `[criteria]` — each
 already had the read that decides it somewhere else, so this takes the reading and writes the
 number in one call. With no number it prints the reading alone;
 `govern limits.why <n> --role improvements` and `govern budgets.lines <n> --file <path>`

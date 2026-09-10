@@ -109,32 +109,6 @@ What must not happen is a fifth spelling of the same sentence: four sites alread
 
 ## Block E — Adoption
 
-### §RK1673 The two tables no verb tunes
-
-`declare non_goals` on a project that already has the table refuses, and named `govern
-non_goals.lead <n>` from RK1328 on. `governing.GOVERNED` is `limits`, `budgets.<path>`,
-`tools`, `claims`, `reads` — so that call has always exited 2, with `no governed number
-at 'non_goals.lead'`. `declare --help` says the same thing in its own words: *a table
-arrives empty, and `govern` tunes what is in it*.
-
-RK1668 found it by running the line rather than reading it: the span was bare, so it was
-no `census` site, so nothing had ever executed it. The door is now `config`, a read that
-is true, and what the two sentences claimed is still missing.
-
-What it costs is exact. `[non_goals] lead` and `[criteria] lead` are word limits like
-every `[limits]` key, and the only route to either is a hand edit of `roadkeep.toml` —
-the act L1 exists against, and over MCP not an act at all (RK1264's argument, one table
-over).
-
-The question the repair answers is whether `GOVERNED`'s claim is wrong or its membership
-is. It reads *every other table holds a name, a path or a flag — a decision with no
-reading behind it*, and that is false of these two: `budget --non-goal --lead` already
-prices one and `lint` already refuses a lead over the number. So the reading exists, and
-it is not where the write is.
-
-What must not happen is a third spelling: a `declare --lead` beside `govern` would put
-two verbs on one number.
-
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

@@ -2723,10 +2723,10 @@ def test_a_table_already_open_is_refused_and_not_written_twice(tmp_path: Path, c
     assert main([*where, "declare", "criteria"]) == EXIT_USAGE
     said = capsys.readouterr().err
     assert "already declares [criteria]" in said
-    # And it names the read that answers about what is in it. It named `govern criteria.lead
-    # <n>` until RK1668 ran the line: `govern` writes four tables and neither opt-in table is
-    # one of them, so the door had always exited 2 — bare, which is why nothing found it.
-    assert f"{invocation()} config" in said
+    # And it names the verb that changes what is in it. It named `govern criteria.lead <n>`
+    # from RK1328 on, and that call exited 2 until RK1673 put the opt-in tables in `govern` —
+    # bare, which is why nothing had run it. The read with no number is the door: complete.
+    assert f"`{invocation()} govern criteria.lead`" in said
 
 
 def test_the_refusal_that_sent_a_caller_here_names_the_command(tmp_path: Path, capsys) -> None:
@@ -3191,15 +3191,14 @@ def test_the_door_a_configured_tree_names_runs(tmp_path, capsys) -> None:
 
 
 def test_the_read_a_table_already_open_names_runs(tmp_path, capsys) -> None:
-    """RK1668, and the door it replaces. This refusal named `govern <table>.lead <n>` from
-    RK1328 on and **that command has never existed**: `governing.GOVERNED` is four tables —
-    limits, budgets, tools, claims, reads — and neither opt-in table is among them, so the one
-    sentence a caller who opens a table twice reads named a call that exits 2.
+    """RK1668, and the door it had to replace. This refusal named `govern <table>.lead <n>`
+    from RK1328 on and that command did not exist: `governing.GOVERNED` held neither opt-in
+    table, so the sentence a caller who opens a table twice reads named a call that exited 2.
+    Invisible because it was bare — a span with no invocation is no `census` site (RK1605).
 
-    Invisible because it was bare: a span with no invocation is not a `census` site, so no test
-    in this suite had ever run it (RK1605). What is true is the read — `config` states the
-    number, the fallback and the file that declares it — and the tuning this refusal claimed is
-    a defect filed on its own."""
+    RK1668 named `config`, the read that was true; RK1673 put both tables in `govern`, so the
+    door is the verb it always meant. The read with no number, which is complete: which figure
+    a list is held to is the author's (L4), and a `<n>` would be a blank to fill."""
     from composing import runs
 
     (tmp_path / "roadkeep.toml").write_text(
@@ -3209,8 +3208,8 @@ def test_the_read_a_table_already_open_names_runs(tmp_path, capsys) -> None:
     (tmp_path / "ROADMAP.md").write_text(CONFORMING, encoding="utf-8")
     assert main(["-C", str(tmp_path), "declare", "non_goals"]) == EXIT_USAGE
     said = capsys.readouterr().err
-    assert "govern" not in said, said
-    assert runs(tmp_path, said) == (["config"],), said
-    # And the read answers about the table, which is what makes naming it better than naming
-    # nothing: the number this project declared, beside the one this build falls back to.
-    assert "lead" in capsys.readouterr().out
+    assert runs(tmp_path, said) == (["govern", "non_goals.lead"],), said
+    # And the read answers about the list, which is what makes it the door: the widest lead
+    # the list holds, beside the number this project declared.
+    answered = capsys.readouterr().out
+    assert "non_goals.lead" in answered and "declared 8" in answered, answered
