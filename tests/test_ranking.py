@@ -786,12 +786,20 @@ def test_the_same_holds_here_wherever_there_is_anything_to_observe():
     lowered five times, arriving at the last figure a count can take; the answer RK1630 chose
     was the pin, where Shio holds 10 of 20 differing and 8 of them unreachable, so the local
     reading skips rather than being met by a weaker claim about the same one row.
+
+    **And an emptied backlog is the same answer one step further** (RK1671). `assert total` was
+    the last thing here that read a normal state as a broken build: a repository whose every
+    open line has shipped has nothing to rank, which is what `ship` announces as finished. The
+    name already said *wherever there is anything to observe*, and this is the line that makes
+    it true — the skip below is the same one, and the two now say the two ways there can be
+    nothing to see.
     """
     config = Config.discover(HERE)
     differ, unreachable, total = _two_reads(
         config.document("changelog"), config.document("roadmap")
     )
-    assert total, "no open line here has a delivered block to be ranked against"
+    if not total:
+        pytest.skip("no open line here has a delivered block to be ranked against")
     if differ < 2:
         pytest.skip(f"{differ} differing line(s) here: a ratio over one is not a rate")
     # Not `differ >= n`: a backlog whose finished state is empty crosses every such number.

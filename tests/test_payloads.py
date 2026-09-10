@@ -182,6 +182,32 @@ def claimed() -> Path:
 
 
 @pytest.fixture(scope="module")
+def gated() -> Path:
+    """A project whose CI calls the action, for the one row that is not about a backlog (RK1671).
+
+    `engines.gates` reads `.github/workflows` and nothing else, so it was the one row `populated`
+    is the wrong fixture for: that one is this checkout while its backlog has an open line and a
+    three-line stand-in when it does not, and the stand-in ships no workflow. The row therefore
+    passed for a reason unrelated to what it asserts, and the day the last line shipped it went
+    red about a claim the drain does not touch.
+
+    Its own root and never this checkout, which is `claimed`'s reason one row over: what the
+    keys need is *a* project whose CI gates on the action, and building one is four lines.
+    """
+    root = Path(tempfile.mkdtemp())
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    workflows = root / ".github" / "workflows"
+    workflows.mkdir(parents=True)
+    (workflows / "roadkeep.yml").write_text(
+        "name: roadkeep\non: [push]\njobs:\n  gate:\n    runs-on: ubuntu-latest\n"
+        "    steps:\n      - uses: actions/checkout@v4\n      - uses: alegauss/roadkeep@main\n",
+        encoding="utf-8",
+    )
+    yield root
+    shutil.rmtree(root, ignore_errors=True)
+
+
+@pytest.fixture(scope="module")
 def dirty() -> Path:
     """A project with exactly one finding, for the payload `docs/` cannot produce."""
     root = Path(tempfile.mkdtemp())
@@ -319,7 +345,7 @@ def test_a_list_payload_is_handed_back_as_the_list_it_is(populated):
     "verb, field, keys",
     [(verb, field, keys) for verb, lists in sorted(INSIDE.items()) for field, keys in lists],
 )
-def test_the_keys_inside_a_row_are_there_too(verb, field, keys, dirty, populated, claimed):
+def test_the_keys_inside_a_row_are_there_too(verb, field, keys, dirty, populated, claimed, gated):
     """A client walks into `tasks` and `findings`, so a rename one level down breaks it just
     as hard — and one level is where it stops: nothing here reads a remedy's doors, so those
     stay free to move until something outside says otherwise.
@@ -336,9 +362,18 @@ def test_the_keys_inside_a_row_are_there_too(verb, field, keys, dirty, populated
     publishes an empty list, so the row is unexhibited exactly where `docs/` would answer.
     Keyed on the pair and not the verb — `pick`'s other lists are about the backlog and read
     off `populated` like everything else — which is the shape the `lint` branch already has.
+
+    And a **fourth** since RK1671, for `engines.gates`: that row reads `.github/workflows` and
+    nothing else, so `populated` was the wrong fixture for it in both directions. It passed
+    because that fixture is this checkout while the backlog has an open line, which is a reason
+    unrelated to the claim; and the day the last line shipped it swapped in a stand-in that
+    ships no workflow, and the row went red about a drain it is not about. `gated` is *a*
+    project whose CI calls the action, which is the whole of what the keys need.
     """
     if (verb, field) == ("pick", "held"):
         where, code = claimed, EXIT_OK
+    elif (verb, field) == ("engines", "gates"):
+        where, code = gated, EXIT_OK
     else:
         where, code = (dirty, EXIT_GATE) if verb == "lint" else (populated, EXIT_OK)
     rows = payload(*_argv(verb, where), root=where, expected=code)[field]

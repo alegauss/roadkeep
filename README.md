@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 234 | 2 |
-| C — Query (consult without reading the file) | 2 | 193 | 7 |
+| C — Query (consult without reading the file) | 1 | 194 | 7 |
 | D — The gate | 1 | 315 | 7 |
 | E — Adoption | 1 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 163 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 44 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 4 | 1144 | 24 |
+| **Total** | 3 | 1145 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1671** (deps: —) **three tests assert on this checkout's live backlog and go red when it drains** — RK1098 built the fixture that answers this and it is not a rule, so each red was repaired by whoever met it. → §RK1671
+- 📋 **RK1672** (deps: —) **the retry a refusal hands back carries a token no shell delivers, one line above the door that does not** — RK1667 taught the capture offer to ask survives and the retry row composed beside it was left quoting the caller's prose verbatim. → §RK1672
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

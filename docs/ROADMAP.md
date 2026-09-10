@@ -28,7 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1671** (deps: —) **three tests assert on this checkout's live backlog and go red when it drains** — RK1098 built the fixture that answers this and it is not a rule, so each red was repaired by whoever met it. → §RK1671
 - 📋 **RK1674** (deps: —) **Two more refusals over an undeclared role name the vocabulary and not the verb that adds one** — RK1670 closed Config.path and defer's store; anchors --role and block add --organise still print the declared roles alone, where declare writes the file and the key. → §RK1674
 
 ## Block D — The gate
