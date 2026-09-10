@@ -43,6 +43,9 @@
   checked **A brief with nothing to hand over reads as that and not as unreadable** The payload the engine printed reads in a unit test, and a fixture with no open line is briefed live in the contract and the handover.
   checked **No handover can be built from an answer that may be empty** The type holds it: a compile-time assertion that the answer does not extend what handoverOf takes.
 - ✅ **RG9** **prose a person typed goes out through argv, which is where RK1474 recorded bytes arriving as different bytes** — Every prose field of an add round-trips byte for byte through argv, shell syntax included, held by a live test (design superseded: the shell-less spawn never changed a byte).
+- ✅ **RG137** **an open project does not carry why its engine could not be held, so a row cannot say why it reads slowly** — An open project answers why its engine could not be held, asked when read, so the slow row has a sentence; drawing it is left to RG145.
+  checked **An open project answers why its engine could not be held** A live open over an engine that exits before the handshake carries the traceback's last line, and null once closed.
+  checked **Nothing in core learns what a process is** The reason arrives as an injected question beside the closing, so a web service answers null and core holds no transport type.
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
@@ -57,6 +60,7 @@
 - ✅ **RG13** **a candidate is judged governed by a read that fails, so rejecting a folder costs the work of a whole lint** — A folder nothing governs opens as ungoverned off the engine's own config, before commands is asked, and its null source no longer reads as a failure.
   checked **A folder nothing governs opens as that, before any read a project needs** A unit test sees engines and config asked and nothing after, and a live one opens an empty folder as ungoverned.
   checked **Nothing here looks for a config above the folder it was given** The engine's governed is the answer; the scan's marker is in the folder itself, and opening asks config and walks nowhere.
+- 🗑 **RG15** **which copy of roadkeep each project runs is never read, so a disagreement engines can name is averaged away** — superseded by RG145: The verdict already rides on every row, and drawing it beside the counts is now a criterion of the portfolio screen RG145 builds.
 
 ## Block C — The portfolio (many backlogs in one view)
 

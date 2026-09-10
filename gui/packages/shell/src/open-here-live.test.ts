@@ -7,7 +7,8 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { buildFixture, type Fixture } from './fixture'
 import { aLine } from './live'
-import { openHere, type OpenHereOptions } from './open-here'
+import { createMcpTransport, type McpTransport } from './mcp-transport'
+import { openHere, unheldAmong, type OpenHereOptions } from './open-here'
 import { createProcessTransport } from './process-transport'
 import { removeTree } from './scratch'
 
@@ -216,6 +217,50 @@ describe('RG103: a project that does not open', () => {
     } finally {
       removeTree(empty)
     }
+  })
+})
+
+describe('RG137: why an open project reads slowly', () => {
+  it('carries the reason its engine could not be held, once a read has met it', async () => {
+    // The engine a checkout caught mid-save looks like: a server that writes a traceback and
+    // exits before the handshake. Reads fall back to the spawning launcher and are answered,
+    // which RG122 decided; what RG135 kept on the transport now reaches the project.
+    const traceback = 'ModuleNotFoundError: No module named roadkeep.backlog'
+    const broken = [
+      'python',
+      '-c',
+      `import sys; sys.stderr.write("Traceback (most recent call last):\\n${traceback}\\n"); sys.exit(3)`,
+    ]
+    const made: McpTransport[] = []
+    const opened = await openProject(
+      fixture.root,
+      [['python', path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')]],
+      () => {
+        const surface = createMcpTransport({ engine: broken, fallback: engine, timeoutMs: CEILING })
+        made.push(surface)
+        return surface
+      },
+      {
+        timeoutMs: CEILING,
+        closing: async () => {
+          await Promise.all(made.splice(0).map((surface) => surface.close()))
+        },
+        unheld: () => unheldAmong(made, fixture.root),
+      },
+    )
+    if (opened.kind !== 'open') throw new Error(`the fixture did not open: ${opened.kind}`)
+    held.push(opened.project)
+
+    // Known the moment the project opens: `config` is a tool the surface publishes, so the
+    // open itself met the handshake — and the read after it is still answered, at spawn speed.
+    const why = opened.project.unheld() ?? ''
+    expect(why).toContain('exited with 3')
+    expect(why).toContain(traceback)
+    expect((await opened.project.client.call(fixture.root, 'list', {}, {})).kind).toBe('read')
+
+    // And given back with the project: a closed open has let go of every root.
+    await opened.project.close()
+    expect(opened.project.unheld()).toBeNull()
   })
 })
 

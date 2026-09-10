@@ -32,9 +32,31 @@ import { createProcessTransport } from './process-transport'
  * through is answered by the copy standing behind that server and never by another one.
  */
 
-export interface OpenHereOptions extends Omit<OpenOptions, 'stampFor' | 'samePart' | 'closing'> {
+export interface OpenHereOptions extends Omit<
+  OpenOptions,
+  'stampFor' | 'samePart' | 'closing' | 'unheld'
+> {
   /** The interpreter and the PATH name, for a machine that spells them differently. */
   readonly candidates?: CandidateOptions
+}
+
+/**
+ * Why none of these transports could hold this root, or null (RG137).
+ *
+ * Every one the open built is asked, because resolution makes several and the one a project
+ * reads through is the chosen engine's — which this answers by looking rather than by
+ * remembering which it was. Each keeps its reason by the root it was asked about, which is
+ * the string the project's own reads carry.
+ */
+export function unheldAmong(
+  made: readonly Pick<McpTransport, 'unheld'>[],
+  root: string,
+): string | null {
+  for (const held of made) {
+    const why = held.unheld.get(root)
+    if (why !== undefined) return why
+  }
+  return null
 }
 
 export function openHere(root: string, options: OpenHereOptions = {}): Promise<Opening> {
@@ -66,5 +88,8 @@ export function openHere(root: string, options: OpenHereOptions = {}): Promise<O
     closing: async () => {
       await Promise.all(made.splice(0).map((held) => held.close()))
     },
+    // Asked when a row is drawn, and empty once closed: a closed transport has let go of
+    // every root, the reasons with them.
+    unheld: () => unheldAmong(made, root),
   })
 }

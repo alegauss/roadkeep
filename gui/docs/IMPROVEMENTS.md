@@ -2,41 +2,7 @@
 
 ## Block A — The client (payloads in, types out)
 
-### §RG137 The reason that stops one layer short of the screen
-
-RG135 made the held transport keep why it could not hold a root: the exit, and the last
-line the engine wrote on stderr. That answers the test that failed with `1` is not `0`,
-and nobody on a screen, because the transport is `shell`'s and what a screen reads is
-`OpenProject`, which is `core`'s and has no field for it.
-
-It matters at the moment the portfolio exists for. A project whose engine cannot hold a
-session reads at seven hundred milliseconds where the rest read at six, for every read,
-while the window is open. One row lagging behind sixteen is what a person notices, and
-the row is where the engine's version already sits.
-
-**The shape is the stamp's, not a new seam.** `openProject` already takes what it cannot
-compute as arguments — the candidates, the transport, the stamp and, since RG122, the
-closing. A fifth, `heldBy: () => string | null`, lets `openHere` answer from
-`McpTransport.unheld` and a web service answer nothing, and `OpenProject` carries it as
-data. Nothing in `core` learns what a process is.
-
-**And it is a question, not a snapshot.** A handshake fails on the first read of a root,
-which is after the project opened — so the field is read when the row is drawn, the way
-`invalidate` is called when the disk moves, rather than stamped once at open.
-
-Worth doing with the first row that draws engine health; before that there is nowhere to
-put the sentence.
-
 ## Block B — Discovery (which checkouts on this machine are governed)
-
-### §RG15 The disagreement, drawn rather than resolved
-
-The engines read answers per project with the writing copy, the plugin, the vendored
-one, the gates and a verdict over the set. This block is finished when that verdict is
-on the row: agreed, split, or swapped. A row that is split is not an error and must not
-be drawn as one; it is a repository where two copies could write and the person needs to
-know which did. What is refused is showing a count with no engine beside it, because
-that count is an answer whose author has been dropped.
 
 ### §RG146 The third write, named
 

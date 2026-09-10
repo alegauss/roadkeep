@@ -68,6 +68,15 @@ export interface OpenProject {
   /** Forget what was remembered about this project. What a file watcher calls. */
   invalidate(): void
   /**
+   * Why its engine could not be held, in the engine's words — or null while it is, before
+   * anything was read, or where nothing holds engines at all (RG137).
+   *
+   * A project here reads at spawn speed, seven hundred milliseconds where the rest read at
+   * six, and this is the sentence its row gives for being the slow one. Asked and not kept:
+   * a handshake fails on the first read of a root, which is after the project opened.
+   */
+  unheld(): string | null
+  /**
    * Give back what this project holds — the engine process the transport kept for it.
    *
    * Awaited rather than fired off, because on Windows a killed-but-not-yet-exited server
@@ -132,6 +141,15 @@ export interface OpenOptions {
    * transport that spawns per call and keeps nothing.
    */
   closing?: () => Promise<void>
+  /**
+   * Why the transports this open built could not hold its engine, or null (RG137).
+   *
+   * The fifth thing this composition takes rather than computes, beside the candidates, the
+   * transport, the stamp and the closing — and for their reason: holding an engine is a
+   * process, which this package does not have. Absent, a project answers null, which is the
+   * truth for a transport that spawns per call and holds nothing.
+   */
+  unheld?: () => string | null
 }
 
 /** Four is a floor a machine can raise, and it is what a portfolio read already allows. */
@@ -277,6 +295,7 @@ async function compose(
         // a watcher should not have to know whether this project cached anything.
         cached?.invalidate(root)
       },
+      unheld: () => options.unheld?.() ?? null,
       close,
     },
   }

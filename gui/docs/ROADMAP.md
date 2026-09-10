@@ -4,11 +4,8 @@
 
 ## Block A — The client (payloads in, types out)
 
-- 📋 **RG137** (deps: RG135 ✅, RG122 ✅, RG15) **an open project does not carry why its engine could not be held, so a row cannot say why it reads slowly** — RG135 keeps the reason on the held transport in shell, and OpenProject in core has no field it could arrive in. → §RG137
-
 ## Block B — Discovery (which checkouts on this machine are governed)
 
-- 💭 **RG15** (deps: RG2 ✅, RG13 ✅) **which copy of roadkeep each project runs is never read, so a disagreement engines can name is averaged away** — This block will not be finished until the version, the home and the verdict sit beside a project's counts, and nothing reads them yet. → §RG15
 - 📋 **RG146** (deps: RG145, RG47 ✅) **roots are read and never written, so Add a root and Rescan roots are buttons nothing can honour** — The project list is meant to be the person's statement, and today the only way to make it is to edit the settings file by hand. → §RG146
 
 ## Block C — The portfolio (many backlogs in one view)
@@ -156,6 +153,12 @@
   over the three source roots, and a test plants a component the package exports and
   requires the gate to report it with the import that replaces it — because a gate aimed
   at the wrong directory says exactly what a clean tree says.
+
+## Done when — RG145
+
+- **Every row draws its engine's verdict beside its counts** Agreed, split or swapped,
+  from the row the portfolio already builds; a split row is information and never drawn
+  as an error (was RG15).
 
 ## Non-goals
 

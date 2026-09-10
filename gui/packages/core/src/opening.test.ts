@@ -273,6 +273,34 @@ describe('RG13: the cheap no', () => {
   })
 })
 
+describe('RG137: why a project reads slowly', () => {
+  it('answers the reason its transports keep, asked each time and never stamped at open', async () => {
+    let reason: string | null = null
+    let asked = 0
+    const opened = await openProject('/proj', [LAUNCHER], machine().transportFor, {
+      unheld: () => {
+        asked += 1
+        return reason
+      },
+    })
+    if (opened.kind !== 'open') throw new Error('unreachable')
+
+    expect(opened.project.unheld()).toBeNull()
+    // A handshake fails on the first read of a root, which is after the open: a value taken
+    // when the project opened would say nothing forever.
+    reason = 'exited with 3: ModuleNotFoundError: No module named roadkeep'
+    expect(opened.project.unheld()).toBe(reason)
+    expect(asked).toBe(2)
+  })
+
+  it('answers null where nothing holds an engine', async () => {
+    const opened = await openProject('/proj', [LAUNCHER], machine().transportFor)
+    if (opened.kind !== 'open') throw new Error('unreachable')
+
+    expect(opened.project.unheld()).toBeNull()
+  })
+})
+
 describe('RG122: giving the engine back', () => {
   /** A machine plus the closing this open was handed, counted. */
   function closable(answers: Record<string, string> = {}) {
