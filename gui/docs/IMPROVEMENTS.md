@@ -167,6 +167,31 @@ not help, being a candidate the same probe drops.
 - **The launcher is not this repository's to change.** It is identical to what `roadkeep install` writes today, so an edit here is overwritten by the next refresh. Making a *named* engine fatal rather than skippable is its behaviour, and the dep names it.
 - **The cache is the hazard on this machine.** It still answers — `0.2.4`, from 2026-08-28 — and is the candidate a busy sibling falls to. Removing `~/.cache/roadkeep-src` turns a stale answer into a refusal naming the missing engine: louder, and never wrong. It is a directory outside this repository, so it is named here for whoever owns the machine rather than removed.
 
+### §RG138 The mark stops at the window's edge
+
+RG136 put roadkeep's mark at the head of the window's header — task lines stopping at a
+gate, from `roadkeep/site/public/assets/roadkeep-mark.svg`, where the site already uses
+it as its favicon. Everything outside the page still says Electron: the taskbar, the
+title bar, Alt-Tab and the installer. `electron-builder.yml` names no icon,
+`BrowserWindow` is given none, and the repository holds no `.ico`, `.icns` or `.png` at
+any size.
+
+So the one place a person meets this app before opening it is the one place it is
+anonymous, beside every other Electron app on the machine wearing the same atom.
+
+**The source exists and the formats do not.** The mark is an SVG that switches palette
+by `prefers-color-scheme` — right for a favicon, wrong for an icon, which is one fixed
+palette. Windows wants a multi-size `.ico`, macOS an `.icns`, Linux a 512 `.png`;
+electron-builder derives all three from one large `build/icon.png`.
+
+**Two decisions come first and neither is code.** Whether the icon is the mark alone or
+the mark on a tile, since a transparent glyph of four thin lines disappears at 16px on a
+light taskbar. And where the rasters are made: committed as files, or generated from the
+SVG at build time — the second keeps one source and costs a converter in the toolchain.
+
+Worth doing before RG49 signs a build, so the first signed installer is the first that
+looks like this app.
+
 ## Block H — The look (a design system for governed prose)
 
 ### §RG62 Joining the checks the other consoles already answer to
@@ -247,26 +272,3 @@ Until one of them lands, `wording.test.tsx` carries the word in a named set with
 reason on it, so the guard stays green about the one string it can do nothing about and
 red about every other. That set is the thing to delete: when this is fixed, the run says
 so by failing to find what the exception excused.
-
-### §RG136 A mark only the drawings have
-
-`Main.dc.html` and `Shell.dc.html` open the header with a 28px amber square — a folder
-glyph on the amber gradient — and then the wordmark, 30px apart. The window renders the
-wordmark alone: `<span class="font-brand">roadkeep</span>`, and nothing before it.
-
-RG127 redrew the header control for control and held it with `data-control`, and
-deliberately left the mark alone: the line named controls and regions, and the mark is
-neither. So the check is green over a header whose first 58 pixels are drawn and not
-rendered, which is the class of gap RG127 was about, one step to the left.
-
-It is a decision and not a defect, and it has two honest answers. **The mark is the
-direction.** `Main` is the direction RG63 adopted, the rows below use the same glyph and
-gradient for every project, and the app would carry it too — a small component, and the
-header's first element. **Or the mark was the canvas's.** Nothing in the design system
-ships one, a desktop app has its own icon in the title bar and the taskbar, and the
-drawing drops it to measure like the window.
-
-What should not survive is the third state, the one now: drawn in one place and absent
-in the other, with nothing saying which is the intent. Whichever lands, the artboard's
-header gains a `data-region="brand"` and the check grows a line, so the next divergence
-at that end is a red run and not a person measuring.

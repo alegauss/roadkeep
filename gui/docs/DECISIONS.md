@@ -89,6 +89,7 @@ inherits its permissions.
 - ✅ **RG126** **the provider stack is spelled twice, so one added to the window is missing from every test that renders it** — The window's providers and route tree are one component each; a caller supplies only its router and whether it runs under StrictMode.
 - ✅ **RG127** **the artboards draw a header the window no longer has, and they are what the next screen is designed against** — An artboard marks each control the window renders with data-control; one drawn but not rendered yet is dashed and left unmarked.
 - ✅ **RG133** **the renderer ships three icon API endpoints, and one prop on a nav item is what starts fetching from them** — This app passes a Tabler component to a bento icon and never an Iconify name; a file handing an entity tile or shell an icon fails the suite.
+- ✅ **RG136** **the artboards draw a brand mark beside the wordmark that the window does not render, and nothing says which is right** — The header opens with roadkeep's mark in the ground's colours, and sits above the rail as the package's own shell draws it.
 
 ### §RG39 A shared design system, not a copied one
 

@@ -49,10 +49,12 @@
        in the corner a user menu would have had. `data-control` names each by the handle the
        window's own tests find it with, and artboards.test.tsx holds the two sets equal. -->
   <header data-region="header" style="position:absolute;left:0;right:0;top:0;height:80px;z-index:5;display:flex;align-items:center;gap:16px;padding:0 28px 0 18px;background:rgba(255,255,255,0.55);backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%);border-bottom:1px solid rgba(229,229,229,0.4)">
-    <div style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9px;background-image:linear-gradient(to bottom right,#fbbf24,#f59e0b);color:#7c2d12;flex:0 0 auto">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V7a2 2 0 0 1 2-2h7l3 3h2a2 2 0 0 1 2 2v9"></path><path d="M4 19h16"></path></svg>
+    <!-- roadkeep's own mark (RG136), from its site's asset: task lines stopping at a gate.
+         In the window's colours — the lines are the text's, the gate is the accent. -->
+    <div data-region="brand" style="display:flex;align-items:center;gap:8px;flex:0 0 auto">
+      <svg width="28" height="28" viewBox="0 0 160 160" aria-hidden="true"><rect fill="#0a0a0a" x="24" y="34" width="46" height="12" rx="6"></rect><rect fill="#0a0a0a" x="24" y="62" width="72" height="12" rx="6"></rect><rect fill="#0a0a0a" x="24" y="90" width="58" height="12" rx="6"></rect><rect fill="#0a0a0a" x="24" y="118" width="90" height="12" rx="6"></rect><rect fill="#b45309" x="120" y="22" width="8" height="116" rx="4"></rect><rect fill="#0a0a0a" opacity=".26" x="136" y="118" width="30" height="12" rx="6"></rect></svg>
+      <div style="font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:18px;font-weight:600;letter-spacing:-0.015em">roadkeep</div>
     </div>
-    <div style="font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:18px;font-weight:600;letter-spacing:-0.015em;margin-left:14px">roadkeep</div>
 
     <!-- the palette trigger grows into the header, as `flex-1` makes it in the window -->
     <div data-control="palette-trigger" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex:1;min-width:0;height:32px;padding:0 12px;border:1px solid #e5e5e5;border-radius:8px;background:#ffffff;box-shadow:0 1px 2px rgba(0,0,0,0.05)">

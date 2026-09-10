@@ -29,12 +29,12 @@
 - 💭 **RG50** (deps: RG46 ✅) (requires: published-artifact) **nothing updates, so a fix reaches a person only if they go and look for one** — A desktop build that cannot update is one whose defects live on every machine that installed it until somebody notices. → §RG50
 - 💭 **RG119** (deps: RG91 ✅) (requires: macos-machine) **no macOS build of this app has ever been made, so what it needs is a guess** — electron-builder.yml names a dmg target nobody has run, and the two things a Mac build turns out to want are learned by making one. → §RG119
 - 📋 **RG128** (deps: RG120 ✅, roadkeep's launcher treating a named engine as fatal) **a checkout busy when the probe runs is skipped, so the launcher answers from a cache 446 versions old** — Resolution takes the first engine that answers, so a session can be briefed by a copy nobody chose. → §RG128
+- 📋 **RG138** (deps: RG136 ✅, RG46 ✅) **the packaged app wears Electron's icon in the taskbar and installer, though roadkeep's mark now leads its header** — electron-builder.yml names no icon and no raster of the mark exists, so the one place a person meets the app first is anonymous. → §RG138
 
 ## Block H — The look (a design system for governed prose)
 
 - 📋 **RG90** (deps: RG54 ✅, the design system darkening the muted foreground) **muted text on a muted panel is 4.33 to 1, which no screen renders yet and one will** — Those two tokens are named as a pair and miss AA on the light ground, so the first panel using both ships a pale label looking like a style. → §RG90
 - 📋 **RG132** (deps: RG123 ✅, the design system translating its dialog close button) **a dialog says Close in English in every language, and the run that found it can only name it** — The package writes that word into its markup and not its bundle, so the guard carries a listed exception. → §RG132
-- 📋 **RG136** (deps: RG127 ✅) **the artboards draw a brand mark beside the wordmark that the window does not render, and nothing says which is right** — RG127 holds the drawn controls to the window and a mark is not a control, so 58px of header stay measured wrong. → §RG136
 
 ## Done when — Block A
 

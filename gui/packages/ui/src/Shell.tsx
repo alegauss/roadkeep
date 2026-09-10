@@ -10,6 +10,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 
 import { AREAS, HOME_ROUTE, surfacesIn } from './areas'
+import { BrandMark } from './BrandMark'
 import { useGround } from './ground'
 import { noticesAtLaunch } from './launch'
 import { SPOKEN_LOCALES } from './speaking'
@@ -137,8 +138,25 @@ export function AppShell() {
     <>
       <BentoNavRail groups={AREAS} homeRoute={HOME_ROUTE} homeLabel={say('shell.home')} />
 
-      <header className="bento-shell-header bento-glass sticky top-0 z-30 flex items-center gap-4 px-4 py-3 md:pl-20">
-        <span className="font-brand text-lg font-semibold tracking-tight">{say('app.name')}</span>
+      {/*
+       * Above the rail and across it, which is the package's own shell (`vds-shell` draws the
+       * rail at 3 and the header at 4, the rail's items starting below the header). This was
+       * under it — `z-30` against the rail's `z-40` — with `md:pl-20` meant to step the name
+       * past the rail, and that never applied: the package's precompiled `px-4` is emitted
+       * after this bundle's `md:pl-20`, and a later `padding-inline` wins over `padding-left`.
+       * Measured at 1280 wide: sixteen pixels of padding and the name under the rail since
+       * RG63, found when RG136 put the mark there and the mark vanished.
+       */}
+      <header className="bento-shell-header bento-glass sticky top-0 z-50 flex items-center gap-4 px-4 py-3">
+        {/*
+         * roadkeep's own mark beside the name (RG136), drawn from its site's asset and in
+         * this ground's colours. `data-region` is what the artboards test reads, as it reads
+         * the drawings' — the mark is not a control, so it carries no `data-testid`.
+         */}
+        <span className="flex shrink-0 items-center gap-2" data-region="brand">
+          <BrandMark className="size-7" />
+          <span className="font-brand text-lg font-semibold tracking-tight">{say('app.name')}</span>
+        </span>
 
         {/*
          * The palette trigger carries the platform's own hint, which is why the glyph is

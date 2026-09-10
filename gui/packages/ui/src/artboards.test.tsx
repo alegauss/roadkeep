@@ -41,6 +41,13 @@ function drawnControls(drawing: Document): string[] {
   )
 }
 
+/** A mark's shapes as numbers, which is the part of it a drawing and a window must share. */
+function geometryOf(mark: Element | null): string[] {
+  return [...(mark?.querySelectorAll('rect') ?? [])].map((rect) =>
+    ['x', 'y', 'width', 'height', 'rx'].map((attribute) => rect.getAttribute(attribute)).join(' '),
+  )
+}
+
 /** The controls the window's header renders, by the handle its tests find each one with. */
 function renderedControls(): string[] {
   const { container } = drawWindow({ initial: 'light' })
@@ -75,6 +82,21 @@ describe('RG127: the chrome the drawings say the window has', () => {
     // what should go with it, and a check on one side only would pass that.
     expect(container.querySelector('footer')).not.toBeNull()
     expect(artboard(name).querySelector('[data-region="footer"]')).not.toBeNull()
+  })
+
+  it.each(DRAWING_CHROME)('draws the mark the window renders, rect for rect: %s', (name) => {
+    // RG136: the drawings led the header with an amber folder glyph the window never had,
+    // and a mark is not a control, so the check above could not see it. Both now carry
+    // roadkeep's own mark in a `brand` region, and what is held is its geometry — a colour
+    // is the ground's to choose, and the drawing is one ground of two.
+    const { container } = drawWindow({ initial: 'light' })
+    const rendered = container.querySelector('header [data-region="brand"] svg')
+    const drawn = artboard(name).querySelector('[data-region="header"] [data-region="brand"] svg')
+
+    expect(rendered).not.toBeNull()
+    expect(drawn).not.toBeNull()
+    expect(geometryOf(drawn)).toEqual(geometryOf(rendered))
+    expect(geometryOf(rendered)).toHaveLength(6)
   })
 
   it('leaves unmarked what is drawn and not rendered, rather than lying about the window', () => {
