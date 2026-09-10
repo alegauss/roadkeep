@@ -1,7 +1,7 @@
 import { designFrom, whereDesignLives, wordsAgainstLimit, type Design } from '@rk/core'
 import { beforeAll, describe, expect, it } from 'vitest'
 
-import { read, REPO } from './live'
+import { openWithDesign, read, REPO } from './live'
 
 /**
  * The design read against this repository's own rationale file. It is the interesting
@@ -9,34 +9,24 @@ import { read, REPO } from './live'
  * `[limits] section` the count has to be held against.
  */
 
-/**
- * The design of whatever is open, and the id it belongs to.
- *
- * Called with no id, `brief` picks — which is the only spelling that keeps working. An id
- * written into an assertion is a marker pinned to the day it was written: it is open when
- * the test is committed and shipped by the commit that finishes it, and the failure then
- * belongs to nothing anybody changed.
- */
-async function designOfBrief(id?: string): Promise<Design> {
-  return designFrom(await read(REPO, 'brief', id === undefined ? {} : { id }))
-}
-
-/** Which line that was, so the `show` reads below ask about the same one. */
-async function openId(): Promise<string> {
-  return (await read(REPO, 'brief', {})).id
+async function designOfBrief(id: string): Promise<Design> {
+  return designFrom(await read(REPO, 'brief', { id }))
 }
 
 async function designOfShow(id: string, noBody = false): Promise<Design> {
   return designFrom(await read(REPO, 'show', { id, noBody }))
 }
 
-/** Whatever this repository has open, and its design. Both chosen by the engine. */
+/**
+ * An open line this repository has designed, and its design — found off the listing, never
+ * written here: `openWithDesign` says why neither an id nor `pick` is the way to it.
+ */
 let id: string
 let design: Design
 
 beforeAll(async () => {
-  id = await openId()
-  design = await designOfBrief()
+  id = await openWithDesign()
+  design = await designOfBrief(id)
 }, 120000)
 
 describe('RG24: a real rationale, as the file keeps it', () => {

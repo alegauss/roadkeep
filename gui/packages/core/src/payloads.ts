@@ -1466,8 +1466,13 @@ export interface PickedLine {
 
 export interface PickPayload {
   readonly pick: PickedLine | null
-  /** Which of the three tiers answered: in progress, the priority queue, or lowest ready id. */
-  readonly tier: string
+  /**
+   * Which of the three tiers answered: in progress, the priority queue, or lowest ready id —
+   * and **null where none did**. A backlog whose open lines all wait on something answers
+   * `pick: null` and `tier: null` together, and a reader holding this to a string drew that
+   * project as unreadable in the portfolio (RG141).
+   */
+  readonly tier: string | null
   /** Why this line and not another, in the engine's own words. */
   readonly reason: string
   readonly ready: number
@@ -1490,7 +1495,7 @@ export const readPickPayload: Reader<PickPayload> = record<PickPayload>({
     ),
     null,
   ),
-  tier: orMissing(aString, ''),
+  tier: orMissing(orNull(aString), null),
   reason: orMissing(aString, ''),
   ready: orMissing(aNumber, 0),
   blocked: orMissing(aNumber, 0),

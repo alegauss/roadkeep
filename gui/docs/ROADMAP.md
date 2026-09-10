@@ -6,6 +6,7 @@
 
 - 💭 **RG9** (deps: RG1 ✅, roadkeep RK1632) **prose a person typed goes out through argv, which is where RK1474 recorded bytes arriving as different bytes** — why and section-body each read stdin on a dash and symptom does not, so the field every line leads with is the one with no safe path in. → §RG9
 - 📋 **RG137** (deps: RG135 ✅, RG122 ✅, RG15) **an open project does not carry why its engine could not be held, so a row cannot say why it reads slowly** — RG135 keeps the reason on the held transport in shell, and OpenProject in core has no field it could arrive in. → §RG137
+- 📋 **RG142** (deps: RG141 ✅) **a brief with no id on a backlog with nothing ready answers empty, and the reader calls that this app being behind** — The engine prints brief null with its reason, the reader holds id to a string, and the handover's no-id call is the one that meets it. → §RG142
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
@@ -33,8 +34,8 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- 📋 **RG90** (deps: RG54 ✅, a design system release carrying VDS92) **muted text on a muted panel is 4.33 to 1, which no screen renders yet and one will** — Those two tokens are named as a pair and miss AA on the light ground, so the first panel using both ships a pale label looking like a style. → §RG90
-- 📋 **RG132** (deps: RG123 ✅, a design system release carrying VDS93) **a dialog says Close in English in every language, and the run that found it can only name it** — The package writes that word into its markup and not its bundle, so the guard carries a listed exception. → §RG132
+- 🛠 **RG90** (deps: RG54 ✅, a design system release carrying VDS92) **muted text on a muted panel is 4.33 to 1, which no screen renders yet and one will** — Those two tokens are named as a pair and miss AA on the light ground, so the first panel using both ships a pale label looking like a style. → §RG90
+- 🛠 **RG132** (deps: RG123 ✅, a design system release carrying VDS93) **a dialog says Close in English in every language, and the run that found it can only name it** — The package writes that word into its markup and not its bundle, so the guard carries a listed exception. → §RG132
 
 ## Done when — Block A
 

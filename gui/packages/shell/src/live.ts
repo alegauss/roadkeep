@@ -3,6 +3,7 @@ import path from 'node:path'
 import {
   createClient,
   explainUnreadable,
+  listedTasks,
   type Client,
   type Transport,
   type VerbAnswers,
@@ -216,4 +217,21 @@ export async function read<K extends VerbName>(
     throw new Error(`\`${verb}\` was refused: ${answer.refusal.said}`)
   }
   return answer.value
+}
+
+/**
+ * An open line of this repository's that has a design, found off the listing (RG141).
+ *
+ * Found rather than named, because an id in an assertion is a marker pinned to the day it was
+ * written. But not found by `pick`, which is how three files did it: pick offers a line only
+ * while one is ready, and the day every open line here waited on something outside the
+ * backlog it offered none — and those files failed on a state nothing in the code had changed.
+ * What they read is an open line with a design, and `list` has one whatever its readiness.
+ */
+export async function openWithDesign(): Promise<string> {
+  const open = listedTasks(await read(REPO, 'list', {})).find((task) => task.ref !== null)
+  // The premise, stated where it fails: a backlog with no designed open line has not broken
+  // the app, it has taken away what these files read.
+  if (open === undefined) throw new Error('no open line in this backlog has a design to read')
+  return open.id
 }

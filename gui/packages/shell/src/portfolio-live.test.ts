@@ -72,13 +72,27 @@ async function rowFor(projectPath: string): Promise<ProjectRow> {
 }
 
 let fixture: Fixture
+/**
+ * A second backlog with a line to offer, under another prefix (RG141).
+ *
+ * The two candidates used to be this repository's and the fixture's, which held only while
+ * something here was ready — and the day every open line waited on something, this row had
+ * no candidate and the board had one.
+ */
+let other: Fixture
+/** A backlog with nothing open at all, which is the answer RG141 found unread. */
+let waiting: Fixture
 
 beforeAll(async () => {
   fixture = await buildFixture(engine, { open: 3, shipped: 1, deferred: 1 })
+  other = await buildFixture(engine, { open: 1, shipped: 0, deferred: 0, prefix: 'FY' })
+  waiting = await buildFixture(engine, { open: 0, shipped: 1, deferred: 1 })
 }, 180000)
 
 afterAll(() => {
   fixture.dispose()
+  other.dispose()
+  waiting.dispose()
 })
 
 describe('RG16: rows over more than one project', () => {
@@ -121,17 +135,29 @@ describe('RG16: rows over more than one project', () => {
   })
 
   it('lays two real candidates side by side with the tier each came from', async () => {
-    const rows = [await rowFor(REPO), await rowFor(fixture.root)]
+    const rows = [await rowFor(other.root), await rowFor(fixture.root)]
     const board = candidateBoard(rows)
 
     expect(board.candidates).toHaveLength(2)
     // Two different backlogs, two ids from two prefixes, each with roadkeep's own tier.
-    expect(board.candidates[0]?.id).toMatch(/^RG\d+$/)
+    expect(board.candidates[0]?.id).toMatch(/^FY\d+$/)
     expect(board.candidates[1]?.id).toMatch(/^FX\d+$/)
     expect(board.candidates.every((entry) => entry.tier !== '')).toBe(true)
 
     // And the order is the one they were given in, not one this app worked out.
-    expect(board.candidates.map((entry) => entry.project)).toEqual([REPO, fixture.root])
+    expect(board.candidates.map((entry) => entry.project)).toEqual([other.root, fixture.root])
+  })
+
+  it('reads a backlog with nothing ready as a row with no next line', async () => {
+    // RG141: the engine answers `pick: null` beside `tier: null` here, and the reader held the
+    // tier to a string — so a project whose whole backlog was waiting read as a broken one.
+    const row = await rowFor(waiting.root)
+    const board = candidateBoard([row, await rowFor(fixture.root)])
+
+    expect(row.state).toBe('read')
+    expect(row.next?.id).toBeNull()
+    expect(board.nothingToPick).toEqual([waiting.root])
+    expect(board.unanswered).toEqual([])
   })
 
   it('counts rows and nothing else', async () => {

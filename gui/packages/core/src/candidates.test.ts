@@ -14,10 +14,11 @@ const project = (path: string): RecordedProject => ({
   presence: 'present',
 })
 
+// A null pick comes with a null tier, which is how the engine prints it (RG141).
 const picked = (id: string | null, tier: string): PickPayload => ({
   pick:
     id === null ? null : { id, block: 'A', status: '📋', symptom: `what ${id} is about`, ref: id },
-  tier,
+  tier: id === null ? null : tier,
   reason: 'because',
   ready: 4,
   blocked: 2,

@@ -164,7 +164,8 @@ function nextFrom(pick: PickPayload): RowNext {
     symptom: pick.pick?.symptom ?? '',
     block: pick.pick?.block ?? '',
     status: pick.pick?.status ?? '',
-    tier: pick.tier,
+    // Null beside a null pick, and a row with no next line has no tier to show either.
+    tier: pick.tier ?? '',
     ready: pick.ready,
     blocked: pick.blocked,
   }

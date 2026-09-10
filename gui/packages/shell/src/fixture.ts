@@ -46,6 +46,12 @@ export interface FixtureShape {
    * the point, since the bound has to be one four short lines exceed.
    */
   readonly listRead?: number
+  /**
+   * The id prefix, `FX` unless a test needs two backlogs whose ids cannot be confused
+   * (RG141): the portfolio's two candidates came from this repository and one fixture, and
+   * this repository offers none on a day nothing here is ready.
+   */
+  readonly prefix?: string
 }
 
 const DEFAULT_SHAPE: FixtureShape = { open: 3, shipped: 1, deferred: 1 }
@@ -109,7 +115,7 @@ export async function buildFixture(
       [
         'init',
         '--prefix',
-        'FX',
+        shape.prefix ?? 'FX',
         '--block',
         'A — The model',
         '--block',
@@ -221,6 +227,7 @@ function nameOf(shape: FixtureShape): string {
     `shipped-${String(shape.shipped)}`,
     `deferred-${String(shape.deferred)}`,
     `read-${String(shape.listRead ?? 0)}`,
+    `prefix-${shape.prefix ?? 'FX'}`,
   ].join('-')
 }
 

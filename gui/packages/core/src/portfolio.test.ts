@@ -4,7 +4,7 @@ import type { RecordedProject } from './catalogue'
 import type { EnginesPayload } from './engines'
 import type { Unreadable } from './limits'
 import { gateHealth, recordGate, UNKNOWN_GATE } from './gate'
-import type { PickPayload, StatsPayload } from './payloads'
+import { readPickPayload, type PickPayload, type StatsPayload } from './payloads'
 import { folderName, pendingRow, readRow, tally, unreadableRow } from './portfolio'
 
 const project: RecordedProject = {
@@ -100,10 +100,43 @@ describe('RG16: what a row is made of', () => {
   })
 
   it('carries a backlog with nothing to pick, without inventing an id', () => {
-    const row = readRow(project, { pick: { ...PICK, pick: null } })
+    // The tier is null beside a null pick, as the engine prints it. This spread a string tier
+    // over it until RG141, which is the one shape roadkeep never sends.
+    const row = readRow(project, { pick: { ...PICK, pick: null, tier: null } })
 
     expect(row.next?.id).toBeNull()
     expect(row.next?.symptom).toBe('')
+    expect(row.next?.tier).toBe('')
+  })
+
+  it('reads what a backlog with nothing ready prints, as a row and not a failure', () => {
+    // Trimmed from `roadkeep pick --json` on this repository the day RG140 shipped and every
+    // open line waited on something. The reader refused `tier: null`, so the portfolio drew a
+    // project whose whole backlog was waiting as one it could not read (RG141).
+    const printed = readPickPayload(
+      {
+        root: '/code/viglet/turing/2026.3',
+        version: '0.2.460',
+        pick: null,
+        tier: null,
+        reason: 'every ready task needs something this caller does not have: signing-cert',
+        scope: null,
+        standing: null,
+        alternatives: [],
+        ready: 3,
+        blocked: 2,
+        outside: 8,
+        paused: 0,
+      },
+      '',
+    )
+    if (!printed.ok) throw new Error(`the printed answer did not read: ${printed.failure.path}`)
+    const row = readRow(project, { pick: printed.value })
+
+    expect(row.state).toBe('read')
+    expect(row.next?.id).toBeNull()
+    expect(row.next?.ready).toBe(3)
+    expect(row.next?.blocked).toBe(2)
   })
 
   it('carries the gate verdict on record, dated', () => {

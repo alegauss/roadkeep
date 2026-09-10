@@ -9,7 +9,7 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import { CEILING, liveEngine as engine, read, REPO } from './live'
+import { CEILING, liveEngine as engine, openWithDesign, read, REPO } from './live'
 import { buildFixture, type Fixture } from './fixture'
 
 /**
@@ -30,12 +30,12 @@ let fixture: Fixture
  */
 let taken: Fixture
 /**
- * Whatever this repository has open right now, chosen by `pick` rather than written here.
+ * An open line this repository has designed, found off the listing rather than written here.
  *
  * An id in an assertion is a marker pinned to the day it was written: the test below that
  * read `RG23` asserted it was in progress, and it was, until the commit that shipped RG23
- * turned that into a failure nothing had changed to cause. `pick` always answers with an
- * open line, and an open line in this backlog always has a design.
+ * turned that into a failure nothing had changed to cause. This was chosen by `pick` after
+ * that, until the day nothing here was ready and pick chose nothing (RG141).
  */
 let open: TaskDetail
 /**
@@ -102,7 +102,7 @@ async function findStates(): Promise<void> {
 beforeAll(async () => {
   fixture = await buildFixture(engine, { open: 3, shipped: 1, deferred: 1 })
   taken = await buildFixture(engine, { open: 1, shipped: 0, deferred: 0 })
-  open = await detailOf(REPO)
+  open = await detailOf(REPO, await openWithDesign())
   await findStates()
 }, 240000)
 
@@ -134,8 +134,10 @@ describe('RG23: a real task, in one read', () => {
   })
 
   it('takes readiness from the engine, and it is a word the engine chose', () => {
-    expect(open.payload.readiness).not.toBe('')
-    expect(['ready', 'waiting', 'blocked']).toContain(open.payload.readiness)
+    // A word and not a sentence — and not a word from a list kept here. This held three until
+    // RG141 moved the subject off `pick`, which only ever handed it a ready line: the first
+    // open line read otherwise said `blocked-outside`, a word this test had never been shown.
+    expect(open.payload.readiness).toMatch(/^[a-z]+(-[a-z]+)*$/)
   })
 
   it('reads a line blocked on work outside this backlog', () => {
