@@ -14,7 +14,6 @@
 ## Block C — The portfolio (many backlogs in one view)
 
 - 📋 **RG147** (deps: RG145 ✅, RG20 ✅, RG150 ✅, a grouped palette) **the palette says it finds a line in every backlog and lists only surfaces, so search over all projects reaches no one** — RG20's search reaches no screen, and the package palette only filters nav items. → §RG147
-- 📋 **RG167** (deps: RG144 ✅) **a row is read once, so a line shipped in a terminal leaves the portfolio stale until the window reopens** — RG144 tells a screen when a project's files move, and the portfolio subscribes to nothing, so its counts outlive the backlog they came from. → §RG167
 - 📋 **RG187** (deps: RG166 ✅) **the carrier gates every project as it opens, so a cold start over seventeen starts seventeen lints at once** — Each project's pool bounds its own reads, and nothing bounds how many projects gate together. → §RG187
 
 ## Block D — The project surface (one backlog, read)

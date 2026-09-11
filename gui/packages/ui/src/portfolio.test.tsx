@@ -594,3 +594,107 @@ describe('RG166: a verdict that lands while the list is open', () => {
     expect(given).toBeGreaterThan(0)
   })
 })
+
+describe('RG167: a row that follows its project', () => {
+  /** A machine whose counts can be changed between reads, the way a terminal changes them. */
+  function moving() {
+    let total = 60
+    const transport: Transport = {
+      run(request) {
+        const verb = request.argv[2] ?? ''
+        if (verb === 'stats') {
+          return Promise.resolve({
+            code: 0,
+            stdout: JSON.stringify({
+              file: 'docs/ROADMAP.md',
+              total,
+              uncounted: 0,
+              markers: { '📋': 11 },
+              startable: { open: total, startable: total, waiting: 0, absent: [] },
+              blocks: [],
+            }),
+            stderr: '',
+            durationMs: 1,
+          })
+        }
+        const answer = SAID[verb]
+        if (answer === undefined)
+          return Promise.reject(new EngineCallFailed('unspawnable', 'no', 1))
+        return Promise.resolve({ code: 0, stdout: answer, stderr: '', durationMs: 1 })
+      },
+    }
+    return { transport, ship: () => (total = 59) }
+  }
+
+  /** Draw the list, with the way to tell one project its files moved. */
+  async function watching(): Promise<{ moved: () => void; ship: () => void }> {
+    const { transport, ship } = moving()
+    const alpha = openedFrom(
+      await openProject(READ, [['python', '/code/launch.py']], () => transport),
+    )
+    const moves: (() => void)[] = []
+    Object.defineProperty(window, 'roadkeep', {
+      value: stubBridge({
+        projects: () => Promise.resolve(THREE),
+        open: (root) => (root === READ ? Promise.resolve(alpha) : Promise.resolve(REFUSAL)),
+        run: (root, request) => bridgedRun(() => transport.run({ ...request, root })),
+        gates: () => Promise.resolve([]),
+        subscribe: (topic, key, listener) => {
+          if (topic === 'governed' && key === READ) moves.push(() => (listener as () => void)())
+          return () => undefined
+        },
+      }),
+      configurable: true,
+    })
+    drawWindow()
+    return {
+      moved: () => {
+        for (const move of moves) move()
+      },
+      ship,
+    }
+  }
+
+  it('reads that project again when its files move, and leaves the others alone', async () => {
+    const { moved, ship } = await watching()
+
+    await waitFor(() => {
+      expect(rowOf('alpha').textContent).toContain('60')
+    })
+    ship()
+    await act(async () => {
+      moved()
+      await Promise.resolve()
+    })
+
+    await waitFor(() => {
+      expect(rowOf('alpha').textContent).toContain('59')
+    })
+    // The other two are what they were: a move is one project's news.
+    expect(screen.getAllByTestId('portfolio-row').map((row) => row.dataset['state'])).toEqual([
+      'read',
+      'unreadable',
+      'unreadable',
+    ])
+  })
+
+  it('keeps the row where the record put it, never where the reread finished', async () => {
+    const { moved, ship } = await watching()
+
+    await waitFor(() => {
+      expect(rowOf('alpha').textContent).toContain('60')
+    })
+    ship()
+    await act(async () => {
+      moved()
+      await Promise.resolve()
+    })
+    await waitFor(() => {
+      expect(rowOf('alpha').textContent).toContain('59')
+    })
+
+    expect(
+      screen.getAllByTestId('portfolio-row').map((row) => row.textContent.slice(0, 5)),
+    ).toEqual(['alpha', 'beta/', 'gamma'])
+  })
+})

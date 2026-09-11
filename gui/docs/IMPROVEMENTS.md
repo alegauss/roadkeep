@@ -94,29 +94,6 @@ renderer. The "a grouped palette" dep is that change in the design system: a sec
 group whose items the product supplies per query. Choosing a line waits on RG150's task
 detail.
 
-### §RG167 A row that follows its project
-
-The portfolio reads every project once, when it mounts. A line shipped in a terminal, or
-a marker an agent moved, leaves that row showing the old counts and the old next line
-until the window is reopened, and nothing on screen says the row is old.
-
-RG144 built exactly what this needs and the portfolio does not use it. A screen
-subscribes to `governed` for a root and hears when that project's files move, and main
-drops its cached answers for it at the same moment.
-
-**Each read row follows its project.** Once a row is read, the portfolio subscribes to
-`governed` for its path. A move rereads that row alone, through the same two stages
-`rowStages` runs at a cold start, applied with `fillRow` so the row keeps what it drew
-while the reread is in flight. A burst is already held by `core`'s watching, so a `ship`
-that writes three files rereads once.
-
-**The subscriptions go with the screen.** `useGovernedMoves` gives one back on unmount,
-and the portfolio holds one per row, so leaving the screen releases every watch main
-opened for it. A pending or unreadable row subscribes to nothing: it has no files it has
-read.
-
-The order stays the record's. A reread replaces a row in place and never moves it.
-
 ### §RG187 Bounding the gate runs a launch starts
 
 RG166 gates a project when the carrier opens it, which is right for one project and is

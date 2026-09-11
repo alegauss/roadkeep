@@ -1,5 +1,6 @@
 import {
   coldStart,
+  fillRow,
   gatedRows,
   openingUnreadable,
   openOver,
@@ -10,6 +11,7 @@ import {
   type ProjectGate,
   type ProjectRow,
   type RecordedProject,
+  type RowReads,
   type RowStage,
 } from '@rk/core'
 import { useCallback, useEffect, useState } from 'react'
@@ -119,6 +121,8 @@ export function usePortfolio(): { readonly view: PortfolioView; readonly rescan:
     // A later one about a project wins, whichever it came from, and a slow read of the
     // ledger cannot undo a verdict heard since.
     const verdicts = new Map<string, ProjectGate>()
+    // The record behind each row, which is what a reread is asked for.
+    const recordedAt = new Map<string, RecordedProject>()
     // Every subscription this run took, given back when the screen goes.
     const given: (() => void)[] = []
     const dressed = (rows: readonly ProjectRow[]): readonly ProjectRow[] =>
@@ -126,6 +130,54 @@ export function usePortfolio(): { readonly view: PortfolioView; readonly rescan:
 
     const redraw = (): void => {
       setView((was) => (was.kind === 'listed' ? { ...was, rows: dressed(was.rows) } : was))
+    }
+
+    /**
+     * Read one project again and put it back where it was (RG167).
+     *
+     * The same two stages a cold start runs, through `fillRow`, so the row keeps what it drew
+     * while the reread is in flight and a reader never watches a filled row empty. A stage
+     * that throws leaves the row exactly as it was: a project that has stopped answering is
+     * not a project with no lines, and the counts it last gave are the last thing known.
+     */
+    const reread = async (recorded: RecordedProject): Promise<void> => {
+      const reads: RowReads = {}
+      for (const stage of stages) Object.assign(reads, await stage.read(recorded))
+      if (!stillHere()) return
+      setView((was) =>
+        was.kind === 'listed'
+          ? {
+              ...was,
+              // Replaced in place: the order is the record's, and a row that moved because it
+              // was reread would be a list that shuffles while somebody is reading it.
+              rows: dressed(
+                was.rows.map((row) => (row.path === recorded.path ? fillRow(row, reads) : row)),
+              ),
+            }
+          : was,
+      )
+    }
+
+    /**
+     * Follow each row that has been read, once (RG167).
+     *
+     * A pending or unreadable row watches nothing: it has no answers to be made old. The
+     * watch is main's handle on that project's files, so it is taken when there is something
+     * to keep current and given back with the screen.
+     */
+    const followed = new Set<string>()
+    const follow = (rows: readonly ProjectRow[]): void => {
+      for (const row of rows) {
+        if (row.state !== 'read' || followed.has(row.path)) continue
+        const recorded = recordedAt.get(row.path)
+        if (recorded === undefined) continue
+        followed.add(row.path)
+        given.push(
+          bridge.subscribe('governed', row.path, () => {
+            void reread(recorded).catch(() => undefined)
+          }),
+        )
+      }
     }
 
     /** A verdict that landed after the list did, put on its own row and kept for the rest. */
@@ -150,6 +202,7 @@ export function usePortfolio(): { readonly view: PortfolioView; readonly rescan:
       // which is work this screen did not ask for and cannot wait on — so each row is
       // listened to, and a verdict arriving hours later lands on the row it is about.
       for (const project of projects) {
+        recordedAt.set(project.path, project)
         given.push(bridge.subscribe('gate', project.path, heard))
       }
 
@@ -166,6 +219,7 @@ export function usePortfolio(): { readonly view: PortfolioView; readonly rescan:
 
       const rows = await coldStart(projects, stages, (progress) => {
         if (!stillHere()) return
+        follow(progress.rows)
         setView({
           kind: 'listed',
           rows: dressed(progress.rows),
@@ -174,6 +228,7 @@ export function usePortfolio(): { readonly view: PortfolioView; readonly rescan:
         })
       })
       if (stillHere()) {
+        follow(rows)
         setView({ kind: 'listed', rows: dressed(rows), progress: null, tried: { ...tried } })
       }
     }
