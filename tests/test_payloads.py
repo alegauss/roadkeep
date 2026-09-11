@@ -70,6 +70,14 @@ PROMISED = {
     # client was branching on `source: null` — a fact expressed as an absence, with no
     # root, no roles and no reason beside it.
     "config": ("version", "source", "governed", "files", "keys", "tables"),
+    # What a surface over many projects shows before somebody proposes work (RK1676): the
+    # leads, whether the list was cut and which designs quote each, read today by a client in
+    # another language — and the reason each lead is argued with, the key that task added
+    # beside them rather than reshaping `non_goals` into objects that client would not parse.
+    "non-goal list": (
+        "file", "governed", "non_goals", "non_goals_elided", "non_goals_quoted",
+        "non_goals_why",
+    ),
 }
 
 #: The keys inside **every** object a payload here carries a list of. Held apart from the top
@@ -238,7 +246,8 @@ def _argv(verb: str, root: Path | None = None) -> tuple[str, ...]:
         blocks = payload("stats", root=root)["blocks"]
         return ("budget", "--block", blocks[0]["block"])
     if verb != "deps":
-        return (verb,)
+        # A family's verb is two words on the command line, `non-goal list` among them.
+        return tuple(verb.split())
     tasks = payload("list", root=root)["tasks"]
     # No skip any more (RK1098): `populated` is the root that guarantees a line to walk, so an
     # emptied backlog changes which files are read and never whether the contract is asserted.
@@ -330,6 +339,23 @@ def test_a_payload_that_already_named_one_keeps_its_own(dirty):
     # One `root`, and it is the gate's own — which was already the absolute project root.
     assert Path(got["root"]) == Path(dirty).resolve()
     assert got["version"] == engine().version
+
+
+def test_the_non_goal_listing_keeps_its_types_and_adds_the_reasons():
+    """RK1676, read over this repository's own list, which is governed and argues every lead.
+
+    The key a client already reads is held to its *type* as well as its name: `non_goals`
+    staying a list of strings is the whole of what made the reasons a new key rather than a
+    reshape, and a subset check on names would pass the day somebody made it a list of objects.
+    """
+    got = payload("non-goal", "list")
+    assert got["non_goals"], "the roadmap declares no non-goals: this asserts nothing"
+    assert all(isinstance(lead, str) for lead in got["non_goals"])
+    assert isinstance(got["non_goals_elided"], int)
+    assert isinstance(got["non_goals_quoted"], dict)
+    why = got["non_goals_why"]
+    assert list(why) == got["non_goals"], "keyed by exactly the leads the list carries"
+    assert all(isinstance(reason, str) and reason for reason in why.values())
 
 
 def test_a_list_payload_is_handed_back_as_the_list_it_is(populated):

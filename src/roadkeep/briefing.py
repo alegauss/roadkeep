@@ -166,6 +166,12 @@ class NonGoals:
     leads: tuple[str, ...] = ()
     #: How many bullets the section held beyond the ones carried. 0 means these are all.
     elided: int = 0
+    #: The sentence each carried lead's bullet argues it with, aligned with :attr:`leads` and
+    #: bounded the way they are (RK1676). The listing publishes it and `brief` does not: a
+    #: brief is held to `[reads] brief`, and a client that reads no Markdown has the listing
+    #: as its only door to *why* a proposal is out of scope, which `criterion list` already
+    #: answers for the other bullet grammar.
+    reasons: tuple[str, ...] = ()
     #: Per lead, the open lines whose design quotes it — what `non-goal.reaches` falls silent
     #: for, read from the rule's side (RK1478). Empty on a `brief`, which is about one line and
     #: already prints its design: this is the listing's own row, and the mapping is
@@ -193,8 +199,12 @@ class NonGoals:
         # let a reader take an ungoverned list for an enforced one.
         ungoverned = "" if config.non_goals is not None else "  read-only: no [non_goals]"
         rows = [f"{where}  {len(self.leads)} non-goal(s){ungoverned}"]
-        for lead in self.leads:
+        for lead, reason in zip(self.leads, self._reasons(), strict=True):
             rows.append(f"  not      {lead}")
+            if reason:
+                # Under its lead, as `criterion list` prints its `why` (RK1676): the payload
+                # carries the reason, and a terminal answer without it is the thinner register.
+                rows.append(f"  why      {reason}")
             naming = self.quoted.get(lead, ())
             if naming:
                 # Under the constraint it names and never as a second list: the whole finding
@@ -223,7 +233,25 @@ class NonGoals:
             # the key is what was measured, and a consumer reading a verdict off it would be
             # reading one this tool did not make.
             "non_goals_quoted": {lead: list(ids) for lead, ids in self.quoted.items()},
+            # The reason each lead is argued with (RK1676), under a key of its own because
+            # `non_goals` is a list of strings a client outside this process already reads, and
+            # a payload that gains a key is compatible where one that reshapes a key is not.
+            # Keyed by the lead as this answer carries it, which is the join `non_goals_quoted`
+            # makes beside it, and dense: every bullet argues something, so a missing key would
+            # read as an older build. A lead carried twice keeps the first one's reason, which
+            # is the bullet `amend` corrects and `drop` leaves (RK67).
+            "non_goals_why": self._why(),
         }
+
+    def _reasons(self) -> tuple[str, ...]:
+        """One reason per carried lead, `""` for any the record was built without."""
+        return self.reasons + ("",) * (len(self.leads) - len(self.reasons))
+
+    def _why(self) -> dict[str, str]:
+        why: dict[str, str] = {}
+        for lead, reason in zip(self.leads, self._reasons(), strict=True):
+            why.setdefault(lead, reason)
+        return why
 
 
 @dataclass(frozen=True, slots=True)
@@ -1062,24 +1090,32 @@ def _gather(
 def non_goals(config: Config, document: Document) -> NonGoals:
     """The lead of each bullet under the non-goals heading, in file order and bounded.
 
-    The lead and not the bullet: what keeps a proposal inside scope is *that* the line
-    exists, and the sentence arguing it is already in the file the caller can open. *Which*
-    characters are the lead is `scoping`'s answer and not one guessed here (RK68) — the
-    module that writes a non-goal is the one that says what its address is.
+    The lead is what `brief` prints: what keeps a proposal inside scope is *that* the line
+    exists, and the sentence arguing it is in a file that caller can open. The reason rides
+    beside it for the listing (RK1676), whose caller may be one that opens no Markdown at
+    all. *Which* characters are the lead and which the reason is `scoping`'s answer and not
+    one guessed here (RK68) — the module that writes a non-goal is the one that says what its
+    address is.
 
     Bounded twice, for the reason the chains stop at two and a section has a word budget:
-    each lead is cut to the project's own `[non_goals]` limit (L6) with the cut *shown*, and
-    a list past :data:`NON_GOALS` reports how many it left. A field with no limit at all is
-    a forty-bullet section arriving in place of the file this call exists to replace.
+    each lead and each reason is cut to the project's own `[non_goals]` limit (L6) with the
+    cut *shown*, and a list past :data:`NON_GOALS` reports how many it left. A field with no
+    limit at all is a forty-bullet section arriving in place of the file this call exists to
+    replace — and an ungoverned list's reasons are prose nobody held to a width.
     """
-    limit = (config.non_goals or Scope()).lead
-    every = scoping.leads(document)
+    scope = config.non_goals or Scope()
+    every = scoping.read(document)
+    carried = every[:NON_GOALS]
     return NonGoals(
         leads=tuple(
-            textwrap.shorten(lead, width=limit, placeholder=ELLIPSIS)
-            for lead in every[:NON_GOALS]
+            textwrap.shorten(goal.lead, width=scope.lead, placeholder=ELLIPSIS)
+            for goal in carried
         ),
         elided=max(0, len(every) - NON_GOALS),
+        reasons=tuple(
+            textwrap.shorten(goal.why, width=scope.why, placeholder=ELLIPSIS)
+            for goal in carried
+        ),
     )
 
 

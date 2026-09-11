@@ -1062,6 +1062,21 @@ def test_claiming_over_the_protocol_moves_the_marker(tmp_path):
     claiming.path(tmp_path).unlink(missing_ok=True)  # it lives outside the checkout
 
 
+def test_the_served_non_goal_listing_carries_each_reason_beside_its_lead(tmp_path):
+    """RK1676, over the transport a client that opens no Markdown actually uses: the tool
+    answers with the payload the terminal's `--json` prints, so the reason arrives here too
+    and the leads stay the list of strings they were."""
+    project(
+        tmp_path,
+        roadmap=CLEAN + "\n## Non-goals\n\n- **No web UI.** Files and a CLI.\n",
+    )
+    answer = called(tmp_path, "non_goal_list")
+    assert not answer["isError"]
+    published = json.loads(text_of(answer))
+    assert published["non_goals"] == ["No web UI."]
+    assert published["non_goals_why"] == {"No web UI.": "Files and a CLI."}
+
+
 def test_the_cheap_reader_of_a_flag_agrees_with_the_parser_on_every_one(tmp_path):
     """RK488: `serves` answers *which tool* inside a hook the harness waits on, so it reads
     `TOOLS` and never the parser index a lookup would cost 117 ms to build. That makes

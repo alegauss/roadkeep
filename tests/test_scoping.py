@@ -554,6 +554,77 @@ def test_the_json_carries_the_leads_the_file_and_whether_it_is_governed(tmp_path
     assert payload["non_goals_elided"] == 0
 
 
+# -- the reason each one is argued with (RK1676) ------------------------------
+
+
+def test_the_json_carries_each_reason_keyed_by_the_lead_it_prints(tmp_path, capsys):
+    """RK1676. The listing published the leads and not the reasons, where `criterion list`
+    publishes its `why` — so a client that opens no Markdown could show what is out of scope
+    and never why, and the reason is the half that settles a proposal."""
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "non-goal", "list", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["non_goals_why"] == {
+        "No web UI and no server.": "Files and a CLI. The store is the repository.",
+        # The wrapped bullet's reason, joined across its continuation: one sentence, not two.
+        "No issue-tracker sync": (
+            "(Jira, Linear, GitHub Issues). A backlog that lives in a service is a backlog "
+            "an agent cannot `Grep`."
+        ),
+    }
+    # Keyed by exactly the leads the list carries, so a consumer joins without re-deriving.
+    assert list(payload["non_goals_why"]) == payload["non_goals"]
+
+
+def test_the_keys_the_listing_already_published_keep_their_names_and_types(tmp_path, capsys):
+    # Additive (tests/test_payloads.py's rule): `non_goals` is a list of strings a client
+    # outside this process reads, so the reasons are a key beside it and never a reshape of it.
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "non-goal", "list", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["non_goals"] == ["No web UI and no server.", "No issue-tracker sync"]
+    assert all(isinstance(lead, str) for lead in payload["non_goals"])
+    assert payload["non_goals_elided"] == 0 and isinstance(payload["non_goals_elided"], int)
+    assert payload["non_goals_quoted"] == {}
+    assert payload["file"] == "ROADMAP.md" and payload["governed"] is True
+
+
+def test_the_listing_prints_each_reason_under_its_lead(tmp_path, capsys):
+    # Both registers say the same thing, as `criterion list` prints its `why`.
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "non-goal", "list"]) == EXIT_OK
+    rows = capsys.readouterr().out.splitlines()
+    at = rows.index("  not      No web UI and no server.")
+    assert rows[at + 1] == "  why      Files and a CLI. The store is the repository."
+
+
+def test_a_bullet_that_argues_nothing_is_a_key_with_an_empty_reason(tmp_path, capsys):
+    # An unshaped bullet whose one sentence is its lead (RK233): every carried lead is a key,
+    # so an absent one can only mean an older build, and the terminal prints no empty row.
+    project(tmp_path, roadmap=ROADMAP + "- No dates, because a marker is maturity.\n")
+    assert main(["-C", str(tmp_path), "non-goal", "list", "--json"]) == EXIT_OK
+    why = json.loads(capsys.readouterr().out)["non_goals_why"]
+    assert why["No dates, because a marker is maturity."] == ""
+    assert main(["-C", str(tmp_path), "non-goal", "list"]) == EXIT_OK
+    rows = capsys.readouterr().out.splitlines()
+    assert rows[-1] == "  not      No dates, because a marker is maturity."
+
+
+def test_an_ungoverned_reason_is_cut_to_the_limit_with_the_cut_shown(tmp_path, capsys):
+    # Bounded as the lead is: an ungoverned list is prose nobody held to a width, and a
+    # reason with no limit is the file arriving in place of the answer.
+    long = " ".join(["A reason that keeps going."] * 30)
+    project(
+        tmp_path,
+        roadmap=ROADMAP + f"- **No endless reasons.** {long}\n",
+        config=PROSE,
+    )
+    assert main(["-C", str(tmp_path), "non-goal", "list", "--json"]) == EXIT_OK
+    reason = json.loads(capsys.readouterr().out)["non_goals_why"]["No endless reasons."]
+    assert len(reason) <= Scope().why < len(long)
+    assert reason.endswith("…") and long.startswith(reason[:-1].rstrip())
+
+
 def test_nothing_is_enforced_because_enforcing_it_would_take_a_model(tmp_path):
     # Stated as a test so nothing later promises it: the write door takes a lead and a
     # reason and nothing that acknowledges the list — an agent passes any flag it is asked

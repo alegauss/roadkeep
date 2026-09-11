@@ -499,6 +499,9 @@
 - ✅ **RK1670** **the refusal over an undeclared role names what the project has and not the verb that adds one** — The undeclared-role refusal names declare, and defer's own store refusal stops reading out the hand edit it copied its rule from.
 - ✅ **RK1671** **three tests assert on this checkout's live backlog and go red when it drains** — A census of the thirty-one tests reading this backlog says what a drain does to each, measured by running the suite against a drained copy.
 - ✅ **RK1674** **Two more refusals over an undeclared role name the vocabulary and not the verb that adds one** — One composer names declare at all five role refusals and only where it lands, which also closes a typo RK1670 was offering declare for.
+- ✅ **RK1676** **non-goal list --json publishes each non-goal's lead and not its reason, which criterion list carries as why** — non-goal list --json now publishes non_goals_why, each carried lead's reason keyed by that lead and bounded like it, and every key it already had keeps its name and type.
+  checked **The listing's payload carries each carried lead's reason** Keyed by the lead as the answer prints it, the join non_goals_quoted already makes, so a client reads the argument without opening the file.
+  checked **Every key the listing already published is unchanged** non_goals stays a list of strings and the elided count and the quoted map keep their types, because a client outside this process reads them today.
 
 ## Block D — The gate
 

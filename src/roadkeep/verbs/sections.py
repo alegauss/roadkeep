@@ -1130,7 +1130,9 @@ def declare_places(subcommands: argparse._SubParsersAction) -> None:
         ),
     )
     scope_list.add_argument(
-        "--json", action="store_true", help="the leads, with the file and what was left"
+        "--json",
+        action="store_true",
+        help="the leads and each one's reason, with the file and what was left",
     )
     scope_list.set_defaults(handler=_non_goal_list, reads_only=True)
 
