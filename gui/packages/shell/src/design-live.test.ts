@@ -18,6 +18,25 @@ async function designOfShow(id: string, noBody = false): Promise<Design> {
 }
 
 /**
+ * The lines roadkeep filled to its column: not a list item or the indented lines that carry
+ * one on, and not a table row — the two shapes it inserts as written.
+ */
+function filledLines(lines: readonly string[]): string[] {
+  const filled: string[] = []
+  let listed = false
+  for (const line of lines) {
+    if (/^\s*([-*+]|\d+\.)\s/.test(line) || line.trimStart().startsWith('|')) {
+      listed = true
+      continue
+    }
+    if (listed && /^\s+\S/.test(line)) continue
+    listed = false
+    filled.push(line)
+  }
+  return filled
+}
+
+/**
  * An open line this repository has designed, and its design — found off the listing, never
  * written here: `openWithDesign` says why neither an id nor `pick` is the way to it.
  */
@@ -43,11 +62,14 @@ describe('RG24: a real rationale, as the file keeps it', () => {
   })
 
   it('never reflows a body the file already wrapped', () => {
-    // `[limits] prose` is the column this project fills to. Every line the engine sent
-    // is at or under it, and a screen that re-wrapped would be showing different prose
-    // from the one the gate measured.
-    expect(design.lines.every((line) => line.length <= 100)).toBe(true)
-    expect(design.lines.some((line) => line.length > 40)).toBe(true)
+    // `[limits] prose` is the column this project fills to. Every line the engine filled is
+    // at or under it, and a screen that re-wrapped would be showing different prose from
+    // the one the gate measured. Filled, and not every line (RG163): roadkeep inserts a list
+    // or a table as written, so a list item past the column is the file's and not a reflow.
+    const filled = filledLines(design.lines)
+
+    expect(filled.every((line) => line.length <= 100)).toBe(true)
+    expect(filled.some((line) => line.length > 40)).toBe(true)
   })
 
   it('prices the prose against the project own limit, which is never written in here', () => {

@@ -46,6 +46,7 @@
 - ✅ **RG137** **an open project does not carry why its engine could not be held, so a row cannot say why it reads slowly** — An open project answers why its engine could not be held, asked when read, so the slow row has a sentence; drawing it is left to RG145.
   checked **An open project answers why its engine could not be held** A live open over an engine that exits before the handshake carries the traceback's last line, and null once closed.
   checked **Nothing in core learns what a process is** The reason arrives as an injected question beside the closing, so a web service answers null and core holds no transport type.
+- ✅ **RG163** **three live tests need this backlog to hold a quoted lead, an idea and a prose-only design, and it holds none** — The three tests make or find what they read: a fixture design quotes its lead, the marker comes off the list, filled lines hold the column (design recorded in `packages/shell/src/live.ts`).
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

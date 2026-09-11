@@ -247,6 +247,19 @@ export async function blockWithOpenLines(): Promise<string> {
 }
 
 /**
+ * A marker some open line of this repository's carries, found off the listing (RG163).
+ *
+ * `filters-live` narrowed to `💭` by name, and this backlog had ideas until the day RG77, its
+ * last one, shipped. What that test is about is narrowing to *a* marker with lines under it,
+ * so that is what is found — the same move `blockWithOpenLines` made for a block.
+ */
+export async function markerWithOpenLines(): Promise<string> {
+  const marker = listedTasks(await read(REPO, 'list', {}))[0]?.status
+  if (marker === undefined) throw new Error('no open line in this backlog carries a marker')
+  return marker
+}
+
+/**
  * An open line of this repository's that has a design, found off the listing (RG141).
  *
  * Found rather than named, because an id in an assertion is a marker pinned to the day it was

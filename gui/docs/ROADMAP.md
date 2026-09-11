@@ -7,7 +7,6 @@
 - 📋 **RG158** (deps: RG141 ✅) **two live assertions pass unchecked: a picked line with no tier, and a combined filter that selects nothing** — RG141 made tier nullable and moved the filter off Block A, and neither assertion was tightened after it. → §RG158
 - 📋 **RG159** (deps: RG142 ✅) **the empty-brief contract asserts lacking on a fixture that never has any, so no lacking line is ever read** — Array.isArray on a field that defaults to an empty list cannot fail, and no fixture requires what the caller lacks. → §RG159
 - 📋 **RG160** (deps: RG137 ✅) **openHere's own unheld wiring is never run by a test, since RG137's live case rebuilds it by hand** — The test wires unheldAmong around openProject itself, so the production line can break with every test green. → §RG160
-- 📋 **RG163** (deps: —) **three live tests need this backlog to hold a quoted lead, an idea and a prose-only design, and it holds none** — Shipping RG77 took the last design quoting a non-goal and the last idea, and RG158's list lines outrun the column the wrap test holds. → §RG163
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

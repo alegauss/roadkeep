@@ -43,32 +43,6 @@ for byte the same.
 
 Found by the adversarial review of RG137; the skeptics split.
 
-### §RG163 Three tests pinned to what this backlog holds
-
-Three live tests read this repository's backlog and need it to hold something it no
-longer holds. Shipping RG77 took two of those things away, and RG158's section took the
-third.
-
-- **binding-live** wants an open design that quotes a non-goal. RG77's was the last one.
-- **filters-live** narrows to `💭` and wants a line back. RG77 was the last idea.
-- **design-live** holds every line of the first designed open line to the 100-column
-  fill. RG158's section is now first, and its list lines are longer, because roadkeep
-  inserts a list as written.
-
-This is the same mistake RG75, RG134 and RG141 fixed one at a time: a live test naming
-what a backlog holds today, which then fails on a backlog nobody broke.
-
-**The fix is to find the thing, or to make it.**
-
-- The quoted lead is made. A fixture governs one non-goal, so the test writes a section
-  in its own copy that quotes it and asserts `answeredBy` there.
-- The marker is found off the listing, as `blockWithOpenLines` finds a block.
-- The column is held only for lines that are not list items or table rows, which is
-  roadkeep's own rule for what it fills.
-
-None of the three will pass on an empty backlog either. That premise is stated where it
-fails, as `openWithDesign` already does.
-
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 ### §RG146 The third write, named

@@ -11,7 +11,7 @@ import {
 } from '@rk/core'
 import { beforeAll, describe, expect, it } from 'vitest'
 
-import { blockWithOpenLines, liveEngine as engine, read, REPO } from './live'
+import { blockWithOpenLines, liveEngine as engine, markerWithOpenLines, read, REPO } from './live'
 
 /**
  * Filters against this repository's own backlog, which is the one place a narrowing can be
@@ -82,10 +82,13 @@ describe('RG22: a filter is the command answer', () => {
   })
 
   it('narrows to a marker, and every line carries it', async () => {
-    const backlog = await listWith({ marker: '💭' })
+    // A marker an open line carries, found (RG163): `💭` by name failed the day the last idea
+    // here shipped, on a backlog nothing had broken.
+    const marker = await markerWithOpenLines()
+    const backlog = await listWith({ marker })
 
     expect(allLines(backlog).length).toBeGreaterThan(0)
-    expect(allLines(backlog).every((line) => line.status === '💭')).toBe(true)
+    expect(allLines(backlog).every((line) => line.status === marker)).toBe(true)
   })
 
   it('narrows to another governed role', async () => {

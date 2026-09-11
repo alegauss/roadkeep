@@ -58,13 +58,29 @@ describe('RG26: what may not be proposed at all', () => {
   })
 
   it('names the designs that already answered a lead in writing', async () => {
-    const bounds = await boundsOf(REPO)
+    // Made rather than found (RG163). Whether this repository has an open design quoting a
+    // lead is a fact about the day, and shipping RG77 took the last one away. The fixture
+    // governs one non-goal, so its own copy gets a design that quotes it — which is what
+    // silences `non-goal.reaches` for that lead.
+    const quoting = await engine.run({
+      root: fixture.root,
+      argv: [
+        '-C',
+        fixture.root,
+        'section',
+        'amend',
+        'FX1',
+        '--body',
+        'This keeps No second store.',
+      ],
+    })
+    expect(quoting.code, quoting.stderr).toBe(0)
+
+    const bounds = await boundsOf(fixture.root)
     const answered = bounds.nonGoals.filter((one) => one.answeredBy.length > 0)
 
-    // This backlog has open designs quoting a lead, which is what silences
-    // `non-goal.reaches` for them.
-    expect(answered.length).toBeGreaterThan(0)
-    expect(answered[0]?.answeredBy.every((id) => /^RG\d+$/.test(id))).toBe(true)
+    expect(answered.map((one) => one.lead)).toEqual(['No second store'])
+    expect(answered[0]?.answeredBy).toEqual(['FX1'])
   })
 
   it('reads a project that governs one, without calling that ungoverned', async () => {
