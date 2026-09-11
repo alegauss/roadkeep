@@ -25,6 +25,19 @@ import type { BentoNavGroup, BentoNavItem } from '@viglet/viglet-design-system/b
 export const HOME_ROUTE = '/'
 
 /**
+ * One project's backlog (RG148), the root in the path.
+ *
+ * No entry in `AREAS`: the surface is always about a project, so a rail button to it would
+ * lead nowhere until one was chosen. A portfolio row is how a reader arrives.
+ */
+export const PROJECT_ROUTE = '/project/:root'
+
+/** The route for one project. Encoded whole, since a root carries slashes and a drive colon. */
+export function projectPath(root: string): string {
+  return `/project/${encodeURIComponent(root)}`
+}
+
+/**
  * The sections and their surfaces, already filtered by whatever this reader may see —
  * which here is everything, there being no account and no privileges (a non-goal).
  *

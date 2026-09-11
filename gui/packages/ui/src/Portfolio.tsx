@@ -21,9 +21,12 @@ import {
   bentoChipClass,
 } from '@viglet/viglet-design-system/bento'
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 
+import { projectPath } from './areas'
 import { usePortfolio, type ReadingProgress, type Tried } from './usePortfolio'
 import { useRoots, type RootsView } from './useRoots'
+import { Bar, Glyph, Pill, type Intent } from './marks'
 import { useWording } from './wording'
 
 /**
@@ -46,8 +49,8 @@ import { useWording } from './wording'
  * a payload's fields, and translating one would be this app rewording roadkeep. Everything
  * else a person reads is from the catalogue.
  *
- * Nothing opens when a row is clicked. The project surface is RG148's, and a row that led
- * nowhere would be a dead link.
+ * A read row's name opens its backlog (RG148). A row still answering or one that did not open
+ * has nothing to open into, so its name is text and not a link that would lead to a refusal.
  */
 
 const FILTER_TEXT: Readonly<Record<RowFilter, MessageKey>> = {
@@ -68,8 +71,6 @@ const GATE_TEXT: Readonly<Record<GateVerdict, MessageKey>> = {
   drifted: 'portfolio.gate.drifted',
 }
 
-type Intent = 'on' | 'warn' | 'error' | null
-
 const GATE_INTENT: Readonly<Record<GateVerdict, Intent>> = {
   unknown: null,
   clean: 'on',
@@ -84,37 +85,6 @@ function toneOf(name: string): (typeof BENTO_TONES)[number] {
   let sum = 0
   for (const character of name) sum = (sum * 31 + (character.codePointAt(0) ?? 0)) % 9973
   return BENTO_TONES[sum % BENTO_TONES.length] ?? 'slate'
-}
-
-/** A status pill in the design system's own intents. No intent is the neutral one. */
-function Pill({ intent, children }: { readonly intent: Intent; readonly children: ReactNode }) {
-  const tone = intent === null ? 'text-muted-foreground' : `bento-status bento-status-${intent}`
-  const dot = intent === null ? 'bg-muted-foreground' : 'bento-status-dot'
-  return (
-    <span
-      className={`inline-flex h-5 items-center gap-1.5 rounded-full border px-2 text-xs font-semibold ${tone}`}
-    >
-      <span aria-hidden="true" className={`size-1.5 rounded-full ${dot}`} />
-      {children}
-    </span>
-  )
-}
-
-/**
- * The face a marker is drawn in, built once — `Marker`'s own, since a marker here is the
- * project's codepoint and nothing else. An object literal in the attribute would be a new
- * prop on every row.
- */
-const MARKER_FACE = { fontFamily: 'var(--font-marker)' } as const
-
-/** A marker's glyph, in the face every marker in this app is drawn in. */
-function Glyph({ children }: { readonly children: string }) {
-  return <span style={MARKER_FACE}>{children}</span>
-}
-
-/** Where a number will be, while it is still on its way. */
-function Bar({ width }: { readonly width: string }) {
-  return <span aria-hidden="true" className={`bg-muted block h-2 rounded-full ${width}`} />
 }
 
 function Chip({
@@ -164,9 +134,19 @@ function ProjectCell({ row, shared }: { readonly row: ProjectRow; readonly share
       </span>
       <div className="min-w-0">
         <div className="flex items-center gap-2">
-          <span className={`truncate font-semibold ${unreadable ? 'text-muted-foreground' : ''}`}>
-            {row.name}
-          </span>
+          {row.state === 'read' ? (
+            <Link
+              to={projectPath(row.path)}
+              className="truncate font-semibold hover:underline"
+              data-testid="open-project"
+            >
+              {row.name}
+            </Link>
+          ) : (
+            <span className={`truncate font-semibold ${unreadable ? 'text-muted-foreground' : ''}`}>
+              {row.name}
+            </span>
+          )}
           {shared ? (
             <span className="bg-muted text-muted-foreground rounded px-1.5 text-[10.5px] font-semibold">
               {say('portfolio.worktree')}

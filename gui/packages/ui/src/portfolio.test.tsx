@@ -219,6 +219,20 @@ describe('RG145: the portfolio at the root route', () => {
     })
   })
 
+  it('RG148: opens a read row into its backlog, and leaves the others as text', async () => {
+    await threeStates()
+    drawWindow()
+    const row = await waitFor(() => rowOf('alpha'))
+
+    await waitFor(() => {
+      expect(within(row).getByTestId('open-project').getAttribute('href')).toBe(
+        `/project/${encodeURIComponent(READ)}`,
+      )
+    })
+    expect(within(rowOf('gamma')).queryByTestId('open-project')).toBeNull()
+    expect(within(rowOf('beta')).queryByTestId('open-project')).toBeNull()
+  })
+
   it('narrows to what a chip names, counting rows and nothing else', async () => {
     await threeStates()
     drawWindow()

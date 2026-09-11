@@ -40,6 +40,7 @@ const READS: { [K in VerbName]: VerbInputs[K] } = {
   commands: {},
   config: {},
   pick: {},
+  blockList: {},
 }
 
 beforeAll(async () => {

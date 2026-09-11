@@ -130,6 +130,11 @@ export interface VerbInputs {
     designed?: boolean
     have?: readonly string[]
   }
+  /**
+   * Every block the roadmap declares, each with its heading's title and its standing — the
+   * read a block chip is drawn from (RG148). `stats` counts per block and names none.
+   */
+  blockList: Record<string, never>
 }
 
 export type VerbName = keyof VerbInputs
@@ -155,6 +160,7 @@ export type Spelling = Readonly<Record<string, readonly string[]>>
 export const VERB_WORDS: Spelling = {
   nonGoalList: ['non-goal', 'list'],
   criterionList: ['criterion', 'list'],
+  blockList: ['block', 'list'],
 }
 
 /**
@@ -239,6 +245,7 @@ export const VERBS: { [K in VerbName]: ArgvFor<K> } = {
     ...(input.designed === true ? ['--designed'] : []),
     ...repeated('--have', input.have),
   ],
+  blockList: () => [],
 }
 
 /**
@@ -283,4 +290,5 @@ export const EVERY_INPUT: { [K in VerbName]: VerbInputs[K] } = {
   commands: {},
   config: {},
   pick: { block: 'A', designed: true, have: ['signing-cert'] },
+  blockList: {},
 }

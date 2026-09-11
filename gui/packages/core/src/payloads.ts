@@ -82,6 +82,36 @@ export const readStanding: Reader<Standing> = record<Standing>({
   paused: aNumber,
 })
 
+/** One block as `block list` stands it: its standing, and the heading's own title (RG148). */
+export interface BlockStanding extends Standing {
+  /** The heading after the label, as the file writes it. Empty where it has none. */
+  readonly title: string
+}
+
+export interface BlockListPayload {
+  readonly file: string
+  /** Every block the roadmap declares, in heading order. */
+  readonly blocks: readonly BlockStanding[]
+}
+
+export const readBlockListPayload: Reader<BlockListPayload> = record<BlockListPayload>({
+  file: orMissing(aString, ''),
+  blocks: orMissing(
+    listOf(
+      record<BlockStanding>({
+        block: aString,
+        state: orMissing(aString, ''),
+        sentence: orMissing(aString, ''),
+        open: orMissing(aNumber, 0),
+        recorded: orMissing(aNumber, 0),
+        paused: orMissing(aNumber, 0),
+        title: orMissing(aString, ''),
+      }),
+    ),
+    [],
+  ),
+})
+
 export interface AbsentRequirement {
   readonly requirement: string
   readonly lines: number

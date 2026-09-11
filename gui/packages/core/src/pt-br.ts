@@ -69,6 +69,31 @@ export const PT_BR: Wording = {
   'portfolio.footnote':
     'Cada número nesta tela foi impresso por um verbo. Nada é somado entre projetos.',
 
+  'project.back': 'Portfólio',
+  'project.open': 'Abrir {name}',
+  'project.counts':
+    '{open} abertas · {startable} prontas para começar · {waiting} esperando um requisito · {uncounted} não contadas',
+  'project.opening': 'Abrindo o projeto.',
+  'project.refused': 'Este projeto não abriu: {reason}',
+  'project.roles': 'Arquivos governados',
+  'project.blocks': 'Blocos',
+  'project.block.finished': 'concluído',
+  'project.filter.marker': 'marcador',
+  'project.filter.requirement': 'requisito',
+  'project.filter.note':
+    'a prontidão é o que o deps respondeu para cada linha, nunca calculada aqui',
+  'project.listing': 'Lendo as linhas.',
+  'project.none': 'Nenhuma linha responde a este filtro.',
+  'project.design.written': 'design escrito · §{ref}',
+  'project.design.none': 'sem design ainda',
+  'project.deps.none': 'sem dependências',
+  'project.readiness.asking': 'perguntando',
+  'project.waiting': 'esperando {ids}',
+  'project.cycle': 'em ciclo com {ids}',
+  'project.unheld': 'marcada, sem dono',
+  'project.unheld.why': 'o marcador diz iniciada; o registro de claims não nomeia ninguém',
+  'project.held': 'com {by}',
+
   'roots.label': 'Raízes',
   'roots.add': 'Adicionar uma raiz',
   'roots.rescan': 'Reescanear as raízes',

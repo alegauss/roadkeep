@@ -202,6 +202,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
     // against a live engine, which is a shape nothing has held against a real payload.
     expect(Object.keys(VERBS).sort()).toEqual(
       [
+        'blockList',
         'brief',
         'budget',
         'commands',
@@ -384,6 +385,17 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect(finishing.blocks.length).toBeGreaterThan(0)
     expect(finishing.criteria[0]?.lead).not.toBe('')
     expect(typeof finishing.criteria[0]?.shaped).toBe('boolean')
+  })
+
+  it('RG148: reads the blocks the roadmap declares, each with its title and standing', async () => {
+    // The chips a project surface draws. `stats` counts per block and names none; this is the
+    // read that carries the heading's own title, which `init` wrote for the fixture.
+    const listed = await readVerb('blockList', {})
+
+    expect(listed.blocks.map((one) => one.block)).toEqual(['A', 'B'])
+    expect(listed.blocks[0]?.title).toBe('The model')
+    expect(typeof listed.blocks[0]?.open).toBe('number')
+    expect(listed.blocks[0]?.state).not.toBe('')
   })
 
   it('reads an address with no list, and the door that opens one', async () => {

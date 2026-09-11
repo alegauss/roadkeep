@@ -183,32 +183,6 @@ The order is not a verdict, and drawing it must not make it one. How long a paus
 stand is a judgement about work — the same one `[claims] held` refuses to make — so the
 oldest is first and what that means is the reader's.
 
-### §RG148 One backlog, as rows
-
-`Projeto.dc.html` draws one backlog, reached from its portfolio row. `backlogFrom`,
-`filterChoices` and the readiness `deps` and `pick` answer shipped under RG21, RG22 and
-RG25, and no route reads them.
-
-**The hero** names the project, its path and the counts `stats` printed, with the gate's
-state and age beside Run the gate and File a line. Those two buttons belong to the lines
-that build what they open, and until then they are absent rather than disabled.
-
-**The block chips** show each block's title and open count, a finished one muted and
-still selectable. The titles are `block list`'s, which `VERBS` does not carry yet;
-adding that read is part of this line. **The filters** are `filterChoices` — marker, the
-requirements the project declares, startable only — and every narrowing goes to the verb
-as `filterAsInput`, so the list is what `list` returned for it and never a filter in
-React.
-
-**A row** is marker and id, then the symptom and the why at full length, since a symptom
-is the field a reader scans and §RG63 chose rows to keep it whole. Below them the block,
-each dep as its state, and whether a design is written. On the right, readiness in the
-engine's words and, for RG74's case, "marked, unheld" with the sentence that says why.
-Open leads to the task.
-
-The route carries the root, so the rail's Backlog entry is offered only while a project
-is open. The role tabs are drawn; only Roadmap is this line's.
-
 ### §RG149 The four other files, as tabs
 
 The project surface draws five role tabs and the roadmap is the one behind them. The
@@ -252,6 +226,28 @@ does. What binds the line: the block's criteria and the non-goals, the ones this
 quotes first.
 
 A paused line opens here too, with the typed fields RG80 made its refusal carry.
+
+### §RG170 Readiness off the listing
+
+RG148 draws each row's readiness from `deps`, one read per listed line, because `list`
+prints the lines and not their readiness. A held engine answers each in milliseconds and
+the carrier's pool bounds them, so a backlog of forty lines is cheap. One of eight
+hundred is eight hundred reads to draw a screen, and the cache holds two hundred
+answers.
+
+The same gap removed a filter the design asked for. "Startable only" narrows by
+readiness, and block D says readiness is never derived here. Every narrowing on that
+screen is also an argument `list` takes, and `list` takes none for this. So the filter
+is not offered, rather than being computed in React.
+
+**The fix is roadkeep's, and the dep says so.** When `list --json` carries each line's
+readiness beside its status, the row reads it off the listing and the `deps` reads go.
+When `list` takes a `--startable`, the filter is one more chip handed to
+`filterAsInput`. Neither is this app's to build: a resolver written into the client is
+the one that disagrees with the engine without anyone noticing.
+
+Until then the per-line reads stay. They are correct, just slow on a long list, and a
+project that large can narrow by block first.
 
 ## Block E — The write path (the app composes an argv; the command writes)
 

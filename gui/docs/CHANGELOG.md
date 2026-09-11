@@ -89,6 +89,7 @@
 - ✅ **RG76** **brief already sends the chains and the shape drops them, so opening one task pays for a second call to deps** — A brief's chains are declared on its shape and laid out by the same code, so a task draws its routes off the read that opened it (design recorded in `packages/core/src/graph.ts`).
 - ✅ **RG80** **opening a paused task is a refusal whose typed fields are all empty, leaving the screen only English** — A refused task read now asks the three listings where the id went, so a paused line draws its store entry and the way back (design recorded in `packages/core/src/pauses.ts`).
 - ✅ **RG77** **a non-goal arrives as a lead alone, so the sentence that argues it stays in the file** — Each non-goal carries the sentence that argues it, off non_goals_why; an engine that publishes none answers null, not a blank reason (design recorded in `packages/core/src/binding.ts`).
+- ✅ **RG148** **a project cannot be opened in the window, so its lines, blocks and filters exist only as readers in core** — A portfolio row opens its backlog as rows, every chip an argument to list, readiness from deps, a started unheld line said so (design recorded in `packages/ui/src/Project.tsx`).
 
 ## Block E — The write path (the app composes an argv; the command writes)
 

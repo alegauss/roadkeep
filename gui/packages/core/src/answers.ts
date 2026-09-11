@@ -1,6 +1,7 @@
 import { readCommandsPayload, type CommandsPayload } from './capabilities'
 import { readEnginesPayload, type EnginesPayload } from './engines'
 import {
+  readBlockListPayload,
   readBriefAnswer,
   readBudgetPayload,
   readConfigPayload,
@@ -14,6 +15,7 @@ import {
   readReversalsPayload,
   readShowPayload,
   readStatsPayload,
+  type BlockListPayload,
   type BriefAnswer,
   type BudgetPayload,
   type ConfigPayload,
@@ -70,6 +72,7 @@ export interface VerbAnswers {
   commands: CommandsPayload
   config: ConfigPayload
   pick: PickPayload
+  blockList: BlockListPayload
 }
 
 export const ANSWERS: { [K in VerbName]: Reader<VerbAnswers[K]> } = {
@@ -89,4 +92,5 @@ export const ANSWERS: { [K in VerbName]: Reader<VerbAnswers[K]> } = {
   commands: readCommandsPayload,
   config: readConfigPayload,
   pick: readPickPayload,
+  blockList: readBlockListPayload,
 }
