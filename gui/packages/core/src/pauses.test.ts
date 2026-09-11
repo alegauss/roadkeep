@@ -8,6 +8,7 @@ import type { Refusal } from './refusals'
 const STORE = {
   file: 'docs/DEFERRED.md',
   total: 1,
+  order: 'oldest first',
   uncounted: [],
   standing: null,
   startable: { open: 0, startable: 0, waiting: 0, absent: [] },
@@ -23,6 +24,8 @@ const STORE = {
       ref: 'FX1',
       line: 5,
       length: 192,
+      since: 128,
+      reason: 'Waiting on a decision that is not this project.',
     },
   ],
 }
@@ -237,5 +240,65 @@ describe('RG80: the refusal that knows where the line went', () => {
     expect(nothing.filing).toBe('unknown')
     expect(nothing.said).toBe(REFUSED.said)
     expect(nothing.said).toContain('roadkeep resume FX1')
+  })
+})
+
+describe('RG28: how long a pause has stood, as the engine counts it', () => {
+  it('carries the since and the reason as their own fields, not scraped out of the sentence', () => {
+    const [pause] = storeFrom(listing()).pauses
+
+    expect(pause?.since).toBe(128)
+    expect(pause?.reason).toBe('Waiting on a decision that is not this project.')
+    // And the sentence is still the store's own, wrapper and all.
+    expect(pause?.why).toContain('set aside (')
+  })
+
+  it('carries the order the engine named, so a screen says what it is looking at', () => {
+    expect(storeFrom(listing()).order).toBe('oldest first')
+  })
+
+  it('names no order where the engine named none, which is the file’s own', () => {
+    // Every other listing: `order` is absent, and absent is not an order this app invents.
+    const plain = listing({ order: undefined, tasks: [] })
+
+    expect(storeFrom(plain).order).toBe('')
+  })
+
+  it('leaves a line no pause at null and empty rather than at a number nobody printed', () => {
+    const [pause] = storeFrom(withIds('docs/ROADMAP.md', ['AL1'])).pauses
+
+    expect(pause?.since).toBeNull()
+    expect(pause?.reason).toBe('')
+  })
+
+  it('keeps null as null, since the engine answers it for a store it cannot age', () => {
+    // The live engine answers null over a fixture built in one commit, and zero there would
+    // say *set aside just now* about a pause nobody can date.
+    const aged = listing({ tasks: [{ ...STORE.tasks[0], since: null }] })
+
+    expect(storeFrom(aged).pauses[0]?.since).toBeNull()
+  })
+
+  it('keeps the pauses in the order they arrived, which is the order the engine chose', () => {
+    const store = storeFrom(
+      listing({
+        total: 3,
+        tasks: ['FX3', 'FX1', 'FX2'].map((id, at) => ({
+          id,
+          status: '⏸',
+          block: 'A',
+          symptom: 'something',
+          why: 'set aside (a reason): a why.',
+          deps: [],
+          ref: id,
+          line: at + 1,
+          length: 100,
+          since: 90 - at * 30,
+          reason: 'a reason',
+        })),
+      }),
+    )
+
+    expect(store.pauses.map((one) => one.id)).toEqual(['FX3', 'FX1', 'FX2'])
   })
 })

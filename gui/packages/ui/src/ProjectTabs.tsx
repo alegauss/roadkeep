@@ -36,8 +36,10 @@ import { useWording } from './wording'
  * is parsed, which is block H's criterion and the non-goal both. A changelog entry an entry
  * later undid says so beside it, from `reversals`, and is not dropped.
  *
- * The deferred store is in the file's order: how long each pause has stood is printed for a
- * terminal and never in the payload, and this does not invent an order.
+ * The deferred store draws in the order the payload arrived in, and says which order that is
+ * where the engine named one — `oldest first` for a `--stale` listing (RG28). How long each
+ * pause has stood is the engine's own count of commits, drawn as a number and never as a
+ * judgement about whether it has stood too long.
  */
 
 /** What a read answered, or the sentence it failed with. Null while it is out. */
@@ -244,25 +246,46 @@ export function DeferredTab({ project }: { readonly project: OpenProject }) {
     return <Waiting answer={listed} empty="project.deferred.none" />
   const store = storeFrom(listed.value)
   if (store.pauses.length === 0) return <Waiting answer={listed} empty="project.deferred.none" />
+  const lines = allLines(backlogFrom(listed.value))
+  const lineOf = new Map(lines.map((line) => [line.id, line]))
 
   return (
-    <Entries>
-      {allLines(backlogFrom(listed.value)).map((line) => (
-        <Entry key={line.id} line={line}>
-          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
-            {line.deps.length === 0 ? (
-              <span className="text-muted-foreground">{say('project.deps.none')}</span>
-            ) : (
-              line.deps.map((dep) => (
-                <span key={dep} className="font-mono">
-                  {dep}
-                </span>
-              ))
-            )}
-          </div>
-        </Entry>
-      ))}
-    </Entries>
+    <>
+      {store.order === '' ? null : (
+        <p className="text-muted-foreground mb-2 text-xs" data-testid="store-order">
+          {say('project.deferred.order', { order: store.order })}
+        </p>
+      )}
+      <Entries>
+        {/* In the store's own order, which is the engine's where it named one (RG28) — and
+            never the block order the other tabs draw, since the oldest pause is the point. */}
+        {store.pauses.map((pause) => {
+          const line = lineOf.get(pause.id)
+          return line === undefined ? null : (
+            <Entry key={pause.id} line={line}>
+              <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
+                {/* Silent where the engine counted nothing: zero would read as
+                 *set aside just now*, which is the opposite of what null means. */}
+                {pause.since === null ? null : (
+                  <span className="text-muted-foreground" data-testid="stood">
+                    {say('project.deferred.since', { count: pause.since })}
+                  </span>
+                )}
+                {line.deps.length === 0 ? (
+                  <span className="text-muted-foreground">{say('project.deps.none')}</span>
+                ) : (
+                  line.deps.map((dep) => (
+                    <span key={dep} className="font-mono">
+                      {dep}
+                    </span>
+                  ))
+                )}
+              </div>
+            </Entry>
+          )
+        })}
+      </Entries>
+    </>
   )
 }
 

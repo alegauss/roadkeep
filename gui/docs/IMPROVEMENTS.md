@@ -166,29 +166,6 @@ one engine on verdicts and the rest on what the reader is looking at.
 
 ## Block D — The project surface (one backlog, read)
 
-### §RG28 The order a pause has no way to state
-
-The store itself landed: `--stale` names the deferred role without a `--role`, the
-pauses come back with their marker and the sentence the store spells, and an id now
-answers open, shipped, paused or nowhere. What that half is and why it reads the
-sentence whole is recorded in `packages/core/src/pauses.ts`.
-
-What is left is the order. `--stale` computes it — how long each pause has stood, in
-commits over the governed files, oldest first, with the reason beside it — and prints it
-for a terminal, on stderr and never in the listing. A `--json` caller gets the store in
-the order the payload states, with a `since` and a `reason` per pause, and this side
-declares none of the three.
-
-There are two ways to reach it and only one is allowed. Reading `set aside 3 commit(s)
-ago:` back out of English is the prose-scraping this client refuses on every other verb,
-and a second implementation of a sentence roadkeep is free to reword. The other is for
-roadkeep to put `since` and the reason in the payload as it already holds them in
-`Standing` — which RK1677 shipped, so what is left is a reader and a column here.
-
-The order is not a verdict, and drawing it must not make it one. How long a pause may
-stand is a judgement about work — the same one `[claims] held` refuses to make — so the
-oldest is first and what that means is the reader's.
-
 ### §RG170 Readiness off the listing
 
 RG148 draws each row's readiness from `deps`, one read per listed line, because `list`

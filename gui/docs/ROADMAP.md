@@ -20,7 +20,6 @@
 
 ## Block D — The project surface (one backlog, read)
 
-- ⏳ **RG28** (deps: —) **the --stale payload carries each pause's age and reason and the reader drops both, so the store draws in file order** — RK1677 shipped: since, reason and an oldest-first order are in the payload, and TaskLine declares none of the three. → §RG28
 - 📋 **RG170** (deps: roadkeep list with readiness) **list prints no readiness per line, so every row costs a deps read and startable only cannot be offered** — Readiness is the engine's word, and a list of eight hundred is eight hundred reads before the column is full. → §RG170
 - 📋 **RG171** (deps: —) **the improvements tab names each design by its pointer and not its heading, so two designs look alike until opened** — The heading is the name a design's author gave it, and list carries only the pointer, so the tab shows an id where it could say what the design is. → §RG171
 - 📋 **RG173** (deps: —) **a dep or a chain hop on the task screen is text, so reaching the line it names means going back through the project** — The brief says which ids are tasks here, and each already has a route that opens it as one read. → §RG173
@@ -164,12 +163,6 @@
   wrapping is what lint measured, so re-flowing it shows a reviewer something the commit
   will not diff. The breaks were made for a monospace measure and the face is not mono,
   so a ragged right margin is the deliberate cost; docs/design/Tarefa.dc.html draws it.
-
-## Done when — RG28
-
-- **A pause carries how long it has stood** The order --stale computes arrives in the
-  payload rather than on stderr, so a screen draws the oldest pause first and never
-  invents an order the reading does not support.
 
 ## Done when — RG62
 

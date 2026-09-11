@@ -13,6 +13,8 @@ const task = (id: string, block: string, line: number): TaskLine => ({
   ref: id,
   line,
   length: 100,
+  since: 0,
+  reason: '',
 })
 
 const refused = (line: number, block: string, reason: string): RefusedLine => ({
@@ -25,6 +27,7 @@ const refused = (line: number, block: string, reason: string): RefusedLine => ({
 const listing = (over: Partial<ListPayload> = {}): ListPayload => ({
   file: 'docs/ROADMAP.md',
   total: 3,
+  order: '',
   uncounted: [],
   standing: null,
   startable: null,

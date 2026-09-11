@@ -17,10 +17,12 @@ import { composeWrite, type Composed } from './writing'
  * deferred store is one of the roles the config declares, and this app reads it exactly as
  * it reads the roadmap.
  *
- * **The age is not in the payload.** `--stale` orders the store by how long each pause has
- * stood — in commits over the governed files — and prints that for a terminal, on stderr
- * and never in the listing, so a `--json` caller gets the store and no ordering. Nothing
- * here invents one: the lines are in the order the file has them.
+ * **The age is the engine's count and the order is its word** (RG28). `--stale` answers a
+ * `since` per pause — commits over the governed files — the `reason` it was set aside with,
+ * and the `order` it put them in. All three are carried as they came: nothing here counts
+ * commits, sorts the list, or turns a number into a verdict about whether a pause has stood
+ * too long. A listing that names no order is drawn in the order it arrived, which is the
+ * file's.
  */
 
 export interface Pause {
@@ -33,12 +35,25 @@ export interface Pause {
   readonly why: string
   readonly ref: string | null
   readonly line: number
+  /**
+   * How long it has stood, in commits over the governed files — the engine's own count, and
+   * null where it has none. A screen says nothing rather than saying zero.
+   */
+  readonly since: number | null
+  /** Why it was set aside, as its own field — the same words the sentence above wraps. */
+  readonly reason: string
 }
 
 export interface Store {
   readonly file: string
   readonly total: number
-  /** In the order the file has them, which is by block. Never by age: none is carried. */
+  /**
+   * The order the engine named, or empty where it named none. Its word rather than a flag:
+   * a screen says what the listing is ordered by, and an order this app has never heard of
+   * is still an order it can name.
+   */
+  readonly order: string
+  /** In the order they arrived, which is the engine's where it stated one (RG28). */
   readonly pauses: readonly Pause[]
   /** False when a marker-bearing line in the store was refused, as anywhere else. */
   readonly complete: boolean
@@ -48,6 +63,7 @@ export function storeFrom(payload: ListPayload): Store {
   return {
     file: payload.file,
     total: payload.total,
+    order: payload.order,
     pauses: listedTasks(payload).map(pauseOfLine),
     // A store past `[reads] list` carries its counts and not its lines, and a screen
     // drawing zero pauses over a total of forty is the silence this flag exists to break.
@@ -64,6 +80,8 @@ function pauseOfLine(task: TaskLine): Pause {
     why: task.why,
     ref: task.ref,
     line: task.line,
+    since: task.since,
+    reason: task.reason,
   }
 }
 

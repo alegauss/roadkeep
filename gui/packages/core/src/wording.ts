@@ -110,6 +110,8 @@ export const EN = {
   'project.decision.asking': 'Reading the section.',
   'project.decision.bare': 'This decision keeps no section of its own.',
   'project.deferred.none': 'Nothing is set aside.',
+  'project.deferred.order': 'In the order the engine gave: {order}.',
+  'project.deferred.since': 'set aside {count} commits ago',
   'project.improvements.none': 'No open line has a design written yet.',
   'project.read.failed': 'This file did not answer: {reason}',
   'project.line.open': 'Open',

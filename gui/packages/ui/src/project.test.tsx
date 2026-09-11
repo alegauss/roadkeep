@@ -74,7 +74,20 @@ const LINES = [
 
 /** A line in one of the other governed files, shaped as `list` prints it. */
 function filed(id: string, status: string, block: string, symptom: string, why: string) {
-  return { id, status, block, symptom, why, deps: [] as string[], ref: null, line: 3, length: 80 }
+  return {
+    id,
+    status,
+    block,
+    symptom,
+    why,
+    deps: [] as string[],
+    ref: null as string | null,
+    line: 3,
+    length: 80,
+    // What only a `--stale` listing carries (RG28); every other role answers without them.
+    since: 0,
+    reason: '',
+  }
 }
 
 /** What `list` answers for each role the roadmap is not. */
@@ -87,6 +100,13 @@ const FILED: Record<string, ReturnType<typeof filed>[]> = {
     {
       ...filed('AL5', '⏸', 'B', 'this was set aside', 'set aside (waiting): later.'),
       deps: ['AL1'],
+      since: 40,
+      reason: 'waiting',
+    },
+    {
+      ...filed('AL8', '⏸', 'A', 'this was set aside second', 'set aside (waiting): later.'),
+      since: 2,
+      reason: 'waiting',
     },
   ],
 }
@@ -176,6 +196,8 @@ function answer(argv: readonly string[]): string | undefined {
         file: 'docs/ROADMAP.md',
         total: tasks.length,
         uncounted: [],
+        // The order is the engine's, and only `--stale` names one (RG28).
+        ...(argv.includes('--stale') ? { order: 'oldest first' } : {}),
         tasks: tasks.filter((line) => narrowedTo === null || line.block === narrowedTo),
       })
     }
@@ -390,6 +412,26 @@ describe('RG149: the other governed files, as tabs', () => {
 
     expect(await screen.findByText('this was set aside')).toBeTruthy()
     expect(screen.getByText('AL1')).toBeTruthy()
+  })
+
+  it('draws each pause with how long it has stood, in the order the payload came in', async () => {
+    await onTab('deferred')
+
+    await screen.findByText('this was set aside')
+    // Not block order, which would put AL8 first: the store's order is the engine's (RG28).
+    expect(screen.getAllByTestId('entry').map((one) => one.dataset['id'])).toEqual(['AL5', 'AL8'])
+    expect(screen.getAllByTestId('stood').map((one) => one.textContent)).toEqual([
+      fill(BASE['project.deferred.since'], { count: 40 }),
+      fill(BASE['project.deferred.since'], { count: 2 }),
+    ])
+  })
+
+  it('says which order it is looking at, in the word the engine used', async () => {
+    await onTab('deferred')
+
+    expect((await screen.findByTestId('store-order')).textContent).toBe(
+      fill(BASE['project.deferred.order'], { order: 'oldest first' }),
+    )
   })
 
   it('lists the open lines with a design written, and no other', async () => {

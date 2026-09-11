@@ -49,6 +49,18 @@ export interface TaskLine {
   readonly line: number
   /** The rendered length, against the project's own line limit. */
   readonly length: number
+  /**
+   * How long a paused line has stood, in commits over the governed files, and the reason
+   * it was set aside with — both from a `--stale` listing and absent from every other
+   * (RG28).
+   *
+   * **Null is not zero.** The engine answers null where it cannot count the commits — a
+   * store whose pauses predate the history it can see — and zero would say *set aside just
+   * now*, which is the opposite. Found against the live engine, which answers null for a
+   * fixture built in one commit.
+   */
+  readonly since: number | null
+  readonly reason: string
 }
 
 export const readTaskLine: Reader<TaskLine> = record<TaskLine>({
@@ -61,6 +73,8 @@ export const readTaskLine: Reader<TaskLine> = record<TaskLine>({
   ref: orMissing(orNull(aString), null),
   line: aNumber,
   length: aNumber,
+  since: orMissing(orNull(aNumber), null),
+  reason: orMissing(aString, ''),
 })
 
 /** How a block stands, as a sentence the engine composed and this app never rewrites. */
@@ -278,6 +292,13 @@ export interface ListPayload {
    * the format rather than roadkeep's.
    */
   readonly tasks: readonly TaskLine[] | null
+  /**
+   * The order the engine put the lines in, where it chose one (RG28). `--stale` answers
+   * `oldest first`; an ordinary listing says nothing and this is empty, which is the file's
+   * own order. Carried as the engine's word rather than as a flag, so a new order is drawn
+   * and not refused.
+   */
+  readonly order: string
 }
 
 export const readListPayload: Reader<ListPayload> = record<ListPayload>({
@@ -288,6 +309,7 @@ export const readListPayload: Reader<ListPayload> = record<ListPayload>({
   startable: orMissing(orNull(readStartable), null),
   over: orMissing(orNull(readOver), null),
   tasks: orNull(listOf(readTaskLine)),
+  order: orMissing(aString, ''),
 })
 
 /**

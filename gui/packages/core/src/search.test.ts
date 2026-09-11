@@ -13,6 +13,8 @@ const line = (id: string, symptom: string, why: string): TaskLine => ({
   ref: id,
   line: 1,
   length: 100,
+  since: 0,
+  reason: '',
 })
 
 const ROADKEEP: SearchableProject = {

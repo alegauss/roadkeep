@@ -1016,6 +1016,20 @@ describe('RG4: the states a fixture is built to contain', () => {
     const payload = await readVerb('list', { role: 'deferred' })
     expect(listedTasks(payload).length).toBeGreaterThan(0)
   })
+
+  it('answers a --stale listing with an order, and each pause with its age (RG28)', async () => {
+    // The three fields RK1677 added. Read off the live engine, because a shape this app
+    // declared and the engine stopped printing is exactly what this file exists to catch.
+    const payload = await readVerb('list', { stale: true })
+    const [pause] = listedTasks(payload)
+
+    expect(payload.order).not.toBe('')
+    expect(pause).toBeDefined()
+    // `since` is null over a fixture built in one commit — the engine counts commits and
+    // has none to count — and null is the state, not a number this side substitutes for it.
+    expect(pause === undefined || pause.since === null || pause.since >= 0).toBe(true)
+    expect(pause?.reason).not.toBe('')
+  })
 })
 
 /**

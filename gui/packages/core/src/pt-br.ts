@@ -100,6 +100,8 @@ export const PT_BR: Wording = {
   'project.decision.asking': 'Lendo a seção.',
   'project.decision.bare': 'Esta decisão não guarda uma seção própria.',
   'project.deferred.none': 'Nada foi posto de lado.',
+  'project.deferred.order': 'Na ordem que o engine deu: {order}.',
+  'project.deferred.since': 'posta de lado há {count} commits',
   'project.improvements.none': 'Nenhuma linha aberta tem design escrito ainda.',
   'project.read.failed': 'Este arquivo não respondeu: {reason}',
   'project.line.open': 'Abrir',
