@@ -2,6 +2,7 @@ import {
   BASE,
   bridgedRun,
   DEFAULT_DEPTH,
+  DEPTH_CEILING,
   EMPTY_CATALOGUE,
   EngineCallFailed,
   fill,
@@ -700,5 +701,122 @@ describe('RG167: a row that follows its project', () => {
     expect(
       screen.getAllByTestId('portfolio-row').map((row) => row.textContent.slice(0, 5)),
     ).toEqual(['alpha', 'beta/', 'gamma'])
+  })
+})
+
+describe('RG169: moving a root’s depth from the window', () => {
+  const HELD: readonly KnownRoot[] = [
+    { path: 'D:/code', depth: 2, presence: 'present' },
+    { path: 'E:/deep', depth: DEPTH_CEILING, presence: 'present' },
+    { path: 'F:/flat', depth: 0, presence: 'present' },
+  ]
+
+  function withRoots(roots: readonly KnownRoot[]) {
+    const saved: (readonly ScanRoot[])[] = []
+    let walks = 0
+    Object.defineProperty(window, 'roadkeep', {
+      value: stubBridge({
+        roots: () => Promise.resolve(roots),
+        subscribe: () => () => undefined,
+        saveRoots: (next) => {
+          saved.push(next)
+          return Promise.resolve(next.map((one) => ({ ...one, presence: 'present' as const })))
+        },
+        projects: () => {
+          walks += 1
+          return Promise.resolve(EMPTY_CATALOGUE)
+        },
+      }),
+      configurable: true,
+    })
+    return { saved, walks: () => walks }
+  }
+
+  const chipFor = (path: string): HTMLElement => {
+    const chip = screen.getAllByTestId('root').find((one) => one.textContent.includes(path))
+    if (chip === undefined) throw new Error(`no chip for ${path}`)
+    return chip
+  }
+
+  it('saves the whole list with one depth moved, keeping every root in its place', async () => {
+    const { saved, walks } = withRoots(HELD)
+    drawWindow()
+    await screen.findAllByTestId('root')
+    const before = walks()
+
+    fireEvent.click(
+      within(chipFor('D:/code')).getByRole('button', {
+        name: fill(BASE['roots.deeper'], { path: 'D:/code' }),
+      }),
+    )
+
+    await waitFor(() => {
+      expect(saved).toHaveLength(1)
+    })
+    expect(saved[0]).toEqual([
+      { path: 'D:/code', depth: 3 },
+      { path: 'E:/deep', depth: DEPTH_CEILING },
+      { path: 'F:/flat', depth: 0 },
+    ])
+    // And the list is walked again, the way adding a root walks it.
+    await waitFor(() => {
+      expect(walks()).toBeGreaterThan(before)
+    })
+  })
+
+  it('goes one level less deep the same way', async () => {
+    const { saved } = withRoots(HELD)
+    drawWindow()
+    await screen.findAllByTestId('root')
+
+    fireEvent.click(
+      within(chipFor('D:/code')).getByRole('button', {
+        name: fill(BASE['roots.shallower'], { path: 'D:/code' }),
+      }),
+    )
+
+    await waitFor(() => {
+      expect(saved[0]?.[0]).toEqual({ path: 'D:/code', depth: 1 })
+    })
+  })
+
+  it('disables each end rather than refusing the click after it, at the rule’s own bounds', async () => {
+    withRoots(HELD)
+    drawWindow()
+    await screen.findAllByTestId('root')
+
+    const deepest = within(chipFor('E:/deep')).getByRole('button', {
+      name: fill(BASE['roots.deeper'], { path: 'E:/deep' }),
+    })
+    const flattest = within(chipFor('F:/flat')).getByRole('button', {
+      name: fill(BASE['roots.shallower'], { path: 'F:/flat' }),
+    })
+
+    expect(deepest.hasAttribute('disabled')).toBe(true)
+    expect(flattest.hasAttribute('disabled')).toBe(true)
+    // And the other end of each is open: 0 is a folder read by itself, not a floor to stop at.
+    expect(
+      within(chipFor('F:/flat'))
+        .getByRole('button', { name: fill(BASE['roots.deeper'], { path: 'F:/flat' }) })
+        .hasAttribute('disabled'),
+    ).toBe(false)
+  })
+
+  it('draws the depth the save answered with, so a level shows at once', async () => {
+    withRoots(HELD)
+    drawWindow()
+    await screen.findAllByTestId('root')
+
+    fireEvent.click(
+      within(chipFor('D:/code')).getByRole('button', {
+        name: fill(BASE['roots.deeper'], { path: 'D:/code' }),
+      }),
+    )
+
+    await waitFor(() => {
+      expect(within(chipFor('D:/code')).getByTestId('root-depth').textContent).toBe(
+        fill(BASE['roots.depth'], { depth: 3 }),
+      )
+    })
   })
 })

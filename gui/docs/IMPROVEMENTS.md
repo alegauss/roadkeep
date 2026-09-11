@@ -74,27 +74,6 @@ stamp, and asks which key the next insertion evicted.
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
-### §RG169 A depth the window can move
-
-RG146 adds a root at `DEFAULT_DEPTH`, which is two, and the strip draws each root's
-depth without a way to change it. Two levels reaches `D:\Git\<org>\<repo>` and stops
-before a worktree family's folders one level further down —
-`D:\Git\viglet\turing\2026.3` — so the first person to name `D:\Git` from the window had
-to open the settings file anyway and write a 3.
-
-**`addRoot` already says how.** Naming a folder that is already a root replaces its
-depth in place and keeps its position, so a depth change is a save of the same list with
-one number moved. `saveRoots` accepts it without widening, since the folder is one the
-file holds.
-
-**A stepper on the chip, bounded by `checkRoot`.** Down to 0, which is the folder
-itself, and up to `DEPTH_CEILING`, and the two ends are disabled rather than refused
-after a click. Each step saves and walks again, the way adding a root does, so the
-effect of a level shows at once.
-
-The depth is the one number in the settings a person picks by looking at what it finds,
-and this is where they look.
-
 ### §RG180 Hearing the walk land
 
 RG164 made `projects` answer the remembered record at once and run the walk behind it,

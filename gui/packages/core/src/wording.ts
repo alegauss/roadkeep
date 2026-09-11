@@ -292,6 +292,8 @@ export const EN = {
   'roots.depth': '{depth} levels deep',
   'roots.missing': 'missing',
   'roots.remove': 'Stop looking under {path}',
+  'roots.deeper': 'Look one level deeper under {path}',
+  'roots.shallower': 'Look one level less deep under {path}',
   'roots.none': 'No root is named yet, so nothing is walked.',
   'roots.none.hint': 'Add a root to name a folder this window may look under.',
   'roots.unsaved': 'The roots could not be saved: {reason}',

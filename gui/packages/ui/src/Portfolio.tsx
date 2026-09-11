@@ -1,5 +1,6 @@
 import {
   filterCounts,
+  checkRoot,
   reasonOf,
   type KnownRoot,
   matchesFilter,
@@ -12,7 +13,7 @@ import {
   type RowFilter,
   type RowStage,
 } from '@rk/core'
-import { IconFolder, IconInfoCircle, IconX } from '@tabler/icons-react'
+import { IconFolder, IconInfoCircle, IconMinus, IconPlus, IconX } from '@tabler/icons-react'
 import { Button } from '@viglet/viglet-design-system'
 import {
   BENTO_TONES,
@@ -421,14 +422,26 @@ function Subtitle({
 function RootChip({
   root,
   onRemove,
+  onDeepen,
 }: {
   readonly root: KnownRoot
   readonly onRemove: (path: string) => void
+  readonly onDeepen: (path: string, by: number) => void
 }) {
   const say = useWording()
   const remove = useCallback(() => {
     onRemove(root.path)
   }, [root.path, onRemove])
+  const deeper = useCallback(() => {
+    onDeepen(root.path, 1)
+  }, [root.path, onDeepen])
+  const shallower = useCallback(() => {
+    onDeepen(root.path, -1)
+  }, [root.path, onDeepen])
+  // Both ends are the rule's, asked of `checkRoot` rather than compared to a number here:
+  // a control that offers a depth the save would drop is a control that lies (RG169).
+  const canDeepen = checkRoot(root.path, root.depth + 1).ok
+  const canShallow = checkRoot(root.path, root.depth - 1).ok
 
   return (
     <li
@@ -437,7 +450,31 @@ function RootChip({
       data-presence={root.presence}
     >
       <span className="font-mono">{root.path}</span>
-      <span className="text-muted-foreground">{say('roots.depth', { depth: root.depth })}</span>
+      <span className="flex items-center gap-0.5">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-5 rounded-full"
+          aria-label={say('roots.shallower', { path: root.path })}
+          disabled={!canShallow}
+          onClick={shallower}
+        >
+          <IconMinus aria-hidden="true" size={12} />
+        </Button>
+        <span className="text-muted-foreground" data-testid="root-depth">
+          {say('roots.depth', { depth: root.depth })}
+        </span>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-5 rounded-full"
+          aria-label={say('roots.deeper', { path: root.path })}
+          disabled={!canDeepen}
+          onClick={deeper}
+        >
+          <IconPlus aria-hidden="true" size={12} />
+        </Button>
+      </span>
       {root.presence === 'missing' ? <Pill intent="warn">{say('roots.missing')}</Pill> : null}
       <Button
         variant="ghost"
@@ -459,9 +496,11 @@ function RootChip({
 function RootStrip({
   view,
   onRemove,
+  onDeepen,
 }: {
   readonly view: RootsView
   readonly onRemove: (path: string) => void
+  readonly onDeepen: (path: string, by: number) => void
 }) {
   const say = useWording()
   if (view.kind !== 'known' || view.roots.length === 0) return null
@@ -469,7 +508,7 @@ function RootStrip({
   return (
     <ul aria-label={say('roots.label')} className="flex flex-wrap items-center gap-2">
       {view.roots.map((root) => (
-        <RootChip key={root.path} root={root} onRemove={onRemove} />
+        <RootChip key={root.path} root={root} onRemove={onRemove} onDeepen={onDeepen} />
       ))}
     </ul>
   )
@@ -538,7 +577,7 @@ export function Portfolio() {
         trailing={actions}
       />
 
-      <RootStrip view={roots.view} onRemove={roots.remove} />
+      <RootStrip view={roots.view} onRemove={roots.remove} onDeepen={roots.deepen} />
 
       {unnamed ? (
         <BentoEmptyState title={say('roots.none')} description={say('roots.none.hint')} />

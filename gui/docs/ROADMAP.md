@@ -10,7 +10,6 @@
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
-- 📋 **RG169** (deps: —) **a root is added two levels deep and no control changes it, so worktrees three levels down still need the settings file** — The strip draws each root's depth and offers no way to move it, though addRoot already replaces a depth in place and keeps the order. → §RG169
 - 📋 **RG180** (deps: —) **nothing says when the walk behind the remembered record landed, so a project found or lost shows on the next ask** — RG164 answers the record at once and walks behind it, and RG144's subscription now exists to say the fold changed something. → §RG180
 
 ## Block C — The portfolio (many backlogs in one view)

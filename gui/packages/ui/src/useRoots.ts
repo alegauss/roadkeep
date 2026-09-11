@@ -1,4 +1,4 @@
-import { DEFAULT_DEPTH, type KnownRoot } from '@rk/core'
+import { addRoot, checkRoot, DEFAULT_DEPTH, type KnownRoot } from '@rk/core'
 import { toast } from '@viglet/viglet-design-system'
 import { useCallback, useEffect, useState } from 'react'
 
@@ -17,6 +17,14 @@ export interface Roots {
   readonly add: () => void
   /** Stop looking under a folder the settings name. */
   readonly remove: (path: string) => void
+  /**
+   * Look one level deeper or one shallower under a root the file already holds (RG169).
+   *
+   * A depth out of what `checkRoot` allows is not saved and not reported: the control that
+   * offers it is disabled at both ends, so reaching here with one is a caller that ignored
+   * the answer, and saving it would be this side arguing with the rule.
+   */
+  readonly deepen: (path: string, by: number) => void
 }
 
 const ABSENT: RootsView = { kind: 'absent' }
@@ -100,5 +108,25 @@ export function useRoots(changed: () => void): Roots {
     [held, save],
   )
 
-  return { view, add, remove }
+  const deepen = useCallback(
+    (path: string, by: number) => {
+      if (held === null) return
+      const root = held.find((one) => one.path === path)
+      if (root === undefined) return
+      const checked = checkRoot(path, root.depth + by)
+      if (!checked.ok) return
+      // The whole list, with one number moved: `addRoot` replaces a depth in place and
+      // keeps the position, so the strip does not reorder under the person changing it.
+      void save(
+        addRoot(
+          held.map(({ path: kept, depth }) => ({ path: kept, depth })),
+          checked.value,
+          (one) => one,
+        ),
+      )
+    },
+    [held, save],
+  )
+
+  return { view, add, remove, deepen }
 }

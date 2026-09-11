@@ -282,6 +282,8 @@ export const PT_BR: Wording = {
   'roots.depth': '{depth} níveis abaixo',
   'roots.missing': 'ausente',
   'roots.remove': 'Parar de procurar em {path}',
+  'roots.deeper': 'Procurar um nível mais fundo em {path}',
+  'roots.shallower': 'Procurar um nível menos fundo em {path}',
   'roots.none': 'Nenhuma raiz foi nomeada ainda, então nada é percorrido.',
   'roots.none.hint': 'Adicione uma raiz para nomear uma pasta onde esta janela pode procurar.',
   'roots.unsaved': 'As raízes não puderam ser salvas: {reason}',
