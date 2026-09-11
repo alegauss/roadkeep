@@ -47,6 +47,29 @@ effect of a level shows at once.
 The depth is the one number in the settings a person picks by looking at what it finds,
 and this is where they look.
 
+### §RG180 Hearing the walk land
+
+RG164 made `projects` answer the remembered record at once and run the walk behind it,
+which is what a launch wants: eleven rows while the disk is still being read. What it
+left is the other half — nothing says when that walk landed. A project cloned an hour
+ago, or a folder deleted since, is on screen only after something else asks again, and
+on the portfolio that is a reload.
+
+RG164's design said so itself: *until RG144 gives main a way to say something changed,
+the next call sees the fold*. RG144 shipped, and RG153 added a second topic to it, so
+the way now exists.
+
+**A topic for the catalogue, keyed on nothing.** `governed` is keyed on a root and
+`session` on a session; what changed here is the one list this window holds, so the key
+is the carrier's own and a screen subscribes to it once. The event carries no record:
+the portfolio asks `projects` again, and the answer is then the folded one — the same
+shape RG144 chose, where an event is a reason to read rather than a copy of what was
+read.
+
+**Published only where the fold changed something.** `reconcile` already answers
+`changes`, so a walk that found exactly what the record held is a walk nobody needs to
+hear about — and a window that redrew on every walk would redraw on a timer nobody set.
+
 ## Block C — The portfolio (many backlogs in one view)
 
 ### §RG147 Lines in the palette
