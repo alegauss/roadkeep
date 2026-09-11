@@ -228,29 +228,6 @@ person reads the draft and publishes it.
 That publish is what RG154 needs to read the update check against a real release, and
 what SignPath's "already released" condition asks for.
 
-### §RG184 The byte no gate looks for
-
-Five NUL bytes sat inside a template literal in `packages/ui/src/useFiling.ts` — the
-separators of a key built from a draft's fields — and every gate passed: `tsc -b`
-compiled it, `oxlint` read it, `prettier --check` called it formatted, and the suite
-went green. It was found by `file` calling the source `data` instead of JavaScript,
-which is not a gate and nobody runs.
-
-**What the byte does is worse than being invisible.** It was a separator that worked, so
-nothing misbehaved; but the file cannot be grepped for the line it is in, an `Edit`
-against that text does not match, and a diff shows the change as a rewrite of a line
-that looks identical. A tool writing the file through a shell heredoc is how it arrived,
-and that is a path this project uses often.
-
-**The gate is the repository's own lint, over the files it owns.** No source file may
-carry a control character other than tab, carriage return and newline — a single pass
-over the tree, reported by path and byte offset, refusing rather than warning. It is
-cheap because it reads bytes and parses nothing.
-
-**Prose is bound by the same rule.** The governed files are prose a person reads, and an
-invisible byte in one of them survives every roadkeep read too, since none of them is
-looking for a character that is not there.
-
 ## Block H — The look (a design system for governed prose)
 
 ### §RG62 Joining the checks the other consoles already answer to
