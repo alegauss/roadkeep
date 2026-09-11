@@ -409,20 +409,6 @@ manifest, publish the draft `ci.yml` leaves, then run the packaged app of the ve
 before it and choose Help, Check for updates: it has to name both versions and open that
 page. Then the same from the new build, which has to say it is current.
 
-### §RG157 Running the refusal it claims
-
-`release.test.ts` holds the tag-against-manifest check in `ci.yml` by finding its text:
-the step's name, `GITHUB_REF_NAME#v` and `require('./package.json').version`. A step
-that kept those strings and inverted its condition, or lost its `exit 1`, would pass.
-The refusal itself is never run.
-
-**The fix.** Extract the step's `run` script from the workflow and execute it with bash
-in a temporary directory holding a `package.json`: a matching `GITHUB_REF_NAME` exits 0,
-a mismatching one exits non-zero and names both versions. Fast and self-cleaning, so it
-stays in `npm test`.
-
-Found by the adversarial review of RG50, confirmed by both skeptics.
-
 ### §RG161 What the signing procedure gets wrong
 
 The adversarial review found `docs/SIGNING.md` would fail the person following it on two

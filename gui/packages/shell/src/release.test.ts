@@ -1,7 +1,6 @@
-import { readFileSync } from 'node:fs'
-import path from 'node:path'
-
 import { describe, expect, it } from 'vitest'
+
+import { job, stepScript, WORKFLOW } from './workflow'
 
 /**
  * RG50: the release a tag leaves behind, held without running a workflow.
@@ -11,18 +10,10 @@ import { describe, expect, it } from 'vitest'
  * goes missing a tag starts publishing on its own. The second is that the installers say
  * the version the page says: the stamp reads `package.json`, so a tag naming another version
  * would title a release its files disagree with.
+ *
+ * What this file holds is what the workflow **says**. Whether the tag check refuses anything
+ * is `release-live.test.ts`, which runs it (RG157) — the half no reading can answer.
  */
-const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
-const WORKFLOW = readFileSync(path.join(REPO, '.github', 'workflows', 'ci.yml'), 'utf8')
-
-/** One job's block: from its key to the next job's, which is all this needs of YAML. */
-function job(name: string): string {
-  const start = WORKFLOW.indexOf(`\n  ${name}:\n`)
-  expect(start, `ci.yml has no ${name} job`).toBeGreaterThan(-1)
-  const rest = WORKFLOW.slice(start + 1)
-  const next = rest.slice(1).search(/\n {2}[a-z][\w-]*:\n/)
-  return next === -1 ? rest : rest.slice(0, next + 1)
-}
 
 describe('RG50: the release a tag drafts', () => {
   it('is a draft, made only on a tag, after both installers exist', () => {
@@ -49,5 +40,19 @@ describe('RG50: the release a tag drafts', () => {
     expect(packaging).toContain('the tag names the version the manifest carries')
     expect(packaging).toMatch(/GITHUB_REF_NAME#v/)
     expect(packaging).toMatch(/require\('\.\/package\.json'\)\.version/)
+  })
+
+  it('runs that check only on a tag, since every other push has no version to match', () => {
+    expect(job('package')).toMatch(/if: startsWith\(github\.ref, 'refs\/tags\/v'\)/)
+  })
+
+  it('RG157: finds a script under the step, which is what the live half executes', () => {
+    // The instrument itself: a step renamed leaves its script where this reading cannot find
+    // it, and an empty script would otherwise pass every assertion made of it.
+    const found = stepScript(job('package'), 'the tag names the version the manifest carries')
+
+    expect(found).not.toBe('')
+    expect(found).toContain('exit 1')
+    expect(stepScript(job('package'), 'no step goes by this name')).toBe('')
   })
 })

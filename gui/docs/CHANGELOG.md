@@ -165,6 +165,7 @@
 - ✅ **RG144** **the bridge only answers when asked, so a session's stream and a governed file changing have no way to reach a screen** — A screen hears its project's files move over IPC; main watches while anyone listens, and unmounting gives the watch back (design recorded in `packages/core/src/bridge.ts`).
 - ✅ **RG155** **the release-page guard compares a string prefix, so a release URL with dot segments opens another repository** — The release page is parsed and compared as a URL — scheme, host, no credentials, normalised path — so a dot segment opens nothing (design recorded in `packages/shell/src/updates.ts`).
 - ✅ **RG156** **the update check tells a build ahead of every release it is the newest, and hides why a check failed** — A build ahead of every release is told so and both versions are named, a failed check says what the network did, and only bad JSON reads as bad JSON.
+- ✅ **RG157** **the tag-against-manifest check is tested by its text, so an inverted condition or a lost exit still passes** — The step's script is lifted out of ci.yml and run against a manifest, so an inverted condition or a lost exit fails a test (design superseded: the fast suite's own guard refuses a spawn).
 
 ## Block H — The look (a design system for governed prose)
 
