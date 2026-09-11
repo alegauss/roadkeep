@@ -166,6 +166,14 @@ export interface RendererBridge {
    * is taken, and a line the engine does not call ready is not taken either.
    */
   handOver(root: string, id: string): Promise<HandedOver>
+  /**
+   * The project's governed files, each with when the disk last changed it (RG153).
+   *
+   * Beside the landing rather than in it: what moved in a line is the engine's answer, and
+   * which file changed when is the filesystem's — a question only the side with the disk can
+   * ask, which over HTTP is the side that has the checkout.
+   */
+  governedAt(root: string): Promise<readonly GovernedFile[]>
   /** Every session this process started, each with what it has written so far (RG153). */
   sessions(): Promise<readonly SessionRecord[]>
   /**
@@ -173,6 +181,20 @@ export interface RendererBridge {
    * may have moved the line, and releasing it here would undo a state nobody reviewed.
    */
   stopSession(key: string): Promise<void>
+}
+
+/** One governed file, and when the disk last changed it (RG153). */
+export interface GovernedFile {
+  /** The role the project's config declared it under: roadmap, changelog, and the rest. */
+  readonly role: string
+  /** The path as the config spells it, which is what an act naming a file is matched against. */
+  readonly path: string
+  /**
+   * When it last changed, as the filesystem says it. Empty where the file is not there, which
+   * is a state a project has before anything has written that role.
+   */
+  readonly changed: string
+  readonly present: boolean
 }
 
 /**
@@ -308,6 +330,7 @@ export const BRIDGE_CHANNELS = {
   chooseRoot: 'roadkeep:choose-root',
   saveRoots: 'roadkeep:save-roots',
   handOver: 'roadkeep:hand-over',
+  governedAt: 'roadkeep:governed-at',
   sessions: 'roadkeep:sessions',
   stopSession: 'roadkeep:stop-session',
 } as const satisfies Record<keyof RendererBridge, string>

@@ -144,6 +144,11 @@ export interface VerbInputs {
     anchor: string
     role?: string
   }
+  /**
+   * The claim registry against the roadmap (RG153): who is on which line, which entries were
+   * stepped over, and which are stale. Takes nothing — the registry is the project's.
+   */
+  claims: Record<string, never>
 }
 
 export type VerbName = keyof VerbInputs
@@ -257,6 +262,7 @@ export const VERBS: { [K in VerbName]: ArgvFor<K> } = {
   ],
   blockList: () => [],
   sectionShow: (input) => [input.anchor, ...optional('--role', input.role)],
+  claims: () => [],
 }
 
 /**
@@ -303,4 +309,5 @@ export const EVERY_INPUT: { [K in VerbName]: VerbInputs[K] } = {
   pick: { block: 'A', designed: true, have: ['signing-cert'] },
   blockList: {},
   sectionShow: { anchor: 'RG1', role: 'decisions' },
+  claims: {},
 }

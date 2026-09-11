@@ -39,9 +39,11 @@ describe('RG60: what the renderer was given', () => {
 
     // RG143 added the three that reach an engine: which projects, open one, run against it.
     // RG144 added the one that is told rather than asked, RG146 the three that name roots, and
-    // RG153 the three that start a session, say what is running and stop one.
+    // RG153 the four that start a session, say what is running, stop one, and say when each
+    // governed file last changed.
     expect(methods).toEqual([
       'chooseRoot',
+      'governedAt',
       'handOver',
       'identify',
       'open',
@@ -172,7 +174,7 @@ describe('RG60: what the renderer was not given', () => {
       `Object.values(window['${BRIDGE_KEY}']).map((one) => typeof one)`,
     )
 
-    expect(reachable).toHaveLength(14)
+    expect(reachable).toHaveLength(15)
     expect(reachable.every((one) => one === 'function')).toBe(true)
   })
 })

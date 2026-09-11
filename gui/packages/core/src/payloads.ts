@@ -112,6 +112,60 @@ export const readBlockListPayload: Reader<BlockListPayload> = record<BlockListPa
   ),
 })
 
+/**
+ * One entry in the claim registry (RG153).
+ *
+ * **Held, expired and stale are the engine's words and the whole of the reading**: an expired
+ * entry was stepped over and the line is offered again, and a stale one is a marker that moved
+ * out from under a claim nothing reads any more. A claim names nobody where nobody named
+ * themselves, which is why `by` can be empty on an entry that is certainly somebody's.
+ */
+export interface ClaimEntry {
+  readonly id: string
+  /** Held, expired or stale — the registry's own word, never one worked out here. */
+  readonly state: string
+  /** Where the line is now: open, shipped, gone. The engine's word again. */
+  readonly where: string
+  /** How long it has stood, as the engine prints it. A number of seconds is `age`. */
+  readonly since: string
+  readonly age: number
+  readonly marker: string
+  readonly block: string
+  /** What the claim declared it would touch. Empty is the ordinary case. */
+  readonly paths: readonly string[]
+  /** Who holds it, where the registry knows. A claim names nobody by default. */
+  readonly by: string
+}
+
+export const readClaimEntry: Reader<ClaimEntry> = record<ClaimEntry>({
+  id: aString,
+  state: orMissing(aString, ''),
+  where: orMissing(aString, ''),
+  since: orMissing(aString, ''),
+  age: orMissing(aNumber, 0),
+  marker: orMissing(aString, ''),
+  block: orMissing(aString, ''),
+  paths: orMissing(listOf(aString), []),
+  by: orMissing(aString, ''),
+})
+
+export interface ClaimsPayload {
+  /** How long a claim stands, in minutes, as this project declares it. */
+  readonly window: number
+  /** Where the registry lives, which is a file outside the repository. */
+  readonly registry: string
+  /** How many are held right now. The engine's count, not this list's length. */
+  readonly held: number
+  readonly claims: readonly ClaimEntry[]
+}
+
+export const readClaimsPayload: Reader<ClaimsPayload> = record<ClaimsPayload>({
+  window: orMissing(aNumber, 0),
+  registry: orMissing(aString, ''),
+  held: orMissing(aNumber, 0),
+  claims: orMissing(listOf(readClaimEntry), []),
+})
+
 export interface AbsentRequirement {
   readonly requirement: string
   readonly lines: number

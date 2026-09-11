@@ -13,6 +13,7 @@ import {
   wordingFor,
   type BridgedResult,
   type BridgeIdentity,
+  type GovernedFile,
   type HandedOver,
   type KnownRoot,
   type LaunchSettings,
@@ -22,6 +23,7 @@ import { app, BrowserWindow, dialog, ipcMain, type WebContents } from 'electron'
 
 import { agentCandidates } from './agent-candidates'
 import { createCarrier, type Carrier } from './carrier'
+import { governedAt } from './governed-at'
 import { createSubscriptions, type Subscriber } from './subscriptions'
 import { localeChoice } from './locale'
 import { createProcessTransport } from './process-transport'
@@ -214,6 +216,18 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
       return sessions.handOver(root, id)
     },
   )
+  // When each governed file last changed (RG153), which is the disk's answer and not the
+  // engine's. Which files those are is the project's own config, read off the opening, so a
+  // root this carrier will not open is answered with nothing rather than with a stat.
+  ipcMain.handle(
+    BRIDGE_CHANNELS.governedAt,
+    async (_event, root: unknown): Promise<GovernedFile[]> => {
+      if (typeof root !== 'string') return []
+      const opened = await carrier.open(root)
+      return opened.kind === 'open' ? governedAt(root, opened.governed) : []
+    },
+  )
+
   ipcMain.handle(BRIDGE_CHANNELS.sessions, () => sessions.list())
   ipcMain.handle(BRIDGE_CHANNELS.stopSession, (_event, key: unknown): void => {
     if (typeof key === 'string') sessions.stop(key)

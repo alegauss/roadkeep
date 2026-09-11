@@ -1,7 +1,7 @@
 import { BASE_LOCALE, bundleGaps, bundlePaths, keysOf } from '@rk/core'
 import { describe, expect, it } from 'vitest'
 
-import { AREA_WORDING, AREAS, HOME_ROUTE, surfacesIn } from './areas'
+import { AREA_WORDING, AREAS, HOME_ROUTE, SESSIONS_ROUTE, surfacesIn } from './areas'
 
 /**
  * RG125: the half of the wording nothing compared.
@@ -65,11 +65,14 @@ describe('RG125: every language against the base', () => {
 })
 
 describe('RG125: the map itself', () => {
-  it('offers the portfolio and nothing else, since no other screen routes yet', () => {
+  it('offers the portfolio and the sessions, which are the surfaces about no project', () => {
     // Stated rather than assumed: the palette and the rail render this array, and a button
     // leading nowhere is worse than a rail that grew one the day its screen opened (RG145).
+    // A project, a line and one session are each about something a reader chose, so they
+    // route without an entry here and are reached from the row above them.
     expect(surfacesIn(AREAS).map((item) => [item.id, item.bentoRoute])).toEqual([
       ['portfolio', HOME_ROUTE],
+      ['sessions', SESSIONS_ROUTE],
     ])
   })
 })

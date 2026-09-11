@@ -42,6 +42,7 @@ const READS: { [K in VerbName]: VerbInputs[K] } = {
   pick: {},
   blockList: {},
   sectionShow: { anchor: 'FX3' },
+  claims: {},
 }
 
 beforeAll(async () => {

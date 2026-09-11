@@ -193,6 +193,24 @@ export const EN = {
   'session.change.depsDropped': 'deps dropped: {ids}',
   'session.change.left': 'the line left: {said}',
   'session.result': 'its last word: {result}',
+  'session.files': 'The governed files',
+  'session.file.never': 'not written yet',
+  'session.claims': 'Claims held elsewhere',
+  'session.claims.none': 'No other line of this project is claimed.',
+  'session.claim.since': '{state}, {since}',
+
+  'sessions.kicker': 'Sessions',
+  'sessions.title': '{count} sessions this window started',
+  'sessions.title.none': 'Sessions this window started',
+  'sessions.none': 'No session has been started from this window.',
+  'sessions.none.hint':
+    'Hand to Claude Code on a line starts one, and it is listed here while this window runs.',
+  'sessions.column.line': 'Line',
+  'sessions.column.project': 'Project',
+  'sessions.column.state': 'State',
+  'sessions.open': 'Open {id}',
+  'sessions.footnote':
+    'Sessions live with this window: what is listed here is what this process started and still holds.',
 
   'roots.label': 'Roots',
   'roots.add': 'Add a root',

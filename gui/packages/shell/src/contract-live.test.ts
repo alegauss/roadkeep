@@ -205,6 +205,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
         'blockList',
         'brief',
         'budget',
+        'claims',
         'commands',
         'config',
         'criterionList',
@@ -410,6 +411,18 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect(section.anchor).toBe(firstOpen)
     expect(section.title).toContain('needs answering')
     expect(section.body ?? '').not.toBe('')
+  })
+
+  it('RG153: reads the claim registry, which is a file outside the repository', async () => {
+    // The read beside a session's stream: who else is on a line of this project. A fixture
+    // nobody has claimed in answers an empty registry, and that is the shape — the window
+    // and the registry's own path are what a screen says when there is nothing in it.
+    const registry = await readVerb('claims', {})
+
+    expect(registry.window).toBeGreaterThan(0)
+    expect(registry.registry).not.toBe('')
+    expect(Array.isArray(registry.claims)).toBe(true)
+    expect(typeof registry.held).toBe('number')
   })
 
   it('reads an address with no list, and the door that opens one', async () => {

@@ -184,6 +184,24 @@ export const PT_BR: Wording = {
   'session.change.depsDropped': 'dependências retiradas: {ids}',
   'session.change.left': 'a linha saiu: {said}',
   'session.result': 'sua última palavra: {result}',
+  'session.files': 'Os arquivos governados',
+  'session.file.never': 'ainda não escrito',
+  'session.claims': 'Claims tomados em outras linhas',
+  'session.claims.none': 'Nenhuma outra linha deste projeto está com alguém.',
+  'session.claim.since': '{state}, desde {since}',
+
+  'sessions.kicker': 'Sessões',
+  'sessions.title': '{count} sessões iniciadas por esta janela',
+  'sessions.title.none': 'Sessões iniciadas por esta janela',
+  'sessions.none': 'Nenhuma sessão foi iniciada a partir desta janela.',
+  'sessions.none.hint':
+    'Entregar ao Claude Code numa linha inicia uma, e ela fica listada aqui enquanto esta janela roda.',
+  'sessions.column.line': 'Linha',
+  'sessions.column.project': 'Projeto',
+  'sessions.column.state': 'Estado',
+  'sessions.open': 'Abrir {id}',
+  'sessions.footnote':
+    'As sessões vivem com esta janela: o que está listado aqui é o que este processo iniciou e ainda guarda.',
 
   'roots.label': 'Raízes',
   'roots.add': 'Adicionar uma raiz',

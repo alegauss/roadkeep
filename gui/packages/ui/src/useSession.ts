@@ -3,6 +3,8 @@ import {
   marksOf,
   NOTHING_MARKED,
   openOver,
+  type ClaimsPayload,
+  type GovernedFile,
   type Marks,
   type OpenProject,
   type Reading,
@@ -29,6 +31,10 @@ export type SessionView =
       readonly marks: Marks
       /** The line as the engine answers it now, or null before the first reread lands. */
       readonly now: Reading | null
+      /** The project's governed files with when each last changed, as the disk says. */
+      readonly files: readonly GovernedFile[]
+      /** The claim registry, or null where it has not answered. Held elsewhere is a filter. */
+      readonly claims: ClaimsPayload | null
     }
 
 /** What was heard on the session's topic, kept apart from the record until both are here. */
@@ -38,6 +44,9 @@ interface Heard {
 }
 
 const NOTHING_HEARD: Heard = { lines: [], outcome: null }
+
+/** Built once: a fresh array per render is a new dependency for everything below it. */
+const NO_FILES: readonly GovernedFile[] = []
 
 /**
  * A line in its place, whichever of the record and the topic brought it first.
@@ -79,6 +88,8 @@ export function useSession(root: string, id: string, key: string): SessionView {
   const [heard, setHeard] = useState<Heard>(NOTHING_HEARD)
   const [project, setProject] = useState<OpenProject | null>(null)
   const [now, setNow] = useState<Reading | null>(null)
+  const [files, setFiles] = useState<readonly GovernedFile[]>(NO_FILES)
+  const [claims, setClaims] = useState<ClaimsPayload | null>(null)
   // The read for the line on screen, swapped with it: a move asks whichever one is current.
   const reread = useRef<() => void>(() => undefined)
   useGovernedMoves(project === null ? null : root, () => {
@@ -131,6 +142,20 @@ export function useSession(root: string, id: string, key: string): SessionView {
         const line = lineOf(outcome.value)
         if (line !== null) setNow({ kind: 'read', payload: line })
       })
+      // Who else is on a line of this project, which is the engine's registry and not a
+      // state this app keeps.
+      void project.client.call(root, 'claims', {}).then((outcome) => {
+        if (stillHere() && outcome.kind === 'read') setClaims(outcome.value)
+      })
+      // And when each governed file last changed, which only the side with the disk knows.
+      void getBridge()
+        ?.governedAt(root)
+        .then(
+          (all) => {
+            if (stillHere()) setFiles(all)
+          },
+          () => undefined,
+        )
     }
     // Asked once on opening, since the session may have moved the line before this screen
     // did, and again on every move after.
@@ -152,5 +177,7 @@ export function useSession(root: string, id: string, key: string): SessionView {
     outcome: heard.outcome ?? record.outcome,
     marks: project === null ? NOTHING_MARKED : marksOf(project.governed, project.engine.engine),
     now,
+    files,
+    claims,
   }
 }

@@ -1,5 +1,5 @@
 import type { Bundle } from '@rk/core'
-import { IconLayoutGrid } from '@tabler/icons-react'
+import { IconLayoutGrid, IconTerminal2 } from '@tabler/icons-react'
 import type { BentoNavGroup, BentoNavItem } from '@viglet/viglet-design-system/bento'
 
 /**
@@ -56,6 +56,12 @@ export function sessionPath(root: string, id: string, key: string): string {
 }
 
 /**
+ * Every session this window started (RG153), which is the one session surface with an entry in
+ * `AREAS`: it is about no project in particular, so a reader can reach it from the rail.
+ */
+export const SESSIONS_ROUTE = '/sessions'
+
+/**
  * The sections and their surfaces, already filtered by whatever this reader may see —
  * which here is everything, there being no account and no privileges (a non-goal).
  *
@@ -76,6 +82,21 @@ export const AREAS: BentoNavGroup[] = [
         tone: 'amber',
         bentoRoute: HOME_ROUTE,
         fallbackRoute: HOME_ROUTE,
+      },
+    ],
+  },
+  {
+    section: { id: 'work', labelKey: 'areas.work' },
+    items: [
+      {
+        id: 'sessions',
+        titleKey: 'areas.sessions',
+        descriptionKey: 'areas.sessionsAbout',
+        icon: IconTerminal2,
+        section: 'work',
+        tone: 'amber',
+        bentoRoute: SESSIONS_ROUTE,
+        fallbackRoute: SESSIONS_ROUTE,
       },
     ],
   },
@@ -118,6 +139,9 @@ export const AREA_WORDING: Readonly<Record<'en' | 'pt', Bundle>> = {
       backlogs: 'Backlogs',
       portfolio: 'Portfolio',
       portfolioAbout: 'Every governed project on this machine, one row each',
+      work: 'Work',
+      sessions: 'Sessions',
+      sessionsAbout: 'Every Claude Code session this window started, one row each',
     },
   },
   pt: {
@@ -126,6 +150,9 @@ export const AREA_WORDING: Readonly<Record<'en' | 'pt', Bundle>> = {
       backlogs: 'Pendências',
       portfolio: 'Portfólio',
       portfolioAbout: 'Cada projeto governado nesta máquina, uma linha para cada',
+      work: 'Trabalho',
+      sessions: 'Sessões',
+      sessionsAbout: 'Cada sessão do Claude Code iniciada por esta janela, uma linha para cada',
     },
   },
 }

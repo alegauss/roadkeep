@@ -330,28 +330,6 @@ is one a web service implements the same way.
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-### §RG153 The session beside its task
-
-`Sessao.dc.html` is block F on a screen. Hand to Claude Code on the task detail takes
-the line with `brief --claim` and starts the session from that payload through
-`promptFor`, which RG38 and RG41 shipped; if `claimingBrief` finds a live claim, the
-holder is named and nothing is offered, which is block F's third criterion.
-
-**The hero** is the task, whose claim it is and since when, read from the registry, with
-Open the task and Stop the session.
-
-**Three columns.** What was handed over: the design, the deps, the criteria and the
-non-goals `handoverOf` counts, and the command that started it. The stream, as `actsOf`
-reads it: prose, then each tool on what it touched, roadkeep calls marked, and an act
-that touched a governed file edged in the accent; every raw line stays reachable. What
-moved: `landingBetween` before and after, the five governed files `watchedFiles` names
-with when each last changed, and claims held elsewhere.
-
-The stream and the file changes arrive over RG144's subscription; nothing polls.
-Stopping kills the process and leaves the claim to the registry's own expiry rather than
-releasing a line the session may have moved. The rail's Sessions entry lists the ones
-running.
-
 ### §RG175 The line a session already has
 
 A claim `brief --claim` makes names nobody: the marker moves and `held` stays empty,
@@ -371,6 +349,28 @@ session, which is the control a reader wanted anyway.
 the claim expires on its own, so the offer returns when the state does — read from the
 record's outcome, never from a timer kept here. A line held by somebody else is the
 other case and is unchanged: the holder is named, which is the block's own criterion.
+
+### §RG178 A list that hears what it lists
+
+The list of what this window started asks `sessions` once, when it opens. A session's
+own screen hears its topic and follows it line by line; the list hears nothing, so one
+that ends while the list stands still says running, and one started from another screen
+is missing until somebody navigates away and back.
+
+**Nothing here should poll.** The events already exist: every line and every ending is
+published on the session topic, keyed on the session. What the list lacks is that it
+does not know which keys to subscribe to until it has asked — and a session started
+after it asked has a key it never heard of.
+
+**So the topic needs a key that is every session.** `subscribe` takes one source of a
+topic, and a list wants the lot: either the topic carries a key that means all of them,
+or the sessions the record answered are each subscribed and a new one arrives some other
+way. The first is one subscription and one shape; the second is a subscription per row
+and still blind to a session that started elsewhere.
+
+A row need not carry the stream to be right: what the list draws is the state, so an
+ending is the event that matters and a line only says it is still going. The record
+stays the read that opens the screen, and the topic is what keeps it true.
 
 ## Block G — The shell (an executable now, a service later)
 
@@ -578,3 +578,26 @@ refusal is one this run would have to arrange, and chasing them would be a secon
 of the screens' own tests. What it holds is that every surface a reader can route to has
 been read once, which is the claim RG51 makes and the one that quietly stopped being
 true.
+
+### §RG177 A time in the window's language
+
+The session's file stamps are the first times this app draws. Each crosses as ISO-8601,
+which is right — a fact and not a rendering — and the screen writes it with
+`toLocaleString` and no locale, so what a reader gets is the desktop's. RG86 made the
+window's language a person's choice, and a window set to one language on a machine set
+to another writes its sentences in the first and its times in the second.
+
+**The tag is already resolved**, at launch, by the side that can ask the desktop, and it
+reaches the renderer as `LaunchSettings.locale`. So one place takes a stamp and the
+locale in force and answers the string, and every screen that ever draws a time uses
+that. A stamp this app cannot read is drawn as it arrived, since a blank where a time
+should be is worse than an unfamiliar one.
+
+***No dates, estimates, velocity or burndown* bounds this and does not forbid it.** What
+that refuses is a schedule this app would have to invent: a date roadkeep does not
+store, a rate, a line drawn through time. A file's last change is the filesystem's own
+answer about a file the project governs, read and never computed.
+
+The pseudo-locale run cannot see this: a time is not a catalogue value, so nothing wraps
+it and nothing reports it bare. One test that draws a stamp under a locale and reads the
+string back is what would.

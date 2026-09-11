@@ -15,7 +15,7 @@ import {
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { sessionPath, taskPath } from './areas'
+import { SESSIONS_ROUTE, sessionPath, taskPath } from './areas'
 import { drawWindow } from './harness'
 import { stubBridge } from './stub-bridge'
 
@@ -145,6 +145,18 @@ function engine(moved: { shipped: boolean }): Transport {
           })
         case 'commands':
           return said({ version: '0.2.400', source: null, commands: [] })
+        case 'claims':
+          return said({
+            window: 60,
+            registry: 'C:\\Temp\\roadkeep-alpha.state',
+            held: 2,
+            claims: [
+              // This session's own line, which is not somebody else being on something.
+              { id: 'AL1', state: 'held', where: 'open', age: 60, since: '1m', marker: '🛠' },
+              { id: 'AL7', state: 'held', where: 'open', age: 900, since: '15m', marker: '🛠' },
+              { id: 'AL8', state: 'expired', where: 'open', age: 9000, since: '2h', marker: '🛠' },
+            ],
+          })
         case 'brief':
           if (id === 'AL2') return said({ ...RAW, id, status: '📋', held: [HOLDER] })
           return said(moved.shipped ? SHIPPED : RAW)
@@ -156,6 +168,13 @@ function engine(moved: { shipped: boolean }): Transport {
 }
 
 const HOLDER = { by: 'another session', since: 'an hour ago', state: 'held', paths: [] }
+
+/** What the disk says about the files this project governs, as main answers it. */
+const CHANGED = '2026-09-11T10:00:00.000Z'
+const FILES = [
+  { role: 'roadmap', path: 'docs/ROADMAP.md', changed: CHANGED, present: true },
+  { role: 'decisions', path: 'docs/DECISIONS.md', changed: '', present: false },
+]
 
 interface Listening {
   readonly topic: Topic
@@ -195,6 +214,7 @@ async function at(
         }
       },
       sessions: () => Promise.resolve(over.sessions ?? []),
+      governedAt: () => Promise.resolve(FILES),
       handOver: (_root, id) => {
         wired.handedOver.push(id)
         return Promise.resolve(over.handOver ?? { kind: 'withheld', reason: 'nothing asked' })
@@ -364,9 +384,61 @@ describe('RG153: the session beside its task', () => {
     expect(screen.queryByRole('button', { name: BASE['session.stop'] })).toBeNull()
   })
 
+  it('names each governed file and when the disk last changed it', async () => {
+    // The landing says which fields moved; this says which file the session actually wrote.
+    await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
+
+    // The same wait as the claims below: this column stands before the disk has answered.
+    await screen.findByText('docs/ROADMAP.md')
+    const files = within(screen.getByTestId('files'))
+    expect(files.getByText(new Date(CHANGED).toLocaleString())).toBeTruthy()
+    // A role nothing has written yet is a state, drawn rather than dropped.
+    expect(files.getByText('docs/DECISIONS.md')).toBeTruthy()
+    expect(files.getByText(BASE['session.file.never'])).toBeTruthy()
+  })
+
+  it('names a claim held elsewhere, and neither its own line nor a lapsed one', async () => {
+    await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
+
+    // The panel draws before the registry answers, so the wait is for the entry and not for
+    // the section — the container is there from the first frame, saying nothing is claimed.
+    await screen.findByText('AL7')
+    const elsewhere = within(screen.getByTestId('elsewhere'))
+    expect(
+      elsewhere.getByText(fill(BASE['session.claim.since'], { state: 'held', since: '15m' })),
+    ).toBeTruthy()
+    // The session's own claim is not somebody else, and an expired one is not somebody at all.
+    expect(elsewhere.queryByText('AL1')).toBeNull()
+    expect(elsewhere.queryByText('AL8')).toBeNull()
+  })
+
   it('says so where this window holds no session by that name', async () => {
     await at(sessionPath(ROOT, 'AL1', 'nobody'))
 
     expect(await screen.findByText(BASE['session.missing'])).toBeTruthy()
+  })
+})
+
+describe('RG153: every session this window started', () => {
+  it('lists what is running, each leading to its own screen', async () => {
+    await at(SESSIONS_ROUTE, { sessions: [RECORD] })
+
+    const row = await screen.findByTestId('session')
+    expect(row.dataset['id']).toBe('AL1')
+    expect(within(row).getByText('a line ready to start')).toBeTruthy()
+    expect(
+      within(row)
+        .getByRole('link', { name: fill(BASE['sessions.open'], { id: 'AL1' }) })
+        .getAttribute('href'),
+    ).toBe(sessionPath(ROOT, 'AL1', KEY))
+    // One line written and no outcome: running, in the same words its own screen uses.
+    expect(within(row).getByText(BASE['session.state.running'])).toBeTruthy()
+  })
+
+  it('says nothing has been started, which is what a window holds until one is', async () => {
+    await at(SESSIONS_ROUTE)
+
+    expect(await screen.findByText(BASE['sessions.none'])).toBeTruthy()
+    expect(screen.getByText(BASE['sessions.none.hint'])).toBeTruthy()
   })
 })

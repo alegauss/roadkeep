@@ -3,6 +3,8 @@ import {
   landingBetween,
   type Act,
   type Change,
+  type ClaimsPayload,
+  type GovernedFile,
   type Marks,
   type MessageKey,
   type Reading,
@@ -40,8 +42,11 @@ import { useWording } from './wording'
  * have moved the line, and releasing it here would undo a state nobody reviewed.
  */
 
-/** Where the session stands, in this app's words for the engine's states. */
-const STATE_TEXT: Readonly<Record<SessionState, MessageKey>> = {
+/**
+ * Where the session stands, in this app's words for the engine's states. Exported because the
+ * list of what is running says the same thing about each one, and two tables would drift.
+ */
+export const STATE_TEXT: Readonly<Record<SessionState, MessageKey>> = {
   starting: 'session.state.starting',
   running: 'session.state.running',
   done: 'session.state.done',
@@ -50,7 +55,7 @@ const STATE_TEXT: Readonly<Record<SessionState, MessageKey>> = {
   unavailable: 'session.state.unavailable',
 }
 
-const STATE_INTENT: Readonly<Record<SessionState, Intent>> = {
+export const STATE_INTENT: Readonly<Record<SessionState, Intent>> = {
   starting: null,
   running: null,
   done: 'on',
@@ -207,15 +212,81 @@ function ChangeSaid({ change }: { readonly change: Change }) {
   }
 }
 
+/** When each governed file last changed, in the desktop's own way of writing a time. */
+function Files({ files }: { readonly files: readonly GovernedFile[] }) {
+  const say = useWording()
+  if (files.length === 0) return null
+
+  return (
+    <section className="mt-4" data-testid="files">
+      <Label>{say('session.files')}</Label>
+      <ul className="flex flex-col gap-1 text-xs">
+        {files.map((file) => (
+          <li key={file.path} className="flex flex-col">
+            <span className="font-mono wrap-anywhere">{file.path}</span>
+            <span className="text-muted-foreground">
+              {file.changed === '' ? say('session.file.never') : whenChanged(file.changed)}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+/**
+ * A time as this desktop writes it.
+ *
+ * The stamp is the filesystem's and crosses as ISO-8601; what a reader wants is the clock they
+ * have. A time this app could not read is shown as it arrived rather than as a blank.
+ */
+function whenChanged(stamp: string): string {
+  const at = new Date(stamp)
+  return Number.isNaN(at.getTime()) ? stamp : at.toLocaleString()
+}
+
+/** Who else is on a line of this project, off the engine's own registry. */
+function Elsewhere({ claims, id }: { readonly claims: ClaimsPayload | null; readonly id: string }) {
+  const say = useWording()
+  // Held, and not this session's own line: an expired entry was stepped over and a stale one
+  // is a marker that moved out from under it, and neither is somebody working.
+  const others = (claims?.claims ?? []).filter((claim) => claim.id !== id && claim.state === 'held')
+
+  return (
+    <section className="mt-4" data-testid="elsewhere">
+      <Label>{say('session.claims')}</Label>
+      {others.length === 0 ? (
+        <p className="text-muted-foreground text-xs">{say('session.claims.none')}</p>
+      ) : (
+        <ul className="flex flex-col gap-1 text-xs">
+          {others.map((claim) => (
+            <li key={claim.id} className="flex flex-wrap items-center gap-1.5">
+              <Glyph>{claim.marker}</Glyph>
+              <span className="font-mono font-semibold">{claim.id}</span>
+              <span className="text-muted-foreground">
+                {say('session.claim.since', { state: claim.state, since: claim.since })}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
+
 /** What moved in the backlog: the files' answer, never the session's account of it. */
 function Moved({
   record,
   now,
   outcome,
+  files,
+  claims,
 }: {
   readonly record: SessionRecord
   readonly now: Reading | null
   readonly outcome: SessionOutcome | null
+  readonly files: readonly GovernedFile[]
+  readonly claims: ClaimsPayload | null
 }) {
   const say = useWording()
   const landing =
@@ -245,6 +316,8 @@ function Moved({
           {outcome.said}
         </pre>
       )}
+      <Files files={files} />
+      <Elsewhere claims={claims} id={record.id} />
     </BentoPanel>
   )
 }
@@ -326,7 +399,13 @@ export function Session() {
         <div className="grid items-start gap-5 lg:grid-cols-[18rem_minmax(0,1fr)_18rem]">
           <Handed record={session.record} />
           <Stream lines={session.lines} marks={session.marks} />
-          <Moved record={session.record} now={session.now} outcome={session.outcome} />
+          <Moved
+            record={session.record}
+            now={session.now}
+            outcome={session.outcome}
+            files={session.files}
+            claims={session.claims}
+          />
         </div>
       )}
     </>
