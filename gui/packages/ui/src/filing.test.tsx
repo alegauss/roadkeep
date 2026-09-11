@@ -11,7 +11,7 @@ import {
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { filePath } from './areas'
+import { filePath, taskPath } from './areas'
 import { drawWindow } from './harness'
 import { stubBridge } from './stub-bridge'
 
@@ -152,6 +152,35 @@ function engine(): Transport {
           return said({ version: '0.2.400', source: null, commands: [] })
         case 'budget':
           return said(BUDGET)
+        case 'delivered':
+          // What the block already has, ranked against the symptom being written (RG182).
+          return said({
+            file: 'docs/CHANGELOG.md',
+            block: 'A',
+            standing: null,
+            recorded: 2,
+            near: 'a line filed from the window',
+            delivered: [
+              {
+                id: 'AL4',
+                marker: '✅',
+                symptom: 'a line was already filed from a window',
+                line: 9,
+                undone_by: null,
+                rank: 1,
+                open: false,
+              },
+              {
+                id: 'AL6',
+                marker: '📋',
+                symptom: 'a second window files the same line twice',
+                line: 3,
+                undone_by: null,
+                rank: 2,
+                open: true,
+              },
+            ],
+          })
         case 'non-goal':
           return said({
             file: 'docs/ROADMAP.md',
@@ -346,5 +375,53 @@ describe('RG151: reaching the form', () => {
     expect((await screen.findByRole('link', { name: 'alpha' })).getAttribute('href')).toBe(
       `/project/${encodeURIComponent(ROOT)}`,
     )
+  })
+})
+
+describe('RG182: the duplicate read, beside the symptom', () => {
+  it('ranks what the block already has against the symptom being written', async () => {
+    const wired = await at(filePath(ROOT))
+    typeIn(BASE['filing.block'], 'A')
+    typeIn(BASE['filing.symptom'], 'a line filed from the window')
+
+    const near = await screen.findByTestId('near')
+    expect(within(near).getByText('a line was already filed from a window')).toBeTruthy()
+    // The engine's own ranking, asked with the block and the sentence about to be filed.
+    const asked = wired.ran.find((argv) => argv.includes('delivered')) ?? []
+    expect(asked).toContain('A')
+    expect(asked).toContain('a line filed from the window')
+    expect(asked).toContain('--open')
+  })
+
+  it('marks an open line apart from a delivery, since what to do about them differs', async () => {
+    await at(filePath(ROOT))
+    typeIn(BASE['filing.block'], 'A')
+    typeIn(BASE['filing.symptom'], 'a line filed from the window')
+
+    const near = await screen.findByTestId('near')
+    expect(within(near).getByText(BASE['filing.near.shipped'])).toBeTruthy()
+    expect(within(near).getByText(BASE['filing.near.open'])).toBeTruthy()
+  })
+
+  it('opens each ranked line, since a duplicate is only recognised by reading the other', async () => {
+    await at(filePath(ROOT))
+    typeIn(BASE['filing.block'], 'A')
+    typeIn(BASE['filing.symptom'], 'a line filed from the window')
+
+    const near = await screen.findByTestId('near')
+    expect(
+      within(near)
+        .getAllByRole('link')
+        .map((one) => one.getAttribute('href')),
+    ).toEqual([taskPath(ROOT, 'AL4'), taskPath(ROOT, 'AL6')])
+  })
+
+  it('ranks nothing until a block is named, since the corpus is one block’s', async () => {
+    const wired = await at(filePath(ROOT))
+    typeIn(BASE['filing.symptom'], 'a line filed from the window')
+
+    await screen.findByTestId('command')
+    expect(screen.queryByTestId('near')).toBeNull()
+    expect(wired.ran.some((argv) => argv.includes('delivered'))).toBe(false)
   })
 })

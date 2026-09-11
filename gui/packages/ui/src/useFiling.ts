@@ -10,6 +10,7 @@ import {
   type Bounds,
   type BudgetPayload,
   type Composed,
+  type DeliveredPayload,
   type Door,
   type OpenProject,
   type Refusal,
@@ -76,6 +77,16 @@ export type Filed =
 
 export interface Filing {
   readonly project: OpenProject | null
+  /**
+   * What this block already delivered, nearest the symptom being written (RG182).
+   *
+   * Null until a block is typed: the ranking is one block's, so there is nothing to rank
+   * against until the form's first field says which. Nothing is refused by it and nothing
+   * could be — `delivered` publishes no score, because no threshold separates a true
+   * duplicate from a stranger — so it is a list to read and the judgement stays with the
+   * person reading it.
+   */
+  readonly near: DeliveredPayload | null
   /** What `budget` says this draft leaves, or null before the first answer lands. */
   readonly budget: BudgetPayload | null
   /** The constraints a line here is bound by, read once. */
@@ -109,6 +120,7 @@ export function useFiling(root: string, draft: Draft): Filing {
   const [project, setProject] = useState<OpenProject | null>(null)
   const [budget, setBudget] = useState<BudgetPayload | null>(null)
   const [bounds, setBounds] = useState<Bounds | null>(null)
+  const [near, setNear] = useState<DeliveredPayload | null>(null)
   const [filed, setFiled] = useState<Filed>({ kind: 'none' })
 
   const command = composeWrite(root, 'add', asWrite(draft))
@@ -168,6 +180,30 @@ export function useFiling(root: string, draft: Draft): Filing {
     }
   }, [project, root, draft])
 
+  // And what this block already delivered, nearest what is being written (RG182). Asked on
+  // the same settle as the budget, since it is the same draft moving, and only where a block
+  // has been named: the ranking is one block's corpus and nothing else.
+  useEffect(() => {
+    if (project === null || draft.block === '' || draft.symptom === '') {
+      setNear(null)
+      return undefined
+    }
+    let live = true
+    const stillHere = (): boolean => live
+    const asking = setTimeout(() => {
+      void project.client
+        .call(root, 'delivered', { block: draft.block, near: draft.symptom, open: true })
+        .then((outcome) => {
+          if (stillHere() && outcome.kind === 'read') setNear(outcome.value)
+        })
+    }, SETTLES_MS)
+
+    return () => {
+      live = false
+      clearTimeout(asking)
+    }
+  }, [project, root, draft.block, draft.symptom])
+
   /** One write, read into the shapes above. The same path for the line and for a door. */
   const ran = useCallback((answering: Promise<BridgedResult>) => {
     setFiled({ kind: 'filing' })
@@ -223,5 +259,5 @@ export function useFiling(root: string, draft: Draft): Filing {
     [root, filed, ran],
   )
 
-  return { project, budget, bounds, command, filed, file, takeDoor }
+  return { project, budget, bounds, near, command, filed, file, takeDoor }
 }

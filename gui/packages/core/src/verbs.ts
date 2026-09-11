@@ -70,6 +70,11 @@ export interface VerbInputs {
   delivered: {
     block: string
     near?: string
+    /**
+     * Rank the block's open lines beside its deliveries (RG182). A duplicate collides with
+     * what was filed as readily as with what shipped, and only this says which each is.
+     */
+    open?: boolean
   }
   /** Every id the ledger undid, and the entry that undid it. `id` asks about one. */
   reversals: { id?: string }
@@ -224,7 +229,11 @@ export const VERBS: { [K in VerbName]: ArgvFor<K> } = {
     ...(input.claim === true ? ['--claim'] : []),
   ],
   deps: (input) => [input.id],
-  delivered: (input) => [input.block, ...optional('--near', input.near)],
+  delivered: (input) => [
+    input.block,
+    ...optional('--near', input.near),
+    ...(input.open === true ? ['--open'] : []),
+  ],
   reversals: (input) => [...optional('--id', input.id)],
   budget: (input) => [
     ...(input.id === undefined ? [] : [input.id]),
@@ -280,7 +289,7 @@ export const EVERY_INPUT: { [K in VerbName]: VerbInputs[K] } = {
   stats: { block: 'A', role: 'roadmap', have: ['signing-cert'] },
   brief: { id: 'RG1', block: 'A', designed: true, have: ['signing-cert'], claim: true },
   deps: { id: 'RG1' },
-  delivered: { block: 'A', near: 'a symptom about to be proposed' },
+  delivered: { block: 'A', near: 'a symptom about to be proposed', open: true },
   reversals: { id: 'RG1' },
   budget: {
     id: 'RG1',

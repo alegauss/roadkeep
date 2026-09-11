@@ -933,6 +933,12 @@ export interface DeliveredEntry {
    * is a **position and never a score** — no threshold is published, because none exists.
    */
   readonly rank: number
+  /**
+   * Whether this is an open line rather than a delivery (RG182). `--open` ranks both corpora
+   * in one answer, and which it is decides what a reader does about it: an open line near
+   * the proposal is the line to read, a shipped one is the work already done.
+   */
+  readonly open: boolean
 }
 
 export const readDeliveredEntry: Reader<DeliveredEntry> = record<DeliveredEntry>(
@@ -943,6 +949,7 @@ export const readDeliveredEntry: Reader<DeliveredEntry> = record<DeliveredEntry>
     line: orMissing(aNumber, 0),
     undoneBy: orMissing(orNull(aString), null),
     rank: orMissing(aNumber, 0),
+    open: orMissing(aBoolean, false),
   },
   { undoneBy: 'undone_by' },
 )

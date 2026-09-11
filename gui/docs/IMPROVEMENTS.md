@@ -124,29 +124,6 @@ project that large can narrow by block first.
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-### §RG182 The duplicate read, beside the symptom
-
-The read before an `add` is `delivered <block> --near "<the sentence about to be
-filed>"`: it ranks that block's nearest deliveries against the proposal, which is the
-duplicate question asked before an id is spent. The window's form asks it of nobody. A
-person filing from the terminal is told to run it; a person filing from the window is
-not told anything, and the id is spent either way.
-
-**It belongs beside the symptom, not behind a button.** The symptom is the field a
-duplicate collides with, so the read is the one the symptom itself triggers — asked when
-the draft settles, like `budget` already is, and drawn as the five lines it ranked.
-Nothing is refused by it and nothing could be: `delivered` publishes no score because no
-threshold separates a true duplicate from a stranger, so the answer is a list to read
-and the judgement stays with the person reading it.
-
-**Each line it ranks opens.** A duplicate is only recognised by reading the other line,
-so the ranked ids are routes to the task surface, and an open one and a delivered one
-are marked differently — `--open` ranks both corpora and says which is which.
-
-**The count is the block's, so the call needs a block.** Until one is typed there is
-nothing to rank against, and the panel says that rather than ranking the wrong block:
-the form's first field is what makes the read possible.
-
 ### §RG185 Opening on the verdict already held
 
 The gate surface runs `lint` as it opens, every time. `gate.ts` already answers whether

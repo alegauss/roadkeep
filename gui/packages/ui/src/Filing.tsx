@@ -7,16 +7,18 @@ import {
   type Bounds,
   type BudgetPayload,
   type Counter,
+  type DeliveredPayload,
   type Translate,
 } from '@rk/core'
 import { Button } from '@viglet/viglet-design-system'
 import { BentoHero, BentoPanel } from '@viglet/viglet-design-system/bento'
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type ReactNode } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { projectPath, taskPath } from './areas'
 import { DoorRow } from './Doors'
 import { BOX, Caption } from './forms'
+import { Pill } from './marks'
 import { EMPTY_DRAFT, useFiling, type Draft } from './useFiling'
 import { useWording } from './wording'
 
@@ -295,6 +297,47 @@ function Answered({
   )
 }
 
+/**
+ * What this block already delivered, nearest what is being written (RG182).
+ *
+ * The read before an `add`, asked beside the symptom rather than behind a button, because the
+ * symptom is the field a duplicate collides with. Each line opens: a duplicate is only
+ * recognised by reading the other one, and an open line and a delivery are marked apart since
+ * what to do about them differs.
+ *
+ * Nothing is refused by this and nothing could be — `delivered` publishes no score, no
+ * threshold separating a true duplicate from a stranger exists — so it is a list to read and
+ * the judgement is the reader's.
+ */
+function Near({ root, near }: { readonly root: string; readonly near: DeliveredPayload | null }) {
+  const say = useWording()
+  if (near === null) return null
+
+  return (
+    <BentoPanel contentClassName="p-5">
+      <Caption>{say('filing.near', { block: near.block })}</Caption>
+      {near.delivered.length === 0 ? (
+        <p className="text-muted-foreground mt-2 text-xs">{say('filing.near.none')}</p>
+      ) : (
+        <ul className="mt-2 flex flex-col gap-2" data-testid="near">
+          {near.delivered.map((one) => (
+            <li key={one.id} className="text-xs">
+              <Link to={taskPath(root, one.id)} className="flex flex-wrap items-baseline gap-2">
+                <span className="font-mono font-semibold">{one.id}</span>
+                <Pill intent={one.open ? 'warn' : null}>
+                  {say(one.open ? 'filing.near.open' : 'filing.near.shipped')}
+                </Pill>
+                <span className="text-muted-foreground wrap-anywhere">{one.symptom}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="text-muted-foreground mt-2 text-xs">{say('filing.near.order')}</p>
+    </BentoPanel>
+  )
+}
+
 /** What a line here is bound by, which is what decides whether it may be filed at all. */
 function Bound({ bounds }: { readonly bounds: Bounds | null }) {
   const say = useWording()
@@ -463,6 +506,7 @@ export function Filing() {
 
         <div className="flex min-w-0 flex-col gap-3">
           <Command argv={command.argv} />
+          <Near root={root} near={filing.near} />
           <Answered filing={filing} say={say} />
           <Bound bounds={filing.bounds} />
         </div>

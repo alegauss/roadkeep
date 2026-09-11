@@ -501,6 +501,16 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect(near.near).not.toBeNull()
     expect(whole.delivered[0]?.symptom).not.toBe('')
     expect(whole.delivered[0]?.undoneBy).toBeNull()
+
+    // `--open` ranks the block's open lines beside its deliveries, and says which each is
+    // (RG182): a duplicate collides with what was filed as readily as with what shipped.
+    const both = await readVerb('delivered', {
+      block: 'A',
+      near: 'nothing answers a question yet',
+      open: true,
+    })
+    expect(both.delivered.some((one) => one.open)).toBe(true)
+    expect(both.delivered.some((one) => !one.open)).toBe(true)
     covers('delivered --near')
   })
 
