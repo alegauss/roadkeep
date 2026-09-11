@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { EVERY_SOURCE } from './bridge'
+
 import type { BridgedRequest, BridgedResult, OpenedProject, RendererBridge } from './bridge'
 import { buildArgv, buildCall } from './client'
 import { openProject } from './opening'
@@ -7,6 +9,7 @@ import {
   bridgedRun,
   bridgedTransport,
   isTopic,
+  heardBy,
   keyOfEvent,
   openedFrom,
   openOver,
@@ -382,5 +385,22 @@ describe('RG143: an opening, carried across', () => {
     }
 
     expect(await openOver(bridge, '/x')).toEqual(withheld)
+  })
+})
+
+describe('RG178: whether an event is one a listener asked for', () => {
+  const line = { session: 's1', index: 0, line: '{}' }
+
+  it('is heard by the key it came from, which is what one screen asks for', () => {
+    expect(heardBy('session', line, 's1')).toBe(true)
+    expect(heardBy('session', line, 's2')).toBe(false)
+  })
+
+  it('is heard by the key that means every source, whatever its own key is', () => {
+    // The reason this is a function and not a comparison at the listener: an event carries
+    // the key of the source it came from and never the one somebody subscribed with, so a
+    // listener asking for all of them would compare its own `*` and hear nothing.
+    expect(heardBy('session', line, EVERY_SOURCE)).toBe(true)
+    expect(heardBy('governed', { root: '/proj' }, EVERY_SOURCE)).toBe(true)
   })
 })

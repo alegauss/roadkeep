@@ -1,5 +1,6 @@
 import {
   BRIDGE_TOPICS,
+  EVERY_SOURCE,
   type BridgedRequest,
   type BridgedResult,
   type OpenedProject,
@@ -192,6 +193,18 @@ const KEYS: { readonly [T in Topic]: (event: TopicEvents[T]) => string } = {
 export function keyOfEvent<T extends Topic>(topic: T, event: TopicEvents[T]): string {
   const keyOf: (one: TopicEvents[T]) => string = KEYS[topic]
   return keyOf(event)
+}
+
+/**
+ * Whether an event is one a listener asked for (RG178).
+ *
+ * Its own key, or every source of the topic. The second is why this is a function and not a
+ * comparison at the listener: an event carries the key of the source it came from and never
+ * the key somebody subscribed with, so a listener asking for all of them would compare its
+ * own `*` against a session's key and hear nothing.
+ */
+export function heardBy<T extends Topic>(topic: T, event: TopicEvents[T], asked: string): boolean {
+  return asked === EVERY_SOURCE || keyOfEvent(topic, event) === asked
 }
 
 /** A request that will not run, as the answer `run` gives. Nothing started, so no time passed. */

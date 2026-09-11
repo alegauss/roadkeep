@@ -15,7 +15,7 @@ import {
   BRIDGE_KEY,
   BRIDGE_TOPICS,
   BRIDGE_UNSUBSCRIBE,
-  keyOfEvent,
+  heardBy,
   type RendererBridge,
   type TopicEvents,
 } from '@rk/core'
@@ -34,7 +34,7 @@ const bridge: RendererBridge = {
   subscribe: (topic, key, listener) => {
     const channel = BRIDGE_TOPICS[topic]
     const heard = (_sent: IpcRendererEvent, event: TopicEvents[typeof topic]): void => {
-      if (keyOfEvent(topic, event) === key) listener(event)
+      if (heardBy(topic, event, key)) listener(event)
     }
     ipcRenderer.on(channel, heard)
     ipcRenderer.send(BRIDGE_CHANNELS.subscribe, topic, key)

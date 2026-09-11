@@ -288,6 +288,7 @@ export {
   bridgedRun,
   bridgedTransport,
   isTopic,
+  heardBy,
   keyOfEvent,
   openedFrom,
   openOver,
