@@ -1,7 +1,7 @@
 {
   "name": "roadkeep-gui",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A desktop reader for roadkeep-governed backlogs. Three packages: core reads what the command prints, ui renders it, shell is the Electron process that owns every path.",
   "license": "MIT",
   "author": "Alexandre Oliveira",

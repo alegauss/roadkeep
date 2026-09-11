@@ -170,6 +170,7 @@
 - ✅ **RG156** **the update check tells a build ahead of every release it is the newest, and hides why a check failed** — A build ahead of every release is told so and both versions are named, a failed check says what the network did, and only bad JSON reads as bad JSON.
 - ✅ **RG157** **the tag-against-manifest check is tested by its text, so an inverted condition or a lost exit still passes** — The step's script is lifted out of ci.yml and run against a manifest, so an inverted condition or a lost exit fails a test (design superseded: the fast suite's own guard refuses a spawn).
 - ✅ **RG161** **the signing procedure breaks the Windows CI job on one route and leaves the app exe unsigned on another** — The Certum subject name is a local command line, SignPath signs the app before the installer, and four sentences beside them are true now (design recorded in `docs/SIGNING.md`).
+- ✅ **RG162 (the licence and the version)** **no LICENSE file ships and every build says 0.0.0, so the first release the maintainer decided on cannot be cut** — The repository carries an MIT LICENSE and says 0.1.0 in the manifest and the lockfile, so a v0.1.0 tag matches what the package job checks.
 
 ## Block H — The look (a design system for governed prose)
 
