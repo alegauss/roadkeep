@@ -49,6 +49,14 @@ describe('RG26: what may not be proposed at all', () => {
     expect(whyNothing(bounds)).toBe('')
   })
 
+  it('RG77: reads the sentence that argues every lead, as the engine publishes it', async () => {
+    // Every non-goal in this repository is written as a lead and a reason, so a blank or a
+    // null here is the reader losing the key rather than the file lacking one.
+    const bounds = await boundsOf(REPO)
+
+    expect(bounds.nonGoals.every((one) => typeof one.why === 'string' && one.why !== '')).toBe(true)
+  })
+
   it('names the designs that already answered a lead in writing', async () => {
     const bounds = await boundsOf(REPO)
     const answered = bounds.nonGoals.filter((one) => one.answeredBy.length > 0)

@@ -138,31 +138,6 @@ The order is not a verdict, and drawing it must not make it one. How long a paus
 stand is a judgement about work — the same one `[claims] held` refuses to make — so the
 oldest is first and what that means is the reader's.
 
-### §RG77 The reason a non-goal keeps to itself
-
-`non-goal list --json` answers with the leads, the file, what was elided and which
-designs quote each. It does not answer with the reasons, and neither does `brief`, which
-prints the same leads. A criterion arrives with its `why`; a non-goal does not.
-
-The reason is the half that decides anything. `No store of its own` is a phrase whose
-argument the file spells out in a sentence, and that sentence is what a person about to
-file a proposal needs. RG26 shipped the list with `answeredBy` and no `why`, faithful to
-the payload rather than half-written.
-
-There are two ways to get it and only one is allowed here. Reading `docs/ROADMAP.md` and
-lifting the bullet is what `No Markdown parsed in this app` refuses, and it is the
-second implementation of a grammar this app exists not to hold. The other is for
-roadkeep to publish the field, the way `criterion list` already does — a key on the
-payload, filed upstream in `d:/Git/alegauss/roadkeep`.
-
-So this line waits on that, and its dep says so: nothing shipped here can ever satisfy
-it, and `pick` will not offer it. What lands when the field arrives is small — the key
-on `NonGoalsPayload`, the `why` on `NonGoal`, and the tests that assert a reason that is
-absent today. The line exists so the gap is a filed state rather than a shape somebody
-later reads as an oversight.
-
-On ship: `--recorded-in packages/core/src/binding.ts`.
-
 ### §RG148 One backlog, as rows
 
 `Projeto.dc.html` draws one backlog, reached from its portfolio row. `backlogFrom`,
@@ -245,7 +220,9 @@ the doors `offerable` keeps.
 a counter against what `budget` says this line leaves — which moves as deps are added,
 so the counter asks again rather than holding a number. Over the limit the box turns and
 says by how much; the aim is drawn as a tick, not a limit. The `BentoFormHero` names the
-id the same `budget` read says `add` would write next.
+id the same `budget` read says `add` would write next. Beside the symptom, the non-goals
+`boundsFrom` reads, each lead with the reason RG77 carries, since that list decides
+whether the line may be filed.
 
 **The right column is the command before it runs.** The argv `composeWrite` built,
 copyable, with the prose elided in the middle so it stays readable; the full argv is

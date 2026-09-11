@@ -376,6 +376,9 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect(bounds.governed).toBe(true)
     expect(bounds.nonGoals.length).toBeGreaterThan(0)
     expect(typeof bounds.nonGoalsQuoted).toBe('object')
+    // RG77: the reasons arrive as their own map, keyed by the same leads — the fixture's
+    // one non-goal is filed with the sentence `non-goal add --why` was given.
+    expect(bounds.nonGoalsWhy?.['No second store']).toContain('a second answer')
 
     expect(finishing.governed).toBe(true)
     expect(finishing.blocks.length).toBeGreaterThan(0)

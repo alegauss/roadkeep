@@ -20,7 +20,6 @@
 ## Block D — The project surface (one backlog, read)
 
 - ⏳ **RG28** (deps: roadkeep RK1677) **the deferred store has no order, so which pause has stood longest is a question only a terminal can ask** — How long each pause has stood, which --stale orders by and prints for a terminal, putting none of it in the payload. → §RG28
-- 💭 **RG77** (deps: —) **a non-goal arrives as a lead alone, so the sentence that argues it stays in the file** — The reason is the half that settles whether a proposal is forbidden, and criterion list publishes its why while non-goal list does not. → §RG77
 - 📋 **RG148** (deps: RG145, RG21 ✅, RG22 ✅, RG74 ✅) **a project cannot be opened in the window, so its lines, blocks and filters exist only as readers in core** — Projeto.dc.html draws one backlog as rows with readiness in the engine's words, and nothing routes from a portfolio row to it. → §RG148
 - 📋 **RG149** (deps: RG148, RG27 ✅) **the changelog, decisions, improvements and deferred tabs are drawn as labels with nothing behind them** — RG27 and RG28 shipped readers for the ledger, the decisions and the paused lines, and the project surface draws only the roadmap. → §RG149
 - 📋 **RG150** (deps: RG148, RG23 ✅, RG24 ✅, RG76 ✅) **a task opens nowhere in the window, so brief's join of deps, design and binding lists is read by nobody** — Tarefa.dc.html draws the detail as one brief read, and detailFrom already returns every part of it. → §RG150

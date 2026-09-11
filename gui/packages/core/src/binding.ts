@@ -10,11 +10,12 @@ import type { Door } from './refusals'
  * open: the non-goals beside the add form, a block's criteria at the head of its list,
  * where the question of whether the block is finished is actually asked.
  *
- * **The two answers are not symmetric and this must not pretend otherwise.** A criterion
- * arrives with its lead, its reason and its address. A non-goal arrives as a lead alone —
- * the reason is in the file and no read publishes it — so there is no `why` on a non-goal
- * here, because a key that always held the empty string would read as a missing reason
- * rather than an unpublished one.
+ * **The reason is the half that decides anything.** `No store of its own` is a phrase, and
+ * the sentence arguing it is what settles whether a proposal is forbidden. Both lists now
+ * carry it, and both from the payload: lifting the bullet out of `docs/ROADMAP.md` would be
+ * the second implementation of a grammar `No Markdown parsed in this app` refuses (RG77).
+ * An engine from before `non_goals_why` publishes leads alone, and a non-goal read from one
+ * says so with a null `why` rather than a blank reason.
  *
  * **Empty is three different answers** and the engine spells which: ungoverned, unasked,
  * or every entry dropped. All three draw as no rows, and a list that showed nothing
@@ -24,6 +25,11 @@ import type { Door } from './refusals'
 
 export interface NonGoal {
   readonly lead: string
+  /**
+   * The sentence that argues the lead, as the file states it. Null where the engine
+   * answering publishes no reasons; empty where it does and holds none for this lead.
+   */
+  readonly why: string | null
   /**
    * The ids whose design quotes this lead. Empty means nothing has answered it in
    * writing, which is the nearest thing to a review state either list carries.
@@ -46,6 +52,7 @@ export function boundsFrom(payload: NonGoalsPayload): Bounds {
     governed: payload.governed,
     nonGoals: payload.nonGoals.map((lead) => ({
       lead,
+      why: payload.nonGoalsWhy === null ? null : (payload.nonGoalsWhy[lead] ?? ''),
       answeredBy: payload.nonGoalsQuoted[lead] ?? [],
     })),
     elided: payload.nonGoalsElided,

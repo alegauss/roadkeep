@@ -21,6 +21,14 @@ const NON_GOALS = {
   non_goals_quoted: {
     'No store of its own': ['RG28'],
   },
+  non_goals_why: {
+    'No Markdown parsed in this app':
+      'Every fact shown comes off a payload some verb printed, so a reader that parses the file is the second implementation roadkeep exists to remove.',
+    'No write to a governed file':
+      'The app composes an argv and the command writes, so two writers never share one file.',
+    'No store of its own':
+      'A cache mirrors files and is invalidated by them, so nothing this app holds is ever the truth about a backlog.',
+  },
 }
 
 /** Captured from a real `criterion list --json`. */
@@ -87,10 +95,31 @@ describe('RG26: what may not be proposed at all', () => {
     expect(list.nonGoals[0]?.answeredBy).toEqual([])
   })
 
-  it('carries no reason, because no read publishes one', () => {
-    // A key that always held the empty string would read as a missing reason rather than
-    // an unpublished one.
-    expect(Object.keys(boundsFrom(bounds()).nonGoals[0]!)).toEqual(['lead', 'answeredBy'])
+  it('RG77: carries the sentence that argues each lead, off the payload', () => {
+    // The reason is what settles whether a proposal is forbidden, and it arrives the way a
+    // criterion's does — never lifted out of the file.
+    const list = boundsFrom(bounds())
+
+    expect(list.nonGoals[0]?.why).toContain('second implementation')
+    expect(list.nonGoals[2]?.why).toContain('A cache mirrors files')
+  })
+
+  it('RG77: says an engine publishes no reasons, rather than drawing each one blank', () => {
+    // An engine from before `non_goals_why` sent leads alone. Null is that engine's answer;
+    // an empty string would claim the project wrote non-goals with no argument.
+    const { non_goals_why: _dropped, ...older } = NON_GOALS
+    const parsed = readNonGoalsPayload(older, '')
+    if (!parsed.ok) throw new Error(`the older shape did not read: ${parsed.failure.path}`)
+
+    expect(parsed.value.nonGoalsWhy).toBeNull()
+    expect(boundsFrom(parsed.value).nonGoals.every((one) => one.why === null)).toBe(true)
+  })
+
+  it('RG77: answers empty for a lead the published reasons do not hold', () => {
+    const list = boundsFrom(bounds({ non_goals_why: { 'No store of its own': 'A cache.' } }))
+
+    expect(list.nonGoals[0]?.why).toBe('')
+    expect(list.nonGoals[2]?.why).toBe('A cache.')
   })
 
   it('says so when the answer was a sample', () => {

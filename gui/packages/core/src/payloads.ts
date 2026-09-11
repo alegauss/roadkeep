@@ -862,13 +862,7 @@ export const readReversalsPayload: Reader<ReversalsPayload> = record<ReversalsPa
   reversed: orMissing(listOf(readReversalEntry), []),
 })
 
-/**
- * What this project says it is not building.
- *
- * Leads only. A non-goal's reason lives in the file and no read publishes it, so the
- * shape declares what arrives and never a key that would have to be filled in from
- * somewhere.
- */
+/** What this project says it is not building, and the sentence that argues each one. */
 export interface NonGoalsPayload {
   readonly file: string
   /**
@@ -883,6 +877,12 @@ export interface NonGoalsPayload {
    * quoted lead is one somebody has answered in writing and a bare one is not.
    */
   readonly nonGoalsQuoted: Record<string, readonly string[]>
+  /**
+   * Lead → the sentence that argues it (RG77), and **null where the engine answering
+   * publishes no reasons**. An engine from before the key sent leads alone, and an empty
+   * map in its place would read as a list whose every reason is blank.
+   */
+  readonly nonGoalsWhy: Record<string, string> | null
 }
 
 export const readNonGoalsPayload: Reader<NonGoalsPayload> = record<NonGoalsPayload>(
@@ -892,11 +892,13 @@ export const readNonGoalsPayload: Reader<NonGoalsPayload> = record<NonGoalsPaylo
     nonGoals: orMissing(listOf(aString), []),
     nonGoalsElided: orMissing(aNumber, 0),
     nonGoalsQuoted: orMissing(dictionaryOf(listOf(aString)), {}),
+    nonGoalsWhy: orMissing(orNull(dictionaryOf(aString)), null),
   },
   {
     nonGoals: 'non_goals',
     nonGoalsElided: 'non_goals_elided',
     nonGoalsQuoted: 'non_goals_quoted',
+    nonGoalsWhy: 'non_goals_why',
   },
 )
 
