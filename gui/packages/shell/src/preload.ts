@@ -47,6 +47,9 @@ const bridge: RendererBridge = {
       ipcRenderer.send(BRIDGE_UNSUBSCRIBE, topic, key)
     }
   },
+  roots: () => ipcRenderer.invoke(BRIDGE_CHANNELS.roots),
+  chooseRoot: () => ipcRenderer.invoke(BRIDGE_CHANNELS.chooseRoot),
+  saveRoots: (roots) => ipcRenderer.invoke(BRIDGE_CHANNELS.saveRoots, roots),
 }
 
 contextBridge.exposeInMainWorld(BRIDGE_KEY, Object.freeze(bridge))

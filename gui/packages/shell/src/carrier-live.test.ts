@@ -155,3 +155,25 @@ describe('RG144: the window hears a project move, over IPC', () => {
     expect(await heardInPage()).toEqual([])
   })
 })
+
+describe('RG146: the roots, read and written from the window', () => {
+  it('answers the one root the profile names, marked present', async () => {
+    const roots = await asked<{ path: string; depth: number; presence: string }[]>('roots')
+
+    expect(roots).toEqual([{ path: fixture.root, depth: 0, presence: 'present' }])
+  })
+
+  it('refuses a folder the page typed, and keeps the one the file already held', async () => {
+    // The dialog is how a folder is named, and nothing here opened it: a page naming this
+    // repository as a root is a path typed into a list, and the file must not take it.
+    const saved = await asked<{ path: string }[]>('saveRoots', [
+      { path: fixture.root, depth: 0 },
+      { path: REPO, depth: 1 },
+    ])
+
+    expect(saved.map((root) => root.path)).toEqual([fixture.root])
+    expect((await asked<{ path: string }[]>('roots')).map((root) => root.path)).toEqual([
+      fixture.root,
+    ])
+  })
+})

@@ -80,6 +80,17 @@ export const EN = {
   'portfolio.footnote':
     'Every number on this screen is one a verb printed. Nothing is summed across projects.',
 
+  'roots.label': 'Roots',
+  'roots.add': 'Add a root',
+  'roots.rescan': 'Rescan roots',
+  'roots.choose': 'Choose a folder to look under',
+  'roots.depth': '{depth} levels deep',
+  'roots.missing': 'missing',
+  'roots.remove': 'Stop looking under {path}',
+  'roots.none': 'No root is named yet, so nothing is walked.',
+  'roots.none.hint': 'Add a root to name a folder this window may look under.',
+  'roots.unsaved': 'The roots could not be saved: {reason}',
+
   'settings.reset': 'Some settings could not be read, so they are back to their defaults.',
   'settings.unsaved': 'That choice could not be saved, so the next launch will not have it.',
 

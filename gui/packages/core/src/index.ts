@@ -160,6 +160,7 @@ export type {
   RowState,
 } from './portfolio'
 export {
+  acceptRoots,
   addRoot,
   checkRoot,
   coveredBy,

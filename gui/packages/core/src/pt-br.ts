@@ -69,6 +69,17 @@ export const PT_BR: Wording = {
   'portfolio.footnote':
     'Cada número nesta tela foi impresso por um verbo. Nada é somado entre projetos.',
 
+  'roots.label': 'Raízes',
+  'roots.add': 'Adicionar uma raiz',
+  'roots.rescan': 'Reescanear as raízes',
+  'roots.choose': 'Escolha uma pasta onde procurar',
+  'roots.depth': '{depth} níveis abaixo',
+  'roots.missing': 'ausente',
+  'roots.remove': 'Parar de procurar em {path}',
+  'roots.none': 'Nenhuma raiz foi nomeada ainda, então nada é percorrido.',
+  'roots.none.hint': 'Adicione uma raiz para nomear uma pasta onde esta janela pode procurar.',
+  'roots.unsaved': 'As raízes não puderam ser salvas: {reason}',
+
   'settings.reset': 'Algumas configurações não puderam ser lidas e voltaram aos valores padrão.',
   'settings.unsaved': 'Essa escolha não pôde ser salva, então a próxima abertura não a terá.',
 

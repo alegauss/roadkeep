@@ -1,21 +1,27 @@
 import {
+  acceptRoots,
   BRIDGE_CHANNELS,
   BRIDGE_UNSUBSCRIBE,
   isTheme,
   isTopic,
   LOCALE_TAGS,
   requestFrom,
+  translator,
   withheldResult,
+  withPresence,
+  wordingFor,
   type BridgedResult,
   type BridgeIdentity,
+  type KnownRoot,
   type LaunchSettings,
   type OpenedProject,
 } from '@rk/core'
-import { app, ipcMain, type WebContents } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, type WebContents } from 'electron'
 
 import { createCarrier, type Carrier } from './carrier'
 import { createSubscriptions, type Subscriber } from './subscriptions'
 import { localeChoice } from './locale'
+import { rootExists, rootKey } from './root-paths'
 import { loadSettings, saveSettings } from './settings-file'
 import { readStamp } from './stamp'
 
@@ -140,6 +146,41 @@ export function registerBridge(hooks: BridgeHooks = {}): Carrier {
   ipcMain.on(BRIDGE_UNSUBSCRIBE, (event, topic: unknown, key: unknown) => {
     if (!isTopic(topic) || typeof key !== 'string') return
     subscriptions.unsubscribe(subscriberOf(event.sender), topic, key)
+  })
+
+  // Where to look, written from the window (RG146) — the third write, and the one that names
+  // folders. A folder reaches the file only through the dialog below or because the file
+  // already held it, so the roots are a list the person made and never one a page typed: the
+  // keys of what the dialog answered are what `acceptRoots` checks a new root against.
+  const chosen = new Set<string>()
+  const known = (roots: LaunchSettings['settings']['roots']): Promise<KnownRoot[]> =>
+    withPresence(roots, rootExists)
+
+  ipcMain.handle(BRIDGE_CHANNELS.roots, () =>
+    known(loadSettings(app.getPath('userData')).settings.roots),
+  )
+
+  ipcMain.handle(BRIDGE_CHANNELS.chooseRoot, async (event): Promise<string | null> => {
+    const settings = loadSettings(app.getPath('userData')).settings
+    const say = translator(wordingFor(localeChoice(settings.locale, app.getLocale())))
+    const options = { title: say('roots.choose'), properties: ['openDirectory' as const] }
+    const parent = BrowserWindow.fromWebContents(event.sender)
+    const answer =
+      parent === null
+        ? await dialog.showOpenDialog(options)
+        : await dialog.showOpenDialog(parent, options)
+    const picked = answer.canceled ? undefined : answer.filePaths[0]
+    if (picked === undefined) return null
+    chosen.add(rootKey(picked))
+    return picked
+  })
+
+  ipcMain.handle(BRIDGE_CHANNELS.saveRoots, (_event, asked: unknown): Promise<KnownRoot[]> => {
+    const userData = app.getPath('userData')
+    const settings = loadSettings(userData).settings
+    const roots = acceptRoots(asked, settings.roots, chosen, rootKey)
+    saveSettings(userData, { ...settings, roots })
+    return known(roots)
   })
 
   return carrier

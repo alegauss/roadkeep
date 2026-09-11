@@ -1,15 +1,18 @@
 import {
   BASE,
   bridgedRun,
+  DEFAULT_DEPTH,
   EMPTY_CATALOGUE,
   EngineCallFailed,
   fill,
   openedFrom,
   openProject,
+  type KnownRoot,
   type OpenedProject,
   type ProjectCatalogue,
   type RecordedProject,
   type RendererBridge,
+  type ScanRoot,
   type Transport,
 } from '@rk/core'
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
@@ -262,5 +265,119 @@ describe('RG145: the three ways there is no list', () => {
 
     expect(await screen.findByText(BASE['portfolio.none'])).toBeTruthy()
     expect(screen.queryByRole('table')).toBeNull()
+  })
+})
+
+describe('RG146: naming where the window looks', () => {
+  const HELD: readonly KnownRoot[] = [
+    { path: 'D:/code', depth: 2, presence: 'present' },
+    { path: 'E:/gone', depth: 1, presence: 'missing' },
+  ]
+
+  /** A bridge holding two roots, recording every save and every walk it was asked for. */
+  function withRoots(roots: readonly KnownRoot[], picked: string | null = '/picked') {
+    const saved: (readonly ScanRoot[])[] = []
+    let walks = 0
+    Object.defineProperty(window, 'roadkeep', {
+      value: stubBridge({
+        roots: () => Promise.resolve(roots),
+        chooseRoot: () => Promise.resolve(picked),
+        saveRoots: (next) => {
+          saved.push(next)
+          return Promise.resolve(next.map((one) => ({ ...one, presence: 'present' as const })))
+        },
+        projects: () => {
+          walks += 1
+          return Promise.resolve(EMPTY_CATALOGUE)
+        },
+      }),
+      configurable: true,
+    })
+    return { saved, walks: () => walks }
+  }
+
+  it('names each root with its depth, and marks a missing one rather than dropping it', async () => {
+    withRoots(HELD)
+    drawWindow()
+
+    await waitFor(() => {
+      expect(screen.getAllByTestId('root')).toHaveLength(2)
+    })
+    const gone = screen.getAllByTestId('root')[1]
+    expect(gone?.dataset['presence']).toBe('missing')
+    expect(within(gone ?? document.body).getByText(BASE['roots.missing'])).toBeTruthy()
+    expect(screen.getByText(fill(BASE['roots.depth'], { depth: 2 }))).toBeTruthy()
+  })
+
+  it('adds the folder the shell answered with, and walks again for it', async () => {
+    const { saved, walks } = withRoots(HELD)
+    drawWindow()
+    await waitFor(() => {
+      expect(screen.getAllByTestId('root')).toHaveLength(2)
+    })
+
+    fireEvent.click(screen.getByTestId('add-root'))
+
+    await waitFor(() => {
+      expect(saved).toEqual([
+        [
+          { path: 'D:/code', depth: 2 },
+          { path: 'E:/gone', depth: 1 },
+          { path: '/picked', depth: DEFAULT_DEPTH },
+        ],
+      ])
+    })
+    await waitFor(() => {
+      expect(walks()).toBe(2)
+    })
+    expect(screen.getAllByTestId('root')).toHaveLength(3)
+  })
+
+  it('writes nothing when the dialog was cancelled', async () => {
+    const { saved } = withRoots(HELD, null)
+    drawWindow()
+    await waitFor(() => {
+      expect(screen.getAllByTestId('root')).toHaveLength(2)
+    })
+
+    fireEvent.click(screen.getByTestId('add-root'))
+    await new Promise((done) => setTimeout(done, 20))
+
+    expect(saved).toEqual([])
+  })
+
+  it('stops looking under a root the person removes, by name', async () => {
+    const { saved } = withRoots(HELD)
+    drawWindow()
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: fill(BASE['roots.remove'], { path: 'E:/gone' }) }),
+    )
+
+    await waitFor(() => {
+      expect(saved).toEqual([[{ path: 'D:/code', depth: 2 }]])
+    })
+  })
+
+  it('says no root is named, rather than that no project was found', async () => {
+    withRoots([])
+    drawWindow()
+
+    expect(await screen.findByText(BASE['roots.none'])).toBeTruthy()
+    expect(screen.queryByText(BASE['portfolio.none'])).toBeNull()
+  })
+
+  it('walks again when asked, over the roots already named', async () => {
+    const { walks } = withRoots(HELD)
+    drawWindow()
+    await waitFor(() => {
+      expect(walks()).toBe(1)
+    })
+
+    fireEvent.click(screen.getByTestId('rescan'))
+
+    await waitFor(() => {
+      expect(walks()).toBe(2)
+    })
   })
 })

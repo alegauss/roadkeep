@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  acceptRoots,
   addRoot,
   checkRoot,
   coveredBy,
@@ -139,5 +140,52 @@ describe('RG10: one root inside another', () => {
 
   it('does not report a root as covering itself', () => {
     expect(coveredBy([root('/code', 3)], root('/code'), contains)).toBeNull()
+  })
+})
+
+describe('RG146: the roots a window may keep', () => {
+  const held = [{ path: '/code', depth: 2 }]
+  const folded = (path: string) => path.toLowerCase()
+
+  it('keeps a root the settings held, and one the dialog answered with', () => {
+    const kept = acceptRoots(
+      [...held, { path: '/picked', depth: 2 }],
+      held,
+      new Set(['/picked']),
+      folded,
+    )
+
+    expect(kept).toEqual([...held, { path: '/picked', depth: 2 }])
+  })
+
+  it('drops a folder the renderer typed, which the dialog never answered with', () => {
+    expect(acceptRoots([...held, { path: '/typed', depth: 2 }], held, new Set(), folded)).toEqual(
+      held,
+    )
+  })
+
+  it('drops a root the window left out, which is how one is removed', () => {
+    expect(acceptRoots([], held, new Set(), folded)).toEqual([])
+  })
+
+  it('refuses what checkRoot refuses, and folds two spellings of one folder into one', () => {
+    const kept = acceptRoots(
+      [
+        { path: '/code', depth: 99 },
+        { path: '/CODE', depth: 3 },
+        { path: '/code', depth: 1 },
+      ],
+      held,
+      new Set(),
+      folded,
+    )
+
+    // The out-of-range depth is gone, and the two good spellings are one root, the last word.
+    expect(kept).toEqual([{ path: '/code', depth: 1 }])
+  })
+
+  it('keeps the file as it was for an answer that is not a list at all', () => {
+    expect(acceptRoots('everything', held, new Set(), folded)).toEqual(held)
+    expect(acceptRoots([{ path: 3 }, null], held, new Set(), folded)).toEqual([])
   })
 })

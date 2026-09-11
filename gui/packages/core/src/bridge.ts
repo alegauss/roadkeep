@@ -18,6 +18,7 @@ import type { CapabilityReport } from './capabilities'
 import type { ProjectCatalogue } from './catalogue'
 import type { ResolvedEngine } from './engine-resolution'
 import type { Opening } from './opening'
+import type { KnownRoot, ScanRoot } from './roots'
 import type { SettingsRead, Theme } from './settings'
 import type { EngineFailure, EngineRequest, EngineResult } from './transport'
 
@@ -128,6 +129,30 @@ export interface RendererBridge {
     key: string,
     listener: (event: TopicEvents[T]) => void,
   ): () => void
+  /**
+   * The roots the settings name, each marked present or missing (RG146). A root that has
+   * gone away is kept and marked, never dropped: a disconnected drive is not the person
+   * taking the root back. Whether a folder is there is a disk's question, so it is asked here.
+   */
+  roots(): Promise<readonly KnownRoot[]>
+  /**
+   * A folder the person picked, or null where they cancelled (RG146).
+   *
+   * **Chosen by the shell, never typed by the renderer.** The desktop answers with a native
+   * dialog and a web service would answer the same call with a text box, and either way what
+   * comes back is a folder somebody chose. `saveRoots` keeps a new root only if it came from
+   * here.
+   */
+  chooseRoot(): Promise<string | null>
+  /**
+   * Keep the roots the window now holds, answered with each one's presence (RG146).
+   *
+   * The third write, and still a method that names what it writes. Its design took the skip
+   * list and the width with it as one statement about where to look; it takes the roots
+   * alone, because the window edits nothing else, and writing back a skip list read at launch
+   * would undo a hand edit made since — the reason every save here re-reads the file.
+   */
+  saveRoots(roots: readonly ScanRoot[]): Promise<readonly KnownRoot[]>
 }
 
 /**
@@ -216,4 +241,7 @@ export const BRIDGE_CHANNELS = {
   open: 'roadkeep:open',
   run: 'roadkeep:run',
   subscribe: 'roadkeep:subscribe',
+  roots: 'roadkeep:roots',
+  chooseRoot: 'roadkeep:choose-root',
+  saveRoots: 'roadkeep:save-roots',
 } as const satisfies Record<keyof RendererBridge, string>

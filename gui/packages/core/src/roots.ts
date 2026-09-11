@@ -16,6 +16,8 @@
  * take a `keyOf` and the caller who has one supplies it.
  */
 
+import { asRecord } from './reading'
+
 export interface ScanRoot {
   /** The folder, as the person named it. */
   readonly path: string
@@ -96,6 +98,40 @@ export function addRoot(roots: readonly ScanRoot[], candidate: ScanRoot, keyOf: 
 export function removeRoot(roots: readonly ScanRoot[], path: string, keyOf: KeyOf): ScanRoot[] {
   const key = keyOf(path)
   return roots.filter((root) => keyOf(root.path) !== key)
+}
+
+/**
+ * The roots a window asked to keep, narrowed to the ones it could have named (RG146).
+ *
+ * A window names a root by picking it in the shell's dialog, and keeps or drops the roots the
+ * settings already hold. Anything else in the list is a path the renderer typed, and it is
+ * dropped here rather than written, because the folder is chosen by the shell. Each survivor
+ * goes through `checkRoot` and `addRoot`, so a blank path or a depth out of range is dropped,
+ * and two spellings of one folder become one, in the order the window sent them.
+ *
+ * @param chosen the keys of the folders the dialog answered with, in this process's life.
+ */
+export function acceptRoots(
+  asked: unknown,
+  held: readonly ScanRoot[],
+  chosen: ReadonlySet<string>,
+  keyOf: KeyOf,
+): ScanRoot[] {
+  if (!Array.isArray(asked)) return [...held]
+  const known = new Set(held.map((root) => keyOf(root.path)))
+
+  let kept: ScanRoot[] = []
+  for (const entry of asked as unknown[]) {
+    const fields = asRecord(entry) ?? {}
+    const path = fields['path']
+    const depth = fields['depth']
+    if (typeof path !== 'string' || typeof depth !== 'number') continue
+    const key = keyOf(path)
+    if (!known.has(key) && !chosen.has(key)) continue
+    const check = checkRoot(path, depth)
+    if (check.ok) kept = addRoot(kept, check.value, keyOf)
+  }
+  return kept
 }
 
 /**

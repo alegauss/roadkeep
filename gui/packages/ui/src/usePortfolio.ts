@@ -10,7 +10,7 @@ import {
   type RecordedProject,
   type RowStage,
 } from '@rk/core'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { getBridge } from './bridge'
 
@@ -55,11 +55,19 @@ const ASKING: PortfolioView = { kind: 'asking' }
  *
  * Each project is opened once and remembered for the second stage, and a project that did
  * not open fails the first with the reason it gave, so `coldStart` never asks it again.
+ *
+ * `rescan` runs it again from the walk (RG146): the carrier folds a fresh one into its record,
+ * so a root just added is walked and one just removed is not. The rows on screen stay until
+ * the new list arrives, which is the list the reader was looking at, not an empty one.
  */
-export function usePortfolio(): PortfolioView {
+export function usePortfolio(): { readonly view: PortfolioView; readonly rescan: () => void } {
   const [view, setView] = useState<PortfolioView>(() =>
     getBridge() === undefined ? ABSENT : ASKING,
   )
+  const [generation, setGeneration] = useState(0)
+  const rescan = useCallback(() => {
+    setGeneration((one) => one + 1)
+  }, [])
 
   useEffect(() => {
     const bridge = getBridge()
@@ -88,6 +96,16 @@ export function usePortfolio(): PortfolioView {
     const stages = rowStages(reach)
     const stageOf = (name: string): RowStage =>
       stages.find((stage) => stage.name === name)?.name ?? 'counting'
+
+    // A rescan keeps the rows the reader is looking at and says the walk is under way again,
+    // rather than blanking a list that is about to come back mostly the same.
+    if (generation > 0) {
+      setView((was) =>
+        was.kind === 'listed'
+          ? { ...was, progress: { stage: 'counting', done: 0, total: was.rows.length } }
+          : was,
+      )
+    }
 
     const read = async (): Promise<void> => {
       const projects = present(await bridge.projects())
@@ -121,7 +139,7 @@ export function usePortfolio(): PortfolioView {
     return () => {
       live = false
     }
-  }, [])
+  }, [generation])
 
-  return view
+  return { view, rescan }
 }

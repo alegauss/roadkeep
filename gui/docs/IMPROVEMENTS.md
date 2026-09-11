@@ -45,28 +45,6 @@ Found by the adversarial review of RG137; the skeptics split.
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
-### §RG146 The third write, named
-
-The portfolio's hero carries Add a root and Rescan roots, and the rail ends in Settings.
-`core/src/roots.ts` has `addRoot`, `removeRoot` and `checkRoot`; the bridge reads the
-roots through `settings()` and writes only the theme and the language. Block B's first
-criterion is that the list is the person's statement, and today the only way to make it
-is to edit a file by hand.
-
-**The third write is the moment `bridge.ts` said to ask again.** `saveTheme` and
-`saveLocale` each name one field, and the note on the second says a third reopens the
-question of a patch. The answer here is still a method that names what it writes:
-`saveRoots` takes the roots, the skip list and the width together, because those three
-are one statement about where to look and a patch would hand the renderer the language
-too.
-
-**The folder is chosen by the shell.** A native dialog opened from main answers a path;
-the renderer never types one, and a web service answers the same call with a text box.
-
-Rescan reruns the scan over the roots already named, nothing wider, and a root that no
-longer exists is kept and marked by `withPresence` rather than dropped. The settings
-file already exists, so nothing here is a store of this app's own.
-
 ### §RG164 The record, written
 
 RG14 shipped the record in `core`: `reconcile` folds a walk into the one before, and
@@ -90,6 +68,27 @@ the next call sees the fold. The guard reads the record too, so a window can ope
 project it remembers before any walk has finished.
 
 Written atomically, as the settings file is, so a quit mid-write leaves the last record.
+
+### §RG169 A depth the window can move
+
+RG146 adds a root at `DEFAULT_DEPTH`, which is two, and the strip draws each root's
+depth without a way to change it. Two levels reaches `D:\Git\<org>\<repo>` and stops
+before a worktree family's folders one level further down —
+`D:\Git\viglet\turing\2026.3` — so the first person to name `D:\Git` from the window had
+to open the settings file anyway and write a 3.
+
+**`addRoot` already says how.** Naming a folder that is already a root replaces its
+depth in place and keeps its position, so a depth change is a save of the same list with
+one number moved. `saveRoots` accepts it without widening, since the folder is one the
+file holds.
+
+**A stepper on the chip, bounded by `checkRoot`.** Down to 0, which is the folder
+itself, and up to `DEPTH_CEILING`, and the two ends are disabled rather than refused
+after a click. Each step saves and walks again, the way adding a root does, so the
+effect of a level shows at once.
+
+The depth is the one number in the settings a person picks by looking at what it finds,
+and this is where they look.
 
 ## Block C — The portfolio (many backlogs in one view)
 

@@ -1,5 +1,6 @@
 import {
   filterCounts,
+  type KnownRoot,
   matchesFilter,
   ROW_FILTERS,
   tally,
@@ -10,7 +11,7 @@ import {
   type RowFilter,
   type RowStage,
 } from '@rk/core'
-import { IconFolder, IconInfoCircle } from '@tabler/icons-react'
+import { IconFolder, IconInfoCircle, IconX } from '@tabler/icons-react'
 import { Button } from '@viglet/viglet-design-system'
 import {
   BENTO_TONES,
@@ -22,6 +23,7 @@ import {
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
 
 import { usePortfolio, type ReadingProgress, type Tried } from './usePortfolio'
+import { useRoots, type RootsView } from './useRoots'
 import { useWording } from './wording'
 
 /**
@@ -435,9 +437,68 @@ function Subtitle({
   )
 }
 
+function RootChip({
+  root,
+  onRemove,
+}: {
+  readonly root: KnownRoot
+  readonly onRemove: (path: string) => void
+}) {
+  const say = useWording()
+  const remove = useCallback(() => {
+    onRemove(root.path)
+  }, [root.path, onRemove])
+
+  return (
+    <li
+      className="bg-muted/60 flex items-center gap-2 rounded-full py-0.5 pr-1 pl-3 text-xs"
+      data-testid="root"
+      data-presence={root.presence}
+    >
+      <span className="font-mono">{root.path}</span>
+      <span className="text-muted-foreground">{say('roots.depth', { depth: root.depth })}</span>
+      {root.presence === 'missing' ? <Pill intent="warn">{say('roots.missing')}</Pill> : null}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-6 rounded-full"
+        aria-label={say('roots.remove', { path: root.path })}
+        onClick={remove}
+      >
+        <IconX aria-hidden="true" size={14} />
+      </Button>
+    </li>
+  )
+}
+
+/**
+ * Where the window looks, named (RG146): each root with its depth, a missing one marked and
+ * kept, and the way to stop looking under one. Nothing while the list is still being asked.
+ */
+function RootStrip({
+  view,
+  onRemove,
+}: {
+  readonly view: RootsView
+  readonly onRemove: (path: string) => void
+}) {
+  const say = useWording()
+  if (view.kind !== 'known' || view.roots.length === 0) return null
+
+  return (
+    <ul aria-label={say('roots.label')} className="flex flex-wrap items-center gap-2">
+      {view.roots.map((root) => (
+        <RootChip key={root.path} root={root} onRemove={onRemove} />
+      ))}
+    </ul>
+  )
+}
+
 export function Portfolio() {
   const say = useWording()
-  const view = usePortfolio()
+  const { view, rescan } = usePortfolio()
+  const roots = useRoots(rescan)
+  const unnamed = roots.view.kind === 'known' && roots.view.roots.length === 0
   const [filter, setFilter] = useState<RowFilter>('all')
   const pick = useCallback((next: RowFilter) => {
     setFilter(next)
@@ -457,6 +518,25 @@ export function Portfolio() {
     [rows, filter],
   )
 
+  // Built once per change and not in the attribute: the hero is handed an element, and one
+  // made in the prop is a new one every render. Nothing to offer a page with no bridge.
+  const bridged = view.kind !== 'absent'
+  const add = roots.add
+  const actions = useMemo(
+    () =>
+      bridged ? (
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={rescan} data-testid="rescan">
+            {say('roots.rescan')}
+          </Button>
+          <Button onClick={add} data-testid="add-root">
+            {say('roots.add')}
+          </Button>
+        </div>
+      ) : null,
+    [bridged, rescan, add, say],
+  )
+
   let title = say('portfolio.title.unknown')
   let subtitle: ReactNode = say('portfolio.asking')
   if (view.kind === 'listed') {
@@ -470,9 +550,20 @@ export function Portfolio() {
 
   return (
     <>
-      <BentoHero eyebrow={say('portfolio.kicker')} title={title} subtitle={subtitle} />
+      <BentoHero
+        eyebrow={say('portfolio.kicker')}
+        title={title}
+        subtitle={subtitle}
+        trailing={actions}
+      />
 
-      {view.kind === 'listed' && view.rows.length === 0 ? (
+      <RootStrip view={roots.view} onRemove={roots.remove} />
+
+      {unnamed ? (
+        <BentoEmptyState title={say('roots.none')} description={say('roots.none.hint')} />
+      ) : null}
+
+      {!unnamed && view.kind === 'listed' && view.rows.length === 0 ? (
         <BentoEmptyState title={say('portfolio.none')} description={say('portfolio.none.hint')} />
       ) : null}
 
