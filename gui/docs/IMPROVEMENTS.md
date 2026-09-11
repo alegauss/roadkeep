@@ -2,6 +2,47 @@
 
 ## Block A — The client (payloads in, types out)
 
+### §RG158 Two assertions that stopped asserting
+
+Two live assertions pass without checking what they name, both loosened by RG141.
+
+- **The contract's "which tier answered"** case reads a fixture that has lines ready, and after `tier` became nullable its assertion accepts a pick that arrives with no tier — the one regression it exists to catch.
+- **"Combines two arguments into one read"** narrows to a found block and the `💭` marker, and that pair currently selects nothing, so `every` over an empty list passes.
+
+**The fix.** The contract asserts a non-empty tier wherever a line was picked. The
+combined filter chooses a marker actually present in the chosen block and asserts there
+are lines before asserting each one matches.
+
+Found by the adversarial review; the first confirmed by both skeptics, the second split.
+
+### §RG159 A lacking line, actually read
+
+The contract case for a brief with nothing to hand over asserts
+`Array.isArray(brief.lacking)` on a fixture with no open line at all. `lacking` defaults
+to `[]` when absent, so the assertion cannot fail, and that fixture never produces an
+entry — the reader of `LackingLine` has never met one.
+
+**The fix.** A fixture whose only open line requires something the caller lacks (`add
+--requires macos-machine`, or `amend --requires`), so `brief` with no id answers empty
+*with* `lacking`. The case asserts the entry names that line and what it misses.
+
+Found by the adversarial review of RG142; the skeptics split.
+
+### §RG160 The wiring the test rebuilt
+
+RG137's live test builds its own `openProject` call around a broken engine and wires
+`unheld: () => unheldAmong(made, root)` by hand. The one line that matters in production
+— `openHere`'s own `unheld` option — is never run by any test, though the test's comment
+says the reason is held end to end.
+
+**The fix.** Give `openHere` a seam for the transport it builds per candidate,
+defaulting to today's `createMcpTransport` with the process fallback, so a test can hand
+it a surface whose engine cannot hold a session while resolution still works — and
+assert `opened.project.unheld()` through `openHere` itself. The default path stays byte
+for byte the same.
+
+Found by the adversarial review of RG137; the skeptics split.
+
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 ### §RG146 The third write, named
@@ -42,9 +83,10 @@ drawn pending and never as zero, which is block C's second criterion, and `coldS
 progress fills rows as they land. An unreadable row spans the counts and says what was
 tried, from the `Opening` that refused.
 
-**The engine column is RG15's.** The row draws its first four columns; the version, the
-home and the verdict arrive with the read that line files, and the header chip drawn
-dashed stays dashed until then.
+**The engine column is this line's too** (RG15 was retired into it). The version, the
+home and the verdict already ride on every row, off the `engines` read resolution made,
+so the column draws them beside the counts — a split row as information, never as an
+error.
 
 The filter chips — gate drifted, engine disagrees, unreadable — narrow what is already
 loaded and count only what a verb printed. Clicking a row opens the project surface once
@@ -343,6 +385,79 @@ while every release is a draft, and the page it names.
 manifest, publish the draft `ci.yml` leaves, then run the packaged app of the version
 before it and choose Help, Check for updates: it has to name both versions and open that
 page. Then the same from the new build, which has to say it is current.
+
+### §RG155 A path, not a prefix
+
+`isReleasePage` (packages/shell/src/updates.ts) trusts any URL that starts with
+`https://github.com/alegauss/roadkeep-gui/releases/`. A string prefix is not a path:
+`…/releases/../../other/repo` passes it, and the browser `openExternal` hands it to
+normalises the dot segments into another repository's page. The URL comes off a network
+answer, so it is somebody else's word.
+
+**The fix.** Parse it with `URL`: `https:` only, host `github.com`, no credentials, and
+the normalised `pathname` starting with `/alegauss/roadkeep-gui/releases/`. Tests hold a
+dot-segment URL, an encoded one and a lookalike host to `false`.
+
+Found by the adversarial review of RG50, confirmed by both skeptics.
+
+### §RG156 Sentences the update check gets wrong
+
+The adversarial review of RG50 confirmed three places where the check says something
+untrue.
+
+- **A build ahead of every release** reads `current` and the dialog says it is "the newest published", dropping the version it found. Between tagging and publishing, every build of the new version is in that state.
+- **An offline check** says only `fetch failed`: undici keeps the real cause (`ENOTFOUND`, a refused connection) on `error.cause`, and the test used an error shape fetch never throws.
+- **A failure while the body is read** — a timeout, a dropped connection — is reported as "not JSON".
+
+**The fix.** An `ahead` verdict with a sentence naming both versions (a new catalogue
+key in both locales); the reason reads `error.cause`; only a `SyntaxError` is "not
+JSON". The bound test proves the timeout aborts, and the fakes use the error shapes
+fetch really throws.
+
+### §RG157 Running the refusal it claims
+
+`release.test.ts` holds the tag-against-manifest check in `ci.yml` by finding its text:
+the step's name, `GITHUB_REF_NAME#v` and `require('./package.json').version`. A step
+that kept those strings and inverted its condition, or lost its `exit 1`, would pass.
+The refusal itself is never run.
+
+**The fix.** Extract the step's `run` script from the workflow and execute it with bash
+in a temporary directory holding a `package.json`: a matching `GITHUB_REF_NAME` exits 0,
+a mismatching one exits non-zero and names both versions. Fast and self-cleaning, so it
+stays in `npm test`.
+
+Found by the adversarial review of RG50, confirmed by both skeptics.
+
+### §RG161 What the signing procedure gets wrong
+
+The adversarial review found `docs/SIGNING.md` would fail the person following it on two
+routes.
+
+- **Certum:** the snippet puts `certificateSubjectName` in `electron-builder.yml`. Committed, it makes the Windows package job look for a certificate the runner does not have, and the release draft never happens. It belongs on the local command line, not in the file.
+- **SignPath:** signing the NSIS installer leaves the app executable inside it unsigned, yet step 5 stamps the build signed. The app has to be signed before the installer is built from the prepackaged directory, then the installer signed.
+- SignPath's prerequisites also omit the code-signing-policy page and MFA its terms require.
+
+And three sentences beside it are false: `electron-builder.yml`'s comment on what the
+builder logs and which `rcedit` it uses, the RG49 ledger entry naming two routes where
+the doc lists three, and RG49's open criterion, which no recommended route can meet
+because each signs under a name other than the manifest's.
+
+### §RG162 Cutting v0.1.0
+
+The maintainer decided to cut v0.1.0, and two things stand in the way. `package.json`
+declares MIT and ships no `LICENSE` file, so GitHub detects no licence — and SignPath's
+open-source route (RG161, RG49) requires a recognised one. And every build says `0.0.0`,
+the version the stamp reads from the manifest, while `ci.yml` refuses a tag that names
+another.
+
+**The steps, in order.** Add `LICENSE` with the MIT text and the manifest's author,
+Alexandre Oliveira. Set `version` to `0.1.0` in the root `package.json` (and the
+lockfile). Commit, push, then push the tag `v0.1.0`: the package job checks the tag
+against the manifest, builds both installers, and the release job leaves a draft. A
+person reads the draft and publishes it.
+
+That publish is what RG154 needs to read the update check against a real release, and
+what SignPath's "already released" condition asks for.
 
 ## Block H — The look (a design system for governed prose)
 

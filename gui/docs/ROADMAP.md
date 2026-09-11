@@ -4,6 +4,10 @@
 
 ## Block A — The client (payloads in, types out)
 
+- 📋 **RG158** (deps: RG141 ✅) **two live assertions pass unchecked: a picked line with no tier, and a combined filter that selects nothing** — RG141 made tier nullable and moved the filter off Block A, and neither assertion was tightened after it. → §RG158
+- 📋 **RG159** (deps: RG142 ✅) **the empty-brief contract asserts lacking on a fixture that never has any, so no lacking line is ever read** — Array.isArray on a field that defaults to an empty list cannot fail, and no fixture requires what the caller lacks. → §RG159
+- 📋 **RG160** (deps: RG137 ✅) **openHere's own unheld wiring is never run by a test, since RG137's live case rebuilds it by hand** — The test wires unheldAmong around openProject itself, so the production line can break with every test green. → §RG160
+
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 - 📋 **RG146** (deps: RG145, RG47 ✅) **roots are read and never written, so Add a root and Rescan roots are buttons nothing can honour** — The project list is meant to be the person's statement, and today the only way to make it is to edit the settings file by hand. → §RG146
@@ -15,8 +19,8 @@
 
 ## Block D — The project surface (one backlog, read)
 
-- ⏳ **RG28** (deps: roadkeep publishing the stale ordering in the payload) **the deferred store has no order, so which pause has stood longest is a question only a terminal can ask** — How long each pause has stood, which --stale orders by and prints for a terminal, putting none of it in the payload. → §RG28
-- 💭 **RG77** (deps: roadkeep publishing a non-goal's reason) **a non-goal arrives as a lead alone, so the sentence that argues it stays in the file** — The reason is the half that settles whether a proposal is forbidden, and criterion list publishes its why while non-goal list does not. → §RG77
+- ⏳ **RG28** (deps: roadkeep RK1677) **the deferred store has no order, so which pause has stood longest is a question only a terminal can ask** — How long each pause has stood, which --stale orders by and prints for a terminal, putting none of it in the payload. → §RG28
+- 💭 **RG77** (deps: —) **a non-goal arrives as a lead alone, so the sentence that argues it stays in the file** — The reason is the half that settles whether a proposal is forbidden, and criterion list publishes its why while non-goal list does not. → §RG77
 - 📋 **RG148** (deps: RG145, RG21 ✅, RG22 ✅, RG74 ✅) **a project cannot be opened in the window, so its lines, blocks and filters exist only as readers in core** — Projeto.dc.html draws one backlog as rows with readiness in the engine's words, and nothing routes from a portfolio row to it. → §RG148
 - 📋 **RG149** (deps: RG148, RG27 ✅) **the changelog, decisions, improvements and deferred tabs are drawn as labels with nothing behind them** — RG27 and RG28 shipped readers for the ledger, the decisions and the paused lines, and the project surface draws only the roadmap. → §RG149
 - 📋 **RG150** (deps: RG148, RG23 ✅, RG24 ✅, RG76 ✅) **a task opens nowhere in the window, so brief's join of deps, design and binding lists is read by nobody** — Tarefa.dc.html draws the detail as one brief read, and detailFrom already returns every part of it. → §RG150
@@ -33,10 +37,15 @@
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
-- 📋 **RG128** (deps: RG120 ✅, roadkeep's launcher treating a named engine as fatal) **a checkout busy when the probe runs is skipped, so the launcher answers from a cache 446 versions old** — Resolution takes the first engine that answers, so a session can be briefed by a copy nobody chose. → §RG128
+- 📋 **RG128** (deps: RG120 ✅, roadkeep RK1678) **a checkout busy when the probe runs is skipped, so the launcher answers from a cache 446 versions old** — Resolution takes the first engine that answers, so a session can be briefed by a copy nobody chose. → §RG128
 - 📋 **RG143** (deps: RG122 ✅, RG103 ✅) **the bridge carries no roadkeep call, so no screen can ask a project anything and every reader in core runs only in tests** — RendererBridge answers identify, settings and two saves, and openHere, scanRoots and the held engine are reached by no path a window runs. → §RG143
 - 📋 **RG144** (deps: RG143, RG45 ✅) **the bridge only answers when asked, so a session's stream and a governed file changing have no way to reach a screen** — startSession and the governed watcher both hear events in main, and every bridge method is a single invoke with a single answer. → §RG144
-- 📋 **RG154** (deps: RG50 ✅) (requires: published-artifact) **the update check has only met answers written by hand, never GitHub's own for a published release** — No release is published yet, so the shape it reads and the page it opens are held by fakes until the first one exists. → §RG154
+- 📋 **RG154** (deps: RG50 ✅, RG162) (requires: published-artifact) **the update check has only met answers written by hand, never GitHub's own for a published release** — No release is published yet, so the shape it reads and the page it opens are held by fakes until the first one exists. → §RG154
+- 📋 **RG155** (deps: RG50 ✅) **the release-page guard compares a string prefix, so a release URL with dot segments opens another repository** — The URL comes off a network answer, and the browser normalises the dot segments after the guard approved the string. → §RG155
+- 📋 **RG156** (deps: RG50 ✅) **the update check tells a build ahead of every release it is the newest, and hides why a check failed** — An ahead build reads as current and loses the version found, undici keeps the real cause on error.cause, and a body timeout reads as not JSON. → §RG156
+- 📋 **RG157** (deps: RG50 ✅) **the tag-against-manifest check is tested by its text, so an inverted condition or a lost exit still passes** — The test finds the step's strings in ci.yml and never runs the script, which is the part that refuses. → §RG157
+- 📋 **RG161** (deps: —) **the signing procedure breaks the Windows CI job on one route and leaves the app exe unsigned on another** — Certum's subject name is committed to the builder config, SignPath signs only the installer, and three sentences beside it are false. → §RG161
+- 📋 **RG162** (deps: —) **no LICENSE file ships and every build says 0.0.0, so the first release the maintainer decided on cannot be cut** — SignPath needs a recognised licence file, and ci.yml refuses a tag naming a version the manifest does not carry. → §RG162
 
 ## Block H — The look (a design system for governed prose)
 
