@@ -250,6 +250,7 @@ export const EN = {
   'update.title': 'Updates',
   'update.newer': 'You are on {current}. The newest published is {latest}.',
   'update.current': 'You are on {current}, which is the newest published.',
+  'update.ahead': 'You are on {current}, which is ahead of the newest published, {latest}.',
   'update.none': 'You are on {current}. No release has been published yet.',
   'update.failed': 'You are on {current}. The check did not reach an answer: {reason}',
   'update.open': 'Open the release page',

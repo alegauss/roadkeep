@@ -409,20 +409,6 @@ manifest, publish the draft `ci.yml` leaves, then run the packaged app of the ve
 before it and choose Help, Check for updates: it has to name both versions and open that
 page. Then the same from the new build, which has to say it is current.
 
-### §RG156 Sentences the update check gets wrong
-
-The adversarial review of RG50 confirmed three places where the check says something
-untrue.
-
-- **A build ahead of every release** reads `current` and the dialog says it is "the newest published", dropping the version it found. Between tagging and publishing, every build of the new version is in that state.
-- **An offline check** says only `fetch failed`: undici keeps the real cause (`ENOTFOUND`, a refused connection) on `error.cause`, and the test used an error shape fetch never throws.
-- **A failure while the body is read** — a timeout, a dropped connection — is reported as "not JSON".
-
-**The fix.** An `ahead` verdict with a sentence naming both versions (a new catalogue
-key in both locales); the reason reads `error.cause`; only a `SyntaxError` is "not
-JSON". The bound test proves the timeout aborts, and the fakes use the error shapes
-fetch really throws.
-
 ### §RG157 Running the refusal it claims
 
 `release.test.ts` holds the tag-against-manifest check in `ci.yml` by finding its text:
@@ -522,26 +508,28 @@ project there turns this defect into a red run the day it is written.
 ### §RG172 A narrowed listing in the window's language
 
 RG148's backlog draws `refusedSummary` under the chips when a listing is narrower than
-its file, past `[reads] list` or with lines the grammar refused. The sentence is
-composed in core, in English, so a Portuguese window prints it untranslated. RG168 files
-the same defect for a row's `Unreadable.message`, and this is its twin on the project
-screen.
+its file. The sentence is composed in core, in English, so a Portuguese window prints it
+untranslated. RG168 files the same defect for a row's `Unreadable.message`, and this is
+its twin on the project surface.
 
-Five more helpers compose screen sentences in core that no screen draws yet:
-`saidOfUnderway`, `whyNotStartable`, `wordsAgainstLimit`, `whereFiled` through
-`Whereabouts.sentence`, and `saidOfHandover`, besides the reasons `narrowingOfBrief`
-gives. RG150's task screen needed three of them and said each again in catalogue keys,
-so a helper and a key now say one thing twice and can drift apart.
+**The update dialog says the same kind of thing** (RG156). A failed check shows
+`reason`: the network's own words where the network spoke, which is right to quote, and
+this app's English where it did not — *GitHub answered 403*, *not JSON*, *the answer had
+no tag_name*, *is not a version this can compare*.
 
-**RG168's fix, applied here: a code and its fills, and the sentence in the catalogue.**
-`refusedSummary` becomes a reader that returns which case applies and the numbers it
-fills, whether over the bound with a block to ask for, over it with none, or lines
-refused. The backlog then looks the sentence up through `say`. A helper a screen already
-replaced with keys is deleted with its tests, since keeping it keeps the English copy,
-and one that nothing draws goes the same way.
+**And five helpers in core compose sentences no screen draws yet**: `saidOfUnderway`,
+`whyNotStartable`, `wordsAgainstLimit`, `whereFiled` through `Whereabouts.sentence`, and
+`saidOfHandover`. RG150's task screen needed three of them and said each again in
+catalogue keys, so a helper and a key now say one thing twice and can drift.
 
-**The pseudo-locale run should see a narrowed listing.** RG51's run draws the window
-with no project on it, so this sentence has never been on the screen that run reads.
+**RG168's fix, applied at each: a code and its fills, and the sentence in the
+catalogue.** `refusedSummary` becomes a reader answering which case applies and the
+numbers it fills, and the screen looks the sentence up through `say`. A helper a screen
+already replaced with keys is deleted with its tests, since keeping it keeps the English
+copy.
+
+**The pseudo-locale run should see a narrowed listing**, which RG176 is about: no row
+reason and no narrowed list has ever been on the screen that run reads.
 
 ### §RG176 Every surface under the pseudo-locale
 

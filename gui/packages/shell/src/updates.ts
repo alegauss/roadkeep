@@ -26,6 +26,23 @@ const CHECK_CEILING = 10000
 export type Fetcher = (url: string, init: RequestInit) => Promise<Response>
 
 /**
+ * Why a request did not answer, in as many of its own words as it has (RG156).
+ *
+ * `fetch` throws `TypeError: fetch failed` for everything the network did — no such host, a
+ * refused connection, a certificate nobody trusts — and keeps what actually happened on
+ * `cause`. A dialog saying *fetch failed* tells somebody offline nothing they did not know, so
+ * the cause is read and named beside it. A timeout arrives as its own error and already says
+ * so, and a cause that is not an `Error` is not invented.
+ */
+export function reasonOf(thrown: unknown): string {
+  if (!(thrown instanceof Error)) return String(thrown)
+  const cause = thrown.cause
+  return cause instanceof Error && cause.message !== ''
+    ? `${thrown.message}: ${cause.message}`
+    : thrown.message
+}
+
+/**
  * The newest published release against the version this build carries.
  *
  * Every way of not getting an answer is a `failed` with its reason rather than a throw: the
@@ -44,11 +61,7 @@ export async function checkForUpdate(
       signal: AbortSignal.timeout(timeoutMs),
     })
   } catch (cause) {
-    return {
-      kind: 'failed',
-      current,
-      reason: cause instanceof Error ? cause.message : String(cause),
-    }
+    return { kind: 'failed', current, reason: reasonOf(cause) }
   }
 
   // No published release at all: GitHub answers 404 for `latest` while every release is a
@@ -61,8 +74,13 @@ export async function checkForUpdate(
   let body: unknown
   try {
     body = await response.json()
-  } catch {
-    return { kind: 'failed', current, reason: 'GitHub answered something that is not JSON' }
+  } catch (cause) {
+    // Reading a body is still the network: a timeout or a dropped connection lands here, and
+    // reporting either as *not JSON* names the wrong thing (RG156). Only the parser's own
+    // `SyntaxError` says the answer was not JSON.
+    const reason =
+      cause instanceof SyntaxError ? 'GitHub answered something that is not JSON' : reasonOf(cause)
+    return { kind: 'failed', current, reason }
   }
   const read = readLatestRelease(body, '')
   if (!read.ok) {

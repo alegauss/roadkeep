@@ -34,6 +34,14 @@ export type UpdateCheck =
       readonly url: string
     }
   | { readonly kind: 'current'; readonly current: string; readonly latest: string }
+  /**
+   * This build is newer than anything published (RG156).
+   *
+   * Its own answer and not `current`: between a tag and its release every build of the new
+   * version is in this state, and telling one it is the newest published drops the version
+   * that was found and says something that is not true.
+   */
+  | { readonly kind: 'ahead'; readonly current: string; readonly latest: string }
   /** Nothing is published yet: GitHub keeps drafts out of `releases/latest`. */
   | { readonly kind: 'none'; readonly current: string }
   /** The check did not get an answer it could read, said in the words that explain why. */
@@ -61,9 +69,11 @@ export function compareVersions(a: string, b: string): number | null {
 /**
  * What the newest published release means for the build that asked.
  *
- * A build newer than anything published — a developer's — reads as current: nothing to
- * fetch is the true answer for it. A version that is not a version, on either side, is a
- * failure with its reason rather than a guess about which is newer.
+ * Three answers and not two (RG156). A build newer than anything published is `ahead` — a
+ * developer's, and every build between a tag and its release — because *nothing to fetch* and
+ * *you are on the newest published* are different sentences, and only the first is true of it.
+ * A version that is not a version, on either side, is a failure with its reason rather than a
+ * guess about which is newer.
  */
 export function verdictOf(current: string, latest: LatestRelease): UpdateCheck {
   const order = compareVersions(latest.tag, current)
@@ -72,9 +82,10 @@ export function verdictOf(current: string, latest: LatestRelease): UpdateCheck {
     return { kind: 'failed', current, reason: `${odd} is not a version this can compare` }
   }
   const found = latest.tag.replace(/^v/, '')
-  return order > 0
-    ? { kind: 'newer', current, latest: found, url: latest.url }
-    : { kind: 'current', current, latest: found }
+  if (order > 0) return { kind: 'newer', current, latest: found, url: latest.url }
+  return order === 0
+    ? { kind: 'current', current, latest: found }
+    : { kind: 'ahead', current, latest: found }
 }
 
 /** The sentence a check produces, as a catalogue key and its holes, and the page it offers. */
@@ -95,6 +106,14 @@ export function saidOfUpdate(check: UpdateCheck): SaidOfUpdate {
   }
   if (check.kind === 'current') {
     return { key: 'update.current', fill: { current: check.current }, opens: null }
+  }
+  if (check.kind === 'ahead') {
+    // Both versions, since what this says is that the two differ the other way round.
+    return {
+      key: 'update.ahead',
+      fill: { current: check.current, latest: check.latest },
+      opens: null,
+    }
   }
   if (check.kind === 'none') {
     return { key: 'update.none', fill: { current: check.current }, opens: null }

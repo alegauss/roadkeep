@@ -241,6 +241,7 @@ export const PT_BR: Wording = {
   'update.title': 'Atualizações',
   'update.newer': 'Você está na {current}. A mais recente publicada é a {latest}.',
   'update.current': 'Você está na {current}, que é a mais recente publicada.',
+  'update.ahead': 'Você está na {current}, que está à frente da mais nova publicada, a {latest}.',
   'update.none': 'Você está na {current}. Nenhuma versão foi publicada ainda.',
   'update.failed': 'Você está na {current}. A verificação não obteve resposta: {reason}',
   'update.open': 'Abrir a página da versão',

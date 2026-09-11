@@ -31,9 +31,21 @@ describe('RG50: what the newest release means for the build that asked', () => {
     })
   })
 
-  it('is current for the same build, and for a developer build ahead of every release', () => {
+  it('is current for the same build', () => {
     expect(verdictOf('0.2.0', { tag: 'v0.2.0', url: PAGE }).kind).toBe('current')
-    expect(verdictOf('0.3.0', { tag: 'v0.2.0', url: PAGE }).kind).toBe('current')
+  })
+
+  it('RG156: is ahead for a build newer than anything published, and names both', () => {
+    // Not `current`: between a tag and its release every build of the new version is here,
+    // and telling one it is the newest published drops the version that was found.
+    const ahead = verdictOf('0.3.0', { tag: 'v0.2.0', url: PAGE })
+
+    expect(ahead).toEqual({ kind: 'ahead', current: '0.3.0', latest: '0.2.0' })
+    const said = saidOfUpdate(ahead)
+    expect(said.key).toBe('update.ahead')
+    expect(said.fill).toEqual({ current: '0.3.0', latest: '0.2.0' })
+    // Nothing to go and get, so no page is offered.
+    expect(said.opens).toBeNull()
   })
 
   it('says which side is not a version, rather than which is newer', () => {

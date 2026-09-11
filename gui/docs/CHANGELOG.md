@@ -164,6 +164,7 @@
 - ✅ **RG143** **the bridge carries no roadkeep call, so no screen can ask a project anything and every reader in core runs only in tests** — A window lists its projects, opens one where main holds the engine, and runs tabled calls over IPC; the rest is refused unrun (design recorded in `packages/core/src/serving.ts`).
 - ✅ **RG144** **the bridge only answers when asked, so a session's stream and a governed file changing have no way to reach a screen** — A screen hears its project's files move over IPC; main watches while anyone listens, and unmounting gives the watch back (design recorded in `packages/core/src/bridge.ts`).
 - ✅ **RG155** **the release-page guard compares a string prefix, so a release URL with dot segments opens another repository** — The release page is parsed and compared as a URL — scheme, host, no credentials, normalised path — so a dot segment opens nothing (design recorded in `packages/shell/src/updates.ts`).
+- ✅ **RG156** **the update check tells a build ahead of every release it is the newest, and hides why a check failed** — A build ahead of every release is told so and both versions are named, a failed check says what the network did, and only bad JSON reads as bad JSON.
 
 ## Block H — The look (a design system for governed prose)
 

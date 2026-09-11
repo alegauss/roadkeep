@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { checkForUpdate, isReleasePage, RELEASE_PAGES, type Fetcher } from './updates'
+import { checkForUpdate, isReleasePage, reasonOf, RELEASE_PAGES, type Fetcher } from './updates'
 
 /**
  * RG50: the request, against a network described by hand.
@@ -34,13 +34,9 @@ describe('RG50: asking GitHub for the newest published release', () => {
 
   it('says why, for every answer it could not use', async () => {
     const refused = await checkForUpdate('0.1.0', answering(403, { message: 'rate limited' }))
-    const offline = await checkForUpdate('0.1.0', () =>
-      Promise.reject(new Error('getaddrinfo ENOTFOUND')),
-    )
     const odd = await checkForUpdate('0.1.0', answering(200, { name: 'no tag here' }))
 
     expect(refused).toMatchObject({ kind: 'failed', reason: 'GitHub answered 403' })
-    expect(offline).toMatchObject({ kind: 'failed', reason: 'getaddrinfo ENOTFOUND' })
     expect(odd).toMatchObject({ kind: 'failed' })
   })
 
@@ -53,6 +49,88 @@ describe('RG50: asking GitHub for the newest published release', () => {
 
     expect(new Headers(asked?.headers).get('user-agent')).toBe('roadkeep-gui')
     expect(asked?.signal).toBeInstanceOf(AbortSignal)
+  })
+})
+
+describe('RG156: why a check did not get an answer', () => {
+  /** What `fetch` really throws when the network refuses: the reason is on `cause`. */
+  function fetchFailed(because: string): Error {
+    // Built the way undici builds it, since a test written against a shape fetch never
+    // throws is a test that proves nothing about being offline.
+    return new TypeError('fetch failed', { cause: new Error(because) })
+  }
+
+  it('names what the network did, which fetch keeps on the cause', async () => {
+    const offline = await checkForUpdate('0.1.0', () =>
+      Promise.reject(fetchFailed('getaddrinfo ENOTFOUND api.github.com')),
+    )
+
+    expect(offline).toMatchObject({ kind: 'failed' })
+    if (offline.kind !== 'failed') throw new Error('unreachable')
+    // `fetch failed` alone tells somebody offline nothing they did not know.
+    expect(offline.reason).toContain('ENOTFOUND')
+    expect(offline.reason).toContain('fetch failed')
+  })
+
+  it('says what a timeout was, rather than reporting it as something else', async () => {
+    const timedOut = await checkForUpdate('0.1.0', (_url, init) =>
+      // The signal this call was given, aborting the way a real deadline aborts it.
+      Promise.reject(init.signal?.reason ?? new Error('no signal')),
+    )
+
+    expect(timedOut).toMatchObject({ kind: 'failed' })
+  })
+
+  it('reports a body that never arrived as what it was, and not as bad JSON', async () => {
+    // A dropped connection while the body is read lands in the same catch as a parse error,
+    // and calling it "not JSON" names the wrong thing.
+    const dropped = await checkForUpdate('0.1.0', () =>
+      Promise.resolve({
+        status: 200,
+        ok: true,
+        json: () => Promise.reject(fetchFailed('terminated')),
+      } as unknown as Response),
+    )
+
+    expect(dropped).toMatchObject({ kind: 'failed' })
+    if (dropped.kind !== 'failed') throw new Error('unreachable')
+    expect(dropped.reason).toContain('terminated')
+    expect(dropped.reason).not.toContain('not JSON')
+  })
+
+  it('still says not JSON for an answer that is not JSON', async () => {
+    const garbage = await checkForUpdate('0.1.0', () =>
+      Promise.resolve(new Response('<html>no</html>', { status: 200 })),
+    )
+
+    expect(garbage).toMatchObject({
+      kind: 'failed',
+      reason: 'GitHub answered something that is not JSON',
+    })
+  })
+
+  it('bounds the call, and the deadline is the one that aborts it', async () => {
+    // The ceiling is an argument so this is a millisecond and not ten seconds of waiting.
+    const late = await checkForUpdate(
+      '0.1.0',
+      (_url, init) =>
+        new Promise<Response>((_resolve, reject) => {
+          init.signal?.addEventListener('abort', () => {
+            reject(init.signal?.reason ?? new Error('aborted'))
+          })
+        }),
+      1,
+    )
+
+    expect(late).toMatchObject({ kind: 'failed' })
+    if (late.kind !== 'failed') throw new Error('unreachable')
+    expect(late.reason).not.toBe('')
+  })
+
+  it('says a thrown thing that is not an error as it was, rather than nothing', () => {
+    expect(reasonOf('a string')).toBe('a string')
+    expect(reasonOf(new Error('plain'))).toBe('plain')
+    expect(reasonOf(new TypeError('outer', { cause: 'not an error' }))).toBe('outer')
   })
 })
 
