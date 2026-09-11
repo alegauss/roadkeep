@@ -3429,12 +3429,24 @@ def test_the_check_dates_the_committed_bridge_where_no_record_does(project, caps
     """RK1508. RK1462 wrote a record because the version was not derivable and RK1485 could
     only say the record was absent. The bridge is a *copy* of a file this package ships, so
     which engine wrote it is a question its bytes answer — a lookup over the revisions of that
-    file in this engine's own checkout, which is where the candidates are."""
-    import re
+    file in this engine's own checkout, which is where the candidates are.
 
-    from roadkeep.installing import plan
+    **Dated off bytes the history holds**, which is `HEAD`'s and not the working tree's. The
+    install copies the tree, and a launcher being edited is a bridge no revision has — the
+    `""` this read owes a copy somebody changed — so the assertion went red for every task
+    that touched `hooks/roadkeep-launch.py` until the commit it was meant to gate (RK1678)."""
+    import re
+    import subprocess
+
+    from conftest import git
+    from roadkeep.installing import PLUGIN_BRIDGE, plan
 
     install(wired(project), source=HERE, committed=True)
+    try:
+        committed = git(HERE, "show", f"HEAD:{PLUGIN_BRIDGE}")
+    except subprocess.CalledProcessError:
+        pytest.skip("no history of the shipped bridge to date a copy against")
+    (project / PROJECT_BRIDGE).write_bytes(committed.encode("utf-8"))
     source = project / "roadkeep.toml"
     source.write_text(
         source.read_text(encoding="utf-8").split("[install]")[0], encoding="utf-8"

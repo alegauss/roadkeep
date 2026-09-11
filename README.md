@@ -120,16 +120,12 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 234 | 2 |
 | C — Query (consult without reading the file) | 0 | 197 | 7 |
 | D — The gate | 0 | 317 | 7 |
-| E — Adoption | 1 | 118 | 1 |
+| E — Adoption | 0 | 119 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 163 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 44 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 1 | 1151 | 24 |
-
-**Next ready:**
-
-- 📋 **RK1678** (deps: —) **the launcher drops an engine the caller named when its probe fails, and answers from a clone hundreds of versions old** — ROADKEEP_HOME is a candidate the same probe skips, so a checkout mid-save falls through to the user cache and nobody chose that copy. → §RK1678
+| **Total** | 0 | 1152 | 24 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
@@ -242,10 +238,11 @@ in the one place it cannot see itself doing it (*"No roadkeep plugin/hooks → I
 log"* is the tell).
 
 The fix is the checkout path made portable: commit a small launcher and point the hook and the
-server at it instead of at `${CLAUDE_PLUGIN_ROOT}`. It resolves an engine at run time —
-`$ROADKEEP_HOME`, an installed plugin, a sibling `../roadkeep`, a cached clone, or a fresh
-`git clone` — and runs the same `guard` and `mcp` entry points the plugin would, so **one
-wiring holds on a laptop and in the cloud**:
+server at it instead of at `${CLAUDE_PLUGIN_ROOT}`. It resolves an engine at run time — the
+first that runs of a vendored `.roadkeep/`, a sibling `../roadkeep` and a clone already in the
+user cache, or `$ROADKEEP_HOME` alone where it is set, refused by name rather than stepped
+past — and runs the same `guard` and `mcp` entry points the plugin would, so **one wiring
+holds on a laptop and in the cloud**:
 
 ```jsonc
 // .claude/settings.json — the guard on its three events, launcher instead of the plugin root

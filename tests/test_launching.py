@@ -160,10 +160,10 @@ def test_the_project_directory_is_answered_even_where_the_environment_omits_it(
     assert bridge._resolve() == engine / "scripts" / "roadkeep.py"
 
 
-def test_a_variable_nothing_resolves_is_left_as_written(tmp_path, monkeypatch):
-    """Both readings fail and they fail differently: `${NOPE}/.roadkeep` names nothing and
-    falls through, while an empty expansion is `/.roadkeep` — a path at the filesystem root
-    that could exist and would then be run, which is this task's own defect wearing a fix."""
+def test_a_variable_nothing_resolves_is_left_as_written(tmp_path, monkeypatch, capfd):
+    """Both readings fail and they fail differently: `${NOPE}/.roadkeep` names a tree that is
+    not there, while an empty expansion is `/.roadkeep` — a path at the filesystem root that
+    could exist and would then be run, which is this task's own defect wearing a fix."""
     bridge = load()
     repo = tmp_path / "repo"
     (repo / ".roadkeep" / "scripts").mkdir(parents=True)
@@ -173,8 +173,11 @@ def test_a_variable_nothing_resolves_is_left_as_written(tmp_path, monkeypatch):
 
     assert bridge._expanded("${NOPE}/x") == "${NOPE}/x"
     monkeypatch.setenv("ROADKEEP_HOME", "${NOPE}/x")
-    # And what answers instead is the vendored copy, not a sibling nobody chose.
-    assert bridge._resolve() == repo / bridge.VENDORED / "scripts" / "roadkeep.py"
+    # And nothing answers instead (RK1678): the vendored copy is a copy, and the name was the
+    # choice — so the refusal says the name, as written, rather than answering from the copy.
+    assert bridge._resolve() is None
+    assert bridge._missing() == 2
+    assert "${NOPE}" in capfd.readouterr().err
 
 
 def test_a_name_that_merely_starts_with_a_known_one_is_not_substituted(monkeypatch):
@@ -448,9 +451,13 @@ def nowhere(cwd: Path) -> dict[str, str]:
 
     A function rather than a literal in the helper, because the closure below reads it: what the
     isolation covers has to be comparable against what the file actually reads.
+
+    **The override is emptied, not pointed** (RK1678). A named engine is the whole list, so an
+    override naming an absent tree is a refusal about that tree and never *nothing to find* —
+    and empty is the spelling of unset that keeps the key, which is what this table is of.
     """
     return {
-        "ROADKEEP_HOME": str(cwd / "absent"),
+        "ROADKEEP_HOME": "",
         "XDG_CACHE_HOME": str(cwd / "absent-cache"),
         "CLAUDE_CONFIG_DIR": str(cwd / "absent-config"),
     }
@@ -1207,3 +1214,143 @@ def test_the_refusal_tells_a_broken_engine_from_an_absent_one(tmp_path, monkeypa
     monkeypatch.setattr(bridge, "_candidates", list)
     assert bridge._missing() == 2
     assert "no engine found" in capfd.readouterr().err
+
+
+# -- a named engine is not a candidate (RK1678) --------------------------------
+
+
+def named(monkeypatch, tmp_path: Path, home: Path) -> Path:
+    """A project with a working sibling beside it and ``$ROADKEEP_HOME`` naming ``home``.
+
+    The sibling is the point: it is the copy resolution used to fall through to, so every
+    assertion below is about it *not* answering while it plainly could.
+    """
+    repo = tmp_path / "repo"
+    (repo / ".claude").mkdir(parents=True)
+    working(tmp_path / "roadkeep", answer="the sibling answered")
+    monkeypatch.setenv("CLAUDE_PROJECT_DIR", str(repo))
+    sealed(monkeypatch, tmp_path)
+    monkeypatch.setenv("ROADKEEP_HOME", str(home))
+    return repo
+
+
+def test_a_named_engine_that_does_not_run_is_refused_by_name(tmp_path, monkeypatch, capfd):
+    """RK1678, measured on one machine: three commands served by `0.2.4` out of the user cache
+    while the sibling stood at `0.2.450` — and `ROADKEEP_HOME` did not help, being a candidate
+    the same probe dropped. A checkout mid-save does not answer, and falling through from a
+    name is answering from a copy nobody chose, in words that read like the named one's."""
+    bridge = load()
+    home = broken(tmp_path / "named")
+    named(monkeypatch, tmp_path, home)
+
+    assert bridge._forward(["lint"]) == 2
+    said = capfd.readouterr()
+    assert "the sibling answered" not in said.out, "a copy nobody chose answered"
+    # The three facts a reader acts on: which variable, the path, and what the probe said.
+    assert "ROADKEEP_HOME names" in said.err
+    assert str(home) in said.err
+    assert "exited 1 on --version: ImportError: cannot import name NotOpen" in said.err
+    assert "no other copy was tried" in said.err
+
+
+def test_a_named_tree_holding_no_engine_is_refused_by_name(tmp_path, monkeypatch, capfd):
+    """The other way a name drops out: `_valid` found nothing there, which is the typo and the
+    half-cloned tree alike — and was the same silent fall-through as a failed probe."""
+    bridge = load()
+    home = tmp_path / "named"
+    home.mkdir()
+    named(monkeypatch, tmp_path, home)
+
+    assert bridge._resolve() is None
+    assert bridge._forward(["lint"]) == 2
+    said = capfd.readouterr()
+    assert "the sibling answered" not in said.out
+    assert "holds no scripts/roadkeep.py" in said.err
+
+
+def test_the_server_serves_the_named_engine_or_nothing(tmp_path, monkeypatch, capfd):
+    """Both of the server's paths. POSIX probes before `execv`, so a failed probe on a name is
+    a refusal there and never the sibling's image; Windows buys no probe (RK1465), so what it
+    can drop is only a name holding no engine — and that is refused the same way."""
+    bridge = load()
+    home = broken(tmp_path / "named")
+    named(monkeypatch, tmp_path, home)
+    execed: list[list[str]] = []
+    monkeypatch.setattr(bridge.os, "execv", lambda _exe, argv: execed.append(list(argv)))
+
+    monkeypatch.setattr(bridge, "_windows", lambda: False)
+    assert bridge._serve([]) == 2
+    assert execed == [], "the sibling's image replaced the one that was named"
+    assert "ROADKEEP_HOME names" in capfd.readouterr().err
+
+    monkeypatch.setattr(bridge, "_windows", lambda: True)
+    monkeypatch.setenv("ROADKEEP_HOME", str(tmp_path / "absent"))
+    assert bridge._serve([]) == 2
+    assert "holds no scripts/roadkeep.py" in capfd.readouterr().err
+
+
+def test_the_guard_leaves_a_named_engine_s_turn_unenforced(tmp_path, monkeypatch, capfd):
+    """The guard keeps its own rule — never block a turn — and the new one with it: its
+    fall-through is over what was found, so a named engine that fails leaves the turn
+    unenforced rather than guarded by a copy nobody chose."""
+    bridge = load()
+    named(monkeypatch, tmp_path, broken(tmp_path / "named"))
+    monkeypatch.setattr(bridge, "_plugin_is_wired", lambda _root: False)
+
+    assert bridge._guard([], b"{}") == 0
+    assert "the sibling answered" not in capfd.readouterr().out
+
+
+def test_unnamed_candidates_keep_their_fall_through(tmp_path, monkeypatch):
+    """What RK1214 bought stays: a copy found on disk that does not run is passed over for the
+    next that does. The line is the name, and an empty one is none."""
+    bridge = load()
+    repo = named(monkeypatch, tmp_path, tmp_path / "unused")
+    broken(repo / bridge.VENDORED)
+    monkeypatch.setenv("ROADKEEP_HOME", "")
+    assert bridge._running() == tmp_path / "roadkeep" / "scripts" / "roadkeep.py"
+
+
+def test_the_refusal_is_ascii_whatever_the_path_is(tmp_path, monkeypatch, capfd):
+    """A path and an engine's own stderr can carry any codepoint, and this file writes to
+    whatever console the environment gave it: a refusal that raises on encoding arrives as a
+    traceback, which is the thing it exists to replace."""
+    bridge = load()
+    home = tmp_path / "motor-ção"
+    home.mkdir()
+    named(monkeypatch, tmp_path, home)
+    assert bridge._forward(["lint"]) == 2
+    said = capfd.readouterr().err
+    assert said.isascii(), said
+    assert "motor-" in said
+
+
+def test_the_probe_quotes_the_line_that_says_what_went_wrong():
+    """The last line at column 0: a traceback's exception, and the first line of the engine's
+    own refusal for a checkout that does not parse (RK1179), whose rows are indented under it."""
+    bridge = load()
+    traceback = (
+        b"Traceback (most recent call last):\n"
+        b'  File "roadkeep.py", line 1, in <module>\n'
+        b"    from roadkeep.cli import main\n"
+        b"ImportError: cannot import name 'NotOpen'\n"
+    )
+    assert bridge._said(traceback) == "ImportError: cannot import name 'NotOpen'"
+    refusal = (
+        b"roadkeep: the checkout that answered does not parse, so no command ran:\n"
+        b"  engine   /x\n"
+        b"  said     unexpected indent\n"
+    )
+    assert bridge._said(refusal).endswith("does not parse, so no command ran:")
+    assert bridge._said(b"") == ""
+    assert len(bridge._said(b"x" * 1000)) == bridge._SAID_MAX
+
+
+def test_a_named_engine_is_refused_through_the_file_the_harness_runs(tmp_path):
+    """The same claim end to end, through `main` and a real interpreter: the exit code and the
+    sentence a caller reads, where the unit tests above read the functions."""
+    home = broken(tmp_path / "named")
+    done = bridged(["stats"], home, tmp_path)
+    assert done.returncode == 2
+    assert b"ROADKEEP_HOME names" in done.stderr
+    assert b"ImportError" in done.stderr

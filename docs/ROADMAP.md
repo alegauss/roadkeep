@@ -32,8 +32,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1678** (deps: —) **the launcher drops an engine the caller named when its probe fails, and answers from a clone hundreds of versions old** — ROADKEEP_HOME is a candidate the same probe skips, so a checkout mid-save falls through to the user cache and nobody chose that copy. → §RK1678
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)

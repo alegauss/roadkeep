@@ -952,6 +952,7 @@
 - ✅ **RK1440** **engine.disagreement compares the gate to the plugin and never says the gate is a working tree rather than a release** — A wired project's gate note says when the engine answering is a modified checkout at no commit, so a moving version stops reading like a release.
 - ✅ **RK1447** **install prints what the surfaces let a session do and its payload says only which files moved** — Both registers come off one method: the payload publishes the same sentences the report prints, and carries an empty list under `--check`.
 - ✅ **RK1673** **No verb writes the two opt-in tables' numbers, and two messages say govern does** — govern reads and writes both opt-in tables, measured as their validators measure, so the door declare names runs and the help is true.
+- ✅ **RK1678** **the launcher drops an engine the caller named when its probe fails, and answers from a clone hundreds of versions old** — ROADKEEP_HOME is the only engine tried where set: absent or failing its probe, it is refused by name with what the probe said (design recorded in `hooks/roadkeep-launch.py`).
 
 ## Block F — The Claude Code plugin
 

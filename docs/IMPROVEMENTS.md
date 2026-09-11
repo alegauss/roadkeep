@@ -83,21 +83,6 @@ already written, not authorship.
 
 ## Block E — Adoption
 
-### §RK1678 A named engine is not a candidate
-
-The launcher `install` writes resolves an engine in order — `ROADKEEP_HOME`, a vendored
-`.roadkeep/`, the sibling `../roadkeep`, a clone under the user cache — and takes the
-first that answers a probe. A checkout mid-save does not answer, so resolution falls
-through: on one machine three commands were served by `0.2.4` out of
-`~/.cache/roadkeep-src` while the sibling stood at `0.2.450`, and `ROADKEEP_HOME` did
-not help because the same probe drops it.
-
-**The fix.** An engine the caller named — `ROADKEEP_HOME`, and any other explicit
-declaration the launcher honours — is fatal when its probe fails: a non-zero exit naming
-the engine, the path and why the probe failed. Unnamed candidates keep their
-fall-through. Tests hold the named-fatal path, and `install` writes the new launcher
-(roadkeep-gui's RG128 waits on it).
-
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

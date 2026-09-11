@@ -596,6 +596,7 @@ arrives intact in every shell, the ones this table named included.
 - ✅ **RK1367** **govern only stacks, so a number whose premise was falsified keeps every paragraph arguing for the reading it replaced** — The contiguous comment run above a key is what argues its number, so a replacement takes all of it and states the reach rather than guessing a narrower one.
 - ✅ **RK1386** **register wires whatever installed the console script, so a developer's checkout cannot be the driver its own merges run** — A tool that may not write somebody's git config may not pick the copy it would have named either: it states both and the caller chooses.
 - ✅ **RK1396** **A path argument ignores -C, so a door this tool prints is refused as a file that does not exist** — A path argument this tool ever composes is read against the project root: a door printed project-relative and read process-relative is a command the tool refuses itself.
+- ✅ **RK1678** **the launcher drops an engine the caller named when its probe fails, and answers from a clone hundreds of versions old** — A named engine is never stepped past: where ROADKEEP_HOME is set it is the whole list, and guard is left unenforced rather than run by a copy nobody chose.
 
 ### §RK1367 Why the whole run and not the paragraph a verb placed
 
