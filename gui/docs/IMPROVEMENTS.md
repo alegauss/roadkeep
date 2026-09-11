@@ -395,29 +395,6 @@ digest is then required to carry that set.
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
 
-### §RG177 A time in the window's language
-
-The session's file stamps are the first times this app draws. Each crosses as ISO-8601,
-which is right — a fact and not a rendering — and the screen writes it with
-`toLocaleString` and no locale, so what a reader gets is the desktop's. RG86 made the
-window's language a person's choice, and a window set to one language on a machine set
-to another writes its sentences in the first and its times in the second.
-
-**The tag is already resolved**, at launch, by the side that can ask the desktop, and it
-reaches the renderer as `LaunchSettings.locale`. So one place takes a stamp and the
-locale in force and answers the string, and every screen that ever draws a time uses
-that. A stamp this app cannot read is drawn as it arrived, since a blank where a time
-should be is worse than an unfamiliar one.
-
-***No dates, estimates, velocity or burndown* bounds this and does not forbid it.** What
-that refuses is a schedule this app would have to invent: a date roadkeep does not
-store, a rate, a line drawn through time. A file's last change is the filesystem's own
-answer about a file the project governs, read and never computed.
-
-The pseudo-locale run cannot see this: a time is not a catalogue value, so nothing wraps
-it and nothing reports it bare. One test that draws a stamp under a locale and reads the
-string back is what would.
-
 ### §RG183 The key nobody says
 
 RG125 compares the two locales and reports a key one declares and the other misses.

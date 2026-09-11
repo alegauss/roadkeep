@@ -21,7 +21,7 @@ import { taskPath } from './areas'
 import { getBridge } from './bridge'
 import { Glyph, Pill, type Intent } from './marks'
 import { useSession } from './useSession'
-import { useWording } from './wording'
+import { useWhen, useWording } from './wording'
 
 /**
  * One session beside the line it was handed (RG153). `docs/design/Sessao.dc.html` is the
@@ -212,9 +212,10 @@ function ChangeSaid({ change }: { readonly change: Change }) {
   }
 }
 
-/** When each governed file last changed, in the desktop's own way of writing a time. */
+/** When each governed file last changed, written in the language the window speaks. */
 function Files({ files }: { readonly files: readonly GovernedFile[] }) {
   const say = useWording()
+  const when = useWhen()
   if (files.length === 0) return null
 
   return (
@@ -225,24 +226,13 @@ function Files({ files }: { readonly files: readonly GovernedFile[] }) {
           <li key={file.path} className="flex flex-col">
             <span className="font-mono wrap-anywhere">{file.path}</span>
             <span className="text-muted-foreground">
-              {file.changed === '' ? say('session.file.never') : whenChanged(file.changed)}
+              {file.changed === '' ? say('session.file.never') : when(file.changed)}
             </span>
           </li>
         ))}
       </ul>
     </section>
   )
-}
-
-/**
- * A time as this desktop writes it.
- *
- * The stamp is the filesystem's and crosses as ISO-8601; what a reader wants is the clock they
- * have. A time this app could not read is shown as it arrived rather than as a blank.
- */
-function whenChanged(stamp: string): string {
-  const at = new Date(stamp)
-  return Number.isNaN(at.getTime()) ? stamp : at.toLocaleString()
 }
 
 /** Who else is on a line of this project, off the engine's own registry. */

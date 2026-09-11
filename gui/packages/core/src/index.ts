@@ -251,6 +251,7 @@ export {
   pseudo,
   reasonOf,
   stale,
+  timeIn,
   translator,
   untranslated,
 } from './wording'

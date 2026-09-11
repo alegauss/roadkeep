@@ -11,12 +11,17 @@ import {
   type Topic,
   type TopicEvents,
   type Transport,
+  BASE_LOCALE,
+  timeIn,
 } from '@rk/core'
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { SESSIONS_ROUTE, sessionPath, taskPath } from './areas'
+import i18next, { changeLanguage } from 'i18next'
+
 import { drawWindow } from './harness'
+import { startSpeaking } from './speaking'
 import { stubBridge } from './stub-bridge'
 
 /**
@@ -397,7 +402,8 @@ describe('RG153: the session beside its task', () => {
     // The same wait as the claims below: this column stands before the disk has answered.
     await screen.findByText('docs/ROADMAP.md')
     const files = within(screen.getByTestId('files'))
-    expect(files.getByText(new Date(CHANGED).toLocaleString())).toBeTruthy()
+    // In the window's language and not the desktop's, which RG177 separated.
+    expect(files.getByText(timeIn(CHANGED, BASE_LOCALE))).toBeTruthy()
     // A role nothing has written yet is a state, drawn rather than dropped.
     expect(files.getByText('docs/DECISIONS.md')).toBeTruthy()
     expect(files.getByText(BASE['session.file.never'])).toBeTruthy()
@@ -446,5 +452,29 @@ describe('RG153: every session this window started', () => {
 
     expect(await screen.findByText(BASE['sessions.none'])).toBeTruthy()
     expect(screen.getByText(BASE['sessions.none.hint'])).toBeTruthy()
+  })
+})
+
+describe('RG177: a time in the window’s language', () => {
+  afterEach(async () => {
+    if (i18next.isInitialized) await changeLanguage(BASE_LOCALE)
+  })
+
+  it('writes a file’s stamp in the language the window speaks, not the desktop’s', async () => {
+    await startSpeaking('pt-BR')
+    await at(sessionPath(ROOT, 'AL1', RECORD.key), { sessions: [RECORD] })
+
+    const files = await screen.findByTestId('files')
+    expect(within(files).getByText(timeIn(CHANGED, 'pt-BR'))).toBeTruthy()
+  })
+
+  it('writes the same instant differently once the window speaks another language', async () => {
+    await startSpeaking(BASE_LOCALE)
+    await at(sessionPath(ROOT, 'AL1', RECORD.key), { sessions: [RECORD] })
+
+    const files = await screen.findByTestId('files')
+    // The same stamp, and not the string the other language writes for it.
+    expect(within(files).queryByText(timeIn(CHANGED, 'pt-BR'))).toBeNull()
+    expect(within(files).getByText(timeIn(CHANGED, BASE_LOCALE))).toBeTruthy()
   })
 })

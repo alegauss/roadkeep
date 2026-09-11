@@ -440,6 +440,33 @@ export function reasonOf(unreadable: Unreadable, say: Translate): string {
     : say(UNREADABLE_TEXT[unreadable.code], unreadable.fields)
 }
 
+/**
+ * A time, written in the language the window is speaking (RG177).
+ *
+ * Every time this app draws crosses as ISO-8601 — a fact, not a rendering — and this is the
+ * one place that turns one into a string a person reads. The tag is the window's, resolved at
+ * launch by the side that can ask the desktop, so a window set to one language on a machine
+ * set to another does not write its sentences in the first and its times in the second.
+ *
+ * **A stamp this cannot read is answered as it arrived.** A blank where a time should be is
+ * worse than an unfamiliar one, and the string is still the filesystem's own answer.
+ *
+ * `No dates, estimates, velocity or burndown` bounds this and does not forbid it: what that
+ * refuses is a schedule this app would have to invent — a date roadkeep does not store, a
+ * rate, a line drawn through time. A file's last change is read and never computed.
+ */
+export function timeIn(stamp: string, locale: string): string {
+  const at = new Date(stamp)
+  if (Number.isNaN(at.getTime())) return stamp
+  // A tag this build does not ship, or a runtime that will not take it, is not worth
+  // failing a screen over: the time is the point and the desktop's own format will do.
+  try {
+    return at.toLocaleString(locale === '' ? undefined : locale)
+  } catch {
+    return at.toLocaleString()
+  }
+}
+
 /** A translation. Partial because a translation in progress is still worth shipping. */
 export type Wording = Partial<Readonly<Record<MessageKey, string>>>
 

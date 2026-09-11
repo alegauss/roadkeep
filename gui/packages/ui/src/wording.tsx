@@ -1,4 +1,4 @@
-import { translator, wordingFor, type Translate, type Wording } from '@rk/core'
+import { timeIn, translator, wordingFor, type Translate, type Wording } from '@rk/core'
 import { createContext, useContext, useMemo, type ReactNode } from 'react'
 
 import { useSpokenLocale } from './speaking'
@@ -47,4 +47,16 @@ export function WordingProvider({
 /** The one call a component makes for a string a person will read. */
 export function useWording(): Translate {
   return useContext(Wording)
+}
+
+/**
+ * The one call a component makes for a time a person will read (RG177).
+ *
+ * The same arrangement as the wording: the rule is `core`'s and what lives here is the tag
+ * in force. A screen that wrote a time any other way would be writing it in the desktop's
+ * language while its sentences are in the window's.
+ */
+export function useWhen(): (stamp: string) => string {
+  const spoken = useSpokenLocale()
+  return useMemo(() => (stamp: string) => timeIn(stamp, spoken), [spoken])
 }

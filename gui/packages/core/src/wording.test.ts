@@ -15,6 +15,7 @@ import {
   pseudo,
   reasonOf,
   stale,
+  timeIn,
   translator,
   UNREADABLE_TEXT,
   untranslated,
@@ -239,5 +240,36 @@ describe('RG168: why a project could not be read, in the window’s language', (
     const say = translator()
 
     for (const key of Object.values(UNREADABLE_TEXT)) expect(say(key)).not.toBe('')
+  })
+})
+
+describe('RG177: a time in the window’s language', () => {
+  const STAMP = '2026-09-11T15:04:05.000Z'
+
+  it('writes the same instant differently in two languages, which is the whole point', () => {
+    // Not compared to a spelled-out string: what the runtime writes for a tag is the
+    // runtime's, and a test that pinned it would be this file deciding a format.
+    expect(timeIn(STAMP, 'pt-BR')).not.toBe(timeIn(STAMP, 'en-US'))
+  })
+
+  it('writes it in the tag it was given, and not in the desktop’s', () => {
+    const said = timeIn(STAMP, 'pt-BR')
+
+    expect(said).toBe(new Date(STAMP).toLocaleString('pt-BR'))
+  })
+
+  it('falls back to the desktop where no tag was named', () => {
+    expect(timeIn(STAMP, '')).toBe(new Date(STAMP).toLocaleString())
+  })
+
+  it('answers a stamp it cannot read as it arrived, since a blank is worse', () => {
+    expect(timeIn('whenever', 'pt-BR')).toBe('whenever')
+    expect(timeIn('', 'pt-BR')).toBe('')
+  })
+
+  it('answers rather than throwing for a tag the runtime will not take', () => {
+    // A tag this build does not ship is not worth failing a screen over: the time is the
+    // point, and the desktop's own format will do.
+    expect(timeIn(STAMP, 'not a tag')).toBe(new Date(STAMP).toLocaleString())
   })
 })
