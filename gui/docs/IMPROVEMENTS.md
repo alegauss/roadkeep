@@ -610,3 +610,26 @@ reports every declaration whose name the package publishes, and the escape hatch
 already has — `viglet-ds-allow-duplicate <Name> -- <reason>` — is what a deliberate
 collision uses. The correction belongs in the package, every consumer having the same
 hole; here it is a line saying so and the run that proves it.
+
+### §RG191 The field a run has to reach to catch
+
+The pseudo-locale run reads what is on the screen, so it catches an English sentence
+only in a state the run puts the window into. RG168 fixed the unreadable row and added
+the state that shows it — but a screen drawing `unreadable.message` again, or another
+field this app wrote in English, passes every run that does not reach it. The window has
+four surfaces and a dozen states each; the run reaches a handful.
+
+**The fields are nameable, and that is what makes a guard possible.**
+`Unreadable.message` is kept for a log and says so; `Opening.unresolved.reason` and
+`Withheld.reason` are the same; each has a code beside it that a screen is meant to use
+instead. A read of the renderer's sources for those field accesses is a guard that does
+not depend on reaching a state: it fails on the line, not on the screen.
+
+**A rule about a field, not about a string.** It says nothing about English prose in
+general — `Refusal.said` and a finding's message are the engine's, and drawing them is
+right. What it refuses is exactly the accessors whose own docstrings say a code should
+be used instead, which is a list that grows with the codes and never with the screens.
+
+**It belongs with the duplicates check, not in a test.** Both are one pass over the
+sources for a shape nothing else can see, both name the replacement in the failure, and
+both are cheap enough to run on every lint.
