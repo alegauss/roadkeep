@@ -27,9 +27,9 @@
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-- 📋 **RG151** (deps: RG148 ✅, RG32 ✅, RG34 ✅, RG36 ✅, RG165 ✅) **no screen composes a write, so a line is still filed in a terminal though its budget, argv and doors are built** — Escrita.dc.html draws the form with counters, the command before it runs and the refusal's doors, and block E shipped each. → §RG151
-- 📋 **RG152** (deps: RG151, RG33 ✅, RG165 ✅) **Run the gate is a button with nothing behind it, so a finding and the doors it names are still read in a terminal** — RG33 shipped findings as actions, and no screen draws one; the write path's doors column is the shape to reuse, not a second one. → §RG152
+- 📋 **RG152** (deps: RG151 ✅, RG33 ✅, RG165 ✅) **Run the gate is a button with nothing behind it, so a finding and the doors it names are still read in a terminal** — RG33 shipped findings as actions, and no screen draws one; the write path's doors column is the shape to reuse, not a second one. → §RG152
 - 📋 **RG181** (deps: —) **the door keep holds every batch a session offered, since only a file moving drops one** — A window re-reading a failing gate adds a batch per read, and a project whose files sit still never drops any of them. → §RG181
+- 📋 **RG182** (deps: —) **the filing form asks nobody what the block already delivered, so the window spends an id the terminal would question** — The read before an add is delivered --near, and a line filed from a screen never gets it. → §RG182
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
@@ -42,6 +42,7 @@
 - 📋 **RG128** (deps: RG120 ✅, roadkeep RK1678) **a checkout busy when the probe runs is skipped, so the launcher answers from a cache 446 versions old** — Resolution takes the first engine that answers, so a session can be briefed by a copy nobody chose. → §RG128
 - 📋 **RG154** (deps: RG50 ✅, RG162 ⏳) (requires: published-artifact) **the update check has only met answers written by hand, never GitHub's own for a published release** — No release is published yet, so the shape it reads and the page it opens are held by fakes until the first one exists. → §RG154
 - ⏳ **RG162** (deps: —) **no LICENSE file ships and every build says 0.0.0, so the first release the maintainer decided on cannot be cut** — Pushing main and the tag v0.1.0, which drafts the release, and publishing that draft: both are the maintainer's to make. → §RG162
+- 📋 **RG184** (deps: —) **a source file carrying control characters passes every gate, so an invisible byte reaches a commit** — Five NULs sat in a template literal through typecheck, oxlint, prettier and the whole suite. → §RG184
 
 ## Block H — The look (a design system for governed prose)
 
@@ -49,6 +50,7 @@
 - 📋 **RG172** (deps: RG168) **a listing narrower than its file, and a failed update check, are explained in English whatever the window speaks** — Both sentences are built in code and drawn as they are, and five more core helpers compose ones the next screen would draw the same way. → §RG172
 - 📋 **RG176** (deps: —) **the pseudo-locale run draws the portfolio alone, so three of this window's four surfaces are never read for a literal** — A project, a task and a session each arrived after RG51's run was written, and a string typed into any of them passes it. → §RG176
 - 📋 **RG177** (deps: —) **a time is written in the desktop's locale and not the window's, so a Portuguese window dates a file in English** — The session's file stamps are the first times this app draws, and they go through toLocaleString with no tag while every sentence beside them follows the chosen locale. → §RG177
+- 📋 **RG183** (deps: —) **a catalogue key no screen says is never reported, so a string both locales declare can be dead** — RG125 catches a key one locale misses, and nothing catches one nobody uses. → §RG183
 
 ## Done when — Block A
 

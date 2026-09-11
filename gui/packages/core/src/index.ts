@@ -416,6 +416,7 @@ export {
   fieldsRefused,
   offerable,
   readAnswer,
+  readAnswerFrom,
   readDoor,
   readExplanation,
   readRefusal,

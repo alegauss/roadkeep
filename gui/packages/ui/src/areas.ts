@@ -38,6 +38,16 @@ export function projectPath(root: string): string {
 }
 
 /**
+ * Filing a line into one project (RG151), which is about that project and so has no entry
+ * in `AREAS` either: File a line on the project surface is how a reader arrives.
+ */
+export const FILE_ROUTE = '/project/:root/file'
+
+export function filePath(root: string): string {
+  return `${projectPath(root)}/file`
+}
+
+/**
  * One line of one project (RG150), under the project it belongs to. No entry in `AREAS`
  * either, for the same reason: a project's row is how a reader arrives.
  */

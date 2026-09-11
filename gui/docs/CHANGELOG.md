@@ -108,6 +108,7 @@
 - ✅ **RG35** **amend, restate and renumber have no door, so the corrections that keep an id are terminal-only** — The three corrections that keep an id are doors, each offered with the sentence the engine publishes for it (design recorded in `packages/core/src/correcting.ts`).
 - ✅ **RG36** **an input has no budget, so a field is typed to whatever length and refused after the sentence exists** — Every field is priced before a word is typed, counted against what the line allows rather than what the limit says (design recorded in `packages/core/src/budgeting.ts`).
 - ✅ **RG165** **a door the engine offers cannot run from a window, since the bridge refuses a verb or option its tables never compose** — The carrier keeps the doors an answer carried and runs the one a caller names, filling only the blanks the engine left (design recorded in `packages/shell/src/door-keep.ts`).
+- ✅ **RG151** **no screen composes a write, so a line is still filed in a terminal though its budget, argv and doors are built** — A line is filed from the window, priced and refused by the engine (design superseded: Save runs the drawn argv, not applyWrite) (design recorded in `packages/ui/src/Filing.tsx`).
 
 ## Block F — The agent surface (handing one task to Claude Code)
 

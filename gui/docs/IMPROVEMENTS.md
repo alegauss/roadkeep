@@ -242,30 +242,6 @@ reads as empty.
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-### §RG151 Filing a line from the window
-
-`Escrita.dc.html` is filing a line, opened by File a line on the project surface. Every
-piece shipped in block E: `composeWrite`, `countersOf` over `budget`, `readRefusal` and
-the doors `offerable` keeps.
-
-**The form** is block, marker and deps, then symptom, why and the design body, each with
-a counter against what `budget` says this line leaves — which moves as deps are added,
-so the counter asks again rather than holding a number. Over the limit the box turns and
-says by how much; the aim is drawn as a tick, not a limit. The `BentoFormHero` names the
-id the same `budget` read says `add` would write next. Beside the symptom, the non-goals
-`boundsFrom` reads, each lead with the reason RG77 carries, since that list decides
-whether the line may be filed.
-
-**The right column is the command before it runs.** The argv `composeWrite` built,
-copyable, with the prose elided in the middle so it stays readable; the full argv is
-what Copy takes. Beneath it, what a refusal offers: its code on the field it names,
-never a toast, then each door `explain` gave. A complete door runs as one action; an
-incomplete one shows what it needs and waits for the words, and a door that writes a
-governed file says so.
-
-The body goes in the same call as the line, as RG32 made possible, so nothing filed here
-points at a missing section. Save runs `applyWrite` and reopens the task it wrote.
-
 ### §RG152 The gate as a surface
 
 Run the gate is drawn on the project surface, and block E's third criterion is that the
@@ -307,6 +283,29 @@ could still press.
 nobody can derive and a rule that drops the batch a slow reader is about to use; the
 per-root rule answers the same question with a fact about the screen rather than a guess
 about the pace.
+
+### §RG182 The duplicate read, beside the symptom
+
+The read before an `add` is `delivered <block> --near "<the sentence about to be
+filed>"`: it ranks that block's nearest deliveries against the proposal, which is the
+duplicate question asked before an id is spent. The window's form asks it of nobody. A
+person filing from the terminal is told to run it; a person filing from the window is
+not told anything, and the id is spent either way.
+
+**It belongs beside the symptom, not behind a button.** The symptom is the field a
+duplicate collides with, so the read is the one the symptom itself triggers — asked when
+the draft settles, like `budget` already is, and drawn as the five lines it ranked.
+Nothing is refused by it and nothing could be: `delivered` publishes no score because no
+threshold separates a true duplicate from a stranger, so the answer is a list to read
+and the judgement stays with the person reading it.
+
+**Each line it ranks opens.** A duplicate is only recognised by reading the other line,
+so the ranked ids are routes to the task surface, and an open one and a delivered one
+are marked differently — `--open` ranks both corpora and says which is which.
+
+**The count is the block's, so the call needs a block.** Until one is typed there is
+nothing to rank against, and the panel says that rather than ranking the wrong block:
+the form's first field is what makes the read possible.
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
@@ -405,6 +404,29 @@ person reads the draft and publishes it.
 
 That publish is what RG154 needs to read the update check against a real release, and
 what SignPath's "already released" condition asks for.
+
+### §RG184 The byte no gate looks for
+
+Five NUL bytes sat inside a template literal in `packages/ui/src/useFiling.ts` — the
+separators of a key built from a draft's fields — and every gate passed: `tsc -b`
+compiled it, `oxlint` read it, `prettier --check` called it formatted, and the suite
+went green. It was found by `file` calling the source `data` instead of JavaScript,
+which is not a gate and nobody runs.
+
+**What the byte does is worse than being invisible.** It was a separator that worked, so
+nothing misbehaved; but the file cannot be grepped for the line it is in, an `Edit`
+against that text does not match, and a diff shows the change as a rewrite of a line
+that looks identical. A tool writing the file through a shell heredoc is how it arrived,
+and that is a path this project uses often.
+
+**The gate is the repository's own lint, over the files it owns.** No source file may
+carry a control character other than tab, carriage return and newline — a single pass
+over the tree, reported by path and byte offset, refusing rather than warning. It is
+cheap because it reads bytes and parses nothing.
+
+**Prose is bound by the same rule.** The governed files are prose a person reads, and an
+invisible byte in one of them survives every roadkeep read too, since none of them is
+looking for a character that is not there.
 
 ## Block H — The look (a design system for governed prose)
 
@@ -527,3 +549,27 @@ answer about a file the project governs, read and never computed.
 The pseudo-locale run cannot see this: a time is not a catalogue value, so nothing wraps
 it and nothing reports it bare. One test that draws a stamp under a locale and reads the
 string back is what would.
+
+### §RG183 The key nobody says
+
+RG125 compares the two locales and reports a key one declares and the other misses.
+Nothing compares either of them against the screens. A key declared in both and said by
+neither passes every gate: the pseudo-locale run walks the catalogue and asserts each
+key answers, which a dead key does, and the duplicate check reads the bundles alone.
+
+That is how `filing.id` and `filing.section` sat in both locales through a whole task
+with no screen saying them — the form was built without the id the engine names, and the
+catalogue already had the sentence for it. The cost is not the dead string: it is that
+the catalogue stops being the list of what the app says, so reading it tells you about
+screens that do not exist.
+
+**The read is the sources, and it is the same one the duplicate check already does.**
+Every key reaches a screen as a literal in `say('<key>')` or as a `Translate` call with
+the key spelled out, so a scan of `packages/ui/src` for that shape is the used set, and
+the catalogue less that set is the dead one. A key composed at runtime would be
+invisible to it — none is today, and a guard that refuses one is a guard that keeps it
+that way.
+
+**It belongs with the locale comparison, failing the same run.** A second command is a
+second thing to remember; the existing wording test already owns the question of what
+the catalogue holds.

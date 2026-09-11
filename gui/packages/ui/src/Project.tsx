@@ -12,10 +12,10 @@ import {
 } from '@rk/core'
 import { Button } from '@viglet/viglet-design-system'
 import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-system/bento'
-import { useCallback, useState, type ReactNode } from 'react'
+import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
-import { HOME_ROUTE, taskPath } from './areas'
+import { filePath, HOME_ROUTE, taskPath } from './areas'
 import { Glyph, Pill } from './marks'
 import { ChangelogTab, DecisionsTab, DeferredTab, ImprovementsTab } from './ProjectTabs'
 import { useProject, type OpenedSurface } from './useProject'
@@ -38,8 +38,8 @@ import { useWording } from './wording'
  * carrying the working marker says, beside it, whether anybody holds it (RG74): the marker
  * and the claim are two facts, and where they disagree that is drawn and not resolved.
  *
- * Absent rather than disabled: Run the gate and File a line, which are RG152's and RG151's.
- * Open on a row leads to the line as brief joins it (RG150). The other governed files are tabs
+ * Absent rather than disabled: Run the gate, which is RG152's. Open on a row leads to the
+ * line as brief joins it (RG150), and File a line composes one (RG151). The other governed files are tabs
  * of their own (RG149), and a role this window does not read is a tab drawn disabled rather
  * than left out.
  */
@@ -430,6 +430,20 @@ export function Project() {
     )
   }
 
+  // Offered only once the project opened: a form composing a write against a project that
+  // did not open is a command nothing could run (RG151). Built once per answer, so the hero
+  // is not redrawn for an element that did not change.
+  const opened = view.kind === 'open'
+  const filing = useMemo(
+    () =>
+      opened ? (
+        <Button asChild size="sm">
+          <Link to={filePath(root)}>{say('filing.title')}</Link>
+        </Button>
+      ) : undefined,
+    [opened, root, say],
+  )
+
   return (
     <>
       <BentoHero
@@ -437,6 +451,7 @@ export function Project() {
         backLabel={say('project.back')}
         title={folderName(root)}
         subtitle={subtitle}
+        trailing={filing}
       />
       {view.kind === 'open' ? <Opened surface={view} filter={filter} onFilter={setFilter} /> : null}
     </>
