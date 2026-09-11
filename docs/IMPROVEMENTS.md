@@ -79,9 +79,36 @@ already written, not authorship.
 
 ## Block C — Query
 
+### §RK1677 A pause's age, in the payload
+
+`list --role deferred --stale` computes how long each pause has stood — commits over the
+governed files, oldest first, with the reason beside it — and prints it on stderr for a
+terminal. A `--json` caller gets the store in file order and no age, so a client that
+refuses to scrape prose (roadkeep-gui's RG28) has nothing to draw.
+
+**The fix.** The age and the reason ride on each pause in the JSON payload, additively,
+and the payload says which order the tasks come in when `--stale` orders them. The order
+is not a verdict: no threshold and no "too old". Tests hold the age in `--json`, the
+order under `--stale`, and the payload without `--stale` unchanged.
+
 ## Block D — The gate
 
 ## Block E — Adoption
+
+### §RK1678 A named engine is not a candidate
+
+The launcher `install` writes resolves an engine in order — `ROADKEEP_HOME`, a vendored
+`.roadkeep/`, the sibling `../roadkeep`, a clone under the user cache — and takes the
+first that answers a probe. A checkout mid-save does not answer, so resolution falls
+through: on one machine three commands were served by `0.2.4` out of
+`~/.cache/roadkeep-src` while the sibling stood at `0.2.450`, and `ROADKEEP_HOME` did
+not help because the same probe drops it.
+
+**The fix.** An engine the caller named — `ROADKEEP_HOME`, and any other explicit
+declaration the launcher honours — is fatal when its probe fails: a non-zero exit naming
+the engine, the path and why the probe failed. Unnamed candidates keep their
+fall-through. Tests hold the named-fatal path, and `install` writes the new launcher
+(roadkeep-gui's RG128 waits on it).
 
 ## Block F — The plugin
 
