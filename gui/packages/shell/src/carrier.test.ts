@@ -692,3 +692,77 @@ describe('RG180: saying the walk behind the record landed', () => {
     expect(told).toEqual([])
   })
 })
+
+describe('RG187: how many projects gate at once', () => {
+  const TWO = '/work/gamma'
+  const report = JSON.stringify({
+    root: A,
+    clean: true,
+    checked: ['docs/ROADMAP.md'],
+    lines: 4,
+    sections: 2,
+    problems: 0,
+    codes: {},
+    findings: [],
+    notes: [],
+  })
+
+  /** A machine whose `lint` waits to be let go, so what is in flight can be counted. */
+  function slowGates(over: Partial<CarrierOptions> = {}) {
+    let running = 0
+    let most = 0
+    const waiting: (() => void)[] = []
+    const machine: Transport = {
+      async run(request) {
+        const verb = request.argv[2] ?? ''
+        if (verb !== 'lint') {
+          const said = SAID[verb]
+          if (said === undefined) throw new EngineCallFailed('unspawnable', 'no', 1)
+          return { code: 0, stdout: said, stderr: '', durationMs: 1 }
+        }
+        running += 1
+        most = Math.max(most, running)
+        await new Promise<void>((go) => waiting.push(go))
+        running -= 1
+        return { code: 0, stdout: report, stderr: '', durationMs: 1 }
+      },
+    }
+    // Two projects a launch would open together, both present: what is counted is how many
+    // gates run at once across them.
+    const both: ProjectCatalogue = {
+      version: 1,
+      roots: FOUND.roots,
+      projects: [recorded(A, 'present'), recorded(TWO, 'present')],
+    }
+    const carrier = createCarrier({
+      looking: () => ({ roots: both.roots, skip: [], width: 2 }),
+      rescan: () => Promise.resolve({ catalogue: both, changes: [] }),
+      open: (root) => openProject(root, [['python', '/x/launch.py']], () => machine),
+      ...over,
+    })
+    return { carrier, letGo: () => waiting.splice(0).forEach((go) => go()), most: () => most }
+  }
+
+  const settle = () => new Promise((done) => setTimeout(done, 20))
+
+  it('runs one at a time by default, whatever a launch opens together', async () => {
+    const { carrier, most, letGo } = slowGates()
+
+    // Both projects opened at once, which is what a cold start does.
+    await Promise.all([carrier.open(A), carrier.open(TWO)])
+    await settle()
+
+    expect(most()).toBe(1)
+    letGo()
+  })
+
+  it('takes the width it was given, so a machine with room can be told so', async () => {
+    const { carrier, most, letGo } = slowGates({ gatesAtOnce: 2 })
+
+    await Promise.all([carrier.open(A), carrier.open(TWO)])
+    await settle()
+
+    expect(most()).toBeGreaterThan(1)
+    letGo()
+  })
+})

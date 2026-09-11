@@ -1,6 +1,7 @@
 import {
   bridgedRun,
   createGateLedger,
+  createLimiter,
   createWatching,
   EMPTY_CATALOGUE,
   buildArgv,
@@ -93,6 +94,12 @@ export interface CarrierOptions {
    * and `gates` answers it.
    */
   readonly onGate?: (gate: ProjectGate) => void
+  /**
+   * How many projects may be gated at once (RG187). One by default: a cold start opens every
+   * project the walk found, and the gate is the most expensive read there is, so a launch
+   * spends one engine on verdicts and the rest on what the reader is looking at.
+   */
+  readonly gatesAtOnce?: number
   /**
    * Told when a walk behind the record changed something (RG180) — never when it found
    * exactly what the record held, since a window that redrew on every walk would redraw on
@@ -327,6 +334,9 @@ export function createCarrier(options: CarrierOptions): Carrier {
    * row draws.
    */
   const gating = new Set<string>()
+  // Across projects, not within one: each project's own pool bounds what it runs at once,
+  // and what was unbounded is how many projects run a gate together (RG187).
+  const gateLimit = createLimiter(options.gatesAtOnce ?? 1)
   const gateIfStale = async (root: string, project: OpenProject): Promise<void> => {
     const key = rootKey(root)
     // One at a time per project: two runs against one tree answer the same thing twice.
@@ -335,7 +345,9 @@ export function createCarrier(options: CarrierOptions): Carrier {
 
     gating.add(key)
     try {
-      const ran = await project.transport.run({ root, argv: buildArgv(root, 'lint', {}) })
+      const ran = await gateLimit.hold(() =>
+        project.transport.run({ root, argv: buildArgv(root, 'lint', {}) }),
+      )
       const read = readLintPayload(JSON.parse(ran.stdout), '')
       if (!read.ok) return
       // Stamped after the run, like every other verdict: a file written while the gate ran

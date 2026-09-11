@@ -76,28 +76,6 @@ renderer. The "a grouped palette" dep is that change in the design system: a sec
 group whose items the product supplies per query. Choosing a line waits on RG150's task
 detail.
 
-### §RG187 Bounding the gate runs a launch starts
-
-RG166 gates a project when the carrier opens it, which is right for one project and is
-the whole list at a cold start: the portfolio opens every project it found, and the
-ledger is in memory, so on the first launch every one of them is stale and every one of
-them is linted. Seventeen projects is seventeen of the most expensive read there is,
-started within a second of each other, while `coldStart` is still asking each for its
-counts and its next line.
-
-**`coldStart`'s bound does not reach them.** Each project's own pool bounds what that
-project runs at once, so nothing is overrun; what is unbounded is the number of projects
-doing it, and that is the figure RG17 was built to bound for the reads a row is made of.
-
-**The gate is not a read a row waits for**, which is why this is a cost and not a
-defect: the column says `unknown` until a verdict lands, the rows fill from their own
-reads, and a gate that finishes in a minute is a column that fills in a minute. What it
-costs is the machine — seventeen engines each running a full parse of a governed tree.
-
-**A limiter over the gate runs is the shape.** `createLimiter` bounds work across
-projects and `coldStart` uses one; the gate wants its own, narrower, so a launch spends
-one engine on verdicts and the rest on what the reader is looking at.
-
 ## Block D — The project surface (one backlog, read)
 
 ### §RG170 Readiness off the listing
