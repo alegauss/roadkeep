@@ -15,13 +15,22 @@ import {
   translator,
   type Wording,
   wordingFor,
+  bridgedRun,
+  EngineCallFailed,
+  openedFrom,
+  openProject,
+  readBriefPayload,
+  type SessionRecord,
+  type Transport,
+  composeWrite,
 } from '@rk/core'
 import { vigDesignSystemTranslations } from '@viglet/viglet-design-system'
-import { fireEvent, screen } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import i18next from 'i18next'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { AREA_WORDING } from './areas'
+import { ROUTED } from './routes'
 import { drawWindow } from './harness'
 import { choicesAtLaunch } from './launch'
 import { startSpeaking } from './speaking'
@@ -381,4 +390,318 @@ describe('RG86: the locale this build ships', () => {
 
     expect(screen.getByText(BASE['portfolio.footnote'])).toBeTruthy()
   })
+})
+
+/**
+ * RG176: the same run, over every surface a reader can route to.
+ *
+ * Derived from the route table rather than listed, so a surface added to `ROUTED` is one this
+ * reads without anybody remembering to add it here. One render per surface and not per state:
+ * a state a person cannot reach without a refusal is one this would have to arrange, and
+ * chasing those would be a second copy of the screens' own tests.
+ *
+ * The engine answers by verb the way each screen's own test builds one. Everything it feeds
+ * through is prose the project owns — a symptom, an id, a path — and those are named in
+ * `DATA`, because what this run is about is the strings this app typed, not the ones a
+ * project wrote.
+ */
+const SURFACE_ROOT = 'D:\\code\\alpha'
+const SURFACE_ID = 'AL1'
+const SURFACE_KEY = 'alpha-AL1-1'
+
+/** Every string the fixture below puts on a screen: the project's words, never this app's. */
+const DATA = new Set([
+  SURFACE_ROOT,
+  SURFACE_ID,
+  SURFACE_KEY,
+  'alpha',
+  'A',
+  'the first line is ready',
+  'Nothing holds it.',
+  'ready',
+  '📋',
+  'docs/ROADMAP.md',
+  'docs/IMPROVEMENTS.md',
+  // The governed roles, drawn as the project's own config spells them (RG149) — a role is
+  // that project's word for one of its files, like a marker, and not a sentence.
+  'roadmap',
+  'python launch.py',
+  '0.2.400',
+  '/e',
+  'The design, as the file keeps it.',
+  'No Markdown parsed in this app',
+  'A reader that parses is a second one.',
+  'Every number is one a verb printed',
+  'claude',
+  '2.0.0',
+  'claude 2.0.0',
+  'ref.unresolved',
+  'docs/ROADMAP.md:7',
+  'points at §AL1, which is not there',
+  'section add AL1 --title …',
+  'writes the section the line points at',
+  // The command the filing screen draws before it runs (RG151): an argv this app composed
+  // from the write table, which is a thing to run and not a sentence to translate — derived
+  // here rather than typed, so it is the same string the screen builds.
+  composeWrite(SURFACE_ROOT, 'add', { block: '', symptom: '', why: '' }).argv.join(' '),
+])
+
+const asJson = (value: unknown) => JSON.stringify(value)
+
+const SURFACE_LINE = {
+  id: SURFACE_ID,
+  status: '📋',
+  block: 'A',
+  symptom: 'the first line is ready',
+  why: 'Nothing holds it.',
+  deps: [] as string[],
+  ref: SURFACE_ID,
+  line: 7,
+  length: 90,
+}
+
+const SURFACE_SECTION = {
+  anchor: SURFACE_ID,
+  title: 'The design, as the file keeps it.',
+  level: 3,
+  file: 'docs/IMPROVEMENTS.md',
+  first: 1,
+  last: 4,
+  words: 9,
+  own_words: 9,
+  body: 'The design, as the file keeps it.',
+}
+
+/** What each verb answers, for a window drawing every surface at once. */
+function surfaceAnswer(argv: readonly string[]): string | undefined {
+  switch (argv[2] ?? '') {
+    case 'engines':
+      return asJson({
+        writing: { version: '0.2.400', home: '/e', revision: 'abc', on_disk: '0.2.400' },
+        invoke: 'python launch.py',
+        declaration: '',
+        verdict: 'agreed',
+        agree: true,
+        readable: true,
+        split: false,
+        swapped: false,
+      })
+    case 'config':
+      return asJson({
+        version: '0.2.400',
+        source: 'roadkeep.toml',
+        keys: [
+          {
+            table: 'files',
+            key: 'roadmap',
+            address: 'files.roadmap',
+            declared: true,
+            set: '"docs/ROADMAP.md"',
+            default: null,
+          },
+        ],
+      })
+    case 'commands':
+      return asJson({ version: '0.2.400', source: null, commands: [] })
+    case 'stats':
+      return asJson({
+        file: 'docs/ROADMAP.md',
+        total: 1,
+        uncounted: 0,
+        markers: {},
+        startable: { open: 1, startable: 1, waiting: 0, absent: [] },
+        blocks: [],
+      })
+    case 'block':
+      return asJson({ file: 'docs/ROADMAP.md', blocks: [] })
+    case 'list':
+      return asJson({ file: 'docs/ROADMAP.md', total: 1, uncounted: [], tasks: [SURFACE_LINE] })
+    case 'deps':
+      return asJson({ id: SURFACE_ID, readiness: 'ready', blockers: [] })
+    case 'pick':
+      return asJson({ pick: null, tier: '', reason: '', ready: 1, blocked: 0 })
+    case 'reversals':
+      return asJson({ root: SURFACE_ROOT, asked: null, reversed: [] })
+    case 'claims':
+      return asJson({ file: 'docs/ROADMAP.md', held: [], expired: [], stale: [] })
+    case 'section':
+      return asJson(SURFACE_SECTION)
+    case 'non-goal':
+      return asJson({
+        file: 'docs/ROADMAP.md',
+        governed: true,
+        non_goals: ['No Markdown parsed in this app'],
+        non_goals_elided: 0,
+        non_goals_quoted: {},
+        non_goals_why: {
+          'No Markdown parsed in this app': 'A reader that parses is a second one.',
+        },
+      })
+    case 'budget':
+      return asJson({
+        id: SURFACE_ID,
+        status: '📋',
+        deps: [],
+        open_line: true,
+        line_max: 320,
+        structure: 41,
+        ref: SURFACE_ID,
+        ref_assumed: true,
+        prose: 279,
+        fields: [],
+        section: {
+          anchor: SURFACE_ID,
+          role: 'improvements',
+          written: false,
+          unit: 'words',
+          limit: 250,
+          taken: 0,
+          over: 0,
+        },
+      })
+    case 'lint':
+      return asJson({
+        root: SURFACE_ROOT,
+        clean: false,
+        checked: ['docs/ROADMAP.md'],
+        lines: 1,
+        sections: 1,
+        problems: 1,
+        codes: {},
+        findings: [
+          {
+            code: 'ref.unresolved',
+            file: 'docs/ROADMAP.md',
+            line: 7,
+            column: null,
+            id: SURFACE_ID,
+            message: 'points at §AL1, which is not there',
+            remedy: {
+              kind: 'compose',
+              decision: '',
+              sequence: false,
+              awaits: '',
+              doors: [
+                {
+                  argv: ['section', 'add', SURFACE_ID, '--title', '…'],
+                  what: 'writes the section the line points at',
+                  complete: false,
+                  writes: true,
+                },
+              ],
+            },
+          },
+        ],
+        notes: [],
+      })
+    case 'brief':
+      return asJson({
+        ...SURFACE_LINE,
+        rendered: 'the first line is ready',
+        readiness: 'ready',
+        picked: null,
+        deps_resolved: [],
+        chains: [],
+        unblocks: null,
+        non_goals: ['No Markdown parsed in this app'],
+        non_goals_elided: 0,
+        quotes: [],
+        done_when: ['Every number is one a verb printed'],
+        done_when_elided: 0,
+        done_when_own: [],
+        done_when_own_elided: 0,
+        done_when_folded: {},
+        held: [],
+        landed: [],
+        budget: null,
+        claimed: null,
+        section: SURFACE_SECTION,
+        section_absence: '',
+      })
+    default:
+      return undefined
+  }
+}
+
+/** One session this window started, so the two session surfaces have something to draw. */
+function surfaceSession(): SessionRecord {
+  const brief = surfaceAnswer(['-C', SURFACE_ROOT, 'brief']) ?? '{}'
+  const read = readBriefPayload(JSON.parse(brief), '')
+  if (!read.ok) throw new Error('the brief fixture does not match the shape')
+  return {
+    key: SURFACE_KEY,
+    root: SURFACE_ROOT,
+    id: SURFACE_ID,
+    handed: read.value,
+    agent: { command: ['claude'], version: '2.0.0', said: 'claude 2.0.0' },
+    lines: [],
+    outcome: null,
+  }
+}
+
+/** Each route with its parameters filled in, which is where a reader can actually be. */
+function everyRoute(): string[] {
+  return ROUTED.map((path) =>
+    path
+      .replace(':root', encodeURIComponent(SURFACE_ROOT))
+      .replace(':id', SURFACE_ID)
+      .replace(':key', SURFACE_KEY),
+  )
+}
+
+describe('RG176: every surface a reader can route to, under the pseudo-locale', () => {
+  it('wraps every sentence on each of them, leaving only what the project wrote bare', async () => {
+    const transport: Transport = {
+      run(request) {
+        const answered = surfaceAnswer(request.argv)
+        if (answered === undefined) {
+          return Promise.reject(new EngineCallFailed('unspawnable', 'no', 1))
+        }
+        return Promise.resolve({ code: 0, stdout: answered, stderr: '', durationMs: 1 })
+      },
+    }
+    const opened = openedFrom(
+      await openProject(SURFACE_ROOT, [['python', 'launch.py']], () => transport),
+    )
+    const sessions = [surfaceSession()]
+    const bareHere = (found: readonly string[]) => found.filter((text) => !DATA.has(text))
+
+    for (const route of everyRoute()) {
+      withBridge({
+        projects: () =>
+          Promise.resolve({
+            version: 1,
+            roots: [{ path: 'D:\\code', depth: 1 }],
+            projects: [
+              {
+                path: SURFACE_ROOT,
+                aliases: [],
+                commonDir: null,
+                root: 'D:\\code',
+                confirmed: '',
+                presence: 'present' as const,
+              },
+            ],
+          }),
+        open: () => Promise.resolve(opened),
+        run: (root, request) => bridgedRun(() => transport.run({ ...request, root })),
+        subscribe: () => () => undefined,
+        gates: () => Promise.resolve([]),
+        sessions: () => Promise.resolve(sessions),
+        governedAt: () => Promise.resolve([]),
+      })
+      await choicesAtLaunch()
+      const drawn = drawWindow({ over: pseudo(), at: route })
+      // Waited on rather than rendered and read at once: what this is about is the screen
+      // filled in from its reads, and its first frame has none of them.
+      await waitFor(() => {
+        expect({ route, bare: bareHere(bareText()), names: bareHere(bareNames()) }).toEqual({
+          route,
+          bare: [],
+          names: [],
+        })
+      })
+      drawn.unmount()
+    }
+  }, 30000)
 })

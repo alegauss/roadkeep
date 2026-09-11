@@ -395,28 +395,6 @@ digest is then required to carry that set.
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
 
-### §RG176 Every surface under the pseudo-locale
-
-RG51's run opens the window with no project on it, opens the shortcuts sheet and the
-palette, and reads every leaf of the document and every name a screen reader would say.
-Three surfaces have arrived since and none of them is in it: a project's backlog, a
-line, and the session a line was handed to — about a hundred keys between them. A string
-typed into any of those three passes the one run written to catch it, and the guard's
-own claim, that nothing on the screen was typed into a component, is now about one
-screen out of four.
-
-**Draw every surface at its own route, in the same pseudo-locale window.** The harness
-already takes a route and those screens' own tests already stub a bridge that opens a
-project and answers a brief; what this needs is that bridge beside this run and one
-render per surface, each asked the same two questions — nothing bare in the text,
-nothing bare in the names.
-
-**One render per surface, not per state.** A state a person cannot reach without a
-refusal is one this run would have to arrange, and chasing them would be a second suite
-of the screens' own tests. What it holds is that every surface a reader can route to has
-been read once, which is the claim RG51 makes and the one that quietly stopped being
-true.
-
 ### §RG177 A time in the window's language
 
 The session's file stamps are the first times this app draws. Each crosses as ISO-8601,
