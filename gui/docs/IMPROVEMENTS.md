@@ -183,27 +183,6 @@ The order is not a verdict, and drawing it must not make it one. How long a paus
 stand is a judgement about work — the same one `[claims] held` refuses to make — so the
 oldest is first and what that means is the reader's.
 
-### §RG149 The four other files, as tabs
-
-The project surface draws five role tabs and the roadmap is the one behind them. The
-other four already have readers: `ledgerFrom` and `reversedFrom` for the changelog and
-decisions under RG27, `storeFrom` and `whereaboutsOf` for the deferred store under RG28,
-and the design sections for improvements.
-
-**Each tab is the same row, read from its own file.** A changelog entry is the shipped
-line and what it delivered, grouped by block; a decision is its heading and body, with
-what revised or superseded it; a deferred line keeps its id, deps and the reason it was
-set aside, with Resume as the door once the write path exists. Improvements lists the
-sections of open lines, each linking to its task, since a section is read in the task
-and not here.
-
-**The prose is the file's.** A decision body is drawn in the text face with its wrapping
-kept, which is block H's criterion and the non-goal about Markdown both, and the same
-component the task detail uses for a design section.
-
-The deferred tab orders by file until RG28's payload says how long each pause stood; it
-does not invent an order.
-
 ### §RG150 The task, as brief joins it
 
 `Tarefa.dc.html` is one `brief`: block D's first criterion is that the screen is one
@@ -248,6 +227,26 @@ the one that disagrees with the engine without anyone noticing.
 
 Until then the per-line reads stay. They are correct, just slow on a long list, and a
 project that large can narrow by block first.
+
+### §RG171 A design named by its heading
+
+RG149's improvements tab lists the open lines that carry a design, each as its symptom
+and its `§` pointer. The design asked for the sections themselves, and a section's
+heading is the name its author gave the design, which neither the symptom nor the
+pointer is. A reader looking for a design by what it is called has to know its id first.
+
+The heading is one `section show` away, now that RG149 added the verb, but `list` does
+not carry it. So drawing one per row is a read per designed line, which is the same cost
+RG170 files against readiness.
+
+**Asked when the tab opens, bounded by the carrier's pool.** Each designed row asks
+`section show <ref>` with `--role improvements` and draws the title when it lands. Until
+then it shows the pointer, as it does today, so the tab is never blank while it reads.
+The body is not asked for, since a design is read in its task and not here, and a tab
+that held every body would be the whole file this app exists not to reproduce.
+
+If RG170's listing grows the heading as well as the readiness, this becomes a field read
+off the list, and the per-row reads go with it.
 
 ## Block E — The write path (the app composes an argv; the command writes)
 

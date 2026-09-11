@@ -72,6 +72,25 @@ const LINES = [
   },
 ]
 
+/** A line in one of the other governed files, shaped as `list` prints it. */
+function filed(id: string, status: string, block: string, symptom: string, why: string) {
+  return { id, status, block, symptom, why, deps: [] as string[], ref: null, line: 3, length: 80 }
+}
+
+/** What `list` answers for each role the roadmap is not. */
+const FILED: Record<string, ReturnType<typeof filed>[]> = {
+  changelog: [filed('AL0', '✅', 'A', 'the first thing shipped', 'It works now.')],
+  decisions: [
+    filed('AL9', '✅', 'A', 'a decision was needed', 'The constraint that outlives the work.'),
+  ],
+  deferred: [
+    {
+      ...filed('AL5', '⏸', 'B', 'this was set aside', 'set aside (waiting): later.'),
+      deps: ['AL1'],
+    },
+  ],
+}
+
 /** What each verb answers, by the verb's first word, and the id where a verb takes one. */
 function answer(argv: readonly string[]): string | undefined {
   const verb = argv[2] ?? ''
@@ -97,6 +116,9 @@ function answer(argv: readonly string[]): string | undefined {
         keys: [
           key('files', 'roadmap', '"docs/ROADMAP.md"'),
           key('files', 'changelog', '"docs/CHANGELOG.md"'),
+          key('files', 'decisions', '"docs/DECISIONS.md"'),
+          key('files', 'deferred', '"docs/DEFERRED.md"'),
+          key('files', 'improvements', '"docs/IMPROVEMENTS.md"'),
           key('markers', 'open', '["📋", "💭", "⏳", "🛠"]'),
           key('markers', 'working', null, '"🛠"'),
           key('requirements', 'declared', '["signing-cert"]'),
@@ -146,13 +168,37 @@ function answer(argv: readonly string[]): string | undefined {
           },
         ],
       })
-    case 'list':
+    case 'list': {
+      const role = argv.includes('--stale') ? 'deferred' : (argv[argv.indexOf('--role') + 1] ?? '')
+      const tasks =
+        argv.includes('--role') || argv.includes('--stale') ? (FILED[role] ?? []) : LINES
       return JSON.stringify({
         file: 'docs/ROADMAP.md',
-        total: 3,
+        total: tasks.length,
         uncounted: [],
-        tasks: LINES.filter((line) => narrowedTo === null || line.block === narrowedTo),
+        tasks: tasks.filter((line) => narrowedTo === null || line.block === narrowedTo),
       })
+    }
+    case 'reversals':
+      return JSON.stringify({
+        root: ROOT,
+        asked: null,
+        reversed: [{ undone: 'AL0', by: 'AL7', line: 9, why: 'It did not hold.' }],
+      })
+    case 'section':
+      return argv[4] === 'AL9'
+        ? JSON.stringify({
+            anchor: 'AL9',
+            title: 'Why the constraint',
+            level: 3,
+            file: 'docs/DECISIONS.md',
+            first: 1,
+            last: 4,
+            words: 9,
+            own_words: 9,
+            body: 'The reasoning,\nwrapped as the file keeps it.',
+          })
+        : undefined
     case 'deps':
       return JSON.stringify(
         id === 'AL2'
@@ -294,5 +340,63 @@ describe('RG148: one backlog, as rows', () => {
 
     expect(blocks.getByText('The model')).toBeTruthy()
     expect(blocks.getByText(BASE['project.block.finished'])).toBeTruthy()
+  })
+})
+
+describe('RG149: the other governed files, as tabs', () => {
+  async function onTab(role: string): Promise<void> {
+    await atProject()
+    const tabs = within(await screen.findByRole('tablist', { name: BASE['project.roles'] }))
+    fireEvent.click(tabs.getByRole('tab', { name: role }))
+  }
+
+  it('opens on the roadmap, the one tab selected', async () => {
+    await atProject()
+
+    const tabs = within(await screen.findByRole('tablist', { name: BASE['project.roles'] }))
+    expect(tabs.getByRole('tab', { name: 'roadmap' }).getAttribute('aria-selected')).toBe('true')
+    expect(tabs.getByRole('tab', { name: 'changelog' }).getAttribute('aria-selected')).toBe('false')
+  })
+
+  it('reads the changelog, and marks an entry the ledger later undid', async () => {
+    await onTab('changelog')
+
+    const entry = await screen.findByText('the first thing shipped')
+    const row = entry.closest('li')
+    expect(row).not.toBeNull()
+    await waitFor(() => {
+      expect(
+        within(row as HTMLElement).getByText(fill(BASE['project.undone'], { by: 'AL7' })),
+      ).toBeTruthy()
+    })
+  })
+
+  it('reads the decisions, and a decision reasoning only when somebody opens it', async () => {
+    await onTab('decisions')
+
+    expect(await screen.findByText('The constraint that outlives the work.')).toBeTruthy()
+    const reasoning = screen.getByText(BASE['project.decision.reasoning']).closest('details')
+    if (reasoning === null) throw new Error('no disclosure')
+    reasoning.open = true
+    fireEvent(reasoning, new Event('toggle'))
+
+    // The body as the file keeps it: its line break is still there, drawn and not reflowed.
+    const body = await screen.findByText(/The reasoning,/)
+    expect(body.textContent).toBe('The reasoning,\nwrapped as the file keeps it.')
+  })
+
+  it('reads the deferred store as the file has it, deps and all', async () => {
+    await onTab('deferred')
+
+    expect(await screen.findByText('this was set aside')).toBeTruthy()
+    expect(screen.getByText('AL1')).toBeTruthy()
+  })
+
+  it('lists the open lines with a design written, and no other', async () => {
+    await onTab('improvements')
+
+    await waitFor(() => {
+      expect(screen.getAllByTestId('entry').map((one) => one.dataset['id'])).toEqual(['AL1', 'AL3'])
+    })
   })
 })

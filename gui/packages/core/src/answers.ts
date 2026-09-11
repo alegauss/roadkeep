@@ -13,6 +13,7 @@ import {
   readNonGoalsPayload,
   readPickPayload,
   readReversalsPayload,
+  readSection,
   readShowPayload,
   readStatsPayload,
   type BlockListPayload,
@@ -26,6 +27,7 @@ import {
   type ListPayload,
   type NonGoalsPayload,
   type PickPayload,
+  type RationaleSection,
   type ReversalsPayload,
   type ShowPayload,
   type StatsPayload,
@@ -73,6 +75,7 @@ export interface VerbAnswers {
   config: ConfigPayload
   pick: PickPayload
   blockList: BlockListPayload
+  sectionShow: RationaleSection
 }
 
 export const ANSWERS: { [K in VerbName]: Reader<VerbAnswers[K]> } = {
@@ -93,4 +96,5 @@ export const ANSWERS: { [K in VerbName]: Reader<VerbAnswers[K]> } = {
   config: readConfigPayload,
   pick: readPickPayload,
   blockList: readBlockListPayload,
+  sectionShow: readSection,
 }

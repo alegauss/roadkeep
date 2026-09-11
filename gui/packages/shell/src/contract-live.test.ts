@@ -217,6 +217,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
         'nonGoalList',
         'pick',
         'reversals',
+        'sectionShow',
         'show',
         'stats',
       ].sort(),
@@ -396,6 +397,16 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect(listed.blocks[0]?.title).toBe('The model')
     expect(typeof listed.blocks[0]?.open).toBe('number')
     expect(listed.blocks[0]?.state).not.toBe('')
+  })
+
+  it('RG149: reads one section by its anchor, heading and body as the file keeps them', async () => {
+    // A design the fixture filed with its line, read on its own rather than through `brief`:
+    // the decisions role keeps sections no brief joins, and this is the read that reaches them.
+    const section = await readVerb('sectionShow', { anchor: firstOpen })
+
+    expect(section.anchor).toBe(firstOpen)
+    expect(section.title).toContain('needs answering')
+    expect(section.body ?? '').not.toBe('')
   })
 
   it('reads an address with no list, and the door that opens one', async () => {

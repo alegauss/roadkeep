@@ -135,6 +135,15 @@ export interface VerbInputs {
    * read a block chip is drawn from (RG148). `stats` counts per block and names none.
    */
   blockList: Record<string, never>
+  /**
+   * One section by its anchor, in whichever prose file the role names — a decision's
+   * reasoning, a design's heading (RG149). The decisions role keeps its own sections, which
+   * `brief` never joins because they outlive the line that wrote them.
+   */
+  sectionShow: {
+    anchor: string
+    role?: string
+  }
 }
 
 export type VerbName = keyof VerbInputs
@@ -161,6 +170,7 @@ export const VERB_WORDS: Spelling = {
   nonGoalList: ['non-goal', 'list'],
   criterionList: ['criterion', 'list'],
   blockList: ['block', 'list'],
+  sectionShow: ['section', 'show'],
 }
 
 /**
@@ -246,6 +256,7 @@ export const VERBS: { [K in VerbName]: ArgvFor<K> } = {
     ...repeated('--have', input.have),
   ],
   blockList: () => [],
+  sectionShow: (input) => [input.anchor, ...optional('--role', input.role)],
 }
 
 /**
@@ -291,4 +302,5 @@ export const EVERY_INPUT: { [K in VerbName]: VerbInputs[K] } = {
   config: {},
   pick: { block: 'A', designed: true, have: ['signing-cert'] },
   blockList: {},
+  sectionShow: { anchor: 'RG1', role: 'decisions' },
 }

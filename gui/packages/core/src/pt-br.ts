@@ -70,7 +70,6 @@ export const PT_BR: Wording = {
     'Cada número nesta tela foi impresso por um verbo. Nada é somado entre projetos.',
 
   'project.back': 'Portfólio',
-  'project.open': 'Abrir {name}',
   'project.counts':
     '{open} abertas · {startable} prontas para começar · {waiting} esperando um requisito · {uncounted} não contadas',
   'project.opening': 'Abrindo o projeto.',
@@ -93,6 +92,16 @@ export const PT_BR: Wording = {
   'project.unheld': 'marcada, sem dono',
   'project.unheld.why': 'o marcador diz iniciada; o registro de claims não nomeia ninguém',
   'project.held': 'com {by}',
+  'project.tab.unread': 'Este arquivo é governado e esta janela ainda não o lê.',
+  'project.changelog.none': 'Nada foi entregue ainda.',
+  'project.undone': 'desfeita por {by}',
+  'project.decisions.none': 'Nenhuma decisão registrada ainda.',
+  'project.decision.reasoning': 'o raciocínio',
+  'project.decision.asking': 'Lendo a seção.',
+  'project.decision.bare': 'Esta decisão não guarda uma seção própria.',
+  'project.deferred.none': 'Nada foi posto de lado.',
+  'project.improvements.none': 'Nenhuma linha aberta tem design escrito ainda.',
+  'project.read.failed': 'Este arquivo não respondeu: {reason}',
 
   'roots.label': 'Raízes',
   'roots.add': 'Adicionar uma raiz',

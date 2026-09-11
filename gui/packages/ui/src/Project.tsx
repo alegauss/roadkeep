@@ -6,6 +6,7 @@ import {
   type BacklogFilter,
   type BlockStanding,
   type DepsPayload,
+  type OpenProject,
   type TaskLine,
   type Underway,
 } from '@rk/core'
@@ -16,6 +17,7 @@ import { useParams } from 'react-router-dom'
 
 import { HOME_ROUTE } from './areas'
 import { Glyph, Pill } from './marks'
+import { ChangelogTab, DecisionsTab, DeferredTab, ImprovementsTab } from './ProjectTabs'
 import { useProject, type OpenedSurface } from './useProject'
 import { useWording } from './wording'
 
@@ -37,7 +39,8 @@ import { useWording } from './wording'
  * and the claim are two facts, and where they disagree that is drawn and not resolved.
  *
  * Absent rather than disabled: Run the gate and File a line, which are RG152's and RG151's,
- * and Open on a row, which is RG150's. The role tabs are drawn, and only the roadmap is read.
+ * and Open on a row, which is RG150's. The other governed files are tabs of their own (RG149),
+ * and a role this window does not read is a tab drawn disabled rather than left out.
  */
 
 /**
@@ -187,8 +190,8 @@ function Line({
   )
 }
 
-/** The surface once the project opened: tabs, the three narrowings, and the rows. */
-function Opened({
+/** The roadmap tab: the three narrowings, and the rows `list` answered for them. */
+function Roadmap({
   surface,
   filter,
   onFilter,
@@ -224,23 +227,6 @@ function Opened({
 
   return (
     <>
-      <nav aria-label={say('project.roles')} className="flex flex-wrap gap-1 border-b">
-        {tabsOf(surface.choices.roles).map((role) => (
-          <span
-            key={role}
-            aria-current={role === 'roadmap' ? 'page' : undefined}
-            aria-disabled={role === 'roadmap' ? undefined : 'true'}
-            className={`-mb-px px-3 py-2 text-sm ${
-              role === 'roadmap'
-                ? 'border-primary border-b-2 font-semibold'
-                : 'text-muted-foreground'
-            }`}
-          >
-            {role}
-          </span>
-        ))}
-      </nav>
-
       <fieldset className="m-0 flex flex-wrap items-center gap-2 border-0 p-0">
         <legend className="sr-only">{say('project.blocks')}</legend>
         {surface.blocks.map((block) => (
@@ -310,6 +296,90 @@ function Opened({
             ))}
           </ul>
         </BentoPanel>
+      )}
+    </>
+  )
+}
+
+/** The governed roles this window reads, each with the tab that draws it. */
+const TABS: Readonly<Record<string, (props: { readonly project: OpenProject }) => ReactNode>> = {
+  changelog: ChangelogTab,
+  decisions: DecisionsTab,
+  deferred: DeferredTab,
+  improvements: ImprovementsTab,
+}
+
+function RoleTab({
+  role,
+  active,
+  readable,
+  onPick,
+}: {
+  readonly role: string
+  readonly active: boolean
+  readonly readable: boolean
+  readonly onPick: (role: string) => void
+}) {
+  const say = useWording()
+  const choose = useCallback(() => {
+    onPick(role)
+  }, [role, onPick])
+
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active ? 'true' : 'false'}
+      disabled={!readable}
+      title={readable ? undefined : say('project.tab.unread')}
+      onClick={choose}
+      className={`-mb-px px-3 py-2 text-sm disabled:opacity-50 ${
+        active ? 'border-primary border-b-2 font-semibold' : 'text-muted-foreground'
+      }`}
+    >
+      {role}
+    </button>
+  )
+}
+
+/** The surface once the project opened: a tab per governed file, the roadmap first. */
+function Opened({
+  surface,
+  filter,
+  onFilter,
+}: {
+  readonly surface: OpenedSurface
+  readonly filter: BacklogFilter
+  readonly onFilter: (next: BacklogFilter) => void
+}) {
+  const say = useWording()
+  const [role, setRole] = useState('roadmap')
+  const pick = useCallback((next: string) => {
+    setRole(next)
+  }, [])
+  const Tab = TABS[role]
+
+  return (
+    <>
+      <div
+        role="tablist"
+        aria-label={say('project.roles')}
+        className="flex flex-wrap gap-1 border-b"
+      >
+        {tabsOf(surface.choices.roles).map((one) => (
+          <RoleTab
+            key={one}
+            role={one}
+            active={one === role}
+            readable={one === 'roadmap' || Object.hasOwn(TABS, one)}
+            onPick={pick}
+          />
+        ))}
+      </div>
+      {role === 'roadmap' || Tab === undefined ? (
+        <Roadmap surface={surface} filter={filter} onFilter={onFilter} />
+      ) : (
+        <Tab project={surface.project} />
       )}
     </>
   )

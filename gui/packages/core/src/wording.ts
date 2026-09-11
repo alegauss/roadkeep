@@ -81,7 +81,6 @@ export const EN = {
     'Every number on this screen is one a verb printed. Nothing is summed across projects.',
 
   'project.back': 'Portfolio',
-  'project.open': 'Open {name}',
   'project.counts':
     '{open} open · {startable} startable · {waiting} waiting on a requirement · {uncounted} uncounted',
   'project.opening': 'Opening the project.',
@@ -103,6 +102,16 @@ export const EN = {
   'project.unheld': 'marked, unheld',
   'project.unheld.why': 'the marker says started; the claim registry names nobody',
   'project.held': 'held by {by}',
+  'project.tab.unread': 'This file is governed and this window does not read it yet.',
+  'project.changelog.none': 'Nothing has shipped yet.',
+  'project.undone': 'undone by {by}',
+  'project.decisions.none': 'No decision is recorded yet.',
+  'project.decision.reasoning': 'the reasoning',
+  'project.decision.asking': 'Reading the section.',
+  'project.decision.bare': 'This decision keeps no section of its own.',
+  'project.deferred.none': 'Nothing is set aside.',
+  'project.improvements.none': 'No open line has a design written yet.',
+  'project.read.failed': 'This file did not answer: {reason}',
 
   'roots.label': 'Roots',
   'roots.add': 'Add a root',
