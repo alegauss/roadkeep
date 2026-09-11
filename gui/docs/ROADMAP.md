@@ -5,6 +5,8 @@
 ## Block A — The client (payloads in, types out)
 
 - 📋 **RG179** (deps: —) **an amend that changes deps or requires reads as unreadable, though the file was already written** — AmendPayload.was is declared a map of strings and the engine answers a list for a list field, which RG159 met the first time anything sent the flag. → §RG179
+- 📋 **RG188** (deps: —) **a payload key spelled __proto__ is dropped by the dictionary reader, so a count vanishes and the read still answers ok** — The keys are a project's own markers and non-goal leads, and the sibling reader beside it has none of this. → §RG188
+- 📋 **RG189** (deps: —) **a cache entry refreshed against a new stamp keeps its old place, so eviction takes the entries being used most** — A Map set on a key it already holds does not move it, which is what the hit branch beside it deletes first to avoid. → §RG189
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
@@ -18,7 +20,7 @@
 
 ## Block D — The project surface (one backlog, read)
 
-- ⏳ **RG28** (deps: roadkeep RK1677) **the deferred store has no order, so which pause has stood longest is a question only a terminal can ask** — How long each pause has stood, which --stale orders by and prints for a terminal, putting none of it in the payload. → §RG28
+- ⏳ **RG28** (deps: —) **the --stale payload carries each pause's age and reason and the reader drops both, so the store draws in file order** — RK1677 shipped: since, reason and an oldest-first order are in the payload, and TaskLine declares none of the three. → §RG28
 - 📋 **RG170** (deps: roadkeep list with readiness) **list prints no readiness per line, so every row costs a deps read and startable only cannot be offered** — Readiness is the engine's word, and a list of eight hundred is eight hundred reads before the column is full. → §RG170
 - 📋 **RG171** (deps: —) **the improvements tab names each design by its pointer and not its heading, so two designs look alike until opened** — The heading is the name a design's author gave it, and list carries only the pointer, so the tab shows an id where it could say what the design is. → §RG171
 - 📋 **RG173** (deps: —) **a dep or a chain hop on the task screen is text, so reaching the line it names means going back through the project** — The brief says which ids are tasks here, and each already has a route that opens it as one read. → §RG173
@@ -28,12 +30,13 @@
 
 - 📋 **RG181** (deps: —) **the door keep holds every batch a session offered, since only a file moving drops one** — A window re-reading a failing gate adds a batch per read, and a project whose files sit still never drops any of them. → §RG181
 - 📋 **RG182** (deps: —) **the filing form asks nobody what the block already delivered, so the window spends an id the terminal would question** — The read before an add is delivered --near, and a line filed from a screen never gets it. → §RG182
-- 📋 **RG185** (deps: RG152 ✅) **the gate surface runs lint every time it opens, though the ledger already holds a verdict the files have not moved under** — needsGate answers whether a run would say anything new, and nothing asks it. → §RG185
+- 📋 **RG185** (deps: RG152 ✅) **the gate surface runs lint every time it opens, though the ledger already holds a verdict the files have not moved under** — The carrier asks needsGate before every run it starts, and the surface asks neither it nor the ledger. → §RG185
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
 - 📋 **RG175** (deps: —) **a line this window handed over is offered to a second session, since the claim it took names nobody** — The engine refuses the second claim, so nothing is taken twice, but the offer stands where the window already knows a session is running. → §RG175
 - 📋 **RG178** (deps: —) **the sessions list asks once when it opens, so one that ends while it stands still reads as running** — Every line and ending is published on the session topic already, but a subscription takes one key and a list wants every session, including one started after it asked. → §RG178
+- 📋 **RG190** (deps: —) **a handover landing after the reader left the task screen moves the window to the session anyway** — Every read on that screen gives its answer up on unmount, and the one callback that navigates does not. → §RG190
 
 ## Block G — The shell (an executable now, a service later)
 

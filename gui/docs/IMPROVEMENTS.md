@@ -24,6 +24,54 @@ wants one line can join what it draws.
 `was.deps` back. RG4 exists for exactly this — a shape that moved, or was never right —
 and the reason this one survived is that no case had ever sent the flag.
 
+### §RG188 The key an assignment swallows
+
+`dictionaryOf` accumulates into a plain `{}` with `built[key] = parsed.value`. A source
+key spelled `__proto__` does not become a property: the assignment reaches
+`Object.prototype`'s own accessor, which rejects a non-object silently, and the reader
+still answers `ok`. So the key is gone, the read says it succeeded, and nothing anywhere
+reports it.
+
+**The keys are the project's, not this app's.** `dictionaryOf` is used for `markers` on
+the stats and on each block, and for `non_goals_quoted` and `non_goals_why`, which are
+keyed by a project's own marker set and by the free prose of its non-goal leads. A
+backlog may declare whatever markers it likes, so nothing stops one of them from being
+that word.
+
+**What a reader sees is a number that does not add up.** The marker chips are drawn from
+`Object.entries(counts.markers)` beside the total the verb printed, so they stop summing
+to it — the one thing every count on that screen is supposed to be. Worse where a lead
+is read by key: `boundsFrom` takes `nonGoalsWhy[lead]`, which falls through to the
+inherited accessor and survives a `?? ''` guard as an object, so a screen draws `[object
+Object]`.
+
+**The fix is the one the file already uses.** `tableOf`, two functions above, builds
+with `Object.fromEntries` and has none of this. A null-prototype accumulator or
+`fromEntries` is a line's change, and the assertion that holds it is a payload with that
+key in it.
+
+### §RG189 The refresh eviction punishes
+
+The caching transport evicts by iteration order: the oldest key a `Map` holds goes
+first. A hit keeps that honest — it deletes the key and sets it again, with a comment
+saying why — and the path that writes a fresh answer does not. `entries.set(key, …)` on
+a key already present updates the value in place and leaves the key where it was, which
+is what `Map` guarantees and what the hit branch is written around.
+
+**So a refresh is punished for being one.** A project whose files moved has its entries
+re-run against the new stamp, and each keeps the position it had when first read — at
+the front, where eviction takes them. What survives is what nobody has asked for since,
+the opposite of least-recently-used and of what the comment above promises.
+
+**It is silent, and it costs a spawn.** Nothing reports an eviction; the answer is
+simply not there next time and the engine runs again. On the project being edited — the
+one somebody is working in — the hottest entries are the ones thrown away.
+
+**The fix is the line the hit branch already has.** Delete before setting, so a write
+moves the key to the end whether it is the first for that key or the fifth. What holds
+it is a test that fills the cache past its bound, refreshes an early key against a new
+stamp, and asks which key the next insertion evicted.
+
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 ### §RG169 A depth the window can move
@@ -128,13 +176,14 @@ sentence whole is recorded in `packages/core/src/pauses.ts`.
 What is left is the order. `--stale` computes it — how long each pause has stood, in
 commits over the governed files, oldest first, with the reason beside it — and prints it
 for a terminal, on stderr and never in the listing. A `--json` caller gets the store in
-file order and nothing else, so this app has no age to draw and does not pretend to one.
+the order the payload states, with a `since` and a `reason` per pause, and this side
+declares none of the three.
 
 There are two ways to reach it and only one is allowed. Reading `set aside 3 commit(s)
 ago:` back out of English is the prose-scraping this client refuses on every other verb,
 and a second implementation of a sentence roadkeep is free to reword. The other is for
 roadkeep to put `since` and the reason in the payload as it already holds them in
-`Standing` — filed as this line's dep, which nothing shipped here satisfies.
+`Standing` — which RK1677 shipped, so what is left is a reader and a column here.
 
 The order is not a verdict, and drawing it must not make it one. How long a pause may
 stand is a judgement about work — the same one `[claims] held` refuses to make — so the
@@ -332,6 +381,30 @@ and still blind to a session that started elsewhere.
 A row need not carry the stream to be right: what the list draws is the state, so an
 ending is the event that matters and a line only says it is still going. The record
 stays the read that opens the screen, and the topic is what keeps it true.
+
+### §RG190 The screen a handover moves after it is gone
+
+Hand to Claude Code starts a session and then navigates to it. The call is a promise,
+and nothing between the press and its answer checks that the person is still on the task
+screen. Handing over takes as long as resolving an agent and starting a process, which
+is long enough to press Back — and when the answer lands the window moves to the session
+anyway.
+
+**Every read on this screen already guards, and this one does not.** The effects around
+it take a `live` flag and give it up in their cleanup, which is what the task screen was
+built around; the handover is a callback rather than an effect, so it was written
+without one and nobody noticed, the failure needing a person to leave a screen inside a
+second.
+
+**What it costs is a screen nobody asked for.** The session did start, and it is on the
+sessions list — but a reader who went back to the project is taken somewhere they did
+not choose, with nothing saying what moved them.
+
+**A ref the screen clears is the whole of it.** The callback reads it before navigating
+and does nothing where the screen has gone; the session it started is still listed and
+still reachable. The state writes beside it are harmless — React drops them — so the
+navigation is the one thing to hold, and a test that unmounts between the press and the
+answer holds it.
 
 ## Block G — The shell (an executable now, a service later)
 
