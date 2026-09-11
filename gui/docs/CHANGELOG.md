@@ -66,6 +66,7 @@
   checked **Nothing here looks for a config above the folder it was given** The engine's governed is the answer; the scan's marker is in the folder itself, and opening asks config and walks nowhere.
 - 🗑 **RG15** **which copy of roadkeep each project runs is never read, so a disagreement engines can name is averaged away** — superseded by RG145: The verdict already rides on every row, and drawing it beside the counts is now a criterion of the portfolio screen RG145 builds.
 - ✅ **RG146** **roots are read and never written, so Add a root and Rescan roots are buttons nothing can honour** — A root is added from the shell's dialog and removed by name, a missing one kept and marked, and Rescan walks again; a typed folder is refused (design recorded in `packages/core/src/bridge.ts`).
+- ✅ **RG164** **the carrier keeps its catalogue in memory, so RG14's record is never written and every launch walks every root first** — The carrier reads catalogue.json beside the settings and writes each fold, so a launch draws what it found last time (design recorded in `packages/shell/src/catalogue-file.ts`).
 
 ## Block C — The portfolio (many backlogs in one view)
 

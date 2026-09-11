@@ -26,30 +26,6 @@ and the reason this one survived is that no case had ever sent the flag.
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
-### §RG164 The record, written
-
-RG14 shipped the record in `core`: `reconcile` folds a walk into the one before, and
-`catalogueFrom` reads one back and refuses a shape it does not know. RG143's carrier
-folds every walk into what it holds, but it holds it in memory, and nothing in `shell`
-writes a record. So every launch starts from `EMPTY_CATALOGUE`, the first screen waits
-on the disk, and a project that went missing is forgotten at quit instead of kept as
-missing.
-
-"No store of its own" bounds this and does not forbid it. `catalogue.ts` already argues
-why: which folders on this machine hold a governed checkout is not roadkeep's fact, and
-it is the same kind of thing as the roots, which this app owns.
-
-**A file beside `settings.json`.** The carrier reads `catalogue.json` from `userData`
-when it is created, through `catalogueFrom`, and writes it after each fold. A record
-that does not read is the empty one, never an error: the walk behind it rebuilds it.
-
-**The record answers first.** `projects()` returns the record at once where there is
-one, and the walk runs behind it. Until RG144 gives main a way to say something changed,
-the next call sees the fold. The guard reads the record too, so a window can open a
-project it remembers before any walk has finished.
-
-Written atomically, as the settings file is, so a quit mid-write leaves the last record.
-
 ### §RG169 A depth the window can move
 
 RG146 adds a root at `DEFAULT_DEPTH`, which is two, and the strip draws each root's

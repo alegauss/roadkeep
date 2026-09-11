@@ -22,6 +22,7 @@ import {
 import { app, BrowserWindow, dialog, ipcMain, type WebContents } from 'electron'
 
 import { agentCandidates } from './agent-candidates'
+import { loadCatalogue, saveCatalogue } from './catalogue-file'
 import { createCarrier, type Carrier } from './carrier'
 import { governedAt } from './governed-at'
 import { createSubscriptions, type Subscriber } from './subscriptions'
@@ -93,6 +94,13 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
     looking: () => {
       const { roots, skip, width } = loadSettings(app.getPath('userData')).settings
       return { roots, skip, width }
+    },
+    // What the last launch found, beside the settings (RG164): the first screen draws it
+    // while the walk behind it runs, and a project that went missing stays on the list as
+    // missing instead of being forgotten at the quit.
+    remembered: () => loadCatalogue(app.getPath('userData')),
+    remember: (catalogue) => {
+      saveCatalogue(app.getPath('userData'), catalogue)
     },
   })
 

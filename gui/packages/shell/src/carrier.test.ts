@@ -134,6 +134,63 @@ describe('RG143: which projects there are', () => {
   })
 })
 
+describe('RG164: the record the last launch left', () => {
+  /** A walk nobody can finish, so what answers is the record or nothing. */
+  const neverWalks = (): Promise<Reconciled> => new Promise(() => undefined)
+
+  it('answers the remembered record at once, with the walk running behind it', async () => {
+    const walks: ProjectCatalogue[] = []
+    const { carrier } = world({
+      remembered: () => FOUND,
+      rescan: (previous) => {
+        walks.push(previous)
+        return neverWalks()
+      },
+    })
+
+    // The walk never lands, so an answer at all is the record: a launch draws eleven
+    // projects while the disk is still being read.
+    expect(await carrier.projects()).toEqual(FOUND)
+    // And it started, folding against what was remembered rather than against nothing.
+    expect(walks).toEqual([FOUND])
+  })
+
+  it('opens a project the record remembers before any walk has finished', async () => {
+    const { carrier, opened } = world({ remembered: () => FOUND, rescan: neverWalks })
+
+    expect((await carrier.open(A)).kind).toBe('open')
+    expect(opened).toEqual([A])
+  })
+
+  it('keeps each folded record, so a project that went missing is still on the list', async () => {
+    const kept: ProjectCatalogue[] = []
+    const { carrier } = world({ remember: (catalogue) => kept.push(catalogue) })
+
+    await carrier.projects()
+
+    expect(kept).toEqual([FOUND])
+    expect(kept[0]?.projects.some((one) => one.presence === 'missing')).toBe(true)
+  })
+
+  it('waits for the walk where the record is empty, since a list of nothing is no answer', async () => {
+    const { carrier } = world({ remembered: () => EMPTY_CATALOGUE })
+
+    expect(await carrier.projects()).toEqual(FOUND)
+  })
+
+  it('stands on the record when a walk behind it throws, rather than failing a caller', async () => {
+    const { carrier } = world({
+      remembered: () => FOUND,
+      rescan: () => Promise.reject(new Error('the disk went away')),
+    })
+
+    // Nobody awaited that walk, so its failure must not reach a caller or the process as an
+    // unhandled rejection: the record is what there is to draw, and it is drawn.
+    expect(await carrier.projects()).toEqual(FOUND)
+    expect(await carrier.projects()).toEqual(FOUND)
+  })
+})
+
 describe('RG143: what the carrier will not open, before anything starts', () => {
   it('withholds a folder the walk never found', async () => {
     const { carrier, opened } = world()

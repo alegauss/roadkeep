@@ -65,6 +65,13 @@ export interface CarrierOptions {
   readonly now?: () => string
   /** Watch governed files. Real handles and a real clock unless a test says otherwise. */
   readonly watching?: Watching
+  /**
+   * The record this machine last wrote, read once as this carrier is made (RG164). Absent,
+   * the carrier starts from nothing and the first walk is what a screen waits on.
+   */
+  readonly remembered?: () => ProjectCatalogue
+  /** Keep the folded record. Called after every walk; a write that fails costs the next one. */
+  readonly remember?: (catalogue: ProjectCatalogue) => void
 }
 
 export interface Carrier {
@@ -105,22 +112,45 @@ export function createCarrier(options: CarrierOptions): Carrier {
   const watching = options.watching ?? createWatching(createGovernedWatcher(), REAL_CLOCK)
   const following = new Set<() => void>()
 
-  let catalogue: ProjectCatalogue | null = null
+  // What was written last time, if anything (RG164). A record read here is a list every
+  // question below can answer from while the walk behind it runs.
+  const remembered = options.remembered?.()
+  let catalogue: ProjectCatalogue | null =
+    remembered === undefined || remembered.projects.length === 0 ? null : remembered
   let scanning: Promise<ProjectCatalogue> | null = null
   const held = new Map<string, Promise<Opening>>()
 
   // One walk at a time: two folded against the same record at once would each fold the
   // other's result away, so a second caller waits on the walk already under way.
-  const projects = (): Promise<ProjectCatalogue> => {
+  const walk = (): Promise<ProjectCatalogue> => {
     scanning ??= (async () => {
       const looking = options.looking()
       const folded = await fold(catalogue ?? EMPTY_CATALOGUE, looking.roots, now(), looking.skip)
       catalogue = folded.catalogue
+      // Kept as it is folded, so a project that went missing is remembered as missing rather
+      // than forgotten at the quit that follows.
+      options.remember?.(folded.catalogue)
       return folded.catalogue
     })().finally(() => {
       scanning = null
     })
     return scanning
+  }
+
+  /**
+   * The record, and a walk (RG164).
+   *
+   * **The record answers first where there is one**: a launch that remembers eleven projects
+   * draws them while the disk is still being read, and the walk it started lands in the next
+   * call. With no record this waits, because a list of nothing is not an answer worth having.
+   */
+  const projects = (): Promise<ProjectCatalogue> => {
+    const known = catalogue
+    if (known === null) return walk()
+    // Nobody is waiting on this one, so a walk that throws must not become an unhandled
+    // rejection: the record stands, and the next call starts another walk.
+    void walk().catch(() => undefined)
+    return Promise.resolve(known)
   }
 
   // Asked of the record, scanning first where there is none yet: a window can open a project

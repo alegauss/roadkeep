@@ -8,7 +8,6 @@
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
-- 📋 **RG164** (deps: —) **the carrier keeps its catalogue in memory, so RG14's record is never written and every launch walks every root first** — catalogueFrom reads a record back and nothing in shell writes one, so the first screen waits on the disk and a missing project is forgotten at quit. → §RG164
 - 📋 **RG169** (deps: —) **a root is added two levels deep and no control changes it, so worktrees three levels down still need the settings file** — The strip draws each root's depth and offers no way to move it, though addRoot already replaces a depth in place and keeps the order. → §RG169
 
 ## Block C — The portfolio (many backlogs in one view)
