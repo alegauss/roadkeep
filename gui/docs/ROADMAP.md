@@ -4,8 +4,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-- 📋 **RG189** (deps: —) **a cache entry refreshed against a new stamp keeps its old place, so eviction takes the entries being used most** — A Map set on a key it already holds does not move it, which is what the hit branch beside it deletes first to avoid. → §RG189
-
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 ## Block C — The portfolio (many backlogs in one view)

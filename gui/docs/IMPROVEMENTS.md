@@ -2,28 +2,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-### §RG189 The refresh eviction punishes
-
-The caching transport evicts by iteration order: the oldest key a `Map` holds goes
-first. A hit keeps that honest — it deletes the key and sets it again, with a comment
-saying why — and the path that writes a fresh answer does not. `entries.set(key, …)` on
-a key already present updates the value in place and leaves the key where it was, which
-is what `Map` guarantees and what the hit branch is written around.
-
-**So a refresh is punished for being one.** A project whose files moved has its entries
-re-run against the new stamp, and each keeps the position it had when first read — at
-the front, where eviction takes them. What survives is what nobody has asked for since,
-the opposite of least-recently-used and of what the comment above promises.
-
-**It is silent, and it costs a spawn.** Nothing reports an eviction; the answer is
-simply not there next time and the engine runs again. On the project being edited — the
-one somebody is working in — the hottest entries are the ones thrown away.
-
-**The fix is the line the hit branch already has.** Delete before setting, so a write
-moves the key to the end whether it is the first for that key or the fifth. What holds
-it is a test that fills the cache past its bound, refreshes an early key against a new
-stamp, and asks which key the next insertion evicted.
-
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 ## Block C — The portfolio (many backlogs in one view)

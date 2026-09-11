@@ -92,6 +92,12 @@ export function createCachingTransport(
       // cancelled — and remembering it would make one bad moment permanent.
       const result = await inner.run(request)
 
+      // Deleted first, so the write moves the key to the end whether it is the first for
+      // that key or the fifth (RG189). A `Map` set on a key it already holds updates the
+      // value in place and leaves the key where it was — which for a project being edited
+      // means its hottest entries, re-run against each new stamp, keep the position that
+      // makes them the next to go.
+      entries.delete(key)
       entries.set(key, { stamp, result })
       while (entries.size > max) {
         const oldest = entries.keys().next()

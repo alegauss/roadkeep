@@ -206,3 +206,53 @@ describe('RG7: forgetting', () => {
     expect(cache.size).toBe(0)
   })
 })
+
+describe('RG189: the place a refreshed entry keeps', () => {
+  it('moves a refreshed key to the end, so eviction does not take what is being used', async () => {
+    const { transport, calls } = counting()
+    const clock = stamps()
+    const cache = createCachingTransport(transport, {
+      stampFor: clock.stampFor,
+      cacheable: always,
+      max: 2,
+    })
+
+    await cache.run({ root: '/p', argv: ['a'] })
+    await cache.run({ root: '/p', argv: ['b'] })
+    // The files move, and `a` is read again: a refresh, which is a write on a key the table
+    // already holds. A `Map` leaves such a key where it was, which would make `a` the next
+    // to go — the entry somebody is actually using.
+    clock.move('b')
+    await cache.run({ root: '/p', argv: ['a'] })
+    const refreshed = calls()
+
+    // `c` fills the table and evicts the oldest, which is now `b` and not `a`.
+    await cache.run({ root: '/p', argv: ['c'] })
+    await cache.run({ root: '/p', argv: ['a'] })
+
+    expect(cache.size).toBe(2)
+    expect(calls()).toBe(refreshed + 1)
+  })
+
+  it('evicts the one nobody asked for, which is what least-recently-used means', async () => {
+    const { transport, calls } = counting()
+    const clock = stamps()
+    const cache = createCachingTransport(transport, {
+      stampFor: clock.stampFor,
+      cacheable: always,
+      max: 2,
+    })
+
+    await cache.run({ root: '/p', argv: ['a'] })
+    await cache.run({ root: '/p', argv: ['b'] })
+    clock.move('b')
+    await cache.run({ root: '/p', argv: ['a'] })
+    await cache.run({ root: '/p', argv: ['c'] })
+    const before = calls()
+
+    // `b` is the one that went, so asking for it runs the engine again.
+    await cache.run({ root: '/p', argv: ['b'] })
+
+    expect(calls()).toBe(before + 1)
+  })
+})
