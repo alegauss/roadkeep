@@ -123,8 +123,11 @@ export function renumbered(payload: RenumberPayload): Corrected {
  * Its own reader because the shape is its own: a map of field to what it held, where
  * `restate` sends one string. A screen showing "was" for both would be reading one of them
  * wrong.
+ *
+ * **A list field's previous value is a list** (RG179), and it stays one here: joining it
+ * would be this app composing a field, and a screen wanting one line joins what it draws.
  */
-export function replacedBy(payload: AmendPayload): [string, string][] {
+export function replacedBy(payload: AmendPayload): [string, string | readonly string[]][] {
   return payload.changed.map((field) => [field, payload.was[field] ?? ''])
 }
 

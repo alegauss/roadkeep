@@ -4,7 +4,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-- 📋 **RG179** (deps: —) **an amend that changes deps or requires reads as unreadable, though the file was already written** — AmendPayload.was is declared a map of strings and the engine answers a list for a list field, which RG159 met the first time anything sent the flag. → §RG179
 - 📋 **RG188** (deps: —) **a payload key spelled __proto__ is dropped by the dictionary reader, so a count vanishes and the read still answers ok** — The keys are a project's own markers and non-goal leads, and the sibling reader beside it has none of this. → §RG188
 - 📋 **RG189** (deps: —) **a cache entry refreshed against a new stamp keeps its old place, so eviction takes the entries being used most** — A Map set on a key it already holds does not move it, which is what the hit branch beside it deletes first to avoid. → §RG189
 

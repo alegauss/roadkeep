@@ -153,6 +153,22 @@ export function orMissing<T>(reader: Reader<T>, fallback: T): Reader<T> {
   return (value, path) => (value === undefined ? ok(fallback) : reader(value, path))
 }
 
+/**
+ * A value that is either one thing or a list of them (RG179).
+ *
+ * The engine answers a field's previous value in the shape that field has: a string for a
+ * string field, a list for a list one. A reader declaring only the first refused an answer
+ * the engine was right to give — and joining the list here would be this app composing a
+ * field, so both shapes come through as they arrived and a screen that wants one line joins
+ * what it draws.
+ *
+ * The list is tried first: an array is never a string, so the order costs nothing and the
+ * failure a caller sees names the shape it actually sent.
+ */
+export function oneOrMany<T>(reader: Reader<T>): Reader<T | readonly T[]> {
+  return (value, path) => (Array.isArray(value) ? listOf(reader)(value, path) : reader(value, path))
+}
+
 export function listOf<T>(reader: Reader<T>): Reader<T[]> {
   return (value, path) => {
     if (!Array.isArray(value)) return fail(path, 'an array', value)

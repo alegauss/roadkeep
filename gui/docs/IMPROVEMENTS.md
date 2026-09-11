@@ -2,28 +2,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-### §RG179 The was of a list field
-
-`AmendPayload.was` is what each changed field held before, and this app declares it a
-map of strings. The engine answers a list where the field is one: amending `--requires`
-came back as *`amend` answered with an array of 0 where was.requires should have been a
-string*, and the write read as unreadable although the file had already been written.
-`--dep`, `--add-dep` and `--drop-dep` are the same shape and the same answer.
-
-Measured while RG159 was building a fixture, which is the first time anything in this
-app amended either field. Every case that reached `amend` until now changed the `why`,
-which is a string, so the reader was right about the only field it had met.
-
-**The `was` of a list field is a list.** The reader takes a value that is either — a
-string or a list of them — and the type says so, since a caller drawing *what it was
-before* has to handle both anyway. Nothing is flattened into a sentence on the way
-through: joining a list here would be this app composing a field, and a screen that
-wants one line can join what it draws.
-
-**The contract is where this is held**, with a case that amends a dep and reads
-`was.deps` back. RG4 exists for exactly this — a shape that moved, or was never right —
-and the reason this one survived is that no case had ever sent the flag.
-
 ### §RG188 The key an assignment swallows
 
 `dictionaryOf` accumulates into a plain `{}` with `built[key] = parsed.value`. A source

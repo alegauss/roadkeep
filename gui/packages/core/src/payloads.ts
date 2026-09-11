@@ -4,6 +4,7 @@ import {
   aString,
   dictionaryOf,
   listOf,
+  oneOrMany,
   literalTrue,
   orMissing,
   orNull,
@@ -1427,8 +1428,14 @@ export interface AmendPayload {
    *
    * **A map here and a string on `restate`.** One key, two types, one verb apart — so the
    * two are read as two shapes and never with one reader.
+   *
+   * **And a value that is a list where the field is one** (RG179): amending `--requires` or
+   * a dep answers `was.requires` as the array it was, and a reader declaring a string refused
+   * a write the engine had already made. Nothing is joined on the way through — a sentence
+   * built here would be this app composing a field — so a caller drawing *what it was before*
+   * handles both, which it has to anyway.
    */
-  readonly was: Record<string, string>
+  readonly was: Record<string, string | readonly string[]>
   readonly refreshed: readonly string[]
   readonly wrote: readonly string[]
 }
@@ -1439,7 +1446,7 @@ export const readAmendPayload: Reader<AmendPayload> = record<AmendPayload>({
   line: orMissing(aNumber, 0),
   changed: orMissing(listOf(aString), []),
   rendered: orMissing(aString, ''),
-  was: orMissing(dictionaryOf(aString), {}),
+  was: orMissing(dictionaryOf(oneOrMany(aString)), {}),
   refreshed: orMissing(listOf(aString), []),
   wrote: orMissing(listOf(aString), []),
 })

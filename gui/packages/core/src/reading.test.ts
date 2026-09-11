@@ -9,6 +9,7 @@ import {
   orNull,
   readPayload,
   record,
+  oneOrMany,
 } from './reading'
 
 const WHERE = { verb: 'list', engineVersion: '0.2.358' }
@@ -89,5 +90,40 @@ describe('RG3: what a shape refuses, and how it says so', () => {
     expect(parsed.ok).toBe(false)
     if (parsed.ok) return
     expect(parsed.failure.expected).toBe('JSON')
+  })
+})
+
+describe('RG179: a value that is either one thing or a list of them', () => {
+  it('takes the one', () => {
+    const read = oneOrMany(aString)('a why that was', 'was.why')
+
+    expect(read).toEqual({ ok: true, value: 'a why that was' })
+  })
+
+  it('takes the list, and leaves it a list', () => {
+    // Not joined: a sentence built here would be this app composing a field.
+    const read = oneOrMany(aString)(['RG1', 'RG2'], 'was.deps')
+
+    expect(read).toEqual({ ok: true, value: ['RG1', 'RG2'] })
+  })
+
+  it('takes an empty list, which is what a field that held nothing answers', () => {
+    expect(oneOrMany(aString)([], 'was.requires')).toEqual({ ok: true, value: [] })
+  })
+
+  it('fails on anything that is neither, naming the path it was at', () => {
+    const read = oneOrMany(aString)(7, 'was.deps')
+
+    expect(read.ok).toBe(false)
+    if (read.ok) throw new Error('unreachable')
+    expect(read.failure.path).toBe('was.deps')
+  })
+
+  it('fails inside the list, at the element, rather than on the list itself', () => {
+    const read = oneOrMany(aString)(['RG1', 7], 'was.deps')
+
+    expect(read.ok).toBe(false)
+    if (read.ok) throw new Error('unreachable')
+    expect(read.failure.path).toBe('was.deps[1]')
   })
 })

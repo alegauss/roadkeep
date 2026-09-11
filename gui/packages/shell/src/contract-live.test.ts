@@ -742,6 +742,25 @@ describe('RG4: every read this client makes, against a live engine', () => {
     // `was` is a map here. The same key is a string on `restate` below.
     expect(typeof amend.value.was).toBe('object')
     expect(amend.value.changed).toContain('why')
+    // A string field's previous value is a string.
+    expect(typeof amend.value.was['why']).toBe('string')
+
+    // And a list field's is a list (RG179), which is the shape that read as unreadable
+    // until anything in this app amended one. Another open line is the dep, since a line
+    // cannot depend on itself.
+    const other = open.find((one) => one !== id)
+    if (other !== undefined) {
+      const deps = await applyWrite(
+        transport,
+        composeWrite(fixture.root, 'amend', { id, addDep: [other] }),
+        readAmendPayload,
+        { timeoutMs: CEILING },
+      )
+      expect(deps.kind).toBe('applied')
+      if (deps.kind !== 'applied') throw new Error('unreachable')
+      expect(deps.value.changed).toContain('deps')
+      expect(Array.isArray(deps.value.was['deps'])).toBe(true)
+    }
 
     const restate = await applyWrite(
       transport,

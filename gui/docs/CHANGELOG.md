@@ -50,6 +50,7 @@
 - ✅ **RG158** **two live assertions pass unchecked: a picked line with no tier, and a combined filter that selects nothing** — A pick with no tier and a filter pair that selects nothing each fail a test now, instead of passing it.
 - ✅ **RG159** **the empty-brief contract asserts lacking on a fixture that never has any, so no lacking line is ever read** — A fixture whose only open line waits on a requirement makes brief answer with a lacking entry, and the case reads it.
 - ✅ **RG160** **openHere's own unheld wiring is never run by a test, since RG137's live case rebuilds it by hand** — openHere takes a seam for the surface it builds, so the live case runs its own unheld wiring rather than one the test rebuilt (design recorded in `packages/shell/src/open-here.ts`).
+- ✅ **RG179** **an amend that changes deps or requires reads as unreadable, though the file was already written** — An amend that changes a list field reads, since the was of a list field is a list (design recorded in `packages/core/src/reading.ts`).
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
