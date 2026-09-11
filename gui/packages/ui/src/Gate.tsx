@@ -1,4 +1,4 @@
-import { folderName, type Gated, type LintPayload } from '@rk/core'
+import { folderName, type GateHealth, type Gated, type LintPayload } from '@rk/core'
 import { Button } from '@viglet/viglet-design-system'
 import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-system/bento'
 import { useEffect, useMemo, type ReactNode } from 'react'
@@ -9,7 +9,7 @@ import { DoorRow } from './Doors'
 import { Caption } from './forms'
 import { Pill } from './marks'
 import { useGate } from './useGate'
-import { useWording } from './wording'
+import { useWhen, useWording } from './wording'
 
 /**
  * The gate as a surface and not a report (RG152), which is block E's third criterion.
@@ -116,6 +116,39 @@ function Report({
   )
 }
 
+/**
+ * The verdict on record, drawn where the files have not moved under it (RG185).
+ *
+ * The ledger holds what the gate said and when, never its findings — so this is a count and
+ * a date, and the rows come from a run. `unknown` is the honest first state and says so.
+ */
+function Held({ health }: { readonly health: GateHealth }) {
+  const say = useWording()
+  const when = useWhen()
+
+  return (
+    <BentoPanel contentClassName="p-5">
+      <p className="text-sm" data-testid="held">
+        {health.verdict === 'unknown'
+          ? say('gate.never')
+          : say(health.verdict === 'clean' ? 'gate.held.clean' : 'gate.held.drifted', {
+              problems: health.problems,
+            })}
+      </p>
+      {health.taken === null ? null : (
+        <p className="text-muted-foreground mt-2 text-xs">
+          {say('gate.taken', { taken: when(health.taken) })}
+        </p>
+      )}
+      {health.stale ? (
+        <p className="text-muted-foreground mt-2 text-xs" data-testid="stale">
+          {say('gate.stale')}
+        </p>
+      ) : null}
+    </BentoPanel>
+  )
+}
+
 /** What the run counted, which is the engine's sentence about its own read. */
 function Counted({ payload }: { readonly payload: LintPayload }) {
   const say = useWording()
@@ -146,12 +179,16 @@ export function Gate() {
   const gating = useGate(root)
   const { gate, project, run, takeDoor } = gating
 
-  // Run as the screen opens: somebody who asked for the gate asked for it to run, and a
-  // surface that showed nothing until a second press would be a report with an extra step.
+  // Run as the screen opens only where a run would say something new (RG185): the ledger
+  // holds a verdict and the stamp it was taken against, so a project nobody has written to
+  // since opens on the answer rather than on the most expensive read there is. A person
+  // pressing Run the gate is a person saying they want it run whatever the ledger holds.
   const opened = project !== null
+  const worthRunning =
+    gate.kind === 'held' && (gate.health.verdict === 'unknown' || gate.health.stale)
   useEffect(() => {
-    if (opened) run()
-  }, [opened, run])
+    if (opened && worthRunning) run()
+  }, [opened, worthRunning, run])
 
   const trailing = useMemo(
     () => (
@@ -187,6 +224,7 @@ export function Gate() {
             <BentoEmptyState title={say('gate.unreadable', { reason: gate.reason })} />
           </BentoPanel>
         ) : null}
+        {gate.kind === 'held' ? <Held health={gate.health} /> : null}
         {gate.kind === 'read' ? (
           <>
             <Counted payload={gate.payload} />

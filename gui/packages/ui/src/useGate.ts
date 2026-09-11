@@ -3,11 +3,13 @@ import {
   actionableReport,
   buildArgv,
   doorsIn,
+  UNKNOWN_GATE,
   gatedReport,
   openOver,
   readAnswerFrom,
   readLintPayload,
   type BridgedResult,
+  type GateHealth,
   type Gated,
   type LintPayload,
   type OpenProject,
@@ -35,6 +37,12 @@ import { getBridge } from './bridge'
 
 export type Gate =
   | { readonly kind: 'idle' }
+  /**
+   * The verdict on record, which the files have not moved under (RG185). Not a report: the
+   * ledger holds what the gate said and when, never its findings — a report held in memory
+   * and drawn later would be this app answering about files it has not read.
+   */
+  | { readonly kind: 'held'; readonly health: GateHealth }
   | { readonly kind: 'running' }
   | {
       readonly kind: 'read'
@@ -60,6 +68,7 @@ export interface Gating {
 export function useGate(root: string): Gating {
   const [project, setProject] = useState<OpenProject | null>(null)
   const [gate, setGate] = useState<Gate>({ kind: 'idle' })
+  const [held, setHeld] = useState<GateHealth | null>(null)
 
   useEffect(() => {
     const bridge = getBridge()
@@ -69,6 +78,28 @@ export function useGate(root: string): Gating {
     void openOver(bridge, root).then((reached) => {
       if (stillHere() && reached.kind === 'open') setProject(reached.project)
     })
+    return () => {
+      live = false
+    }
+  }, [root])
+
+  // What the ledger already holds for this project (RG185). A read of a record, so it costs
+  // nothing, and it is what decides whether the screen opens on a run or on an answer.
+  useEffect(() => {
+    const bridge = getBridge()
+    if (bridge === undefined) return undefined
+    let live = true
+    const stillHere = (): boolean => live
+    void bridge.gates().then(
+      (all) => {
+        if (!stillHere()) return
+        setHeld(all.find((one) => one.root === root)?.health ?? UNKNOWN_GATE)
+      },
+      // A carrier that will not say leaves this unknown, which is what makes the screen run.
+      () => {
+        if (stillHere()) setHeld(UNKNOWN_GATE)
+      },
+    )
     return () => {
       live = false
     }
@@ -116,6 +147,14 @@ export function useGate(root: string): Gating {
       },
     )
   }, [])
+
+  // The verdict on record, until a run replaces it. A person pressing Run the gate is a
+  // person saying they want it run whatever the ledger holds, so this only ever fills the
+  // opening state.
+  useEffect(() => {
+    if (held === null) return
+    setGate((was) => (was.kind === 'idle' ? { kind: 'held', health: held } : was))
+  }, [held])
 
   const run = useCallback(() => {
     const bridge = getBridge()

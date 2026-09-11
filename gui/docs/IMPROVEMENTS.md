@@ -124,30 +124,6 @@ project that large can narrow by block first.
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-### §RG185 Opening on the verdict already held
-
-The gate surface runs `lint` as it opens, every time. `gate.ts` already answers whether
-that is worth doing — `needsGate` compares the verdict on record against the stamp the
-files have now — and nothing calls it. Opening one project's gate twice in a minute runs
-the most expensive read there is twice, for an answer the ledger held, and the second
-run is the one a person waits through.
-
-**The verdict on record is what the screen opens with.** It is dated and it says whether
-the files have moved since, so a fresh one is an answer and not a guess: draw it, say
-when it was taken, and run only where `needsGate` says the stamp has moved — or where
-somebody presses Run the gate, which is a person saying they want it run whatever the
-ledger holds.
-
-**Stale is the interesting state and it has a screen already.** The portfolio's column
-says stale; this surface has the room to say what moved, since the carrier watches the
-governed files for exactly this (RG144) and can tell an open window that the report it
-is showing is about a state that has gone.
-
-**Nothing here caches an answer.** The ledger holds the verdict and its date, never the
-findings, so a screen opening on a fresh one shows the count and the date and offers the
-run. A report held in memory and drawn later would be this app answering about files it
-has not read.
-
 ## Block F — The agent surface (handing one task to Claude Code)
 
 ### §RG190 The screen a handover moves after it is gone

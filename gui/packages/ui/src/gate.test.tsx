@@ -7,6 +7,10 @@ import {
   openProject,
   type BridgedResult,
   type Transport,
+  BASE_LOCALE,
+  timeIn,
+  type GateHealth,
+  type ProjectGate,
 } from '@rk/core'
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -143,7 +147,7 @@ function engine(): Transport {
   }
 }
 
-async function at(path: string): Promise<Wired> {
+async function at(path: string, held: readonly ProjectGate[] = []): Promise<Wired> {
   const transport = engine()
   const opened = openedFrom(await openProject(ROOT, [['python', 'launch.py']], () => transport))
   const wired: Wired = { gates: [], doors: [], clean: false }
@@ -154,7 +158,7 @@ async function at(path: string): Promise<Wired> {
       open: () => Promise.resolve(opened),
       subscribe: () => () => undefined,
       sessions: () => Promise.resolve([]),
-      gates: () => Promise.resolve([]),
+      gates: () => Promise.resolve(held),
       run: (root, request): Promise<BridgedResult> => {
         if (!request.argv.includes('lint')) {
           return bridgedRun(() => transport.run({ ...request, root }))
@@ -264,5 +268,62 @@ describe('RG152: the gate as a surface', () => {
 
     const offered = await screen.findByRole('link', { name: BASE['gate.run'] })
     expect(offered.getAttribute('href')).toBe(gatePath(ROOT))
+  })
+})
+
+describe('RG185: opening on the verdict already held', () => {
+  const verdict = (over: Partial<GateHealth> = {}): ProjectGate => ({
+    root: ROOT,
+    health: {
+      verdict: 'drifted',
+      problems: 3,
+      taken: '2026-09-11T12:00:00.000Z',
+      stale: false,
+      ...over,
+    },
+  })
+
+  it('opens on the verdict on record, running nothing, where the files have not moved', async () => {
+    const wired = await at(gatePath(ROOT), [verdict()])
+
+    expect((await screen.findByTestId('held')).textContent).toBe(
+      fill(BASE['gate.held.drifted'], { problems: 3 }),
+    )
+    expect(wired.gates).toEqual([])
+  })
+
+  it('says when it last ran, in the language the window speaks', async () => {
+    await at(gatePath(ROOT), [verdict()])
+
+    await screen.findByTestId('held')
+    expect(
+      screen.getByText(
+        fill(BASE['gate.taken'], { taken: timeIn('2026-09-11T12:00:00.000Z', BASE_LOCALE) }),
+      ),
+    ).toBeTruthy()
+  })
+
+  it('runs where the files moved under the verdict, since it is about a state that has gone', async () => {
+    const wired = await at(gatePath(ROOT), [verdict({ stale: true })])
+
+    await screen.findByTestId('counted')
+    expect(wired.gates).toHaveLength(1)
+  })
+
+  it('runs where nothing is on record, which is what unknown means', async () => {
+    const wired = await at(gatePath(ROOT), [])
+
+    await screen.findByTestId('counted')
+    expect(wired.gates).toHaveLength(1)
+  })
+
+  it('runs when a person presses it, whatever the ledger holds', async () => {
+    const wired = await at(gatePath(ROOT), [verdict()])
+
+    await screen.findByTestId('held')
+    fireEvent.click(screen.getByRole('button', { name: BASE['gate.run'] }))
+
+    await screen.findByTestId('counted')
+    expect(wired.gates).toHaveLength(1)
   })
 })

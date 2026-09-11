@@ -20,8 +20,6 @@
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-- 📋 **RG185** (deps: RG152 ✅) **the gate surface runs lint every time it opens, though the ledger already holds a verdict the files have not moved under** — The carrier asks needsGate before every run it starts, and the surface asks neither it nor the ledger. → §RG185
-
 ## Block F — The agent surface (handing one task to Claude Code)
 
 - 📋 **RG190** (deps: —) **a handover landing after the reader left the task screen moves the window to the session anyway** — Every read on that screen gives its answer up on unmount, and the one callback that navigates does not. → §RG190

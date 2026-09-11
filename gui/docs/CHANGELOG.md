@@ -120,6 +120,7 @@
 - ✅ **RG152** **Run the gate is a button with nothing behind it, so a finding and the doors it names are still read in a terminal** — The gate is a surface: findings as rows with what closes each, and its verdict where the portfolio reads it (design recorded in `packages/ui/src/Gate.tsx`).
 - ✅ **RG181** **the door keep holds every batch a session offered, since only a file moving drops one** — The keep holds one batch per project, which is the only one a screen still has a button for (design recorded in `packages/shell/src/door-keep.ts`).
 - ✅ **RG182** **the filing form asks nobody what the block already delivered, so the window spends an id the terminal would question** — The filing form ranks what the block already has against the symptom, and each line opens (design recorded in `packages/ui/src/useFiling.ts`).
+- ✅ **RG185** **the gate surface runs lint every time it opens, though the ledger already holds a verdict the files have not moved under** — The gate surface opens on the verdict the ledger holds, and runs where one would say something new (design recorded in `packages/ui/src/useGate.ts`).
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
