@@ -33,13 +33,12 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG153** (deps: RG150, RG144, RG40 ✅, RG41 ✅) **nothing in the window hands a task to Claude Code or shows the session, so block F's acts and landings reach no one** — Sessao.dc.html draws the handover, the stream as acts and what moved in the backlog beside it, and every reader for them has shipped. → §RG153
+- 📋 **RG153** (deps: RG150, RG144 ✅, RG40 ✅, RG41 ✅) **nothing in the window hands a task to Claude Code or shows the session, so block F's acts and landings reach no one** — Sessao.dc.html draws the handover, the stream as acts and what moved in the backlog beside it, and every reader for them has shipped. → §RG153
 
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
 - 📋 **RG128** (deps: RG120 ✅, roadkeep RK1678) **a checkout busy when the probe runs is skipped, so the launcher answers from a cache 446 versions old** — Resolution takes the first engine that answers, so a session can be briefed by a copy nobody chose. → §RG128
-- 📋 **RG144** (deps: RG143 ✅, RG45 ✅) **the bridge only answers when asked, so a session's stream and a governed file changing have no way to reach a screen** — startSession and the governed watcher both hear events in main, and every bridge method is a single invoke with a single answer. → §RG144
 - 📋 **RG154** (deps: RG50 ✅, RG162) (requires: published-artifact) **the update check has only met answers written by hand, never GitHub's own for a published release** — No release is published yet, so the shape it reads and the page it opens are held by fakes until the first one exists. → §RG154
 - 📋 **RG155** (deps: RG50 ✅) **the release-page guard compares a string prefix, so a release URL with dot segments opens another repository** — The URL comes off a network answer, and the browser normalises the dot segments after the guard approved the string. → §RG155
 - 📋 **RG156** (deps: RG50 ✅) **the update check tells a build ahead of every release it is the newest, and hides why a check failed** — An ahead build reads as current and loses the version found, undici keeps the real cause on error.cause, and a body timeout reads as not JSON. → §RG156

@@ -1,7 +1,9 @@
 import {
   bridgedRun,
+  createWatching,
   EMPTY_CATALOGUE,
   openedFrom,
+  watchedFiles,
   withheldBecause,
   withheldResult,
   type BridgedRequest,
@@ -12,8 +14,10 @@ import {
   type Reconciled,
   type SamePart,
   type ScanRoot,
+  type Watching,
 } from '@rk/core'
 
+import { createGovernedWatcher, REAL_CLOCK } from './governed-watch'
 import { openHere } from './open-here'
 import { rescan } from './rescan'
 import { rootKey } from './root-paths'
@@ -59,12 +63,23 @@ export interface CarrierOptions {
     skip: readonly string[],
   ) => Promise<Reconciled>
   readonly now?: () => string
+  /** Watch governed files. Real handles and a real clock unless a test says otherwise. */
+  readonly watching?: Watching
 }
 
 export interface Carrier {
   projects(): Promise<ProjectCatalogue>
   open(root: string): Promise<OpenedProject>
   run(root: string, request: BridgedRequest): Promise<BridgedResult>
+  /**
+   * Be told when a project's governed files move, for as long as the answer is not called
+   * (RG144) — or null where the root is not one this carrier would open.
+   *
+   * The files are the ones the project's own `config` declared, read off the opening, so
+   * watching one opens it. Each move also drops what the cache held for it: an answer keyed
+   * on a stamp is never stale, and one nobody will ask for again is only memory.
+   */
+  follow(root: string, moved: () => void): Promise<(() => void) | null>
   /** Give back every engine held, awaited to the last exit. What quitting waits on. */
   close(): Promise<void>
 }
@@ -87,6 +102,8 @@ export function createCarrier(options: CarrierOptions): Carrier {
   const open = options.open ?? ((root, width) => openHere(root, { width }))
   const fold = options.rescan ?? rescan
   const now = options.now ?? (() => new Date().toISOString())
+  const watching = options.watching ?? createWatching(createGovernedWatcher(), REAL_CLOCK)
+  const following = new Set<() => void>()
 
   let catalogue: ProjectCatalogue | null = null
   let scanning: Promise<ProjectCatalogue> | null = null
@@ -174,7 +191,36 @@ export function createCarrier(options: CarrierOptions): Carrier {
       }
     },
 
+    async follow(root, moved) {
+      if (!(await catalogued(root))) return null
+      const answer = await opening(root).catch(() => null)
+      if (answer?.kind !== 'open') return null
+
+      const { project } = answer
+      const interest = watching.hold(root, watchedFiles(Object.values(project.governed)))
+      const key = rootKey(root)
+      const stopHearing = watching.onChanged((changed) => {
+        if (rootKey(changed) !== key) return
+        project.invalidate()
+        moved()
+      })
+
+      let stopped = false
+      const stop = (): void => {
+        if (stopped) return
+        stopped = true
+        following.delete(stop)
+        stopHearing()
+        interest.release()
+      }
+      following.add(stop)
+      return stop
+    },
+
     async close() {
+      // The watches first: a handle held on a folder is the same trouble on Windows as an
+      // engine standing in it.
+      for (const stop of [...following]) stop()
       const openings = [...held.values()]
       held.clear()
       await Promise.all(

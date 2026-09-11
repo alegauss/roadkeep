@@ -107,3 +107,51 @@ describe('RG143: the window asks, and main answers from an engine', () => {
     expect(answer.message).toContain('--body-file')
   })
 })
+
+/** Move a governed file of the fixture's, from outside the app, as an agent or a terminal would. */
+async function writeBeside(body: string): Promise<void> {
+  const wrote = await liveEngine.run({
+    root: fixture.root,
+    argv: ['-C', fixture.root, 'section', 'amend', 'FX1', '--body', body],
+  })
+  if (wrote.code !== 0) throw new Error(`the write beside the app failed: ${wrote.stderr}`)
+}
+
+/** What the page has heard so far. */
+function heardInPage(): Promise<string[]> {
+  return app.evaluate<string[]>('window.__moved ?? []')
+}
+
+describe('RG144: the window hears a project move, over IPC', () => {
+  it('is told when a governed file moves under a project it subscribed to', async () => {
+    await app.evaluate<null>(`(() => {
+      window.__moved = []
+      window.__stop = window['roadkeep'].subscribe('governed', ${JSON.stringify(fixture.root)},
+        (event) => window.__moved.push(event.root))
+      return null
+    })()`)
+
+    // A subscription is a send, and main opens the project to learn which files to watch,
+    // so the first write can land before the watch does. Written again until one is heard,
+    // and bounded: a watch that never starts fails here rather than hanging the suite.
+    const until = Date.now() + 20000
+    let heard: string[] = []
+    for (let attempt = 0; heard.length === 0 && Date.now() < until; attempt += 1) {
+      await writeBeside(`Moved from outside the app, attempt ${String(attempt)}.`)
+      await new Promise((done) => setTimeout(done, 400))
+      heard = await heardInPage()
+    }
+
+    expect(heard.length).toBeGreaterThan(0)
+    expect(heard[0]).toBe(fixture.root)
+  })
+
+  it('hears nothing more once it gave the subscription up', async () => {
+    await app.evaluate<null>('(() => { window.__stop(); window.__moved = []; return null })()')
+
+    await writeBeside('Moved again, with nobody listening.')
+    await new Promise((done) => setTimeout(done, 1000))
+
+    expect(await heardInPage()).toEqual([])
+  })
+})

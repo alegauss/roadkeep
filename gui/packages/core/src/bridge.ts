@@ -112,7 +112,52 @@ export interface RendererBridge {
    * do not change. What it will not run is anything neither verb table composes.
    */
   run(root: string, request: BridgedRequest): Promise<BridgedResult>
+  /**
+   * Be told, while listening, what the carrier hears that nobody asked about (RG144).
+   *
+   * **A subscription and not an IPC detail**, because the port is why: over HTTP this is a
+   * server-sent stream, and a listener shape only `ipcRenderer.on` could satisfy is the
+   * coupling this interface exists to refuse. Synchronous and answering the way to stop, so a
+   * screen can give it up in the same effect cleanup that took it.
+   *
+   * @param key which one of the topic's sources — a root for `governed`, a session's id for
+   *   `session` — so a screen hears its own project and not every project the window holds.
+   */
+  subscribe<T extends Topic>(
+    topic: T,
+    key: string,
+    listener: (event: TopicEvents[T]) => void,
+  ): () => void
 }
+
+/**
+ * What each topic carries, one event at a time (RG144). The table main, the preload and a
+ * screen all read, so none of them can drift on a name or on a shape.
+ */
+export interface TopicEvents {
+  /**
+   * A root whose governed files moved — the whole event. What moved is answered by reading
+   * again, and the carrier's cache is keyed on a stamp of the same files, so a spurious one
+   * costs a read and never a wrong answer.
+   */
+  readonly governed: { readonly root: string }
+  /** One line of a session's stream, raw, and the session it belongs to. */
+  readonly session: { readonly session: string; readonly line: string }
+}
+
+export type Topic = keyof TopicEvents
+
+/** The channel each topic's events arrive on, main to renderer. */
+export const BRIDGE_TOPICS = {
+  governed: 'roadkeep:on-governed',
+  session: 'roadkeep:on-session',
+} as const satisfies Record<Topic, string>
+
+/**
+ * Giving a subscription up. No method of its own — it is the function `subscribe` answered —
+ * so it is named here beside the channels rather than among them.
+ */
+export const BRIDGE_UNSUBSCRIBE = 'roadkeep:unsubscribe'
 
 /**
  * A request as it crosses: the root is the method's own argument, and a cancellation cannot
@@ -170,4 +215,5 @@ export const BRIDGE_CHANNELS = {
   projects: 'roadkeep:projects',
   open: 'roadkeep:open',
   run: 'roadkeep:run',
+  subscribe: 'roadkeep:subscribe',
 } as const satisfies Record<keyof RendererBridge, string>

@@ -38,6 +38,7 @@ describe('RG60: what the renderer was given', () => {
     const methods = await app.evaluate<string[]>(`Object.keys(window['${BRIDGE_KEY}']).sort()`)
 
     // RG143 added the three that reach an engine: which projects, open one, run against it.
+    // RG144 added the one that is told rather than asked.
     expect(methods).toEqual([
       'identify',
       'open',
@@ -46,6 +47,7 @@ describe('RG60: what the renderer was given', () => {
       'saveLocale',
       'saveTheme',
       'settings',
+      'subscribe',
     ])
   })
 
@@ -163,7 +165,7 @@ describe('RG60: what the renderer was not given', () => {
       `Object.values(window['${BRIDGE_KEY}']).map((one) => typeof one)`,
     )
 
-    expect(reachable).toHaveLength(7)
+    expect(reachable).toHaveLength(8)
     expect(reachable.every((one) => one === 'function')).toBe(true)
   })
 })

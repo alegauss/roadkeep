@@ -1,9 +1,12 @@
-import type {
-  BridgedRequest,
-  BridgedResult,
-  OpenedProject,
-  RendererBridge,
-  Withheld,
+import {
+  BRIDGE_TOPICS,
+  type BridgedRequest,
+  type BridgedResult,
+  type OpenedProject,
+  type RendererBridge,
+  type Topic,
+  type TopicEvents,
+  type Withheld,
 } from './bridge'
 import { argumentsOf, CALLED_NAMES, CALLED_WORDS, flagsFor, type CalledName } from './capabilities'
 import { createClient } from './client'
@@ -166,6 +169,28 @@ export function requestFrom(value: unknown): BridgedRequest | null {
     ...(call === null ? {} : { call: call.value }),
     ...(timeoutMs === undefined ? {} : { timeoutMs }),
   }
+}
+
+/**
+ * Whether a channel argument names a topic (RG144). A topic crosses as the renderer's word,
+ * like a root or a request, and one this table does not hold is a subscription to nothing.
+ */
+export function isTopic(value: unknown): value is Topic {
+  return typeof value === 'string' && Object.hasOwn(BRIDGE_TOPICS, value)
+}
+
+const KEYS: { readonly [T in Topic]: (event: TopicEvents[T]) => string } = {
+  governed: (event) => event.root,
+  session: (event) => event.session,
+}
+
+/**
+ * The key an event belongs to (RG144). One channel carries every source of a topic, so a
+ * listener subscribed to one project hears the others' events too and keeps its own by this.
+ */
+export function keyOfEvent<T extends Topic>(topic: T, event: TopicEvents[T]): string {
+  const keyOf: (one: TopicEvents[T]) => string = KEYS[topic]
+  return keyOf(event)
 }
 
 /** A request that will not run, as the answer `run` gives. Nothing started, so no time passed. */

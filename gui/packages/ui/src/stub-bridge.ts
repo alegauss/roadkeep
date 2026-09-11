@@ -21,6 +21,9 @@ export function stubBridge(over: Partial<RendererBridge> = {}): RendererBridge {
     projects: unasked,
     open: unasked,
     run: unasked,
+    subscribe: () => {
+      throw new Error('not asked')
+    },
     ...over,
   }
 }

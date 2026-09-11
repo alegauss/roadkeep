@@ -1,6 +1,8 @@
 import {
   BRIDGE_CHANNELS,
+  BRIDGE_UNSUBSCRIBE,
   isTheme,
+  isTopic,
   LOCALE_TAGS,
   requestFrom,
   withheldResult,
@@ -9,9 +11,10 @@ import {
   type LaunchSettings,
   type OpenedProject,
 } from '@rk/core'
-import { app, ipcMain } from 'electron'
+import { app, ipcMain, type WebContents } from 'electron'
 
 import { createCarrier, type Carrier } from './carrier'
+import { createSubscriptions, type Subscriber } from './subscriptions'
 import { localeChoice } from './locale'
 import { loadSettings, saveSettings } from './settings-file'
 import { readStamp } from './stamp'
@@ -99,6 +102,45 @@ export function registerBridge(hooks: BridgeHooks = {}): Carrier {
       return carrier.run(root, asked)
     },
   )
+
+  // What main hears and nobody asked for (RG144). Sent rather than invoked: a subscription
+  // has no answer, and its events arrive on the topic's own channel for as long as it
+  // stands. A window's subscriptions go with the page they belong to — a reload leaves a
+  // new page with no listeners, and a closed window leaves nothing to send to.
+  const subscriptions = createSubscriptions({
+    governed: (root, heard) => carrier.follow(root, heard),
+  })
+  const windows = new Map<number, Subscriber>()
+  const subscriberOf = (sender: WebContents): Subscriber => {
+    const known = windows.get(sender.id)
+    if (known !== undefined) return known
+    const made: Subscriber = {
+      id: sender.id,
+      send: (channel, event) => {
+        sender.send(channel, event)
+      },
+      isDestroyed: () => sender.isDestroyed(),
+    }
+    windows.set(sender.id, made)
+    const forget = (): void => {
+      subscriptions.drop(made)
+    }
+    sender.on('did-navigate', forget)
+    sender.once('destroyed', () => {
+      windows.delete(sender.id)
+      forget()
+    })
+    return made
+  }
+
+  ipcMain.on(BRIDGE_CHANNELS.subscribe, (event, topic: unknown, key: unknown) => {
+    if (!isTopic(topic) || typeof key !== 'string') return
+    subscriptions.subscribe(subscriberOf(event.sender), topic, key)
+  })
+  ipcMain.on(BRIDGE_UNSUBSCRIBE, (event, topic: unknown, key: unknown) => {
+    if (!isTopic(topic) || typeof key !== 'string') return
+    subscriptions.unsubscribe(subscriberOf(event.sender), topic, key)
+  })
 
   return carrier
 }

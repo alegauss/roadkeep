@@ -350,28 +350,6 @@ not help, being a candidate the same probe drops.
 - **The launcher is not this repository's to change.** It is identical to what `roadkeep install` writes today, so an edit here is overwritten by the next refresh. Making a *named* engine fatal rather than skippable is its behaviour, and the dep names it.
 - **The cache is the hazard on this machine.** It still answers — `0.2.4`, from 2026-08-28 — and is the candidate a busy sibling falls to. Removing `~/.cache/roadkeep-src` turns a stale answer into a refusal naming the missing engine: louder, and never wrong. It is a directory outside this repository, so it is named here for whoever owns the machine rather than removed.
 
-### §RG144 A subscription the port can serve
-
-Every bridge method is `ipcRenderer.invoke`, a question with one answer. Three things
-the artboards draw are not questions: a session's stream in `Sessao.dc.html`, a governed
-file changing under it, and the cache a write elsewhere made stale. `startSession` has
-`onEvent` and `onLine`, `createGovernedWatcher` fires on a disk change, and neither has
-anywhere to send what it heard.
-
-**One subscription, typed by topic.** `subscribe(topic, listener)` returns the function
-that ends it, and the topics are a table in `core` beside `BRIDGE_CHANNELS`, so main and
-the preload cannot drift on a name. Two topics to start: a session's lines, keyed by the
-session it belongs to, and a root whose governed files changed. The second is also what
-calls `invalidate` on the renderer's client, so a screen rereads after an agent or a
-terminal writes, without polling.
-
-**The port is why it is a subscription and not an IPC detail.** Over HTTP this is a
-server sent stream, and a listener shape that only `ipcRenderer.on` could satisfy is the
-coupling `bridge.ts` exists to refuse.
-
-A subscription that outlives its screen is a leak a test can see: the harness unmounts a
-screen and requires the preload to have removed its listener.
-
 ### §RG154 The first release, read by the check
 
 RG50's check has been read against answers described by hand, and GitHub's own is the

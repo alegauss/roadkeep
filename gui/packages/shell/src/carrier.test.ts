@@ -1,6 +1,7 @@
 import {
   buildArgv,
   buildCall,
+  createWatching,
   EngineCallFailed,
   EMPTY_CATALOGUE,
   openProject,
@@ -9,6 +10,7 @@ import {
   type Reconciled,
   type RecordedProject,
   type Transport,
+  type Watcher,
 } from '@rk/core'
 import { describe, expect, it } from 'vitest'
 
@@ -235,5 +237,81 @@ describe('RG143: what it opens, and keeps', () => {
     await carrier.close()
 
     expect(closed).toEqual([A])
+  })
+})
+
+/** A disk driven by hand, under `core`'s own watching, with a clock that never waits. */
+function disk() {
+  const moving = new Map<string, () => void>()
+  const watched: { root: string; files: readonly string[] }[] = []
+  const stopped: string[] = []
+  const watcher: Watcher = {
+    start(root, files, moved) {
+      watched.push({ root, files })
+      moving.set(root, moved)
+    },
+    stop(root) {
+      stopped.push(root)
+      moving.delete(root)
+    },
+  }
+  const watching = createWatching(watcher, {
+    after(_ms, run) {
+      run()
+      return () => undefined
+    },
+  })
+  return { watching, watched, stopped, move: (root: string) => moving.get(root)?.() }
+}
+
+describe('RG144: hearing a project move', () => {
+  it('watches the files its config declared, and says when they move', async () => {
+    const files = disk()
+    const { carrier } = world({ watching: files.watching })
+    let moves = 0
+
+    const stop = await carrier.follow(A, () => {
+      moves += 1
+    })
+    files.move(A)
+
+    expect(stop).not.toBeNull()
+    expect(files.watched).toEqual([{ root: A, files: ['docs/ROADMAP.md', 'roadkeep.toml'] }])
+    expect(moves).toBe(1)
+  })
+
+  it('watches nothing for a folder it would not open', async () => {
+    const files = disk()
+    const { carrier } = world({ watching: files.watching })
+
+    expect(await carrier.follow('/somewhere/else', () => undefined)).toBeNull()
+    expect(await carrier.follow(B, () => undefined)).toBeNull()
+    expect(files.watched).toEqual([])
+  })
+
+  it('gives the handle back when the last one listening stops', async () => {
+    const files = disk()
+    const { carrier } = world({ watching: files.watching })
+
+    const first = await carrier.follow(A, () => undefined)
+    const second = await carrier.follow(A, () => undefined)
+    first?.()
+    const afterFirst = [...files.stopped]
+    second?.()
+
+    // Two listeners share one handle, and the second release is what closes it.
+    expect(files.watched).toHaveLength(1)
+    expect(afterFirst).toEqual([])
+    expect(files.stopped).toEqual([A])
+  })
+
+  it('stops hearing everything when it closes', async () => {
+    const files = disk()
+    const { carrier } = world({ watching: files.watching })
+
+    await carrier.follow(A, () => undefined)
+    await carrier.close()
+
+    expect(files.stopped).toEqual([A])
   })
 })

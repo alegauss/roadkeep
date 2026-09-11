@@ -1,6 +1,6 @@
 export { identityFrom, PRODUCT, saidOfBuild, saidOfVersion, STAMP_VARS, UNSTAMPED } from './build'
 export type { BuildIdentity } from './build'
-export { BRIDGE_CHANNELS, BRIDGE_KEY } from './bridge'
+export { BRIDGE_CHANNELS, BRIDGE_KEY, BRIDGE_TOPICS, BRIDGE_UNSUBSCRIBE } from './bridge'
 export type {
   BridgedRequest,
   BridgedResult,
@@ -8,6 +8,8 @@ export type {
   LaunchSettings,
   OpenedProject,
   RendererBridge,
+  Topic,
+  TopicEvents,
   TransportName,
   Withheld,
 } from './bridge'
@@ -247,6 +249,8 @@ export type { Opening, OpenOptions, OpenProject } from './opening'
 export {
   bridgedRun,
   bridgedTransport,
+  isTopic,
+  keyOfEvent,
   openedFrom,
   openOver,
   requestFrom,

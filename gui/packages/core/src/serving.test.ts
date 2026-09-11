@@ -6,6 +6,8 @@ import { openProject } from './opening'
 import {
   bridgedRun,
   bridgedTransport,
+  isTopic,
+  keyOfEvent,
   openedFrom,
   openOver,
   requestFrom,
@@ -159,6 +161,20 @@ describe('RG143: what a carrier refuses, before anything starts', () => {
     const widened = { ...request, call: { tool: 'list', arguments: { block: 'A', every: true } } }
 
     expect(withheldBecause(widened, literal)).toContain('`every`')
+  })
+})
+
+describe('RG144: a subscription, as the renderer names one', () => {
+  it('knows the topics the table holds, and nothing else', () => {
+    expect(isTopic('governed')).toBe(true)
+    expect(isTopic('session')).toBe(true)
+    expect(isTopic('toString')).toBe(false)
+    expect(isTopic(3)).toBe(false)
+  })
+
+  it('reads the key an event belongs to, which is how one channel carries every source', () => {
+    expect(keyOfEvent('governed', { root: '/proj' })).toBe('/proj')
+    expect(keyOfEvent('session', { session: 's1', line: '{}' })).toBe('s1')
   })
 })
 
