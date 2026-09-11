@@ -29,7 +29,7 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- 📋 **RG191** (deps: RG168 ✅) **a screen drawing a field this app wrote in English passes every run that does not reach the state showing it** — Each of those fields has a code beside it and a docstring saying so, which is a shape one pass over the sources can refuse. → §RG191
+- 📋 **RG192** (deps: RG191 ✅) **two screens draw the English a failed bridge call carried, a field whose code no catalogue entry covers** — `withheldResult` puts this app's own prose there, so a window speaking Portuguese says it in English. → §RG192
 
 ## Done when — Block A
 

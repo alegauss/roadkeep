@@ -37,6 +37,10 @@ const REACHES_OUT: readonly { readonly what: string; readonly found: RegExp }[] 
   { what: 'an HTTP handler', found: /serveEngine/ },
   { what: 'a built fixture', found: /buildFixture/ },
   { what: 'a fake agent', found: /fakeClaude/ },
+  // RG191's gate loads a whole program through the TypeScript API, which starts a server and
+  // reads a `tsconfig`. The call and not the import: the fast half of that test asserts the
+  // rule's text-only pieces and names the module without ever starting one.
+  { what: 'the TypeScript API', found: /screenProse\(/ },
   // Patterns and not substrings: `'dist'` also appears as a value in an ignore list, and a
   // test that names a directory it never walks into has not reached anywhere.
   { what: 'the built bundle', found: /path\.join\([^)]*'dist'/ },

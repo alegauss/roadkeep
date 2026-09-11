@@ -100,7 +100,11 @@ export type Opening =
   | {
       readonly kind: 'unresolved'
       readonly root: string
-      /** In English, for a log. `code` is what a screen says in the window's language. */
+      /**
+       * In English, for a log. `code` is what a screen says in the window's language.
+       *
+       * @notForScreen `code`, looked up in the catalogue with `say`
+       */
       readonly reason: string
       readonly code: 'nothing-offered' | 'none-answered'
       readonly tried: readonly (readonly string[])[]

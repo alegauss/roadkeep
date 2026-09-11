@@ -57,7 +57,11 @@ export type EngineResolution =
   | { readonly kind: 'resolved'; readonly engine: ResolvedEngine }
   | {
       readonly kind: 'unresolved'
-      /** Sentence-shaped, in English, for a log. What a screen draws is `code` (RG168). */
+      /**
+       * Sentence-shaped, in English, for a log. What a screen draws is `code` (RG168).
+       *
+       * @notForScreen `code`, looked up in the catalogue with `say`
+       */
       readonly reason: string
       /**
        * Which of the two ways this happened, so a window says it in its own language:

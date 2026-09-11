@@ -102,6 +102,8 @@ export interface Unreadable {
    * The sentence, in English, for a log and a defect report. **Not what a screen draws**
    * where `code` names one: that is looked up in the catalogue, so a window speaking
    * Portuguese says it in Portuguese (RG168).
+   *
+   * @notForScreen `reasonOf(unreadable, say)`, which reads `code`
    */
   readonly message: string
   /** Which of this app's sentences applies, or empty where the prose is not this app's. */

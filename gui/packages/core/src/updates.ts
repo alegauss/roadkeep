@@ -54,6 +54,7 @@ export type UpdateCheck =
   | {
       readonly kind: 'failed'
       readonly current: string
+      /** @notForScreen `code`, looked up in the catalogue with `say` and filled from `fields` */
       readonly reason: string
       readonly code: FailedCheck
       readonly fields: Readonly<Record<string, string>>
