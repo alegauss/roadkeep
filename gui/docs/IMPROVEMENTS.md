@@ -235,31 +235,6 @@ digest is then required to carry that set.
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
 
-### §RG186 The copy nobody exported
-
-RG62's gate reads a file for the names it exports: the pattern is anchored on `export`
-before `const`, `function`, `class` or `type`, plus what an `export { … }` list carries.
-A screen declaring `function Label()` for its own use and never exporting it is a copy
-the gate cannot see — the ordinary shape of the mistake here, a component private to one
-surface having no reason to be exported.
-
-It was found by moving one: a caption used by two screens became an exported helper, and
-the gate reported it the moment it crossed that line. It had been sitting unexported in
-a screen for weeks, with the same name the design system publishes, and every run
-passed.
-
-**Unexported is where the drift is worse, not better.** A copy nobody exports is one
-nobody can be pointed at from elsewhere, so it diverges quietly: the design system's
-`Label` is a real `<label>` and the local one was a caption span, two different things
-sharing a name in one repository. A reader moving between the two screens has to know
-which is which.
-
-**The fix is the pattern, not a second tool.** Without the `export` requirement it
-reports every declaration whose name the package publishes, and the escape hatch it
-already has — `viglet-ds-allow-duplicate <Name> -- <reason>` — is what a deliberate
-collision uses. The correction belongs in the package, every consumer having the same
-hole; here it is a line saying so and the run that proves it.
-
 ### §RG191 The field a run has to reach to catch
 
 The pseudo-locale run reads what is on the screen, so it catches an English sentence

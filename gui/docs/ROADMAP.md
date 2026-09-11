@@ -33,7 +33,6 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- 📋 **RG186** (deps: —) **the duplicates gate matches on export, so a screen redeclaring a design-system name for its own use passes it** — A copy nobody exports is the ordinary shape of one, and it drifts where nothing can point at it. → §RG186
 - 📋 **RG191** (deps: RG168 ✅) **a screen drawing a field this app wrote in English passes every run that does not reach the state showing it** — Each of those fields has a code beside it and a docstring saying so, which is a shape one pass over the sources can refuse. → §RG191
 
 ## Done when — Block A

@@ -19,6 +19,7 @@ import { useParams } from 'react-router-dom'
 
 import { taskPath } from './areas'
 import { getBridge } from './bridge'
+import { PanelTitle } from './forms'
 import { Glyph, Pill, type Intent } from './marks'
 import { useSession } from './useSession'
 import { useWhen, useWording } from './wording'
@@ -62,14 +63,6 @@ export const STATE_INTENT: Readonly<Record<SessionState, Intent>> = {
   failed: 'error',
   cancelled: 'warn',
   unavailable: 'error',
-}
-
-function Label({ children }: { readonly children: ReactNode }) {
-  return (
-    <h3 className="text-muted-foreground mb-2 text-[11px] font-semibold tracking-wider uppercase">
-      {children}
-    </h3>
-  )
 }
 
 /** The raw line, one disclosure away from every act it was read into. */
@@ -147,7 +140,7 @@ function Handed({ record }: { readonly record: SessionRecord }) {
 
   return (
     <BentoPanel contentClassName="p-5">
-      <Label>{say('session.handed')}</Label>
+      <PanelTitle>{say('session.handed')}</PanelTitle>
       <ul className="flex flex-col gap-1.5 text-[13px]">
         {claimed === null ? null : (
           <li className="flex items-center gap-1.5">
@@ -220,7 +213,7 @@ function Files({ files }: { readonly files: readonly GovernedFile[] }) {
 
   return (
     <section className="mt-4" data-testid="files">
-      <Label>{say('session.files')}</Label>
+      <PanelTitle>{say('session.files')}</PanelTitle>
       <ul className="flex flex-col gap-1 text-xs">
         {files.map((file) => (
           <li key={file.path} className="flex flex-col">
@@ -244,7 +237,7 @@ function Elsewhere({ claims, id }: { readonly claims: ClaimsPayload | null; read
 
   return (
     <section className="mt-4" data-testid="elsewhere">
-      <Label>{say('session.claims')}</Label>
+      <PanelTitle>{say('session.claims')}</PanelTitle>
       {others.length === 0 ? (
         <p className="text-muted-foreground text-xs">{say('session.claims.none')}</p>
       ) : (
@@ -284,7 +277,7 @@ function Moved({
 
   return (
     <BentoPanel contentClassName="p-5">
-      <Label>{say('session.moved')}</Label>
+      <PanelTitle>{say('session.moved')}</PanelTitle>
       {landing === null || !landing.moved ? (
         <p className="text-muted-foreground text-xs">{say('session.moved.none')}</p>
       ) : (
@@ -326,7 +319,7 @@ function Stream({ lines, marks }: { readonly lines: readonly string[]; readonly 
   return (
     <BentoPanel className="min-w-0" contentClassName="p-0">
       <span className="block px-5 pt-4">
-        <Label>{say('session.stream')}</Label>
+        <PanelTitle>{say('session.stream')}</PanelTitle>
       </span>
       <ul className="mt-2">
         {acts.map((act) => (

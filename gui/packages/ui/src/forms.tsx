@@ -23,3 +23,19 @@ export function Caption({ children }: { readonly children: ReactNode }) {
     </span>
   )
 }
+
+/**
+ * The same caption as a heading of its own, which is what a panel's title is.
+ *
+ * An element and not a class: a panel's title is a heading a screen reader announces, and the
+ * inline one above is a label beside a field. Both were declared in three screens under the
+ * design system's own name for something else (RG186) — one `Label` that is a real `<label>`
+ * — so they live here, named for what they are.
+ */
+export function PanelTitle({ children }: { readonly children: ReactNode }) {
+  return (
+    <h3 className="text-muted-foreground mb-2 text-[11px] font-semibold tracking-wider uppercase">
+      {children}
+    </h3>
+  )
+}

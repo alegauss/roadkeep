@@ -26,6 +26,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { projectPath, sessionPath, taskPath } from './areas'
 import { getBridge } from './bridge'
+import { PanelTitle } from './forms'
 import { Glyph, Pill, type Intent } from './marks'
 import { useTask, type OpenedTask } from './useTask'
 import { useWording } from './wording'
@@ -57,14 +58,6 @@ const STANDING: Readonly<Record<DepStanding, Intent>> = {
 }
 
 /** A card's heading: small, spaced, and in the catalogue like every other word. */
-function Label({ children }: { readonly children: ReactNode }) {
-  return (
-    <h3 className="text-muted-foreground mb-2 text-[11px] font-semibold tracking-wider uppercase">
-      {children}
-    </h3>
-  )
-}
-
 type Copying = { readonly kind: 'idle' } | { readonly kind: 'copied' } | { readonly failed: string }
 
 const IDLE: Copying = { kind: 'idle' }
@@ -377,7 +370,7 @@ function UnderwayCard({ task }: { readonly task: OpenedTask }) {
 
   return (
     <BentoPanel contentClassName="p-5">
-      <Label>{say('task.underway')}</Label>
+      <PanelTitle>{say('task.underway')}</PanelTitle>
       <div className="flex items-center gap-2 text-sm">
         <Glyph>{detail.payload.status}</Glyph>
         <span>{said}</span>
@@ -422,7 +415,7 @@ function BindsCard({ detail }: { readonly detail: TaskDetail }) {
           one line (RG174). */}
       {line.doneWhenOwn.length === 0 ? null : (
         <section className="mb-4" data-testid="own-criteria">
-          <Label>{say('task.criteria.own')}</Label>
+          <PanelTitle>{say('task.criteria.own')}</PanelTitle>
           <ul className="flex flex-col gap-1.5">
             {line.doneWhenOwn.map((lead) => (
               <li key={lead} className="text-[13px] font-medium">
@@ -442,7 +435,7 @@ function BindsCard({ detail }: { readonly detail: TaskDetail }) {
           ) : null}
         </section>
       )}
-      <Label>{say('task.binds', { block: line.block })}</Label>
+      <PanelTitle>{say('task.binds', { block: line.block })}</PanelTitle>
       {line.doneWhen.length === 0 ? (
         <p className="text-muted-foreground text-xs">{say('task.criteria.none')}</p>
       ) : (
@@ -462,12 +455,12 @@ function BindsCard({ detail }: { readonly detail: TaskDetail }) {
 
       {bounds.quoted.length === 0 ? null : (
         <section className="mt-4" data-testid="quoted">
-          <Label>{say('task.quoted')}</Label>
+          <PanelTitle>{say('task.quoted')}</PanelTitle>
           <Leads leads={bounds.quoted} quoted />
         </section>
       )}
       <section className="mt-4" data-testid="bounds">
-        <Label>{say('task.bounds')}</Label>
+        <PanelTitle>{say('task.bounds')}</PanelTitle>
         <Leads leads={bounds.rest} quoted={false} />
         {bounds.elided > 0 ? (
           <p className="text-muted-foreground mt-1.5 text-xs">
@@ -487,7 +480,7 @@ function Elsewhere({ whereabouts }: { readonly whereabouts: Whereabouts }) {
   if (filing === 'paused' && pause !== null) {
     return (
       <BentoPanel contentClassName="p-6">
-        <Label>{say('task.paused')}</Label>
+        <PanelTitle>{say('task.paused')}</PanelTitle>
         <div className="flex flex-wrap items-center gap-2">
           <Glyph>{pause.marker}</Glyph>
           <span className="bg-muted text-muted-foreground rounded px-1.5 text-xs font-semibold">
