@@ -409,20 +409,6 @@ manifest, publish the draft `ci.yml` leaves, then run the packaged app of the ve
 before it and choose Help, Check for updates: it has to name both versions and open that
 page. Then the same from the new build, which has to say it is current.
 
-### §RG155 A path, not a prefix
-
-`isReleasePage` (packages/shell/src/updates.ts) trusts any URL that starts with
-`https://github.com/alegauss/roadkeep-gui/releases/`. A string prefix is not a path:
-`…/releases/../../other/repo` passes it, and the browser `openExternal` hands it to
-normalises the dot segments into another repository's page. The URL comes off a network
-answer, so it is somebody else's word.
-
-**The fix.** Parse it with `URL`: `https:` only, host `github.com`, no credentials, and
-the normalised `pathname` starting with `/alegauss/roadkeep-gui/releases/`. Tests hold a
-dot-segment URL, an encoded one and a lookalike host to `false`.
-
-Found by the adversarial review of RG50, confirmed by both skeptics.
-
 ### §RG156 Sentences the update check gets wrong
 
 The adversarial review of RG50 confirmed three places where the check says something

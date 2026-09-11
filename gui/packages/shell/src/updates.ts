@@ -16,6 +16,10 @@ const LATEST = `https://api.github.com/repos/${RELEASES_OF}/releases/latest`
 /** Every page the dialog may open starts here, and nothing else is opened from it. */
 export const RELEASE_PAGES = `https://github.com/${RELEASES_OF}/releases/`
 
+/** The host and the path those pages live at, which is what a URL is checked against. */
+const RELEASE_HOST = 'github.com'
+const RELEASE_PATH = `/${RELEASES_OF}/releases/`
+
 /** Long enough for a slow network, short enough that a menu click does not seem to hang. */
 const CHECK_CEILING = 10000
 
@@ -67,7 +71,36 @@ export async function checkForUpdate(
   return verdictOf(current, read.value)
 }
 
-/** Whether a URL is one of this project's release pages — the only thing the dialog opens. */
+/**
+ * Whether a URL is one of this project's release pages — the only thing the dialog opens.
+ *
+ * **A path and not a prefix** (RG155). The URL comes off a network answer, so it is somebody
+ * else's word, and a string that starts with the right characters is not a location:
+ * `…/releases/../../other/repo` starts with it and is another repository's page once the
+ * browser normalises the dot segments — after the check said yes. So the URL is parsed and the
+ * parts are compared: the scheme, the host, that nobody is named in it, and the pathname the
+ * parser normalised.
+ *
+ * `URL` is what normalises, which is the point: it does the same thing to the dot segments and
+ * the percent-encoding that the browser opening the link will do, so what is checked is what
+ * gets opened. A string this cannot parse at all is not a page.
+ */
 export function isReleasePage(url: string): boolean {
-  return url.startsWith(RELEASE_PAGES)
+  let parsed: URL
+  try {
+    parsed = new URL(url)
+  } catch {
+    return false
+  }
+
+  return (
+    parsed.protocol === 'https:' &&
+    // `host` and not `hostname`: a port is part of where this goes, and the pages have none.
+    parsed.host === RELEASE_HOST &&
+    // A URL may name a user and a password before the host, and `github.com` reads as the
+    // password of a host nobody looked at.
+    parsed.username === '' &&
+    parsed.password === '' &&
+    parsed.pathname.startsWith(RELEASE_PATH)
+  )
 }

@@ -163,6 +163,7 @@
 - 🗑 **RG119** **no macOS build of this app has ever been made, so what it needs is a guess** — abandoned: The maintainer has no Mac and chose not to pursue a macOS build, so what one needs stays unasked rather than guessed at on a runner.
 - ✅ **RG143** **the bridge carries no roadkeep call, so no screen can ask a project anything and every reader in core runs only in tests** — A window lists its projects, opens one where main holds the engine, and runs tabled calls over IPC; the rest is refused unrun (design recorded in `packages/core/src/serving.ts`).
 - ✅ **RG144** **the bridge only answers when asked, so a session's stream and a governed file changing have no way to reach a screen** — A screen hears its project's files move over IPC; main watches while anyone listens, and unmounting gives the watch back (design recorded in `packages/core/src/bridge.ts`).
+- ✅ **RG155** **the release-page guard compares a string prefix, so a release URL with dot segments opens another repository** — The release page is parsed and compared as a URL — scheme, host, no credentials, normalised path — so a dot segment opens nothing (design recorded in `packages/shell/src/updates.ts`).
 
 ## Block H — The look (a design system for governed prose)
 

@@ -65,3 +65,47 @@ describe('RG50: the pages the dialog may open', () => {
     ).toBe(false)
   })
 })
+
+describe('RG155: a path, not a prefix', () => {
+  it('refuses a URL whose dot segments climb out of the releases', () => {
+    // It starts with the right characters and is another repository's page: the browser
+    // normalises `..` after a prefix check has already said yes. The parser normalises the
+    // same way, which is what makes what was checked what gets opened.
+    expect(isReleasePage(`${RELEASE_PAGES}../../somebody/else`)).toBe(false)
+    expect(isReleasePage(`${RELEASE_PAGES}tag/../../../somebody/else`)).toBe(false)
+    // `%2E%2E` is `..` to the parser too, so an encoded climb is the same climb.
+    expect(isReleasePage(`${RELEASE_PAGES}%2E%2E/%2E%2E/somebody/else`)).toBe(false)
+  })
+
+  it('keeps an encoded segment that stays inside, since this refuses climbing and not encoding', () => {
+    // `%2F` is not a separator to a parser and is not one to the server either: this is a
+    // segment with an odd name under the releases, and it is still a release page.
+    expect(isReleasePage(`${RELEASE_PAGES}..%2F..%2Fsomebody%2Felse`)).toBe(true)
+    expect(isReleasePage(`${RELEASE_PAGES}tag/v0.2.0%2Bbuild`)).toBe(true)
+  })
+
+  it('refuses a host that merely reads like the right one', () => {
+    for (const url of [
+      'https://github.com.example.test/alegauss/roadkeep-gui/releases/tag/v9',
+      'https://notgithub.com/alegauss/roadkeep-gui/releases/tag/v9',
+      'https://github.com:8443/alegauss/roadkeep-gui/releases/tag/v9',
+      // The authority ends at the first slash, so this one's host is `example.test` and
+      // everything that reads like the right page is a password and a path.
+      'https://someone:github.com@example.test/alegauss/roadkeep-gui/releases/',
+      'https://github.com@example.test/alegauss/roadkeep-gui/releases/',
+    ]) {
+      expect(isReleasePage(url), url).toBe(false)
+    }
+  })
+
+  it('refuses credentials in front of the right host, which is a page nobody typed', () => {
+    expect(isReleasePage('https://someone@github.com/alegauss/roadkeep-gui/releases/')).toBe(false)
+  })
+
+  it('refuses a scheme that is not https, and a string that is no URL at all', () => {
+    expect(isReleasePage('http://github.com/alegauss/roadkeep-gui/releases/')).toBe(false)
+    expect(isReleasePage('javascript:alert(1)')).toBe(false)
+    expect(isReleasePage('')).toBe(false)
+    expect(isReleasePage('github.com/alegauss/roadkeep-gui/releases/')).toBe(false)
+  })
+})

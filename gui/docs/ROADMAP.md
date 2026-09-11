@@ -43,7 +43,6 @@
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
 - 📋 **RG128** (deps: RG120 ✅, roadkeep RK1678) **a checkout busy when the probe runs is skipped, so the launcher answers from a cache 446 versions old** — Resolution takes the first engine that answers, so a session can be briefed by a copy nobody chose. → §RG128
 - 📋 **RG154** (deps: RG50 ✅, RG162) (requires: published-artifact) **the update check has only met answers written by hand, never GitHub's own for a published release** — No release is published yet, so the shape it reads and the page it opens are held by fakes until the first one exists. → §RG154
-- 📋 **RG155** (deps: RG50 ✅) **the release-page guard compares a string prefix, so a release URL with dot segments opens another repository** — The URL comes off a network answer, and the browser normalises the dot segments after the guard approved the string. → §RG155
 - 📋 **RG156** (deps: RG50 ✅) **the update check tells a build ahead of every release it is the newest, and hides why a check failed** — An ahead build reads as current and loses the version found, undici keeps the real cause on error.cause, and a body timeout reads as not JSON. → §RG156
 - 📋 **RG157** (deps: RG50 ✅) **the tag-against-manifest check is tested by its text, so an inverted condition or a lost exit still passes** — The test finds the step's strings in ci.yml and never runs the script, which is the part that refuses. → §RG157
 - 📋 **RG161** (deps: —) **the signing procedure breaks the Windows CI job on one route and leaves the app exe unsigned on another** — Certum's subject name is committed to the builder config, SignPath signs only the installer, and three sentences beside it are false. → §RG161
@@ -139,6 +138,11 @@
 - **A user can say which build they are running and where it came from** The version,
   its commit and its origin are on screen, and an unsigned artefact says so rather than
   being shipped quietly past a warning.
+- **A location this app acts on is parsed, never matched as a string** A URL or a path
+  from a network answer, a config or a page is compared through the parser that will
+  resolve it — scheme, host, credentials, normalised path — because a prefix is not a
+  location and the dot segments are normalised after a string check has said yes
+  (RG155).
 
 ## Done when — Block H
 
