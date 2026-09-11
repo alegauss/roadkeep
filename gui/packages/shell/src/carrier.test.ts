@@ -7,6 +7,7 @@ import {
   openProject,
   type Opening,
   type ProjectCatalogue,
+  type ProjectGate,
   type Reconciled,
   type RecordedProject,
   type Transport,
@@ -545,6 +546,109 @@ describe('RG152: what the gate last said', () => {
     // record a clean verdict nobody ran.
     await carrier.run(A, listing(A))
 
+    expect(await carrier.gates()).toEqual([])
+  })
+})
+
+describe('RG166: the gate the carrier runs itself', () => {
+  const report = (clean: boolean, problems = 0) =>
+    JSON.stringify({
+      root: A,
+      clean,
+      checked: ['docs/ROADMAP.md'],
+      lines: 4,
+      sections: 2,
+      problems,
+      codes: {},
+      findings: [],
+      notes: [],
+    })
+
+  /** A carrier that answers `lint`, counting the runs and the verdicts it told. */
+  function watching(over: Partial<CarrierOptions> = {}) {
+    const lints: string[][] = []
+    const told: ProjectGate[] = []
+    const machine: Transport = {
+      run(request) {
+        const verb = request.argv[2] ?? ''
+        if (verb === 'lint') {
+          lints.push([...request.argv])
+          return Promise.resolve({ code: 0, stdout: report(true), stderr: '', durationMs: 1 })
+        }
+        const said = SAID[verb]
+        if (said === undefined) return Promise.reject(new EngineCallFailed('unspawnable', 'no', 1))
+        return Promise.resolve({ code: 0, stdout: said, stderr: '', durationMs: 1 })
+      },
+    }
+    const carrier = createCarrier({
+      looking: () => ({ roots: FOUND.roots, skip: [], width: 2 }),
+      rescan: () => Promise.resolve({ catalogue: FOUND, changes: [] }),
+      open: (root) => openProject(root, [['python', '/x/launch.py']], () => machine),
+      onGate: (gate) => told.push(gate),
+      ...over,
+    })
+    return { carrier, lints, told }
+  }
+
+  /** Wait for the gate the carrier started beside the answer it gave. */
+  const settle = () => new Promise((done) => setTimeout(done, 20))
+
+  it('gates a project it just opened, without the opening waiting for it', async () => {
+    const { carrier, lints, told } = watching()
+
+    const answer = await carrier.open(A)
+
+    // The opening is what a screen waits for, and it answered before the gate ran.
+    expect(answer.kind).toBe('open')
+    await settle()
+    expect(lints).toHaveLength(1)
+    expect(told.map((one) => one.health.verdict)).toEqual(['clean'])
+  })
+
+  it('does not run it again while the files have not moved', async () => {
+    const { carrier, lints } = watching()
+
+    await carrier.open(A)
+    await settle()
+    await carrier.open(A)
+    await settle()
+
+    // needsGate compares the verdict against the stamp, and nothing wrote in between.
+    expect(lints).toHaveLength(1)
+  })
+
+  it('says nothing about a project that would not open, rather than a verdict nobody ran', async () => {
+    const { carrier, lints, told } = watching({
+      open: (root): Promise<Opening> =>
+        Promise.resolve({ kind: 'unresolved', root, reason: 'no python', tried: [] }),
+    })
+
+    await carrier.open(A)
+    await settle()
+
+    expect(lints).toEqual([])
+    expect(told).toEqual([])
+    expect(await carrier.gates()).toEqual([])
+  })
+
+  it('keeps the project unknown where the gate itself will not run', async () => {
+    const machine: Transport = {
+      run(request) {
+        const verb = request.argv[2] ?? ''
+        if (verb === 'lint') return Promise.reject(new EngineCallFailed('timeout', 'ran past', 5))
+        const said = SAID[verb]
+        if (said === undefined) return Promise.reject(new EngineCallFailed('unspawnable', 'no', 1))
+        return Promise.resolve({ code: 0, stdout: said, stderr: '', durationMs: 1 })
+      },
+    }
+    const { carrier, told } = watching({
+      open: (root) => openProject(root, [['python', '/x/launch.py']], () => machine),
+    })
+
+    await carrier.open(A)
+    await settle()
+
+    expect(told).toEqual([])
     expect(await carrier.gates()).toEqual([])
   })
 })

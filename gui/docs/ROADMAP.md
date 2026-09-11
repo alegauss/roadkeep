@@ -14,8 +14,8 @@
 ## Block C — The portfolio (many backlogs in one view)
 
 - 📋 **RG147** (deps: RG145 ✅, RG20 ✅, RG150 ✅, a grouped palette) **the palette says it finds a line in every backlog and lists only surfaces, so search over all projects reaches no one** — RG20's search reaches no screen, and the package palette only filters nav items. → §RG147
-- 📋 **RG166** (deps: RG144 ✅) **every row's gate reads unknown, since the ledger RG18 built is fed by nothing a window runs** — recordGate and gateHealth are pure and tested, and no process runs lint for the portfolio or hands a verdict to the renderer. → §RG166
 - 📋 **RG167** (deps: RG144 ✅) **a row is read once, so a line shipped in a terminal leaves the portfolio stale until the window reopens** — RG144 tells a screen when a project's files move, and the portfolio subscribes to nothing, so its counts outlive the backlog they came from. → §RG167
+- 📋 **RG187** (deps: RG166 ✅) **the carrier gates every project as it opens, so a cold start over seventeen starts seventeen lints at once** — Each project's pool bounds its own reads, and nothing bounds how many projects gate together. → §RG187
 
 ## Block D — The project surface (one backlog, read)
 
@@ -41,7 +41,7 @@
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
 - 📋 **RG128** (deps: RG120 ✅, roadkeep RK1678) **a checkout busy when the probe runs is skipped, so the launcher answers from a cache 446 versions old** — Resolution takes the first engine that answers, so a session can be briefed by a copy nobody chose. → §RG128
 - 📋 **RG154** (deps: RG50 ✅, RG162 ⏳) (requires: published-artifact) **the update check has only met answers written by hand, never GitHub's own for a published release** — No release is published yet, so the shape it reads and the page it opens are held by fakes until the first one exists. → §RG154
-- ⏳ **RG162** (deps: —) **no LICENSE file ships and every build says 0.0.0, so the first release the maintainer decided on cannot be cut** — Pushing main and the tag v0.1.0, which drafts the release, and publishing that draft: both are the maintainer's to make. → §RG162
+- ⏳ **RG162** (deps: —) (requires: maintainer-release) **no LICENSE file ships and every build says 0.0.0, so the first release the maintainer decided on cannot be cut** — Pushing main and the tag v0.1.0, which drafts the release, and publishing that draft: both are the maintainer's to make. → §RG162
 - 📋 **RG184** (deps: —) **a source file carrying control characters passes every gate, so an invisible byte reaches a commit** — Five NULs sat in a template literal through typecheck, oxlint, prettier and the whole suite. → §RG184
 
 ## Block H — The look (a design system for governed prose)

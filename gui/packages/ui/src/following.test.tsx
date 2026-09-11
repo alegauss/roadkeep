@@ -1,4 +1,4 @@
-import type { RendererBridge } from '@rk/core'
+import { UNKNOWN_GATE, type RendererBridge } from '@rk/core'
 import { render } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
@@ -27,7 +27,10 @@ function recording(): { bridge: RendererBridge; taken: Taken[] } {
       const one: Taken = {
         topic,
         key,
-        listener: () => listener({ root: key, session: key, index: 0, line: '' }),
+        // One object that satisfies every topic's event, since this stub does not know
+        // which topic the caller subscribed to.
+        listener: () =>
+          listener({ root: key, session: key, index: 0, line: '', health: UNKNOWN_GATE }),
         given: 0,
       }
       taken.push(one)

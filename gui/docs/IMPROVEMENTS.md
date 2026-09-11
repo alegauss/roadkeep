@@ -94,28 +94,6 @@ renderer. The "a grouped palette" dep is that change in the design system: a sec
 group whose items the product supplies per query. Choosing a line waits on RG150's task
 detail.
 
-### §RG166 A gate verdict the carrier keeps
-
-RG18 built the ledger in `core`: `recordGate` turns one `lint` answer into a record kept
-against the governed stamp, `gateHealth` says clean, drifted, unknown or stale, and
-`needsGate` says whether running it again would tell anybody anything. RG145 draws the
-column. Nothing connects the two, so every row in a running window says unknown and
-"never run here", including rows for projects whose gate was run a minute ago.
-
-**The ledger belongs to the carrier.** Main already holds each open project, watches its
-governed files while a screen follows it (RG144), and owns the stamp. So main keeps one
-`createGateLedger`. It runs `lint` for a project when `needsGate` says the stamp moved,
-at most one at a time per project through the project's own pool. It then publishes the
-project's `governed` event, so a screen rereads.
-
-**The row reads it the way it reads everything else.** `OpenedProject` gains the gate's
-health as of the opening, and a `gate` topic, or the `governed` one, carries a new
-health when a run lands. `fillRow` already takes a `gate`, so the column needs no
-change.
-
-The design's cost argument holds: `lint` runs per change and never per draw. A project
-nobody has opened is never linted, which is why unknown stays a state a row can be in.
-
 ### §RG167 A row that follows its project
 
 The portfolio reads every project once, when it mounts. A line shipped in a terminal, or
@@ -138,6 +116,28 @@ opened for it. A pending or unreadable row subscribes to nothing: it has no file
 read.
 
 The order stays the record's. A reread replaces a row in place and never moves it.
+
+### §RG187 Bounding the gate runs a launch starts
+
+RG166 gates a project when the carrier opens it, which is right for one project and is
+the whole list at a cold start: the portfolio opens every project it found, and the
+ledger is in memory, so on the first launch every one of them is stale and every one of
+them is linted. Seventeen projects is seventeen of the most expensive read there is,
+started within a second of each other, while `coldStart` is still asking each for its
+counts and its next line.
+
+**`coldStart`'s bound does not reach them.** Each project's own pool bounds what that
+project runs at once, so nothing is overrun; what is unbounded is the number of projects
+doing it, and that is the figure RG17 was built to bound for the reads a row is made of.
+
+**The gate is not a read a row waits for**, which is why this is a cost and not a
+defect: the column says `unknown` until a verdict lands, the rows fill from their own
+reads, and a gate that finishes in a minute is a column that fills in a minute. What it
+costs is the machine — seventeen engines each running a full parse of a governed tree.
+
+**A limiter over the gate runs is the shape.** `createLimiter` bounds work across
+projects and `coldStart` uses one; the gate wants its own, narrower, so a launch spends
+one engine on verdicts and the rest on what the reader is looking at.
 
 ## Block D — The project surface (one backlog, read)
 

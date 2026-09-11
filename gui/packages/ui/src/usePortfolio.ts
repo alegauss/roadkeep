@@ -114,9 +114,26 @@ export function usePortfolio(): { readonly view: PortfolioView; readonly rescan:
     // nobody has gated stays `unknown` rather than being called clean. It is held here and
     // put on every list below, because the reads that fill a row land after it and a merge
     // done once would be undone by the next stage that finishes.
-    let verdicts: readonly ProjectGate[] = []
+    // Keyed by root rather than kept as a list, because two of them arrive: what the ledger
+    // held when this screen opened, and what the carrier's own runs leave while it is open.
+    // A later one about a project wins, whichever it came from, and a slow read of the
+    // ledger cannot undo a verdict heard since.
+    const verdicts = new Map<string, ProjectGate>()
+    // Every subscription this run took, given back when the screen goes.
+    const given: (() => void)[] = []
     const dressed = (rows: readonly ProjectRow[]): readonly ProjectRow[] =>
-      gatedRows(rows, verdicts)
+      gatedRows(rows, [...verdicts.values()])
+
+    const redraw = (): void => {
+      setView((was) => (was.kind === 'listed' ? { ...was, rows: dressed(was.rows) } : was))
+    }
+
+    /** A verdict that landed after the list did, put on its own row and kept for the rest. */
+    const heard = (gate: ProjectGate): void => {
+      if (!stillHere()) return
+      verdicts.set(gate.root, gate)
+      redraw()
+    }
 
     const read = async (): Promise<void> => {
       const projects = present(await bridge.projects())
@@ -129,11 +146,19 @@ export function usePortfolio(): { readonly view: PortfolioView; readonly rescan:
         tried: {},
       })
 
+      // The carrier runs the gate for a project whose files moved under its verdict (RG166),
+      // which is work this screen did not ask for and cannot wait on — so each row is
+      // listened to, and a verdict arriving hours later lands on the row it is about.
+      for (const project of projects) {
+        given.push(bridge.subscribe('gate', project.path, heard))
+      }
+
       void bridge.gates().then(
         (gates) => {
           if (!stillHere()) return
-          verdicts = gates
-          setView((was) => (was.kind === 'listed' ? { ...was, rows: dressed(was.rows) } : was))
+          // Only where nothing has been heard since: this is the older answer of the two.
+          for (const gate of gates) if (!verdicts.has(gate.root)) verdicts.set(gate.root, gate)
+          redraw()
         },
         // A carrier that will not say is a column that stays unknown, which is what it says.
         () => undefined,
@@ -161,6 +186,7 @@ export function usePortfolio(): { readonly view: PortfolioView; readonly rescan:
 
     return () => {
       live = false
+      for (const give of given) give()
     }
   }, [generation])
 

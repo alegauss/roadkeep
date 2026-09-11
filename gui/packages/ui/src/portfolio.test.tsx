@@ -10,12 +10,13 @@ import {
   type KnownRoot,
   type OpenedProject,
   type ProjectCatalogue,
+  type ProjectGate,
   type RecordedProject,
   type RendererBridge,
   type ScanRoot,
   type Transport,
 } from '@rk/core'
-import { fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { drawWindow } from './harness'
@@ -113,6 +114,7 @@ async function threeStates(): Promise<{ answerBeta: () => Promise<void> }> {
 
   const bridge: RendererBridge = stubBridge({
     projects: () => Promise.resolve(THREE),
+    subscribe: () => () => undefined,
     open: (root) =>
       root === READ ? Promise.resolve(alpha) : root === PENDING ? beta : Promise.resolve(REFUSAL),
     run: (root, request) => bridgedRun(() => machine.run({ ...request, root })),
@@ -260,7 +262,10 @@ describe('RG145: the three ways there is no list', () => {
 
   it('says the bridge would not answer, with its reason', async () => {
     Object.defineProperty(window, 'roadkeep', {
-      value: stubBridge({ projects: () => Promise.reject(new Error('channel closed')) }),
+      value: stubBridge({
+        projects: () => Promise.reject(new Error('channel closed')),
+        subscribe: () => () => undefined,
+      }),
       configurable: true,
     })
     drawWindow()
@@ -272,7 +277,10 @@ describe('RG145: the three ways there is no list', () => {
 
   it('says no project was found, rather than drawing an empty table', async () => {
     Object.defineProperty(window, 'roadkeep', {
-      value: stubBridge({ projects: () => Promise.resolve(EMPTY_CATALOGUE) }),
+      value: stubBridge({
+        projects: () => Promise.resolve(EMPTY_CATALOGUE),
+        subscribe: () => () => undefined,
+      }),
       configurable: true,
     })
     drawWindow()
@@ -295,6 +303,7 @@ describe('RG146: naming where the window looks', () => {
     Object.defineProperty(window, 'roadkeep', {
       value: stubBridge({
         roots: () => Promise.resolve(roots),
+        subscribe: () => () => undefined,
         chooseRoot: () => Promise.resolve(picked),
         saveRoots: (next) => {
           saved.push(next)
@@ -411,6 +420,7 @@ describe('RG152: the gate column, off the ledger the carrier keeps', () => {
     Object.defineProperty(window, 'roadkeep', {
       value: stubBridge({
         projects: () => Promise.resolve(THREE),
+        subscribe: () => () => undefined,
         open: (root) =>
           root === READ
             ? Promise.resolve(alpha)
@@ -449,6 +459,7 @@ describe('RG152: the gate column, off the ledger the carrier keeps', () => {
     Object.defineProperty(window, 'roadkeep', {
       value: stubBridge({
         projects: () => Promise.resolve(THREE),
+        subscribe: () => () => undefined,
         open: (root) =>
           root === READ ? Promise.resolve(alpha) : new Promise<OpenedProject>(() => undefined),
         run: (root, request) => bridgedRun(() => machine.run({ ...request, root })),
@@ -506,5 +517,80 @@ describe('RG152: the gate column, off the ledger the carrier keeps', () => {
       expect(rowOf('alpha').textContent).toContain(BASE['portfolio.gate.clean'])
     })
     expect(rowOf('beta').textContent).toContain(BASE['portfolio.gate.unknown'])
+  })
+})
+
+describe('RG166: a verdict that lands while the list is open', () => {
+  it('puts it on the row it is about, without the list being read again', async () => {
+    const alpha = await opened(READ)
+    let tell: ((gate: ProjectGate) => void) | null = null
+    let letGatesAnswer: (gates: readonly ProjectGate[]) => void = () => undefined
+    let given = 0
+    Object.defineProperty(window, 'roadkeep', {
+      value: stubBridge({
+        projects: () => Promise.resolve(THREE),
+        open: (root) => (root === READ ? Promise.resolve(alpha) : Promise.resolve(REFUSAL)),
+        run: (root, request) => bridgedRun(() => machine.run({ ...request, root })),
+        // The ledger read is the slow one here, and it answers with what was on record
+        // before the carrier's own run landed: an older answer, arriving later.
+        gates: () =>
+          new Promise((answer) => {
+            letGatesAnswer = answer
+          }),
+        subscribe: (topic, key, listener) => {
+          if (topic === 'gate' && key === READ) tell = listener as (gate: ProjectGate) => void
+          return () => {
+            given += 1
+          }
+        },
+      }),
+      configurable: true,
+    })
+    const drawn = drawWindow()
+
+    await waitFor(() => {
+      expect(rowOf('alpha').textContent).toContain(BASE['portfolio.gate.unknown'])
+    })
+    await waitFor(() => {
+      expect(tell).not.toBeNull()
+    })
+
+    act(() => {
+      tell?.({
+        root: READ,
+        health: {
+          verdict: 'drifted',
+          problems: 2,
+          taken: '2026-09-11T12:00:00.000Z',
+          stale: false,
+        },
+      })
+    })
+
+    await waitFor(() => {
+      expect(rowOf('alpha').textContent).toContain(BASE['portfolio.gate.drifted'])
+    })
+
+    // The ledger read lands now, with what it held before that run. The newer verdict stands:
+    // an answer read earlier and delivered later is still the older of the two.
+    await act(async () => {
+      letGatesAnswer([
+        {
+          root: READ,
+          health: {
+            verdict: 'clean',
+            problems: 0,
+            taken: '2026-09-11T11:00:00.000Z',
+            stale: false,
+          },
+        },
+      ])
+      await Promise.resolve()
+    })
+    expect(rowOf('alpha').textContent).toContain(BASE['portfolio.gate.drifted'])
+
+    // And the watch goes with the screen.
+    drawn.unmount()
+    expect(given).toBeGreaterThan(0)
   })
 })

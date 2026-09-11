@@ -182,6 +182,7 @@ export function isTopic(value: unknown): value is Topic {
 const KEYS: { readonly [T in Topic]: (event: TopicEvents[T]) => string } = {
   governed: (event) => event.root,
   session: (event) => event.session,
+  gate: (event) => event.root,
 }
 
 /**

@@ -3,6 +3,7 @@ import {
   createGateLedger,
   createWatching,
   EMPTY_CATALOGUE,
+  buildArgv,
   openedFrom,
   readLintPayload,
   recordGate,
@@ -14,6 +15,7 @@ import {
   type BridgedRequest,
   type BridgedResult,
   type GateLedger,
+  type OpenProject,
   type Opening,
   type OpenedProject,
   type ProjectCatalogue,
@@ -85,6 +87,12 @@ export interface CarrierOptions {
   readonly doors?: DoorKeep
   /** Where gate verdicts are kept (RG152). Its own unless a test says otherwise. */
   readonly gate?: GateLedger
+  /**
+   * Told when a gate this carrier ran left a verdict (RG166), so a window hears it without
+   * asking. Absent — a test, or a carrier nobody is watching — the verdict is still on record
+   * and `gates` answers it.
+   */
+  readonly onGate?: (gate: ProjectGate) => void
 }
 
 export interface Carrier {
@@ -295,6 +303,46 @@ export function createCarrier(options: CarrierOptions): Carrier {
     return started
   }
 
+  /**
+   * Run the gate for one project, where running it would say anything new (RG166).
+   *
+   * **Driven by the files, never by a draw.** `needsGate` compares what is on record against
+   * the stamp the governed files have now, so this is at most one `lint` per project per
+   * change — a window redrawing its list seventeen times runs none. It goes through the
+   * project's own pooled transport, so it queues behind whatever that project is doing rather
+   * than competing with it.
+   *
+   * Nothing awaits it: a verdict arrives on the `gate` topic when it arrives, and an opening
+   * that waited for one would make every project's first draw cost the most expensive read
+   * there is. A gate that will not run is a project that stays `unknown`, which is a state a
+   * row draws.
+   */
+  const gating = new Set<string>()
+  const gateIfStale = async (root: string, project: OpenProject): Promise<void> => {
+    const key = rootKey(root)
+    // One at a time per project: two runs against one tree answer the same thing twice.
+    if (gating.has(key)) return
+    if (!gate.stale(root, await stampOf(root))) return
+
+    gating.add(key)
+    try {
+      const ran = await project.transport.run({ root, argv: buildArgv(root, 'lint', {}) })
+      const read = readLintPayload(JSON.parse(ran.stdout), '')
+      if (!read.ok) return
+      // Stamped after the run, like every other verdict: a file written while the gate ran
+      // makes it stale at once, and the row says so rather than claiming the tree is clean.
+      const stamp = await stampOf(root)
+      gate.note(root, recordGate(read.value, stamp, now()))
+      gated.set(key, root)
+      options.onGate?.({ root, health: gate.healthOf(root, stamp) })
+    } catch {
+      // A gate that would not run says nothing. The project keeps whatever it had, which
+      // where nothing has run is `unknown` — never a verdict this side made up.
+    } finally {
+      gating.delete(key)
+    }
+  }
+
   return {
     projects,
 
@@ -303,7 +351,13 @@ export function createCarrier(options: CarrierOptions): Carrier {
         if (!(await catalogued(root))) {
           return { kind: 'withheld', root, reason: notCatalogued(root) }
         }
-        return openedFrom(await opening(root))
+        const reached = await opening(root)
+        // A project that just opened is one whose verdict may be older than its files, and
+        // this is the moment the engine to ask with exists. Never awaited: the opening is
+        // what a screen is waiting for, and it is handed the project this call already has
+        // rather than opening one of its own (RG166).
+        if (reached.kind === 'open') void gateIfStale(root, reached.project).catch(() => undefined)
+        return openedFrom(reached)
       } catch (cause) {
         // `openProject` answers its failures as states, so reaching here is the scan or the
         // candidates throwing — still an answer a screen draws, and never a rejected call.
@@ -394,6 +448,8 @@ export function createCarrier(options: CarrierOptions): Carrier {
         if (rootKey(changed) !== key) return
         project.invalidate()
         moved()
+        // The files moved, so the verdict on record is about a tree that has gone (RG166).
+        void gateIfStale(root, project).catch(() => undefined)
       })
 
       let stopped = false

@@ -78,6 +78,7 @@
 - ✅ **RG73** **a row is built by four separate reads, so a project costs four interpreter starts to show once** — A scannable row is one call and the next line is a second, because resolution already answered the engine and the gate comes off the ledger (design recorded in `packages/core/src/rows.ts`).
 - ✅ **RG145** **the window opens on a scaffold naming three packages, so the portfolio core already computes is drawn nowhere** — The window opens on the portfolio: a row per project filled as reads land, pending never zero, engine beside counts, chips counting rows (design recorded in `packages/ui/src/Portfolio.tsx`).
   checked **Every row draws its engine's verdict beside its counts** Agreed, split or swapped, from the row the portfolio already builds; a split row is information and never drawn as an error (was RG15).
+- ✅ **RG166** **every row's gate reads unknown, since the ledger RG18 built is fed by nothing a window runs** — A row's gate is the verdict the carrier ran, heard as it lands (design superseded: the health rides a gate topic, not the opening) (design recorded in `packages/shell/src/carrier.ts`).
 
 ## Block D — The project surface (one backlog, read)
 

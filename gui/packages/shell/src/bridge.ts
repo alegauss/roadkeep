@@ -18,6 +18,7 @@ import {
   type KnownRoot,
   type LaunchSettings,
   type OpenedProject,
+  type ProjectGate,
 } from '@rk/core'
 import { app, BrowserWindow, dialog, ipcMain, type WebContents } from 'electron'
 
@@ -90,7 +91,14 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
   // settings above, so a root somebody added by hand is scanned the next time the window
   // asks. Every argument is still the renderer's word: a root that is not a string opens
   // nothing, and a request that is not one runs nothing — both before the carrier is asked.
+  // The carrier is made before the subscriptions it publishes through — they are made from
+  // its own `follow` — so what it tells is held here and filled in below. Before that, a
+  // verdict is on record and `gates` answers it; nobody is listening yet either way.
+  let tellGate: (gate: ProjectGate) => void = () => undefined
   const carrier = createCarrier({
+    onGate: (gate) => {
+      tellGate(gate)
+    },
     looking: () => {
       const { roots, skip, width } = loadSettings(app.getPath('userData')).settings
       return { roots, skip, width }
@@ -150,6 +158,12 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
   const subscriptions = createSubscriptions({
     governed: (root, heard) => carrier.follow(root, heard),
   })
+  // A gate the carrier ran, told to whoever is watching that project (RG166). No source to
+  // start: like a session's lines, these arrive because something happened, not because a
+  // subscription went looking.
+  tellGate = (gate) => {
+    subscriptions.publish('gate', gate.root, gate)
+  }
   const windows = new Map<number, Subscriber>()
   const subscriberOf = (sender: WebContents): Subscriber => {
     const known = windows.get(sender.id)

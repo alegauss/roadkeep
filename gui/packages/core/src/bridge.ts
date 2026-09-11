@@ -295,6 +295,15 @@ export interface TopicEvents {
   readonly session:
     | { readonly session: string; readonly index: number; readonly line: string }
     | { readonly session: string; readonly outcome: SessionOutcome }
+  /**
+   * A verdict the carrier's gate left, for the project it is about (RG166).
+   *
+   * Its own topic rather than a `governed` event, because the files did not move: a screen
+   * told that they had would read the backlog again for nothing, and a row that wanted the
+   * verdict would have to ask for it separately anyway. The health is the whole event —
+   * `gates` answers the same shape, so a row fills the same way whichever it came from.
+   */
+  readonly gate: ProjectGate
 }
 
 export type Topic = keyof TopicEvents
@@ -303,6 +312,7 @@ export type Topic = keyof TopicEvents
 export const BRIDGE_TOPICS = {
   governed: 'roadkeep:on-governed',
   session: 'roadkeep:on-session',
+  gate: 'roadkeep:on-gate',
 } as const satisfies Record<Topic, string>
 
 /**

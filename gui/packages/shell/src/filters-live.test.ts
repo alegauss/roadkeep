@@ -64,12 +64,17 @@ describe('RG22: what this project offers as filters', () => {
     expect(choices.markers).toContain('🗑')
   })
 
-  it('lists the governed roles and the three requirements this repository chose', () => {
+  it('lists the governed roles and the requirements this repository declared', () => {
     const choices = filterChoices(config, stats)
 
     expect(choices.roles).toContain('roadmap')
     expect(choices.roles).toContain('changelog')
-    expect(choices.requirements).toEqual(['signing-cert', 'macos-machine', 'published-artifact'])
+    expect(choices.requirements).toEqual([
+      'signing-cert',
+      'macos-machine',
+      'published-artifact',
+      'maintainer-release',
+    ])
   })
 })
 

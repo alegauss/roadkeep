@@ -83,12 +83,14 @@ held = 60
 # Not a dep: `pick` offers a line needing one only to a caller that says it has it,
 # with `--have`. An undeclared word is refused.
 #
-# Three, and each is a thing an agent on this machine does not have. `signing-cert`
+# Four, and each is a thing an agent on this machine does not have. `signing-cert`
 # is a certificate somebody buys; `macos-machine` is hardware no CI minute
 # substitutes for, notarisation running only there; `published-artifact` is a
-# release that exists on the internet, which is what an update check reads.
+# release that exists on the internet, which is what an update check reads; and
+# `maintainer-release` is the push and the publish that cut one, which are the
+# maintainer's own acts and not work an agent finishes on their behalf.
 [requirements]
-declared = ["signing-cert", "macos-machine", "published-artifact"]
+declared = ["signing-cert", "macos-machine", "published-artifact", "maintainer-release"]
 
 [install]
 wired = "0.2.450"
