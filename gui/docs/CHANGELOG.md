@@ -150,6 +150,7 @@
 - ✅ **RG138** **the packaged app wears Electron's icon in the taskbar and installer, though roadkeep's mark now leads its header** — The packaged app wears roadkeep's mark on a dark tile, rendered from an SVG by npm run icon, and the edit that writes it into the .exe is on while it stays unsigned.
 - ✅ **RG139** **the executable names GitHub, Inc. as its company, because the manifest names no author to replace Electron's** — The manifest names Alexandre Oliveira as author, so the unpacked roadkeep.exe says that as its company, and a test holds the name there without an address.
 - ✅ **RG49 (the procedure)** **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — docs/SIGNING.md says how a certificate is obtained and where it plugs in; SignPath and Certum are the ones open to a Brazilian individual.
+- ✅ **RG50 (the release pipeline)** **nothing updates, so a fix reaches a person only if they go and look for one** — A v tag whose version matches package.json now drafts a GitHub release with both installers, which a person publishes.
 
 ## Block H — The look (a design system for governed prose)
 

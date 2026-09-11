@@ -223,6 +223,19 @@ jobs:
           # exists to produce correctly, so the history is fetched rather than assumed.
           fetch-depth: 0
 
+      # The version an installer says it is comes from `package.json`, through the stamp —
+      # so a tag naming another one would draft a release whose files disagree with its
+      # title (RG50). Refused before anything is built, which is the cheap place to be told.
+      - name: the tag names the version the manifest carries
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          manifest=$(node -p "require('./package.json').version")
+          if [ "${GITHUB_REF_NAME#v}" != "$manifest" ]; then
+            echo "tag $GITHUB_REF_NAME, but package.json says $manifest"
+            exit 1
+          fi
+
       # The gate, in the job that needs it. An installer built from a tree whose governed
       # files drifted is the one artefact worth refusing, and `needs:` cannot reach across
       # workflows to the job that would have said so.
@@ -254,3 +267,37 @@ jobs:
             release/*.AppImage
           if-no-files-found: error
           retention-days: 14
+
+  # The installers, on a release page somebody can find (RG50) — and **a draft**, because a
+  # release is a decision somebody makes and not a side effect of pushing a tag. Publishing
+  # it is one click on the page this leaves behind, and until then nothing reading
+  # `releases/latest` sees it: GitHub leaves drafts out of that answer.
+  #
+  # Cutting one, then: set `version` in package.json, commit, push a `v<that version>` tag,
+  # wait for this job, read the draft, publish it.
+  release:
+    name: draft the release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [package]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # The one job that writes to the repository, so the one that asks to.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: installers
+          merge-multiple: true
+
+      - name: draft it, with both installers attached
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" installers/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --draft \
+            --verify-tag \
+            --title "roadkeep $GITHUB_REF_NAME" \
+            --generate-notes
