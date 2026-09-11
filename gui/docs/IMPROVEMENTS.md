@@ -167,26 +167,6 @@ the one that disagrees with the engine without anyone noticing.
 Until then the per-line reads stay. They are correct, just slow on a long list, and a
 project that large can narrow by block first.
 
-### §RG171 A design named by its heading
-
-RG149's improvements tab lists the open lines that carry a design, each as its symptom
-and its `§` pointer. The design asked for the sections themselves, and a section's
-heading is the name its author gave the design, which neither the symptom nor the
-pointer is. A reader looking for a design by what it is called has to know its id first.
-
-The heading is one `section show` away, now that RG149 added the verb, but `list` does
-not carry it. So drawing one per row is a read per designed line, which is the same cost
-RG170 files against readiness.
-
-**Asked when the tab opens, bounded by the carrier's pool.** Each designed row asks
-`section show <ref>` with `--role improvements` and draws the title when it lands. Until
-then it shows the pointer, as it does today, so the tab is never blank while it reads.
-The body is not asked for, since a design is read in its task and not here, and a tab
-that held every body would be the whole file this app exists not to reproduce.
-
-If RG170's listing grows the heading as well as the readiness, this becomes a field read
-off the list, and the per-row reads go with it.
-
 ### §RG173 An id that opens its own line
 
 RG150's task screen draws each dep as a pill with the engine's word beside it, the

@@ -299,8 +299,57 @@ export function DeferredTab({ project }: { readonly project: OpenProject }) {
   )
 }
 
-export function ImprovementsTab({ project }: { readonly project: OpenProject }) {
+/**
+ * One designed line, named by its design's own heading (RG171).
+ *
+ * The heading is a read of its own — `list` carries the pointer and not the title — so each
+ * row asks for its section as the tab opens, bounded by the carrier's pool like every other
+ * read. Until it lands the row shows the pointer, which is what it showed before, so the tab
+ * is never blank while it reads and a section that will not come back stays as it was.
+ */
+function DesignRow({
+  project,
+  line,
+  anchor,
+}: {
+  readonly project: OpenProject
+  readonly line: TaskLine
+  readonly anchor: string
+}) {
   const say = useWording()
+  const [title, setTitle] = useState('')
+
+  useEffect(() => {
+    let live = true
+    const stillHere = (): boolean => live
+    // The body comes with it: `section show` declares no way to decline one, so what is
+    // not asked for here is simply not drawn.
+    void project.client
+      .call(project.root, 'sectionShow', { anchor, role: 'improvements' })
+      .then((outcome) => {
+        if (stillHere() && outcome.kind === 'read') setTitle(outcome.value.title)
+      })
+    return () => {
+      live = false
+    }
+  }, [project, anchor])
+
+  return (
+    <Entry line={line}>
+      <div
+        className="text-muted-foreground mt-1.5 flex flex-wrap items-baseline gap-2 text-xs"
+        data-testid="design-name"
+      >
+        {/* The heading is the author's own words, drawn as the file keeps them — like the
+            symptom above it, and unlike the sentence beside it, which is this app's. */}
+        {title === '' ? null : <span className="text-foreground font-medium">{title}</span>}
+        <span>{say('project.design.written', { ref: anchor })}</span>
+      </div>
+    </Entry>
+  )
+}
+
+export function ImprovementsTab({ project }: { readonly project: OpenProject }) {
   const listed = useAnswer(
     () => project.client.call(project.root, 'list', {}),
     `${project.root} designed`,
@@ -313,11 +362,7 @@ export function ImprovementsTab({ project }: { readonly project: OpenProject }) 
   return (
     <Entries>
       {designed.map((line) => (
-        <Entry key={line.id} line={line}>
-          <div className="text-muted-foreground mt-1.5 text-xs">
-            {say('project.design.written', { ref: line.ref ?? '' })}
-          </div>
-        </Entry>
+        <DesignRow key={line.id} project={project} line={line} anchor={line.ref ?? ''} />
       ))}
     </Entries>
   )

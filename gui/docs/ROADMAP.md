@@ -20,7 +20,6 @@
 ## Block D — The project surface (one backlog, read)
 
 - 📋 **RG170** (deps: roadkeep list with readiness) **list prints no readiness per line, so every row costs a deps read and startable only cannot be offered** — Readiness is the engine's word, and a list of eight hundred is eight hundred reads before the column is full. → §RG170
-- 📋 **RG171** (deps: —) **the improvements tab names each design by its pointer and not its heading, so two designs look alike until opened** — The heading is the name a design's author gave it, and list carries only the pointer, so the tab shows an id where it could say what the design is. → §RG171
 - 📋 **RG173** (deps: —) **a dep or a chain hop on the task screen is text, so reaching the line it names means going back through the project** — The brief says which ids are tasks here, and each already has a route that opens it as one read. → §RG173
 - 📋 **RG174** (deps: —) **a line's own criteria never reach its task screen, so what the ship must check reads as the block's finish line alone** — Brief sends done_when_own beside the block's leads and the reader declares only the second, so the leads ship --checked names go unshown. → §RG174
 

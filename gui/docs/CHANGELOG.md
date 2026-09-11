@@ -99,6 +99,7 @@
 - ✅ **RG148** **a project cannot be opened in the window, so its lines, blocks and filters exist only as readers in core** — A portfolio row opens its backlog as rows, every chip an argument to list, readiness from deps, a started unheld line said so (design recorded in `packages/ui/src/Project.tsx`).
 - ✅ **RG149** **the changelog, decisions, improvements and deferred tabs are drawn as labels with nothing behind them** — The changelog, decisions, deferred and improvements tabs each read their own file; an undone entry says so, reasoning opens as the file has it (design recorded in `packages/ui/src/ProjectTabs.tsx`).
 - ✅ **RG150** **a task opens nowhere in the window, so brief's join of deps, design and binding lists is read by nobody** — A row's Open leads to the line as one brief: its design as the file stores it, readiness in the engine's words, the claim, and what binds it (design recorded in `packages/ui/src/Task.tsx`).
+- ✅ **RG171** **the improvements tab names each design by its pointer and not its heading, so two designs look alike until opened** — A design is named by its own heading (design superseded: section show declares no --no-body, so the body arrives unasked) (design recorded in `packages/ui/src/ProjectTabs.tsx`).
 
 ## Block E — The write path (the app composes an argv; the command writes)
 

@@ -207,20 +207,28 @@ function answer(argv: readonly string[]): string | undefined {
         asked: null,
         reversed: [{ undone: 'AL0', by: 'AL7', line: 9, why: 'It did not hold.' }],
       })
-    case 'section':
-      return argv[4] === 'AL9'
-        ? JSON.stringify({
-            anchor: 'AL9',
-            title: 'Why the constraint',
+    case 'section': {
+      // Every design has a heading of its own, which is what the improvements tab draws
+      // (RG171); the decisions tab asks for the same verb and reads the body.
+      const headings: Record<string, string> = {
+        AL9: 'Why the constraint',
+        AL1: 'The first design, named',
+      }
+      const heading = headings[argv[4] ?? '']
+      return heading === undefined
+        ? undefined
+        : JSON.stringify({
+            anchor: argv[4],
+            title: heading,
             level: 3,
-            file: 'docs/DECISIONS.md',
+            file: argv.includes('decisions') ? 'docs/DECISIONS.md' : 'docs/IMPROVEMENTS.md',
             first: 1,
             last: 4,
             words: 9,
             own_words: 9,
             body: 'The reasoning,\nwrapped as the file keeps it.',
           })
-        : undefined
+    }
     case 'deps':
       return JSON.stringify(
         id === 'AL2'
@@ -439,6 +447,31 @@ describe('RG149: the other governed files, as tabs', () => {
 
     await waitFor(() => {
       expect(screen.getAllByTestId('entry').map((one) => one.dataset['id'])).toEqual(['AL1', 'AL3'])
+    })
+  })
+
+  describe('RG171: a design named by its own heading', () => {
+    it('draws each design by the heading its author gave it, beside the pointer', async () => {
+      await onTab('improvements')
+
+      await waitFor(() => {
+        expect(screen.getAllByTestId('design-name')[0]?.textContent).toBe(
+          `The first design, named${fill(BASE['project.design.written'], { ref: 'AL1' })}`,
+        )
+      })
+    })
+
+    it('keeps the pointer where the heading never comes back, rather than emptying the row', async () => {
+      // AL3's section is one the engine has nothing to say about, which is the state the
+      // row is in before any of them land and the one it stays in if a read fails.
+      await onTab('improvements')
+
+      await waitFor(() => {
+        expect(screen.getAllByTestId('design-name')[0]?.textContent).toContain('named')
+      })
+      expect(screen.getAllByTestId('design-name')[1]?.textContent).toBe(
+        fill(BASE['project.design.written'], { ref: 'AL3' }),
+      )
     })
   })
 })
