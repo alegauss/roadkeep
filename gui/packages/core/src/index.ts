@@ -80,6 +80,7 @@ export type {
   ResolveAgentOptions,
   TransportFor as TransportForAgent,
 } from './agent'
+export { blanksIn, doorsIn, filledArgv, isBlank } from './doors'
 export { coldStart } from './cold-start'
 export type { ColdStartProgress, ColdStartStage } from './cold-start'
 export { allLines, backlogFrom, refusedSummary } from './backlog'

@@ -285,29 +285,6 @@ about when it last ran.
 `repair` spending a whole report is one action here only if it is one command there;
 this app does not batch doors the engine offered one by one.
 
-### §RG165 A door, run by main
-
-RG143's guard runs what `VERBS` and `WRITES` spell and nothing else, and that is right
-for what the app composes. A door is not that: it is the engine's own argv, handed back
-by a refusal, a lint finding or `explain`, and `composeDoor` wraps it without a table.
-So `criterion add`, `install`, `non-goal add` and most of `repair`'s options are
-withheld from a window, and RG151's refusal doors and RG152's findings would draw
-buttons that answer `withheld`.
-
-Widening the guard to any verb `commands` publishes is the wrong fix. It hands the
-renderer the whole command line again, which is the shell §RG85 refused.
-
-**Main keeps the doors it carried back.** When a run's answer carries doors, main reads
-them with the same readers the renderer uses and remembers them per project under a
-token it returns beside the result. Running one is `door(root, token, index, words)`:
-main takes the argv it kept, puts the person's words only where the engine wrote a
-blank, and runs that. The renderer names which door and supplies prose; it never
-supplies an argument.
-
-A token is dropped when the project's stamp moves, since a door offered against files
-that changed may no longer close anything. That makes `door` the fourth method, and it
-is one a web service implements the same way.
-
 ## Block F — The agent surface (handing one task to Claude Code)
 
 ### §RG175 The line a session already has

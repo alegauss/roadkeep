@@ -181,6 +181,27 @@ export interface RendererBridge {
    * may have moved the line, and releasing it here would undo a state nobody reviewed.
    */
   stopSession(key: string): Promise<void>
+  /**
+   * Take one door the engine offered (RG165).
+   *
+   * **A door is the engine's own argv and never this app's.** The guard in front of `run`
+   * runs what the verb tables spell, which a door is not — so this goes the other way round:
+   * the side that received the answer kept its doors, and a caller names the answer
+   * (`offered`), which door in it, and the prose for the blanks the engine left. What runs is
+   * the argv that came back, with those words in those places and nothing else changed.
+   *
+   * A name the far side no longer holds — the project's files have moved since, or this is
+   * another launch — is refused rather than guessed at, since a door offered against files
+   * that changed may no longer close anything.
+   *
+   * @param words one per blank, in the order they appear. A door that needs none takes none.
+   */
+  door(
+    root: string,
+    offered: string,
+    which: number,
+    words: readonly string[],
+  ): Promise<BridgedResult>
 }
 
 /** One governed file, and when the disk last changed it (RG153). */
@@ -280,7 +301,18 @@ export type BridgedRequest = Omit<EngineRequest, 'root' | 'signal'>
  * not survive the crossing, and `EngineCallFailed` is rebuilt on the far side from these.
  */
 export type BridgedResult =
-  | { readonly kind: 'ran'; readonly result: EngineResult }
+  | {
+      readonly kind: 'ran'
+      readonly result: EngineResult
+      /**
+       * What to call this answer's doors by, where it carried any (RG165).
+       *
+       * The doors themselves are in the answer and the renderer reads them; what crosses is
+       * a name for the ones the far side kept, so running one is a caller naming which and
+       * never a caller handing over an argv.
+       */
+      readonly offered?: string
+    }
   | {
       readonly kind: 'failed'
       readonly reason: EngineFailure
@@ -333,4 +365,5 @@ export const BRIDGE_CHANNELS = {
   governedAt: 'roadkeep:governed-at',
   sessions: 'roadkeep:sessions',
   stopSession: 'roadkeep:stop-session',
+  door: 'roadkeep:door',
 } as const satisfies Record<keyof RendererBridge, string>

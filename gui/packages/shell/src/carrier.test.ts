@@ -134,6 +134,102 @@ describe('RG143: which projects there are', () => {
   })
 })
 
+describe('RG165: a door the engine offered', () => {
+  /** An answer carrying doors, which is what the machine says for `lint` here. */
+  const OFFERED = JSON.stringify({
+    clean: false,
+    findings: [
+      {
+        code: 'ref.unresolved',
+        remedy: {
+          doors: [{ argv: ['section', 'add', 'RG9', '--title', '…'], complete: false }],
+        },
+      },
+    ],
+  })
+
+  /** A carrier whose machine answers that for one verb, so `run` has doors to keep. */
+  function offering() {
+    const ran: string[][] = []
+    const machine: Transport = {
+      run(request) {
+        ran.push([...request.argv])
+        const verb = request.argv[2] ?? ''
+        // Anything else answers a document with no doors in it, since what this fixture is
+        // about is the door being run at all.
+        const answer = verb === 'lint' ? OFFERED : (SAID[verb] ?? '{"wrote":[]}')
+        return Promise.resolve({ code: 0, stdout: answer, stderr: '', durationMs: 1 })
+      },
+    }
+    const { carrier } = world({
+      open: (root) => openProject(root, [['python', '/x/launch.py']], () => machine),
+    })
+    return { carrier, ran }
+  }
+
+  /** The `lint` read, which is the one this fixture answers with doors. */
+  const linting = (root: string) => ({
+    argv: buildArgv(root, 'lint', {}),
+    call: buildCall('lint', {}),
+  })
+
+  it('names the doors an answer carried, so a caller can take one without an argv', async () => {
+    const { carrier } = offering()
+
+    const answered = await carrier.run(A, linting(A))
+
+    expect(answered.kind).toBe('ran')
+    if (answered.kind !== 'ran') throw new Error('unreachable')
+    expect(answered.offered).toBeDefined()
+  })
+
+  it('runs the argv it kept, with the words only where the engine left a blank', async () => {
+    const { carrier, ran } = offering()
+    const answered = await carrier.run(A, linting(A))
+    if (answered.kind !== 'ran' || answered.offered === undefined) throw new Error('no doors')
+
+    const taken = await carrier.door(A, answered.offered, 0, ['A design'])
+
+    expect(taken.kind).toBe('ran')
+    // The engine's own command line, filled: this is the verb the guard in front of `run`
+    // refuses, which is the whole of why the door is taken by name.
+    expect(ran.at(-1)).toEqual(['-C', A, 'section', 'add', 'RG9', '--title', 'A design', '--json'])
+  })
+
+  it('refuses a name nobody offered, and one from another project', async () => {
+    const { carrier, ran } = offering()
+    const answered = await carrier.run(A, linting(A))
+    if (answered.kind !== 'ran' || answered.offered === undefined) throw new Error('no doors')
+    const before = ran.length
+
+    expect((await carrier.door(A, 'made-up', 0, ['x'])).kind).toBe('failed')
+    expect((await carrier.door(B, answered.offered, 0, ['x'])).kind).toBe('failed')
+    expect(ran).toHaveLength(before)
+  })
+
+  it('refuses words that are not one per blank, rather than running a placeholder', async () => {
+    const { carrier, ran } = offering()
+    const answered = await carrier.run(A, linting(A))
+    if (answered.kind !== 'ran' || answered.offered === undefined) throw new Error('no doors')
+    const before = ran.length
+
+    const none = await carrier.door(A, answered.offered, 0, [])
+    const two = await carrier.door(A, answered.offered, 0, ['one', 'two'])
+
+    expect(none.kind).toBe('failed')
+    expect(two.kind).toBe('failed')
+    expect(ran).toHaveLength(before)
+  })
+
+  it('says nothing about doors on an answer that carried none', async () => {
+    const { carrier } = offering()
+
+    const answered = await carrier.run(A, listing(A))
+
+    expect(answered.kind === 'ran' && answered.offered).toBeUndefined()
+  })
+})
+
 describe('RG164: the record the last launch left', () => {
   /** A walk nobody can finish, so what answers is the record or nothing. */
   const neverWalks = (): Promise<Reconciled> => new Promise(() => undefined)

@@ -4,6 +4,8 @@ import {
   EMPTY_CATALOGUE,
   openedFrom,
   watchedFiles,
+  composeDoor,
+  filledArgv,
   withheldBecause,
   withheldResult,
   type BridgedRequest,
@@ -17,7 +19,9 @@ import {
   type Watching,
 } from '@rk/core'
 
+import { createDoorKeep, type DoorKeep } from './door-keep'
 import { createGovernedWatcher, REAL_CLOCK } from './governed-watch'
+import { stampGoverned } from './governed-stamp'
 import { openHere } from './open-here'
 import { rescan } from './rescan'
 import { rootKey } from './root-paths'
@@ -72,6 +76,8 @@ export interface CarrierOptions {
   readonly remembered?: () => ProjectCatalogue
   /** Keep the folded record. Called after every walk; a write that fails costs the next one. */
   readonly remember?: (catalogue: ProjectCatalogue) => void
+  /** Where the doors an answer carried are kept (RG165). Its own unless a test says otherwise. */
+  readonly doors?: DoorKeep
 }
 
 export interface Carrier {
@@ -87,12 +93,33 @@ export interface Carrier {
    * on a stamp is never stale, and one nobody will ask for again is only memory.
    */
   follow(root: string, moved: () => void): Promise<(() => void) | null>
+  /**
+   * Take one door an answer carried (RG165), by the name `run` gave that answer.
+   *
+   * The argv is the engine's and is never sent: what a caller names is which answer, which
+   * door in it, and the prose for the blanks the engine left.
+   */
+  door(
+    root: string,
+    offered: string,
+    which: number,
+    words: readonly string[],
+  ): Promise<BridgedResult>
   /** Give back every engine held, awaited to the last exit. What quitting waits on. */
   close(): Promise<void>
 }
 
 /** Two spellings of one folder, compared the way the catalogue compares them. */
 const sameRoot: SamePart = (left, right) => rootKey(left) === rootKey(right)
+
+/**
+ * Why a door did not run (RG165). Neither says which door or what was sent: a name that
+ * names nothing and a name whose batch has been dropped are one answer to a caller, and the
+ * only thing to do about either is to read again and take the door that answer offers.
+ */
+const NO_SUCH_DOOR =
+  'no door by that name is on offer for this project: read again and take one the answer carries'
+const NOT_THE_WORDS = 'that is not one word for each blank the door has'
 
 function notCatalogued(root: string): string {
   return `${root} is not a project the scan of the person's roots found`
@@ -111,6 +138,37 @@ export function createCarrier(options: CarrierOptions): Carrier {
   const now = options.now ?? (() => new Date().toISOString())
   const watching = options.watching ?? createWatching(createGovernedWatcher(), REAL_CLOCK)
   const following = new Set<() => void>()
+  // What the engine offered, kept here rather than crossing (RG165).
+  const doors =
+    options.doors ??
+    createDoorKeep({
+      stampOf: async (root) => {
+        const answer = await opening(root).catch(() => null)
+        return answer?.kind === 'open'
+          ? stampGoverned(root, Object.values(answer.project.governed))
+          : ''
+      },
+    })
+
+  /**
+   * Keep whatever doors an answer carried, and name them on the way back (RG165).
+   *
+   * Every read goes through here, because a door arrives on a refusal as readily as on a
+   * gate finding — and an answer that carries none is the ordinary case and costs a walk of
+   * the document it already parsed.
+   */
+  const keeping = async (root: string, answered: BridgedResult): Promise<BridgedResult> => {
+    if (answered.kind !== 'ran') return answered
+    let parsed: unknown
+    try {
+      parsed = JSON.parse(answered.result.stdout)
+    } catch {
+      // Not JSON at all, which is an answer this side does not read for anything else either.
+      return answered
+    }
+    const offered = await doors.keep(root, parsed)
+    return offered === null ? answered : { ...answered, offered }
+  }
 
   // What was written last time, if anything (RG164). A record read here is a list every
   // question below can answer from while the walk behind it runs.
@@ -215,7 +273,37 @@ export function createCarrier(options: CarrierOptions): Carrier {
         if (answer.kind !== 'open') {
           return withheldResult(`${root} did not open: ${whyNotOpen(answer)}`)
         }
-        return await bridgedRun(() => answer.project.transport.run(full))
+        return keeping(root, await bridgedRun(() => answer.project.transport.run(full)))
+      } catch (cause) {
+        return bridgedRun(() => Promise.reject(cause))
+      }
+    },
+
+    async door(root, offered, which, words) {
+      try {
+        if (!(await catalogued(root))) return withheldResult(notCatalogued(root))
+
+        const kept = await doors.taken(root, offered, which)
+        if (kept === null) return withheldResult(NO_SUCH_DOOR)
+
+        // The engine's own argv, with the person's prose where the engine left a blank and
+        // nowhere else. A caller who sent more words than the door has blanks, or fewer, is
+        // refused rather than helped: what runs is what came back.
+        const argv = filledArgv(kept.argv, words)
+        if (argv === null) return withheldResult(NOT_THE_WORDS)
+
+        const answer = await opening(root)
+        if (answer.kind !== 'open') {
+          return withheldResult(`${root} did not open: ${whyNotOpen(answer)}`)
+        }
+        // Wrapped by `composeDoor`, which adds where to run it and the request for a
+        // machine-readable answer and nothing else — and with no tool call beside it, since
+        // the held surface answers only the tools its own schema publishes.
+        const composed = composeDoor(root, { argv })
+        return keeping(
+          root,
+          await bridgedRun(() => answer.project.transport.run({ root, argv: composed.argv })),
+        )
       } catch (cause) {
         return bridgedRun(() => Promise.reject(cause))
       }

@@ -27,9 +27,8 @@
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-- 📋 **RG151** (deps: RG148 ✅, RG32 ✅, RG34 ✅, RG36 ✅, RG165) **no screen composes a write, so a line is still filed in a terminal though its budget, argv and doors are built** — Escrita.dc.html draws the form with counters, the command before it runs and the refusal's doors, and block E shipped each. → §RG151
-- 📋 **RG152** (deps: RG151, RG33 ✅, RG165) **Run the gate is a button with nothing behind it, so a finding and the doors it names are still read in a terminal** — RG33 shipped findings as actions, and no screen draws one; the write path's doors column is the shape to reuse, not a second one. → §RG152
-- 📋 **RG165** (deps: —) **a door the engine offers cannot run from a window, since the bridge refuses a verb or option its tables never compose** — A door is the engine's own argv, and RG143's guard runs only what VERBS and WRITES spell, so criterion add and install are withheld. → §RG165
+- 📋 **RG151** (deps: RG148 ✅, RG32 ✅, RG34 ✅, RG36 ✅, RG165 ✅) **no screen composes a write, so a line is still filed in a terminal though its budget, argv and doors are built** — Escrita.dc.html draws the form with counters, the command before it runs and the refusal's doors, and block E shipped each. → §RG151
+- 📋 **RG152** (deps: RG151, RG33 ✅, RG165 ✅) **Run the gate is a button with nothing behind it, so a finding and the doors it names are still read in a terminal** — RG33 shipped findings as actions, and no screen draws one; the write path's doors column is the shape to reuse, not a second one. → §RG152
 
 ## Block F — The agent surface (handing one task to Claude Code)
 

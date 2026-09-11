@@ -54,6 +54,8 @@ const bridge: RendererBridge = {
   governedAt: (root) => ipcRenderer.invoke(BRIDGE_CHANNELS.governedAt, root),
   sessions: () => ipcRenderer.invoke(BRIDGE_CHANNELS.sessions),
   stopSession: (key) => ipcRenderer.invoke(BRIDGE_CHANNELS.stopSession, key),
+  door: (root, offered, which, words) =>
+    ipcRenderer.invoke(BRIDGE_CHANNELS.door, root, offered, which, words),
 }
 
 contextBridge.exposeInMainWorld(BRIDGE_KEY, Object.freeze(bridge))

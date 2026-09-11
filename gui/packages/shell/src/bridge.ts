@@ -124,6 +124,25 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
     },
   )
 
+  // Taking a door the engine offered (RG165). Every argument is the renderer's word and
+  // none of them is a command line: the argv is the one the carrier kept for that answer,
+  // and what a page supplies is which door and the prose for its blanks.
+  ipcMain.handle(
+    BRIDGE_CHANNELS.door,
+    (_event, root: unknown, offered: unknown, which: unknown, words: unknown) => {
+      if (
+        typeof root !== 'string' ||
+        typeof offered !== 'string' ||
+        typeof which !== 'number' ||
+        !Array.isArray(words) ||
+        !words.every((word) => typeof word === 'string')
+      ) {
+        return Promise.resolve(withheldResult('that is not a door this bridge can take'))
+      }
+      return carrier.door(root, offered, which, words)
+    },
+  )
+
   // What main hears and nobody asked for (RG144). Sent rather than invoked: a subscription
   // has no answer, and its events arrive on the topic's own channel for as long as it
   // stands. A window's subscriptions go with the page they belong to — a reload leaves a
