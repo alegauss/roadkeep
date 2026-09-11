@@ -129,9 +129,15 @@ interface Frame {
  *
  * @param extraEnv variables this run adds. A test that wants the development policy sets
  *   the renderer URL here, exactly as the dev script does.
+ * @param seed writes into the throwaway profile before the app starts — a settings file
+ *   naming a root, so the window has a project to open (RG143).
  */
-export async function startApp(extraEnv: Record<string, string> = {}): Promise<RunningApp> {
+export async function startApp(
+  extraEnv: Record<string, string> = {},
+  seed: (userDataDir: string) => void = () => undefined,
+): Promise<RunningApp> {
   const userDataDir = mkdtempSync(path.join(tmpdir(), 'rk-app-'))
+  seed(userDataDir)
   const printed: string[] = []
 
   // Piped rather than inherited: the renderer's console is where a content policy reports
@@ -219,9 +225,26 @@ export async function startApp(extraEnv: Record<string, string> = {}): Promise<R
       get console() {
         return printed.join('').split('\n')
       },
-      close() {
+      async close() {
+        // Asked to quit before it is killed (RG143): the engines a window opened are the
+        // carrier's, and quitting is what gives them back. A killed app leaves each one
+        // standing in its project, which on Windows is a folder nobody can remove. Sent and
+        // not awaited — the page that would answer is the one closing.
+        if (child.exitCode === null && child.signalCode === null) {
+          const quit = new Promise<void>((resolve) => {
+            child.once('exit', () => resolve())
+          })
+          socket.send(
+            JSON.stringify({
+              id: (nextId += 1),
+              method: 'Runtime.evaluate',
+              params: { expression: 'window.close()' },
+            }),
+          )
+          await Promise.race([quit, after(GOODBYE_MS)])
+        }
         socket.close()
-        return dispose()
+        await dispose()
       },
     }
 

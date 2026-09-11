@@ -37,7 +37,16 @@ describe('RG60: what the renderer was given', () => {
     // reviewed. Read off the running object rather than off the type.
     const methods = await app.evaluate<string[]>(`Object.keys(window['${BRIDGE_KEY}']).sort()`)
 
-    expect(methods).toEqual(['identify', 'saveLocale', 'saveTheme', 'settings'])
+    // RG143 added the three that reach an engine: which projects, open one, run against it.
+    expect(methods).toEqual([
+      'identify',
+      'open',
+      'projects',
+      'run',
+      'saveLocale',
+      'saveTheme',
+      'settings',
+    ])
   })
 
   it('round-trips a call through it', async () => {
@@ -154,7 +163,8 @@ describe('RG60: what the renderer was not given', () => {
       `Object.values(window['${BRIDGE_KEY}']).map((one) => typeof one)`,
     )
 
-    expect(reachable).toEqual(['function', 'function', 'function', 'function'])
+    expect(reachable).toHaveLength(7)
+    expect(reachable.every((one) => one === 'function')).toBe(true)
   })
 })
 

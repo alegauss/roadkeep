@@ -25,6 +25,7 @@ import { AREA_WORDING } from './areas'
 import { drawWindow } from './harness'
 import { choicesAtLaunch } from './launch'
 import { startSpeaking } from './speaking'
+import { stubBridge } from './stub-bridge'
 
 /**
  * RG51: the test the design rests on.
@@ -51,13 +52,13 @@ import { startSpeaking } from './speaking'
 const BUILT = identityFrom({ version: '0.0.0', commit: 'abc1234', signed: 'unsigned' })
 
 function withBridge(parts: Partial<RendererBridge>): void {
-  const bridge: RendererBridge = {
+  const bridge: RendererBridge = stubBridge({
     identify: () => Promise.resolve({ transport: 'ipc', build: BUILT }),
     settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: BASE_LOCALE }),
     saveTheme: () => Promise.resolve(),
     saveLocale: () => Promise.resolve(),
     ...parts,
-  }
+  })
   Object.defineProperty(window, 'roadkeep', { value: bridge, configurable: true })
 }
 

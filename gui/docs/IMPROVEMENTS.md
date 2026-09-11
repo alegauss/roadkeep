@@ -43,6 +43,32 @@ for byte the same.
 
 Found by the adversarial review of RG137; the skeptics split.
 
+### §RG163 Three tests pinned to what this backlog holds
+
+Three live tests read this repository's backlog and need it to hold something it no
+longer holds. Shipping RG77 took two of those things away, and RG158's section took the
+third.
+
+- **binding-live** wants an open design that quotes a non-goal. RG77's was the last one.
+- **filters-live** narrows to `💭` and wants a line back. RG77 was the last idea.
+- **design-live** holds every line of the first designed open line to the 100-column
+  fill. RG158's section is now first, and its list lines are longer, because roadkeep
+  inserts a list as written.
+
+This is the same mistake RG75, RG134 and RG141 fixed one at a time: a live test naming
+what a backlog holds today, which then fails on a backlog nobody broke.
+
+**The fix is to find the thing, or to make it.**
+
+- The quoted lead is made. A fixture governs one non-goal, so the test writes a section
+  in its own copy that quotes it and asserts `answeredBy` there.
+- The marker is found off the listing, as `blockWithOpenLines` finds a block.
+- The column is held only for lines that are not list items or table rows, which is
+  roadkeep's own rule for what it fills.
+
+None of the three will pass on an empty backlog either. That premise is stated where it
+fails, as `openWithDesign` already does.
+
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 ### §RG146 The third write, named
@@ -66,6 +92,30 @@ the renderer never types one, and a web service answers the same call with a tex
 Rescan reruns the scan over the roots already named, nothing wider, and a root that no
 longer exists is kept and marked by `withPresence` rather than dropped. The settings
 file already exists, so nothing here is a store of this app's own.
+
+### §RG164 The record, written
+
+RG14 shipped the record in `core`: `reconcile` folds a walk into the one before, and
+`catalogueFrom` reads one back and refuses a shape it does not know. RG143's carrier
+folds every walk into what it holds, but it holds it in memory, and nothing in `shell`
+writes a record. So every launch starts from `EMPTY_CATALOGUE`, the first screen waits
+on the disk, and a project that went missing is forgotten at quit instead of kept as
+missing.
+
+"No store of its own" bounds this and does not forbid it. `catalogue.ts` already argues
+why: which folders on this machine hold a governed checkout is not roadkeep's fact, and
+it is the same kind of thing as the roots, which this app owns.
+
+**A file beside `settings.json`.** The carrier reads `catalogue.json` from `userData`
+when it is created, through `catalogueFrom`, and writes it after each fold. A record
+that does not read is the empty one, never an error: the walk behind it rebuilds it.
+
+**The record answers first.** `projects()` returns the record at once where there is
+one, and the walk runs behind it. Until RG144 gives main a way to say something changed,
+the next call sees the fold. The guard reads the record too, so a window can open a
+project it remembers before any walk has finished.
+
+Written atomically, as the settings file is, so a quit mid-write leaves the last record.
 
 ## Block C — The portfolio (many backlogs in one view)
 
@@ -253,6 +303,29 @@ about when it last ran.
 `repair` spending a whole report is one action here only if it is one command there;
 this app does not batch doors the engine offered one by one.
 
+### §RG165 A door, run by main
+
+RG143's guard runs what `VERBS` and `WRITES` spell and nothing else, and that is right
+for what the app composes. A door is not that: it is the engine's own argv, handed back
+by a refusal, a lint finding or `explain`, and `composeDoor` wraps it without a table.
+So `criterion add`, `install`, `non-goal add` and most of `repair`'s options are
+withheld from a window, and RG151's refusal doors and RG152's findings would draw
+buttons that answer `withheld`.
+
+Widening the guard to any verb `commands` publishes is the wrong fix. It hands the
+renderer the whole command line again, which is the shell §RG85 refused.
+
+**Main keeps the doors it carried back.** When a run's answer carries doors, main reads
+them with the same readers the renderer uses and remembers them per project under a
+token it returns beside the result. Running one is `door(root, token, index, words)`:
+main takes the argv it kept, puts the person's words only where the engine wrote a
+blank, and runs that. The renderer names which door and supplies prose; it never
+supplies an argument.
+
+A token is dropped when the project's stamp moves, since a door offered against files
+that changed may no longer close anything. That makes `door` the fourth method, and it
+is one a web service implements the same way.
+
 ## Block F — The agent surface (handing one task to Claude Code)
 
 ### §RG153 The session beside its task
@@ -302,33 +375,6 @@ not help, being a candidate the same probe drops.
 - **Vendoring is rejected here.** `.roadkeep/` outranks the sibling, and this project's live suite tests the roadkeep checkout under development on purpose (`live.ts`, RG84). A pin would change what that suite tests without anything saying so, and freeze the engine on the one machine where it moves daily.
 - **The launcher is not this repository's to change.** It is identical to what `roadkeep install` writes today, so an edit here is overwritten by the next refresh. Making a *named* engine fatal rather than skippable is its behaviour, and the dep names it.
 - **The cache is the hazard on this machine.** It still answers — `0.2.4`, from 2026-08-28 — and is the candidate a busy sibling falls to. Removing `~/.cache/roadkeep-src` turns a stale answer into a refusal naming the missing engine: louder, and never wrong. It is a directory outside this repository, so it is named here for whoever owns the machine rather than removed.
-
-### §RG143 A transport the renderer holds
-
-`RendererBridge` has four methods, and none of them reaches an engine. Every reader the
-five artboards need shipped into `core`, and `openHere`, `scanRoots` and the held
-transport are called by live tests alone: `main.ts` still says no process is spawned
-there.
-
-**Two methods, not one per screen.** `projects()` answers the catalogue `scanRoots`
-builds from the person's roots, and `run(root, request)` hands an `EngineRequest` to the
-transport `openHere` holds for that root. The renderer builds `core`'s client over a
-transport whose `run` is that method, so opening, cold start and the cache run where the
-screens are, and a web service implements the same two methods. A method per screen is a
-second client the port would have to write again.
-
-**Main refuses what it did not catalogue.** A root that is not in `projects()`, or an
-argv whose verb is in neither `VERBS` nor `WRITES`, is refused before anything spawns.
-The transport already spawns with shell false; this is the half that says which calls
-exist at all.
-
-The stamp and the candidates stay in `shell`, where the filesystem is. Whether the
-renderer asks for them per open or main opens the project and the renderer only runs
-through it is worth deciding here rather than assuming: the second keeps held engines
-owned by the process that has to close them.
-
-A test drives the window through the harness against a stub bridge, and the live suite
-runs one read over IPC.
 
 ### §RG144 A subscription the port can serve
 

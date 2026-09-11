@@ -3,6 +3,7 @@ import { changeLanguage } from 'i18next'
 import { describe, expect, it } from 'vitest'
 
 import { spokenLocale, startSpeaking } from './speaking'
+import { stubBridge } from './stub-bridge'
 
 /**
  * RG116: the one thing a launch must not do.
@@ -20,15 +21,14 @@ import { spokenLocale, startSpeaking } from './speaking'
  */
 const kept: string[] = []
 
-const bridge: RendererBridge = {
-  identify: () => Promise.reject(new Error('not asked')),
+const bridge: RendererBridge = stubBridge({
   settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: 'pt-BR' }),
   saveTheme: () => Promise.resolve(),
   saveLocale: (locale) => {
     kept.push(locale)
     return Promise.resolve()
   },
-}
+})
 
 describe('RG116: what the first launch writes', () => {
   it('speaks the tag the shell resolved and keeps nothing, which is the whole of it', async () => {

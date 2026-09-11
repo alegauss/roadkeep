@@ -3,6 +3,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { drawWindow } from './harness'
+import { stubBridge } from './stub-bridge'
 
 /**
  * RG118: the window says which build it is.
@@ -24,13 +25,13 @@ const BUILT = identityFrom({
 })
 
 function bridge(over: Partial<RendererBridge> = {}): RendererBridge {
-  return {
+  return stubBridge({
     identify: () => Promise.resolve({ transport: 'ipc' as const, build: BUILT }),
     settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: 'en' }),
     saveTheme: () => Promise.resolve(),
     saveLocale: () => Promise.resolve(),
     ...over,
-  }
+  })
 }
 
 function withBridge(one: RendererBridge | null): void {

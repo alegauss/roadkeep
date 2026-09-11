@@ -10,11 +10,13 @@ import {
   type Parsed,
   type Reader,
 } from './reading'
+import { argumentsFor } from './tools'
 import {
   EVERY_INPUT,
   publishedAs,
   VERBS,
   VERB_WORDS,
+  type Spelling,
   type VerbInputs,
   type VerbName,
 } from './verbs'
@@ -141,7 +143,11 @@ const CALLED_INPUT: { [K in CalledName]: CalledInputs[K] } = {
   ...EVERY_INPUT,
   ...EVERY_WRITE_INPUT,
 }
-const CALLED_WORDS = { ...VERB_WORDS, ...WRITE_WORDS }
+/**
+ * Both spelling tables as one. Exported for the carrier's guard (RG143), which has to know a
+ * verb by its words whichever table holds it.
+ */
+export const CALLED_WORDS: Spelling = { ...VERB_WORDS, ...WRITE_WORDS }
 
 /**
  * The name this build publishes for a verb this app calls.
@@ -203,6 +209,16 @@ export type CapabilityReport =
 export function flagsFor(verb: CalledName): string[] {
   const sent = emitted(CALLED[verb], CALLED_INPUT[verb]).filter((part) => part.startsWith('--'))
   return [...new Set([...sent, '--json'])]
+}
+
+/**
+ * Every argument name a verb's tool call can carry, derived the way `flagsFor` is (RG143).
+ *
+ * The same input with every field set, through the same `argumentsFor` the client calls, so a
+ * field added to an input is an argument here the moment it is one on the wire.
+ */
+export function argumentsOf(verb: CalledName): ReadonlySet<string> {
+  return new Set(Object.keys(argumentsFor(CALLED_INPUT[verb])))
 }
 
 /**

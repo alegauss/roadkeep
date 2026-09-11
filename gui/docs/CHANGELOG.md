@@ -153,6 +153,7 @@
 - ✅ **RG49 (the procedure)** **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — docs/SIGNING.md says how a certificate is obtained and where it plugs in; SignPath and Certum are the ones open to a Brazilian individual.
 - ✅ **RG50** **nothing updates, so a fix reaches a person only if they go and look for one** — Help, Check for updates names the version it is on and the newest published, opens only this project's release page and installs nothing.
 - 🗑 **RG119** **no macOS build of this app has ever been made, so what it needs is a guess** — abandoned: The maintainer has no Mac and chose not to pursue a macOS build, so what one needs stays unasked rather than guessed at on a runner.
+- ✅ **RG143** **the bridge carries no roadkeep call, so no screen can ask a project anything and every reader in core runs only in tests** — A window lists its projects, opens one where main holds the engine, and runs tabled calls over IPC; the rest is refused unrun (design recorded in `packages/core/src/serving.ts`).
 
 ## Block H — The look (a design system for governed prose)
 

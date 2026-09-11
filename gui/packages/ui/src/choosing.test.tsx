@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { AREA_WORDING } from './areas'
 import { drawWindow } from './harness'
 import { SPOKEN_LOCALES, startSpeaking } from './speaking'
+import { stubBridge } from './stub-bridge'
 
 /**
  * RG116: choosing a language without editing a file.
@@ -23,13 +24,12 @@ import { SPOKEN_LOCALES, startSpeaking } from './speaking'
  * the menu, so it holds for that menu and for whatever replaces it.
  */
 function bridge(over: Partial<RendererBridge> = {}): RendererBridge {
-  return {
-    identify: () => Promise.reject(new Error('not asked')),
+  return stubBridge({
     settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: 'en' }),
     saveTheme: () => Promise.resolve(),
     saveLocale: () => Promise.resolve(),
     ...over,
-  }
+  })
 }
 
 function withBridge(one: RendererBridge): void {

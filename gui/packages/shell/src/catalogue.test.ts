@@ -2,20 +2,10 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
-import {
-  catalogueFrom,
-  EMPTY_CATALOGUE,
-  groupProjects,
-  present,
-  reconcile,
-  rowsFrom,
-  type ScanRoot,
-} from '@rk/core'
+import { catalogueFrom, EMPTY_CATALOGUE, present, type ScanRoot } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import { gitSite } from './git-worktree'
-import { rootKey } from './root-paths'
-import { scanRoots } from './scan-fs'
+import { rescan as fold } from './rescan'
 
 import { removeTree } from './scratch'
 
@@ -34,19 +24,9 @@ function project(relative: string): void {
   writeFileSync(path.join(full, 'roadkeep.toml'), 'prefix = "FX"', 'utf8')
 }
 
-/** Walk and fold, the way a launch would. */
-async function rescan(previous = EMPTY_CATALOGUE, now = '2026-09-01T10:00:00.000Z') {
-  const scanned = await scanRoots(roots)
-  const families = groupProjects(
-    await Promise.all(
-      scanned.found.map(async (entry) => ({ path: entry.path, ...(await gitSite(entry.path)) })),
-    ),
-    rootKey,
-  )
-  const rootOf = (candidate: string) =>
-    scanned.found.find((entry) => rootKey(entry.path) === rootKey(candidate))?.root ?? ''
-
-  return reconcile(previous, roots, rowsFrom(families, rootOf, now), rootKey, now)
+/** Walk and fold, through the same function the carrier a window asks runs (RG143). */
+function rescan(previous = EMPTY_CATALOGUE, now = '2026-09-01T10:00:00.000Z') {
+  return fold(previous, roots, now)
 }
 
 beforeAll(() => {

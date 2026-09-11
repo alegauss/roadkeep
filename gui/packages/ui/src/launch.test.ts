@@ -2,6 +2,7 @@ import { BASE_LOCALE, DEFAULT_SETTINGS, type RendererBridge, type Theme } from '
 import { describe, expect, it } from 'vitest'
 
 import { choicesFromBridge, LAUNCH_CEILING_MS } from './launch'
+import { stubBridge } from './stub-bridge'
 
 /**
  * RG86 and RG87: what the renderer asks for before it draws anything.
@@ -10,21 +11,19 @@ import { choicesFromBridge, LAUNCH_CEILING_MS } from './launch'
  * not about how a page is served — which is the seam the whole transport design rests on.
  */
 function answering(locale: string, theme: Theme = DEFAULT_SETTINGS.theme): RendererBridge {
-  return {
-    identify: () => Promise.reject(new Error('not asked')),
+  return stubBridge({
     settings: () =>
       Promise.resolve({ settings: { ...DEFAULT_SETTINGS, theme }, reset: [], locale }),
-    saveTheme: () => Promise.reject(new Error('not asked')),
-    saveLocale: () => Promise.reject(new Error('not asked')),
-  }
+  })
 }
 
-const CLOSED: RendererBridge = {
-  identify: () => Promise.reject(new Error('channel closed')),
-  settings: () => Promise.reject(new Error('channel closed')),
-  saveTheme: () => Promise.reject(new Error('channel closed')),
-  saveLocale: () => Promise.reject(new Error('channel closed')),
-}
+const closed = (): Promise<never> => Promise.reject(new Error('channel closed'))
+const CLOSED: RendererBridge = stubBridge({
+  identify: closed,
+  settings: closed,
+  saveTheme: closed,
+  saveLocale: closed,
+})
 
 describe('RG86: the locale the window opens in', () => {
   it('is whatever the shell already resolved', async () => {
@@ -47,8 +46,7 @@ describe('RG87: the ground the window opens in', () => {
 
   it('comes out of the same call as the locale, so neither is asked for twice', async () => {
     let asked = 0
-    const counting: RendererBridge = {
-      identify: () => Promise.reject(new Error('not asked')),
+    const counting: RendererBridge = stubBridge({
       settings: () => {
         asked += 1
         return Promise.resolve({
@@ -59,7 +57,7 @@ describe('RG87: the ground the window opens in', () => {
       },
       saveTheme: () => Promise.resolve(),
       saveLocale: () => Promise.resolve(),
-    }
+    })
 
     expect(await choicesFromBridge(counting)).toEqual({
       locale: 'pt-BR',
@@ -85,12 +83,11 @@ describe('RG106: an answer that never comes', () => {
   it('mounts in English rather than waiting on a promise that never settles', async () => {
     // The failure this is about: a main process wedged in a synchronous read settles the
     // channel not at all, and Electron has already shown a window painted its background.
-    const silent: RendererBridge = {
-      identify: () => Promise.reject(new Error('not asked')),
+    const silent: RendererBridge = stubBridge({
       settings: () => new Promise(() => undefined),
       saveTheme: () => Promise.resolve(),
       saveLocale: () => Promise.resolve(),
-    }
+    })
 
     const opened = await choicesFromBridge(silent, 20)
 
@@ -100,8 +97,7 @@ describe('RG106: an answer that never comes', () => {
   it('takes the answer when it arrives inside the deadline', async () => {
     // The other half: a deadline that fired on an ordinary round trip would lose somebody's
     // language for nothing.
-    const slow: RendererBridge = {
-      identify: () => Promise.reject(new Error('not asked')),
+    const slow: RendererBridge = stubBridge({
       settings: () =>
         new Promise((answer) =>
           setTimeout(
@@ -116,7 +112,7 @@ describe('RG106: an answer that never comes', () => {
         ),
       saveTheme: () => Promise.resolve(),
       saveLocale: () => Promise.resolve(),
-    }
+    })
 
     expect(await choicesFromBridge(slow, 500)).toEqual({
       locale: 'pt-BR',
@@ -127,12 +123,11 @@ describe('RG106: an answer that never comes', () => {
 
   it('waits the deadline it was given and not longer', async () => {
     // A window that hangs for two seconds and one that hangs for ten are different windows.
-    const silent: RendererBridge = {
-      identify: () => Promise.reject(new Error('not asked')),
+    const silent: RendererBridge = stubBridge({
       settings: () => new Promise(() => undefined),
       saveTheme: () => Promise.resolve(),
       saveLocale: () => Promise.resolve(),
-    }
+    })
 
     const startedAt = Date.now()
     await choicesFromBridge(silent, 30)

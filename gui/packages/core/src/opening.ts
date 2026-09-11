@@ -10,7 +10,7 @@ import {
 import { saidBy, type Unreadable } from './limits'
 import { governedFiles } from './payloads'
 import { createPooledTransport } from './pool'
-import type { CancelSignal } from './transport'
+import type { CancelSignal, Transport } from './transport'
 import { keysOf } from './reading'
 import { spell, VERBS, VERB_WORDS } from './verbs'
 
@@ -65,6 +65,14 @@ export interface OpenProject {
   readonly governed: Readonly<Record<string, string>>
   /** Every later read goes through this. Pooled, cached, and reading each verb's shape. */
   readonly client: Client
+  /**
+   * What `client` reads through — pooled, and cached where a stamp exists — as a transport.
+   *
+   * Exposed for the two callers a client does not serve (RG143): a write, which `applyWrite`
+   * hands a transport, and a process running requests another process composed, which has an
+   * argv and not a verb. Both go through the one stack, so neither starts a second engine.
+   */
+  readonly transport: Transport
   /** Forget what was remembered about this project. What a file watcher calls. */
   invalidate(): void
   /**
@@ -266,7 +274,8 @@ async function compose(
           cacheable: options.cacheable ?? readsOnly,
         })
 
-  const client = createClient(cached ?? pooled)
+  const transport = cached ?? pooled
+  const client = createClient(transport)
   const commands = await client.call(root, 'commands', {}, call)
   if (commands.kind === 'unreadable') {
     return { kind: 'unreadable', root, engine, unreadable: commands.unreadable }
@@ -290,6 +299,7 @@ async function compose(
           : capabilitiesOf(commands.value),
       governed,
       client,
+      transport,
       invalidate: () => {
         // Nothing to forget where nothing was kept, which is a no-op and not a failure:
         // a watcher should not have to know whether this project cached anything.

@@ -1,7 +1,16 @@
 export { identityFrom, PRODUCT, saidOfBuild, saidOfVersion, STAMP_VARS, UNSTAMPED } from './build'
 export type { BuildIdentity } from './build'
 export { BRIDGE_CHANNELS, BRIDGE_KEY } from './bridge'
-export type { BridgeIdentity, LaunchSettings, RendererBridge, TransportName } from './bridge'
+export type {
+  BridgedRequest,
+  BridgedResult,
+  BridgeIdentity,
+  LaunchSettings,
+  OpenedProject,
+  RendererBridge,
+  TransportName,
+  Withheld,
+} from './bridge'
 export {
   CALLED_NAMES,
   capabilitiesOf,
@@ -235,6 +244,15 @@ export { ANSWERS } from './answers'
 export type { VerbAnswers } from './answers'
 export { openProject, readsOnly } from './opening'
 export type { Opening, OpenOptions, OpenProject } from './opening'
+export {
+  bridgedRun,
+  bridgedTransport,
+  openedFrom,
+  openOver,
+  requestFrom,
+  withheldBecause,
+  withheldResult,
+} from './serving'
 export { disagrees, isModified, resolveEngine } from './engine-resolution'
 export type {
   EngineResolution,

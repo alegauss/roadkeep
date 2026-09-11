@@ -66,6 +66,11 @@ export type EngineFailure =
   | 'timeout'
   /** The caller's signal aborted it. */
   | 'aborted'
+  /**
+   * What carried it would not run it (RG143): a root no scan catalogued, or a command line
+   * neither verb table composes. Nothing was started, so there is nothing an engine said.
+   */
+  | 'withheld'
 
 /**
  * Thrown when there is no exit code to report. A refusal by the engine is not this — that

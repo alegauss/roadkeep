@@ -14,7 +14,12 @@
  */
 
 import type { BuildIdentity } from './build'
+import type { CapabilityReport } from './capabilities'
+import type { ProjectCatalogue } from './catalogue'
+import type { ResolvedEngine } from './engine-resolution'
+import type { Opening } from './opening'
 import type { SettingsRead, Theme } from './settings'
+import type { EngineFailure, EngineRequest, EngineResult } from './transport'
 
 /** The single property the preload adds to `window`. */
 export const BRIDGE_KEY = 'roadkeep'
@@ -86,7 +91,72 @@ export interface RendererBridge {
    * the next launch and look like the setting had not been saved.
    */
   saveLocale(locale: string): Promise<void>
+  /**
+   * The projects under the roots the person named, scanned now and folded into what this
+   * carrier already held (RG143). What `open` and `run` accept is exactly this list.
+   */
+  projects(): Promise<ProjectCatalogue>
+  /**
+   * Open one project where its engines can be held, and answer what the opening found.
+   *
+   * A method of its own because the opening is facts no read repeats: which command line
+   * resolution chose, whether it reached the copy the project declares, what this build can
+   * run. The carrier keeps the engines; the renderer gets the answer.
+   */
+  open(root: string): Promise<OpenedProject>
+  /**
+   * Run one request against an open project, through the stack the carrier holds for it.
+   *
+   * **One method for every verb, and not one per screen.** `core`'s client builds over it as
+   * over any transport, so a web service implements this and `open` and the screens above
+   * do not change. What it will not run is anything neither verb table composes.
+   */
+  run(root: string, request: BridgedRequest): Promise<BridgedResult>
 }
+
+/**
+ * A request as it crosses: the root is the method's own argument, and a cancellation cannot
+ * cross at all — a signal is not a value, and the renderer honours its own.
+ */
+export type BridgedRequest = Omit<EngineRequest, 'root' | 'signal'>
+
+/**
+ * What `run` answers. The engine's result, or the failure as its fields: a thrown class does
+ * not survive the crossing, and `EngineCallFailed` is rebuilt on the far side from these.
+ */
+export type BridgedResult =
+  | { readonly kind: 'ran'; readonly result: EngineResult }
+  | {
+      readonly kind: 'failed'
+      readonly reason: EngineFailure
+      readonly message: string
+      readonly durationMs: number
+    }
+
+/** The carrier would not open it: a folder no root the person named holds (RG143). */
+export interface Withheld {
+  readonly kind: 'withheld'
+  readonly root: string
+  readonly reason: string
+}
+
+/**
+ * An opening as it crosses: every fact it found and none of the process behind it. The
+ * three ways of not opening are plain data already and cross unchanged; an open project
+ * crosses without its client, which the renderer builds over `run`.
+ */
+export type OpenedProject =
+  | Exclude<Opening, { readonly kind: 'open' }>
+  | Withheld
+  | {
+      readonly kind: 'open'
+      readonly root: string
+      readonly engine: ResolvedEngine
+      readonly capabilities: CapabilityReport
+      readonly governed: Readonly<Record<string, string>>
+      /** Why its engine could not be held, as of the opening, or null. */
+      readonly unheld: string | null
+    }
 
 /**
  * The IPC channel behind each method. Named here rather than in the preload so that the
@@ -97,4 +167,7 @@ export const BRIDGE_CHANNELS = {
   settings: 'roadkeep:settings',
   saveTheme: 'roadkeep:save-theme',
   saveLocale: 'roadkeep:save-locale',
+  projects: 'roadkeep:projects',
+  open: 'roadkeep:open',
+  run: 'roadkeep:run',
 } as const satisfies Record<keyof RendererBridge, string>

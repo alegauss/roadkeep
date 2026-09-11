@@ -9,6 +9,7 @@ import { render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { App } from './App'
+import { stubBridge } from './stub-bridge'
 
 /** A build identity like a real one, so a fixture is not a shape of its own. */
 const BUILT = identityFrom({ version: '0.0.0', commit: 'abc1234', signed: 'unsigned' })
@@ -19,13 +20,13 @@ const BUILT = identityFrom({ version: '0.0.0', commit: 'abc1234', signed: 'unsig
  * to every test that never cared.
  */
 function withBridge(parts: Partial<RendererBridge>): void {
-  const bridge: RendererBridge = {
+  const bridge: RendererBridge = stubBridge({
     identify: () => Promise.resolve({ transport: 'ipc', build: BUILT }),
     settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: BASE_LOCALE }),
     saveTheme: () => Promise.resolve(),
     saveLocale: () => Promise.resolve(),
     ...parts,
-  }
+  })
   Object.defineProperty(window, 'roadkeep', { value: bridge, configurable: true })
 }
 

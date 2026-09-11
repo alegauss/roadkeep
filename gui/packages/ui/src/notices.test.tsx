@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { drawWindow } from './harness'
 import { choicesAtLaunch } from './launch'
+import { stubBridge } from './stub-bridge'
 
 /**
  * RG115: what a person is told when a setting did not stick.
@@ -18,13 +19,12 @@ import { choicesAtLaunch } from './launch'
  * that a person sees it: the surface is the design system's and it is mounted in the chrome.
  */
 function bridge(over: Partial<RendererBridge> = {}): RendererBridge {
-  return {
-    identify: () => Promise.reject(new Error('not asked')),
+  return stubBridge({
     settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: 'en' }),
     saveTheme: () => Promise.resolve(),
     saveLocale: () => Promise.resolve(),
     ...over,
-  }
+  })
 }
 
 function withBridge(one: RendererBridge): void {

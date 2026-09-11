@@ -7,14 +7,16 @@
 - 📋 **RG158** (deps: RG141 ✅) **two live assertions pass unchecked: a picked line with no tier, and a combined filter that selects nothing** — RG141 made tier nullable and moved the filter off Block A, and neither assertion was tightened after it. → §RG158
 - 📋 **RG159** (deps: RG142 ✅) **the empty-brief contract asserts lacking on a fixture that never has any, so no lacking line is ever read** — Array.isArray on a field that defaults to an empty list cannot fail, and no fixture requires what the caller lacks. → §RG159
 - 📋 **RG160** (deps: RG137 ✅) **openHere's own unheld wiring is never run by a test, since RG137's live case rebuilds it by hand** — The test wires unheldAmong around openProject itself, so the production line can break with every test green. → §RG160
+- 📋 **RG163** (deps: —) **three live tests need this backlog to hold a quoted lead, an idea and a prose-only design, and it holds none** — Shipping RG77 took the last design quoting a non-goal and the last idea, and RG158's list lines outrun the column the wrap test holds. → §RG163
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 - 📋 **RG146** (deps: RG145, RG47 ✅) **roots are read and never written, so Add a root and Rescan roots are buttons nothing can honour** — The project list is meant to be the person's statement, and today the only way to make it is to edit the settings file by hand. → §RG146
+- 📋 **RG164** (deps: —) **the carrier keeps its catalogue in memory, so RG14's record is never written and every launch walks every root first** — catalogueFrom reads a record back and nothing in shell writes one, so the first screen waits on the disk and a missing project is forgotten at quit. → §RG164
 
 ## Block C — The portfolio (many backlogs in one view)
 
-- 📋 **RG145** (deps: RG143, RG16 ✅, RG17 ✅, RG18 ✅) **the window opens on a scaffold naming three packages, so the portfolio core already computes is drawn nowhere** — Main.dc.html draws the one screen this app exists for, and every reader behind its columns shipped with no route to show it. → §RG145
+- 📋 **RG145** (deps: RG143 ✅, RG16 ✅, RG17 ✅, RG18 ✅) **the window opens on a scaffold naming three packages, so the portfolio core already computes is drawn nowhere** — Main.dc.html draws the one screen this app exists for, and every reader behind its columns shipped with no route to show it. → §RG145
 - 📋 **RG147** (deps: RG145, RG20 ✅) **the palette says it finds a line in every backlog and lists only surfaces, so search over all projects reaches no one** — RG20 shipped search across every open project, and the one box a person types into is fed from AREAS alone. → §RG147
 
 ## Block D — The project surface (one backlog, read)
@@ -26,8 +28,9 @@
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-- 📋 **RG151** (deps: RG148, RG32 ✅, RG34 ✅, RG36 ✅) **no screen composes a write, so a line is still filed in a terminal though its budget, argv and doors are built** — Escrita.dc.html draws the form with counters, the command before it runs and the refusal's doors, and block E shipped each. → §RG151
-- 📋 **RG152** (deps: RG151, RG33 ✅) **Run the gate is a button with nothing behind it, so a finding and the doors it names are still read in a terminal** — RG33 shipped findings as actions, and no screen draws one; the write path's doors column is the shape to reuse, not a second one. → §RG152
+- 📋 **RG151** (deps: RG148, RG32 ✅, RG34 ✅, RG36 ✅, RG165) **no screen composes a write, so a line is still filed in a terminal though its budget, argv and doors are built** — Escrita.dc.html draws the form with counters, the command before it runs and the refusal's doors, and block E shipped each. → §RG151
+- 📋 **RG152** (deps: RG151, RG33 ✅, RG165) **Run the gate is a button with nothing behind it, so a finding and the doors it names are still read in a terminal** — RG33 shipped findings as actions, and no screen draws one; the write path's doors column is the shape to reuse, not a second one. → §RG152
+- 📋 **RG165** (deps: —) **a door the engine offers cannot run from a window, since the bridge refuses a verb or option its tables never compose** — A door is the engine's own argv, and RG143's guard runs only what VERBS and WRITES spell, so criterion add and install are withheld. → §RG165
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
@@ -37,8 +40,7 @@
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
 - 📋 **RG128** (deps: RG120 ✅, roadkeep RK1678) **a checkout busy when the probe runs is skipped, so the launcher answers from a cache 446 versions old** — Resolution takes the first engine that answers, so a session can be briefed by a copy nobody chose. → §RG128
-- 📋 **RG143** (deps: RG122 ✅, RG103 ✅) **the bridge carries no roadkeep call, so no screen can ask a project anything and every reader in core runs only in tests** — RendererBridge answers identify, settings and two saves, and openHere, scanRoots and the held engine are reached by no path a window runs. → §RG143
-- 📋 **RG144** (deps: RG143, RG45 ✅) **the bridge only answers when asked, so a session's stream and a governed file changing have no way to reach a screen** — startSession and the governed watcher both hear events in main, and every bridge method is a single invoke with a single answer. → §RG144
+- 📋 **RG144** (deps: RG143 ✅, RG45 ✅) **the bridge only answers when asked, so a session's stream and a governed file changing have no way to reach a screen** — startSession and the governed watcher both hear events in main, and every bridge method is a single invoke with a single answer. → §RG144
 - 📋 **RG154** (deps: RG50 ✅, RG162) (requires: published-artifact) **the update check has only met answers written by hand, never GitHub's own for a published release** — No release is published yet, so the shape it reads and the page it opens are held by fakes until the first one exists. → §RG154
 - 📋 **RG155** (deps: RG50 ✅) **the release-page guard compares a string prefix, so a release URL with dot segments opens another repository** — The URL comes off a network answer, and the browser normalises the dot segments after the guard approved the string. → §RG155
 - 📋 **RG156** (deps: RG50 ✅) **the update check tells a build ahead of every release it is the newest, and hides why a check failed** — An ahead build reads as current and loses the version found, undici keeps the real cause on error.cause, and a body timeout reads as not JSON. → §RG156

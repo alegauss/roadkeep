@@ -103,6 +103,23 @@ describe('RG103: the order a project opens in', () => {
     expect(held.verbs()).toEqual(['engines', 'config', 'commands', 'list'])
   })
 
+  it('RG143: hands back that stack as a transport, for a caller holding an argv', async () => {
+    // A carrier running what a renderer composed, and a write: neither has a verb to call,
+    // and both go through the pool and the engine the client uses rather than a second one.
+    const held = machine()
+
+    const opened = await openProject('/proj', [LAUNCHER], held.transportFor)
+    if (opened.kind !== 'open') return
+
+    const result = await opened.project.transport.run({
+      root: '/proj',
+      argv: ['-C', '/proj', 'list', '--json'],
+    })
+
+    expect(result.code).toBe(0)
+    expect(held.verbs()).toEqual(['engines', 'config', 'commands', 'list'])
+  })
+
   it('reads what the project governs, which is what a stamp is taken over', async () => {
     const held = machine()
 

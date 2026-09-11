@@ -13,6 +13,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { GROUND_CACHE_KEY } from './ground'
 import { drawWindow } from './harness'
+import { stubBridge } from './stub-bridge'
 
 /**
  * RG52: the ground, from the outside.
@@ -81,7 +82,7 @@ function labelOfControl(): string {
 /** A bridge that records what the ground control sent back to the file. */
 function recordingBridge(): { kept: Theme[] } {
   const kept: Theme[] = []
-  const bridge: RendererBridge = {
+  const bridge: RendererBridge = stubBridge({
     identify: () =>
       Promise.resolve({
         transport: 'ipc',
@@ -93,7 +94,7 @@ function recordingBridge(): { kept: Theme[] } {
       return Promise.resolve()
     },
     saveLocale: () => Promise.resolve(),
-  }
+  })
   Object.defineProperty(window, 'roadkeep', { value: bridge, configurable: true })
   return { kept }
 }
