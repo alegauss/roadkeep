@@ -20,7 +20,6 @@
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-- 📋 **RG181** (deps: —) **the door keep holds every batch a session offered, since only a file moving drops one** — A window re-reading a failing gate adds a batch per read, and a project whose files sit still never drops any of them. → §RG181
 - 📋 **RG182** (deps: —) **the filing form asks nobody what the block already delivered, so the window spends an id the terminal would question** — The read before an add is delivered --near, and a line filed from a screen never gets it. → §RG182
 - 📋 **RG185** (deps: RG152 ✅) **the gate surface runs lint every time it opens, though the ledger already holds a verdict the files have not moved under** — The carrier asks needsGate before every run it starts, and the surface asks neither it nor the ledger. → §RG185
 

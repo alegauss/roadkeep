@@ -17,6 +17,13 @@ import { doorsIn, type Door } from '@rk/core'
  * state nobody is in. It lives in this process and dies with it: another launch knows none of
  * them, which is the honest answer to a page that remembered one.
  *
+ * **One batch per root** (RG181). A window draws the doors of the answer it is showing, so an
+ * answer two reads ago is one no page has a button for — keeping the most recent batch per
+ * project and dropping the one it replaces bounds this table at one per open project, without
+ * taking away anything a reader could still press. A count would have been the alternative:
+ * twenty batches is a number nobody can derive and a rule that drops the batch a slow reader
+ * is about to use.
+ *
  * Nothing here decides who may run what. It is a table of what was offered, and the rule that
  * what is offered stops being on offer when the files move.
  */
@@ -52,6 +59,8 @@ interface Offered {
 export function createDoorKeep(options: DoorKeepOptions): DoorKeep {
   const named = options.name ?? randomUUID
   const offered = new Map<string, Offered>()
+  /** The batch each root has on offer, which is the only one a screen can still reach. */
+  const latest = new Map<string, string>()
 
   return {
     async keep(root, answer) {
@@ -59,7 +68,12 @@ export function createDoorKeep(options: DoorKeepOptions): DoorKeep {
       if (doors.length === 0) return null
 
       const token = named()
-      offered.set(token, { root, stamp: await options.stampOf(root), doors })
+      const stamp = await options.stampOf(root)
+      // The batch this replaces is one no page has a button for any more (RG181).
+      const before = latest.get(root)
+      if (before !== undefined) offered.delete(before)
+      latest.set(root, token)
+      offered.set(token, { root, stamp, doors })
       return token
     },
 
@@ -74,6 +88,7 @@ export function createDoorKeep(options: DoorKeepOptions): DoorKeep {
         // The files moved, so what was offered is no longer offered. Dropped rather than
         // refused once, because every door in this batch is about the state that has gone.
         offered.delete(token)
+        if (latest.get(root) === token) latest.delete(root)
         return null
       }
       return kept.doors[which] ?? null

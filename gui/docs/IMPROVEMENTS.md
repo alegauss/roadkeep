@@ -124,29 +124,6 @@ project that large can narrow by block first.
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-### §RG181 A keep with a bound
-
-RG165's keep drops a batch when the project's governed files move, which is the rule
-that matters: a door offered against a state that has gone must not run. It has no rule
-for a project nobody is writing to. Every answer carrying doors — a refusal, a gate
-finding, an `explain` — adds a batch, and where the files sit still nothing takes any
-away. A window left open on a failing gate holds one batch per read for as long as it
-runs.
-
-Each batch is small and this is memory rather than a wrong answer, which is why it is a
-line and not a defect in the one above.
-
-**The last batch per root is the one a screen can still reach.** A window draws the
-doors of the answer it is showing, and an answer two reads ago is one no page has a
-button for — so keeping the most recent batch per root, and dropping the batch it
-replaces, bounds the table at one per open project without taking away anything a reader
-could still press.
-
-**The alternative is a count, and it is worse.** A cap of twenty batches is a number
-nobody can derive and a rule that drops the batch a slow reader is about to use; the
-per-root rule answers the same question with a fact about the screen rather than a guess
-about the pace.
-
 ### §RG182 The duplicate read, beside the symptom
 
 The read before an `add` is `delivered <block> --near "<the sentence about to be

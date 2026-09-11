@@ -82,3 +82,48 @@ describe('RG165: the doors an answer carried', () => {
     expect(await keep.taken('/proj', token, 0)).toBeNull()
   })
 })
+
+describe('RG181: a keep with a bound', () => {
+  it('holds one batch per project, whatever a window reads', async () => {
+    const keep = keeping()
+
+    await keep.keep('/a', ANSWER)
+    await keep.keep('/a', ANSWER)
+    await keep.keep('/a', ANSWER)
+
+    expect(keep.held).toBe(1)
+  })
+
+  it('drops the batch it replaces, since no page has a button for it any more', async () => {
+    const keep = keeping()
+    const first = await keep.keep('/a', ANSWER)
+    if (first === null) throw new Error('nothing was offered')
+
+    await keep.keep('/a', ANSWER)
+
+    expect(await keep.taken('/a', first, 1)).toBeNull()
+  })
+
+  it('keeps the one it just took, which is the answer a screen is showing', async () => {
+    const keep = keeping()
+    await keep.keep('/a', ANSWER)
+    const second = await keep.keep('/a', ANSWER)
+    if (second === null) throw new Error('nothing was offered')
+
+    expect(await keep.taken('/a', second, 1)).toMatchObject({
+      argv: ['engines'],
+      complete: true,
+    })
+  })
+
+  it('bounds by project and not overall, so one open project does not blind another', async () => {
+    const keep = keeping()
+
+    await keep.keep('/a', ANSWER)
+    await keep.keep('/b', ANSWER)
+    const second = await keep.keep('/a', ANSWER)
+
+    expect(keep.held).toBe(2)
+    expect(second).not.toBeNull()
+  })
+})
