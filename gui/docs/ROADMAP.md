@@ -29,6 +29,7 @@
 
 - 📋 **RG151** (deps: RG148 ✅, RG32 ✅, RG34 ✅, RG36 ✅, RG165 ✅) **no screen composes a write, so a line is still filed in a terminal though its budget, argv and doors are built** — Escrita.dc.html draws the form with counters, the command before it runs and the refusal's doors, and block E shipped each. → §RG151
 - 📋 **RG152** (deps: RG151, RG33 ✅, RG165 ✅) **Run the gate is a button with nothing behind it, so a finding and the doors it names are still read in a terminal** — RG33 shipped findings as actions, and no screen draws one; the write path's doors column is the shape to reuse, not a second one. → §RG152
+- 📋 **RG181** (deps: —) **the door keep holds every batch a session offered, since only a file moving drops one** — A window re-reading a failing gate adds a batch per read, and a project whose files sit still never drops any of them. → §RG181
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
