@@ -108,8 +108,11 @@ return is not offered, which is block C's first criterion applied to a list.
 foot of the results as not yet searched, never silently absent, which is what
 `coversEverything` answers.
 
-If the palette cannot take a second group without being re-declared, that is a finding
-for the package, not a component to write here.
+**It cannot yet, which is the finding for the package.** `BentoCommandPalette` takes
+only nav items and filters them with its own matching, so lines would be matched in the
+renderer. The "a grouped palette" dep is that change in the design system: a second
+group whose items the product supplies per query. Choosing a line waits on RG150's task
+detail.
 
 ### §RG166 A gate verdict the carrier keeps
 
