@@ -13,6 +13,8 @@ import {
   type Transport,
   BASE_LOCALE,
   timeIn,
+  EVERY_SOURCE,
+  type SessionOutcome,
 } from '@rk/core'
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -191,6 +193,8 @@ interface Wired {
   readonly listeners: Listening[]
   readonly stopped: string[]
   readonly handedOver: string[]
+  /** What `sessions` answers next, which main moves under a standing list (RG178). */
+  holds: SessionRecord[]
 }
 
 async function at(
@@ -204,10 +208,12 @@ async function at(
   const moved = { shipped: over.shipped ?? false }
   const transport = engine(moved)
   const opened = openedFrom(await openProject(ROOT, [['roadkeep']], () => transport))
-  const wired: Wired = { listeners: [], stopped: [], handedOver: [] }
+  const wired: Wired = { listeners: [], stopped: [], handedOver: [], holds: [] }
   // What this window holds, which a handover adds to — the state RG175 reads to decide
-  // whether the line is offered again.
+  // whether the line is offered again, and which a test can move under a standing list
+  // the way main does (RG178).
   const held = [...(over.sessions ?? [])]
+  wired.holds = held
 
   Object.defineProperty(window, 'roadkeep', {
     value: stubBridge({
@@ -476,5 +482,50 @@ describe('RG177: a time in the window’s language', () => {
     // The same stamp, and not the string the other language writes for it.
     expect(within(files).queryByText(timeIn(CHANGED, 'pt-BR'))).toBeNull()
     expect(within(files).getByText(timeIn(CHANGED, BASE_LOCALE))).toBeTruthy()
+  })
+})
+
+describe('RG178: a list that hears what it lists', () => {
+  it('takes one subscription that means every session, not one per row', async () => {
+    const wired = await at(SESSIONS_ROUTE, { sessions: [RECORD] })
+
+    await screen.findByTestId('session')
+    const heard = wired.listeners.filter((one) => one.topic === 'session')
+    expect(heard.map((one) => one.key)).toEqual([EVERY_SOURCE])
+  })
+
+  it('reads again when a session says something, so an ending stops reading as running', async () => {
+    const wired = await at(SESSIONS_ROUTE, { sessions: [RECORD] })
+
+    expect(
+      within(await screen.findByTestId('session')).getByText(BASE['session.state.running']),
+    ).toBeTruthy()
+
+    // Main's own record moves, and then main says so on the topic.
+    wired.holds[0] = {
+      ...RECORD,
+      outcome: { state: 'done', sessionId: KEY, code: 0, said: '', result: 'shipped' },
+    }
+    hear(wired, 'session', { session: KEY, outcome: wired.holds[0].outcome as SessionOutcome })
+
+    await waitFor(() => {
+      expect(
+        within(screen.getByTestId('session')).getByText(BASE['session.state.done']),
+      ).toBeTruthy()
+    })
+  })
+
+  it('hears a session it never listed, since the key it listens to is all of them', async () => {
+    const wired = await at(SESSIONS_ROUTE)
+
+    expect(await screen.findByText(BASE['sessions.none'])).toBeTruthy()
+
+    // Started from another screen: a key this list had never heard of when it asked.
+    wired.holds.push(RECORD)
+    hear(wired, 'session', { session: KEY, index: 0, line: '{}' })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('session').dataset['id']).toBe('AL1')
+    })
   })
 })

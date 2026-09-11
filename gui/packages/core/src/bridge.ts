@@ -316,6 +316,19 @@ export const BRIDGE_TOPICS = {
 } as const satisfies Record<Topic, string>
 
 /**
+ * The key that means every source of a topic (RG178).
+ *
+ * A list wants the lot and cannot name them: it does not know which sessions there are until
+ * it has asked, and one started after that has a key it never heard of. So the topic carries
+ * one key standing for all of them — one subscription and one shape, rather than one per row
+ * and still blind to the next.
+ *
+ * A source can never be called this: a session's key is this process's own name for it, built
+ * from a root and an id, and a root is a path.
+ */
+export const EVERY_SOURCE = '*'
+
+/**
  * Giving a subscription up. No method of its own — it is the function `subscribe` answered —
  * so it is named here beside the channels rather than among them.
  */

@@ -1,4 +1,4 @@
-import { folderName, type SessionRecord, type SessionState } from '@rk/core'
+import { EVERY_SOURCE, folderName, type SessionRecord, type SessionState } from '@rk/core'
 import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-system/bento'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -16,9 +16,22 @@ import { useWording } from './wording'
  * **What is listed is what this process holds.** Sessions live with the window: the records are
  * main's, a session another launch started is not here, and nothing about them is stored — the
  * list is the answer to a question, asked when this screen opens.
+ *
+ * **And kept true by the topic, never by a timer** (RG178). Every line and every ending is
+ * published already; what this screen could not do was name the sessions to listen to, since
+ * one started after it asked has a key it never heard of. `EVERY_SOURCE` is the key that means
+ * all of them, so this is one subscription that hears the next session as readily as the ones
+ * the record answered with.
  */
 
-/** Asked once per opening. A session's own screen is where its stream is followed. */
+/**
+ * The record, re-asked whenever a session says anything.
+ *
+ * The read and not the event is what fills the list: what a row draws is the state, and the
+ * record is where the state is. An event is only the news that it may have moved — which is
+ * why a line and an ending are treated alike here, and why nothing has to be rebuilt from a
+ * stream this screen does not follow.
+ */
 function useSessions(): readonly SessionRecord[] {
   const [held, setHeld] = useState<readonly SessionRecord[]>([])
 
@@ -27,14 +40,19 @@ function useSessions(): readonly SessionRecord[] {
     if (bridge === undefined) return undefined
     let live = true
     const stillHere = (): boolean => live
-    void bridge.sessions().then(
-      (all) => {
-        if (stillHere()) setHeld(all)
-      },
-      () => undefined,
-    )
+    const ask = (): void => {
+      void bridge.sessions().then(
+        (all) => {
+          if (stillHere()) setHeld(all)
+        },
+        () => undefined,
+      )
+    }
+    ask()
+    const stop = bridge.subscribe('session', EVERY_SOURCE, ask)
     return () => {
       live = false
+      stop()
     }
   }, [])
 

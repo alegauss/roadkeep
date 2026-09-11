@@ -1,4 +1,4 @@
-import { BRIDGE_TOPICS } from '@rk/core'
+import { BRIDGE_TOPICS, EVERY_SOURCE } from '@rk/core'
 import { describe, expect, it } from 'vitest'
 
 import { createSubscriptions, type Follow, type Subscriber } from './subscriptions'
@@ -130,5 +130,49 @@ describe('RG144: a session line, published by whoever runs the session', () => {
       [BRIDGE_TOPICS.session, { session: 's1', index: 0, line: '{"type":"text"}' }],
     ])
     expect(disk.started()).toBe(0)
+  })
+})
+
+describe('RG178: the key that means every source of a topic', () => {
+  it('sends a session event to the listener that asked for all of them', () => {
+    const subscriptions = createSubscriptions({ governed: () => Promise.resolve(null) })
+    const one = window(1)
+    subscriptions.subscribe(one, 'session', EVERY_SOURCE)
+
+    subscriptions.publish('session', 'k1', { session: 'k1', index: 0, line: 'a' })
+
+    expect(one.heard).toEqual([[BRIDGE_TOPICS.session, { session: 'k1', index: 0, line: 'a' }]])
+  })
+
+  it('sends it once to a window holding both, which a task screen and the list are', () => {
+    const subscriptions = createSubscriptions({ governed: () => Promise.resolve(null) })
+    const one = window(1)
+    subscriptions.subscribe(one, 'session', EVERY_SOURCE)
+    subscriptions.subscribe(one, 'session', 'k1')
+
+    subscriptions.publish('session', 'k1', { session: 'k1', index: 0, line: 'a' })
+
+    expect(one.heard).toHaveLength(1)
+  })
+
+  it('does not make the wildcard hear another topic, since a key is a topic’s own', () => {
+    const subscriptions = createSubscriptions({ governed: () => Promise.resolve(null) })
+    const one = window(1)
+    subscriptions.subscribe(one, 'session', EVERY_SOURCE)
+
+    subscriptions.publish('governed', '/w', { root: '/w' })
+
+    expect(one.heard).toEqual([])
+  })
+
+  it('stops sending once the wildcard is given up', () => {
+    const subscriptions = createSubscriptions({ governed: () => Promise.resolve(null) })
+    const one = window(1)
+    subscriptions.subscribe(one, 'session', EVERY_SOURCE)
+    subscriptions.unsubscribe(one, 'session', EVERY_SOURCE)
+
+    subscriptions.publish('session', 'k1', { session: 'k1', index: 0, line: 'a' })
+
+    expect(one.heard).toEqual([])
   })
 })

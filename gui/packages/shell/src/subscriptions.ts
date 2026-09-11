@@ -1,4 +1,4 @@
-import { BRIDGE_TOPICS, type Topic, type TopicEvents } from '@rk/core'
+import { BRIDGE_TOPICS, EVERY_SOURCE, type Topic, type TopicEvents } from '@rk/core'
 
 /**
  * Who is listening to what, on the main side of the bridge (RG144).
@@ -76,10 +76,18 @@ export function createSubscriptions(sources: { readonly governed: Follow }): Sub
   }
 
   const publish = <T extends Topic>(topic: T, key: string, event: TopicEvents[T]): void => {
-    const entry = listening.get(`${topic}${SEPARATOR}${key}`)
-    if (entry === undefined) return
-    for (const subscriber of [...entry.subscribers.values()]) {
-      if (!subscriber.isDestroyed()) subscriber.send(BRIDGE_TOPICS[topic], event)
+    // The key's own listeners, and the ones listening to every source of this topic (RG178).
+    // A window can hold both — a session's screen following one, the list following all —
+    // and each is sent once, since the two entries hold different subscriptions.
+    const sent = new Set<number>()
+    for (const one of [key, EVERY_SOURCE]) {
+      const entry = listening.get(`${topic}${SEPARATOR}${one}`)
+      if (entry === undefined) continue
+      for (const subscriber of [...entry.subscribers.values()]) {
+        if (subscriber.isDestroyed() || sent.has(subscriber.id)) continue
+        sent.add(subscriber.id)
+        subscriber.send(BRIDGE_TOPICS[topic], event)
+      }
     }
   }
 

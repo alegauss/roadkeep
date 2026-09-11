@@ -29,7 +29,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG178** (deps: —) **the sessions list asks once when it opens, so one that ends while it stands still reads as running** — Every line and ending is published on the session topic already, but a subscription takes one key and a list wants every session, including one started after it asked. → §RG178
 - 📋 **RG190** (deps: —) **a handover landing after the reader left the task screen moves the window to the session anyway** — Every read on that screen gives its answer up on unmount, and the one callback that navigates does not. → §RG190
 
 ## Block G — The shell (an executable now, a service later)

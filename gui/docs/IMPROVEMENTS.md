@@ -241,28 +241,6 @@ has not read.
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-### §RG178 A list that hears what it lists
-
-The list of what this window started asks `sessions` once, when it opens. A session's
-own screen hears its topic and follows it line by line; the list hears nothing, so one
-that ends while the list stands still says running, and one started from another screen
-is missing until somebody navigates away and back.
-
-**Nothing here should poll.** The events already exist: every line and every ending is
-published on the session topic, keyed on the session. What the list lacks is that it
-does not know which keys to subscribe to until it has asked — and a session started
-after it asked has a key it never heard of.
-
-**So the topic needs a key that is every session.** `subscribe` takes one source of a
-topic, and a list wants the lot: either the topic carries a key that means all of them,
-or the sessions the record answered are each subscribed and a new one arrives some other
-way. The first is one subscription and one shape; the second is a subscription per row
-and still blind to a session that started elsewhere.
-
-A row need not carry the stream to be right: what the list draws is the state, so an
-ending is the event that matters and a line only says it is still going. The record
-stays the read that opens the screen, and the topic is what keeps it true.
-
 ### §RG190 The screen a handover moves after it is gone
 
 Hand to Claude Code starts a session and then navigates to it. The call is a promise,

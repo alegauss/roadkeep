@@ -1,6 +1,12 @@
 export { identityFrom, PRODUCT, saidOfBuild, saidOfVersion, STAMP_VARS, UNSTAMPED } from './build'
 export type { BuildIdentity } from './build'
-export { BRIDGE_CHANNELS, BRIDGE_KEY, BRIDGE_TOPICS, BRIDGE_UNSUBSCRIBE } from './bridge'
+export {
+  BRIDGE_CHANNELS,
+  BRIDGE_KEY,
+  BRIDGE_TOPICS,
+  BRIDGE_UNSUBSCRIBE,
+  EVERY_SOURCE,
+} from './bridge'
 export type {
   BridgedRequest,
   BridgedResult,
