@@ -4,7 +4,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-- 📋 **RG158** (deps: RG141 ✅) **two live assertions pass unchecked: a picked line with no tier, and a combined filter that selects nothing** — RG141 made tier nullable and moved the filter off Block A, and neither assertion was tightened after it. → §RG158
 - 📋 **RG159** (deps: RG142 ✅) **the empty-brief contract asserts lacking on a fixture that never has any, so no lacking line is ever read** — Array.isArray on a field that defaults to an empty list cannot fail, and no fixture requires what the caller lacks. → §RG159
 - 📋 **RG160** (deps: RG137 ✅) **openHere's own unheld wiring is never run by a test, since RG137's live case rebuilds it by hand** — The test wires unheldAmong around openProject itself, so the production line can break with every test green. → §RG160
 
@@ -67,6 +66,11 @@
 - **No argv this app builds is ever handed to a shell** Every call spawns with shell
   false and argv as an array, and a test passes a string of metacharacters through the
   transport and asserts it arrives as one argument with nothing executed.
+- **A live assertion cannot pass on an empty list or a null field** An `every` is
+  preceded by the count that makes it mean something, and a field the engine may answer
+  null with is asserted by its type — `not.toBe('')` is true of null. Both were found
+  passing against nothing: RG163 for a marker nothing carried, RG158 for a filter pair
+  and a tier.
 
 ## Done when — Block B
 

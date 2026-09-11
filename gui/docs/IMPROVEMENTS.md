@@ -2,19 +2,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-### §RG158 Two assertions that stopped asserting
-
-Two live assertions pass without checking what they name, both loosened by RG141.
-
-- **The contract's "which tier answered"** case reads a fixture that has lines ready, and after `tier` became nullable its assertion accepts a pick that arrives with no tier — the one regression it exists to catch.
-- **"Combines two arguments into one read"** narrows to a found block and the `💭` marker, and that pair currently selects nothing, so `every` over an empty list passes.
-
-**The fix.** The contract asserts a non-empty tier wherever a line was picked. The
-combined filter chooses a marker actually present in the chosen block and asserts there
-are lines before asserting each one matches.
-
-Found by the adversarial review; the first confirmed by both skeptics, the second split.
-
 ### §RG159 A lacking line, actually read
 
 The contract case for a brief with nothing to hand over asserts

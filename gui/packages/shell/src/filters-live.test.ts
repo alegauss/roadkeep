@@ -98,9 +98,17 @@ describe('RG22: a filter is the command answer', () => {
   })
 
   it('combines two arguments into one read', async () => {
-    const backlog = await listWith({ block: busy, marker: '💭' })
+    // A marker the chosen block actually carries, read off that block rather than named
+    // (RG158): `💭` with this block selected nothing, and `every` over no lines is true — so
+    // this passed while asserting nothing about combining anything.
+    const inBusy = allLines(await listWith({ block: busy }))
+    const marker = inBusy[0]?.status ?? ''
+    expect(marker, `block ${busy} has no open line to take a marker from`).not.toBe('')
 
-    expect(allLines(backlog).every((line) => line.block === busy && line.status === '💭')).toBe(
+    const backlog = await listWith({ block: busy, marker })
+
+    expect(allLines(backlog).length).toBeGreaterThan(0)
+    expect(allLines(backlog).every((line) => line.block === busy && line.status === marker)).toBe(
       true,
     )
   })

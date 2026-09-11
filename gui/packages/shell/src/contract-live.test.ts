@@ -768,11 +768,15 @@ describe('RG4: every read this client makes, against a live engine', () => {
   it('reads what to work on next, and which tier answered', async () => {
     const payload = await readVerb('pick', {})
 
+    // The fixture has open lines, so there is something to pick.
+    expect(payload.pick?.id).toMatch(/^FX\d+$/)
+    // And a pick that arrived carries the tier that chose it. RG141 made `tier` nullable and
+    // `not.toBe('')` went on passing for a null — accepting the one regression this exists to
+    // catch, which is a pick with no tier (RG158).
+    expect(typeof payload.tier).toBe('string')
     expect(payload.tier).not.toBe('')
     expect(payload.reason).not.toBe('')
     expect(typeof payload.ready).toBe('number')
-    // The fixture has open lines, so there is something to pick.
-    expect(payload.pick?.id).toMatch(/^FX\d+$/)
   })
 
   it('reads a backlog with nothing to pick as a null rather than a refusal', async () => {
