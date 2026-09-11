@@ -1,7 +1,7 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
 
 import { buildArgv } from './client'
-import { claimingBrief, handoverOf, heldBy, mayHandOver } from './handover'
+import { alreadyRunning, claimingBrief, handoverOf, heldBy, mayHandOver } from './handover'
 import {
   lineOf,
   readBriefAnswer,
@@ -187,5 +187,22 @@ describe('RG142: a brief with nothing to hand over', () => {
     if (!parsed.ok) throw new Error('unreachable')
     const line = lineOf(parsed.value)
     expect(line === null ? 'nothing to take' : handoverOf(line).id).toBe('nothing to take')
+  })
+})
+
+describe('RG175: a session this window already has on the line', () => {
+  it('is running while its record has no outcome', () => {
+    expect(alreadyRunning({ outcome: null })).toBe(true)
+  })
+
+  it('is not running once the record says how it ended, whatever that was', () => {
+    // Read from the outcome and never from a clock: a session that ended holds nothing,
+    // and the claim it took expires on its own.
+    expect(alreadyRunning({ outcome: { state: 'done' } })).toBe(false)
+    expect(alreadyRunning({ outcome: { state: 'failed' } })).toBe(false)
+  })
+
+  it('is nothing at all where this window has no session for the line', () => {
+    expect(alreadyRunning(null)).toBe(false)
   })
 })

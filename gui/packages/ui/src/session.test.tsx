@@ -200,6 +200,9 @@ async function at(
   const transport = engine(moved)
   const opened = openedFrom(await openProject(ROOT, [['roadkeep']], () => transport))
   const wired: Wired = { listeners: [], stopped: [], handedOver: [] }
+  // What this window holds, which a handover adds to — the state RG175 reads to decide
+  // whether the line is offered again.
+  const held = [...(over.sessions ?? [])]
 
   Object.defineProperty(window, 'roadkeep', {
     value: stubBridge({
@@ -213,11 +216,13 @@ async function at(
           wired.listeners.splice(wired.listeners.indexOf(listening), 1)
         }
       },
-      sessions: () => Promise.resolve(over.sessions ?? []),
+      sessions: () => Promise.resolve([...held]),
       governedAt: () => Promise.resolve(FILES),
       handOver: (_root, id) => {
         wired.handedOver.push(id)
-        return Promise.resolve(over.handOver ?? { kind: 'withheld', reason: 'nothing asked' })
+        const answer = over.handOver ?? { kind: 'withheld' as const, reason: 'nothing asked' }
+        if (answer.kind === 'started') held.push(answer.session)
+        return Promise.resolve(answer)
       },
       stopSession: (one) => {
         wired.stopped.push(one)
@@ -246,8 +251,9 @@ afterEach(() => {
 describe('RG153: handing a line to Claude Code', () => {
   it('takes the line and opens the session it started', async () => {
     const started: HandedOver = { kind: 'started', session: RECORD }
-    // Held by the far side the moment it started, which is what the session's own screen asks.
-    const wired = await at(taskPath(ROOT, 'AL1'), { handOver: started, sessions: [RECORD] })
+    // No session yet, which is the state a line is offered from: the handover is what puts
+    // one there, and the far side holds it from that moment (RG175).
+    const wired = await at(taskPath(ROOT, 'AL1'), { handOver: started })
 
     fireEvent.click(await screen.findByRole('button', { name: BASE['task.handOver'] }))
 

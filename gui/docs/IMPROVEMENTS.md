@@ -241,26 +241,6 @@ has not read.
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-### §RG175 The line a session already has
-
-A claim `brief --claim` makes names nobody: the marker moves and `held` stays empty,
-which is what the live handover measured against a real fixture. So the task screen,
-which offers Hand to Claude Code while readiness is ready and nobody holds the line,
-offers it again for a line this window started a minute ago. Pressing it reaches the
-engine's own second guard — *was claimed 0m ago … read it without the claim* — and that
-refusal is drawn beside the button, so nothing is taken twice. What is wrong is the
-offer and not the outcome.
-
-**The window already knows.** `sessions` answers every session this process started, and
-the task screen asks it to draw the way back to one. A line whose session is still
-running is a line this window will not offer again: the button gives way to Open the
-session, which is the control a reader wanted anyway.
-
-**A session that ended holds nothing.** It left the marker where the agent put it and
-the claim expires on its own, so the offer returns when the state does — read from the
-record's outcome, never from a timer kept here. A line held by somebody else is the
-other case and is unchanged: the holder is named, which is the block's own criterion.
-
 ### §RG178 A list that hears what it lists
 
 The list of what this window started asks `sessions` once, when it opens. A session's

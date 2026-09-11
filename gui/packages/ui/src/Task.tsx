@@ -1,6 +1,7 @@
 import {
   briefToCopy,
   folderName,
+  alreadyRunning,
   handoverOf,
   mayHandOver,
   hopsOpening,
@@ -191,7 +192,9 @@ function HandOver({ root, task }: { readonly root: string; readonly task: Opened
           <Link to={sessionPath(root, id, session.key)}>{say('task.session.open')}</Link>
         </Button>
       )}
-      {holder === undefined && mayHandOver(handover) ? (
+      {/* Not offered where this window already has a session running on the line: the
+          engine would refuse the second claim, and the offer is what is wrong (RG175). */}
+      {holder === undefined && !alreadyRunning(session) && mayHandOver(handover) ? (
         <Button size="sm" onClick={hand} disabled={handing.kind === 'handing'}>
           {say('task.handOver')}
         </Button>

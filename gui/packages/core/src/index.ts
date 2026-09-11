@@ -127,7 +127,7 @@ export {
   standingOf,
 } from './graph'
 export type { Chain, DepStanding, Edge, Graph } from './graph'
-export { claimingBrief, handoverOf, heldBy, mayHandOver } from './handover'
+export { alreadyRunning, claimingBrief, handoverOf, heldBy, mayHandOver } from './handover'
 export type { Handover } from './handover'
 export { groupProjects, isFamily, orderMembers } from './families'
 export { createGateLedger, gateHealth, needsGate, recordGate, UNKNOWN_GATE } from './gate'

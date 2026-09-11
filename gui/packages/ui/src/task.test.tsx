@@ -5,7 +5,10 @@ import {
   fill,
   openedFrom,
   openProject,
+  readBriefPayload,
   type ProjectCatalogue,
+  type SessionRecord,
+  type SessionOutcome,
   type Transport,
 } from '@rk/core'
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
@@ -221,7 +224,7 @@ function engine(): Transport {
 
 const CATALOGUE: ProjectCatalogue = { version: 1, roots: [], projects: [] }
 
-async function at(path: string): Promise<void> {
+async function at(path: string, sessions: readonly SessionRecord[] = []): Promise<void> {
   const transport = engine()
   const opened = openedFrom(await openProject(ROOT, [['python', 'launch.py']], () => transport))
   Object.defineProperty(window, 'roadkeep', {
@@ -230,13 +233,28 @@ async function at(path: string): Promise<void> {
       open: () => Promise.resolve(opened),
       run: (root, request) => bridgedRun(() => transport.run({ ...request, root })),
       subscribe: () => () => undefined,
-      // The line's own sessions (RG153): none here, which is what a window holds until one
-      // is handed over.
-      sessions: () => Promise.resolve([]),
+      // The line's own sessions (RG153): none unless a case says otherwise, which is what a
+      // window holds until one is handed over.
+      sessions: () => Promise.resolve(sessions),
     }),
     configurable: true,
   })
   drawWindow({ at: path })
+}
+
+/** A session this window started on a line, running or ended (RG175). */
+function sessionOn(id: string, outcome: SessionOutcome | null): SessionRecord {
+  const read = readBriefPayload(DESIGNED, '')
+  if (!read.ok) throw new Error('the brief fixture does not match the shape')
+  return {
+    key: `${ROOT}:${id}:1`,
+    root: ROOT,
+    id,
+    handed: read.value,
+    agent: { command: ['claude'], version: '2.0.0', said: 'claude 2.0.0' },
+    lines: [],
+    outcome,
+  }
 }
 
 afterEach(() => {
@@ -416,5 +434,29 @@ describe('RG174: a line’s own finish line', () => {
     // the block's finish line about this one line.
     expect(within(own).queryByText('A task opens with everything starting it costs')).toBeNull()
     expect(screen.getByText('A task opens with everything starting it costs')).toBeTruthy()
+  })
+})
+
+describe('RG175: the line a session already has', () => {
+  it('does not offer a second session for a line one is running on', async () => {
+    await at(taskPath(ROOT, 'AL1'), [sessionOn('AL1', null)])
+
+    // The way back to it is the control a reader wanted anyway.
+    expect(await screen.findByRole('link', { name: BASE['task.session.open'] })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: BASE['task.handOver'] })).toBeNull()
+  })
+
+  it('offers it again once the session has ended, read from the record and not a clock', async () => {
+    await at(taskPath(ROOT, 'AL1'), [
+      sessionOn('AL1', { state: 'done', sessionId: 's1', code: 0, said: '', result: 'shipped' }),
+    ])
+
+    expect(await screen.findByRole('button', { name: BASE['task.handOver'] })).toBeTruthy()
+  })
+
+  it('offers it for a line no session of this window has, which is the ordinary case', async () => {
+    await at(taskPath(ROOT, 'AL1'), [sessionOn('AL3', null)])
+
+    expect(await screen.findByRole('button', { name: BASE['task.handOver'] })).toBeTruthy()
   })
 })

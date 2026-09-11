@@ -125,6 +125,7 @@
 - ✅ **RG43** **the claude binary is assumed to exist, so a machine without it fails at the moment work starts** — The command that runs a session is resolved and named like the engine, and a machine without one is a stated condition (design recorded in `packages/core/src/agent.ts`).
 - ✅ **RG42** **what a session wrote to the governed files is not watched, so the screen shows the backlog from before it ran** — What a session did is read off the files it changed: the marker, the design and the ledger, beside what it said (design recorded in `packages/core/src/landing.ts`).
 - ✅ **RG153** **nothing in the window hands a task to Claude Code or shows the session, so block F's acts and landings reach no one** — The session says when each governed file changed, names a claim held elsewhere, and the rail lists what is running (design recorded in `packages/ui/src/Session.tsx`).
+- ✅ **RG175** **a line this window handed over is offered to a second session, since the claim it took names nobody** — A line this window has a session running on is not offered a second one; the way back to it is (design recorded in `packages/core/src/handover.ts`).
 
 ## Block G — The shell (an executable now, a service later)
 

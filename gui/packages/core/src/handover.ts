@@ -71,6 +71,22 @@ export function mayHandOver(handover: Handover): boolean {
 }
 
 /**
+ * Whether this window already has a session on this line, still running (RG175).
+ *
+ * The claim `brief --claim` makes names nobody, so `held` stays empty for a line this very
+ * window handed over a minute ago and `mayHandOver` goes on saying yes. This is the fact
+ * `held` does not carry, and the window is the one place that has it: `sessions` answers
+ * every session this process started.
+ *
+ * **Read from the record's outcome and never from a clock.** A session that ended holds
+ * nothing — it left the marker where the agent put it and the claim expires on its own —
+ * so the offer returns when the state does, and not after a timer kept here.
+ */
+export function alreadyRunning(session: { readonly outcome: unknown } | null): boolean {
+  return session !== null && session.outcome === null
+}
+
+/**
  * Who holds it, named before a second session is offered it.
  *
  * The engine's own words for the holder and the age. A claim names nobody, so "another
