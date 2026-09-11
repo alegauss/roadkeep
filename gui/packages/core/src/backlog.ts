@@ -132,32 +132,55 @@ export function allLines(backlog: Backlog): TaskLine[] {
 }
 
 /**
- * What to say about a listing that is narrower than its file.
+ * Why a listing is narrower than its file, as a code and the numbers it fills (RG172).
  *
- * A sentence rather than a count, because "3 uncounted" is a number somebody has to go
- * and interpret, and the reasons are already in the payload.
+ * **Not a sentence.** This is read on a screen, and a sentence composed here is English
+ * whatever the window speaks — the defect RG168 fixed for a row's reason and this is its
+ * twin. The catalogue holds one sentence per code in every language, and the fills are what
+ * a count means: how many lines, which file, and the bound the read went past.
+ *
+ * Null where the listing is the whole file, which is the ordinary answer and not a case
+ * with nothing to say.
  */
-export function refusedSummary(backlog: Backlog): string {
+export type NarrowedCase =
+  /** The read went past the project's own bound, and a block can be asked for on its own. */
+  | 'over-narrows'
+  /** It went past the bound and no block is small enough to ask for. */
+  | 'over-whole'
+  /** One line carries a marker the grammar did not accept. */
+  | 'refused-one'
+  /** Several do. */
+  | 'refused-many'
+
+export interface Narrowed {
+  readonly code: NarrowedCase
+  /** The holes the catalogue's sentence for that code fills, each already a string. */
+  readonly fields: Readonly<Record<string, string>>
+}
+
+export function narrowedBy(backlog: Backlog): Narrowed | null {
   if (backlog.over !== null) {
     const door = backlog.over.narrows
-    return (
-      `${String(backlog.total)} line${backlog.total === 1 ? '' : 's'} in ${backlog.file} ` +
-      `were not listed: this read is ${String(backlog.over.characters)} characters against ` +
-      `the ${String(backlog.over.limit)} this project declares` +
-      (door === ''
-        ? ', and no block is small enough to ask for on its own'
-        : `, so ask for ${door}`)
-    )
+    return {
+      code: door === '' ? 'over-whole' : 'over-narrows',
+      fields: {
+        count: String(backlog.total),
+        file: backlog.file,
+        characters: String(backlog.over.characters),
+        limit: String(backlog.over.limit),
+        narrows: door,
+      },
+    }
   }
 
   const count = backlog.refused.length
-  if (count === 0) return ''
+  if (count === 0) return null
 
-  const one = count === 1
+  // The reasons are the engine's own words and are joined, not rewritten: a screen quotes
+  // them after the sentence the catalogue gives.
   const reasons = [...new Set(backlog.refused.map((line) => line.reason))]
-  return (
-    `${String(count)} line${one ? '' : 's'} in ${backlog.file} ${one ? 'carries' : 'carry'} ` +
-    `a marker the grammar did not accept, so nothing counts or picks ` +
-    `${one ? 'it' : 'them'}: ${reasons.join('; ')}`
-  )
+  return {
+    code: count === 1 ? 'refused-one' : 'refused-many',
+    fields: { count: String(count), file: backlog.file, reasons: reasons.join('; ') },
+  }
 }

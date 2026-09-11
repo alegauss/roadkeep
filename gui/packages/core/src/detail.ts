@@ -95,50 +95,12 @@ export function underway(detail: TaskDetail, working: string): Underway {
   return { marked, held, disagree: working !== '' && marked !== (held !== null) }
 }
 
-/**
- * The pair as a sentence, or the empty string where there is nothing to say.
- *
- * Every version names what is true rather than what this app concluded, and the two that
- * disagree say so out loud — a reader who is told only "in progress" cannot tell a line
- * somebody is on from one abandoned an hour ago.
+/*
+ * Two helpers stood here — `saidOfUnderway` and `whyNotStartable` — composing these two
+ * facts as English sentences. The task screen says both through the catalogue instead, so
+ * they were a second copy in one language of something already said in every language, and
+ * RG172 deleted them. What is left is the facts: `Underway` and `TaskDetail.blocking`.
  */
-export function saidOfUnderway(state: Underway): string {
-  const by = state.held?.by ?? ''
-  const since = state.held?.since ?? ''
-
-  if (state.held !== null && state.marked) {
-    return `${by || 'somebody'} is working it, since ${since || 'earlier'}`
-  }
-  if (state.held !== null) {
-    return `held by ${by || 'somebody'} since ${since || 'earlier'}, and the line has not been moved to the working marker`
-  }
-  if (state.marked) {
-    return 'started, and no claim on it is still live'
-  }
-  return ''
-}
-
-/**
- * Why this line cannot be started yet, or the empty string.
- *
- * Built out of what the engine reported and nothing else — a sentence naming the ids or
- * the holder, rather than a verdict this app reached.
- */
-export function whyNotStartable(detail: TaskDetail): string {
-  if (detail.startable) return ''
-
-  const held = detail.payload.held[0]
-  if (held !== undefined) {
-    return `held by ${held.by || 'another worker'} since ${held.since || 'earlier'}`
-  }
-  if (detail.blocking.length > 0) {
-    return `waiting on ${detail.blocking.join(', ')}`
-  }
-  if (detail.payload.requires.length > 0 && detail.payload.readiness !== 'ready') {
-    return `needs ${detail.payload.requires.join(' and ')}`
-  }
-  return detail.payload.readiness
-}
 
 /**
  * The design, exactly as the file stores it, or null.

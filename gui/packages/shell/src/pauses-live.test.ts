@@ -6,7 +6,6 @@ import {
   readResumePayload,
   storeFrom,
   whereaboutsOf,
-  whereFiled,
   type ListPayload,
   type Refusal,
   type Store,
@@ -106,12 +105,13 @@ describe('RG28: a paused line told from one nothing ever filed', () => {
     expect(filingOf('FX9999', filings)).toBe('unfiled')
   })
 
-  it('says where a paused id went, with the sentence it was set aside on', async () => {
+  it('carries where a paused id went, and what it was set aside for', async () => {
     const store = await storeOf(fixture.root)
-    const said = whereFiled('paused', store, store.pauses[0]!.id)
+    const pause = pauseOf(store, store.pauses[0]!.id)
 
-    expect(said).toContain('DEFERRED.md')
-    expect(said).toContain('Waiting on a decision')
+    expect(store.file).toContain('DEFERRED.md')
+    expect(pause?.why).toContain('Waiting on a decision')
+    expect(pause?.reason).toContain('Waiting on a decision')
   })
 })
 
@@ -173,7 +173,7 @@ describe('RG80: opening a task the engine will not open', () => {
 
     expect(found.filing).toBe('unfiled')
     expect(found.back).toBeNull()
-    expect(found.sentence).toBe('nothing in this project carries that id')
+    expect(found.pause).toBeNull()
   })
 
   it('brings the line back with the argv it composed', async () => {

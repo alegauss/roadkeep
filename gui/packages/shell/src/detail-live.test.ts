@@ -1,12 +1,4 @@
-import {
-  designOf,
-  detailFrom,
-  graphOfBrief,
-  listedTasks,
-  routeOf,
-  whyNotStartable,
-  type TaskDetail,
-} from '@rk/core'
+import { designOf, detailFrom, graphOfBrief, listedTasks, routeOf, type TaskDetail } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { aLine, CEILING, liveEngine as engine, openWithDesign, read, REPO } from './live'
@@ -148,7 +140,6 @@ describe('RG23: a real task, in one read', () => {
 
     expect(outside.startable).toBe(false)
     expect(outside.blocking).toContain(never?.dep)
-    expect(whyNotStartable(outside)).toContain('waiting on')
   })
 
   it('draws that line chain off the brief, with no second call for it', () => {
@@ -207,6 +198,6 @@ describe('RG23: briefing whatever pick would choose', () => {
 
     expect(detail.payload.readiness).toBe('ready')
     expect(detail.startable).toBe(true)
-    expect(whyNotStartable(detail)).toBe('')
+    expect(detail.blocking).toEqual([])
   })
 })

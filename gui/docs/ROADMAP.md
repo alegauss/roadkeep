@@ -45,7 +45,6 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- 📋 **RG172** (deps: RG168 ✅) **a listing narrower than its file, and a failed update check, are explained in English whatever the window speaks** — Both sentences are built in code and drawn as they are, and five more core helpers compose ones the next screen would draw the same way. → §RG172
 - 📋 **RG176** (deps: —) **the pseudo-locale run draws the portfolio alone, so three of this window's four surfaces are never read for a literal** — A project, a task and a session each arrived after RG51's run was written, and a string typed into any of them passes it. → §RG176
 - 📋 **RG177** (deps: —) **a time is written in the desktop's locale and not the window's, so a Portuguese window dates a file in English** — The session's file stamps are the first times this app draws, and they go through toLocaleString with no tag while every sentence beside them follows the chosen locale. → §RG177
 - 📋 **RG183** (deps: —) **a catalogue key no screen says is never reported, so a string both locales declare can be dead** — RG125 catches a key one locale misses, and nothing catches one nobody uses. → §RG183

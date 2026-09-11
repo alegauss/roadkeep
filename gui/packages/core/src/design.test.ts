@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { designFrom, whereDesignLives, wordsAgainstLimit } from './design'
+import { designFrom, whereDesignLives } from './design'
 import { readBriefPayload, readShowPayload, type BriefPayload, type ShowPayload } from './payloads'
 
 /** Captured from a real `brief --json`, trimmed to the keys the shape declares. */
@@ -183,47 +183,28 @@ describe('RG24: three states, not two', () => {
     expect(design.prose).toBeNull()
     expect(design.absence).toBe('deleted on ship, which is where the rationale ends')
     expect(whereDesignLives(design)).toBe('')
-    expect(wordsAgainstLimit(design)).toBe('')
   })
 })
 
 describe('RG24: the count and the limit, beside the prose', () => {
-  it('takes both off the budget the same read carried', () => {
+  it('carries both off the budget the same read carried', () => {
     // 250 is `[limits] section` in this project's own config. A copy of it in here would
-    // be the literal `No rule compiled into the client` refuses.
-    expect(wordsAgainstLimit(designFrom(brief()))).toBe('235 of 250 words')
+    // be the literal `No rule compiled into the client` refuses. The sentence that said it
+    // in English went with RG172; what is left is the engine's numbers, which a screen fills
+    // into a catalogue key.
+    const design = designFrom(brief())
+
+    expect(design.budget?.taken).toBe(235)
+    expect(design.budget?.limit).toBe(250)
+    expect(design.budget?.unit).toBe('words')
+    expect(design.budget?.over).toBe(0)
   })
 
-  it('says how far past the limit the engine put it', () => {
+  it('carries how far past the limit the engine put it', () => {
     const design = designFrom(
       brief({ budget: { section: { ...BUDGET.section, taken: 268, left: 0, over: 18 } } }),
     )
 
-    expect(wordsAgainstLimit(design)).toBe('268 of 250 words, 18 over')
-  })
-
-  it('uses the unit the engine named rather than one written in here', () => {
-    const design = designFrom(
-      brief({
-        budget: { section: { ...BUDGET.section, unit: 'characters', taken: 900, limit: 1200 } },
-      }),
-    )
-
-    expect(wordsAgainstLimit(design)).toBe('900 of 1200 characters')
-  })
-
-  it('falls back to the section own count when nothing priced it', () => {
-    // `show` prices nothing, and a screen reading both verbs still has a number.
-    const design = designFrom(show())
-
-    expect(design.budget).toBeNull()
-    expect(wordsAgainstLimit(design)).toBe('235')
-  })
-
-  it('carries the subtree count and the heading own count separately', () => {
-    const design = designFrom(brief({ section: { ...SECTION, words: 300, own_words: 235 } }))
-
-    expect(design.words).toBe(300)
-    expect(design.ownWords).toBe(235)
+    expect(design.budget?.over).toBe(18)
   })
 })

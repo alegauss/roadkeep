@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { filingOf, pauseOf, storeFrom, whereaboutsOf, whereFiled } from './pauses'
+import { filingOf, pauseOf, storeFrom, whereaboutsOf } from './pauses'
 import { readListPayload, type ListPayload } from './payloads'
 import type { Refusal } from './refusals'
 
@@ -155,26 +155,6 @@ describe('RG28: a paused line told from one nothing ever filed', () => {
   })
 })
 
-describe('RG28: what to say about an id that is not open', () => {
-  it('names the store and the sentence it was set aside on', () => {
-    const store = storeFrom(listing())
-
-    expect(whereFiled('paused', store, 'FX1')).toContain('docs/DEFERRED.md')
-    expect(whereFiled('paused', store, 'FX1')).toContain('Waiting on a decision')
-  })
-
-  it('names the store even when the pause itself is not to hand', () => {
-    expect(whereFiled('paused', storeFrom(listing()), 'FX7')).toBe('set aside in docs/DEFERRED.md')
-    expect(whereFiled('paused')).toBe('set aside in the deferred store')
-  })
-
-  it('is shortest and clearest for an id nothing carries', () => {
-    expect(whereFiled('unfiled')).toBe('nothing in this project carries that id')
-    expect(whereFiled('open')).toBe('open in the roadmap')
-    expect(whereFiled('shipped')).toBe('shipped, and in the ledger')
-  })
-})
-
 /** Captured from a real `show FX1 --json` on a line that had been set aside. */
 const REFUSED: Refusal = {
   refused: [],
@@ -205,7 +185,7 @@ describe('RG80: the refusal that knows where the line went', () => {
     expect(found.filing).toBe('paused')
     expect(found.pause?.line).toBe(5)
     expect(found.pause?.why).toContain('Waiting on a decision')
-    expect(found.sentence).toContain('docs/DEFERRED.md')
+    expect(found.pause?.reason).toContain('Waiting on a decision')
     expect(found.back?.argv).toEqual(['-C', '/w', 'resume', 'FX1', '--json'])
   })
 
@@ -216,7 +196,6 @@ describe('RG80: the refusal that knows where the line went', () => {
     expect(found.filing).toBe('unfiled')
     expect(found.pause).toBeNull()
     expect(found.back).toBeNull()
-    expect(found.sentence).toBe('nothing in this project carries that id')
   })
 
   it('reads a withheld store as unknown rather than as never filed', () => {
@@ -225,9 +204,9 @@ describe('RG80: the refusal that knows where the line went', () => {
     // sentence claiming nothing here ever carried it.
     const withheld = whereaboutsOf('/w', 'FX1', REFUSED, { store: listing({ tasks: null }) })
 
+    // `unknown` and `unfiled` are the two the catalogue says differently: one is about the
+    // read, the other about the project. The filing is the fact; the sentence is a lookup.
     expect(withheld.filing).toBe('unknown')
-    expect(withheld.sentence).toContain('did not see every line')
-    expect(withheld.sentence).not.toContain('nothing in this project')
     expect(withheld.pause).toBeNull()
     expect(withheld.back).toBeNull()
   })

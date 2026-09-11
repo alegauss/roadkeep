@@ -85,14 +85,8 @@ export function heldBy(handover: Handover): string {
   return `${handover.id} is held by ${who}${since}`
 }
 
-/**
- * What the handover did, for a screen to show after it happened.
- *
- * The marker move is said out loud because the person asked to start a task, not to move
- * a marker — and a claim taken quietly is the two-workers failure arriving through the act
- * meant to prevent it.
+/*
+ * `saidOfHandover` stood here, composing what the handover did as an English sentence. No
+ * screen drew it — the task screen says it through the catalogue — so RG172 deleted it
+ * rather than keep one language's copy of a sentence every language already has.
  */
-export function saidOfHandover(handover: Handover): string {
-  if (!handover.taken) return `${handover.id} was read and not taken`
-  return `${handover.id} taken: ${handover.from} → ${handover.to}`
-}

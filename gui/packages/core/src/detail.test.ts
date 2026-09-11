@@ -1,14 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import {
-  briefToCopy,
-  designOf,
-  detailFrom,
-  quotedFirst,
-  saidOfUnderway,
-  underway,
-  whyNotStartable,
-} from './detail'
+import { briefToCopy, designOf, detailFrom, quotedFirst, underway } from './detail'
 import { readBriefPayload, type BriefPayload } from './payloads'
 
 /** Captured from a real `brief --json`, trimmed to the keys the shape declares. */
@@ -145,7 +137,7 @@ describe('RG23: readiness is never derived', () => {
 })
 
 describe('RG23: whether anybody is holding it', () => {
-  it('is not startable while a worker holds it', () => {
+  it('is not startable while a worker holds it, and names who', () => {
     const detail = detailFrom(
       brief({
         held: [{ by: 'another session', since: '10 minutes ago', state: 'held', paths: [] }],
@@ -153,11 +145,14 @@ describe('RG23: whether anybody is holding it', () => {
     )
 
     expect(detail.startable).toBe(false)
-    expect(whyNotStartable(detail)).toContain('another session')
+    expect(detail.payload.held[0]?.by).toBe('another session')
   })
 
-  it('says nothing when the line is free', () => {
-    expect(whyNotStartable(detailFrom(brief()))).toBe('')
+  it('is startable, and holds nobody, when the line is free', () => {
+    const detail = detailFrom(brief())
+
+    expect(detail.startable).toBe(true)
+    expect(detail.payload.held).toEqual([])
   })
 
   it('names what it is waiting on when nobody holds it', () => {
@@ -168,19 +163,20 @@ describe('RG23: whether anybody is holding it', () => {
       }),
     )
 
-    expect(whyNotStartable(detail)).toBe('waiting on RG40')
+    expect(detail.blocking).toEqual(['RG40'])
   })
 
-  it('names an absent requirement when that is what is missing', () => {
+  it('carries an absent requirement, which is a different reason from a dep', () => {
     const detail = detailFrom(brief({ readiness: 'waiting', requires: ['signing-cert'] }))
 
-    expect(whyNotStartable(detail)).toBe('needs signing-cert')
+    expect(detail.payload.requires).toEqual(['signing-cert'])
+    expect(detail.blocking).toEqual([])
   })
 
-  it('falls back to the engine own word when it cannot say more', () => {
+  it('keeps the engine own word for readiness, whatever it is', () => {
     const detail = detailFrom(brief({ readiness: 'set aside', deps_resolved: [] }))
 
-    expect(whyNotStartable(detail)).toBe('set aside')
+    expect(detail.payload.readiness).toBe('set aside')
   })
 })
 
@@ -341,28 +337,5 @@ describe('RG150: what Copy the brief hands on', () => {
     const detail = detailFrom(brief({ rendered: undefined }))
 
     expect(briefToCopy(detail)).toBe('The detail is the brief payload and nothing beside it.')
-  })
-})
-
-describe('RG74: what the pair is told to a person as', () => {
-  const HOLDER = { by: 'alex', since: 'an hour ago', state: 'held', paths: [] }
-  const said = (status: string, held: unknown[]) =>
-    saidOfUnderway(underway(detailFrom(brief({ status, held })), '🛠'))
-
-  it('names the worker where somebody is on it', () => {
-    expect(said('🛠', [HOLDER])).toBe('alex is working it, since an hour ago')
-  })
-
-  it('says the claim lapsed rather than repeating the marker', () => {
-    // "In progress" alone cannot tell a line somebody is on from one abandoned an hour ago.
-    expect(said('🛠', [])).toBe('started, and no claim on it is still live')
-  })
-
-  it('says the marker was never moved where somebody holds it', () => {
-    expect(said('📋', [HOLDER])).toContain('has not been moved to the working marker')
-  })
-
-  it('says nothing where there is nothing to say', () => {
-    expect(said('📋', [])).toBe('')
   })
 })

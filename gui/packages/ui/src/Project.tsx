@@ -1,7 +1,8 @@
 import {
   folderName,
   NO_FILTER,
-  refusedSummary,
+  narrowedBy,
+  NARROWED_TEXT,
   withField,
   reasonOf,
   type BacklogFilter,
@@ -239,7 +240,7 @@ function Roadmap({
 
   const { backlog } = surface
   const lines = backlog === null ? [] : backlog.blocks.flatMap((block) => block.lines)
-  const narrower = backlog === null ? '' : refusedSummary(backlog)
+  const narrower = backlog === null ? null : narrowedBy(backlog)
 
   return (
     <>
@@ -293,7 +294,15 @@ function Roadmap({
         <span className="text-muted-foreground ml-auto text-xs">{say('project.filter.note')}</span>
       </div>
 
-      {narrower === '' ? null : <p className="text-muted-foreground text-xs">{narrower}</p>}
+      {narrower === null ? null : (
+        <p className="text-muted-foreground text-xs" data-testid="narrowed">
+          {say(NARROWED_TEXT[narrower.code], narrower.fields)}
+          {/* The gate's own reasons after this app's sentence, quoted rather than reworded. */}
+          {narrower.fields['reasons'] === undefined
+            ? null
+            : ` ${say('backlog.refused.reasons', { reasons: narrower.fields['reasons'] })}`}
+        </p>
+      )}
 
       {backlog === null ? (
         <p className="text-muted-foreground text-sm">{say('project.listing')}</p>

@@ -44,8 +44,41 @@ export type UpdateCheck =
   | { readonly kind: 'ahead'; readonly current: string; readonly latest: string }
   /** Nothing is published yet: GitHub keeps drafts out of `releases/latest`. */
   | { readonly kind: 'none'; readonly current: string }
-  /** The check did not get an answer it could read, said in the words that explain why. */
-  | { readonly kind: 'failed'; readonly current: string; readonly reason: string }
+  /**
+   * The check did not get an answer it could read.
+   *
+   * `reason` is the sentence in English, for a log. What a screen says is `code` looked up
+   * in the catalogue, with `fields` filling its holes — and the empty code means the words
+   * are the network's own, quoted rather than translated (RG172).
+   */
+  | {
+      readonly kind: 'failed'
+      readonly current: string
+      readonly reason: string
+      readonly code: FailedCheck
+      readonly fields: Readonly<Record<string, string>>
+    }
+
+/** Which of this app's own sentences explains a check that got no answer (RG172). */
+export type FailedCheck =
+  /** GitHub answered, with a status that is not success. */
+  | 'status'
+  /** It answered something that is not JSON. */
+  | 'not-json'
+  /** It answered JSON without the field this reads. */
+  | 'missing'
+  /** One of the two versions is not one this can compare. */
+  | 'version'
+  /** The words are the network's own — a refused connection, a name that did not resolve. */
+  | ''
+
+/** The sentence for each way a check got no answer (RG172), in the shape its siblings use. */
+export const FAILED_TEXT: Readonly<Record<Exclude<FailedCheck, ''>, MessageKey>> = {
+  status: 'update.failed.status',
+  'not-json': 'update.failed.not-json',
+  missing: 'update.failed.missing',
+  version: 'update.failed.version',
+}
 
 /** A version's three numbers, or null for anything that is not `X.Y.Z` (a leading `v` allowed). */
 export function versionParts(version: string): readonly [number, number, number] | null {
@@ -79,7 +112,13 @@ export function verdictOf(current: string, latest: LatestRelease): UpdateCheck {
   const order = compareVersions(latest.tag, current)
   if (order === null) {
     const odd = versionParts(current) === null ? current || 'unstamped' : latest.tag
-    return { kind: 'failed', current, reason: `${odd} is not a version this can compare` }
+    return {
+      kind: 'failed',
+      current,
+      reason: `${odd} is not a version this can compare`,
+      code: 'version',
+      fields: { version: odd },
+    }
   }
   const found = latest.tag.replace(/^v/, '')
   if (order > 0) return { kind: 'newer', current, latest: found, url: latest.url }
@@ -92,6 +131,12 @@ export function verdictOf(current: string, latest: LatestRelease): UpdateCheck {
 export interface SaidOfUpdate {
   readonly key: MessageKey
   readonly fill: Fill
+  /**
+   * A second key, for the half of a failure this app wrote (RG172). Null where the reason is
+   * already in `fill` — either because the check did not fail, or because the words are the
+   * network's own and are quoted rather than translated.
+   */
+  readonly because: { readonly key: MessageKey; readonly fill: Fill } | null
   /** The release page to offer, or null where there is nothing newer to go and get. */
   readonly opens: string | null
 }
@@ -101,26 +146,29 @@ export function saidOfUpdate(check: UpdateCheck): SaidOfUpdate {
     return {
       key: 'update.newer',
       fill: { current: check.current, latest: check.latest },
+      because: null,
       opens: check.url,
     }
   }
   if (check.kind === 'current') {
-    return { key: 'update.current', fill: { current: check.current }, opens: null }
+    return { key: 'update.current', fill: { current: check.current }, because: null, opens: null }
   }
   if (check.kind === 'ahead') {
     // Both versions, since what this says is that the two differ the other way round.
     return {
       key: 'update.ahead',
       fill: { current: check.current, latest: check.latest },
+      because: null,
       opens: null,
     }
   }
   if (check.kind === 'none') {
-    return { key: 'update.none', fill: { current: check.current }, opens: null }
+    return { key: 'update.none', fill: { current: check.current }, because: null, opens: null }
   }
   return {
     key: 'update.failed',
     fill: { current: check.current, reason: check.reason },
+    because: check.code === '' ? null : { key: FAILED_TEXT[check.code], fill: check.fields },
     opens: null,
   }
 }

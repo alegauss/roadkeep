@@ -19,6 +19,7 @@
  * is why this file is not called that. Two catalogues in one app is one too many names.
  */
 
+import type { NarrowedCase } from './backlog'
 import type { Unreadable, UnreadableCode } from './limits'
 import type { Lost, Theme } from './settings'
 import { keysOf } from './reading'
@@ -271,6 +272,16 @@ export const EN = {
   'gate.sequence': 'In this order, not a choice.',
   'gate.checked': 'Read: {checked}',
 
+  'backlog.over.narrows':
+    '{count} lines in {file} were not listed: this read is {characters} characters against the {limit} this project declares, so ask for {narrows}.',
+  'backlog.over.whole':
+    '{count} lines in {file} were not listed: this read is {characters} characters against the {limit} this project declares, and no block is small enough to ask for on its own.',
+  'backlog.refused.one':
+    'One line in {file} carries a marker the grammar did not accept, so nothing counts or picks it.',
+  'backlog.refused.many':
+    '{count} lines in {file} carry a marker the grammar did not accept, so nothing counts or picks them.',
+  'backlog.refused.reasons': 'What the gate said: {reasons}',
+
   'unreadable.not-json': '`{command}` answered with something that is not JSON.',
   'unreadable.shape':
     'The answer was not a shape this build reads: {path} should have been {expected}, and was {got}.',
@@ -328,6 +339,10 @@ export const EN = {
   'update.ahead': 'You are on {current}, which is ahead of the newest published, {latest}.',
   'update.none': 'You are on {current}. No release has been published yet.',
   'update.failed': 'You are on {current}. The check did not reach an answer: {reason}',
+  'update.failed.status': 'GitHub answered {status}.',
+  'update.failed.not-json': 'GitHub answered something that is not JSON.',
+  'update.failed.missing': 'The answer had no {path}.',
+  'update.failed.version': '{version} is not a version this can compare.',
   'update.open': 'Open the release page',
   'update.close': 'Close',
 
@@ -376,6 +391,17 @@ export const RESET_TEXT: Readonly<Record<Lost, MessageKey>> = {
   width: 'settings.lost.width',
   theme: 'settings.lost.theme',
   locale: 'settings.lost.locale',
+}
+
+/**
+ * The sentence for each way a listing is narrower than its file (RG172). Same arrangement
+ * as the two tables beside it: a case added without a sentence fails to compile.
+ */
+export const NARROWED_TEXT: Readonly<Record<NarrowedCase, MessageKey>> = {
+  'over-narrows': 'backlog.over.narrows',
+  'over-whole': 'backlog.over.whole',
+  'refused-one': 'backlog.refused.one',
+  'refused-many': 'backlog.refused.many',
 }
 
 /**

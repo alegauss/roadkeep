@@ -52,7 +52,12 @@ export function dialogOf(check: UpdateCheck, say: Translate): UpdateDialog {
   const opens = said.opens !== null && isReleasePage(said.opens) ? said.opens : null
   return {
     title: say('update.title'),
-    message: say(said.key, said.fill),
+    // The half this app wrote goes through the catalogue; the half the network wrote is
+    // already in the fill, quoted as it arrived (RG172).
+    message: say(said.key, {
+      ...said.fill,
+      ...(said.because === null ? {} : { reason: say(said.because.key, said.because.fill) }),
+    }),
     buttons: opens === null ? [say('update.close')] : [say('update.open'), say('update.close')],
     opens,
   }

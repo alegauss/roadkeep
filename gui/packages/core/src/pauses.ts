@@ -178,8 +178,6 @@ export interface Whereabouts {
    * published would arrive on the refusal, and this refusal publishes none.
    */
   readonly back: Composed | null
-  /** What to show, in a sentence built from the filing rather than read out of `said`. */
-  readonly sentence: string
   /** The engine's whole refusal, kept as it was written. */
   readonly said: string
 }
@@ -202,33 +200,12 @@ export function whereaboutsOf(
     // for and not a case: no store means no paused verdict to have.
     pause: paused && store !== null ? pauseOf(store, id) : null,
     back: paused ? composeWrite(root, 'resume', { id }) : null,
-    sentence: whereFiled(filing, store, id),
     said: refusal.said,
   }
 }
 
-/**
- * What to say about an id that is not open, in a sentence rather than a word.
- *
- * `unfiled` gets the shortest answer and the most important one: nothing in this project
- * has ever carried that id, which is different from a line somebody paused — and different
- * again from `unknown`, which is a sentence about the read and says so out loud rather than
- * claiming the id is nowhere (RG100).
+/*
+ * `whereFiled` stood here, saying in English where an id had gone. The task screen says it
+ * through the catalogue, keyed on `Whereabouts.filing`, so RG172 deleted both it and the
+ * `sentence` field it filled: the filing is the fact, and the sentence is a translation.
  */
-export function whereFiled(filing: Filing, store: Store | null = null, id = ''): string {
-  switch (filing) {
-    case 'open':
-      return 'open in the roadmap'
-    case 'shipped':
-      return 'shipped, and in the ledger'
-    case 'paused': {
-      const pause = store === null ? null : pauseOf(store, id)
-      const where = store?.file ?? 'the deferred store'
-      return pause === null ? `set aside in ${where}` : `set aside in ${where}: ${pause.why}`
-    }
-    case 'unknown':
-      return 'not found, in a read that did not see every line'
-    default:
-      return 'nothing in this project carries that id'
-  }
-}

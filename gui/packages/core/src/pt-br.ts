@@ -261,6 +261,16 @@ export const PT_BR: Wording = {
   'gate.sequence': 'Nesta ordem, não é uma escolha.',
   'gate.checked': 'Lido: {checked}',
 
+  'backlog.over.narrows':
+    '{count} linhas em {file} não foram listadas: esta leitura tem {characters} caracteres contra os {limit} que este projeto declara, então peça por {narrows}.',
+  'backlog.over.whole':
+    '{count} linhas em {file} não foram listadas: esta leitura tem {characters} caracteres contra os {limit} que este projeto declara, e nenhum bloco é pequeno o bastante para pedir sozinho.',
+  'backlog.refused.one':
+    'Uma linha em {file} tem um marcador que a gramática não aceitou, então nada a conta nem a escolhe.',
+  'backlog.refused.many':
+    '{count} linhas em {file} têm um marcador que a gramática não aceitou, então nada as conta nem as escolhe.',
+  'backlog.refused.reasons': 'O que o portão disse: {reasons}',
+
   'unreadable.not-json': '`{command}` respondeu algo que não é JSON.',
   'unreadable.shape':
     'A resposta não tem um formato que esta versão lê: {path} deveria ser {expected}, e era {got}.',
@@ -318,6 +328,10 @@ export const PT_BR: Wording = {
   'update.ahead': 'Você está na {current}, que está à frente da mais nova publicada, a {latest}.',
   'update.none': 'Você está na {current}. Nenhuma versão foi publicada ainda.',
   'update.failed': 'Você está na {current}. A verificação não obteve resposta: {reason}',
+  'update.failed.status': 'O GitHub respondeu {status}.',
+  'update.failed.not-json': 'O GitHub respondeu algo que não é JSON.',
+  'update.failed.missing': 'A resposta não trazia {path}.',
+  'update.failed.version': '{version} não é uma versão que dê para comparar.',
   'update.open': 'Abrir a página da versão',
   'update.close': 'Fechar',
 

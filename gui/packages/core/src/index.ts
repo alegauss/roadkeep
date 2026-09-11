@@ -84,8 +84,8 @@ export type {
 export { blanksIn, doorsIn, filledArgv, isBlank } from './doors'
 export { coldStart } from './cold-start'
 export type { ColdStartProgress, ColdStartStage } from './cold-start'
-export { allLines, backlogFrom, refusedSummary } from './backlog'
-export type { Backlog, BacklogBlock } from './backlog'
+export { allLines, backlogFrom, narrowedBy } from './backlog'
+export type { Backlog, BacklogBlock, Narrowed, NarrowedCase } from './backlog'
 export {
   anyOver,
   counterFor,
@@ -113,21 +113,13 @@ export {
   withField,
 } from './filters'
 export type { BacklogFilter, FilterChoices } from './filters'
-export { designFrom, whereDesignLives, wordsAgainstLimit } from './design'
+export { designFrom, whereDesignLives } from './design'
 export type { Design, DesignState } from './design'
-export {
-  briefToCopy,
-  designOf,
-  detailFrom,
-  quotedFirst,
-  saidOfUnderway,
-  underway,
-  whyNotStartable,
-} from './detail'
+export { briefToCopy, designOf, detailFrom, quotedFirst, underway } from './detail'
 export type { QuotedFirst, TaskDetail, Underway } from './detail'
 export { expandedFrom, graphFrom, graphOfBrief, routeOf, standingOf } from './graph'
 export type { Chain, DepStanding, Edge, Graph } from './graph'
-export { claimingBrief, handoverOf, heldBy, mayHandOver, saidOfHandover } from './handover'
+export { claimingBrief, handoverOf, heldBy, mayHandOver } from './handover'
 export type { Handover } from './handover'
 export { groupProjects, isFamily, orderMembers } from './families'
 export { createGateLedger, gateHealth, needsGate, recordGate, UNKNOWN_GATE } from './gate'
@@ -143,7 +135,7 @@ export { attemptRead, DEFAULT_LIMITS, explainUnreadable, saidBy, withLimits } fr
 export type { ProjectRead, ReadLimits, Unreadable } from './limits'
 export { howListed, ledgerFrom, reversedFrom, undoneBy } from './memory'
 export type { Delivery, Ledger, Reversed } from './memory'
-export { filingOf, pauseOf, storeFrom, whereaboutsOf, whereFiled } from './pauses'
+export { filingOf, pauseOf, storeFrom, whereaboutsOf } from './pauses'
 export type { Filing, Filings, Pause, Store, Whereabouts } from './pauses'
 export { createPooledTransport } from './pool'
 export type { PoolOptions } from './pool'
@@ -241,6 +233,7 @@ export {
   isPseudo,
   keys as messageKeys,
   localeFor,
+  NARROWED_TEXT,
   RESET_TEXT,
   UNREADABLE_TEXT,
   THEME_TEXT,

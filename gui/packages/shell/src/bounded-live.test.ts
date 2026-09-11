@@ -3,7 +3,7 @@ import {
   insteadOf,
   listedTasks,
   narrowingOfList,
-  refusedSummary,
+  narrowedBy,
   storeFrom,
   type ListPayload,
 } from '@rk/core'
@@ -132,19 +132,19 @@ describe('RG67: what a screen is told about it', () => {
     expect(backlog.over?.limit).toBe(ROOMY)
   })
 
-  it('says why in a sentence, naming the bound and the call to make instead', async () => {
+  it('answers the bound and the call to make instead, as fills (RG172)', async () => {
     const payload = await listing(roomy.root)
-    const said = refusedSummary(backlogFrom(payload))
+    const narrowed = narrowedBy(backlogFrom(payload))
 
-    expect(said).toContain(String(ROOMY))
-    expect(said).toContain('were not listed')
-    expect(said).toContain(`ask for ${payload.over?.narrows ?? ''}`)
+    expect(narrowed?.code).toBe('over-narrows')
+    expect(narrowed?.fields['limit']).toBe(String(ROOMY))
+    expect(narrowed?.fields['narrows']).toBe(payload.over?.narrows ?? '')
   })
 
-  it('says there is nothing smaller to ask for, where there is not', async () => {
-    const said = refusedSummary(backlogFrom(await listing(tight.root, { block: 'A' })))
+  it('answers the other code where there is nothing smaller to ask for', async () => {
+    const narrowed = narrowedBy(backlogFrom(await listing(tight.root, { block: 'A' })))
 
-    expect(said).toContain('no block is small enough')
+    expect(narrowed?.code).toBe('over-whole')
   })
 
   it('keeps the ordinary backlog reading for a listing that fits', async () => {
@@ -152,7 +152,7 @@ describe('RG67: what a screen is told about it', () => {
 
     expect(backlog.complete).toBe(true)
     expect(backlog.over).toBeNull()
-    expect(refusedSummary(backlog)).toBe('')
+    expect(narrowedBy(backlog)).toBeNull()
     expect(backlog.blocks.map((block) => block.counted)).toEqual([2])
   })
 

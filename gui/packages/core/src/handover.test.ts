@@ -1,7 +1,7 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
 
 import { buildArgv } from './client'
-import { claimingBrief, handoverOf, heldBy, mayHandOver, saidOfHandover } from './handover'
+import { claimingBrief, handoverOf, heldBy, mayHandOver } from './handover'
 import {
   lineOf,
   readBriefAnswer,
@@ -68,7 +68,6 @@ describe('RG41: the read that takes the line', () => {
     expect(handover.taken).toBe(true)
     expect(handover.from).toBe('💭')
     expect(handover.to).toBe('🛠')
-    expect(saidOfHandover(handover)).toBe('RG41 taken: 💭 → 🛠')
   })
 
   it('says a brief that only read was not a taking', () => {
@@ -77,7 +76,6 @@ describe('RG41: the read that takes the line', () => {
     const handover = handoverOf(brief({ claimed: null }))
 
     expect(handover.taken).toBe(false)
-    expect(saidOfHandover(handover)).toBe('RG41 was read and not taken')
   })
 
   it('says nothing moved where the line already carried the marker', () => {

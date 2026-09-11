@@ -1,4 +1,4 @@
-import { designFrom, whereDesignLives, wordsAgainstLimit, type Design } from '@rk/core'
+import { designFrom, whereDesignLives, type Design } from '@rk/core'
 import { beforeAll, describe, expect, it } from 'vitest'
 
 import { aLine, openWithDesign, read, REPO } from './live'
@@ -76,7 +76,7 @@ describe('RG24: a real rationale, as the file keeps it', () => {
     expect(design.budget?.written).toBe(true)
     expect(design.budget?.unit).toBe('words')
     expect(design.budget?.limit).toBeGreaterThan(0)
-    expect(wordsAgainstLimit(design)).toContain(`of ${String(design.budget?.limit ?? 0)} words`)
+    expect(design.budget?.taken).toBeGreaterThan(0)
   })
 })
 
@@ -99,6 +99,5 @@ describe('RG24: the two states that are not prose', () => {
     expect(gone.state).toBe('absent')
     expect(gone.absence).not.toBe('')
     expect(gone.budget).toBeNull()
-    expect(wordsAgainstLimit(gone)).toBe('')
   })
 })

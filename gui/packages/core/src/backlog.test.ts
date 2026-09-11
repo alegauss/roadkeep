@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { allLines, backlogFrom, refusedSummary } from './backlog'
+import { allLines, backlogFrom, narrowedBy } from './backlog'
 import type { ListPayload, RefusedLine, TaskLine } from './payloads'
 
 const task = (id: string, block: string, line: number): TaskLine => ({
@@ -142,40 +142,40 @@ describe('RG21: the half a listing would otherwise hide', () => {
 })
 
 describe('RG21: saying a listing is narrower than its file', () => {
-  it('says nothing when nothing was refused', () => {
-    expect(refusedSummary(backlogFrom(listing()))).toBe('')
+  it('answers nothing where nothing was refused, which is the ordinary listing', () => {
+    expect(narrowedBy(backlogFrom(listing()))).toBeNull()
   })
 
-  it('names the count, the file and every distinct reason', () => {
-    const backlog = backlogFrom(
-      listing({
-        uncounted: [
-          refused(8, 'A', 'no bold **<id>** after the marker'),
-          refused(12, 'B', 'no bold **<id>** after the marker'),
-          refused(30, '', 'a marker this project does not declare'),
-        ],
-      }),
+  it('names the count, the file and every distinct reason, as fills and not as prose', () => {
+    const narrowed = narrowedBy(
+      backlogFrom(
+        listing({
+          uncounted: [
+            refused(8, 'A', 'no bold **<id>** after the marker'),
+            refused(12, 'B', 'no bold **<id>** after the marker'),
+            refused(30, '', 'a marker this project does not declare'),
+          ],
+        }),
+      ),
     )
 
-    const summary = refusedSummary(backlog)
-
-    expect(summary).toContain('3 lines')
-    expect(summary).toContain('docs/ROADMAP.md')
-    expect(summary).toContain('no bold')
-    expect(summary).toContain('does not declare')
+    expect(narrowed?.code).toBe('refused-many')
+    expect(narrowed?.fields['count']).toBe('3')
+    expect(narrowed?.fields['file']).toBe('docs/ROADMAP.md')
+    expect(narrowed?.fields['reasons']).toContain('no bold')
+    expect(narrowed?.fields['reasons']).toContain('does not declare')
   })
 
-  it('agrees with itself when there is only one', () => {
-    // Prose somebody reads. "1 lines carry" is the kind of thing that makes a person
-    // trust the rest of the screen a little less.
-    const summary = refusedSummary(
+  it('answers a different code for one line, which is what a language agrees with', () => {
+    // "1 lines carry" is the kind of thing that makes a person trust the rest of the screen
+    // a little less — and the plural is a rule of each language, so it is two keys and not
+    // a sentence built here (RG172).
+    const narrowed = narrowedBy(
       backlogFrom(listing({ uncounted: [refused(8, 'A', 'no bold id')] })),
     )
 
-    expect(summary).toContain('1 line in')
-    expect(summary).toContain('carries')
-    expect(summary).toContain('picks it:')
-    expect(summary).not.toContain('1 lines')
+    expect(narrowed?.code).toBe('refused-one')
+    expect(narrowed?.fields['count']).toBe('1')
   })
 
   it('does not repeat a reason that applies to several lines', () => {
@@ -183,7 +183,7 @@ describe('RG21: saying a listing is narrower than its file', () => {
       listing({ uncounted: [refused(8, 'A', 'same reason'), refused(9, 'A', 'same reason')] }),
     )
 
-    expect(refusedSummary(backlog).match(/same reason/g)).toHaveLength(1)
+    expect(narrowedBy(backlog)?.fields['reasons']?.match(/same reason/g)).toHaveLength(1)
   })
 })
 
@@ -258,26 +258,27 @@ describe('RG67: a listing whose lines the bound withheld', () => {
     expect(backlog.blocks.map((block) => block.counted)).toEqual([2, 1])
   })
 
-  it('says the bound and the narrower call in one sentence', () => {
-    const said = refusedSummary(backlogFrom(bounded()))
+  it('carries the bound and the narrower call it offers', () => {
+    const narrowed = narrowedBy(backlogFrom(bounded()))
 
-    expect(said).toContain('4 lines')
-    expect(said).toContain('1200')
-    expect(said).toContain('ask for B')
+    expect(narrowed?.code).toBe('over-narrows')
+    expect(narrowed?.fields['count']).toBe('4')
+    expect(narrowed?.fields['limit']).toBe('1200')
+    expect(narrowed?.fields['narrows']).toBe('B')
   })
 
-  it('says so plainly where no block is small enough to offer', () => {
-    expect(refusedSummary(backlogFrom(bounded('')))).toContain('no block is small enough')
+  it('answers the other code where no block is small enough to offer', () => {
+    expect(narrowedBy(backlogFrom(bounded('')))?.code).toBe('over-whole')
   })
 
   it('reports the bound rather than the refused lines, where both are true', () => {
     // A bounded answer has no lines to have refused any of, so the sentence about the
     // grammar would be about nothing. The bound is the reason there is nothing to show.
-    const said = refusedSummary(
+    const narrowed = narrowedBy(
       backlogFrom({ ...bounded(), uncounted: [refused(8, 'A', 'a marker no verb reads')] }),
     )
 
-    expect(said).toContain('were not listed')
-    expect(said).not.toContain('a marker no verb reads')
+    expect(narrowed?.code).toBe('over-narrows')
+    expect(narrowed?.fields['reasons']).toBeUndefined()
   })
 })

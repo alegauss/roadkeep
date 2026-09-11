@@ -1,7 +1,7 @@
 import { appendFileSync } from 'node:fs'
 import path from 'node:path'
 
-import { allLines, backlogFrom, refusedSummary, type Backlog } from '@rk/core'
+import { allLines, backlogFrom, narrowedBy, type Backlog } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { liveEngine as engine, read, REPO } from './live'
@@ -93,11 +93,13 @@ describe('RG21: a line the grammar refuses', () => {
     expect(backlog.refused.length).toBeGreaterThan(0)
   })
 
-  it('turns into a sentence naming the file and the reason', async () => {
-    const summary = refusedSummary(await backlogOf(fixture.root))
+  it('answers the code and the fills a sentence is looked up with (RG172)', async () => {
+    const narrowed = narrowedBy(await backlogOf(fixture.root))
 
-    expect(summary).toContain('ROADMAP.md')
-    expect(summary).toContain('1 line in')
-    expect(summary).toContain('carries')
+    expect(narrowed?.code).toBe('refused-one')
+    expect(narrowed?.fields['file']).toContain('ROADMAP.md')
+    expect(narrowed?.fields['count']).toBe('1')
+    // The gate's own words, quoted rather than reworded.
+    expect(narrowed?.fields['reasons']).not.toBe('')
   })
 })

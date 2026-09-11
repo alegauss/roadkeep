@@ -61,14 +61,22 @@ export async function checkForUpdate(
       signal: AbortSignal.timeout(timeoutMs),
     })
   } catch (cause) {
-    return { kind: 'failed', current, reason: reasonOf(cause) }
+    // The network's own words — a refused connection, a name that did not resolve — so no
+    // code and no translation (RG172).
+    return { kind: 'failed', current, reason: reasonOf(cause), code: '', fields: {} }
   }
 
   // No published release at all: GitHub answers 404 for `latest` while every release is a
   // draft, which is the state a repository is in until somebody publishes the first one.
   if (response.status === 404) return { kind: 'none', current }
   if (!response.ok) {
-    return { kind: 'failed', current, reason: `GitHub answered ${String(response.status)}` }
+    return {
+      kind: 'failed',
+      current,
+      reason: `GitHub answered ${String(response.status)}`,
+      code: 'status',
+      fields: { status: String(response.status) },
+    }
   }
 
   let body: unknown
@@ -78,13 +86,25 @@ export async function checkForUpdate(
     // Reading a body is still the network: a timeout or a dropped connection lands here, and
     // reporting either as *not JSON* names the wrong thing (RG156). Only the parser's own
     // `SyntaxError` says the answer was not JSON.
-    const reason =
-      cause instanceof SyntaxError ? 'GitHub answered something that is not JSON' : reasonOf(cause)
-    return { kind: 'failed', current, reason }
+    const json = cause instanceof SyntaxError
+    const reason = json ? 'GitHub answered something that is not JSON' : reasonOf(cause)
+    return {
+      kind: 'failed',
+      current,
+      reason,
+      code: json ? 'not-json' : '',
+      fields: {},
+    }
   }
   const read = readLatestRelease(body, '')
   if (!read.ok) {
-    return { kind: 'failed', current, reason: `the answer had no ${read.failure.path}` }
+    return {
+      kind: 'failed',
+      current,
+      reason: `the answer had no ${read.failure.path}`,
+      code: 'missing',
+      fields: { path: read.failure.path },
+    }
   }
   return verdictOf(current, read.value)
 }

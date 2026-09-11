@@ -60,9 +60,10 @@ describe('RG50: what the newest release means for the build that asked', () => {
     expect(saidOfUpdate(verdictOf('0.1.0', { tag: 'v0.2.0', url: PAGE })).opens).toBe(PAGE)
     expect(saidOfUpdate({ kind: 'current', current: '0.2.0', latest: '0.2.0' }).opens).toBeNull()
     expect(saidOfUpdate({ kind: 'none', current: '0.1.0' }).opens).toBeNull()
-    expect(saidOfUpdate({ kind: 'failed', current: '0.1.0', reason: 'offline' }).key).toBe(
-      'update.failed',
-    )
+    expect(
+      saidOfUpdate({ kind: 'failed', current: '0.1.0', reason: 'offline', code: '', fields: {} })
+        .key,
+    ).toBe('update.failed')
   })
 })
 

@@ -136,21 +136,8 @@ export function whereDesignLives(design: Design): string {
   return `${design.file}:${String(design.first)}-${String(design.last)}`
 }
 
-/**
- * The count and the limit, beside the prose, in the engine's own numbers and unit.
- *
- * A section near its budget is a design about to need splitting, and that is worth
- * knowing before somebody adds to it — so the number shown has to be the number the gate
- * will use. Nothing is added up here, and `over` is the engine's word for past the limit
- * rather than a comparison this app made.
+/*
+ * `wordsAgainstLimit` stood here, composing the count and the limit as English. The design
+ * panel says it through the catalogue, so this was a second copy in one language and RG172
+ * deleted it. `Design.budget` carries the engine's numbers, which is what a screen fills.
  */
-export function wordsAgainstLimit(design: Design): string {
-  const budget = design.budget
-  if (budget === null || !budget.written || budget.limit === 0) {
-    return design.words === 0 ? '' : String(design.words)
-  }
-
-  const unit = budget.unit === '' ? '' : ` ${budget.unit}`
-  const counted = `${String(budget.taken)} of ${String(budget.limit)}${unit}`
-  return budget.over > 0 ? `${counted}, ${String(budget.over)} over` : counted
-}

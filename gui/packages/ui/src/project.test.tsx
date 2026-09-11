@@ -195,7 +195,18 @@ function answer(argv: readonly string[]): string | undefined {
       return JSON.stringify({
         file: 'docs/ROADMAP.md',
         total: tasks.length,
-        uncounted: [],
+        // One line the grammar refused, so the narrowing sentence has something to say.
+        uncounted:
+          argv.includes('--role') || argv.includes('--stale')
+            ? []
+            : [
+                {
+                  line: 30,
+                  block: '',
+                  reason: 'a marker this project does not declare',
+                  raw: '- ? x',
+                },
+              ],
         // The order is the engine's, and only `--stale` names one (RG28).
         ...(argv.includes('--stale') ? { order: 'oldest first' } : {}),
         tasks: tasks.filter((line) => narrowedTo === null || line.block === narrowedTo),
@@ -473,5 +484,18 @@ describe('RG149: the other governed files, as tabs', () => {
         fill(BASE['project.design.written'], { ref: 'AL3' }),
       )
     })
+  })
+})
+
+describe('RG172: a narrowed listing, in the window’s language', () => {
+  it('says which case it is from the catalogue, and quotes the gate’s own reasons', async () => {
+    await atProject()
+
+    const narrowed = await screen.findByTestId('narrowed')
+    expect(narrowed.textContent).toContain(
+      fill(BASE['backlog.refused.one'], { file: 'docs/ROADMAP.md', count: '1' }),
+    )
+    // The engine's words after this app's sentence, not instead of it.
+    expect(narrowed.textContent).toContain('a marker this project does not declare')
   })
 })

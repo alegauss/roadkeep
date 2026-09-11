@@ -5,7 +5,6 @@ import {
   heldBy,
   lineOf,
   mayHandOver,
-  saidOfHandover,
   type Handover,
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
@@ -58,7 +57,6 @@ describe('RG41: reading and taking are one call', () => {
     expect(handover.taken).toBe(true)
     expect(handover.from).toBe(before.value.status)
     expect(handover.to).not.toBe(handover.from)
-    expect(saidOfHandover(handover)).toContain('FX1 taken')
 
     // And it is a whole brief: the claim did not cost the read it came with.
     const after = await briefing('FX1', false)
