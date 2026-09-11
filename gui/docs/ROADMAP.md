@@ -32,7 +32,7 @@
 
 ## Block G — The shell (an executable now, a service later)
 
-- 💭 **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — An unsigned build is one most people will not run, and no amount of code in this repository substitutes for the certificate. → §RG49
+- ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
 - 💭 **RG50** (deps: RG46 ✅) (requires: published-artifact) **nothing updates, so a fix reaches a person only if they go and look for one** — A desktop build that cannot update is one whose defects live on every machine that installed it until somebody notices. → §RG50
 - 💭 **RG119** (deps: RG91 ✅) (requires: macos-machine) **no macOS build of this app has ever been made, so what it needs is a guess** — electron-builder.yml names a dmg target nobody has run, and the two things a Mac build turns out to want are learned by making one. → §RG119
 - 📋 **RG128** (deps: RG120 ✅, roadkeep's launcher treating a named engine as fatal) **a checkout busy when the probe runs is skipped, so the launcher answers from a cache 446 versions old** — Resolution takes the first engine that answers, so a session can be briefed by a copy nobody chose. → §RG128
@@ -159,6 +159,12 @@
 - **Every row draws its engine's verdict beside its counts** Agreed, split or swapped,
   from the row the portfolio already builds; a split row is information and never drawn
   as an error (was RG15).
+
+## Done when — RG49
+
+- **The released installer and executable carry a valid signature**
+  Get-AuthenticodeSignature reads Valid on both, the signer is the name the manifest
+  gives, and the build line says signed.
 
 ## Non-goals
 

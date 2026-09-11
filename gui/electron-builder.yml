@@ -6,7 +6,7 @@
 #
 # Signing is absent on purpose. The certificate is RG49's and it is a thing somebody buys,
 # so this produces an honestly unsigned build rather than a configuration pretending to be
-# one signature away.
+# one signature away. `docs/SIGNING.md` is how one is obtained, and where it plugs in here.
 appId: dev.alegauss.roadkeep-gui
 productName: roadkeep
 copyright: ''
