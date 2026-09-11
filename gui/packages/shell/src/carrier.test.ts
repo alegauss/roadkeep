@@ -664,3 +664,31 @@ describe('RG166: the gate the carrier runs itself', () => {
     expect(await carrier.gates()).toEqual([])
   })
 })
+
+describe('RG180: saying the walk behind the record landed', () => {
+  it('says so where the fold changed something, with how many it moved', async () => {
+    const told: number[] = []
+    const { carrier } = world({
+      remembered: () => EMPTY_CATALOGUE,
+      onCatalogue: (changed) => told.push(changed),
+      rescan: () => Promise.resolve({ catalogue: FOUND, changes: [{ kind: 'added', path: A }] }),
+    })
+
+    await carrier.projects()
+
+    expect(told).toEqual([1])
+  })
+
+  it('says nothing where the walk found what the record already held', async () => {
+    // A window that redrew on every walk would redraw on a timer nobody set.
+    const told: number[] = []
+    const { carrier } = world({
+      onCatalogue: (changed) => told.push(changed),
+      rescan: () => Promise.resolve({ catalogue: FOUND, changes: [] }),
+    })
+
+    await carrier.projects()
+
+    expect(told).toEqual([])
+  })
+})

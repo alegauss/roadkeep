@@ -93,6 +93,12 @@ export interface CarrierOptions {
    * and `gates` answers it.
    */
   readonly onGate?: (gate: ProjectGate) => void
+  /**
+   * Told when a walk behind the record changed something (RG180) — never when it found
+   * exactly what the record held, since a window that redrew on every walk would redraw on
+   * a timer nobody set.
+   */
+  readonly onCatalogue?: (changed: number) => void
 }
 
 export interface Carrier {
@@ -251,6 +257,9 @@ export function createCarrier(options: CarrierOptions): Carrier {
       // Kept as it is folded, so a project that went missing is remembered as missing rather
       // than forgotten at the quit that follows.
       options.remember?.(folded.catalogue)
+      // And said, where the fold moved something: `reconcile` already answers what changed,
+      // so a walk that found what the record held is one nobody needs to hear about (RG180).
+      if (folded.changes.length > 0) options.onCatalogue?.(folded.changes.length)
       return folded.catalogue
     })().finally(() => {
       scanning = null

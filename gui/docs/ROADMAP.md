@@ -9,8 +9,6 @@
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
-- 📋 **RG180** (deps: —) **nothing says when the walk behind the remembered record landed, so a project found or lost shows on the next ask** — RG164 answers the record at once and walks behind it, and RG144's subscription now exists to say the fold changed something. → §RG180
-
 ## Block C — The portfolio (many backlogs in one view)
 
 - 📋 **RG147** (deps: RG145 ✅, RG20 ✅, RG150 ✅, a grouped palette) **the palette says it finds a line in every backlog and lists only surfaces, so search over all projects reaches no one** — RG20's search reaches no screen, and the package palette only filters nav items. → §RG147

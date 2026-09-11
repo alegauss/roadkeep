@@ -1,5 +1,6 @@
 import {
   coldStart,
+  EVERY_SOURCE,
   fillRow,
   gatedRows,
   openingUnreadable,
@@ -232,6 +233,15 @@ export function usePortfolio(): { readonly view: PortfolioView; readonly rescan:
         setView({ kind: 'listed', rows: dressed(rows), progress: null, tried: { ...tried } })
       }
     }
+
+    // The walk behind the remembered record lands after this screen has drawn it (RG180),
+    // and a project cloned or deleted since is only on screen when something asks again.
+    // This is that ask: the event says the fold moved something, and the answer is the read.
+    given.push(
+      bridge.subscribe('catalogue', EVERY_SOURCE, () => {
+        if (stillHere()) setGeneration((one) => one + 1)
+      }),
+    )
 
     read().catch((cause: unknown) => {
       if (stillHere()) {

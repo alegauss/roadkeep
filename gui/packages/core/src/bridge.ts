@@ -296,6 +296,19 @@ export interface TopicEvents {
     | { readonly session: string; readonly index: number; readonly line: string }
     | { readonly session: string; readonly outcome: SessionOutcome }
   /**
+   * The walk behind the remembered record landed, and it changed something (RG180).
+   *
+   * **Keyed on nothing, because there is one catalogue.** `governed` is keyed on a root and
+   * `session` on a session; what moved here is the one list this window holds, so the key is
+   * `EVERY_SOURCE` and a screen subscribes to it once.
+   *
+   * The event carries no record — it says how many entries the fold changed, and a screen
+   * asks `projects` again for what they are. An event is a reason to read, which is the same
+   * arrangement `governed` chose and for the same reason: a copy of what was read is a second
+   * answer that can disagree with the first.
+   */
+  readonly catalogue: { readonly changed: number }
+  /**
    * A verdict the carrier's gate left, for the project it is about (RG166).
    *
    * Its own topic rather than a `governed` event, because the files did not move: a screen
@@ -313,6 +326,7 @@ export const BRIDGE_TOPICS = {
   governed: 'roadkeep:on-governed',
   session: 'roadkeep:on-session',
   gate: 'roadkeep:on-gate',
+  catalogue: 'roadkeep:on-catalogue',
 } as const satisfies Record<Topic, string>
 
 /**

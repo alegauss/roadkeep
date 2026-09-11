@@ -3,6 +3,7 @@ import {
   BRIDGE_CHANNELS,
   BRIDGE_UNSUBSCRIBE,
   isTheme,
+  EVERY_SOURCE,
   isTopic,
   LOCALE_TAGS,
   requestFrom,
@@ -95,9 +96,13 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
   // its own `follow` — so what it tells is held here and filled in below. Before that, a
   // verdict is on record and `gates` answers it; nobody is listening yet either way.
   let tellGate: (gate: ProjectGate) => void = () => undefined
+  let tellCatalogue: (changed: number) => void = () => undefined
   const carrier = createCarrier({
     onGate: (gate) => {
       tellGate(gate)
+    },
+    onCatalogue: (changed) => {
+      tellCatalogue(changed)
     },
     looking: () => {
       const { roots, skip, width } = loadSettings(app.getPath('userData')).settings
@@ -163,6 +168,11 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
   // subscription went looking.
   tellGate = (gate) => {
     subscriptions.publish('gate', gate.root, gate)
+  }
+  // The walk behind the record landed and moved something (RG180). One catalogue, so one
+  // key, which is the one a screen subscribes with.
+  tellCatalogue = (changed) => {
+    subscriptions.publish('catalogue', EVERY_SOURCE, { changed })
   }
   const windows = new Map<number, Subscriber>()
   const subscriberOf = (sender: WebContents): Subscriber => {

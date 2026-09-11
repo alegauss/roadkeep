@@ -10,6 +10,12 @@ import type { RendererBridge } from '@rk/core'
  *
  * Refusing rather than answering, because a default that answered would be a value no test
  * chose, and a test that reached one it did not name should fail saying so.
+ *
+ * **Except `subscribe`, which answers silence.** A subscription is not a read: it hands back
+ * no value and a test that publishes nothing has nothing to hear, so the default is a watch
+ * that hears nothing and is given up cleanly. Every screen that lists projects takes one
+ * (RG166, RG167, RG180), and a refusal there would make a test about the chrome fail inside
+ * a hook it says nothing about.
  */
 export function stubBridge(over: Partial<RendererBridge> = {}): RendererBridge {
   const unasked = (): Promise<never> => Promise.reject(new Error('not asked'))
@@ -21,9 +27,7 @@ export function stubBridge(over: Partial<RendererBridge> = {}): RendererBridge {
     projects: unasked,
     open: unasked,
     run: unasked,
-    subscribe: () => {
-      throw new Error('not asked')
-    },
+    subscribe: () => () => undefined,
     roots: unasked,
     chooseRoot: unasked,
     saveRoots: unasked,

@@ -30,7 +30,14 @@ function recording(): { bridge: RendererBridge; taken: Taken[] } {
         // One object that satisfies every topic's event, since this stub does not know
         // which topic the caller subscribed to.
         listener: () =>
-          listener({ root: key, session: key, index: 0, line: '', health: UNKNOWN_GATE }),
+          listener({
+            root: key,
+            session: key,
+            index: 0,
+            line: '',
+            health: UNKNOWN_GATE,
+            changed: 0,
+          }),
         given: 0,
       }
       taken.push(one)

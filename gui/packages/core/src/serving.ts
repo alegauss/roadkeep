@@ -184,6 +184,8 @@ const KEYS: { readonly [T in Topic]: (event: TopicEvents[T]) => string } = {
   governed: (event) => event.root,
   session: (event) => event.session,
   gate: (event) => event.root,
+  // One catalogue, so one source: the key is the same one a screen subscribes with (RG180).
+  catalogue: () => EVERY_SOURCE,
 }
 
 /**

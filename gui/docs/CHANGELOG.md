@@ -69,6 +69,7 @@
 - ✅ **RG146** **roots are read and never written, so Add a root and Rescan roots are buttons nothing can honour** — A root is added from the shell's dialog and removed by name, a missing one kept and marked, and Rescan walks again; a typed folder is refused (design recorded in `packages/core/src/bridge.ts`).
 - ✅ **RG164** **the carrier keeps its catalogue in memory, so RG14's record is never written and every launch walks every root first** — The carrier reads catalogue.json beside the settings and writes each fold, so a launch draws what it found last time (design recorded in `packages/shell/src/catalogue-file.ts`).
 - ✅ **RG169** **a root is added two levels deep and no control changes it, so worktrees three levels down still need the settings file** — A root's depth moves from its own chip, bounded at both ends by the rule that would refuse it (design recorded in `packages/ui/src/useRoots.ts`).
+- ✅ **RG180** **nothing says when the walk behind the remembered record landed, so a project found or lost shows on the next ask** — The window hears the walk behind the record land, where the fold moved something, and reads again (design recorded in `packages/core/src/bridge.ts`).
 
 ## Block C — The portfolio (many backlogs in one view)
 

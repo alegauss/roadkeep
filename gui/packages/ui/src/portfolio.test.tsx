@@ -5,6 +5,7 @@ import {
   DEPTH_CEILING,
   EMPTY_CATALOGUE,
   EngineCallFailed,
+  EVERY_SOURCE,
   fill,
   openedFrom,
   openProject,
@@ -818,5 +819,73 @@ describe('RG169: moving a root’s depth from the window', () => {
         fill(BASE['roots.depth'], { depth: 3 }),
       )
     })
+  })
+})
+
+describe('RG180: hearing the walk behind the record land', () => {
+  it('asks for the list again when the fold changed something, and not otherwise', async () => {
+    const alpha = await opened(READ)
+    let tell: (() => void) | null = null
+    let walks = 0
+    let listed: ProjectCatalogue = { version: 1, roots: [], projects: [recorded(READ)] }
+    Object.defineProperty(window, 'roadkeep', {
+      value: stubBridge({
+        projects: () => {
+          walks += 1
+          return Promise.resolve(listed)
+        },
+        open: () => Promise.resolve(alpha),
+        run: (root, request) => bridgedRun(() => machine.run({ ...request, root })),
+        gates: () => Promise.resolve([]),
+        subscribe: (topic, key, listener) => {
+          if (topic === 'catalogue' && key === EVERY_SOURCE) tell = listener as () => void
+          return () => undefined
+        },
+      }),
+      configurable: true,
+    })
+    drawWindow()
+
+    await waitFor(() => {
+      expect(rowOf('alpha')).toBeTruthy()
+    })
+    const asked = walks
+
+    // The walk found a project the record did not hold, and main says so.
+    listed = { ...listed, projects: [recorded(READ), recorded(PENDING)] }
+    act(() => {
+      tell?.()
+    })
+
+    await waitFor(() => {
+      expect(screen.getAllByTestId('portfolio-row')).toHaveLength(2)
+    })
+    expect(walks).toBeGreaterThan(asked)
+  })
+
+  it('subscribes once, to the one key a catalogue has', async () => {
+    const alpha = await opened(READ)
+    const asked: { topic: string; key: string }[] = []
+    Object.defineProperty(window, 'roadkeep', {
+      value: stubBridge({
+        projects: () => Promise.resolve({ version: 1, roots: [], projects: [recorded(READ)] }),
+        open: () => Promise.resolve(alpha),
+        run: (root, request) => bridgedRun(() => machine.run({ ...request, root })),
+        gates: () => Promise.resolve([]),
+        subscribe: (topic, key) => {
+          asked.push({ topic, key })
+          return () => undefined
+        },
+      }),
+      configurable: true,
+    })
+    drawWindow()
+
+    await waitFor(() => {
+      expect(rowOf('alpha')).toBeTruthy()
+    })
+    expect(asked.filter((one) => one.topic === 'catalogue')).toEqual([
+      { topic: 'catalogue', key: EVERY_SOURCE },
+    ])
   })
 })
