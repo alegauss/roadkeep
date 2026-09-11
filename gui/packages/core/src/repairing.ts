@@ -111,6 +111,55 @@ export function actionableReport(payload: LintPayload): Actionable[] {
   return payload.findings.map(actionableFrom)
 }
 
+/** One door of a report, and which of the batch the far side kept it is (RG165). */
+export interface Numbered {
+  readonly offer: Offer
+  /** Its place in `doorsIn`'s order, which is the name `door` takes. */
+  readonly which: number
+}
+
+/** A finding and the doors it offers, each already named by its place in the batch. */
+export interface Gated {
+  readonly finding: Actionable
+  readonly doors: readonly Numbered[]
+}
+
+/** The argv, as one string to compare by. Two doors with the same argv are the same offer. */
+function spelling(door: Door): string {
+  return JSON.stringify(door.argv)
+}
+
+/**
+ * Number a report's doors against the batch the receiving side kept.
+ *
+ * A door is taken by its place in that batch and nothing else, and the batch is every door
+ * the answer carried — a finding's, a note's, `explain`'s — flattened in document order. A
+ * screen drawing findings as rows has them grouped instead, so the two orders have to be
+ * matched rather than assumed: a `doors` list somewhere ahead of the findings would shift
+ * every index, and each shifted index names a command nobody chose.
+ *
+ * Matching is by argv, and a repeated argv is consumed in order, so two findings offering the
+ * same door get the two places that door has rather than both getting the first.
+ */
+export function gatedReport(report: readonly Actionable[], batch: readonly Door[]): Gated[] {
+  const free = new Map<string, number[]>()
+  batch.forEach((door, at) => {
+    const places = free.get(spelling(door)) ?? []
+    places.push(at)
+    free.set(spelling(door), places)
+  })
+
+  return report.map((finding) => ({
+    finding,
+    doors: finding.offers.flatMap((offer) => {
+      const places = free.get(spelling(offer.door))
+      const which = places?.shift()
+      // A door the batch has no place for is one nothing could run, so it is not offered.
+      return which === undefined ? [] : [{ offer, which }]
+    }),
+  }))
+}
+
 /**
  * Whether anything in a report can be closed without somebody typing first.
  *

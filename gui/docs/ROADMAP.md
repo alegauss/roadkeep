@@ -27,9 +27,9 @@
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-- 📋 **RG152** (deps: RG151 ✅, RG33 ✅, RG165 ✅) **Run the gate is a button with nothing behind it, so a finding and the doors it names are still read in a terminal** — RG33 shipped findings as actions, and no screen draws one; the write path's doors column is the shape to reuse, not a second one. → §RG152
 - 📋 **RG181** (deps: —) **the door keep holds every batch a session offered, since only a file moving drops one** — A window re-reading a failing gate adds a batch per read, and a project whose files sit still never drops any of them. → §RG181
 - 📋 **RG182** (deps: —) **the filing form asks nobody what the block already delivered, so the window spends an id the terminal would question** — The read before an add is delivered --near, and a line filed from a screen never gets it. → §RG182
+- 📋 **RG185** (deps: RG152 ✅) **the gate surface runs lint every time it opens, though the ledger already holds a verdict the files have not moved under** — needsGate answers whether a run would say anything new, and nothing asks it. → §RG185
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
@@ -51,6 +51,7 @@
 - 📋 **RG176** (deps: —) **the pseudo-locale run draws the portfolio alone, so three of this window's four surfaces are never read for a literal** — A project, a task and a session each arrived after RG51's run was written, and a string typed into any of them passes it. → §RG176
 - 📋 **RG177** (deps: —) **a time is written in the desktop's locale and not the window's, so a Portuguese window dates a file in English** — The session's file stamps are the first times this app draws, and they go through toLocaleString with no tag while every sentence beside them follows the chosen locale. → §RG177
 - 📋 **RG183** (deps: —) **a catalogue key no screen says is never reported, so a string both locales declare can be dead** — RG125 catches a key one locale misses, and nothing catches one nobody uses. → §RG183
+- 📋 **RG186** (deps: —) **the duplicates gate matches on export, so a screen redeclaring a design-system name for its own use passes it** — A copy nobody exports is the ordinary shape of one, and it drifts where nothing can point at it. → §RG186
 
 ## Done when — Block A
 

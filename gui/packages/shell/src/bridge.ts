@@ -255,6 +255,8 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
     },
   )
 
+  // The gate verdicts on record (RG152): a read of the ledger the carrier dates, never a run.
+  ipcMain.handle(BRIDGE_CHANNELS.gates, () => carrier.gates())
   ipcMain.handle(BRIDGE_CHANNELS.sessions, () => sessions.list())
   ipcMain.handle(BRIDGE_CHANNELS.stopSession, (_event, key: unknown): void => {
     if (typeof key === 'string') sessions.stop(key)

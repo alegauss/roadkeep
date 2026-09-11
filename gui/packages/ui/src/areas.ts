@@ -48,6 +48,16 @@ export function filePath(root: string): string {
 }
 
 /**
+ * One project's gate (RG152), reached by Run the gate on the project surface. About that
+ * project and so not in `AREAS`, like the two around it.
+ */
+export const GATE_ROUTE = '/project/:root/gate'
+
+export function gatePath(root: string): string {
+  return `${projectPath(root)}/gate`
+}
+
+/**
  * One line of one project (RG150), under the project it belongs to. No entry in `AREAS`
  * either, for the same reason: a project's row is how a reader arrives.
  */

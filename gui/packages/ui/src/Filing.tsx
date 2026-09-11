@@ -1,14 +1,12 @@
 import {
   anyOver,
   counterFor,
-  blanksIn,
   fieldsRefused,
   folderName,
   sectionCounter,
   type Bounds,
   type BudgetPayload,
   type Counter,
-  type Door,
   type Translate,
 } from '@rk/core'
 import { Button } from '@viglet/viglet-design-system'
@@ -17,7 +15,8 @@ import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type React
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { projectPath, taskPath } from './areas'
-import { Pill } from './marks'
+import { DoorRow } from './Doors'
+import { BOX, Caption } from './forms'
 import { EMPTY_DRAFT, useFiling, type Draft } from './useFiling'
 import { useWording } from './wording'
 
@@ -38,14 +37,6 @@ import { useWording } from './wording'
  * incomplete one asks for the words the engine left blanks for. Nothing here composes a second
  * command line.
  */
-
-function Label({ children }: { readonly children: ReactNode }) {
-  return (
-    <span className="text-muted-foreground text-[11px] font-semibold tracking-wider uppercase">
-      {children}
-    </span>
-  )
-}
 
 /** One field's counter, in the engine's numbers. Over the limit it says by how much. */
 function Counted({ counter }: { readonly counter: Counter | null }) {
@@ -94,7 +85,7 @@ function Field({
   return (
     <label className="flex flex-col gap-1" data-testid="field">
       <span className="flex flex-wrap items-baseline justify-between gap-2">
-        <Label>{label}</Label>
+        <Caption>{label}</Caption>
         <Counted counter={counter ?? null} />
       </span>
       {children}
@@ -107,8 +98,6 @@ function Field({
     </label>
   )
 }
-
-const BOX = 'border-input bg-background rounded-md border px-3 py-2 text-sm'
 
 /** The parts of a draft a person types into. The deps are chips and go their own way. */
 type Typed = Exclude<keyof Draft, 'deps'>
@@ -194,7 +183,7 @@ function Deps({
 
   return (
     <div className="flex flex-col gap-2">
-      <Label>{say('filing.deps')}</Label>
+      <Caption>{say('filing.deps')}</Caption>
       <div className="flex flex-wrap items-center gap-2">
         {deps.length === 0 ? (
           <span className="text-muted-foreground text-xs">{say('filing.deps.none')}</span>
@@ -237,7 +226,7 @@ function Command({ argv }: { readonly argv: readonly string[] }) {
 
   return (
     <BentoPanel contentClassName="p-5">
-      <Label>{say('filing.command')}</Label>
+      <Caption>{say('filing.command')}</Caption>
       <pre
         data-testid="command"
         className="bg-muted mt-2 overflow-x-auto rounded p-3 font-mono text-[11px] whitespace-pre-wrap"
@@ -253,76 +242,6 @@ function Command({ argv }: { readonly argv: readonly string[] }) {
         </output>
       </div>
     </BentoPanel>
-  )
-}
-
-/** One blank of a door, which says which of them it is when a word is put in it. */
-function Blank({
-  index,
-  word,
-  onWord,
-}: {
-  readonly index: number
-  readonly word: string
-  readonly onWord: (index: number, word: string) => void
-}) {
-  const say = useWording()
-  const typed = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      onWord(index, event.target.value)
-    },
-    [index, onWord],
-  )
-  return (
-    <input
-      className={`${BOX} mt-2 w-full`}
-      aria-label={say('filing.door.blank')}
-      value={word}
-      onChange={typed}
-    />
-  )
-}
-
-/** One door the engine offered: complete, it runs; incomplete, it asks for its blanks. */
-function DoorRow({
-  door,
-  which,
-  onTake,
-}: {
-  readonly door: Door
-  readonly which: number
-  readonly onTake: (which: number, words: readonly string[]) => void
-}) {
-  const say = useWording()
-  const blanks = blanksIn(door.argv)
-  const [words, setWords] = useState<string[]>(() => blanks.map(() => ''))
-  const ready = words.every((word) => word.trim() !== '')
-  const take = useCallback(() => {
-    onTake(
-      which,
-      words.map((one) => one.trim()),
-    )
-  }, [onTake, which, words])
-  const word = useCallback((index: number, said: string) => {
-    setWords((was) => was.map((one, at) => (at === index ? said : one)))
-  }, [])
-
-  return (
-    <li className="border-t px-4 py-3 first:border-t-0" data-testid="door">
-      <div className="font-mono text-[11px] wrap-anywhere">{door.argv.join(' ')}</div>
-      {door.what === '' ? null : <p className="text-muted-foreground mt-1 text-xs">{door.what}</p>}
-      {door.writes ? (
-        <p className="mt-1">
-          <Pill intent="warn">{say('filing.door.writes')}</Pill>
-        </p>
-      ) : null}
-      {blanks.map((at, index) => (
-        <Blank key={at} index={index} word={words[index] ?? ''} onWord={word} />
-      ))}
-      <Button size="sm" className="mt-2" disabled={!ready} onClick={take}>
-        {say('filing.door.take')}
-      </Button>
-    </li>
   )
 }
 
@@ -362,9 +281,9 @@ function Answered({
       </p>
       {filed.doors.length === 0 ? null : (
         <BentoPanel className="overflow-hidden" contentClassName="p-0">
-          <Label>
+          <Caption>
             <span className="px-4 pt-3 inline-block">{say('filing.doors')}</span>
-          </Label>
+          </Caption>
           <ul>
             {filed.doors.map((door, which) => (
               <DoorRow key={door.argv.join(' ')} door={door} which={which} onTake={takeDoor} />
@@ -383,7 +302,7 @@ function Bound({ bounds }: { readonly bounds: Bounds | null }) {
 
   return (
     <BentoPanel contentClassName="p-5">
-      <Label>{say('filing.bounds')}</Label>
+      <Caption>{say('filing.bounds')}</Caption>
       {bounds.nonGoals.length === 0 ? (
         <p className="text-muted-foreground mt-2 text-xs">{say('filing.bounds.none')}</p>
       ) : (
@@ -523,7 +442,7 @@ export function Filing() {
               <Box field="why" value={draft.why} on={change} area className="min-h-16" />
             </Field>
 
-            <Label>{say('filing.section')}</Label>
+            <Caption>{say('filing.section')}</Caption>
 
             <Field label={say('filing.section.title')}>
               <Box field="section" value={draft.section} on={change} />

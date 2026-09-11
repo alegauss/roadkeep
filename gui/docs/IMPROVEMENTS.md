@@ -242,25 +242,6 @@ reads as empty.
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-### §RG152 The gate as a surface
-
-Run the gate is drawn on the project surface, and block E's third criterion is that the
-gate is a surface and not a report. RG33 shipped `actionableFrom` and `offerOf`; no
-artboard draws the findings, so this line reuses the right column of `Escrita.dc.html`
-rather than inventing a second shape.
-
-**A finding is a row**: its code, the file and line it names, and the sentence lint
-wrote. Under it, the doors, drawn exactly as the write path draws a refusal's — complete
-ones run, incomplete ones ask for the words, each shows its argv first. After any door
-runs, the gate runs again and the row goes when the finding does.
-
-**The result is recorded where the portfolio reads it.** The pass or the count goes into
-the gate ledger with its time, so the row's gate column and this screen never disagree
-about when it last ran.
-
-`repair` spending a whole report is one action here only if it is one command there;
-this app does not batch doors the engine offered one by one.
-
 ### §RG181 A keep with a bound
 
 RG165's keep drops a batch when the project's governed files move, which is the rule
@@ -306,6 +287,30 @@ are marked differently — `--open` ranks both corpora and says which is which.
 **The count is the block's, so the call needs a block.** Until one is typed there is
 nothing to rank against, and the panel says that rather than ranking the wrong block:
 the form's first field is what makes the read possible.
+
+### §RG185 Opening on the verdict already held
+
+The gate surface runs `lint` as it opens, every time. `gate.ts` already answers whether
+that is worth doing — `needsGate` compares the verdict on record against the stamp the
+files have now — and nothing calls it. Opening one project's gate twice in a minute runs
+the most expensive read there is twice, for an answer the ledger held, and the second
+run is the one a person waits through.
+
+**The verdict on record is what the screen opens with.** It is dated and it says whether
+the files have moved since, so a fresh one is an answer and not a guess: draw it, say
+when it was taken, and run only where `needsGate` says the stamp has moved — or where
+somebody presses Run the gate, which is a person saying they want it run whatever the
+ledger holds.
+
+**Stale is the interesting state and it has a screen already.** The portfolio's column
+says stale; this surface has the room to say what moved, since the carrier watches the
+governed files for exactly this (RG144) and can tell an open window that the report it
+is showing is about a state that has gone.
+
+**Nothing here caches an answer.** The ledger holds the verdict and its date, never the
+findings, so a screen opening on a fresh one shows the count and the date and offers the
+run. A report held in memory and drawn later would be this app answering about files it
+has not read.
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
@@ -573,3 +578,28 @@ that way.
 **It belongs with the locale comparison, failing the same run.** A second command is a
 second thing to remember; the existing wording test already owns the question of what
 the catalogue holds.
+
+### §RG186 The copy nobody exported
+
+RG62's gate reads a file for the names it exports: the pattern is anchored on `export`
+before `const`, `function`, `class` or `type`, plus what an `export { … }` list carries.
+A screen declaring `function Label()` for its own use and never exporting it is a copy
+the gate cannot see — the ordinary shape of the mistake here, a component private to one
+surface having no reason to be exported.
+
+It was found by moving one: a caption used by two screens became an exported helper, and
+the gate reported it the moment it crossed that line. It had been sitting unexported in
+a screen for weeks, with the same name the design system publishes, and every run
+passed.
+
+**Unexported is where the drift is worse, not better.** A copy nobody exports is one
+nobody can be pointed at from elsewhere, so it diverges quietly: the design system's
+`Label` is a real `<label>` and the local one was a caption span, two different things
+sharing a name in one repository. A reader moving between the two screens has to know
+which is which.
+
+**The fix is the pattern, not a second tool.** Without the `export` requirement it
+reports every declaration whose name the package publishes, and the escape hatch it
+already has — `viglet-ds-allow-duplicate <Name> -- <reason>` — is what a deliberate
+collision uses. The correction belongs in the package, every consumer having the same
+hole; here it is a line saying so and the run that proves it.

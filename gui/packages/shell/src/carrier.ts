@@ -1,8 +1,11 @@
 import {
   bridgedRun,
+  createGateLedger,
   createWatching,
   EMPTY_CATALOGUE,
   openedFrom,
+  readLintPayload,
+  recordGate,
   watchedFiles,
   composeDoor,
   filledArgv,
@@ -10,9 +13,11 @@ import {
   withheldResult,
   type BridgedRequest,
   type BridgedResult,
+  type GateLedger,
   type Opening,
   type OpenedProject,
   type ProjectCatalogue,
+  type ProjectGate,
   type Reconciled,
   type SamePart,
   type ScanRoot,
@@ -78,6 +83,8 @@ export interface CarrierOptions {
   readonly remember?: (catalogue: ProjectCatalogue) => void
   /** Where the doors an answer carried are kept (RG165). Its own unless a test says otherwise. */
   readonly doors?: DoorKeep
+  /** Where gate verdicts are kept (RG152). Its own unless a test says otherwise. */
+  readonly gate?: GateLedger
 }
 
 export interface Carrier {
@@ -105,6 +112,15 @@ export interface Carrier {
     which: number,
     words: readonly string[],
   ): Promise<BridgedResult>
+  /**
+   * What the gate last said about each project it has run for (RG152).
+   *
+   * Read off the ledger and dated against the files as they are now, so a verdict taken
+   * before a write says it is stale rather than being thrown away. A project nothing has
+   * gated is absent from the answer: `unknown` is the caller's word for that, and this side
+   * inventing a clean row is the one thing `gate.ts` refuses to do.
+   */
+  gates(): Promise<readonly ProjectGate[]>
   /** Give back every engine held, awaited to the last exit. What quitting waits on. */
   close(): Promise<void>
 }
@@ -138,17 +154,51 @@ export function createCarrier(options: CarrierOptions): Carrier {
   const now = options.now ?? (() => new Date().toISOString())
   const watching = options.watching ?? createWatching(createGovernedWatcher(), REAL_CLOCK)
   const following = new Set<() => void>()
+
+  /**
+   * What this project's governed files look like now, as one string.
+   *
+   * The one place either ledger dates anything from: a door offered against a state that has
+   * gone and a verdict taken before a write are the same question asked twice, so they are
+   * asked of the same answer.
+   */
+  const stampOf = async (root: string): Promise<string> => {
+    const answer = await opening(root).catch(() => null)
+    return answer?.kind === 'open'
+      ? stampGoverned(root, Object.values(answer.project.governed))
+      : ''
+  }
+
   // What the engine offered, kept here rather than crossing (RG165).
-  const doors =
-    options.doors ??
-    createDoorKeep({
-      stampOf: async (root) => {
-        const answer = await opening(root).catch(() => null)
-        return answer?.kind === 'open'
-          ? stampGoverned(root, Object.values(answer.project.governed))
-          : ''
-      },
-    })
+  const doors = options.doors ?? createDoorKeep({ stampOf })
+
+  // What the gate last said, per project (RG152). In memory, because a verdict is about a
+  // working tree at a moment and the tree can change while this app is not running.
+  const gate: GateLedger = options.gate ?? createGateLedger(rootKey)
+  // Which roots it holds one for: the ledger answers about a root it is asked about, and
+  // `gates` has to know which to ask about without walking every project on the machine.
+  const gated = new Map<string, string>()
+
+  /**
+   * Note what the gate said, when a gate is what ran (RG152).
+   *
+   * The verdict is taken off the answer a screen asked for rather than from a run of this
+   * side's own: `lint` is the most expensive read there is, and running a second one to
+   * date a row would double the cost of the only read that answers the question. So every
+   * `lint` through this bridge dates the ledger, whoever asked for it and whatever screen
+   * they were on.
+   *
+   * The stamp is read after the answer, which is the honest order: a file written while the
+   * gate was running makes the verdict stale immediately, and the row says so.
+   */
+  const noting = async (root: string, argv: readonly string[], parsed: unknown): Promise<void> => {
+    if (!argv.includes('lint')) return
+    const read = readLintPayload(parsed, '')
+    if (!read.ok) return
+    const stamp = await stampOf(root)
+    gate.note(root, recordGate(read.value, stamp, now()))
+    gated.set(rootKey(root), root)
+  }
 
   /**
    * Keep whatever doors an answer carried, and name them on the way back (RG165).
@@ -157,7 +207,11 @@ export function createCarrier(options: CarrierOptions): Carrier {
    * gate finding — and an answer that carries none is the ordinary case and costs a walk of
    * the document it already parsed.
    */
-  const keeping = async (root: string, answered: BridgedResult): Promise<BridgedResult> => {
+  const keeping = async (
+    root: string,
+    argv: readonly string[],
+    answered: BridgedResult,
+  ): Promise<BridgedResult> => {
     if (answered.kind !== 'ran') return answered
     let parsed: unknown
     try {
@@ -166,6 +220,7 @@ export function createCarrier(options: CarrierOptions): Carrier {
       // Not JSON at all, which is an answer this side does not read for anything else either.
       return answered
     }
+    await noting(root, argv, parsed)
     const offered = await doors.keep(root, parsed)
     return offered === null ? answered : { ...answered, offered }
   }
@@ -273,7 +328,7 @@ export function createCarrier(options: CarrierOptions): Carrier {
         if (answer.kind !== 'open') {
           return withheldResult(`${root} did not open: ${whyNotOpen(answer)}`)
         }
-        return keeping(root, await bridgedRun(() => answer.project.transport.run(full)))
+        return keeping(root, full.argv, await bridgedRun(() => answer.project.transport.run(full)))
       } catch (cause) {
         return bridgedRun(() => Promise.reject(cause))
       }
@@ -302,11 +357,29 @@ export function createCarrier(options: CarrierOptions): Carrier {
         const composed = composeDoor(root, { argv })
         return keeping(
           root,
+          composed.argv,
           await bridgedRun(() => answer.project.transport.run({ root, argv: composed.argv })),
         )
       } catch (cause) {
         return bridgedRun(() => Promise.reject(cause))
       }
+    },
+
+    async gates() {
+      // The catalogue's spelling of each root, so a caller matches these against its own
+      // list by the path it was given rather than by guessing this platform's path rules.
+      const known = catalogue ?? (await projects())
+      const spelled = new Map(
+        known.projects.map((project) => [rootKey(project.path), project.path]),
+      )
+      // One stamp read per project on record, and none for the rest: a machine with
+      // seventeen projects and one gated answers with one file read, not seventeen.
+      return Promise.all(
+        [...gated].map(async ([key, root]) => ({
+          root: spelled.get(key) ?? root,
+          health: gate.healthOf(root, await stampOf(root)),
+        })),
+      )
     },
 
     async follow(root, moved) {

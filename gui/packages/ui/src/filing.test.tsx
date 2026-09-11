@@ -318,13 +318,13 @@ describe('RG151: what a refusal answers with', () => {
     const door = await screen.findByTestId('door')
     // The engine's own argv, and a blank of its own to fill.
     expect(within(door).getByText(/budget --block A --symptom/)).toBeTruthy()
-    const take = within(door).getByRole('button', { name: BASE['filing.door.take'] })
+    const take = within(door).getByRole('button', { name: BASE['door.take'] })
     expect(take.hasAttribute('disabled')).toBe(true)
 
-    fireEvent.change(within(door).getByLabelText(BASE['filing.door.blank']), {
+    fireEvent.change(within(door).getByLabelText(BASE['door.blank']), {
       target: { value: 'a shorter symptom' },
     })
-    fireEvent.click(within(door).getByRole('button', { name: BASE['filing.door.take'] }))
+    fireEvent.click(within(door).getByRole('button', { name: BASE['door.take'] }))
 
     await waitFor(() => {
       expect(wired.doors).toEqual([{ which: 0, words: ['a shorter symptom'] }])

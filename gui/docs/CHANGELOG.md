@@ -109,6 +109,7 @@
 - ✅ **RG36** **an input has no budget, so a field is typed to whatever length and refused after the sentence exists** — Every field is priced before a word is typed, counted against what the line allows rather than what the limit says (design recorded in `packages/core/src/budgeting.ts`).
 - ✅ **RG165** **a door the engine offers cannot run from a window, since the bridge refuses a verb or option its tables never compose** — The carrier keeps the doors an answer carried and runs the one a caller names, filling only the blanks the engine left (design recorded in `packages/shell/src/door-keep.ts`).
 - ✅ **RG151** **no screen composes a write, so a line is still filed in a terminal though its budget, argv and doors are built** — A line is filed from the window, priced and refused by the engine (design superseded: Save runs the drawn argv, not applyWrite) (design recorded in `packages/ui/src/Filing.tsx`).
+- ✅ **RG152** **Run the gate is a button with nothing behind it, so a finding and the doors it names are still read in a terminal** — The gate is a surface: findings as rows with what closes each, and its verdict where the portfolio reads it (design recorded in `packages/ui/src/Gate.tsx`).
 
 ## Block F — The agent surface (handing one task to Claude Code)
 

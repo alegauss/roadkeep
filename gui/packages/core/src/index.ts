@@ -9,6 +9,7 @@ export type {
   HandedOver,
   LaunchSettings,
   OpenedProject,
+  ProjectGate,
   RendererBridge,
   SessionRecord,
   Topic,
@@ -150,6 +151,7 @@ export { createLimiter } from './limiting'
 export type { Limiter } from './limiting'
 export {
   fillRow,
+  gatedRows,
   filterCounts,
   folderName,
   matchesFilter,
@@ -190,11 +192,12 @@ export {
   actionableLeft,
   actionableReport,
   anyRunnable,
+  gatedReport,
   offerOf,
   passFrom,
   saidOfPass,
 } from './repairing'
-export type { Actionable, Offer, Pass } from './repairing'
+export type { Actionable, Gated, Numbered, Offer, Pass } from './repairing'
 export { saidOfWrite, wasCreated, whereWritten, writtenFrom } from './sections'
 export type { Written } from './sections'
 export { commandLine, createTranscript, entryLine, quoteFor } from './transcript'

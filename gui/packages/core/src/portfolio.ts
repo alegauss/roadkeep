@@ -148,6 +148,29 @@ export function fillRow(row: ProjectRow, reads: RowReads): ProjectRow {
   }
 }
 
+/**
+ * Put the verdicts on record onto the rows they belong to (RG152).
+ *
+ * Applied to every list a screen draws rather than once, because the reads that fill a row
+ * land at their own pace and a merge done once would be undone by the next stage to finish.
+ * A row no verdict names keeps the one it had, which is `null` — and a row drawn with `null`
+ * says unknown, never clean.
+ *
+ * The paths are compared as they are given: both sides of this got theirs from the same
+ * catalogue, and a key this side made up would be this side deciding a platform's path rules.
+ */
+export function gatedRows(
+  rows: readonly ProjectRow[],
+  verdicts: readonly { readonly root: string; readonly health: GateHealth }[],
+): readonly ProjectRow[] {
+  if (verdicts.length === 0) return rows
+  const byRoot = new Map(verdicts.map((one) => [one.root, one.health]))
+  return rows.map((row) => {
+    const health = byRoot.get(row.path)
+    return health === undefined ? row : { ...row, gate: health }
+  })
+}
+
 function countsFrom(stats: StatsPayload): RowCounts {
   return {
     total: stats.total,

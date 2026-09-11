@@ -1,11 +1,13 @@
 import {
   coldStart,
+  gatedRows,
   openingUnreadable,
   openOver,
   pendingRow,
   present,
   rowStages,
   type OpenProject,
+  type ProjectGate,
   type ProjectRow,
   type RecordedProject,
   type RowStage,
@@ -107,6 +109,15 @@ export function usePortfolio(): { readonly view: PortfolioView; readonly rescan:
       )
     }
 
+    // What the gate last said, off the carrier's ledger (RG152). A read of what is on record
+    // and never a run, so a list of seventeen projects costs nothing to draw and a project
+    // nobody has gated stays `unknown` rather than being called clean. It is held here and
+    // put on every list below, because the reads that fill a row land after it and a merge
+    // done once would be undone by the next stage that finishes.
+    let verdicts: readonly ProjectGate[] = []
+    const dressed = (rows: readonly ProjectRow[]): readonly ProjectRow[] =>
+      gatedRows(rows, verdicts)
+
     const read = async (): Promise<void> => {
       const projects = present(await bridge.projects())
       if (!stillHere()) return
@@ -118,16 +129,28 @@ export function usePortfolio(): { readonly view: PortfolioView; readonly rescan:
         tried: {},
       })
 
+      void bridge.gates().then(
+        (gates) => {
+          if (!stillHere()) return
+          verdicts = gates
+          setView((was) => (was.kind === 'listed' ? { ...was, rows: dressed(was.rows) } : was))
+        },
+        // A carrier that will not say is a column that stays unknown, which is what it says.
+        () => undefined,
+      )
+
       const rows = await coldStart(projects, stages, (progress) => {
         if (!stillHere()) return
         setView({
           kind: 'listed',
-          rows: progress.rows,
+          rows: dressed(progress.rows),
           progress: { stage: stageOf(progress.stage), done: progress.done, total: progress.total },
           tried: { ...tried },
         })
       })
-      if (stillHere()) setView({ kind: 'listed', rows, progress: null, tried: { ...tried } })
+      if (stillHere()) {
+        setView({ kind: 'listed', rows: dressed(rows), progress: null, tried: { ...tried } })
+      }
     }
 
     read().catch((cause: unknown) => {

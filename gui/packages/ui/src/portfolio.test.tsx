@@ -395,3 +395,116 @@ describe('RG146: naming where the window looks', () => {
     })
   })
 })
+
+describe('RG152: the gate column, off the ledger the carrier keeps', () => {
+  /** A bridge that answers the read project, and holds one verdict for it. */
+  async function withGate(health: {
+    verdict: 'clean' | 'drifted'
+    problems: number
+    taken: string
+    stale: boolean
+  }): Promise<void> {
+    // Two projects that open, so the row with no verdict is a read row and not an
+    // unreadable one: unknown is what a gate column says, not what a failed opening says.
+    const alpha = await opened(READ)
+    const beta = await opened(PENDING)
+    Object.defineProperty(window, 'roadkeep', {
+      value: stubBridge({
+        projects: () => Promise.resolve(THREE),
+        open: (root) =>
+          root === READ
+            ? Promise.resolve(alpha)
+            : root === PENDING
+              ? Promise.resolve(beta)
+              : Promise.resolve(REFUSAL),
+        run: (root, request) => bridgedRun(() => machine.run({ ...request, root })),
+        gates: () => Promise.resolve([{ root: READ, health }]),
+      }),
+      configurable: true,
+    })
+  }
+
+  it('draws the verdict on record, with the count a drifted report gave', async () => {
+    await withGate({
+      verdict: 'drifted',
+      problems: 3,
+      taken: '2026-09-11T12:00:00.000Z',
+      stale: false,
+    })
+    drawWindow()
+
+    await waitFor(() => {
+      expect(rowOf('alpha').textContent).toContain(BASE['portfolio.gate.drifted'])
+    })
+    expect(rowOf('alpha').textContent).toContain(
+      fill(BASE['portfolio.gate.findings'], { count: 3 }),
+    )
+  })
+
+  it('keeps the verdict on a list still filling, since the reads land after it', async () => {
+    // One project whose opening never answers, so the list stays under way: the verdict has
+    // to survive every draw between it landing and the last read finishing, and a merge done
+    // once is undone by the next stage that reports.
+    const alpha = await opened(READ)
+    Object.defineProperty(window, 'roadkeep', {
+      value: stubBridge({
+        projects: () => Promise.resolve(THREE),
+        open: (root) =>
+          root === READ ? Promise.resolve(alpha) : new Promise<OpenedProject>(() => undefined),
+        run: (root, request) => bridgedRun(() => machine.run({ ...request, root })),
+        gates: () =>
+          Promise.resolve([
+            {
+              root: READ,
+              health: {
+                verdict: 'clean' as const,
+                problems: 0,
+                taken: '2026-09-11T12:00:00.000Z',
+                stale: false,
+              },
+            },
+          ]),
+      }),
+      configurable: true,
+    })
+    drawWindow()
+
+    await waitFor(() => {
+      expect(rowOf('alpha').textContent).toContain(BASE['portfolio.gate.clean'])
+    })
+    // Still filling: two rows have not been read, so this is a draw from progress and not
+    // the final one.
+    expect(screen.getAllByTestId('portfolio-row').map((row) => row.dataset['state'])).toContain(
+      'pending',
+    )
+  })
+
+  it('says a verdict is stale rather than dropping it, where the files moved since', async () => {
+    await withGate({
+      verdict: 'clean',
+      problems: 0,
+      taken: '2026-09-11T12:00:00.000Z',
+      stale: true,
+    })
+    drawWindow()
+
+    await waitFor(() => {
+      expect(rowOf('alpha').textContent).toContain(BASE['portfolio.gate.stale'])
+    })
+  })
+
+  it('leaves a project no verdict names unknown, never clean', async () => {
+    await withGate({
+      verdict: 'clean',
+      problems: 0,
+      taken: '2026-09-11T12:00:00.000Z',
+      stale: false,
+    })
+    drawWindow()
+
+    await waitFor(() => {
+      expect(rowOf('alpha').textContent).toContain(BASE['portfolio.gate.clean'])
+    })
+    expect(rowOf('beta').textContent).toContain(BASE['portfolio.gate.unknown'])
+  })
+})

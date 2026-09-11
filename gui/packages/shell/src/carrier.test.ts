@@ -468,3 +468,83 @@ describe('RG144: hearing a project move', () => {
     expect(files.stopped).toEqual([A])
   })
 })
+
+describe('RG152: what the gate last said', () => {
+  /** A gate answer, clean or not, in the shape `lint --json` prints. */
+  const report = (clean: boolean, problems = 0) =>
+    JSON.stringify({
+      root: A,
+      clean,
+      checked: ['docs/ROADMAP.md'],
+      lines: 4,
+      sections: 2,
+      problems,
+      codes: {},
+      findings: [],
+      notes: [],
+    })
+
+  /** A carrier whose machine answers `lint`, since the default one refuses it. */
+  function gating(over: Partial<CarrierOptions> = {}, answer = report(true)) {
+    const machine: Transport = {
+      run(request) {
+        const verb = request.argv[2] ?? ''
+        if (verb === 'lint')
+          return Promise.resolve({ code: 0, stdout: answer, stderr: '', durationMs: 1 })
+        const said = SAID[verb]
+        if (said === undefined) return Promise.reject(new EngineCallFailed('unspawnable', 'no', 1))
+        return Promise.resolve({ code: 0, stdout: said, stderr: '', durationMs: 1 })
+      },
+    }
+    return world({
+      open: (root) => openProject(root, [['python', '/x/launch.py']], () => machine),
+      ...over,
+    }).carrier
+  }
+
+  const linting = (root: string) => ({
+    argv: buildArgv(root, 'lint', {}),
+    call: buildCall('lint', {}),
+  })
+
+  it('says nothing about a project nothing has gated, which is what unknown means', async () => {
+    const carrier = gating()
+
+    await carrier.run(A, listing(A))
+
+    expect(await carrier.gates()).toEqual([])
+  })
+
+  it('dates the verdict off the answer a window asked for, without running a gate of its own', async () => {
+    const carrier = gating({ now: () => '2026-09-11T12:00:00.000Z' })
+
+    await carrier.run(A, linting(A))
+
+    expect(await carrier.gates()).toEqual([
+      {
+        root: A,
+        health: { verdict: 'clean', problems: 0, taken: '2026-09-11T12:00:00.000Z', stale: false },
+      },
+    ])
+  })
+
+  it('carries the count a drifted report gave, which is what a row shows', async () => {
+    const carrier = gating({}, report(false, 3))
+
+    await carrier.run(A, linting(A))
+    const [gate] = await carrier.gates()
+
+    expect(gate?.health.verdict).toBe('drifted')
+    expect(gate?.health.problems).toBe(3)
+  })
+
+  it('notes nothing for a read that was not a gate, whatever it answered', async () => {
+    const carrier = gating({}, report(true))
+
+    // The list answer is not a lint payload, and a reader that took it for one would
+    // record a clean verdict nobody ran.
+    await carrier.run(A, listing(A))
+
+    expect(await carrier.gates()).toEqual([])
+  })
+})

@@ -1,14 +1,16 @@
 import { describe, expect, it } from 'vitest'
 
 import { readLintPayload, readRepairPayload } from './payloads'
-import { readDoor } from './refusals'
+import { readDoor, type Door } from './refusals'
 import {
   actionableFrom,
   actionableReport,
   anyRunnable,
+  gatedReport,
   offerOf,
   passFrom,
   saidOfPass,
+  type Actionable,
 } from './repairing'
 import { composeDoor } from './writing'
 
@@ -272,5 +274,49 @@ describe('RG33: a repair pass, offered dry first', () => {
     const pass = passFrom(repair({ dry_run: false, clean: false, passes: 3, exhausted: true }))
 
     expect(saidOfPass(pass)).toContain('stopped helping')
+  })
+})
+
+describe('RG152: numbering a report against the batch the far side kept', () => {
+  const offered = (argv: readonly string[]) => {
+    const read = readDoor({ argv, what: '', complete: true, writes: false }, 'door')
+    if (!read.ok) throw new Error('the fixture is not a door')
+    return read.value
+  }
+
+  /** A finding with nothing on it but the one door under test. */
+  const row = (one: Door): Actionable => ({
+    code: 'ref.unresolved',
+    where: '',
+    message: '',
+    id: '',
+    decision: '',
+    awaits: '',
+    sequence: false,
+    offers: [offerOf(one)],
+  })
+
+  it('names each door by where it sits in the batch, not by where its row does', () => {
+    // The batch is every door the answer carried, in document order, and a note's door
+    // ahead of the findings is exactly what shifts the numbers a screen would have guessed.
+    const batch = [offered(['explain', 'x']), offered(['section', 'add', 'FX1', '--title', '…'])]
+    const [first] = gatedReport(actionableReport(lint()), batch)
+
+    expect(first?.doors).toHaveLength(1)
+    expect(first?.doors[0]?.which).toBe(1)
+  })
+
+  it('gives two rows offering one argv the two places it has, and not the first twice', () => {
+    const same = ['repair']
+    const batch = [offered(same), offered(same)]
+    const rows = gatedReport([row(offered(same)), row(offered(same))], batch)
+
+    expect(rows.map((one) => one.doors[0]?.which)).toEqual([0, 1])
+  })
+
+  it('offers no door the batch has no place for, since nothing could run it', () => {
+    const rows = gatedReport([row(offered(['repair']))], [])
+
+    expect(rows[0]?.doors).toEqual([])
   })
 })

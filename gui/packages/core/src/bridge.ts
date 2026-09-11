@@ -18,6 +18,7 @@ import type { BuildIdentity } from './build'
 import type { CapabilityReport } from './capabilities'
 import type { ProjectCatalogue } from './catalogue'
 import type { ResolvedEngine } from './engine-resolution'
+import type { GateHealth } from './gate'
 import type { Opening } from './opening'
 import type { BriefPayload, HeldClaim } from './payloads'
 import type { KnownRoot, ScanRoot } from './roots'
@@ -174,6 +175,15 @@ export interface RendererBridge {
    * ask, which over HTTP is the side that has the checkout.
    */
   governedAt(root: string): Promise<readonly GovernedFile[]>
+  /**
+   * The gate verdicts this carrier holds, dated against the files they were taken on (RG152).
+   *
+   * A read of a ledger and never a run: `lint` is the most expensive read there is, so it
+   * runs where somebody asked for it — through `run`, like every other verb — and what is on
+   * record crosses here. A project nobody has gated is simply not in the answer, which is the
+   * difference between `unknown` and clean.
+   */
+  gates(): Promise<readonly ProjectGate[]>
   /** Every session this process started, each with what it has written so far (RG153). */
   sessions(): Promise<readonly SessionRecord[]>
   /**
@@ -202,6 +212,17 @@ export interface RendererBridge {
     which: number,
     words: readonly string[],
   ): Promise<BridgedResult>
+}
+
+/**
+ * One project's gate verdict as it crosses (RG152).
+ *
+ * The root is the carrier's spelling of it, so a caller matches it the way the catalogue
+ * compares two spellings of one folder, and never by string equality.
+ */
+export interface ProjectGate {
+  readonly root: string
+  readonly health: GateHealth
 }
 
 /** One governed file, and when the disk last changed it (RG153). */
@@ -363,6 +384,7 @@ export const BRIDGE_CHANNELS = {
   saveRoots: 'roadkeep:save-roots',
   handOver: 'roadkeep:hand-over',
   governedAt: 'roadkeep:governed-at',
+  gates: 'roadkeep:gates',
   sessions: 'roadkeep:sessions',
   stopSession: 'roadkeep:stop-session',
   door: 'roadkeep:door',

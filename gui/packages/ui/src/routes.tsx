@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom'
 
 import {
   FILE_ROUTE,
+  GATE_ROUTE,
   HOME_ROUTE,
   PROJECT_ROUTE,
   SESSION_ROUTE,
@@ -10,6 +11,7 @@ import {
   TASK_ROUTE,
 } from './areas'
 import { Filing } from './Filing'
+import { Gate } from './Gate'
 import { Portfolio } from './Portfolio'
 import { Project } from './Project'
 import { Session } from './Session'
@@ -58,6 +60,7 @@ export const SURFACES: readonly Surface[] = [
   { path: SESSION_ROUTE, element: <Session /> },
   { path: SESSIONS_ROUTE, element: <Sessions /> },
   { path: FILE_ROUTE, element: <Filing /> },
+  { path: GATE_ROUTE, element: <Gate /> },
 ]
 
 /** Just the paths, which is what a check about the map needs and all it needs. */

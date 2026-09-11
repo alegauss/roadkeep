@@ -15,7 +15,7 @@ import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-sy
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
-import { filePath, HOME_ROUTE, taskPath } from './areas'
+import { filePath, gatePath, HOME_ROUTE, taskPath } from './areas'
 import { Glyph, Pill } from './marks'
 import { ChangelogTab, DecisionsTab, DeferredTab, ImprovementsTab } from './ProjectTabs'
 import { useProject, type OpenedSurface } from './useProject'
@@ -38,10 +38,11 @@ import { useWording } from './wording'
  * carrying the working marker says, beside it, whether anybody holds it (RG74): the marker
  * and the claim are two facts, and where they disagree that is drawn and not resolved.
  *
- * Absent rather than disabled: Run the gate, which is RG152's. Open on a row leads to the
- * line as brief joins it (RG150), and File a line composes one (RG151). The other governed files are tabs
- * of their own (RG149), and a role this window does not read is a tab drawn disabled rather
- * than left out.
+ * Open on a row leads to the line as brief joins it (RG150), File a line composes one (RG151)
+ * and Run the gate opens the gate as a surface (RG152) — each offered only once the project
+ * opened, since all three are about a project whose engine answered. The other governed files
+ * are tabs of their own (RG149), and a role this window does not read is a tab drawn disabled
+ * rather than left out.
  */
 
 /**
@@ -437,9 +438,14 @@ export function Project() {
   const filing = useMemo(
     () =>
       opened ? (
-        <Button asChild size="sm">
-          <Link to={filePath(root)}>{say('filing.title')}</Link>
-        </Button>
+        <span className="flex flex-wrap items-center gap-2">
+          <Button asChild size="sm" variant="outline">
+            <Link to={gatePath(root)}>{say('gate.run')}</Link>
+          </Button>
+          <Button asChild size="sm">
+            <Link to={filePath(root)}>{say('filing.title')}</Link>
+          </Button>
+        </span>
       ) : undefined,
     [opened, root, say],
   )
