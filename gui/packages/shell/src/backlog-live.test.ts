@@ -41,17 +41,20 @@ describe('RG21: a real backlog', () => {
     const backlog = await backlogOf(REPO)
     const seen = backlog.blocks.map((block) => block.block)
 
-    // This repository declares A through H in that order, and the listing speaks in it.
+    // This repository declares A through H in that order, and the listing speaks in it. Which
+    // one comes first is not asserted: it is the first with an open line, and that stopped
+    // being A the day A's last line shipped — a pin on the backlog, not on the listing.
+    expect(seen.length).toBeGreaterThan(1)
     expect(seen).toEqual([...seen].sort())
-    expect(seen[0]).toBe('A')
   })
 
   it('narrows to one block and reports that block standing', async () => {
-    const backlog = await backlogOf(REPO, { block: 'A' })
+    const first = (await backlogOf(REPO)).blocks[0]?.block ?? ''
+    const backlog = await backlogOf(REPO, { block: first })
 
-    expect(backlog.blocks.map((block) => block.block)).toEqual(['A'])
-    expect(backlog.standing?.block).toBe('A')
-    expect(backlog.standing?.sentence).toContain('Block A')
+    expect(backlog.blocks.map((block) => block.block)).toEqual([first])
+    expect(backlog.standing?.block).toBe(first)
+    expect(backlog.standing?.sentence).toContain(`Block ${first}`)
   })
 
   it('reads a listing of another governed role', async () => {

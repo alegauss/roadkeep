@@ -214,6 +214,14 @@ export {
 } from './wording'
 export type { Bundle, BundleGaps, Fill, MessageKey, Translate, Wording } from './wording'
 export { LOCALE_NAMES, LOCALE_TAGS, LOCALES, wordingFor } from './locales'
+export {
+  compareVersions,
+  readLatestRelease,
+  saidOfUpdate,
+  verdictOf,
+  versionParts,
+} from './updates'
+export type { LatestRelease, SaidOfUpdate, UpdateCheck } from './updates'
 export { PT_BR, PT_BR_LOCALE } from './pt-br'
 export { coversEverything, search } from './search'
 export type { Hit, SearchableProject, SearchAnswer, SearchField } from './search'

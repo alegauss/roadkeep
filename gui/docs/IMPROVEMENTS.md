@@ -269,15 +269,6 @@ ready task forever. What can be built without it is the pipeline that would use 
 the about surface saying plainly that this build is unsigned — which is the honest half
 and is worth having on its own.
 
-### §RG50 Updating, and what has to exist first
-
-An update check reads a release that exists on the internet, so this line needs a
-published artifact and not merely code. What it must do is state which version it is on
-and which it found, and never install anything without being asked — an app that
-replaces itself while somebody is reading a backlog is one that loses their place. What
-it must not do is phone anywhere on launch by default: this app reads a person's
-repositories, and a network call it did not need is one that has to be explained.
-
 ### §RG119 The build nobody has made
 
 `electron-builder.yml` declares a `dmg` target with a category beside it, and that is
@@ -362,6 +353,17 @@ coupling `bridge.ts` exists to refuse.
 
 A subscription that outlives its screen is a leak a test can see: the harness unmounts a
 screen and requires the preload to have removed its listener.
+
+### §RG154 The first release, read by the check
+
+RG50's check has been read against answers described by hand, and GitHub's own is the
+part nobody has seen yet: the shape of `releases/latest` for this repository, a 404
+while every release is a draft, and the page it names.
+
+**The first published release is the test.** Push a `v` tag whose version matches the
+manifest, publish the draft `ci.yml` leaves, then run the packaged app of the version
+before it and choose Help, Check for updates: it has to name both versions and open that
+page. Then the same from the new build, which has to say it is current.
 
 ## Block H — The look (a design system for governed prose)
 

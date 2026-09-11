@@ -11,7 +11,7 @@ import {
 } from '@rk/core'
 import { beforeAll, describe, expect, it } from 'vitest'
 
-import { liveEngine as engine, read, REPO } from './live'
+import { blockWithOpenLines, liveEngine as engine, read, REPO } from './live'
 
 /**
  * Filters against this repository's own backlog, which is the one place a narrowing can be
@@ -34,6 +34,8 @@ const client = createClient(counted)
 
 let config: ConfigPayload
 let stats: StatsPayload
+/** A block that has open lines to narrow to, found rather than named (see `blockWithOpenLines`). */
+let busy = ''
 
 async function listWith(filter: BacklogFilter) {
   return backlogFrom(await read(REPO, 'list', filterAsInput(filter), { client }))
@@ -42,6 +44,7 @@ async function listWith(filter: BacklogFilter) {
 beforeAll(async () => {
   config = await read(REPO, 'config', {}, { client })
   stats = await read(REPO, 'stats', {}, { client })
+  busy = await blockWithOpenLines()
 }, 180000)
 
 describe('RG22: what this project offers as filters', () => {
@@ -72,10 +75,10 @@ describe('RG22: what this project offers as filters', () => {
 
 describe('RG22: a filter is the command answer', () => {
   it('narrows to a block, and every line comes back under it', async () => {
-    const backlog = await listWith({ block: 'A' })
+    const backlog = await listWith({ block: busy })
 
-    expect(backlog.blocks.map((block) => block.block)).toEqual(['A'])
-    expect(allLines(backlog).every((line) => line.block === 'A')).toBe(true)
+    expect(backlog.blocks.map((block) => block.block)).toEqual([busy])
+    expect(allLines(backlog).every((line) => line.block === busy)).toBe(true)
   })
 
   it('narrows to a marker, and every line carries it', async () => {
@@ -92,26 +95,28 @@ describe('RG22: a filter is the command answer', () => {
   })
 
   it('combines two arguments into one read', async () => {
-    const backlog = await listWith({ block: 'A', marker: '💭' })
+    const backlog = await listWith({ block: busy, marker: '💭' })
 
-    expect(allLines(backlog).every((line) => line.block === 'A' && line.status === '💭')).toBe(true)
+    expect(allLines(backlog).every((line) => line.block === busy && line.status === '💭')).toBe(
+      true,
+    )
   })
 
   it('gives the same answer as the unfiltered read, narrowed', async () => {
     // The property that makes re-reading worth the call: the filtered answer is a subset
     // of the whole one, line for line, because both came from the same verb.
     const everything = await listWith({})
-    const justA = await listWith({ block: 'A' })
+    const justOne = await listWith({ block: busy })
 
     const ids = new Set(allLines(everything).map((line) => line.id))
-    expect(allLines(justA).every((line) => ids.has(line.id))).toBe(true)
-    expect(allLines(justA).length).toBeLessThan(allLines(everything).length)
+    expect(allLines(justOne).every((line) => ids.has(line.id))).toBe(true)
+    expect(allLines(justOne).length).toBeLessThan(allLines(everything).length)
   })
 
   it('costs nothing to go back to a filter already seen', async () => {
-    await listWith({ block: 'A' })
+    await listWith({ block: busy })
     const before = calls
-    await listWith({ block: 'A' })
+    await listWith({ block: busy })
 
     // One call per change is the cost, and the cache is what makes toggling back free.
     expect(calls).toBe(before)

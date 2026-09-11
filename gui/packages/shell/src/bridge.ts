@@ -19,7 +19,12 @@ import { readStamp } from './stamp'
  * The build is read once, as the bridge is registered. It cannot change while the app runs,
  * and reading a file on every call would be a file read a renderer gets to ask for.
  */
-export function registerBridge(): void {
+export interface BridgeHooks {
+  /** Called once a language is saved, so what this process draws itself can follow (RG50). */
+  readonly localeSaved?: () => void
+}
+
+export function registerBridge(hooks: BridgeHooks = {}): void {
   const build = readStamp(import.meta.dirname, app.isPackaged)
 
   ipcMain.handle(BRIDGE_CHANNELS.identify, (): BridgeIdentity => ({ transport: 'ipc', build }))
@@ -51,5 +56,6 @@ export function registerBridge(): void {
     if (typeof locale !== 'string' || !LOCALE_TAGS.includes(locale)) return
     const userData = app.getPath('userData')
     saveSettings(userData, { ...loadSettings(userData).settings, locale })
+    hooks.localeSaved?.()
   })
 }

@@ -1,7 +1,13 @@
 import { buildArgv, explainUnreadable, listedTasks, type VerbInputs, type VerbName } from '@rk/core'
 import { describe, expect, it } from 'vitest'
 
-import { REPO, engineReading, liveClient as client, liveEngine as engine } from './live'
+import {
+  REPO,
+  blockWithOpenLines,
+  engineReading,
+  liveClient as client,
+  liveEngine as engine,
+} from './live'
 
 /**
  * RG1's symptom is that no code here can fetch a payload. These are the tests that make
@@ -47,7 +53,9 @@ describe('RG1: a payload this app can actually fetch', () => {
     // One shape against one live payload. Holding *every* shape against every verb is
     // RG4's contract test; this is the smaller claim that these were written from real
     // output rather than from memory, which is the way a hand-written shape goes wrong.
-    const answer = await client.call(REPO, 'list', { block: 'A' }, { timeoutMs: CEILING })
+    // A block with lines in it, found: narrowing to `A` by name asserted a backlog, not a shape.
+    const block = await blockWithOpenLines()
+    const answer = await client.call(REPO, 'list', { block }, { timeoutMs: CEILING })
 
     // The build that answered, not the word `live` this used to print (RG84): a shape that
     // moved upstream is only actionable when the message says which revision moved it.
@@ -60,7 +68,7 @@ describe('RG1: a payload this app can actually fetch', () => {
     ).toBe(true)
     if (answer.kind !== 'read') return
     expect(listedTasks(answer.value).length).toBeGreaterThan(0)
-    expect(answer.value.standing?.block).toBe('A')
+    expect(answer.value.standing?.block).toBe(block)
   })
 
   it('answers about the project it was given, not the directory the test runs in', async () => {

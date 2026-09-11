@@ -234,6 +234,19 @@ export function aLine(answer: BriefAnswer): BriefPayload {
 }
 
 /**
+ * The first block of this repository's that has an open line, found off the listing.
+ *
+ * Three files narrowed to `A` by name, and A had lines until the day its last one shipped —
+ * then each failed on a backlog nobody had broken. What they test is narrowing to *a* block
+ * with lines in it, so that is what is found; RG141 is the same mistake made about `pick`.
+ */
+export async function blockWithOpenLines(): Promise<string> {
+  const block = listedTasks(await read(REPO, 'list', {}))[0]?.block
+  if (block === undefined) throw new Error('no block in this backlog has an open line to read')
+  return block
+}
+
+/**
  * An open line of this repository's that has a design, found off the listing (RG141).
  *
  * Found rather than named, because an id in an assertion is a marker pinned to the day it was

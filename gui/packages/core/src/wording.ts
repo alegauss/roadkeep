@@ -63,6 +63,16 @@ export const EN = {
   'shell.shortcuts': 'Keyboard shortcuts',
   'shell.notices': 'Notifications',
 
+  'menu.help': 'Help',
+  'update.check': 'Check for updates…',
+  'update.title': 'Updates',
+  'update.newer': 'You are on {current}. The newest published is {latest}.',
+  'update.current': 'You are on {current}, which is the newest published.',
+  'update.none': 'You are on {current}. No release has been published yet.',
+  'update.failed': 'You are on {current}. The check did not reach an answer: {reason}',
+  'update.open': 'Open the release page',
+  'update.close': 'Close',
+
   'ground.system': 'ground: following the desktop',
   'ground.light': 'ground: light',
   'ground.dark': 'ground: dark',

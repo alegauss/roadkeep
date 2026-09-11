@@ -51,6 +51,16 @@ export const PT_BR: Wording = {
   'shell.shortcuts': 'Atalhos de teclado',
   'shell.notices': 'Notificações',
 
+  'menu.help': 'Ajuda',
+  'update.check': 'Procurar atualizações…',
+  'update.title': 'Atualizações',
+  'update.newer': 'Você está na {current}. A mais recente publicada é a {latest}.',
+  'update.current': 'Você está na {current}, que é a mais recente publicada.',
+  'update.none': 'Você está na {current}. Nenhuma versão foi publicada ainda.',
+  'update.failed': 'Você está na {current}. A verificação não obteve resposta: {reason}',
+  'update.open': 'Abrir a página da versão',
+  'update.close': 'Fechar',
+
   'ground.system': 'fundo: seguindo o sistema',
   'ground.light': 'fundo: claro',
   'ground.dark': 'fundo: escuro',
