@@ -282,30 +282,6 @@ digest is then required to carry that set.
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
 
-### §RG183 The key nobody says
-
-RG125 compares the two locales and reports a key one declares and the other misses.
-Nothing compares either of them against the screens. A key declared in both and said by
-neither passes every gate: the pseudo-locale run walks the catalogue and asserts each
-key answers, which a dead key does, and the duplicate check reads the bundles alone.
-
-That is how `filing.id` and `filing.section` sat in both locales through a whole task
-with no screen saying them — the form was built without the id the engine names, and the
-catalogue already had the sentence for it. The cost is not the dead string: it is that
-the catalogue stops being the list of what the app says, so reading it tells you about
-screens that do not exist.
-
-**The read is the sources, and it is the same one the duplicate check already does.**
-Every key reaches a screen as a literal in `say('<key>')` or as a `Translate` call with
-the key spelled out, so a scan of `packages/ui/src` for that shape is the used set, and
-the catalogue less that set is the dead one. A key composed at runtime would be
-invisible to it — none is today, and a guard that refuses one is a guard that keeps it
-that way.
-
-**It belongs with the locale comparison, failing the same run.** A second command is a
-second thing to remember; the existing wording test already owns the question of what
-the catalogue holds.
-
 ### §RG186 The copy nobody exported
 
 RG62's gate reads a file for the names it exports: the pattern is anchored on `export`

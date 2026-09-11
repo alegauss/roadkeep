@@ -267,6 +267,15 @@ function Answered({
       </p>
     )
   }
+  if (filed.kind === 'unreadable') {
+    // Not `failed`: it ran, and the write may well have landed — what could not be read is
+    // the answer, which is this app being behind the engine rather than a command refused.
+    return (
+      <p className="text-destructive text-xs" data-testid="unreadable">
+        {say('filing.unreadable', { reason: filed.reason })}
+      </p>
+    )
+  }
   if (filed.kind === 'wrote') {
     return (
       <p className="text-xs" data-testid="wrote">

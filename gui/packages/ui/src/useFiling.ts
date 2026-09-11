@@ -72,8 +72,13 @@ export type Filed =
       /** What the far side calls those doors, where it kept any. */
       readonly offered: string | null
     }
-  /** It never ran, or answered something no reader could take. */
+  /** It never ran: the command did not launch, or was refused before it did. */
   | { readonly kind: 'failed'; readonly reason: string }
+  /**
+   * It ran and answered a shape no reader could take, which is a different thing to say: the
+   * write may well have landed, and what is wrong is this app's reading of the answer.
+   */
+  | { readonly kind: 'unreadable'; readonly reason: string }
 
 export interface Filing {
   readonly project: OpenProject | null
@@ -222,7 +227,7 @@ export function useFiling(root: string, draft: Draft): Filing {
         }
         const read = readAnswerFrom(readAddedPayload, source, '')
         if (!read.ok) {
-          setFiled({ kind: 'failed', reason: read.failure.path })
+          setFiled({ kind: 'unreadable', reason: read.failure.path })
           return
         }
         if (read.value.kind === 'refused') {

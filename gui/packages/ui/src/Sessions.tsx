@@ -85,6 +85,16 @@ export function Sessions() {
         </BentoPanel>
       ) : (
         <BentoPanel className="overflow-hidden" contentClassName="p-0">
+          {/* Three columns, each named: a grid whose columns are unlabelled is one a reader
+              has to infer, and the catalogue already held the words (RG183). */}
+          <div
+            className="text-muted-foreground grid grid-cols-[8rem_minmax(0,1fr)_8rem] gap-4 px-5 py-2 text-[11px] font-semibold tracking-wider uppercase"
+            data-testid="sessions-columns"
+          >
+            <span>{say('sessions.column.line')}</span>
+            <span>{say('sessions.column.project')}</span>
+            <span>{say('sessions.column.state')}</span>
+          </div>
           <ul>
             {held.map((record) => {
               const state = stateOf(record)

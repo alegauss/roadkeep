@@ -325,7 +325,10 @@ function Stream({ lines, marks }: { readonly lines: readonly string[]; readonly 
   }
   return (
     <BentoPanel className="min-w-0" contentClassName="p-0">
-      <ul>
+      <span className="block px-5 pt-4">
+        <Label>{say('session.stream')}</Label>
+      </span>
+      <ul className="mt-2">
         {acts.map((act) => (
           <ActRow key={act.seq} act={act} />
         ))}
