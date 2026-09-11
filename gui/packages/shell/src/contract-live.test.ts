@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { appendFileSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
@@ -303,14 +303,14 @@ describe('RG4: every read this client makes, against a live engine', () => {
   })
 
   it('reads a backlog with nothing to offer, in both of the verbs that choose', async () => {
-    // A fixture with no open line: every open line waiting on something answers the same way.
+    // A fixture with no open line at all: nothing to hand over, and nothing waiting either.
     const done = await buildFixture(transport, { open: 0, shipped: 1, deferred: 1 })
     try {
       const brief = await read(done.root, 'brief', {})
       expect(lineOf(brief)).toBeNull()
       if (!('empty' in brief)) throw new Error('unreachable')
       expect(brief.reason).not.toBe('')
-      expect(Array.isArray(brief.lacking)).toBe(true)
+      expect(brief.lacking).toEqual([])
       covers('brief with nothing to hand over')
 
       const pick = await read(done.root, 'pick', {})
@@ -319,6 +319,53 @@ describe('RG4: every read this client makes, against a live engine', () => {
       covers('pick with nothing ready')
     } finally {
       done.dispose()
+    }
+  })
+
+  it('RG159: names the line it could not offer, and what this caller lacks for it', async () => {
+    // The other empty brief, and the one `lacking` exists for: a line that would be ready if
+    // the caller had something. Until now no fixture ever produced an entry, so the reader of
+    // `LackingLine` had never met one and `Array.isArray` on a defaulted `[]` held the case.
+    // Nothing open to start with, so the line added below is the only one there is to offer.
+    const waiting = await buildFixture(transport, { open: 0, shipped: 1, deferred: 0 })
+    try {
+      // A requirement has to be declared before a line may name it, which is the engine's
+      // rule and the reason this is written into the fixture's own config first. Appended
+      // the way the builder appends a read bound, and to this copy alone.
+      const wanted = 'macos-machine'
+      appendFileSync(
+        path.join(waiting.root, 'roadkeep.toml'),
+        `\n[requirements]\ndeclared = ["${wanted}"]\n`,
+        'utf8',
+      )
+      const added = await applyWrite(
+        transport,
+        composeWrite(waiting.root, 'add', {
+          block: 'A',
+          symptom: 'this line waits on something the caller does not have',
+          why: 'A line naming a requirement is set aside and named, which is what lacking is.',
+          requires: [wanted],
+          section: 'A line that waits on a requirement',
+          sectionBody: 'Prose enough to be a rationale and well inside the declared budget.',
+        }),
+        readAddedPayload,
+        { timeoutMs: CEILING },
+      )
+      expect(added.kind, `the line was not written: ${JSON.stringify(added)}`).toBe('applied')
+      if (added.kind !== 'applied') throw new Error('unreachable')
+
+      const brief = await read(waiting.root, 'brief', {})
+      expect(lineOf(brief)).toBeNull()
+      if (!('empty' in brief)) throw new Error('the line was offered, so nothing was lacking')
+      const lacking = brief.lacking[0]
+      expect(brief.lacking).toHaveLength(1)
+      expect(lacking?.id).toBe(added.value.id)
+      expect(lacking?.missing).toContain(wanted)
+
+      // And the same read with the requirement in hand offers the line rather than naming it.
+      expect(lineOf(await read(waiting.root, 'brief', { have: [wanted] }))?.id).toBe(added.value.id)
+    } finally {
+      waiting.dispose()
     }
   })
 

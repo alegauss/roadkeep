@@ -4,8 +4,8 @@
 
 ## Block A — The client (payloads in, types out)
 
-- 📋 **RG159** (deps: RG142 ✅) **the empty-brief contract asserts lacking on a fixture that never has any, so no lacking line is ever read** — Array.isArray on a field that defaults to an empty list cannot fail, and no fixture requires what the caller lacks. → §RG159
 - 📋 **RG160** (deps: RG137 ✅) **openHere's own unheld wiring is never run by a test, since RG137's live case rebuilds it by hand** — The test wires unheldAmong around openProject itself, so the production line can break with every test green. → §RG160
+- 📋 **RG179** (deps: —) **an amend that changes deps or requires reads as unreadable, though the file was already written** — AmendPayload.was is declared a map of strings and the engine answers a list for a list field, which RG159 met the first time anything sent the flag. → §RG179
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
