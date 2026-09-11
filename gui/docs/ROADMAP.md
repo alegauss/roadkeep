@@ -4,7 +4,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-- 📋 **RG160** (deps: RG137 ✅) **openHere's own unheld wiring is never run by a test, since RG137's live case rebuilds it by hand** — The test wires unheldAmong around openProject itself, so the production line can break with every test green. → §RG160
 - 📋 **RG179** (deps: —) **an amend that changes deps or requires reads as unreadable, though the file was already written** — AmendPayload.was is declared a map of strings and the engine answers a list for a list field, which RG159 met the first time anything sent the flag. → §RG179
 
 ## Block B — Discovery (which checkouts on this machine are governed)

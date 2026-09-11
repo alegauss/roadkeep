@@ -38,6 +38,16 @@ export interface OpenHereOptions extends Omit<
 > {
   /** The interpreter and the PATH name, for a machine that spells them differently. */
   readonly candidates?: CandidateOptions
+  /**
+   * How the surface for one candidate is built, with the transport that spawns it behind
+   * (RG160).
+   *
+   * A seam and not a setting: the default is the held surface this app runs, and what it
+   * buys is a test that can hand back a surface whose server cannot start while resolution
+   * still answers — which is the one state `unheld` exists to report and the one no test
+   * could reach without rebuilding this function around `openProject`.
+   */
+  readonly holding?: (engine: readonly string[], fallback: Transport) => McpTransport
 }
 
 /**
@@ -60,7 +70,7 @@ export function unheldAmong(
 }
 
 export function openHere(root: string, options: OpenHereOptions = {}): Promise<Opening> {
-  const { candidates, ...rest } = options
+  const { candidates, holding: _holding, ...rest } = options
 
   // Every transport this open built, in the order it built them. Resolution asks each
   // candidate and the chosen one is asked again, so there are several — and all but the one
@@ -68,12 +78,20 @@ export function openHere(root: string, options: OpenHereOptions = {}): Promise<O
   // before a process is started. A list and not a map: what `closing` owes is everything
   // this call made, and telling two identical command lines apart adds nothing to that.
   const made: McpTransport[] = []
+  const holding =
+    options.holding ??
+    ((engine: readonly string[], fallback: Transport) =>
+      createMcpTransport({
+        engine,
+        fallback,
+        ...(options.timeoutMs === undefined ? {} : { timeoutMs: options.timeoutMs }),
+      }))
+
   const transportFor = (engine: readonly string[]): Transport => {
-    const held = createMcpTransport({
+    const held = holding(
       engine,
-      fallback: createProcessTransport({ command: engine[0] ?? '', prefixArgs: engine.slice(1) }),
-      ...(options.timeoutMs === undefined ? {} : { timeoutMs: options.timeoutMs }),
-    })
+      createProcessTransport({ command: engine[0] ?? '', prefixArgs: engine.slice(1) }),
+    )
     made.push(held)
     return held
   }

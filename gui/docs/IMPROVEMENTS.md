@@ -2,21 +2,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-### §RG160 The wiring the test rebuilt
-
-RG137's live test builds its own `openProject` call around a broken engine and wires
-`unheld: () => unheldAmong(made, root)` by hand. The one line that matters in production
-— `openHere`'s own `unheld` option — is never run by any test, though the test's comment
-says the reason is held end to end.
-
-**The fix.** Give `openHere` a seam for the transport it builds per candidate,
-defaulting to today's `createMcpTransport` with the process fallback, so a test can hand
-it a surface whose engine cannot hold a session while resolution still works — and
-assert `opened.project.unheld()` through `openHere` itself. The default path stays byte
-for byte the same.
-
-Found by the adversarial review of RG137; the skeptics split.
-
 ### §RG179 The was of a list field
 
 `AmendPayload.was` is what each changed field held before, and this app declares it a
