@@ -145,6 +145,8 @@ export const EN = {
   'task.underway.disagree': 'the marker and the registry disagree',
   'task.binds': 'What binds this line · block {block}',
   'task.criteria.none': 'This block declares no criterion.',
+  'task.criteria.own': 'What this line must check',
+  'task.criteria.folded': 'from {id}',
   'task.criteria.elided': '{count} more criteria not listed',
   'task.quoted': 'Non-goals this design quotes',
   'task.bounds': 'Non-goals',

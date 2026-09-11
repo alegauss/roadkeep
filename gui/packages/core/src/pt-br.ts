@@ -134,6 +134,8 @@ export const PT_BR: Wording = {
   'task.underway.disagree': 'o marcador e o registro discordam',
   'task.binds': 'O que prende esta linha · bloco {block}',
   'task.criteria.none': 'Este bloco não declara nenhum critério.',
+  'task.criteria.own': 'O que esta linha precisa verificar',
+  'task.criteria.folded': 'de {id}',
   'task.criteria.elided': 'mais {count} critérios não listados',
   'task.quoted': 'Não-objetivos que este design cita',
   'task.bounds': 'Não-objetivos',

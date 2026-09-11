@@ -101,6 +101,7 @@
 - ✅ **RG150** **a task opens nowhere in the window, so brief's join of deps, design and binding lists is read by nobody** — A row's Open leads to the line as one brief: its design as the file stores it, readiness in the engine's words, the claim, and what binds it (design recorded in `packages/ui/src/Task.tsx`).
 - ✅ **RG171** **the improvements tab names each design by its pointer and not its heading, so two designs look alike until opened** — A design is named by its own heading (design superseded: section show declares no --no-body, so the body arrives unasked) (design recorded in `packages/ui/src/ProjectTabs.tsx`).
 - ✅ **RG173** **a dep or a chain hop on the task screen is text, so reaching the line it names means going back through the project** — A dep or a hop the brief calls a task here opens its own line, and one this window cannot reach stays text (design recorded in `packages/core/src/graph.ts`).
+- ✅ **RG174** **a line's own criteria never reach its task screen, so what the ship must check reads as the block's finish line alone** — A line's own criteria reach its screen as their own group, each folded lead naming where it came from (design recorded in `packages/core/src/payloads.ts`).
 
 ## Block E — The write path (the app composes an argv; the command writes)
 

@@ -414,6 +414,31 @@ function BindsCard({ detail }: { readonly detail: TaskDetail }) {
 
   return (
     <BentoPanel contentClassName="p-5">
+      {/* The line's own leads first, and apart: these are the ones `ship --checked` names,
+          and merging them with the block's would assert the block's finish line about this
+          one line (RG174). */}
+      {line.doneWhenOwn.length === 0 ? null : (
+        <section className="mb-4" data-testid="own-criteria">
+          <Label>{say('task.criteria.own')}</Label>
+          <ul className="flex flex-col gap-1.5">
+            {line.doneWhenOwn.map((lead) => (
+              <li key={lead} className="text-[13px] font-medium">
+                {lead}
+                {line.doneWhenFolded[lead] === undefined ? null : (
+                  <span className="text-muted-foreground ml-2 text-xs font-normal">
+                    {say('task.criteria.folded', { id: line.doneWhenFolded[lead] })}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+          {line.doneWhenOwnElided > 0 ? (
+            <p className="text-muted-foreground mt-1 text-xs">
+              {say('task.criteria.elided', { count: line.doneWhenOwnElided })}
+            </p>
+          ) : null}
+        </section>
+      )}
       <Label>{say('task.binds', { block: line.block })}</Label>
       {line.doneWhen.length === 0 ? (
         <p className="text-muted-foreground text-xs">{say('task.criteria.none')}</p>

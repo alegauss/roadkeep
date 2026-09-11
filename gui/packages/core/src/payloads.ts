@@ -779,6 +779,17 @@ export interface BriefPayload {
   readonly quotes: readonly string[]
   readonly doneWhen: readonly string[]
   readonly doneWhenElided: number
+  /**
+   * The criteria this line carries itself, apart from its block's (RG174).
+   *
+   * **Kept apart because the engine keeps them apart.** These are the ones `ship --checked`
+   * names, and a lead nobody names at the ship reads in the ledger as unchecked — so a
+   * caller merging the two would assert the block's finish line about this one line.
+   */
+  readonly doneWhenOwn: readonly string[]
+  readonly doneWhenOwnElided: number
+  /** For an own lead that came from another line, the id it came from. */
+  readonly doneWhenFolded: Readonly<Record<string, string>>
   /** Workers holding this line right now. Empty is the ordinary case. */
   readonly held: readonly HeldClaim[]
   /** Ledger entries citing this id — what already shipped against it. */
@@ -832,6 +843,9 @@ export const readBriefPayload: Reader<BriefPayload> = record<BriefPayload>(
     quotes: orMissing(listOf(aString), []),
     doneWhen: orMissing(listOf(aString), []),
     doneWhenElided: orMissing(aNumber, 0),
+    doneWhenOwn: orMissing(listOf(aString), []),
+    doneWhenOwnElided: orMissing(aNumber, 0),
+    doneWhenFolded: orMissing(dictionaryOf(aString), {}),
     held: orMissing(listOf(readHeldClaim), []),
     landed: orMissing(listOf(aString), []),
     budget: orMissing(orNull(readBriefBudget), null),
@@ -844,6 +858,9 @@ export const readBriefPayload: Reader<BriefPayload> = record<BriefPayload>(
     nonGoalsElided: 'non_goals_elided',
     doneWhen: 'done_when',
     doneWhenElided: 'done_when_elided',
+    doneWhenOwn: 'done_when_own',
+    doneWhenOwnElided: 'done_when_own_elided',
+    doneWhenFolded: 'done_when_folded',
   },
 )
 

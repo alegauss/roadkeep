@@ -397,6 +397,11 @@ describe('RG4: every read this client makes, against a live engine', () => {
     // RG150: the line as the file writes it, which Copy the brief hands on. The reader
     // defaults it to empty, so this is what says a real engine sends it.
     expect(payload.rendered).toContain(payload.id)
+    // The line's own criteria, apart from its block's (RG174). Shape over values: this
+    // fixture's line carries none of its own, and the keys are what this holds.
+    expect(Array.isArray(payload.doneWhenOwn)).toBe(true)
+    expect(typeof payload.doneWhenOwnElided).toBe('number')
+    expect(typeof payload.doneWhenFolded).toBe('object')
     // Shape over values, as with `deps` below: this fixture's line has no chain, and a key
     // that only exists on blocked lines is the one a shape stops declaring.
     expect(Array.isArray(payload.chains)).toBe(true)

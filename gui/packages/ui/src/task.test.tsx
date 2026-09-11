@@ -75,6 +75,11 @@ const DESIGNED = {
   quotes: ['No write to a governed file'],
   done_when: ['A task opens with everything starting it costs'],
   done_when_elided: 0,
+  // What the line itself must check, apart from its block's (RG174), one of them folded in
+  // from another line.
+  done_when_own: ['Every dep opens its own line', 'A route hop opens too'],
+  done_when_own_elided: 1,
+  done_when_folded: { 'A route hop opens too': 'AL7' },
   held: [],
   landed: [],
   budget: {
@@ -390,5 +395,26 @@ describe('RG173: an id that opens its own line', () => {
     // The head is this line itself, drawn plainly: a link to the screen you are on is not
     // a way anywhere.
     expect(chain.textContent).toContain('AL1 → AL0')
+  })
+})
+
+describe('RG174: a line’s own finish line', () => {
+  it('draws the line’s own criteria apart from its block’s, and says which was folded in', async () => {
+    await at(taskPath(ROOT, 'AL1'))
+
+    const own = await screen.findByTestId('own-criteria')
+    expect(within(own).getByText('Every dep opens its own line')).toBeTruthy()
+    expect(within(own).getByText(fill(BASE['task.criteria.folded'], { id: 'AL7' }))).toBeTruthy()
+    expect(within(own).getByText(fill(BASE['task.criteria.elided'], { count: 1 }))).toBeTruthy()
+  })
+
+  it('keeps the block’s finish line where it was, since the two are not one list', async () => {
+    await at(taskPath(ROOT, 'AL1'))
+
+    const own = await screen.findByTestId('own-criteria')
+    // The block's lead is not in the line's own group: a caller merging them would assert
+    // the block's finish line about this one line.
+    expect(within(own).queryByText('A task opens with everything starting it costs')).toBeNull()
+    expect(screen.getByText('A task opens with everything starting it costs')).toBeTruthy()
   })
 })

@@ -20,7 +20,6 @@
 ## Block D — The project surface (one backlog, read)
 
 - 📋 **RG170** (deps: roadkeep list with readiness) **list prints no readiness per line, so every row costs a deps read and startable only cannot be offered** — Readiness is the engine's word, and a list of eight hundred is eight hundred reads before the column is full. → §RG170
-- 📋 **RG174** (deps: —) **a line's own criteria never reach its task screen, so what the ship must check reads as the block's finish line alone** — Brief sends done_when_own beside the block's leads and the reader declares only the second, so the leads ship --checked names go unshown. → §RG174
 
 ## Block E — The write path (the app composes an argv; the command writes)
 

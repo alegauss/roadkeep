@@ -167,23 +167,6 @@ the one that disagrees with the engine without anyone noticing.
 Until then the per-line reads stay. They are correct, just slow on a long list, and a
 project that large can narrow by block first.
 
-### §RG174 A line's own finish line
-
-A brief sends two lists of criteria: `done_when` for the line's block and
-`done_when_own` for the line itself, each with its elided count, and `done_when_folded`
-names which of the own leads came from another line. The reader declares the first pair
-only, so RG150's task screen draws the block's finish line and none of the line's own.
-
-The own leads are the ones that bind hardest. They are what `ship --checked` names, and
-a lead nobody names at the ship reads in the ledger as unchecked. A person opening the
-line is the one who has to verify them, and the screen they open shows none.
-
-**Read the three keys, and draw them as their own group above the block's.** The engine
-keeps them apart (a caller merging the two would assert the block's finish line about
-this line), so the screen does too. A folded lead names the line it came from beside it.
-The elided count is said as the non-goals' is, and an engine that sends no own list
-reads as empty.
-
 ## Block E — The write path (the app composes an argv; the command writes)
 
 ### §RG181 A keep with a bound
