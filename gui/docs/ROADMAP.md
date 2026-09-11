@@ -15,7 +15,7 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-- 📋 **RG145** (deps: RG143 ✅, RG16 ✅, RG17 ✅, RG18 ✅) **the window opens on a scaffold naming three packages, so the portfolio core already computes is drawn nowhere** — Main.dc.html draws the one screen this app exists for, and every reader behind its columns shipped with no route to show it. → §RG145
+- 🛠 **RG145** (deps: RG143 ✅, RG16 ✅, RG17 ✅, RG18 ✅) **the window opens on a scaffold naming three packages, so the portfolio core already computes is drawn nowhere** — Main.dc.html draws the one screen this app exists for, and every reader behind its columns shipped with no route to show it. → §RG145
 - 📋 **RG147** (deps: RG145, RG20 ✅) **the palette says it finds a line in every backlog and lists only surfaces, so search over all projects reaches no one** — RG20 shipped search across every open project, and the one box a person types into is fed from AREAS alone. → §RG147
 
 ## Block D — The project surface (one backlog, read)

@@ -1,6 +1,6 @@
 ---
 name: roadkeep-gui-roadmap-docs
-description: How to work a task in this project's roadmap — the five docs/ files (ROADMAP.md, CHANGELOG.md, IMPROVEMENTS.md, DECISIONS.md, DEFERRED.md) owned by the roadkeep CLI and never hand-edited, and above all the one-task-one-commit rule: every finished roadmap task ends with `run-commit.cmd -m "<title>"` from the repo root, code plus doc sync in that single commit. Use whenever adding a task, picking the next RG-number, marking a task shipped, retiring, deferring, linting, editing any of those files, executing a block or a list of RG ids, or finishing any task that touches this repo.
+description: How to work a task in this project's roadmap — the five docs/ files (ROADMAP.md, CHANGELOG.md, IMPROVEMENTS.md, DECISIONS.md, DEFERRED.md) owned by the roadkeep CLI and never hand-edited, and above all the one-task-one-commit rule: every finished roadmap task ends in one local commit — `git add -- <its paths>` then `git commit -F <message file>`, no Claude attribution, never pushed — code plus doc sync in that single commit. Use whenever adding a task, picking the next RG-number, marking a task shipped, retiring, deferring, linting, editing any of those files, executing a block or a list of RG ids, or finishing any task that touches this repo.
 ---
 
 # Roadmap tasks & committing
@@ -11,22 +11,26 @@ is a sentence that was true on the day it was written. Where you would want a nu
 file names the read instead. Keep it that way: the drift it is recovering from sent readers
 to three ids that had shipped and told them a suite of a thousand tests had not arrived.
 
-## ⛔ READ FIRST — one task, one `run-commit.cmd` (non-negotiable)
+## ⛔ READ FIRST — one task, one commit (non-negotiable)
 
-**A task is not finished until the commit landed.** The commit tool is
-`run-commit.cmd` (on the OS PATH, in `D:\Dev\bin`) — never `git commit` by hand:
+**A task is not finished until the commit landed.** Commit with plain `git`, staged by
+path, from the repo root — not `run-commit.cmd`, whose `git add *` takes the whole tree:
 
 ```
 cd d:\Git\alegauss\roadkeep-gui
-run-commit.cmd -m "<conventional-commits title, ASCII>"
+git add -- <this task's paths>
+git commit -F <message file>
 ```
 
-- **Always pass `-m`.** It stages everything and generates the body from the staged
-  diff; without a title it infers one, and for a docs/ROADMAP commit that means prose
-  about already-shipped work gets misread as `feat: implement <feature>`.
-- **ASCII in the title.** An em dash or an accent goes through `cmd` and may not arrive
-  as the bytes you typed — the same class the upstream `RK1474` recorded.
-- **`cd` to the repo root first** — `run-commit.cmd` stages relative to CWD.
+- **Stage by path, never everything** — no `git add -A`, `.` or `*`. Another session in
+  this checkout would have its files committed under your title, so
+  `git diff --cached --stat` must list this task's files alone.
+- **The message comes from a scratchpad file**: a conventional-commits title in ASCII, then
+  a few plain lines on what changed and why. `-F` keeps it off the command line, where an em
+  dash or an accent may not arrive as the bytes typed — the class upstream `RK1474` recorded.
+- **No attribution, no push.** No `Co-Authored-By` trailer, no "Generated with Claude
+  Code" line, no `--author`: the commit is the user's, and it stays local. Hooks run —
+  never `--no-verify`.
 - **The doc sync rides in the same commit as the code**, so the governed files never
   describe a state that did not ship.
 - **You may NOT do more than one task before committing.** A multi-task request
@@ -34,7 +38,7 @@ run-commit.cmd -m "<conventional-commits title, ASCII>"
   to run them one at a time, committing after each. One giant diff spanning many tasks
   is the failure this rule exists to prevent.
 - **A batch of ≥2 tasks runs under the `/loop` skill** (self-paced): exactly one task
-  per iteration, `run-commit.cmd` at the end of that iteration, then advance. Do not
+  per iteration, committed at the end of that iteration, then advance. Do not
   hand-roll a loop that defers commits to the end.
 - **Self-check before starting task N+1:** `git status` / `git log -1`. If the previous
   task's work is still in the working tree, stop and commit it first.
@@ -48,8 +52,8 @@ run-commit.cmd -m "<conventional-commits title, ASCII>"
   commit made with no live claim swallowed four files of unrelated work under its own title.
 
 The same rule applies to any finished unit of work in this repo, roadmap task or not:
-when the work is done and validated, commit it with `run-commit.cmd -m "…"` rather than
-leaving it in the tree.
+when the work is done and validated, commit it the same way rather than leaving it in the
+tree.
 
 ## The gate before the commit
 
