@@ -38,6 +38,17 @@ export function projectPath(root: string): string {
 }
 
 /**
+ * One line of one project (RG150), under the project it belongs to. No entry in `AREAS`
+ * either, for the same reason: a project's row is how a reader arrives.
+ */
+export const TASK_ROUTE = '/project/:root/task/:id'
+
+/** The route for one line. The id is encoded too: its shape is the project's, not this app's. */
+export function taskPath(root: string, id: string): string {
+  return `${projectPath(root)}/task/${encodeURIComponent(id)}`
+}
+
+/**
  * The sections and their surfaces, already filtered by whatever this reader may see —
  * which here is everything, there being no account and no privileges (a non-goal).
  *

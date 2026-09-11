@@ -150,3 +150,42 @@ export function whyNotStartable(detail: TaskDetail): string {
 export function designOf(detail: TaskDetail): string | null {
   return detail.payload.section?.body ?? null
 }
+
+/** The non-goals a brief carried, split on whether this line's design quotes them. */
+export interface QuotedFirst {
+  /** What the design quotes, in the engine's order: the leads it already reasoned about. */
+  readonly quoted: readonly string[]
+  /** The rest of the listed leads, in the order the file declares them. */
+  readonly rest: readonly string[]
+  /** How many the brief left out, so a sample is never drawn as the whole list. */
+  readonly elided: number
+}
+
+/**
+ * The non-goals, the ones this line quotes first (RG150).
+ *
+ * `quotes` is the engine's measurement of which leads the design names, which is the fact a
+ * reader acts on before the work: a quoted lead was reasoned about, and a bare one bounds the
+ * line without its author having said so. Nothing is matched here beyond the lead itself.
+ */
+export function quotedFirst(detail: TaskDetail): QuotedFirst {
+  const quoted = new Set(detail.payload.quotes)
+  return {
+    quoted: detail.payload.quotes,
+    rest: detail.payload.nonGoals.filter((lead) => !quoted.has(lead)),
+    elided: detail.payload.nonGoalsElided,
+  }
+}
+
+/**
+ * What Copy the brief hands on: the line as the file writes it, then its design as stored.
+ *
+ * **Both halves are the file's own text**, so nothing is composed but the blank line between
+ * them — the rendered line carries its marker, deps and pointer, and the body is passed
+ * through whole. A line with no design copies its line alone, and an engine that sent no
+ * rendered line copies the design alone rather than a line rebuilt here from its fields.
+ */
+export function briefToCopy(detail: TaskDetail): string {
+  const body = designOf(detail)
+  return [detail.payload.rendered, body ?? ''].filter((part) => part !== '').join('\n\n')
+}

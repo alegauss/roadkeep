@@ -91,6 +91,7 @@
 - ✅ **RG77** **a non-goal arrives as a lead alone, so the sentence that argues it stays in the file** — Each non-goal carries the sentence that argues it, off non_goals_why; an engine that publishes none answers null, not a blank reason (design recorded in `packages/core/src/binding.ts`).
 - ✅ **RG148** **a project cannot be opened in the window, so its lines, blocks and filters exist only as readers in core** — A portfolio row opens its backlog as rows, every chip an argument to list, readiness from deps, a started unheld line said so (design recorded in `packages/ui/src/Project.tsx`).
 - ✅ **RG149** **the changelog, decisions, improvements and deferred tabs are drawn as labels with nothing behind them** — The changelog, decisions, deferred and improvements tabs each read their own file; an undone entry says so, reasoning opens as the file has it (design recorded in `packages/ui/src/ProjectTabs.tsx`).
+- ✅ **RG150** **a task opens nowhere in the window, so brief's join of deps, design and binding lists is read by nobody** — A row's Open leads to the line as one brief: its design as the file stores it, readiness in the engine's words, the claim, and what binds it (design recorded in `packages/ui/src/Task.tsx`).
 
 ## Block E — The write path (the app composes an argv; the command writes)
 

@@ -1,0 +1,395 @@
+import {
+  briefToCopy,
+  folderName,
+  quotedFirst,
+  routeOf,
+  whereDesignLives,
+  type Design,
+  type DepStanding,
+  type TaskDetail,
+  type Whereabouts,
+} from '@rk/core'
+import { Button } from '@viglet/viglet-design-system'
+import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-system/bento'
+import { useCallback, useMemo, useState, type ReactNode } from 'react'
+import { useParams } from 'react-router-dom'
+
+import { projectPath } from './areas'
+import { Glyph, Pill, type Intent } from './marks'
+import { useTask, type OpenedTask } from './useTask'
+import { useWording } from './wording'
+
+/**
+ * One line, as brief joins it (RG150). `docs/design/Tarefa.dc.html` is the drawing, reached
+ * from a row's Open on the project surface.
+ *
+ * **One read.** Everything drawn is the brief `useTask` asked for, laid out by `core`: the
+ * hero is the line, the left panel is its design as the file stores it — the file's wrapping
+ * kept, `**` and `[[…]]` literal, no Markdown parsed — and the right column is what starting it
+ * costs. Readiness is the engine's word, the chains are the routes the brief resolved, and the
+ * marker and the claim sit side by side where they can disagree (RG74).
+ *
+ * **What binds the line** is the block's criteria the brief carried and the non-goals, the
+ * ones this design quotes first: a quoted lead is one its author already reasoned about.
+ *
+ * Copy the brief hands on the line as the file writes it and its design as stored, both the
+ * file's own text. Hand to Claude Code belongs to the session line and is absent until it
+ * lands, rather than drawn disabled. A paused line opens here too, with the store's entry and
+ * the verb that brings it back (RG80).
+ */
+
+/** What shipping inside this backlog can do about a dep, in the design system's intents. */
+const STANDING: Readonly<Record<DepStanding, Intent>> = {
+  settled: 'on',
+  waiting: 'warn',
+  never: 'error',
+}
+
+/** A card's heading: small, spaced, and in the catalogue like every other word. */
+function Label({ children }: { readonly children: ReactNode }) {
+  return (
+    <h3 className="text-muted-foreground mb-2 text-[11px] font-semibold tracking-wider uppercase">
+      {children}
+    </h3>
+  )
+}
+
+type Copying = { readonly kind: 'idle' } | { readonly kind: 'copied' } | { readonly failed: string }
+
+const IDLE: Copying = { kind: 'idle' }
+
+function CopyBrief({ detail }: { readonly detail: TaskDetail }) {
+  const say = useWording()
+  const [copying, setCopying] = useState<Copying>(IDLE)
+  const copy = useCallback(() => {
+    const text = briefToCopy(detail)
+    // Through a promise from the start, so a window with no clipboard at all is a refusal
+    // said beside the button and not an exception out of a click.
+    void Promise.resolve()
+      .then(() => navigator.clipboard.writeText(text))
+      .then(
+        () => {
+          setCopying({ kind: 'copied' })
+        },
+        (error: unknown) => {
+          setCopying({ failed: error instanceof Error ? error.message : '' })
+        },
+      )
+  }, [detail])
+
+  let said: string | null = null
+  if ('failed' in copying) said = say('task.copy.failed', { reason: copying.failed })
+  else if (copying.kind === 'copied') said = say('task.copied')
+
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <Button variant="outline" size="sm" onClick={copy}>
+        {say('task.copy')}
+      </Button>
+      <output className="text-muted-foreground min-h-4 text-xs">{said}</output>
+    </div>
+  )
+}
+
+/** The count against the limit, in the engine's numbers and its unit. */
+function Counted({ design }: { readonly design: Design }) {
+  const say = useWording()
+  const budget = design.budget
+  if (budget !== null && budget.written && budget.limit > 0) {
+    const fill = { taken: budget.taken, limit: budget.limit, unit: budget.unit, over: budget.over }
+    return <span>{say(budget.over > 0 ? 'task.design.over' : 'task.design.budget', fill)}</span>
+  }
+  return design.words === 0 ? null : (
+    <span>{say('task.design.count', { words: design.words })}</span>
+  )
+}
+
+/** The design as the file stores it: its heading, where it lives, and the prose whole. */
+function DesignPanel({ design }: { readonly design: Design }) {
+  const say = useWording()
+  if (design.state === 'absent') {
+    return (
+      <BentoPanel className="min-w-0" contentClassName="p-6">
+        <BentoEmptyState
+          title={say('task.design.none')}
+          description={design.absence === '' ? undefined : design.absence}
+        />
+      </BentoPanel>
+    )
+  }
+
+  return (
+    <BentoPanel className="min-w-0" contentClassName="p-6">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <h2 className="text-base font-semibold">{design.title}</h2>
+        <span className="text-muted-foreground font-mono text-xs wrap-anywhere">
+          {say('task.design.where', { anchor: design.anchor, where: whereDesignLives(design) })}
+        </span>
+      </div>
+      <p className="text-muted-foreground mt-1 flex flex-wrap gap-x-2 text-xs">
+        <Counted design={design} />
+        <span>{say('task.design.face')}</span>
+      </p>
+      <pre
+        data-testid="design"
+        className="text-foreground mt-4 font-sans text-[13.5px] leading-relaxed whitespace-pre-wrap wrap-anywhere"
+      >
+        {design.prose}
+      </pre>
+    </BentoPanel>
+  )
+}
+
+/** Readiness in the engine's word, each dep with its own, the routes, and what a ship frees. */
+function ReadinessCard({ task }: { readonly task: OpenedTask }) {
+  const say = useWording()
+  const { detail, graph } = task
+  const line = detail.payload
+
+  return (
+    <BentoPanel contentClassName="p-5">
+      <div className="mb-3">
+        {line.shipped ? (
+          <Pill intent="on">{say('task.shipped')}</Pill>
+        ) : (
+          <Pill intent={graph.readiness === 'ready' ? 'on' : 'warn'}>
+            {say('task.readiness', { readiness: graph.readiness })}
+          </Pill>
+        )}
+      </div>
+      <div className="flex flex-wrap items-center gap-2 text-xs">
+        {graph.edges.length === 0 ? (
+          <span className="text-muted-foreground">{say('project.deps.none')}</span>
+        ) : (
+          graph.edges.map((edge) => (
+            <Pill key={edge.dep} intent={STANDING[edge.standing]}>
+              <span className="font-mono">{edge.dep}</span>
+              <span>{edge.status}</span>
+            </Pill>
+          ))
+        )}
+      </div>
+      {line.requires.length === 0 ? null : (
+        <p className="text-muted-foreground mt-2 text-xs">
+          {say('task.requires', { what: line.requires.join(', ') })}
+        </p>
+      )}
+      {graph.chains.map((chain) => (
+        <p key={routeOf(chain)} className="mt-2 text-xs" data-testid="chain">
+          <span className="font-mono">{routeOf(chain)}</span>{' '}
+          <span className="text-muted-foreground">{chain.detail}</span>
+        </p>
+      ))}
+      {graph.unblocks === null ? null : (
+        <p className="text-muted-foreground mt-2 text-xs">
+          {say('task.unblocks', { count: graph.unblocks.count, of: graph.unblocks.of })}
+        </p>
+      )}
+    </BentoPanel>
+  )
+}
+
+/** The marker and the claim, and whether they agree — drawn, never settled here (RG74). */
+function UnderwayCard({ task }: { readonly task: OpenedTask }) {
+  const say = useWording()
+  const { underway: state, detail, asksWorking } = task
+  const held = state.held
+
+  let said = say('task.underway.idle')
+  if (held !== null && state.marked) {
+    said = say('task.underway.working', { by: held.by, since: held.since })
+  } else if (held !== null) {
+    said = say('task.underway.held', { by: held.by, since: held.since })
+  } else if (state.marked) {
+    said = say('task.underway.started')
+  }
+
+  return (
+    <BentoPanel contentClassName="p-5">
+      <Label>{say('task.underway')}</Label>
+      <div className="flex items-center gap-2 text-sm">
+        <Glyph>{detail.payload.status}</Glyph>
+        <span>{said}</span>
+      </div>
+      {asksWorking ? (
+        <div className="mt-2 text-xs">
+          {state.disagree ? (
+            <Pill intent="warn">{say('task.underway.disagree')}</Pill>
+          ) : (
+            <span className="text-muted-foreground">{say('task.underway.agree')}</span>
+          )}
+        </div>
+      ) : null}
+    </BentoPanel>
+  )
+}
+
+/** A group of leads as chips. The group's label says which, so no colour carries it alone. */
+function Leads({ leads, quoted }: { readonly leads: readonly string[]; readonly quoted: boolean }) {
+  const face = quoted ? 'border font-medium' : 'bg-muted text-muted-foreground'
+  return (
+    <ul className="flex flex-wrap gap-1.5">
+      {leads.map((lead) => (
+        <li key={lead} className={`rounded-md px-2 py-0.5 text-xs ${face}`}>
+          {lead}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+/** The block's criteria the brief carried, and the non-goals, the quoted ones first. */
+function BindsCard({ detail }: { readonly detail: TaskDetail }) {
+  const say = useWording()
+  const line = detail.payload
+  const bounds = quotedFirst(detail)
+
+  return (
+    <BentoPanel contentClassName="p-5">
+      <Label>{say('task.binds', { block: line.block })}</Label>
+      {line.doneWhen.length === 0 ? (
+        <p className="text-muted-foreground text-xs">{say('task.criteria.none')}</p>
+      ) : (
+        <ul className="flex flex-col gap-1.5">
+          {line.doneWhen.map((lead) => (
+            <li key={lead} className="text-[13px] font-medium">
+              {lead}
+            </li>
+          ))}
+        </ul>
+      )}
+      {line.doneWhenElided > 0 ? (
+        <p className="text-muted-foreground mt-1 text-xs">
+          {say('task.criteria.elided', { count: line.doneWhenElided })}
+        </p>
+      ) : null}
+
+      {bounds.quoted.length === 0 ? null : (
+        <section className="mt-4" data-testid="quoted">
+          <Label>{say('task.quoted')}</Label>
+          <Leads leads={bounds.quoted} quoted />
+        </section>
+      )}
+      <section className="mt-4" data-testid="bounds">
+        <Label>{say('task.bounds')}</Label>
+        <Leads leads={bounds.rest} quoted={false} />
+        {bounds.elided > 0 ? (
+          <p className="text-muted-foreground mt-1.5 text-xs">
+            {say('task.bounds.elided', { count: bounds.elided })}
+          </p>
+        ) : null}
+      </section>
+    </BentoPanel>
+  )
+}
+
+/** Where a line went when brief refused it: the store's entry and the way back, or nothing. */
+function Elsewhere({ whereabouts }: { readonly whereabouts: Whereabouts }) {
+  const say = useWording()
+  const { filing, pause, back, id } = whereabouts
+
+  if (filing === 'paused' && pause !== null) {
+    return (
+      <BentoPanel contentClassName="p-6">
+        <Label>{say('task.paused')}</Label>
+        <div className="flex flex-wrap items-center gap-2">
+          <Glyph>{pause.marker}</Glyph>
+          <span className="bg-muted text-muted-foreground rounded px-1.5 text-xs font-semibold">
+            {pause.block}
+          </span>
+          <span className="text-sm font-medium wrap-anywhere">{pause.symptom}</span>
+        </div>
+        <p className="text-muted-foreground mt-2 text-[13px] wrap-anywhere">{pause.why}</p>
+        {back === null ? null : (
+          <p className="mt-3 font-mono text-xs">
+            {say('task.paused.back', { verb: back.verb, id })}
+          </p>
+        )}
+      </BentoPanel>
+    )
+  }
+
+  let title = say('task.refused', { reason: whereabouts.said })
+  if (filing === 'unfiled') title = say('task.unfiled', { id })
+  if (filing === 'unknown') title = say('task.unknown')
+  return (
+    <BentoPanel contentClassName="p-6">
+      <BentoEmptyState
+        title={title}
+        description={filing === 'unknown' ? whereabouts.said : undefined}
+      />
+    </BentoPanel>
+  )
+}
+
+/** The block, what the marker is for here, then the line's symptom and why whole. */
+function Heading({ task }: { readonly task: OpenedTask }) {
+  const say = useWording()
+  const line = task.detail.payload
+  return (
+    <span className="flex flex-col gap-1">
+      <span className="flex flex-wrap items-center gap-2 text-xs">
+        <span className="font-semibold tracking-wider uppercase">
+          {say('task.block', { block: line.block })}
+        </span>
+        {task.meaning === '' ? null : <span className="text-muted-foreground">{task.meaning}</span>}
+      </span>
+      <span className="text-foreground text-base font-medium wrap-anywhere">{line.symptom}</span>
+      <span className="text-[13px] wrap-anywhere">{line.why}</span>
+    </span>
+  )
+}
+
+export function Task() {
+  const say = useWording()
+  const params = useParams()
+  const root = decodeURIComponent(params['root'] ?? '')
+  const id = decodeURIComponent(params['id'] ?? '')
+  const view = useTask(root, id)
+  const task = view.kind === 'open' ? view : null
+
+  let subtitle: ReactNode = null
+  if (view.kind === 'absent') subtitle = say('transport.absent')
+  if (view.kind === 'opening') subtitle = say('task.opening')
+  if (view.kind === 'refused') subtitle = say('task.refused', { reason: view.unreadable.message })
+  if (task !== null) subtitle = <Heading task={task} />
+  // Built once per answer: the hero takes them as props, and a fresh element every render
+  // would redraw it for nothing.
+  const leading = useMemo(
+    () =>
+      task === null ? undefined : (
+        <span className="text-2xl">
+          <Glyph>{task.detail.payload.status}</Glyph>
+        </span>
+      ),
+    [task],
+  )
+  const trailing = useMemo(
+    () => (task === null ? undefined : <CopyBrief detail={task.detail} />),
+    [task],
+  )
+
+  return (
+    <>
+      <BentoHero
+        backTo={projectPath(root)}
+        backLabel={folderName(root)}
+        leading={leading}
+        title={id}
+        subtitle={subtitle}
+        trailing={trailing}
+      />
+      {task === null ? null : (
+        <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_24rem]">
+          <DesignPanel design={task.design} />
+          <div className="flex min-w-0 flex-col gap-3">
+            <ReadinessCard task={task} />
+            <UnderwayCard task={task} />
+            <BindsCard detail={task.detail} />
+          </div>
+        </div>
+      )}
+      {view.kind === 'elsewhere' ? <Elsewhere whereabouts={view.whereabouts} /> : null}
+    </>
+  )
+}

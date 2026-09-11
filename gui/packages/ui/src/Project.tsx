@@ -13,9 +13,9 @@ import {
 import { Button } from '@viglet/viglet-design-system'
 import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-system/bento'
 import { useCallback, useState, type ReactNode } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 
-import { HOME_ROUTE } from './areas'
+import { HOME_ROUTE, taskPath } from './areas'
 import { Glyph, Pill } from './marks'
 import { ChangelogTab, DecisionsTab, DeferredTab, ImprovementsTab } from './ProjectTabs'
 import { useProject, type OpenedSurface } from './useProject'
@@ -38,9 +38,10 @@ import { useWording } from './wording'
  * carrying the working marker says, beside it, whether anybody holds it (RG74): the marker
  * and the claim are two facts, and where they disagree that is drawn and not resolved.
  *
- * Absent rather than disabled: Run the gate and File a line, which are RG152's and RG151's,
- * and Open on a row, which is RG150's. The other governed files are tabs of their own (RG149),
- * and a role this window does not read is a tab drawn disabled rather than left out.
+ * Absent rather than disabled: Run the gate and File a line, which are RG152's and RG151's.
+ * Open on a row leads to the line as brief joins it (RG150). The other governed files are tabs
+ * of their own (RG149), and a role this window does not read is a tab drawn disabled rather
+ * than left out.
  */
 
 /**
@@ -141,10 +142,12 @@ function Readiness({
 }
 
 function Line({
+  root,
   line,
   deps,
   state,
 }: {
+  readonly root: string
   readonly line: TaskLine
   readonly deps: DepsPayload | undefined
   readonly state: Underway | undefined
@@ -185,7 +188,18 @@ function Line({
           </span>
         </div>
       </div>
-      <Readiness deps={deps} state={state} />
+      <div className="flex flex-col items-start gap-2">
+        <Readiness deps={deps} state={state} />
+        <Button asChild size="sm">
+          <Link
+            to={taskPath(root, line.id)}
+            aria-label={say('project.line.open.named', { id: line.id })}
+            data-testid="open-line"
+          >
+            {say('project.line.open')}
+          </Link>
+        </Button>
+      </div>
     </li>
   )
 }
@@ -289,6 +303,7 @@ function Roadmap({
             {lines.map((line) => (
               <Line
                 key={line.id}
+                root={surface.project.root}
                 line={line}
                 deps={surface.readiness[line.id]}
                 state={surface.underway[line.id]}

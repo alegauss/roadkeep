@@ -656,6 +656,11 @@ export interface BriefPayload {
    */
   readonly shipped: boolean
   readonly block: string
+  /**
+   * The line as the file writes it, marker and pointer included (RG150). Empty from an engine
+   * that did not send it. What Copy the brief hands on, since it is the file's own text.
+   */
+  readonly rendered: string
   readonly symptom: string
   readonly why: string
   readonly deps: readonly string[]
@@ -690,6 +695,12 @@ export interface BriefPayload {
   readonly unblocks: Unblocks | null
   readonly nonGoals: readonly string[]
   readonly nonGoalsElided: number
+  /**
+   * The non-goal leads this line's design quotes, in the engine's measurement (RG150). A
+   * quoted lead is one the design already reasoned about, which is why the task screen lists
+   * those first. Empty where there is no design, and from an engine that did not send it.
+   */
+  readonly quotes: readonly string[]
   readonly doneWhen: readonly string[]
   readonly doneWhenElided: number
   /** Workers holding this line right now. Empty is the ordinary case. */
@@ -727,6 +738,7 @@ export const readBriefPayload: Reader<BriefPayload> = record<BriefPayload>(
     status: aString,
     shipped: orMissing(aBoolean, false),
     block: aString,
+    rendered: orMissing(aString, ''),
     symptom: aString,
     why: aString,
     deps: listOf(aString),
@@ -741,6 +753,7 @@ export const readBriefPayload: Reader<BriefPayload> = record<BriefPayload>(
     unblocks: orMissing(orNull(readUnblocks), null),
     nonGoals: orMissing(listOf(aString), []),
     nonGoalsElided: orMissing(aNumber, 0),
+    quotes: orMissing(listOf(aString), []),
     doneWhen: orMissing(listOf(aString), []),
     doneWhenElided: orMissing(aNumber, 0),
     held: orMissing(listOf(readHeldClaim), []),

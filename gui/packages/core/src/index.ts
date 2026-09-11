@@ -109,8 +109,16 @@ export {
 export type { BacklogFilter, FilterChoices } from './filters'
 export { designFrom, whereDesignLives, wordsAgainstLimit } from './design'
 export type { Design, DesignState } from './design'
-export { designOf, detailFrom, saidOfUnderway, underway, whyNotStartable } from './detail'
-export type { TaskDetail, Underway } from './detail'
+export {
+  briefToCopy,
+  designOf,
+  detailFrom,
+  quotedFirst,
+  saidOfUnderway,
+  underway,
+  whyNotStartable,
+} from './detail'
+export type { QuotedFirst, TaskDetail, Underway } from './detail'
 export { expandedFrom, graphFrom, graphOfBrief, routeOf, standingOf } from './graph'
 export type { Chain, DepStanding, Edge, Graph } from './graph'
 export { claimingBrief, handoverOf, heldBy, mayHandOver, saidOfHandover } from './handover'

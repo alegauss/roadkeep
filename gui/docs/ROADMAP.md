@@ -15,16 +15,17 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-- 📋 **RG147** (deps: RG145 ✅, RG20 ✅, RG150, a grouped palette) **the palette says it finds a line in every backlog and lists only surfaces, so search over all projects reaches no one** — RG20's search reaches no screen, and the package palette only filters nav items. → §RG147
+- 📋 **RG147** (deps: RG145 ✅, RG20 ✅, RG150 ✅, a grouped palette) **the palette says it finds a line in every backlog and lists only surfaces, so search over all projects reaches no one** — RG20's search reaches no screen, and the package palette only filters nav items. → §RG147
 - 📋 **RG166** (deps: RG144 ✅) **every row's gate reads unknown, since the ledger RG18 built is fed by nothing a window runs** — recordGate and gateHealth are pure and tested, and no process runs lint for the portfolio or hands a verdict to the renderer. → §RG166
 - 📋 **RG167** (deps: RG144 ✅) **a row is read once, so a line shipped in a terminal leaves the portfolio stale until the window reopens** — RG144 tells a screen when a project's files move, and the portfolio subscribes to nothing, so its counts outlive the backlog they came from. → §RG167
 
 ## Block D — The project surface (one backlog, read)
 
 - ⏳ **RG28** (deps: roadkeep RK1677) **the deferred store has no order, so which pause has stood longest is a question only a terminal can ask** — How long each pause has stood, which --stale orders by and prints for a terminal, putting none of it in the payload. → §RG28
-- 📋 **RG150** (deps: RG148 ✅, RG23 ✅, RG24 ✅, RG76 ✅) **a task opens nowhere in the window, so brief's join of deps, design and binding lists is read by nobody** — Tarefa.dc.html draws the detail as one brief read, and detailFrom already returns every part of it. → §RG150
 - 📋 **RG170** (deps: roadkeep list with readiness) **list prints no readiness per line, so every row costs a deps read and startable only cannot be offered** — Readiness is the engine's word, and a list of eight hundred is eight hundred reads before the column is full. → §RG170
 - 📋 **RG171** (deps: —) **the improvements tab names each design by its pointer and not its heading, so two designs look alike until opened** — The heading is the name a design's author gave it, and list carries only the pointer, so the tab shows an id where it could say what the design is. → §RG171
+- 📋 **RG173** (deps: —) **a dep or a chain hop on the task screen is text, so reaching the line it names means going back through the project** — The brief says which ids are tasks here, and each already has a route that opens it as one read. → §RG173
+- 📋 **RG174** (deps: —) **a line's own criteria never reach its task screen, so what the ship must check reads as the block's finish line alone** — Brief sends done_when_own beside the block's leads and the reader declares only the second, so the leads ship --checked names go unshown. → §RG174
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
@@ -34,7 +35,7 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG153** (deps: RG150, RG144 ✅, RG40 ✅, RG41 ✅) **nothing in the window hands a task to Claude Code or shows the session, so block F's acts and landings reach no one** — Sessao.dc.html draws the handover, the stream as acts and what moved in the backlog beside it, and every reader for them has shipped. → §RG153
+- 📋 **RG153** (deps: RG150 ✅, RG144 ✅, RG40 ✅, RG41 ✅) **nothing in the window hands a task to Claude Code or shows the session, so block F's acts and landings reach no one** — Sessao.dc.html draws the handover, the stream as acts and what moved in the backlog beside it, and every reader for them has shipped. → §RG153
 
 ## Block G — The shell (an executable now, a service later)
 
@@ -50,6 +51,7 @@
 ## Block H — The look (a design system for governed prose)
 
 - 📋 **RG168** (deps: —) **an unreadable row's reason is composed in English in core, so a Portuguese window shows it untranslated** — Resolution and the opening write their own sentences into Unreadable.message, and the row draws that field whatever language is speaking. → §RG168
+- 📋 **RG172** (deps: RG168) **a listing narrower than its file is explained in English composed in core, so a Portuguese window shows it untranslated** — refusedSummary builds the sentence and the backlog draws it, and five more core helpers compose sentences the next screen would draw the same way. → §RG172
 
 ## Done when — Block A
 

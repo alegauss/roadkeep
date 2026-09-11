@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest'
 
-import { designOf, detailFrom, saidOfUnderway, underway, whyNotStartable } from './detail'
+import {
+  briefToCopy,
+  designOf,
+  detailFrom,
+  quotedFirst,
+  saidOfUnderway,
+  underway,
+  whyNotStartable,
+} from './detail'
 import { readBriefPayload, type BriefPayload } from './payloads'
 
 /** Captured from a real `brief --json`, trimmed to the keys the shape declares. */
@@ -278,6 +286,61 @@ describe('RG74: the marker and the claim, which are two facts', () => {
 
     expect(unasked.marked).toBe(false)
     expect(unasked.disagree).toBe(false)
+  })
+})
+
+describe('RG150: what binds the line, the quoted non-goals first', () => {
+  it('lists the leads the design quotes ahead of the rest', () => {
+    const bounds = quotedFirst(
+      detailFrom(
+        brief({
+          non_goals: ['No Markdown parsed in this app', 'No write to a governed file', 'No store'],
+          quotes: ['No write to a governed file'],
+        }),
+      ),
+    )
+
+    expect(bounds.quoted).toEqual(['No write to a governed file'])
+    expect(bounds.rest).toEqual(['No Markdown parsed in this app', 'No store'])
+  })
+
+  it('keeps a quoted lead the sample left out, since the engine measured it', () => {
+    // `quotes` is measured against the design and the listing is a sample: a lead can be in
+    // the first and past the cut of the second, and it is still the one the author answered.
+    const bounds = quotedFirst(
+      detailFrom(
+        brief({ quotes: ['No dates, estimates, velocity or burndown'], non_goals_elided: 8 }),
+      ),
+    )
+
+    expect(bounds.quoted).toEqual(['No dates, estimates, velocity or burndown'])
+    expect(bounds.rest).toHaveLength(2)
+    expect(bounds.elided).toBe(8)
+  })
+
+  it('reads no quotes from an engine that sent none', () => {
+    // RAW has no `quotes` key, which is what a brief from before it looks like.
+    expect(quotedFirst(detailFrom(brief())).quoted).toEqual([])
+  })
+})
+
+describe('RG150: what Copy the brief hands on', () => {
+  it('is the line as the file writes it, then the design as stored', () => {
+    const body = 'First paragraph,\nwrapped where the file wraps it.\n\n**Kept** literal.'
+    const detail = detailFrom(brief({ section: { ...RAW.section, body } }))
+
+    expect(briefToCopy(detail)).toBe(`- 🛠 **RG23** …\n\n${body}`)
+  })
+
+  it('is the line alone where no design is written', () => {
+    expect(briefToCopy(detailFrom(brief({ section: null })))).toBe('- 🛠 **RG23** …')
+  })
+
+  it('never rebuilds a line the engine did not send', () => {
+    // A line put together here from its fields would be a field this app composed.
+    const detail = detailFrom(brief({ rendered: undefined }))
+
+    expect(briefToCopy(detail)).toBe('The detail is the brief payload and nothing beside it.')
   })
 })
 

@@ -183,29 +183,6 @@ The order is not a verdict, and drawing it must not make it one. How long a paus
 stand is a judgement about work — the same one `[claims] held` refuses to make — so the
 oldest is first and what that means is the reader's.
 
-### §RG150 The task, as brief joins it
-
-`Tarefa.dc.html` is one `brief`: block D's first criterion is that the screen is one
-read and not six, and `detailFrom` already joins it — the line, the resolved deps, the
-design whole, what a ship unblocks and the lists that bind it.
-
-**The hero** is the id, marker and block over the symptom, with Copy the brief and Hand
-to Claude Code. The second belongs to the session line and is absent until it lands.
-
-**The left panel is the design as the file stores it**: title, the anchor and where it
-lives from `whereDesignLives`, the words against the limit from `wordsAgainstLimit`, and
-the body in the text face with the file's wrapping kept and `**` and `[[RG88]]` literal.
-That is block H's criterion about the face, drawn; no Markdown is parsed. A line with no
-section says so with the absence `designOf` returns.
-
-**The right column** is three cards. Readiness in the engine's words, with the chain
-`graphOfBrief` routes and how many open lines a ship unblocks. Underway, which is
-`underway`: whether the marker and the claim registry agree, naming the holder if one
-does. What binds the line: the block's criteria and the non-goals, the ones this line
-quotes first.
-
-A paused line opens here too, with the typed fields RG80 made its refusal carry.
-
 ### §RG170 Readiness off the listing
 
 RG148 draws each row's readiness from `deps`, one read per listed line, because `list`
@@ -247,6 +224,41 @@ that held every body would be the whole file this app exists not to reproduce.
 
 If RG170's listing grows the heading as well as the readiness, this becomes a field read
 off the list, and the per-row reads go with it.
+
+### §RG173 An id that opens its own line
+
+RG150's task screen draws each dep as a pill with the engine's word beside it, the
+chains as routes, and the ids a ship frees as a count. None of them is a way to the line
+it names. A reader following a blocker goes back to the project, finds the row and opens
+it, which is what RG25 laid the graph out to spare them.
+
+**An id the brief calls a task here is a link to its own route.** `taskPath(root, id)`
+is the whole of it, and the answer on the far side is another brief. A shipped dep still
+briefs, so it opens as the ledger's entry and not as a dead end. What the brief says
+about each dep decides what is linked, and nothing is recognised by its shape, since an
+id's shape is the project's.
+
+**An edge whose standing is `never` stays text.** A dep in another repository, or on
+work roadkeep has not published, has no route in this window, and a link that opened a
+refusal would draw it as a line that is merely missing. The same holds for a route's
+last hop when the chain ends outside.
+
+### §RG174 A line's own finish line
+
+A brief sends two lists of criteria: `done_when` for the line's block and
+`done_when_own` for the line itself, each with its elided count, and `done_when_folded`
+names which of the own leads came from another line. The reader declares the first pair
+only, so RG150's task screen draws the block's finish line and none of the line's own.
+
+The own leads are the ones that bind hardest. They are what `ship --checked` names, and
+a lead nobody names at the ship reads in the ledger as unchecked. A person opening the
+line is the one who has to verify them, and the screen they open shows none.
+
+**Read the three keys, and draw them as their own group above the block's.** The engine
+keeps them apart (a caller merging the two would assert the block's finish line about
+this line), so the screen does too. A folded lead names the line it came from beside it.
+The elided count is said as the non-goals' is, and an engine that sends no own list
+reads as empty.
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
@@ -500,3 +512,27 @@ engine's stderr, stays as the engine wrote it.
 **The pseudo-locale run should find it.** RG51's run draws the window with no project on
 it, so no row reason has ever been on the screen it reads. Drawing one unresolved
 project there turns this defect into a red run the day it is written.
+
+### §RG172 A narrowed listing in the window's language
+
+RG148's backlog draws `refusedSummary` under the chips when a listing is narrower than
+its file, past `[reads] list` or with lines the grammar refused. The sentence is
+composed in core, in English, so a Portuguese window prints it untranslated. RG168 files
+the same defect for a row's `Unreadable.message`, and this is its twin on the project
+screen.
+
+Five more helpers compose screen sentences in core that no screen draws yet:
+`saidOfUnderway`, `whyNotStartable`, `wordsAgainstLimit`, `whereFiled` through
+`Whereabouts.sentence`, and `saidOfHandover`, besides the reasons `narrowingOfBrief`
+gives. RG150's task screen needed three of them and said each again in catalogue keys,
+so a helper and a key now say one thing twice and can drift apart.
+
+**RG168's fix, applied here: a code and its fills, and the sentence in the catalogue.**
+`refusedSummary` becomes a reader that returns which case applies and the numbers it
+fills, whether over the bound with a block to ask for, over it with none, or lines
+refused. The backlog then looks the sentence up through `say`. A helper a screen already
+replaced with keys is deleted with its tests, since keeping it keeps the English copy,
+and one that nothing draws goes the same way.
+
+**The pseudo-locale run should see a narrowed listing.** RG51's run draws the window
+with no project on it, so this sentence has never been on the screen that run reads.
