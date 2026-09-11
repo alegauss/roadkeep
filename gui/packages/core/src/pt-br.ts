@@ -123,6 +123,7 @@ export const PT_BR: Wording = {
   'task.design.none': 'Nenhum design foi escrito para esta linha.',
   'task.readiness': '{readiness} — a palavra é do engine, não deste app',
   'task.requires': 'precisa de {what}',
+  'task.dep.open': 'Abrir {id}',
   'task.unblocks': 'entregar esta desbloqueia {count} de {of} linhas abertas',
   'task.underway': 'Em andamento',
   'task.underway.working': '{by} está nela, desde {since}',

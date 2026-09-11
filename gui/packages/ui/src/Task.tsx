@@ -3,10 +3,13 @@ import {
   folderName,
   handoverOf,
   mayHandOver,
+  hopsOpening,
+  opensHere,
   quotedFirst,
   routeOf,
   whereDesignLives,
   reasonOf,
+  type Chain,
   type Design,
   type DepStanding,
   type HandedOver,
@@ -20,7 +23,7 @@ import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-sy
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
-import { projectPath, sessionPath } from './areas'
+import { projectPath, sessionPath, taskPath } from './areas'
 import { getBridge } from './bridge'
 import { Glyph, Pill, type Intent } from './marks'
 import { useTask, type OpenedTask } from './useTask'
@@ -253,8 +256,45 @@ function DesignPanel({ design }: { readonly design: Design }) {
   )
 }
 
+/**
+ * One route, drawn hop by hop so each hop that opens is a way to its line (RG173).
+ *
+ * The arrow between them is the one thing composed here, as `routeOf` composes it for a
+ * route drawn whole; the head is this line itself and is drawn plainly, since a link to the
+ * screen you are on is not a way anywhere.
+ */
+function Route({ root, chain }: { readonly root: string; readonly chain: Chain }) {
+  const say = useWording()
+  const opening = hopsOpening(chain)
+
+  return (
+    <p className="mt-2 text-xs" data-testid="chain">
+      <span className="font-mono">
+        {chain.path[0] ?? ''}
+        {chain.hops.map((hop, at) => (
+          <span key={hop}>
+            {' → '}
+            {opening[at] === true ? (
+              <Link
+                to={taskPath(root, hop)}
+                aria-label={say('task.dep.open', { id: hop })}
+                data-testid="hop-open"
+              >
+                {hop}
+              </Link>
+            ) : (
+              <span data-testid="hop-text">{hop}</span>
+            )}
+          </span>
+        ))}
+      </span>{' '}
+      <span className="text-muted-foreground">{chain.detail}</span>
+    </p>
+  )
+}
+
 /** Readiness in the engine's word, each dep with its own, the routes, and what a ship frees. */
-function ReadinessCard({ task }: { readonly task: OpenedTask }) {
+function ReadinessCard({ task, root }: { readonly task: OpenedTask; readonly root: string }) {
   const say = useWording()
   const { detail, graph } = task
   const line = detail.payload
@@ -274,12 +314,30 @@ function ReadinessCard({ task }: { readonly task: OpenedTask }) {
         {graph.edges.length === 0 ? (
           <span className="text-muted-foreground">{say('project.deps.none')}</span>
         ) : (
-          graph.edges.map((edge) => (
-            <Pill key={edge.dep} intent={STANDING[edge.standing]}>
-              <span className="font-mono">{edge.dep}</span>
-              <span>{edge.status}</span>
-            </Pill>
-          ))
+          graph.edges.map((edge) => {
+            const pill = (
+              <Pill intent={STANDING[edge.standing]}>
+                <span className="font-mono">{edge.dep}</span>
+                <span>{edge.status}</span>
+              </Pill>
+            )
+            // A dep this window can open is a way to its line; one it cannot stays text,
+            // because a link that opened a refusal would draw it as merely missing (RG173).
+            return opensHere(edge) ? (
+              <Link
+                key={edge.dep}
+                to={taskPath(root, edge.dep)}
+                aria-label={say('task.dep.open', { id: edge.dep })}
+                data-testid="dep-open"
+              >
+                {pill}
+              </Link>
+            ) : (
+              <span key={edge.dep} data-testid="dep-text">
+                {pill}
+              </span>
+            )
+          })
         )}
       </div>
       {line.requires.length === 0 ? null : (
@@ -288,10 +346,7 @@ function ReadinessCard({ task }: { readonly task: OpenedTask }) {
         </p>
       )}
       {graph.chains.map((chain) => (
-        <p key={routeOf(chain)} className="mt-2 text-xs" data-testid="chain">
-          <span className="font-mono">{routeOf(chain)}</span>{' '}
-          <span className="text-muted-foreground">{chain.detail}</span>
-        </p>
+        <Route key={routeOf(chain)} root={root} chain={chain} />
       ))}
       {graph.unblocks === null ? null : (
         <p className="text-muted-foreground mt-2 text-xs">
@@ -503,7 +558,7 @@ export function Task() {
         <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_24rem]">
           <DesignPanel design={task.design} />
           <div className="flex min-w-0 flex-col gap-3">
-            <ReadinessCard task={task} />
+            <ReadinessCard task={task} root={root} />
             <UnderwayCard task={task} />
             <BindsCard detail={task.detail} />
           </div>

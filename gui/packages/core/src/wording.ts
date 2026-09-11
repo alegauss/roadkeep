@@ -134,6 +134,7 @@ export const EN = {
   'task.design.none': 'No design is written for this line.',
   'task.readiness': "{readiness} — the engine's word, not this app's",
   'task.requires': 'needs {what}',
+  'task.dep.open': 'Open {id}',
   'task.unblocks': 'shipping this unblocks {count} of {of} open lines',
   'task.underway': 'Underway',
   'task.underway.working': '{by} is working it, since {since}',

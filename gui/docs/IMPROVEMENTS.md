@@ -167,24 +167,6 @@ the one that disagrees with the engine without anyone noticing.
 Until then the per-line reads stay. They are correct, just slow on a long list, and a
 project that large can narrow by block first.
 
-### §RG173 An id that opens its own line
-
-RG150's task screen draws each dep as a pill with the engine's word beside it, the
-chains as routes, and the ids a ship frees as a count. None of them is a way to the line
-it names. A reader following a blocker goes back to the project, finds the row and opens
-it, which is what RG25 laid the graph out to spare them.
-
-**An id the brief calls a task here is a link to its own route.** `taskPath(root, id)`
-is the whole of it, and the answer on the far side is another brief. A shipped dep still
-briefs, so it opens as the ledger's entry and not as a dead end. What the brief says
-about each dep decides what is linked, and nothing is recognised by its shape, since an
-id's shape is the project's.
-
-**An edge whose standing is `never` stays text.** A dep in another repository, or on
-work roadkeep has not published, has no route in this window, and a link that opened a
-refusal would draw it as a line that is merely missing. The same holds for a route's
-last hop when the chain ends outside.
-
 ### §RG174 A line's own finish line
 
 A brief sends two lists of criteria: `done_when` for the line's block and

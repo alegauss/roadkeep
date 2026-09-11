@@ -289,7 +289,8 @@ describe('RG150: the line, as brief joins it', () => {
     expect(screen.getByText('unresolvable')).toBeTruthy()
     expect(screen.getByText('roadkeep RK1')).toBeTruthy()
     expect(screen.getByText(fill(BASE['task.requires'], { what: 'signing-cert' }))).toBeTruthy()
-    expect(within(screen.getByTestId('chain')).getByText('AL1 → AL0')).toBeTruthy()
+    // Drawn hop by hop since RG173, so the route is the element's text and not one node.
+    expect(screen.getByTestId('chain').textContent).toContain('AL1 → AL0')
     expect(screen.getByText(fill(BASE['task.unblocks'], { count: 2, of: 7 }))).toBeTruthy()
   })
 
@@ -356,5 +357,38 @@ describe('RG150: a paused line opens too (RG80)', () => {
     expect(
       screen.getByText(fill(BASE['task.paused.back'], { verb: 'resume', id: 'AL5' })),
     ).toBeTruthy()
+  })
+})
+
+describe('RG173: an id that opens its own line', () => {
+  it('links a dep the brief calls a task here, to its own route', async () => {
+    await at(taskPath(ROOT, 'AL1'))
+
+    const opened = await screen.findByTestId('dep-open')
+    expect(opened.getAttribute('href')).toBe(taskPath(ROOT, 'AL0'))
+    expect(opened.textContent).toContain('AL0')
+  })
+
+  it('leaves a dep this window cannot open as text, so it is not drawn as merely missing', async () => {
+    await at(taskPath(ROOT, 'AL1'))
+
+    await screen.findByTestId('dep-open')
+    // `roadkeep RK1` is work outside this backlog: the engine calls it unresolvable, and
+    // there is no route in this window that would answer for it.
+    expect(screen.getByTestId('dep-text').textContent).toContain('roadkeep RK1')
+    expect(screen.queryAllByTestId('dep-open').map((one) => one.textContent)).not.toContain(
+      'roadkeep RK1',
+    )
+  })
+
+  it('links each hop of a route, since every hop is a line this backlog walked to', async () => {
+    await at(taskPath(ROOT, 'AL1'))
+
+    const chain = await screen.findByTestId('chain')
+    const hop = within(chain).getByTestId('hop-open')
+    expect(hop.getAttribute('href')).toBe(taskPath(ROOT, 'AL0'))
+    // The head is this line itself, drawn plainly: a link to the screen you are on is not
+    // a way anywhere.
+    expect(chain.textContent).toContain('AL1 → AL0')
   })
 })

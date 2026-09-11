@@ -195,6 +195,32 @@ export function routeOf(chain: Chain, arrow = ' → '): string {
 }
 
 /**
+ * Whether this dep is a line this window can open (RG173).
+ *
+ * Two conditions, both the engine's. It has to be a task in this backlog — the brief says
+ * which, and nothing here recognises an id by its shape, since an id's shape is the
+ * project's — and its standing must not be `never`: a dep in another repository, or on work
+ * roadkeep has not published, has no route in this window, and a link that opened a refusal
+ * would draw it as a line that is merely missing.
+ *
+ * A shipped dep opens: it briefs as the ledger's entry, which is an answer and not a dead end.
+ */
+export function opensHere(edge: Edge): boolean {
+  return edge.kind === 'task' && edge.standing !== 'never'
+}
+
+/**
+ * Which hops of a route open, in the order the route draws them (RG173).
+ *
+ * Every hop is a line this backlog walked to, so every hop opens — except the last of a
+ * chain that ends outside it, which is the id the walk stopped at and cannot be followed to.
+ */
+export function hopsOpening(chain: Chain): readonly boolean[] {
+  const outside = chain.standing === 'never'
+  return chain.hops.map((_, at) => !(outside && at === chain.hops.length - 1))
+}
+
+/**
  * The dep behind a hop, where it is not the hop itself.
  *
  * A dep naming a block or a range expands to the members behind it, so `via` and `path`

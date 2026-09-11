@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest'
 
-import { expandedFrom, graphFrom, graphOfBrief, routeOf, standingOf } from './graph'
+import {
+  expandedFrom,
+  graphFrom,
+  graphOfBrief,
+  routeOf,
+  standingOf,
+  opensHere,
+  type Edge,
+} from './graph'
 import { readBriefPayload, readDepsPayload, type BriefPayload, type DepsPayload } from './payloads'
 
 /** Captured from a real `deps --json` on a line blocked inside the backlog. */
@@ -263,5 +271,35 @@ describe('RG76: the graph a brief already sent', () => {
     const graph = graphOfBrief(brief())
 
     expect(graph.edges.map((edge) => edge.standing)).toEqual(['settled', 'waiting'])
+  })
+})
+
+describe('RG173: which ids this window can open', () => {
+  const edge = (over: Partial<Edge>): Edge => ({
+    dep: 'AL0',
+    kind: 'task',
+    status: 'shipped',
+    detail: '',
+    standing: 'settled',
+    ...over,
+  })
+
+  it('opens a dep the brief calls a task here, shipped or open', () => {
+    expect(opensHere(edge({ status: 'shipped', standing: 'settled' }))).toBe(true)
+    expect(opensHere(edge({ status: 'open', standing: 'waiting' }))).toBe(true)
+  })
+
+  it('does not open one whose standing is never, whatever kind it is', () => {
+    // A dep in another repository, or on work roadkeep has not published: a link there
+    // would open a refusal and draw the line as merely missing.
+    expect(opensHere(edge({ standing: 'never' }))).toBe(false)
+    expect(opensHere(edge({ kind: 'task', standing: 'never' }))).toBe(false)
+  })
+
+  it('does not open anything the brief does not call a task, whatever its id looks like', () => {
+    // Nothing here recognises an id by its shape: an id's shape is the project's.
+    expect(opensHere(edge({ kind: 'outside' }))).toBe(false)
+    expect(opensHere(edge({ kind: 'block' }))).toBe(false)
+    expect(opensHere(edge({ kind: '' }))).toBe(false)
   })
 })

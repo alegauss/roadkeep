@@ -117,7 +117,15 @@ export { designFrom, whereDesignLives } from './design'
 export type { Design, DesignState } from './design'
 export { briefToCopy, designOf, detailFrom, quotedFirst, underway } from './detail'
 export type { QuotedFirst, TaskDetail, Underway } from './detail'
-export { expandedFrom, graphFrom, graphOfBrief, routeOf, standingOf } from './graph'
+export {
+  expandedFrom,
+  graphFrom,
+  graphOfBrief,
+  hopsOpening,
+  opensHere,
+  routeOf,
+  standingOf,
+} from './graph'
 export type { Chain, DepStanding, Edge, Graph } from './graph'
 export { claimingBrief, handoverOf, heldBy, mayHandOver } from './handover'
 export type { Handover } from './handover'
