@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from typing import TYPE_CHECKING
 
 from roadkeep import attesting, claiming
 
@@ -77,6 +78,9 @@ from roadkeep.verbs.declaring import (
 from roadkeep.verbs.reading import _body_reader, _one_body, _piped
 from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK, EXIT_USAGE, REFUSALS, _refused
 from roadkeep.weighing import Weighed, weigh
+
+if TYPE_CHECKING:  # a name for the annotation only: the module is imported where it is called
+    from roadkeep.deferring import Standing as Stood
 
 
 def _role(args: argparse.Namespace) -> str:
@@ -168,12 +172,15 @@ def _list(config: Config, args: argparse.Namespace) -> Result | int:
     # this split already assumes.
     have = getattr(args, "have", ())
     listed = census.listed(args.ids)
+    stood = _stood(config, args, census)
     # **One bound, taken over the register that was asked for** (RK1615). The cap is measured on
     # what would be *printed*, and the two registers are different sizes — so this reads
     # `args.json` where the rest of the handler no longer does. That is not the branch the type
     # removed: this decides the verdict, not which answer to hand over.
     bound = census.bounded(
-        json.dumps(census.listing(standing, have), indent=2) if args.json else listed,
+        json.dumps(census.listing(standing, have, stood=stood), indent=2)
+        if args.json
+        else listed,
         config.list_read,
         scoped=bool(args.block),
         argv=_list_argv(args),
@@ -183,35 +190,50 @@ def _list(config: Config, args: argparse.Namespace) -> Result | int:
         # consumer piping `--ids` gets the empty listing the exit code explains, and never
         # a sentence where the ids were.
         return Result(
-            census.listing(standing, have, bound),
+            census.listing(standing, have, bound, stood=stood),
             "",
             noted=bound.stated(),
             code=EXIT_GATE,
         )
     return Result(
-        census.listing(standing, have),
+        census.listing(standing, have, stood=stood),
         listed,
-        noted="\n".join([*census.notes(standing), *_standing_rows(config, args)]),
+        noted="\n".join([*census.notes(standing), *_standing_rows(stood)]),
     )
 
 
-def _standing_rows(config: Config, args: argparse.Namespace) -> list[str]:
-    """How long each pause has stood, where that is what was asked (RK1547).
+def _stood(
+    config: Config, args: argparse.Namespace, census: Census
+) -> tuple[Stood, ...] | None:
+    """How long each listed pause has stood, where that is what was asked (RK1547, RK1677).
+
+    Read **once**, over the lines this call selected, and handed to both registers: the rows
+    on stderr and the payload's `tasks` are two printings of this tuple, so a terminal and a
+    client that refuses to scrape prose are told the same order about the same lines.
+
+    `None` on any other role, and where the flag was not passed: the age is a git call, and a
+    roadmap listing asked nothing about pauses.
+    """
+    if not getattr(args, "stale", False) or _role(args) != "deferred":
+        return None
+    from roadkeep.deferring import standing as paused  # noqa: PLC0415 - RK260
+
+    return paused(config, census.counted)
+
+
+def _standing_rows(stood: tuple[Stood, ...] | None) -> list[str]:
+    """The ages, for a terminal (RK1547).
 
     On **stderr**, beside the notes and never in the listing: stdout here is what the file
     says, verbatim, and a caller piping `--ids` gets ids (RK1170). What this adds is the order
     the store cannot hold — a deferral carries a reason and no date, and the file's order is
     by block.
 
-    Silent on any other role, and silent where nothing is paused: the flag is about the store,
-    and a row on a roadmap listing would be an answer to a question the caller did not ask.
+    Silent where nothing was aged: a row on a roadmap listing would be an answer to a question
+    the caller did not ask.
     """
-    if not getattr(args, "stale", False) or _role(args) != "deferred":
-        return []
-    from roadkeep.deferring import standing as paused  # noqa: PLC0415 - RK260
-
     rows = []
-    for one in paused(config):
+    for one in stood or ():
         # `since` unknown is said and never guessed: a pause added before this clone's history
         # is one the reading cannot place, and a zero there would sort it as the newest.
         aged = (
@@ -1527,13 +1549,16 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     # every loop iteration and could not afford one, which is the whole reason RK1512 shipped a
     # number and left the age. Here a caller has asked once. Nothing on stdout moves — the
     # order goes to stderr beside the notes, this verb's own rule about that stream (RK1170).
+    # And in the payload, where the order and the reason ride on each pause (RK1677): stderr is
+    # prose, and a client that refuses to scrape it had no age to draw.
     list_parser.add_argument(
         "--stale",
         action="store_true",
         help=(
             "list the deferred store with how long each pause has stood — in commits over "
-            "the governed files, oldest first, with the reason beside it. An order and never "
-            "a verdict: how long a pause may stand is a judgement about work"
+            "the governed files, oldest first, with the reason beside it; `--json` puts "
+            "`since` and `reason` on each pause, in that order. An order and never a "
+            "verdict: how long a pause may stand is a judgement about work"
         ),
     )
     withheld(

@@ -92,6 +92,7 @@ line already there. Its refusal names `section add` against that line's own anch
 - ✅ **RK1653** **five classes answer to notes and one is a gate report, so a sweep over the name is off for three whole test modules** — A sweep over a name exempts the receiver and never the file, and the register is total: a receiver nobody classified is a red, where a file-keyed row was a silence.
 - ✅ **RK1656** **a dep on a ruled-out finding resolves as unknown, which says nothing can answer about a file that answers exactly** — A dep on a recorded decision not to file is unresolvable and not deferred: a pause is revivable by resume, and what would lift this one is the premise breaking.
 - ✅ **RK1663** **the per-block half of a pin's shape counts the roadmap's headings, so a finished block's entries land in no row** — A per-block reading of a corpus is over the union of both files' headings: a finished block keeps its heading in the ledger, and the rows have to sum to the totals.
+- ✅ **RK1677** **list --role deferred --json carries no age for a pause, which --stale computes and prints only for a terminal** — A listing carries the age keys only where --stale asked: the age is a git call, and a key the caller requested by flag is one it knows to read.
 
 ### §RK1362 Why a projection and not a wider read
 

@@ -810,7 +810,7 @@ class Standing:
     since: int | None = None
 
 
-def standing(config: Config) -> tuple[Standing, ...]:
+def standing(config: Config, entries: Sequence[Entry] | None = None) -> tuple[Standing, ...]:
     """Every paused line, oldest first, with the reason beside its age (RK1547).
 
     RK1512 asked for the count **and the oldest reason** and shipped the count, because the
@@ -831,12 +831,19 @@ def standing(config: Config) -> tuple[Standing, ...]:
     `since=None` rather than a guess where the history cannot reach a pause, and the whole
     listing unordered-by-age where git cannot answer at all: a reading that silently ranked by
     file order would be an order somebody could act on and nothing supports.
+
+    `entries` is the lines to age where a caller already holds them (RK1677): `list` narrows
+    by block and marker, and its two registers — the rows on stderr and the payload — each
+    read this one answer over its own selection, so neither can age a line the other left out.
     """
     from roadkeep.history import HistoryUnavailable, added_ids, ordering
 
-    if not config.on_disk("deferred"):
+    if entries is not None:
+        lines = tuple(entries)
+    elif config.on_disk("deferred"):
+        lines = config.document("deferred").entries
+    else:
         return ()
-    entries = config.document("deferred").entries
     try:
         paused = added_ids(config, "deferred")
         order = ordering(config, ("roadmap", "changelog", "deferred"))
@@ -853,7 +860,7 @@ def standing(config: Config) -> tuple[Standing, ...]:
                 else None
             ),
         )
-        for entry in entries
+        for entry in lines
     ]
     # Oldest first, and the ones history could not place **last** rather than first: an unknown
     # age sorted to the top would put a line the reading knows nothing about in front of the

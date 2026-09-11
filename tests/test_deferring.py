@@ -1074,3 +1074,133 @@ def test_a_role_the_caller_names_is_taken_at_their_word(tmp_path, capsys):
     said = capsys.readouterr()
     assert "set aside" not in said.err
     assert "**RK1**" not in said.out, "the roadmap is what was asked for"
+
+
+# -- the age in the payload, for a client that reads no prose (RK1677) ---------
+
+
+#: The keys a listing's row had before RK1677, which a listing without `--stale` still has.
+ROW_KEYS = {"id", "status", "block", "symptom", "why", "deps", "ref", "line", "length"}
+
+
+def _listed(capsys, root: Path, *argv: str) -> tuple[dict, list[str]]:
+    """The payload, and the ids the plain register's rows aged, in the order they came.
+
+    Two calls, because the rows are stderr **beside the plain register** and a payload is one
+    object: what the note says under `--json` is a field of it.
+    """
+    capsys.readouterr()
+    assert main(["-C", str(root), "list", *argv, "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert main(["-C", str(root), "list", *argv]) == EXIT_OK
+    err = capsys.readouterr().err
+    return payload, [one.split()[1] for one in err.splitlines() if "set aside" in one]
+
+
+#: The rest of the backlog, for a store whose file order is not its age order.
+REST = "\n## Block B — The rest\n"
+
+
+def _crossed_repo(tmp_path: Path) -> Config:
+    """A store whose file order is not its age order, so an assertion can tell them apart.
+
+    `defer` appends inside a block, so within one block the two orders agree and a listing in
+    file order passes for one in age order. The separating case is a newer pause in an earlier
+    block: RK1 in A, set aside after RK5 in B. File order is RK2, RK1, RK5; age is RK2, RK5, RK1.
+    """
+    project(
+        tmp_path,
+        {
+            "ROADMAP.md": ROADMAP
+            + REST
+            + f"\n- {DESIGNED} **RK5** (deps: —) **A fifth symptom** — Because of a fifth. → §RK5\n",
+            "CHANGELOG.md": LEDGER + REST,
+            "DEFERRED.md": DEFERRED_STORE + REST,
+            "IMPROVEMENTS.md": RATIONALE + REST + "\n### §RK5 A fifth design\n\nThe reasoning.\n",
+        },
+    )
+    git_init(tmp_path)
+    git_commit(tmp_path, "the files")
+    assert main(["-C", str(tmp_path), "defer", "RK5", "--reason", "It waits on a vendor."]) == 0
+    git_commit(tmp_path, "pause RK5")
+    for number in range(2):
+        with (tmp_path / "CHANGELOG.md").open("a", encoding="utf-8", newline="") as handle:
+            handle.write(f"<!-- {number} -->\n")
+        git_commit(tmp_path, f"noise {number}")
+    assert main(["-C", str(tmp_path), "defer", "RK1", "--reason", "It waits on a decision."]) == 0
+    git_commit(tmp_path, "pause RK1")
+    return Config.discover(tmp_path)
+
+
+def _in_file(capsys, root: Path) -> list[str]:
+    capsys.readouterr()
+    assert main(["-C", str(root), "list", "--role", "deferred", "--ids"]) == EXIT_OK
+    return capsys.readouterr().out.split()
+
+
+def test_the_payload_carries_each_pause_s_age_and_reason_oldest_first(tmp_path, capsys):
+    """RK1677. `--stale` computed the order and printed it on stderr, which is prose: a client
+    that refuses to scrape it — roadkeep-gui's RG28 — got the store in file order and no age,
+    so it had nothing to draw. The age and the reason ride on each pause now, in that order,
+    and `order` says which one the rows came in."""
+    config = _crossed_repo(tmp_path)
+    payload, rows = _listed(capsys, config.root, "--stale")
+    assert payload["order"] == "oldest first"
+    tasks = payload["tasks"]
+    assert [one["id"] for one in tasks] == ["RK2", "RK5", "RK1"]
+    assert _in_file(capsys, config.root) == ["RK2", "RK1", "RK5"], "the rows were reordered"
+    # Commits over the governed files: RK2 was there at the first, RK5 one after, then two
+    # commits of noise before RK1 — so 4, 3 and 0, and never a date.
+    assert [one["since"] for one in tasks] == [4, 3, 0]
+    assert [one["reason"] for one in tasks[1:]] == [
+        "It waits on a vendor.",
+        "It waits on a decision.",
+    ]
+    assert set(tasks[0]) == ROW_KEYS | {"since", "reason"}
+    # One reading, two registers: the rows a terminal reads come in the same order.
+    assert rows == [one["id"] for one in tasks]
+
+
+def test_without_stale_the_payload_is_what_it_was(tmp_path, capsys):
+    """The age is a git call and the flag is how a caller asks for one, so the store listed
+    without it keeps its keys, its rows and the file's order. Measured on a store whose file
+    order is not its age order, or the assertion could not tell the two apart."""
+    config = _crossed_repo(tmp_path)
+    payload, rows = _listed(capsys, config.root, "--role", "deferred")
+    roadmap, _ = _listed(capsys, config.root)
+    # The keys a listing of a file with no pauses in it has, which `--stale` never reaches.
+    assert set(payload) == set(roadmap)
+    assert "order" not in payload
+    assert all(set(one) == ROW_KEYS for one in payload["tasks"])
+    assert [one["id"] for one in payload["tasks"]] == _in_file(capsys, config.root)
+    assert rows == [], "nothing was aged, so nothing is said about age"
+
+
+def test_an_age_history_cannot_place_is_null_and_the_reason_is_still_there(tmp_path, capsys):
+    """`since=None` is what the reading says where git cannot place a pause, and the payload
+    carries it as `null` rather than a zero, which would sort it as the newest."""
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "defer", "RK1", "--reason", "It waits."]) == 0
+    payload, _ = _listed(capsys, tmp_path, "--stale")
+    assert payload["order"] == "oldest first"
+    assert [one["since"] for one in payload["tasks"]] == [None, None]
+    assert {one["id"]: one["reason"] for one in payload["tasks"]}["RK1"] == "It waits."
+
+
+def test_a_narrowed_listing_ages_only_the_lines_it_selected(tmp_path, capsys):
+    """`--block` scopes every part of the answer. The rows on stderr aged the whole store while
+    the listing beside them was one block, so a terminal was told about pauses the listing
+    had left out; both registers read one tuple over the selection now."""
+    project(
+        tmp_path,
+        {
+            "ROADMAP.md": ROADMAP + REST,
+            "CHANGELOG.md": LEDGER + REST,
+            "DEFERRED.md": DEFERRED_STORE
+            + REST
+            + f"\n- {DEFERRED} **RK9** (deps: —) **Another paused symptom** — Because. → §RK9\n",
+        },
+    )
+    payload, rows = _listed(capsys, tmp_path, "--stale", "--block", "B")
+    assert [one["id"] for one in payload["tasks"]] == ["RK9"]
+    assert rows == ["RK9"]

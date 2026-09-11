@@ -502,6 +502,7 @@
 - ✅ **RK1676** **non-goal list --json publishes each non-goal's lead and not its reason, which criterion list carries as why** — non-goal list --json now publishes non_goals_why, each carried lead's reason keyed by that lead and bounded like it, and every key it already had keeps its name and type.
   checked **The listing's payload carries each carried lead's reason** Keyed by the lead as the answer prints it, the join non_goals_quoted already makes, so a client reads the argument without opening the file.
   checked **Every key the listing already published is unchanged** non_goals stays a list of strings and the elided count and the quoted map keep their types, because a client outside this process reads them today.
+- ✅ **RK1677** **list --role deferred --json carries no age for a pause, which --stale computes and prints only for a terminal** — list --stale --json gives each pause its since and reason, oldest first under an order key, and both registers age one selection (design recorded in `src/roadkeep/counting.py`).
 
 ## Block D — The gate
 

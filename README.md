@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 234 | 2 |
-| C — Query (consult without reading the file) | 1 | 196 | 7 |
+| C — Query (consult without reading the file) | 0 | 197 | 7 |
 | D — The gate | 0 | 317 | 7 |
 | E — Adoption | 1 | 118 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 163 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 44 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 2 | 1150 | 24 |
+| **Total** | 1 | 1151 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1677** (deps: —) **list --role deferred --json carries no age for a pause, which --stale computes and prints only for a terminal** — A client that refuses to scrape prose cannot draw which pause has stood longest, and roadkeep-gui's RG28 waits on exactly that. → §RK1677
+- 📋 **RK1678** (deps: —) **the launcher drops an engine the caller named when its probe fails, and answers from a clone hundreds of versions old** — ROADKEEP_HOME is a candidate the same probe skips, so a checkout mid-save falls through to the user cache and nobody chose that copy. → §RK1678
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

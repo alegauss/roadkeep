@@ -33,6 +33,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, replace
+from typing import TYPE_CHECKING
 
 from roadkeep.backlog import Standing
 from roadkeep.capturing import Debt
@@ -40,6 +41,14 @@ from roadkeep.config import Config
 from roadkeep.kernel.document import Document, Entry, Reject, declares, shading
 from roadkeep.kernel.schema import DEFAULT_HEADING_WORD, Schema, width
 from roadkeep.remedying import Door
+
+if TYPE_CHECKING:  # a name for the annotation only: `deferring` writes, and this module counts
+    from roadkeep.deferring import Standing as Stood
+
+#: What `order` says in a listing `--stale` ordered (RK1677): the oldest pause first, and the
+#: ones history could not place last. A phrase and not a code, like `picked`, because the one
+#: fact a client needs from it is that the first row is the longest-standing.
+OLDEST_FIRST = "oldest first"
 
 
 @dataclass(frozen=True, slots=True)
@@ -561,15 +570,37 @@ class Census:
         standing: Standing | None,
         available: Iterable[str] = (),
         bound: Bound | None = None,
+        stood: tuple[Stood, ...] | None = None,
     ) -> dict[str, object]:
         """The same answer as data, with what the label it was scoped to turned out to be.
 
         ``bound`` is the ceiling this answer did not fit under (RK1476). Every key it had
         stays: only `tasks` is withdrawn, to `null` — which says *not listed* where `[]` says
         *none selected*, a distinction a payload that simply came back shorter cannot make.
+
+        ``stood`` is how long each selected pause has stood, where `--stale` asked (RK1677).
+        The rows come in its order, each carrying its `since` and its `reason`, and `order`
+        says so. Without it the payload is exactly what it was: the age is a git call, and a
+        key that appears only where the caller passed the flag asking for it is one that
+        caller knows to read — which a key appearing only on a refusal is not.
         """
         from roadkeep.rendering import _miss_json, _row_json  # noqa: PLC0415 - RK260
 
+        rows: list[dict[str, object]] = [_row_json(entry) for entry in self.counted]
+        if stood is not None:
+            aged = {one.task_id: one for one in stood}
+            rank = {one.task_id: index for index, one in enumerate(stood)}
+            # Sorted rather than rebuilt from `stood`, so a row is still this census's own
+            # line, and the sort being stable keeps two lines sharing an id where the file had them.
+            rows = [
+                {
+                    **_row_json(entry),
+                    "since": aged[entry.task.id].since,
+                    "reason": aged[entry.task.id].reason,
+                }
+                for entry in sorted(self.counted, key=lambda entry: rank[entry.task.id])
+            ]
+        ordered = {} if stood is None else {"order": OLDEST_FIRST}
         return {
             "file": self.file,
             "total": self.total,
@@ -591,7 +622,8 @@ class Census:
             # applied* and not *it fitted*: a key that appears only on the refusal is one a
             # caller has to have met before to check for.
             "over": None if bound is None else bound.payload(),
-            "tasks": None if bound is not None else [_row_json(entry) for entry in self.counted],
+            **ordered,
+            "tasks": None if bound is not None else rows,
         }
 
     def counted_out(

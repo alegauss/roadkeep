@@ -79,18 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1677 A pause's age, in the payload
-
-`list --role deferred --stale` computes how long each pause has stood — commits over the
-governed files, oldest first, with the reason beside it — and prints it on stderr for a
-terminal. A `--json` caller gets the store in file order and no age, so a client that
-refuses to scrape prose (roadkeep-gui's RG28) has nothing to draw.
-
-**The fix.** The age and the reason ride on each pause in the JSON payload, additively,
-and the payload says which order the tasks come in when `--stale` orders them. The order
-is not a verdict: no threshold and no "too old". Tests hold the age in `--json`, the
-order under `--stale`, and the payload without `--stale` unchanged.
-
 ## Block D — The gate
 
 ## Block E — Adoption

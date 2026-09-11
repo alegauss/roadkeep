@@ -28,8 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1677** (deps: —) **list --role deferred --json carries no age for a pause, which --stale computes and prints only for a terminal** — A client that refuses to scrape prose cannot draw which pause has stood longest, and roadkeep-gui's RG28 waits on exactly that. → §RK1677
-
 ## Block D — The gate
 
 ## Block E — Adoption
