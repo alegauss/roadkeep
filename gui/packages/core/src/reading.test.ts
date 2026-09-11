@@ -127,3 +127,36 @@ describe('RG179: a value that is either one thing or a list of them', () => {
     expect(read.failure.path).toBe('was.deps[1]')
   })
 })
+
+describe('RG188: the key an assignment swallows', () => {
+  /** The word, built rather than typed: a source file carrying it is a source file with it. */
+  const PROTO = ['__', 'proto', '__'].join('')
+
+  it('keeps a key spelled __proto__, which a plain assignment drops', () => {
+    const read = dictionaryOf(aNumber)({ [PROTO]: 3, todo: 1 }, 'markers')
+
+    expect(read.ok).toBe(true)
+    if (!read.ok) throw new Error('unreachable')
+    expect(Object.keys(read.value).sort()).toEqual([PROTO, 'todo'])
+    expect(read.value[PROTO]).toBe(3)
+  })
+
+  it('counts every value it read, so a total still adds up', () => {
+    // What the defect cost: the marker chips are drawn from the entries and sit beside the
+    // total the verb printed, so a dropped key is a screen that stops summing to itself.
+    const read = dictionaryOf(aNumber)({ [PROTO]: 3, todo: 1 }, 'markers')
+    if (!read.ok) throw new Error('unreachable')
+
+    expect(Object.values(read.value).reduce((all, one) => all + one, 0)).toBe(4)
+  })
+
+  it('answers a value and not an inherited one, for a key read by name', () => {
+    // `boundsFrom` reads `nonGoalsWhy[lead]` by key. Falling through to the prototype
+    // survives a `?? ''` guard as an object and draws as `[object Object]`.
+    const read = dictionaryOf(aString)({ lead: 'because' }, 'why')
+    if (!read.ok) throw new Error('unreachable')
+
+    expect(read.value[PROTO]).toBeUndefined()
+    expect(typeof (read.value[PROTO] ?? '')).toBe('string')
+  })
+})

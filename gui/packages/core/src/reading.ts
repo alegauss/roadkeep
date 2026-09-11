@@ -191,7 +191,16 @@ export function dictionaryOf<T>(reader: Reader<T>): Reader<Record<string, T>> {
     if (typeof value !== 'object' || value === null || Array.isArray(value)) {
       return fail(path, 'an object', value)
     }
-    const built: Record<string, T> = {}
+    // **No prototype**, which is the whole of RG188. Into a plain `{}`, `built['__proto__']`
+    // reaches `Object.prototype`'s own accessor: the write is rejected silently and the
+    // reader answers `ok` about a key that is gone, so a count quietly stops summing to its
+    // own total. And a read by name — `nonGoalsWhy[lead]` — falls through to that accessor
+    // and survives a `?? ''` guard as an object, drawing as `[object Object]`.
+    //
+    // The keys here are the project's: its marker set, the prose of its non-goal leads.
+    // Nothing stops one of them being that word, so the table it is read into holds data and
+    // nothing else.
+    const built = Object.create(null) as Record<string, T>
     for (const [key, element] of Object.entries(value as Record<string, unknown>)) {
       const parsed = reader(element, `${path}.${key}`)
       if (!parsed.ok) return parsed

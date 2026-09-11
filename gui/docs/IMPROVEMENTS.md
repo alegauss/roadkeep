@@ -2,32 +2,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-### §RG188 The key an assignment swallows
-
-`dictionaryOf` accumulates into a plain `{}` with `built[key] = parsed.value`. A source
-key spelled `__proto__` does not become a property: the assignment reaches
-`Object.prototype`'s own accessor, which rejects a non-object silently, and the reader
-still answers `ok`. So the key is gone, the read says it succeeded, and nothing anywhere
-reports it.
-
-**The keys are the project's, not this app's.** `dictionaryOf` is used for `markers` on
-the stats and on each block, and for `non_goals_quoted` and `non_goals_why`, which are
-keyed by a project's own marker set and by the free prose of its non-goal leads. A
-backlog may declare whatever markers it likes, so nothing stops one of them from being
-that word.
-
-**What a reader sees is a number that does not add up.** The marker chips are drawn from
-`Object.entries(counts.markers)` beside the total the verb printed, so they stop summing
-to it — the one thing every count on that screen is supposed to be. Worse where a lead
-is read by key: `boundsFrom` takes `nonGoalsWhy[lead]`, which falls through to the
-inherited accessor and survives a `?? ''` guard as an object, so a screen draws `[object
-Object]`.
-
-**The fix is the one the file already uses.** `tableOf`, two functions above, builds
-with `Object.fromEntries` and has none of this. A null-prototype accumulator or
-`fromEntries` is a line's change, and the assertion that holds it is a payload with that
-key in it.
-
 ### §RG189 The refresh eviction punishes
 
 The caching transport evicts by iteration order: the oldest key a `Map` holds goes
