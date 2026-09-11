@@ -135,13 +135,25 @@ export { createPooledTransport } from './pool'
 export type { PoolOptions } from './pool'
 export { createLimiter } from './limiting'
 export type { Limiter } from './limiting'
-export { fillRow, folderName, pendingRow, readRow, tally, unreadableRow } from './portfolio'
-export { glanceRow, withNext } from './rows'
+export {
+  fillRow,
+  filterCounts,
+  folderName,
+  matchesFilter,
+  pendingRow,
+  readRow,
+  ROW_FILTERS,
+  tally,
+  unreadableRow,
+} from './portfolio'
+export { glanceRow, openingUnreadable, rowStages, withNext } from './rows'
+export type { RowStage } from './rows'
 export type {
   PortfolioTally,
   ProjectRow,
   RowCounts,
   RowEngine,
+  RowFilter,
   RowGate,
   RowNext,
   RowReads,
@@ -212,7 +224,6 @@ export {
   isPseudo,
   keys as messageKeys,
   localeFor,
-  PACKAGE_TEXT,
   RESET_TEXT,
   THEME_TEXT,
   PSEUDO_CLOSE,
@@ -405,8 +416,6 @@ export {
 export type { LinearRgb, Oklch } from './contrast'
 export { isOpen, labelOf, MARKERS_TABLE, markersOf, meaningOf, SET_KEY } from './markers'
 export type { MarkerMeaning } from './markers'
-export { PACKAGES } from './packages'
-export type { PackageName } from './packages'
 export { EngineCallFailed } from './transport'
 export type {
   CancelSignal,

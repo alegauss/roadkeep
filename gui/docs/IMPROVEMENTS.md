@@ -93,32 +93,6 @@ Written atomically, as the settings file is, so a quit mid-write leaves the last
 
 ## Block C — The portfolio (many backlogs in one view)
 
-### §RG145 The portfolio at the root route
-
-`Main.dc.html` is the screen, and `/` is where it goes: the scaffold `App` naming three
-packages is retired by this line, and `AREAS` gains its first entry, Portfolio, the day
-the route answers it.
-
-**The hero** says how many projects and how many are read, still reading or unreadable,
-from `tally`. **The list** is rows and not tiles, per §RG63, in a `BentoPanel`: project
-and path, the backlog counts and markers from `stats`, the next ready line as `pick`
-printed it, and the gate as the ledger holds it with its age. A row still answering is
-drawn pending and never as zero, which is block C's second criterion, and `coldStart`'s
-progress fills rows as they land. An unreadable row spans the counts and says what was
-tried, from the `Opening` that refused.
-
-**The engine column is this line's too** (RG15 was retired into it). The version, the
-home and the verdict already ride on every row, off the `engines` read resolution made,
-so the column draws them beside the counts — a split row as information, never as an
-error.
-
-The filter chips — gate drifted, engine disagrees, unreadable — narrow what is already
-loaded and count only what a verb printed. Clicking a row opens the project surface once
-it exists; until then it opens nothing rather than a dead link.
-
-`artboards.test.tsx` holds chrome only. This screen's test drives the harness with a
-stub bridge answering three rows in three states.
-
 ### §RG147 Lines in the palette
 
 The header's palette trigger reads "Find a line in every backlog" in `Main.dc.html`, and
@@ -137,6 +111,51 @@ foot of the results as not yet searched, never silently absent, which is what
 
 If the palette cannot take a second group without being re-declared, that is a finding
 for the package, not a component to write here.
+
+### §RG166 A gate verdict the carrier keeps
+
+RG18 built the ledger in `core`: `recordGate` turns one `lint` answer into a record kept
+against the governed stamp, `gateHealth` says clean, drifted, unknown or stale, and
+`needsGate` says whether running it again would tell anybody anything. RG145 draws the
+column. Nothing connects the two, so every row in a running window says unknown and
+"never run here", including rows for projects whose gate was run a minute ago.
+
+**The ledger belongs to the carrier.** Main already holds each open project, watches its
+governed files while a screen follows it (RG144), and owns the stamp. So main keeps one
+`createGateLedger`. It runs `lint` for a project when `needsGate` says the stamp moved,
+at most one at a time per project through the project's own pool. It then publishes the
+project's `governed` event, so a screen rereads.
+
+**The row reads it the way it reads everything else.** `OpenedProject` gains the gate's
+health as of the opening, and a `gate` topic, or the `governed` one, carries a new
+health when a run lands. `fillRow` already takes a `gate`, so the column needs no
+change.
+
+The design's cost argument holds: `lint` runs per change and never per draw. A project
+nobody has opened is never linted, which is why unknown stays a state a row can be in.
+
+### §RG167 A row that follows its project
+
+The portfolio reads every project once, when it mounts. A line shipped in a terminal, or
+a marker an agent moved, leaves that row showing the old counts and the old next line
+until the window is reopened, and nothing on screen says the row is old.
+
+RG144 built exactly what this needs and the portfolio does not use it. A screen
+subscribes to `governed` for a root and hears when that project's files move, and main
+drops its cached answers for it at the same moment.
+
+**Each read row follows its project.** Once a row is read, the portfolio subscribes to
+`governed` for its path. A move rereads that row alone, through the same two stages
+`rowStages` runs at a cold start, applied with `fillRow` so the row keeps what it drew
+while the reread is in flight. A burst is already held by `core`'s watching, so a `ship`
+that writes three files rereads once.
+
+**The subscriptions go with the screen.** `useGovernedMoves` gives one back on unmount,
+and the portfolio holds one per row, so leaving the screen releases every watch main
+opened for it. A pending or unreadable row subscribes to nothing: it has no files it has
+read.
+
+The order stays the record's. A reread replaces a row in place and never moves it.
 
 ## Block D — The project surface (one backlog, read)
 
@@ -464,3 +483,23 @@ digest is then required to carry that set.
 
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
+
+### §RG168 A reason in the window's language
+
+An unreadable row draws `Unreadable.message`. Where the engine explained itself, that
+message is the engine's own prose and is right to show untranslated. Where this app
+composed it, it is English whatever the window speaks. Examples are resolution's "no
+candidate answered `engines --json`", the opening's "`config` was refused", and
+`openingUnreadable`'s ungoverned sentence. A Portuguese window then prints an English
+sentence in the middle of a translated row. This is the defect RG123 fixed for the
+settings toasts, found again on the portfolio.
+
+**The same fix RG123 made: a code and its fields, and the sentence in the catalogue.**
+`Unreadable` gains a `code` naming which of this app's sentences applies, with the
+values it fills, beside the `message` kept for a log. The row looks the sentence up the
+way `RESET_TEXT` is looked up, as `UNREADABLE_TEXT[code]` through `say`. `said`, the
+engine's stderr, stays as the engine wrote it.
+
+**The pseudo-locale run should find it.** RG51's run draws the window with no project on
+it, so no row reason has ever been on the screen it reads. Drawing one unresolved
+project there turns this defect into a red run the day it is written.

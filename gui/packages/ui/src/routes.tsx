@@ -1,8 +1,8 @@
 import type { ReactElement } from 'react'
 import { Route, Routes } from 'react-router-dom'
 
-import { App } from './App'
 import { HOME_ROUTE } from './areas'
+import { Portfolio } from './Portfolio'
 import { AppShell } from './Shell'
 
 /**
@@ -34,7 +34,8 @@ export interface Surface {
   readonly element: ReactElement
 }
 
-export const SURFACES: readonly Surface[] = [{ path: HOME_ROUTE, element: <App /> }]
+/** The portfolio at `/`, where the scaffold stood until RG145 retired it. */
+export const SURFACES: readonly Surface[] = [{ path: HOME_ROUTE, element: <Portfolio /> }]
 
 /** Just the paths, which is what a check about the map needs and all it needs. */
 export const ROUTED: readonly string[] = SURFACES.map((surface) => surface.path)

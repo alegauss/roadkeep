@@ -5,7 +5,7 @@ import i18next, { changeLanguage, t } from 'i18next'
 import { act } from 'react'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { App } from './App'
+import { Portfolio } from './Portfolio'
 import { spokenLocale, startSpeaking } from './speaking'
 import { WordingProvider } from './wording'
 
@@ -23,7 +23,7 @@ import { WordingProvider } from './wording'
 const inPtBr = translator(PT_BR)
 
 /** A wording a test forces, hoisted so the provider is not handed a new object per render. */
-const FORCED = { 'app.tagline': 'forced' } as const
+const FORCED = { 'portfolio.footnote': 'forced' } as const
 
 /** What the package says for one of its own keys, in one of its own languages. */
 function packageSays(language: 'en' | 'pt', key: string): string {
@@ -66,11 +66,11 @@ describe('RG88: the catalogue takes its tag from i18next', () => {
 
     render(
       <WordingProvider>
-        <App />
+        <Portfolio />
       </WordingProvider>,
     )
 
-    expect(screen.getByText(inPtBr('app.tagline'))).toBeTruthy()
+    expect(screen.getByText(inPtBr('portfolio.footnote'))).toBeTruthy()
   })
 
   it('follows a later change, so one switch moves both systems', async () => {
@@ -79,16 +79,16 @@ describe('RG88: the catalogue takes its tag from i18next', () => {
     await startSpeaking('pt-BR')
     render(
       <WordingProvider>
-        <App />
+        <Portfolio />
       </WordingProvider>,
     )
-    expect(screen.getByText(inPtBr('app.tagline'))).toBeTruthy()
+    expect(screen.getByText(inPtBr('portfolio.footnote'))).toBeTruthy()
 
     await act(async () => {
       await changeLanguage('en')
     })
 
-    expect(screen.getByText(BASE['app.tagline'])).toBeTruthy()
+    expect(screen.getByText(BASE['portfolio.footnote'])).toBeTruthy()
     expect(t('bento.nav.label')).toBe(packageSays('en', 'label'))
   })
 
@@ -97,7 +97,7 @@ describe('RG88: the catalogue takes its tag from i18next', () => {
 
     render(
       <WordingProvider over={FORCED}>
-        <App />
+        <Portfolio />
       </WordingProvider>,
     )
 

@@ -1,0 +1,127 @@
+import {
+  coldStart,
+  openingUnreadable,
+  openOver,
+  pendingRow,
+  present,
+  rowStages,
+  type OpenProject,
+  type ProjectRow,
+  type RecordedProject,
+  type RowStage,
+} from '@rk/core'
+import { useEffect, useState } from 'react'
+
+import { getBridge } from './bridge'
+
+/** The stage still running, and how far through it the rows are. */
+export interface ReadingProgress {
+  readonly stage: RowStage
+  readonly done: number
+  readonly total: number
+}
+
+/** The command lines resolution tried, by project path, for a project that did not open. */
+export type Tried = Readonly<Record<string, readonly (readonly string[])[]>>
+
+/**
+ * What the portfolio has to draw (RG145). Four states and not a nullable list: no bridge,
+ * asking, a bridge that would not say, and the list — each drawn differently, and a screen
+ * handed an empty array for the first three would claim a machine with no projects on it.
+ */
+export type PortfolioView =
+  | { readonly kind: 'absent' }
+  | { readonly kind: 'asking' }
+  | { readonly kind: 'failed'; readonly reason: string }
+  | {
+      readonly kind: 'listed'
+      /** In the record's order, never completion order — `coldStart`'s rule. */
+      readonly rows: readonly ProjectRow[]
+      /** Null once every row has had every read it will get. */
+      readonly progress: ReadingProgress | null
+      readonly tried: Tried
+    }
+
+const ABSENT: PortfolioView = { kind: 'absent' }
+const ASKING: PortfolioView = { kind: 'asking' }
+
+/**
+ * The projects under the person's roots, read in the renderer over the bridge.
+ *
+ * Every piece is `core`'s: the carrier's catalogue, `openOver` for each project, and
+ * `coldStart` running `rowStages` so rows fill as they land, bounded by the carrier's pool.
+ * What is here is the lifetime — one run per mount, and a run whose screen went away draws
+ * nothing, which is also what keeps StrictMode's second mount from drawing twice.
+ *
+ * Each project is opened once and remembered for the second stage, and a project that did
+ * not open fails the first with the reason it gave, so `coldStart` never asks it again.
+ */
+export function usePortfolio(): PortfolioView {
+  const [view, setView] = useState<PortfolioView>(() =>
+    getBridge() === undefined ? ABSENT : ASKING,
+  )
+
+  useEffect(() => {
+    const bridge = getBridge()
+    if (bridge === undefined) {
+      setView(ABSENT)
+      return undefined
+    }
+
+    // Asked through a call and not read off a `let`: the cleanup flips it while a read is
+    // awaited, which is a change a narrowed boolean would say cannot happen.
+    let live = true
+    const stillHere = (): boolean => live
+    const tried: Record<string, readonly (readonly string[])[]> = {}
+    const opened = new Map<string, Promise<OpenProject>>()
+    const reach = (recorded: RecordedProject): Promise<OpenProject> => {
+      const held = opened.get(recorded.path)
+      if (held !== undefined) return held
+      const reaching = openOver(bridge, recorded.path).then((reached) => {
+        if (reached.kind === 'open') return reached.project
+        if (reached.kind === 'unresolved') tried[recorded.path] = reached.tried
+        throw openingUnreadable(reached)
+      })
+      opened.set(recorded.path, reaching)
+      return reaching
+    }
+    const stages = rowStages(reach)
+    const stageOf = (name: string): RowStage =>
+      stages.find((stage) => stage.name === name)?.name ?? 'counting'
+
+    const read = async (): Promise<void> => {
+      const projects = present(await bridge.projects())
+      if (!stillHere()) return
+      setView({
+        kind: 'listed',
+        rows: projects.map(pendingRow),
+        progress:
+          projects.length === 0 ? null : { stage: 'counting', done: 0, total: projects.length },
+        tried: {},
+      })
+
+      const rows = await coldStart(projects, stages, (progress) => {
+        if (!stillHere()) return
+        setView({
+          kind: 'listed',
+          rows: progress.rows,
+          progress: { stage: stageOf(progress.stage), done: progress.done, total: progress.total },
+          tried: { ...tried },
+        })
+      })
+      if (stillHere()) setView({ kind: 'listed', rows, progress: null, tried: { ...tried } })
+    }
+
+    read().catch((cause: unknown) => {
+      if (stillHere()) {
+        setView({ kind: 'failed', reason: cause instanceof Error ? cause.message : String(cause) })
+      }
+    })
+
+    return () => {
+      live = false
+    }
+  }, [])
+
+  return view
+}

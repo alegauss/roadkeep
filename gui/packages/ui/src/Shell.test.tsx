@@ -54,7 +54,12 @@ describe('RG63: the shell is mounted, not invented per page', () => {
     // product name too, which is what a home page's heading is, and the assertion worth
     // making is that the chrome carries its copy and not that only one exists.
     drawWindow()
-    const header = within(screen.getByRole('banner'))
+    // The one outside `main` (RG145). A page's hero is a `header` too, and inside `main` that
+    // is not a banner in a browser — the scoping rule jsdom's role table does not apply, so
+    // it is applied here rather than by picking whichever banner came first.
+    const banner = screen.getAllByRole('banner').find((one) => one.closest('main') === null)
+    if (banner === undefined) throw new Error('the chrome drew no banner')
+    const header = within(banner)
 
     expect(header.getByText(BASE['app.name'])).toBeTruthy()
     expect(header.getByText(BASE['shell.palette'])).toBeTruthy()

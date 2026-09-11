@@ -36,23 +36,23 @@ describe('RG51: the base is the type', () => {
 })
 
 describe('RG51: a translation that is not finished', () => {
-  const half: Wording = { 'app.tagline': 'A janela abre.' }
+  const half: Wording = { 'portfolio.footnote': 'A janela abre.' }
 
   it('uses what it has', () => {
-    expect(translator(half)('app.tagline')).toBe('A janela abre.')
+    expect(translator(half)('portfolio.footnote')).toBe('A janela abre.')
   })
 
   it('falls back per key, not per file', () => {
     // The point of the whole design: one translated string does not have to wait for the
     // rest, and one missing string does not show an identifier.
-    expect(translator(half)('transport.ipc')).toBe(BASE['transport.ipc'])
+    expect(translator(half)('transport.absent')).toBe(BASE['transport.absent'])
   })
 
   it('says what is left to translate, in the base own order', () => {
     const left = untranslated(half)
 
-    expect(left).not.toContain('app.tagline')
-    expect(left).toEqual(keys().filter((key) => key !== 'app.tagline'))
+    expect(left).not.toContain('portfolio.footnote')
+    expect(left).toEqual(keys().filter((key) => key !== 'portfolio.footnote'))
   })
 
   it('says nothing is left for a complete one', () => {
@@ -122,9 +122,9 @@ describe('RG51: the locale nobody speaks', () => {
   })
 
   it('keeps the holes, so a filled string is still filled', () => {
-    const say = translator({ ...pseudo(), 'app.tagline': '⟦{count} read⟧' })
+    const say = translator({ ...pseudo(), 'portfolio.footnote': '⟦{count} read⟧' })
 
-    expect(say('app.tagline', { count: 2 })).toBe('⟦2 read⟧')
+    expect(say('portfolio.footnote', { count: 2 })).toBe('⟦2 read⟧')
   })
 
   it('is not mistaken for a real string', () => {

@@ -5,7 +5,16 @@ import type { EnginesPayload } from './engines'
 import type { Unreadable } from './limits'
 import { gateHealth, recordGate, UNKNOWN_GATE } from './gate'
 import { readPickPayload, type PickPayload, type StatsPayload } from './payloads'
-import { folderName, pendingRow, readRow, tally, unreadableRow } from './portfolio'
+import {
+  filterCounts,
+  folderName,
+  matchesFilter,
+  pendingRow,
+  readRow,
+  ROW_FILTERS,
+  tally,
+  unreadableRow,
+} from './portfolio'
 
 const project: RecordedProject = {
   path: '/code/viglet/turing/2026.3',
@@ -264,5 +273,40 @@ describe('RG16: how the screen stands', () => {
     // print, which makes it the one somebody would quote and nobody could check. If a
     // field is ever added here, this fails.
     expect(Object.keys(tally(rows)).sort()).toEqual(['pending', 'projects', 'read', 'unreadable'])
+  })
+})
+
+describe('RG145: the chips a portfolio narrows by', () => {
+  const clean = readRow(project, { stats: STATS, engines: ENGINES })
+  const drifted = readRow(
+    { ...project, path: '/code/drifted' },
+    { stats: STATS, engines: ENGINES, gate: gateHealth(DRIFTED, 'stamp-a') },
+  )
+  const split = readRow(
+    { ...project, path: '/code/split' },
+    { stats: STATS, engines: { ...ENGINES, verdict: 'split', agree: false, split: true } },
+  )
+  const pending = pendingRow({ ...project, path: '/code/pending' })
+  const refused = unreadableRow(
+    { ...project, path: '/code/refused' },
+    { reason: 'unspawnable', message: 'no python', said: '', elapsedMs: 0, argv: [] },
+  )
+  const rows = [clean, drifted, split, pending, refused]
+
+  it('counts the rows each chip would leave, and nothing else', () => {
+    expect(filterCounts(rows)).toEqual({ all: 5, drifted: 1, disagrees: 1, unreadable: 1 })
+  })
+
+  it('narrows to what each chip names', () => {
+    expect(rows.filter((row) => matchesFilter(row, 'drifted'))).toEqual([drifted])
+    expect(rows.filter((row) => matchesFilter(row, 'disagrees'))).toEqual([split])
+    expect(rows.filter((row) => matchesFilter(row, 'unreadable'))).toEqual([refused])
+    expect(rows.filter((row) => matchesFilter(row, 'all'))).toEqual(rows)
+  })
+
+  it('leaves a row still answering out of every narrowing, since not knowing is not drifting', () => {
+    expect(
+      ROW_FILTERS.filter((filter) => filter !== 'all' && matchesFilter(pending, filter)),
+    ).toEqual([])
   })
 })

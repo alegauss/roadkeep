@@ -10,18 +10,19 @@
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
-- 📋 **RG146** (deps: RG145, RG47 ✅) **roots are read and never written, so Add a root and Rescan roots are buttons nothing can honour** — The project list is meant to be the person's statement, and today the only way to make it is to edit the settings file by hand. → §RG146
+- 📋 **RG146** (deps: RG145 ✅, RG47 ✅) **roots are read and never written, so Add a root and Rescan roots are buttons nothing can honour** — The project list is meant to be the person's statement, and today the only way to make it is to edit the settings file by hand. → §RG146
 - 📋 **RG164** (deps: —) **the carrier keeps its catalogue in memory, so RG14's record is never written and every launch walks every root first** — catalogueFrom reads a record back and nothing in shell writes one, so the first screen waits on the disk and a missing project is forgotten at quit. → §RG164
 
 ## Block C — The portfolio (many backlogs in one view)
 
-- 🛠 **RG145** (deps: RG143 ✅, RG16 ✅, RG17 ✅, RG18 ✅) **the window opens on a scaffold naming three packages, so the portfolio core already computes is drawn nowhere** — Main.dc.html draws the one screen this app exists for, and every reader behind its columns shipped with no route to show it. → §RG145
-- 📋 **RG147** (deps: RG145, RG20 ✅) **the palette says it finds a line in every backlog and lists only surfaces, so search over all projects reaches no one** — RG20 shipped search across every open project, and the one box a person types into is fed from AREAS alone. → §RG147
+- 📋 **RG147** (deps: RG145 ✅, RG20 ✅) **the palette says it finds a line in every backlog and lists only surfaces, so search over all projects reaches no one** — RG20 shipped search across every open project, and the one box a person types into is fed from AREAS alone. → §RG147
+- 📋 **RG166** (deps: RG144 ✅) **every row's gate reads unknown, since the ledger RG18 built is fed by nothing a window runs** — recordGate and gateHealth are pure and tested, and no process runs lint for the portfolio or hands a verdict to the renderer. → §RG166
+- 📋 **RG167** (deps: RG144 ✅) **a row is read once, so a line shipped in a terminal leaves the portfolio stale until the window reopens** — RG144 tells a screen when a project's files move, and the portfolio subscribes to nothing, so its counts outlive the backlog they came from. → §RG167
 
 ## Block D — The project surface (one backlog, read)
 
 - ⏳ **RG28** (deps: roadkeep RK1677) **the deferred store has no order, so which pause has stood longest is a question only a terminal can ask** — How long each pause has stood, which --stale orders by and prints for a terminal, putting none of it in the payload. → §RG28
-- 📋 **RG148** (deps: RG145, RG21 ✅, RG22 ✅, RG74 ✅) **a project cannot be opened in the window, so its lines, blocks and filters exist only as readers in core** — Projeto.dc.html draws one backlog as rows with readiness in the engine's words, and nothing routes from a portfolio row to it. → §RG148
+- 📋 **RG148** (deps: RG145 ✅, RG21 ✅, RG22 ✅, RG74 ✅) **a project cannot be opened in the window, so its lines, blocks and filters exist only as readers in core** — Projeto.dc.html draws one backlog as rows with readiness in the engine's words, and nothing routes from a portfolio row to it. → §RG148
 - 📋 **RG149** (deps: RG148, RG27 ✅) **the changelog, decisions, improvements and deferred tabs are drawn as labels with nothing behind them** — RG27 and RG28 shipped readers for the ledger, the decisions and the paused lines, and the project surface draws only the roadmap. → §RG149
 - 📋 **RG150** (deps: RG148, RG23 ✅, RG24 ✅, RG76 ✅) **a task opens nowhere in the window, so brief's join of deps, design and binding lists is read by nobody** — Tarefa.dc.html draws the detail as one brief read, and detailFrom already returns every part of it. → §RG150
 
@@ -47,6 +48,8 @@
 - 📋 **RG162** (deps: —) **no LICENSE file ships and every build says 0.0.0, so the first release the maintainer decided on cannot be cut** — SignPath needs a recognised licence file, and ci.yml refuses a tag naming a version the manifest does not carry. → §RG162
 
 ## Block H — The look (a design system for governed prose)
+
+- 📋 **RG168** (deps: —) **an unreadable row's reason is composed in English in core, so a Portuguese window shows it untranslated** — Resolution and the opening write their own sentences into Unreadable.message, and the row draws that field whatever language is speaking. → §RG168
 
 ## Done when — Block A
 
@@ -160,12 +163,6 @@
   over the three source roots, and a test plants a component the package exports and
   requires the gate to report it with the import that replaces it — because a gate aimed
   at the wrong directory says exactly what a clean tree says.
-
-## Done when — RG145
-
-- **Every row draws its engine's verdict beside its counts** Agreed, split or swapped,
-  from the row the portfolio already builds; a split row is information and never drawn
-  as an error (was RG15).
 
 ## Done when — RG49
 

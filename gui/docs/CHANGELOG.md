@@ -71,6 +71,8 @@
 - ✅ **RG19** **what to work on is asked one repository at a time, so there is no answer that ranges over all of them** — Every project's candidate is laid out together with the tier that chose it, in the person's own project order and ranked by nothing here (design recorded in `packages/core/src/candidates.ts`).
 - ✅ **RG20** **finding a line by its words means opening each project and reading its list in turn** — Search runs over held payloads across every backlog, matches id, symptom and why, and names any project it could not cover (design recorded in `packages/core/src/search.ts`).
 - ✅ **RG73** **a row is built by four separate reads, so a project costs four interpreter starts to show once** — A scannable row is one call and the next line is a second, because resolution already answered the engine and the gate comes off the ledger (design recorded in `packages/core/src/rows.ts`).
+- ✅ **RG145** **the window opens on a scaffold naming three packages, so the portfolio core already computes is drawn nowhere** — The window opens on the portfolio: a row per project filled as reads land, pending never zero, engine beside counts, chips counting rows (design recorded in `packages/ui/src/Portfolio.tsx`).
+  checked **Every row draws its engine's verdict beside its counts** Agreed, split or swapped, from the row the portfolio already builds; a split row is information and never drawn as an error (was RG15).
 
 ## Block D — The project surface (one backlog, read)
 
@@ -108,7 +110,7 @@
 
 ## Block G — The shell (an executable now, a service later)
 
-- ✅ **RG37** **there is no application at all: no window, no build and no way to run any of this** — A window opens over three packages, with one typecheck spanning them and a headless suite over both halves (design recorded in `packages/core/src/packages.ts`).
+- ✅ **RG37** **there is no application at all: no window, no build and no way to run any of this** — A window opens over three packages, with one typecheck spanning them and a headless suite over both halves (design recorded in `CLAUDE.md`).
 - ✅ **RG44** **the renderer holds node powers, so the half a service would serve to a browser can delete a file** — The renderer has a browser's powers and one frozen typed object, and every navigation off the bundle is refused or sent to the system browser (design recorded in `packages/core/src/bridge.ts`).
 - ✅ **RG45** **nothing watches the governed files, so a write by an agent or a terminal leaves the screen stale** — The governed files a project declares are watched while somebody holds it, and a burst of writes tells the screen once (design recorded in `packages/core/src/watching.ts`).
 - ✅ **RG46** **there is no executable, so the app runs only where its source tree and toolchain already are** — An installer builds, opens a window, and names its version, commit and signing from inside itself (design recorded in `packages/core/src/build.ts`).

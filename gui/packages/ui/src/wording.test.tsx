@@ -2,9 +2,9 @@ import {
   BASE,
   BASE_LOCALE,
   DEFAULT_SETTINGS,
+  EMPTY_CATALOGUE,
   identityFrom,
   isPseudo,
-  PACKAGES,
   pseudo,
   PSEUDO_CLOSE,
   PSEUDO_OPEN,
@@ -57,6 +57,9 @@ function withBridge(parts: Partial<RendererBridge>): void {
     settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: BASE_LOCALE }),
     saveTheme: () => Promise.resolve(),
     saveLocale: () => Promise.resolve(),
+    // A machine with no project under its roots (RG145): the portfolio settles on a sentence
+    // of its own, and no payload's prose reaches a screen this run reads.
+    projects: () => Promise.resolve(EMPTY_CATALOGUE),
     ...parts,
   })
   Object.defineProperty(window, 'roadkeep', { value: bridge, configurable: true })
@@ -156,7 +159,7 @@ function spokenNames(root: HTMLElement): string[] {
  * is for is being pasted into a defect report, and a translated stamp is one that has to be
  * read back before it can be used. `build.test.ts` holds what it says.
  */
-const IDENTIFIERS = new Set<string>([...PACKAGES, PRODUCT, saidOfBuild(BUILT)])
+const IDENTIFIERS = new Set<string>([PRODUCT, saidOfBuild(BUILT)])
 
 // And no exception for the package's own words, which there was until RG132. The close
 // button was `<span class="sr-only">Close</span>` in its markup, found the moment this run
@@ -257,8 +260,8 @@ describe('RG51: nothing on the screen is typed into a component', () => {
   it('wraps every sentence, leaving only the package names bare', async () => {
     await launchedWithALoss()
     drawIn(pseudo())
-    // Wait for the bridge to answer, so the badge is a settled string and not `asking`.
-    await screen.findByText(`${PSEUDO_OPEN}${BASE['transport.ipc']}${PSEUDO_CLOSE}`)
+    // Wait for the bridge to answer, so the portfolio is a settled string and not `asking`.
+    await screen.findByText(`${PSEUDO_OPEN}${BASE['portfolio.none']}${PSEUDO_CLOSE}`)
     await everySurface()
 
     expect(bareText()).toEqual([])
@@ -299,19 +302,19 @@ describe('RG51: nothing on the screen is typed into a component', () => {
   it('says the same screen in English, which is the base and not a translation', () => {
     drawIn(undefined)
 
-    expect(screen.getByRole('heading', { name: BASE['app.name'] })).toBeTruthy()
-    expect(screen.getByText(BASE['app.tagline'])).toBeTruthy()
+    expect(screen.getByRole('heading', { name: BASE['portfolio.title.unknown'] })).toBeTruthy()
+    expect(screen.getByText(BASE['portfolio.footnote'])).toBeTruthy()
   })
 })
 
 describe('RG51: a translation reaches the screen', () => {
   it('draws what the locale says, per key, leaving the rest in English', async () => {
     withBridge({ identify: () => Promise.resolve({ transport: 'http', build: BUILT }) })
-    drawIn({ 'app.tagline': 'A janela abre e os três pacotes estão ligados.' })
+    drawIn({ 'portfolio.footnote': 'Cada número nesta tela foi impresso por um verbo.' })
 
-    expect(screen.getByText('A janela abre e os três pacotes estão ligados.')).toBeTruthy()
+    expect(screen.getByText('Cada número nesta tela foi impresso por um verbo.')).toBeTruthy()
     // Untranslated, so English — and never the key.
-    expect(await screen.findByText(BASE['transport.http'])).toBeTruthy()
+    expect(await screen.findByText(BASE['portfolio.none'])).toBeTruthy()
   })
 })
 
@@ -325,13 +328,13 @@ describe('RG86: the locale this build ships', () => {
     withBridge({})
     drawIn(wordingFor('pt-BR'))
 
-    expect(screen.getByText(inPtBr('app.tagline'))).toBeTruthy()
-    expect(await screen.findByText(inPtBr('transport.ipc'))).toBeTruthy()
+    expect(screen.getByText(inPtBr('portfolio.footnote'))).toBeTruthy()
+    expect(await screen.findByText(inPtBr('portfolio.none'))).toBeTruthy()
   })
 
   it('says the base for a tag nobody wrote, which is what an unshipped locale is', () => {
     drawIn(wordingFor('ja'))
 
-    expect(screen.getByText(BASE['app.tagline'])).toBeTruthy()
+    expect(screen.getByText(BASE['portfolio.footnote'])).toBeTruthy()
   })
 })

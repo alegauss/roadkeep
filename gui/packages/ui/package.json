@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@rk/core": "*",
+    "@tabler/icons-react": "^3.46.0",
     "@viglet/viglet-design-system": "^2026.3.9",
     "clsx": "^2.1.1",
     "i18next": "^26.4.2",

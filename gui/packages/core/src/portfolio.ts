@@ -203,3 +203,33 @@ export function tally(rows: readonly ProjectRow[]): PortfolioTally {
     unreadable: rows.filter((row) => row.state === 'unreadable').length,
   }
 }
+
+/**
+ * The narrowings the portfolio offers (RG145), each a question about rows already read.
+ *
+ * Nothing here asks a project anything: a chip narrows what is loaded, and what it counts is
+ * rows — the same kind of fact `tally` keeps, and never a sum across backlogs. A row that has
+ * not answered yet matches none of the three, since not knowing is not drifting.
+ */
+export type RowFilter = 'all' | 'drifted' | 'disagrees' | 'unreadable'
+
+/** The chips, in the order the screen draws them. */
+export const ROW_FILTERS: readonly RowFilter[] = ['all', 'drifted', 'disagrees', 'unreadable']
+
+export function matchesFilter(row: ProjectRow, filter: RowFilter): boolean {
+  if (filter === 'drifted') return row.gate?.verdict === 'drifted'
+  if (filter === 'disagrees') return row.engine !== null && !row.engine.agree
+  if (filter === 'unreadable') return row.state === 'unreadable'
+  return true
+}
+
+/** How many rows each chip would leave, which is the number drawn on it. */
+export function filterCounts(rows: readonly ProjectRow[]): Readonly<Record<RowFilter, number>> {
+  const count = (filter: RowFilter) => rows.filter((row) => matchesFilter(row, filter)).length
+  return {
+    all: rows.length,
+    drifted: count('drifted'),
+    disagrees: count('disagrees'),
+    unreadable: count('unreadable'),
+  }
+}

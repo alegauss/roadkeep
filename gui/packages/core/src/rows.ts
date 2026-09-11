@@ -1,8 +1,10 @@
+import type { Withheld } from './bridge'
 import type { GateHealth } from './gate'
 import type { RecordedProject } from './catalogue'
 import type { CallOptions, ReadOutcome } from './client'
+import type { ColdStartStage } from './cold-start'
 import { saidBy, type Unreadable } from './limits'
-import type { OpenProject } from './opening'
+import type { Opening, OpenProject } from './opening'
 import { fillRow, readRow, unreadableRow, type ProjectRow } from './portfolio'
 
 /**
@@ -92,4 +94,71 @@ export async function withNext(
   // A row that could not learn its next line is still a row: the counts are true, and
   // drawing it as unreadable would throw away what the first pass already knew.
   return pick.ok ? fillRow(row, { pick: pick.value, gate }) : fillRow(row, { gate })
+}
+
+/**
+ * Why a project did not open, as the state its row carries (RG145).
+ *
+ * The opening's own sentence where it has one. An unresolved project says what resolution
+ * said, and the command lines it tried stay on the opening for whoever draws them; one that
+ * answered and then could not be read carries that read's `Unreadable` whole.
+ */
+export function openingUnreadable(
+  opening: Exclude<Opening, { readonly kind: 'open' }> | Withheld,
+): Unreadable {
+  const nothing = { elapsedMs: 0, argv: [], said: '' }
+  if (opening.kind === 'unreadable') return opening.unreadable
+  if (opening.kind === 'unresolved') {
+    return { ...nothing, reason: 'unspawnable', message: opening.reason }
+  }
+  if (opening.kind === 'withheld')
+    return { ...nothing, reason: 'withheld', message: opening.reason }
+  return {
+    ...nothing,
+    reason: 'unreadable-payload',
+    message: 'the engine answering here says no roadkeep project governs this folder',
+  }
+}
+
+/** Which of the two moments a stage is, for a screen to name in its own words. */
+export type RowStage = 'counting' | 'next'
+
+/**
+ * The two reads a portfolio row is filled with, as `coldStart` stages (RG145).
+ *
+ * The same two moments `glanceRow` and `withNext` are, spelled for a cold start that streams:
+ * the counts and the engine first — the engine off the opening, never asked again — then the
+ * next line. A project that did not open fails the first stage with the reason it gave, so
+ * the second never asks it anything; one whose next line would not come keeps the row the
+ * first stage drew.
+ *
+ * @param reach the open project for a recorded one, or a throw carrying why not. Asked once
+ *   per stage, so remembering the opening between the two is the caller's.
+ */
+export function rowStages(
+  reach: (project: RecordedProject) => Promise<OpenProject>,
+  options: CallOptions = {},
+): readonly (ColdStartStage & { readonly name: RowStage })[] {
+  return [
+    {
+      name: 'counting',
+      async read(recorded) {
+        const project = await reach(recorded)
+        const stats = await ask(
+          () => project.client.call(project.root, 'stats', {}, options),
+          'stats',
+        )
+        if (!stats.ok) throw stats.why
+        return { stats: stats.value, engines: project.engine.payload }
+      },
+    },
+    {
+      name: 'next',
+      async read(recorded) {
+        const project = await reach(recorded)
+        const pick = await ask(() => project.client.call(project.root, 'pick', {}, options), 'pick')
+        return pick.ok ? { pick: pick.value } : {}
+      },
+    },
+  ]
 }

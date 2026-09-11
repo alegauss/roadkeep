@@ -8,7 +8,7 @@
  * A second locale is a `Partial` of the same shape beside it. That is deliberate — a
  * half-translated locale is the normal state of a translation, not a broken one — and the
  * fallback is **per key**, so a missing entry shows the English sentence rather than the
- * identifier. A locale file is never a reason for a screen to show `app.tagline`.
+ * identifier. A locale file is never a reason for a screen to show `portfolio.footnote`.
  *
  * **Two things are never in here.** What a payload printed is the project's own prose, in
  * whatever language its author wrote it, and translating it would be this app rewriting
@@ -19,7 +19,6 @@
  * is why this file is not called that. Two catalogues in one app is one too many names.
  */
 
-import type { PackageName } from './packages'
 import type { Lost, Theme } from './settings'
 import { keysOf } from './reading'
 
@@ -34,12 +33,52 @@ export type Fill = Readonly<Record<string, string | number>>
  */
 export const EN = {
   'app.name': 'roadkeep',
-  'app.tagline': 'The window opens and the three packages are wired. No backlog is read yet.',
 
-  'transport.asking': 'asking the bridge',
   'transport.absent': 'no bridge - running as a plain browser page',
-  'transport.ipc': 'bridged over IPC',
-  'transport.http': 'bridged over HTTP',
+
+  'portfolio.kicker': 'Portfolio',
+  'portfolio.title': '{count} projects on this machine',
+  'portfolio.title.unknown': 'Projects on this machine',
+  'portfolio.tally': '{read} read · {pending} still reading · {unreadable} unreadable',
+  'portfolio.progress': '{stage}: {done} of {total}',
+  'portfolio.stage.counting': 'counting each backlog',
+  'portfolio.stage.next': 'asking for each next line',
+  'portfolio.asking': 'Looking under the roots the settings name.',
+  'portfolio.failed': 'The bridge did not say which projects there are: {reason}',
+  'portfolio.none': 'No project was found under the roots the settings name.',
+  'portfolio.none.hint':
+    'A folder holding a roadkeep.toml under one of those roots is listed here the next time the window asks.',
+  'portfolio.filter.all': 'All {count}',
+  'portfolio.filter.drifted': 'Gate drifted {count}',
+  'portfolio.filter.disagrees': 'Engine disagrees {count}',
+  'portfolio.filter.unreadable': 'Unreadable {count}',
+  'portfolio.filter.label': 'Narrow the list',
+  'portfolio.order': "order: the record's",
+  'portfolio.column.project': 'Project',
+  'portfolio.column.backlog': 'Backlog',
+  'portfolio.column.next': 'Next ready line',
+  'portfolio.column.gate': 'Gate',
+  'portfolio.column.engine': 'Engine',
+  'portfolio.worktree': 'worktree',
+  'portfolio.pending': 'still reading',
+  'portfolio.open': '{count} open',
+  'portfolio.startable': '{startable} startable · {waiting} waiting',
+  'portfolio.uncounted': '{count} not counted',
+  'portfolio.tier': 'tier: {tier}',
+  'portfolio.next.none': 'nothing ready · {blocked} blocked',
+  'portfolio.next.missing': 'the next line did not arrive',
+  'portfolio.gate.unknown': 'unknown',
+  'portfolio.gate.clean': 'clean',
+  'portfolio.gate.drifted': 'drifted',
+  'portfolio.gate.never': 'never run here',
+  'portfolio.gate.findings': '{count} findings',
+  'portfolio.gate.stale': 'stale',
+  'portfolio.engine.modified': 'working tree',
+  'portfolio.unreadable': 'unreadable',
+  'portfolio.tried': 'what was tried',
+  'portfolio.kept': 'still on the list',
+  'portfolio.footnote':
+    'Every number on this screen is one a verb printed. Nothing is summed across projects.',
 
   'settings.reset': 'Some settings could not be read, so they are back to their defaults.',
   'settings.unsaved': 'That choice could not be saved, so the next launch will not have it.',
@@ -77,28 +116,10 @@ export const EN = {
   'ground.light': 'ground: light',
   'ground.dark': 'ground: dark',
   'ground.action': 'Change the ground',
-
-  'packages.core':
-    'The transport interface, the verb table and the payload shapes. No Electron, no React.',
-  'packages.ui':
-    'React over Tailwind. Receives payloads and renders them, and knows no path and no process.',
-  'packages.shell': 'The Electron main process. It spawns, it watches files, it holds settings.',
 } as const
 
 /** What a screen may ask for. Anything else is a string somebody typed into a component. */
 export type MessageKey = keyof typeof EN
-
-/**
- * Which string says what a package is for.
- *
- * Spelled out rather than built from the name, so a package added without a sentence fails
- * to compile instead of asking for a key nobody wrote.
- */
-export const PACKAGE_TEXT: Readonly<Record<PackageName, MessageKey>> = {
-  core: 'packages.core',
-  ui: 'packages.ui',
-  shell: 'packages.shell',
-}
 
 /**
  * What the ground control says it is set to.

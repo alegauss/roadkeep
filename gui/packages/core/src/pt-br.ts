@@ -22,12 +22,52 @@ export const PT_BR_LOCALE = 'pt-BR'
 
 export const PT_BR: Wording = {
   'app.name': 'roadkeep',
-  'app.tagline': 'A janela abre e os três pacotes estão ligados. Nenhum backlog foi lido ainda.',
 
-  'transport.asking': 'perguntando à ponte',
   'transport.absent': 'sem ponte - rodando como uma página comum de navegador',
-  'transport.ipc': 'ligada por IPC',
-  'transport.http': 'ligada por HTTP',
+
+  'portfolio.kicker': 'Portfólio',
+  'portfolio.title': '{count} projetos nesta máquina',
+  'portfolio.title.unknown': 'Projetos nesta máquina',
+  'portfolio.tally': '{read} lidos · {pending} ainda lendo · {unreadable} ilegíveis',
+  'portfolio.progress': '{stage}: {done} de {total}',
+  'portfolio.stage.counting': 'contando cada backlog',
+  'portfolio.stage.next': 'pedindo a próxima linha de cada um',
+  'portfolio.asking': 'Procurando sob as raízes que as configurações nomeiam.',
+  'portfolio.failed': 'A ponte não disse quais projetos existem: {reason}',
+  'portfolio.none': 'Nenhum projeto foi encontrado sob as raízes que as configurações nomeiam.',
+  'portfolio.none.hint':
+    'Uma pasta com um roadkeep.toml sob uma dessas raízes aparece aqui na próxima vez que a janela perguntar.',
+  'portfolio.filter.all': 'Todos {count}',
+  'portfolio.filter.drifted': 'Verificação divergente {count}',
+  'portfolio.filter.disagrees': 'Motor em desacordo {count}',
+  'portfolio.filter.unreadable': 'Ilegíveis {count}',
+  'portfolio.filter.label': 'Estreitar a lista',
+  'portfolio.order': 'ordem: a do registro',
+  'portfolio.column.project': 'Projeto',
+  'portfolio.column.backlog': 'Pendências',
+  'portfolio.column.next': 'Próxima linha pronta',
+  'portfolio.column.gate': 'Verificação',
+  'portfolio.column.engine': 'Motor',
+  'portfolio.worktree': 'worktree do git',
+  'portfolio.pending': 'ainda lendo',
+  'portfolio.open': '{count} abertas',
+  'portfolio.startable': '{startable} prontas para começar · {waiting} esperando',
+  'portfolio.uncounted': '{count} não contadas',
+  'portfolio.tier': 'nível: {tier}',
+  'portfolio.next.none': 'nada pronto · {blocked} bloqueadas',
+  'portfolio.next.missing': 'a próxima linha não chegou',
+  'portfolio.gate.unknown': 'desconhecido',
+  'portfolio.gate.clean': 'limpo',
+  'portfolio.gate.drifted': 'divergente',
+  'portfolio.gate.never': 'nunca rodou aqui',
+  'portfolio.gate.findings': '{count} achados',
+  'portfolio.gate.stale': 'desatualizado',
+  'portfolio.engine.modified': 'árvore de trabalho',
+  'portfolio.unreadable': 'ilegível',
+  'portfolio.tried': 'o que foi tentado',
+  'portfolio.kept': 'continua na lista',
+  'portfolio.footnote':
+    'Cada número nesta tela foi impresso por um verbo. Nada é somado entre projetos.',
 
   'settings.reset': 'Algumas configurações não puderam ser lidas e voltaram aos valores padrão.',
   'settings.unsaved': 'Essa escolha não pôde ser salva, então a próxima abertura não a terá.',
@@ -65,11 +105,4 @@ export const PT_BR: Wording = {
   'ground.light': 'fundo: claro',
   'ground.dark': 'fundo: escuro',
   'ground.action': 'Mudar o fundo',
-
-  'packages.core':
-    'A interface de transporte, a tabela de verbos e os formatos de payload. Sem Electron, sem React.',
-  'packages.ui':
-    'React sobre Tailwind. Recebe payloads e os desenha, e não conhece caminho nem processo.',
-  'packages.shell':
-    'O processo principal do Electron. Ele executa processos, observa arquivos e guarda as configurações.',
 }

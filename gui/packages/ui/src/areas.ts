@@ -1,4 +1,5 @@
 import type { Bundle } from '@rk/core'
+import { IconLayoutGrid } from '@tabler/icons-react'
 import type { BentoNavGroup, BentoNavItem } from '@viglet/viglet-design-system/bento'
 
 /**
@@ -10,24 +11,44 @@ import type { BentoNavGroup, BentoNavItem } from '@viglet/viglet-design-system/b
  * Turing's routes inside this window.
  *
  * **An entry appears when its route does.** That is the rule, and it is why this list is
- * nearly empty: the portfolio, the project surface, the task detail, the write path and the
- * agent session are blocks C to F, and a rail button leading nowhere is worse than a rail
- * that grew a button the day the screen behind it opened. `docs/design/` draws all five, and
- * drawing is where they are until they route.
+ * short: the portfolio routes since RG145, and the project surface, the task detail, the
+ * write path and the agent session are blocks D to F — a rail button leading nowhere is worse
+ * than a rail that grew a button the day the screen behind it opened. `docs/design/` draws
+ * all five, and drawing is where the other four are until they route.
  *
  * **A label here is an i18next key**, not a `MessageKey`, because the package's own
  * components resolve it — which is the rule RG88 settled. The values are registered with
  * i18next in `speaking`, beside the tag that chooses among them.
  */
 
-/** Where the rail's Home button leads, and the one route this app serves so far. */
+/** Where the rail's Home button leads, and where the portfolio is (RG145). */
 export const HOME_ROUTE = '/'
 
 /**
  * The sections and their surfaces, already filtered by whatever this reader may see —
  * which here is everything, there being no account and no privileges (a non-goal).
+ *
+ * **The portfolio is the first entry, the day its route answers** (RG145). Its section has no
+ * hub of its own: the rail's Home button already leads to `/`, and a hub listing the one
+ * surface under it would be a second button to the same screen. The palette offers it.
  */
-export const AREAS: BentoNavGroup[] = []
+export const AREAS: BentoNavGroup[] = [
+  {
+    section: { id: 'backlogs', labelKey: 'areas.backlogs' },
+    items: [
+      {
+        id: 'portfolio',
+        titleKey: 'areas.portfolio',
+        descriptionKey: 'areas.portfolioAbout',
+        icon: IconLayoutGrid,
+        section: 'backlogs',
+        tone: 'amber',
+        bentoRoute: HOME_ROUTE,
+        fallbackRoute: HOME_ROUTE,
+      },
+    ],
+  },
+]
 
 /**
  * Every surface, flattened, which is what the palette takes.
@@ -58,6 +79,22 @@ export function surfacesIn(groups: readonly BentoNavGroup[]): BentoNavItem[] {
  * catalogue -- so adding a language means adding an object and nothing else.
  */
 export const AREA_WORDING: Readonly<Record<'en' | 'pt', Bundle>> = {
-  en: { language: { toggle: 'Change the language' } },
-  pt: { language: { toggle: 'Mudar o idioma' } },
+  en: {
+    language: { toggle: 'Change the language' },
+    // `areas` and not `nav`: the package ships a `nav` namespace, and a shallow merge would
+    // replace its keys with these.
+    areas: {
+      backlogs: 'Backlogs',
+      portfolio: 'Portfolio',
+      portfolioAbout: 'Every governed project on this machine, one row each',
+    },
+  },
+  pt: {
+    language: { toggle: 'Mudar o idioma' },
+    areas: {
+      backlogs: 'Pendências',
+      portfolio: 'Portfólio',
+      portfolioAbout: 'Cada projeto governado nesta máquina, uma linha para cada',
+    },
+  },
 }
