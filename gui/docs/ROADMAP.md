@@ -41,7 +41,6 @@
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
 - 📋 **RG128** (deps: RG120 ✅, roadkeep RK1678) **a checkout busy when the probe runs is skipped, so the launcher answers from a cache 446 versions old** — Resolution takes the first engine that answers, so a session can be briefed by a copy nobody chose. → §RG128
 - 📋 **RG154** (deps: RG50 ✅, RG162) (requires: published-artifact) **the update check has only met answers written by hand, never GitHub's own for a published release** — No release is published yet, so the shape it reads and the page it opens are held by fakes until the first one exists. → §RG154
-- 📋 **RG161** (deps: —) **the signing procedure breaks the Windows CI job on one route and leaves the app exe unsigned on another** — Certum's subject name is committed to the builder config, SignPath signs only the installer, and three sentences beside it are false. → §RG161
 - 📋 **RG162** (deps: —) **no LICENSE file ships and every build says 0.0.0, so the first release the maintainer decided on cannot be cut** — SignPath needs a recognised licence file, and ci.yml refuses a tag naming a version the manifest does not carry. → §RG162
 
 ## Block H — The look (a design system for governed prose)
@@ -177,8 +176,10 @@
 ## Done when — RG49
 
 - **The released installer and executable carry a valid signature**
-  Get-AuthenticodeSignature reads Valid on both, the signer is the name the manifest
-  gives, and the build line says signed.
+  Get-AuthenticodeSignature reads Valid on the installer and on the roadkeep.exe inside
+  it, the signer is the name that route signs under — the foundation on SignPath, an
+  Open Source Developer on Certum, neither being the manifest's — and the build line
+  says signed.
 
 ## Non-goals
 

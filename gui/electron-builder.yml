@@ -47,15 +47,21 @@ win:
     - target: nsis
       arch:
         - x64
-  # Edited, and still unsigned (RG138). This switch is two things under one name: `rcedit`
-  # writing the icon and the version resources into the .exe, and signtool signing it. Off,
-  # it was an honest unsigned build that also wore Electron's icon and named no version —
-  # the edit is the only way an icon reaches the executable. On, the edit happens and the
-  # signing does not, because nothing here names a certificate: electron-builder says so in
-  # its log, and turning signing on is still RG49's edit, somewhere a certificate is named.
+  # Edited, and still unsigned (RG138). This switch is two things under one name: the icon
+  # and the version resources written into the .exe, and signtool signing it. Off, it was an
+  # honest unsigned build that also wore Electron's icon and named no version — the edit is
+  # the only way an icon reaches the executable. On, the edit happens and the signing does
+  # not, because nothing here names a certificate. Turning signing on is still RG49's edit,
+  # somewhere a certificate is named.
   #
-  # The edit's tools arrive the way NSIS did, fetched into electron-builder's own cache the
-  # first time and read from there after — which is not the rebuild `npmRebuild` refuses.
+  # **The skip is not in the build log** (RG161). `no signing info identified, signing is
+  # skipped` is written at debug level, so an ordinary `npm run package` says nothing about
+  # it at all: what says this build is unsigned is the build line in the app, and this file.
+  #
+  # And the edit needs nothing fetched: this electron-builder writes the resources in
+  # process through its `resedit` dependency, which npm already installed. The downloaded
+  # `rcedit` is a legacy path this build does not take — NSIS is the thing that arrives in
+  # electron-builder's own cache, and it is not this switch's.
   signAndEditExecutable: true
 
 nsis:

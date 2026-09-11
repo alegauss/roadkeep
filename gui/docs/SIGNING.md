@@ -49,6 +49,9 @@ comercial ou uma empresa por trás.
   vão discordar.
 - **Uma release publicada** (RG50). O SignPath só aceita projetos que já distribuem o
   artefato que vai ser assinado, e descrito na página de download.
+- **Só para o SignPath, mais duas coisas que os termos exigem:** uma página pública de
+  política de assinatura de código (quem pode pedir uma assinatura, e o que é assinado) e
+  autenticação multifator na conta de quem assina. Sem as duas a candidatura não passa.
 
 ### 2. Obter o certificado
 
@@ -71,16 +74,27 @@ Hoje o `electron-builder.yml` produz, de propósito, um executável honestamente
 assinado: `signAndEditExecutable: true` grava o ícone e a versão, e a assinatura não
 acontece porque nada nomeia um certificado. Cada opção entra de um jeito:
 
-- **SignPath:** o CI gera o instalador sem assinar, a ação da SignPath para GitHub Actions
-  envia o artefato e recebe de volta a versão assinada. O `signtool` local não participa.
-- **Certum com o SimplySign Desktop aberto:** o certificado está no repositório do Windows,
-  então basta nomeá-lo pelo assunto e rodar `npm run package` na sua máquina:
+- **SignPath:** são **duas assinaturas, nesta ordem**. Assinar só o instalador NSIS deixa o
+  `roadkeep.exe` de dentro dele sem assinatura nenhuma — o Windows avisa de novo na primeira
+  vez que o app abre, depois de uma instalação que pareceu confiável. Então: o CI empacota
+  sem instalador (`electron-builder --win --dir`), a ação da SignPath assina o `.exe` do
+  diretório empacotado, o instalador é construído a partir dele
+  (`electron-builder --win nsis --prepackaged release/win-unpacked`) e a ação assina o
+  instalador também. O `signtool` local não participa de nenhuma das duas.
+- **Certum com o SimplySign Desktop aberto:** o certificado está no repositório de
+  certificados do Windows, então é só nomeá-lo pelo assunto — **na linha de comando da sua
+  máquina, e não neste arquivo**:
 
-  ```yaml
-  win:
-    signtoolOptions:
-      certificateSubjectName: 'Open Source Developer, Alexandre Oliveira'
+  ```powershell
+  npm run build
+  npm run stamp
+  npx electron-builder --config electron-builder.yml --publish never `
+    --config.win.signtoolOptions.certificateSubjectName="Open Source Developer, Alexandre Oliveira"
   ```
+
+  Commitado no `electron-builder.yml`, esse nome faz o job do Windows no CI procurar um
+  certificado que o runner não tem: o `package` falha, e a release que ele rascunha não
+  acontece. O certificado é local, então a configuração que o nomeia também é.
 
 - **OV em nuvem:** `win.signtoolOptions.sign` apontando para um script que chama a
   ferramenta da CA, com as credenciais vindas de segredos do GitHub Actions — nunca do
@@ -95,14 +109,20 @@ Em todos os casos, **com carimbo de tempo RFC 3161** (o electron-builder usa um 
 Get-AuthenticodeSignature .\release\*.exe | Format-List Status, SignerCertificate
 ```
 
-`Status` tem de ser `Valid`, e o `SignerCertificate` o nome esperado. As propriedades do
-arquivo, na aba _Assinaturas digitais_, dizem o mesmo.
+`Status` tem de ser `Valid`, e o `SignerCertificate` o nome que **aquela rota** assina: a
+`SignPath Foundation` pelo SignPath, `Open Source Developer, Alexandre Oliveira` pelo Certum.
+Nenhum dos dois é o `author` do `package.json`, e isso é a rota e não um defeito — pelo
+SignPath o publicador é a fundação, e o Certum prefixa o nome de todo certificado open
+source. Confira o instalador **e** o `roadkeep.exe` de dentro dele: são duas assinaturas.
+As propriedades do arquivo, na aba _Assinaturas digitais_, dizem o mesmo.
 
 ### 5. Fechar a RG49
 
 O build que assina roda com `ROADKEEP_GUI_SIGNED=signed`, e a linha de build do app deixa
 de dizer `unsigned`. O comentário do topo do `electron-builder.yml` passa a nomear onde o
-certificado está, e `roadkeep ship RG49` fecha a linha.
+certificado está, e `roadkeep ship RG49` fecha a linha — com as duas assinaturas conferidas,
+já que um instalador assinado com um `.exe` sem assinatura dentro é o aviso que a RG49
+existe para tirar da frente da pessoa.
 
 ## Fontes
 

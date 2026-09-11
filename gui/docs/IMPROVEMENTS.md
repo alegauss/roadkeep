@@ -390,20 +390,6 @@ manifest, publish the draft `ci.yml` leaves, then run the packaged app of the ve
 before it and choose Help, Check for updates: it has to name both versions and open that
 page. Then the same from the new build, which has to say it is current.
 
-### §RG161 What the signing procedure gets wrong
-
-The adversarial review found `docs/SIGNING.md` would fail the person following it on two
-routes.
-
-- **Certum:** the snippet puts `certificateSubjectName` in `electron-builder.yml`. Committed, it makes the Windows package job look for a certificate the runner does not have, and the release draft never happens. It belongs on the local command line, not in the file.
-- **SignPath:** signing the NSIS installer leaves the app executable inside it unsigned, yet step 5 stamps the build signed. The app has to be signed before the installer is built from the prepackaged directory, then the installer signed.
-- SignPath's prerequisites also omit the code-signing-policy page and MFA its terms require.
-
-And three sentences beside it are false: `electron-builder.yml`'s comment on what the
-builder logs and which `rcedit` it uses, the RG49 ledger entry naming two routes where
-the doc lists three, and RG49's open criterion, which no recommended route can meet
-because each signs under a name other than the manifest's.
-
 ### §RG162 Cutting v0.1.0
 
 The maintainer decided to cut v0.1.0, and two things stand in the way. `package.json`
