@@ -1,5 +1,6 @@
 import {
   filterCounts,
+  reasonOf,
   type KnownRoot,
   matchesFilter,
   ROW_FILTERS,
@@ -329,7 +330,7 @@ function Row({
             <div className="flex flex-wrap items-center gap-2">
               <Pill intent="error">{say('portfolio.unreadable')}</Pill>
               <span className="line-clamp-3 text-[13px] [overflow-wrap:anywhere]">
-                {row.unreadable?.message}
+                {row.unreadable === null ? null : reasonOf(row.unreadable, say)}
               </span>
             </div>
             <WhatWasTried row={row} tried={tried} />

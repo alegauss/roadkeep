@@ -24,6 +24,8 @@ const unreadable: WriteOutcome<{ id: string }> = {
   unreadable: {
     reason: 'timeout',
     message: 'ran past 15000ms',
+    code: '',
+    fields: {},
     elapsedMs: 15001,
     argv: [],
     said: '',

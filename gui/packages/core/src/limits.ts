@@ -68,9 +68,46 @@ function clamp(value: number, low: number, high: number): number {
  * with a fragment that does not match does the same, naming the fragment and the verb that
  * prints the prose. Both arrived as `expected JSON, found ""`.
  */
+/**
+ * Which of this app's own sentences explains an answer it could not read (RG168).
+ *
+ * A code and not the sentence, because the sentence is a translation: the catalogue holds
+ * one per code in every language this build ships, and a screen looks it up the way it looks
+ * up a settings loss. The empty string is the eighth state and the important one — the prose
+ * is the engine's, and prose the engine wrote is shown as the engine wrote it.
+ */
+export type UnreadableCode =
+  /** The answer was not JSON at all, and the engine said nothing about why. */
+  | 'not-json'
+  /** The answer parsed and was not the shape this build reads. */
+  | 'shape'
+  /** `config` was refused, so the project declares nothing this app can read. */
+  | 'declares'
+  /** A verb was refused where a row needed it. */
+  | 'refused'
+  /** The engine says no roadkeep project governs this folder. */
+  | 'ungoverned'
+  /** Nothing was offered as an engine, so nothing was asked. */
+  | 'nothing-offered'
+  /** Candidates were asked and none answered. */
+  | 'none-answered'
+  /** The carrier would not open it: not a project the scan of the roots found. */
+  | 'withheld'
+  /** The message is somebody else's prose — the engine's, or a transport's. */
+  | ''
+
 export interface Unreadable {
   readonly reason: EngineFailure | 'unreadable-payload'
+  /**
+   * The sentence, in English, for a log and a defect report. **Not what a screen draws**
+   * where `code` names one: that is looked up in the catalogue, so a window speaking
+   * Portuguese says it in Portuguese (RG168).
+   */
   readonly message: string
+  /** Which of this app's sentences applies, or empty where the prose is not this app's. */
+  readonly code: UnreadableCode
+  /** What the sentence's holes are filled with. Empty for the codes that take none. */
+  readonly fields: Readonly<Record<string, string>>
   readonly elapsedMs: number
   readonly argv: readonly string[]
   /**
@@ -140,7 +177,11 @@ export async function attemptRead<T>(
         ok: false,
         unreadable: {
           reason: cause.reason,
+          // The transport's own sentence — a spawn that failed, a deadline — and not one
+          // this app composed, so there is no code and the prose is drawn as it is.
           message: cause.message,
+          code: '',
+          fields: {},
           elapsedMs: cause.durationMs,
           argv: request.argv,
           // A call that never launched, or was killed, wrote nothing to carry.
@@ -167,6 +208,9 @@ export async function attemptRead<T>(
           said === ''
             ? `\`${request.argv.join(' ')}\` answered with something that is not JSON`
             : said,
+        // Where the engine explained itself, the prose is its own and stays untranslated.
+        code: said === '' ? 'not-json' : '',
+        fields: said === '' ? { command: request.argv.join(' ') } : {},
         elapsedMs: result.durationMs,
         argv: request.argv,
         said,
@@ -181,6 +225,12 @@ export async function attemptRead<T>(
       unreadable: {
         reason: 'unreadable-payload',
         message: `${parsed.failure.path || 'the answer'}: expected ${parsed.failure.expected}, found ${parsed.failure.got}`,
+        code: 'shape',
+        fields: {
+          path: parsed.failure.path || 'the answer',
+          expected: parsed.failure.expected,
+          got: parsed.failure.got,
+        },
         elapsedMs: result.durationMs,
         argv: request.argv,
         said,

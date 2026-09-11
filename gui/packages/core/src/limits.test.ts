@@ -197,6 +197,8 @@ describe('RG99: the state as a sentence', () => {
       {
         reason: 'unreadable-payload',
         message: 'tasks[2].symptom: expected a string, found nothing',
+        code: '',
+        fields: {},
         elapsedMs: 12,
         argv: ['-C', '/w', 'list', '--json'],
         said: '',
@@ -215,6 +217,8 @@ describe('RG99: the state as a sentence', () => {
       {
         reason: 'unreadable-payload',
         message: 'the answer: expected an object, found null',
+        code: '',
+        fields: {},
         elapsedMs: 3,
         argv: ['-C', '/w', 'stats', '--json'],
         said: '',
@@ -233,6 +237,8 @@ describe('RG99: the state as a sentence', () => {
       {
         reason: 'timeout',
         message: 'it ran past 15000ms',
+        code: '',
+        fields: {},
         elapsedMs: 15000,
         argv: ['-C', '/w', 'list', '--json'],
         said: '',

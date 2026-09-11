@@ -124,6 +124,8 @@ describe('RG19: the projects with no candidate', () => {
         reason: 'timeout',
         message: 'ran past 15000ms',
         said: '',
+        code: '',
+        fields: {},
         elapsedMs: 15001,
         argv: [],
       }),

@@ -19,6 +19,7 @@
  * is why this file is not called that. Two catalogues in one app is one too many names.
  */
 
+import type { Unreadable, UnreadableCode } from './limits'
 import type { Lost, Theme } from './settings'
 import { keysOf } from './reading'
 
@@ -270,6 +271,20 @@ export const EN = {
   'gate.sequence': 'In this order, not a choice.',
   'gate.checked': 'Read: {checked}',
 
+  'unreadable.not-json': '`{command}` answered with something that is not JSON.',
+  'unreadable.shape':
+    'The answer was not a shape this build reads: {path} should have been {expected}, and was {got}.',
+  'unreadable.declares':
+    '`{verb}` was refused, so this project declares nothing this app can read.',
+  'unreadable.refused': '`{verb}` was refused.',
+  'unreadable.ungoverned':
+    'The engine answering here says no roadkeep project governs this folder.',
+  'unreadable.nothing-offered':
+    'Nothing was offered as an engine for this project, so nothing was asked.',
+  'unreadable.none-answered':
+    'No candidate answered `engines --json`, so which roadkeep governs this project is unknown.',
+  'unreadable.withheld': 'This folder is not one the scan of your roots found.',
+
   'roots.label': 'Roots',
   'roots.add': 'Add a root',
   'roots.rescan': 'Rescan roots',
@@ -359,6 +374,39 @@ export const RESET_TEXT: Readonly<Record<Lost, MessageKey>> = {
   width: 'settings.lost.width',
   theme: 'settings.lost.theme',
   locale: 'settings.lost.locale',
+}
+
+/**
+ * The sentence for each way this app could not read an answer (RG168).
+ *
+ * The same arrangement `RESET_TEXT` uses and for the same reason: a code added without a
+ * sentence fails to compile, and the values the code carries are the holes this fills. The
+ * empty code has no entry — it means the prose belongs to the engine, and a lookup is the
+ * wrong thing to do with somebody else's words.
+ */
+export const UNREADABLE_TEXT: Readonly<Record<Exclude<UnreadableCode, ''>, MessageKey>> = {
+  'not-json': 'unreadable.not-json',
+  shape: 'unreadable.shape',
+  declares: 'unreadable.declares',
+  refused: 'unreadable.refused',
+  ungoverned: 'unreadable.ungoverned',
+  'nothing-offered': 'unreadable.nothing-offered',
+  'none-answered': 'unreadable.none-answered',
+  withheld: 'unreadable.withheld',
+}
+
+/**
+ * Why a project could not be read, in the window's language where the sentence is this
+ * app's and in the engine's own words where it is not (RG168).
+ *
+ * Nothing is composed here: a code picks a key and `say` fills its holes, so a language this
+ * build ships says it in that language and one it does not falls back the way every other
+ * sentence does.
+ */
+export function reasonOf(unreadable: Unreadable, say: Translate): string {
+  return unreadable.code === ''
+    ? unreadable.message
+    : say(UNREADABLE_TEXT[unreadable.code], unreadable.fields)
 }
 
 /** A translation. Partial because a translation in progress is still worth shipping. */

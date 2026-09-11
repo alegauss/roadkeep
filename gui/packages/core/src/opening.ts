@@ -100,7 +100,9 @@ export type Opening =
   | {
       readonly kind: 'unresolved'
       readonly root: string
+      /** In English, for a log. `code` is what a screen says in the window's language. */
       readonly reason: string
+      readonly code: 'nothing-offered' | 'none-answered'
       readonly tried: readonly (readonly string[])[]
     }
   /**
@@ -232,7 +234,13 @@ async function compose(
     ...(options.samePart === undefined ? {} : { samePart: options.samePart }),
   })
   if (resolution.kind === 'unresolved') {
-    return { kind: 'unresolved', root, reason: resolution.reason, tried: resolution.tried }
+    return {
+      kind: 'unresolved',
+      root,
+      reason: resolution.reason,
+      code: resolution.code,
+      tried: resolution.tried,
+    }
   }
 
   const engine = resolution.engine
@@ -322,6 +330,8 @@ function refusedBy(verb: string, said: string): Unreadable {
   return {
     reason: 'unreadable-payload',
     message: `\`${verb}\` was refused, so this project declares nothing this app can read`,
+    code: 'declares',
+    fields: { verb },
     elapsedMs: 0,
     argv: [verb],
     said: saidBy(said),

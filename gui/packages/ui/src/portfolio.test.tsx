@@ -95,6 +95,7 @@ const REFUSAL: OpenedProject = {
   kind: 'unresolved',
   root: REFUSED,
   reason: REFUSED_BECAUSE,
+  code: 'none-answered' as const,
   tried: [['python', '/code/gamma/launch.py']],
 }
 
@@ -192,7 +193,10 @@ describe('RG145: the portfolio at the root route', () => {
     const row = await waitFor(() => rowOf('gamma'))
 
     expect(within(row).getByText(BASE['portfolio.unreadable'])).toBeTruthy()
-    expect(within(row).getByText(REFUSED_BECAUSE)).toBeTruthy()
+    // The catalogue's sentence for the code the opening carried, not the English one the
+    // resolution wrote into `message` for the log (RG168).
+    expect(within(row).getByText(BASE['unreadable.none-answered'])).toBeTruthy()
+    expect(within(row).queryByText(REFUSED_BECAUSE)).toBeNull()
     expect(within(row).getByText('python /code/gamma/launch.py')).toBeTruthy()
   })
 

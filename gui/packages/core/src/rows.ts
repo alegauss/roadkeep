@@ -54,6 +54,8 @@ async function ask<T>(
         ? {
             reason: 'unreadable-payload',
             message: `\`${verb}\` was refused`,
+            code: 'refused',
+            fields: { verb },
             elapsedMs: answer.durationMs,
             argv: [verb],
             said: saidBy(answer.refusal.said),
@@ -106,17 +108,18 @@ export async function withNext(
 export function openingUnreadable(
   opening: Exclude<Opening, { readonly kind: 'open' }> | Withheld,
 ): Unreadable {
-  const nothing = { elapsedMs: 0, argv: [], said: '' }
+  const nothing = { elapsedMs: 0, argv: [], said: '', fields: {} }
   if (opening.kind === 'unreadable') return opening.unreadable
   if (opening.kind === 'unresolved') {
-    return { ...nothing, reason: 'unspawnable', message: opening.reason }
+    return { ...nothing, reason: 'unspawnable', message: opening.reason, code: opening.code }
   }
   if (opening.kind === 'withheld')
-    return { ...nothing, reason: 'withheld', message: opening.reason }
+    return { ...nothing, reason: 'withheld', message: opening.reason, code: 'withheld' }
   return {
     ...nothing,
     reason: 'unreadable-payload',
     message: 'the engine answering here says no roadkeep project governs this folder',
+    code: 'ungoverned',
   }
 }
 

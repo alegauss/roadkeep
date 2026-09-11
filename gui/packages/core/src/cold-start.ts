@@ -57,6 +57,9 @@ function asUnreadable(cause: unknown, stage: string): Unreadable {
     return {
       reason: cause.reason,
       message: cause.message,
+      // The transport's own sentence, so no code and no translation (RG168).
+      code: '',
+      fields: {},
       elapsedMs: cause.durationMs,
       argv: [],
       said: '',
@@ -68,6 +71,9 @@ function asUnreadable(cause: unknown, stage: string): Unreadable {
     return {
       reason: thrown.reason,
       message: thrown.message,
+      // Carried through: what was thrown already decided whether the prose is this app's.
+      code: thrown.code ?? '',
+      fields: thrown.fields ?? {},
       elapsedMs: thrown.elapsedMs ?? 0,
       argv: thrown.argv ?? [],
       said: thrown.said ?? '',
@@ -77,6 +83,9 @@ function asUnreadable(cause: unknown, stage: string): Unreadable {
   return {
     reason: 'unreadable-payload',
     message: `${stage} failed: ${cause instanceof Error ? cause.message : String(cause)}`,
+    // Whatever was thrown, said as it arrived: this app did not write the half that matters.
+    code: '',
+    fields: {},
     elapsedMs: 0,
     argv: [],
     said: '',

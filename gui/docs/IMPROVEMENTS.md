@@ -491,26 +491,6 @@ digest is then required to carry that set.
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
 
-### §RG168 A reason in the window's language
-
-An unreadable row draws `Unreadable.message`. Where the engine explained itself, that
-message is the engine's own prose and is right to show untranslated. Where this app
-composed it, it is English whatever the window speaks. Examples are resolution's "no
-candidate answered `engines --json`", the opening's "`config` was refused", and
-`openingUnreadable`'s ungoverned sentence. A Portuguese window then prints an English
-sentence in the middle of a translated row. This is the defect RG123 fixed for the
-settings toasts, found again on the portfolio.
-
-**The same fix RG123 made: a code and its fields, and the sentence in the catalogue.**
-`Unreadable` gains a `code` naming which of this app's sentences applies, with the
-values it fills, beside the `message` kept for a log. The row looks the sentence up the
-way `RESET_TEXT` is looked up, as `UNREADABLE_TEXT[code]` through `say`. `said`, the
-engine's stderr, stays as the engine wrote it.
-
-**The pseudo-locale run should find it.** RG51's run draws the window with no project on
-it, so no row reason has ever been on the screen it reads. Drawing one unresolved
-project there turns this defect into a red run the day it is written.
-
 ### §RG172 A narrowed listing in the window's language
 
 RG148's backlog draws `refusedSummary` under the chips when a listing is narrower than

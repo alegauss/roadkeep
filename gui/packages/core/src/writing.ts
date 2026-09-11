@@ -129,7 +129,10 @@ export async function applyWrite<T>(
         kind: 'unreadable',
         unreadable: {
           reason: cause.reason,
+          // The transport's own sentence, drawn as it is (RG168).
           message: cause.message,
+          code: '',
+          fields: {},
           elapsedMs: cause.durationMs,
           argv: composed.argv,
           said: '',
@@ -155,6 +158,16 @@ export async function applyWrite<T>(
             ? `\`${composed.verb}\` answered with ${answer.failure.got} where ` +
               `${answer.failure.path || 'the answer'} should have been ${answer.failure.expected}`
             : said,
+        // The engine's prose wins where there is any; otherwise this app's, by code.
+        code: said === '' ? 'shape' : '',
+        fields:
+          said === ''
+            ? {
+                path: answer.failure.path || 'the answer',
+                expected: answer.failure.expected,
+                got: answer.failure.got,
+              }
+            : {},
         elapsedMs: result.durationMs,
         argv: composed.argv,
         said,

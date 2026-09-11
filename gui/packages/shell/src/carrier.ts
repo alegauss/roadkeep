@@ -365,6 +365,9 @@ export function createCarrier(options: CarrierOptions): Carrier {
           kind: 'unresolved',
           root,
           reason: cause instanceof Error ? cause.message : String(cause),
+          // Nothing was tried, because the throw came from the scan or the candidates
+          // before any command line was asked (RG168).
+          code: 'nothing-offered',
           tried: [],
         }
       }

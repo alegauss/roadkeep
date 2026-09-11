@@ -234,6 +234,8 @@ describe('RG16: a project that could not be read', () => {
     const unreadable: Unreadable = {
       reason: 'timeout',
       message: 'the engine ran past 15000ms',
+      code: '',
+      fields: {},
       elapsedMs: 15002,
       argv: ['-C', project.path, 'stats', '--json'],
       said: '',
@@ -257,6 +259,8 @@ describe('RG16: how the screen stands', () => {
         reason: 'unspawnable',
         message: 'no python',
         said: '',
+        code: '',
+        fields: {},
         elapsedMs: 3,
         argv: [],
       },
@@ -289,7 +293,15 @@ describe('RG145: the chips a portfolio narrows by', () => {
   const pending = pendingRow({ ...project, path: '/code/pending' })
   const refused = unreadableRow(
     { ...project, path: '/code/refused' },
-    { reason: 'unspawnable', message: 'no python', said: '', elapsedMs: 0, argv: [] },
+    {
+      reason: 'unspawnable',
+      message: 'no python',
+      code: '',
+      fields: {},
+      said: '',
+      elapsedMs: 0,
+      argv: [],
+    },
   )
   const rows = [clean, drifted, split, pending, refused]
 

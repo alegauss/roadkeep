@@ -6,6 +6,7 @@ import {
   quotedFirst,
   routeOf,
   whereDesignLives,
+  reasonOf,
   type Design,
   type DepStanding,
   type HandedOver,
@@ -463,7 +464,8 @@ export function Task() {
   let subtitle: ReactNode = null
   if (view.kind === 'absent') subtitle = say('transport.absent')
   if (view.kind === 'opening') subtitle = say('task.opening')
-  if (view.kind === 'refused') subtitle = say('task.refused', { reason: view.unreadable.message })
+  if (view.kind === 'refused')
+    subtitle = say('task.refused', { reason: reasonOf(view.unreadable, say) })
   if (task !== null) subtitle = <Heading task={task} />
   // Built once per answer: the hero takes them as props, and a fresh element every render
   // would redraw it for nothing.

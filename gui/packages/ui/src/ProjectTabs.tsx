@@ -4,11 +4,13 @@ import {
   reversedFrom,
   storeFrom,
   undoneBy,
+  reasonOf,
   type MessageKey,
   type OpenProject,
   type ReadOutcome,
   type Reversed,
   type TaskLine,
+  type Unreadable,
 } from '@rk/core'
 import { BentoEmptyState, BentoPanel } from '@viglet/viglet-design-system/bento'
 import {
@@ -43,7 +45,15 @@ import { useWording } from './wording'
  */
 
 /** What a read answered, or the sentence it failed with. Null while it is out. */
-type Answer<T> = { readonly value: T } | { readonly failed: string } | null
+/**
+ * What a read answered, or why it did not — kept as the state and not as a sentence, so the
+ * sentence is looked up where it is drawn and a window that changes language changes it
+ * (RG168). A refusal's `said` is the engine's own prose and crosses as it is.
+ */
+type Answer<T> =
+  | { readonly value: T }
+  | { readonly failed: { readonly said: string } | { readonly unreadable: Unreadable } }
+  | null
 
 /**
  * One read, asked again when the question changes.
@@ -72,7 +82,9 @@ function useAnswer<T>(read: () => Promise<ReadOutcome<T>>, question: string): An
           ? { value: outcome.value }
           : {
               failed:
-                outcome.kind === 'refused' ? outcome.refusal.said : outcome.unreadable.message,
+                outcome.kind === 'refused'
+                  ? { said: outcome.refusal.said }
+                  : { unreadable: outcome.unreadable },
             }
       setHeld({ question, answer })
     })
@@ -95,11 +107,9 @@ function Waiting({
   if (answer === null)
     return <p className="text-muted-foreground text-sm">{say('project.listing')}</p>
   if ('failed' in answer) {
-    return (
-      <p className="text-muted-foreground text-sm">
-        {say('project.read.failed', { reason: answer.failed })}
-      </p>
-    )
+    const reason =
+      'said' in answer.failed ? answer.failed.said : reasonOf(answer.failed.unreadable, say)
+    return <p className="text-muted-foreground text-sm">{say('project.read.failed', { reason })}</p>
   }
   return <BentoEmptyState title={say(empty)} />
 }

@@ -3,6 +3,7 @@ import {
   NO_FILTER,
   refusedSummary,
   withField,
+  reasonOf,
   type BacklogFilter,
   type BlockStanding,
   type DepsPayload,
@@ -411,7 +412,7 @@ export function Project() {
   let subtitle: ReactNode = say('project.opening')
   if (view.kind === 'absent') subtitle = say('transport.absent')
   if (view.kind === 'refused')
-    subtitle = say('project.refused', { reason: view.unreadable.message })
+    subtitle = say('project.refused', { reason: reasonOf(view.unreadable, say) })
   if (view.kind === 'open') {
     const stats = view.stats
     subtitle = (

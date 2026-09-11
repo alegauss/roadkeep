@@ -372,7 +372,13 @@ describe('RG143: what it opens, and keeps', () => {
     const { carrier } = world({
       open: (root) => {
         attempts += 1
-        return Promise.resolve({ kind: 'unresolved', root, reason: 'no python', tried: [] })
+        return Promise.resolve({
+          kind: 'unresolved' as const,
+          root,
+          reason: 'no python',
+          code: 'none-answered' as const,
+          tried: [],
+        })
       },
     })
 
@@ -620,7 +626,13 @@ describe('RG166: the gate the carrier runs itself', () => {
   it('says nothing about a project that would not open, rather than a verdict nobody ran', async () => {
     const { carrier, lints, told } = watching({
       open: (root): Promise<Opening> =>
-        Promise.resolve({ kind: 'unresolved', root, reason: 'no python', tried: [] }),
+        Promise.resolve({
+          kind: 'unresolved',
+          root,
+          reason: 'no python',
+          code: 'none-answered',
+          tried: [],
+        }),
     })
 
     await carrier.open(A)

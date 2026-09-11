@@ -118,6 +118,7 @@ describe('RG145: a project that did not open, as the row it becomes', () => {
       kind: 'unresolved',
       root: '/code/a',
       reason: 'no candidate answered',
+      code: 'none-answered' as const,
       tried: [['python', 'launch.py']],
     })
 

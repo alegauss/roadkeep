@@ -221,3 +221,4 @@
   checked **With nothing wrapped, the names alone find something** A guard on the guard, so a green run cannot mean the attributes were never looked at.
 - ✅ **RG90** **muted text on a muted panel is 4.33 to 1, which no screen renders yet and one will** — The package darkened muted text to 0.52 in 2026.3.9, so the pair is 5.05 to 1, and the contrast test now holds it to AA in both grounds.
 - ✅ **RG132** **a dialog says Close in English in every language, and the run that found it can only name it** — The package puts Close and Back to top in its bundle since 2026.3.9, so the pseudo-locale run lists no exception and a bare word from it is a finding.
+- ✅ **RG168** **an unreadable row's reason is composed in English in core, so a Portuguese window shows it untranslated** — A row says why it could not be read in the window's language, and the engine's own prose untranslated (design recorded in `packages/core/src/limits.ts`).

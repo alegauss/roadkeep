@@ -57,8 +57,13 @@ export type EngineResolution =
   | { readonly kind: 'resolved'; readonly engine: ResolvedEngine }
   | {
       readonly kind: 'unresolved'
-      /** Sentence-shaped and meant to be shown: a blank project is not an answer. */
+      /** Sentence-shaped, in English, for a log. What a screen draws is `code` (RG168). */
       readonly reason: string
+      /**
+       * Which of the two ways this happened, so a window says it in its own language:
+       * nothing was offered at all, or candidates were asked and none answered.
+       */
+      readonly code: 'nothing-offered' | 'none-answered'
       /** Every command line tried, so the reason names what was looked for. */
       readonly tried: readonly (readonly string[])[]
     }
@@ -148,6 +153,7 @@ export async function resolveEngine(
       tried.length === 0
         ? 'nothing was offered as an engine for this project, so nothing was asked'
         : 'no candidate answered `engines --json`, so which roadkeep governs this project is unknown',
+    code: tried.length === 0 ? 'nothing-offered' : 'none-answered',
     tried,
   }
 }

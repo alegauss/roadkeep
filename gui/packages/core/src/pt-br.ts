@@ -261,6 +261,20 @@ export const PT_BR: Wording = {
   'gate.sequence': 'Nesta ordem, não é uma escolha.',
   'gate.checked': 'Lido: {checked}',
 
+  'unreadable.not-json': '`{command}` respondeu algo que não é JSON.',
+  'unreadable.shape':
+    'A resposta não tem um formato que esta versão lê: {path} deveria ser {expected}, e era {got}.',
+  'unreadable.declares':
+    '`{verb}` foi recusado, então este projeto não declara nada que este app saiba ler.',
+  'unreadable.refused': '`{verb}` foi recusado.',
+  'unreadable.ungoverned':
+    'O engine que responde aqui diz que nenhum projeto roadkeep governa esta pasta.',
+  'unreadable.nothing-offered':
+    'Nada foi oferecido como engine para este projeto, então nada foi perguntado.',
+  'unreadable.none-answered':
+    'Nenhum candidato respondeu `engines --json`, então não se sabe qual roadkeep governa este projeto.',
+  'unreadable.withheld': 'Esta pasta não é uma que a varredura das suas raízes encontrou.',
+
   'roots.label': 'Raízes',
   'roots.add': 'Adicionar uma raiz',
   'roots.rescan': 'Reescanear as raízes',

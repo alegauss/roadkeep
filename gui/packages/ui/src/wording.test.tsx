@@ -285,6 +285,50 @@ describe('RG51: nothing on the screen is typed into a component', () => {
     expect(bareNames().length).toBeGreaterThan(0)
   })
 
+  it('reads a row that could not be opened, where the reason is this app’s own (RG168)', async () => {
+    // The gap RG168 closed. This run drew an empty portfolio, so no row's reason had ever
+    // been on the screen it reads — and every one of those sentences was composed in
+    // English in `core`. One project that does not open puts one on screen.
+    const path = '/code/unresolved'
+    withBridge({
+      // The portfolio watches each row it lists (RG166, RG167), so a stub that refuses to
+      // be subscribed to is a list that never arrives.
+      subscribe: () => () => undefined,
+      projects: () =>
+        Promise.resolve({
+          version: 1,
+          roots: [{ path: '/code', depth: 1 }],
+          projects: [
+            {
+              path,
+              aliases: [],
+              commonDir: null,
+              root: '/code',
+              confirmed: '',
+              presence: 'present' as const,
+            },
+          ],
+        }),
+      // Nothing answered, and nothing was tried: the tried panel then draws nothing, so
+      // what is left on the row is the sentence alone.
+      open: () =>
+        Promise.resolve({
+          kind: 'unresolved' as const,
+          root: path,
+          reason: 'no candidate answered `engines --json`',
+          code: 'none-answered' as const,
+          tried: [],
+        }),
+    })
+    await choicesAtLaunch()
+    drawIn(pseudo())
+    await screen.findByText(`${PSEUDO_OPEN}${BASE['portfolio.unreadable']}${PSEUDO_CLOSE}`)
+
+    // The folder's own name and its path are identifiers, like the product's name.
+    const named = new Set([path, 'unresolved'])
+    expect(bare(visibleText(document.body)).filter((text) => !named.has(text))).toEqual([])
+  })
+
   it('looks inside a portal, which is where two of these surfaces render', async () => {
     // The gap RG123 closed, held as its own claim rather than left to the check above: the
     // sheet and the palette render into `document.body`, so a run reading the render's own

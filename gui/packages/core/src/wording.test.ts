@@ -13,11 +13,14 @@ import {
   keys,
   localeFor,
   pseudo,
+  reasonOf,
   stale,
   translator,
+  UNREADABLE_TEXT,
   untranslated,
   type Wording,
 } from './wording'
+import type { Unreadable } from './limits'
 
 describe('RG51: the base is the type', () => {
   it('answers every key it declares', () => {
@@ -194,5 +197,47 @@ describe('RG125: the other half of the wording, compared', () => {
     expect(gaps.untranslated).toEqual([])
     expect(gaps.stale).toEqual([])
     expect(gaps.identical).toEqual(bundlePaths(base))
+  })
+})
+
+describe('RG168: why a project could not be read, in the window’s language', () => {
+  /** An unreadable as the client builds one, with the code and the holes it carries. */
+  const unreadable = (over: Partial<Unreadable> = {}): Unreadable => ({
+    reason: 'unreadable-payload',
+    message: 'the answer: expected a number, found null',
+    code: 'shape',
+    fields: { path: 'the answer', expected: 'a number', got: 'null' },
+    elapsedMs: 0,
+    argv: [],
+    said: '',
+    ...over,
+  })
+
+  it('says the catalogue sentence for the code, with the holes the fields fill', () => {
+    const say = translator()
+
+    expect(reasonOf(unreadable(), say)).toBe(
+      fill(BASE['unreadable.shape'], { path: 'the answer', expected: 'a number', got: 'null' }),
+    )
+  })
+
+  it('says it in the window’s language, which is the whole point of a code', () => {
+    // The pseudo-locale stands for any second language: what matters is that the sentence
+    // came out of the catalogue and not out of `message`.
+    const say = translator(pseudo())
+
+    expect(isPseudo(reasonOf(unreadable(), say))).toBe(true)
+  })
+
+  it('draws the engine’s own prose untranslated, which is what an empty code means', () => {
+    const said = unreadable({ code: '', fields: {}, message: 'roadkeep: unknown key `x`' })
+
+    expect(reasonOf(said, translator(pseudo()))).toBe('roadkeep: unknown key `x`')
+  })
+
+  it('has a sentence for every code, so a code added without one does not compile', () => {
+    const say = translator()
+
+    for (const key of Object.values(UNREADABLE_TEXT)) expect(say(key)).not.toBe('')
   })
 })
