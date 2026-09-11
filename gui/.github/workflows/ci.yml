@@ -199,7 +199,8 @@ jobs:
   # developer machine.
   #
   # macOS is absent and that is not an oversight: no macOS build of this app has ever been
-  # attempted, and a runner is the wrong place to find out what it needs. It is RG119.
+  # attempted, and a runner is the wrong place to find out what it needs. RG119 was retired
+  # on that: nobody with a Mac is making one, so none is promised here.
   package:
     name: package on ${{ matrix.os }}
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'

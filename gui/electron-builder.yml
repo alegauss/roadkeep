@@ -68,6 +68,8 @@ linux:
     - AppImage
   category: Development
 
+# Declared and never run. RG119, which would have made the first macOS build, was retired:
+# nobody with a Mac is making one, and CI packages Windows and Linux only.
 mac:
   target:
     - dmg

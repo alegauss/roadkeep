@@ -33,7 +33,6 @@
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
-- 💭 **RG119** (deps: RG91 ✅) (requires: macos-machine) **no macOS build of this app has ever been made, so what it needs is a guess** — electron-builder.yml names a dmg target nobody has run, and the two things a Mac build turns out to want are learned by making one. → §RG119
 - 📋 **RG128** (deps: RG120 ✅, roadkeep's launcher treating a named engine as fatal) **a checkout busy when the probe runs is skipped, so the launcher answers from a cache 446 versions old** — Resolution takes the first engine that answers, so a session can be briefed by a copy nobody chose. → §RG128
 - 📋 **RG143** (deps: RG122 ✅, RG103 ✅) **the bridge carries no roadkeep call, so no screen can ask a project anything and every reader in core runs only in tests** — RendererBridge answers identify, settings and two saves, and openHere, scanRoots and the held engine are reached by no path a window runs. → §RG143
 - 📋 **RG144** (deps: RG143, RG45 ✅) **the bridge only answers when asked, so a session's stream and a governed file changing have no way to reach a screen** — startSession and the governed watcher both hear events in main, and every bridge method is a single invoke with a single answer. → §RG144

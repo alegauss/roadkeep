@@ -269,27 +269,6 @@ ready task forever. What can be built without it is the pipeline that would use 
 the about surface saying plainly that this build is unsigned — which is the honest half
 and is worth having on its own.
 
-### §RG119 The build nobody has made
-
-`electron-builder.yml` declares a `dmg` target with a category beside it, and that is
-the whole of what this project knows about a macOS build. Nobody has run it. RG91
-packaged Windows and Linux in CI and left this out deliberately: a runner is a poor
-place to find out what a platform needs, because every answer arrives as a red job with
-a log and no way to try the next thing without another push.
-
-Three things are likely to want settling, and none of them is knowable from here. An
-unsigned `.app` is refused by Gatekeeper on the machine that downloads it, which is a
-different problem from RG49's Windows one and is not solved by the same certificate.
-`spawnElectron` strips `ELECTRON_RUN_AS_NODE` and resolves a binary by a path this
-project has only ever resolved on two platforms. And the live suite starts the built app
-with a remote debugging port, which on macOS is the same mechanism and a different
-sandbox.
-
-So this carries `macos-machine` rather than a CI job: whoever has one runs `npm run
-package`, opens what comes out, and writes down what it took. Adding `macos-latest` to
-the package matrix is the last step and not the first — it is how the answer is kept,
-not how it is found.
-
 ### §RG128 The engine a session actually got
 
 The launcher resolves an engine in four steps — `ROADKEEP_HOME`, a vendored
