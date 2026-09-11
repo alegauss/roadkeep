@@ -48,6 +48,13 @@ export function taskPath(root: string, id: string): string {
   return `${projectPath(root)}/task/${encodeURIComponent(id)}`
 }
 
+/** One session this window started, beside the line it was handed (RG153). */
+export const SESSION_ROUTE = '/project/:root/task/:id/session/:key'
+
+export function sessionPath(root: string, id: string, key: string): string {
+  return `${taskPath(root, id)}/session/${encodeURIComponent(key)}`
+}
+
 /**
  * The sections and their surfaces, already filtered by whatever this reader may see —
  * which here is everything, there being no account and no privileges (a non-goal).

@@ -1,0 +1,372 @@
+import {
+  BASE,
+  bridgedRun,
+  EngineCallFailed,
+  fill,
+  openedFrom,
+  openProject,
+  readBriefPayload,
+  type HandedOver,
+  type SessionRecord,
+  type Topic,
+  type TopicEvents,
+  type Transport,
+} from '@rk/core'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { afterEach, describe, expect, it } from 'vitest'
+
+import { sessionPath, taskPath } from './areas'
+import { drawWindow } from './harness'
+import { stubBridge } from './stub-bridge'
+
+/**
+ * RG153: a line handed to a session, and the session beside it.
+ *
+ * The bridge is stubbed the way a window sees it — a handover that answers, a record of what
+ * is running, and the session topic to hear it on — over the same engine the task test builds.
+ * What is held is that the stream is drawn as acts off the raw lines, that a line heard after
+ * the record lands in its place, and that what moved comes from a reread and not from the
+ * session's own account.
+ */
+
+const ROOT = 'D:\\code\\alpha'
+const KEY = 'session-1'
+
+const key = (table: string, name: string, set: string | null, fallback: string | null = null) => ({
+  table,
+  key: name,
+  address: `${table}.${name}`,
+  declared: set !== null,
+  set,
+  default: fallback,
+})
+
+/** The brief the session was handed: the claiming read's answer, marker moved. */
+const RAW = {
+  id: 'AL1',
+  status: '🛠',
+  block: 'A',
+  shipped: false,
+  rendered: '- 🛠 **AL1** **a line ready to start** — It is. → §AL1',
+  symptom: 'a line ready to start',
+  why: 'It is.',
+  deps: ['AL0 ✅'],
+  requires: [],
+  ref: 'AL1',
+  section: {
+    anchor: 'AL1',
+    title: 'One read',
+    level: 3,
+    file: 'docs/IMPROVEMENTS.md',
+    first: 1,
+    last: 9,
+    words: 120,
+    own_words: 120,
+    body: 'The design.',
+  },
+  section_absence: '',
+  readiness: 'ready',
+  deps_resolved: [{ dep: 'AL0', kind: 'task', status: 'shipped', detail: '' }],
+  non_goals: ['No Markdown parsed in this app'],
+  done_when: ['A session starts from a brief, not from a prompt somebody typed'],
+  held: [],
+  claimed: { taken: true, from: '📋', to: '🛠' },
+}
+
+/** The line as it reads now: shipped, which is what the files say and the stream does not. */
+const SHIPPED = { ...RAW, status: '✅', shipped: true, section: null }
+
+/** The record carries the payload as the bridge read it, so the fixture is read the same way. */
+function handed() {
+  const parsed = readBriefPayload(RAW, '')
+  if (!parsed.ok) throw new Error(`the fixture does not match the shape: ${parsed.failure.path}`)
+  return parsed.value
+}
+
+const RECORD: SessionRecord = {
+  key: KEY,
+  root: ROOT,
+  id: 'AL1',
+  handed: handed(),
+  agent: { command: ['claude'], version: '2.1.263', said: '2.1.263 (Claude Code)' },
+  lines: [JSON.stringify({ type: 'system', subtype: 'init', session_id: 'fake' })],
+  outcome: null,
+}
+
+/** A call to the engine this project resolved, and a read of a file it governs. */
+const USED = JSON.stringify({
+  type: 'assistant',
+  message: {
+    content: [
+      {
+        type: 'tool_use',
+        id: 't1',
+        name: 'Bash',
+        input: { command: 'roadkeep ship AL1 --why "it works"', description: 'ship it' },
+      },
+      { type: 'tool_use', id: 't2', name: 'Read', input: { file_path: 'docs/ROADMAP.md' } },
+    ],
+  },
+})
+
+const SAID = JSON.stringify({
+  type: 'assistant',
+  message: { content: [{ type: 'text', text: 'Working it now.' }] },
+})
+
+function engine(moved: { shipped: boolean }): Transport {
+  return {
+    run(request) {
+      const verb = request.argv[2] ?? ''
+      const id = request.argv[3] ?? ''
+      const said = (value: unknown) =>
+        Promise.resolve({ code: 0, stdout: JSON.stringify(value), stderr: '', durationMs: 1 })
+      switch (verb) {
+        case 'engines':
+          return said({
+            writing: { version: '0.2.400', home: '/e', revision: 'abc', on_disk: '0.2.400' },
+            invoke: 'roadkeep',
+            declaration: '',
+            verdict: 'agreed',
+            agree: true,
+            readable: true,
+            split: false,
+            swapped: false,
+          })
+        case 'config':
+          return said({
+            version: '0.2.400',
+            source: 'roadkeep.toml',
+            keys: [
+              key('files', 'roadmap', '"docs/ROADMAP.md"'),
+              key('markers', 'open', '["📋", "🛠"]'),
+              key('markers', 'working', null, '"🛠"'),
+            ],
+          })
+        case 'commands':
+          return said({ version: '0.2.400', source: null, commands: [] })
+        case 'brief':
+          if (id === 'AL2') return said({ ...RAW, id, status: '📋', held: [HOLDER] })
+          return said(moved.shipped ? SHIPPED : RAW)
+        default:
+          return Promise.reject(new EngineCallFailed('unspawnable', 'no', 1))
+      }
+    },
+  }
+}
+
+const HOLDER = { by: 'another session', since: 'an hour ago', state: 'held', paths: [] }
+
+interface Listening {
+  readonly topic: Topic
+  readonly key: string
+  readonly heard: (event: TopicEvents[Topic]) => void
+}
+
+interface Wired {
+  readonly listeners: Listening[]
+  readonly stopped: string[]
+  readonly handedOver: string[]
+}
+
+async function at(
+  path: string,
+  over: {
+    readonly sessions?: readonly SessionRecord[]
+    readonly handOver?: HandedOver
+    readonly shipped?: boolean
+  } = {},
+): Promise<Wired> {
+  const moved = { shipped: over.shipped ?? false }
+  const transport = engine(moved)
+  const opened = openedFrom(await openProject(ROOT, [['roadkeep']], () => transport))
+  const wired: Wired = { listeners: [], stopped: [], handedOver: [] }
+
+  Object.defineProperty(window, 'roadkeep', {
+    value: stubBridge({
+      projects: () => Promise.resolve({ version: 1, roots: [], projects: [] }),
+      open: () => Promise.resolve(opened),
+      run: (root, request) => bridgedRun(() => transport.run({ ...request, root })),
+      subscribe: (topic, one, heard) => {
+        const listening = { topic, key: one, heard: heard as Listening['heard'] }
+        wired.listeners.push(listening)
+        return () => {
+          wired.listeners.splice(wired.listeners.indexOf(listening), 1)
+        }
+      },
+      sessions: () => Promise.resolve(over.sessions ?? []),
+      handOver: (_root, id) => {
+        wired.handedOver.push(id)
+        return Promise.resolve(over.handOver ?? { kind: 'withheld', reason: 'nothing asked' })
+      },
+      stopSession: (one) => {
+        wired.stopped.push(one)
+        return Promise.resolve()
+      },
+    }),
+    configurable: true,
+  })
+  drawWindow({ at: path })
+  return wired
+}
+
+/** Say one event on a topic, as main would. */
+function hear(wired: Wired, topic: Topic, event: TopicEvents[Topic]): void {
+  act(() => {
+    for (const one of wired.listeners.filter((listening) => listening.topic === topic)) {
+      one.heard(event)
+    }
+  })
+}
+
+afterEach(() => {
+  Reflect.deleteProperty(window, 'roadkeep')
+})
+
+describe('RG153: handing a line to Claude Code', () => {
+  it('takes the line and opens the session it started', async () => {
+    const started: HandedOver = { kind: 'started', session: RECORD }
+    // Held by the far side the moment it started, which is what the session's own screen asks.
+    const wired = await at(taskPath(ROOT, 'AL1'), { handOver: started, sessions: [RECORD] })
+
+    fireEvent.click(await screen.findByRole('button', { name: BASE['task.handOver'] }))
+
+    expect(wired.handedOver).toEqual(['AL1'])
+    // The session's own screen, which leads back to the line it was handed.
+    expect(await screen.findByText(BASE['session.handed'])).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'AL1' }).getAttribute('href')).toBe(
+      taskPath(ROOT, 'AL1'),
+    )
+  })
+
+  it('names the holder of a held line and offers no session', async () => {
+    // Block F's third criterion, held on the screen a person would click from.
+    await at(taskPath(ROOT, 'AL2'))
+
+    expect(
+      await screen.findByText(
+        fill(BASE['task.held.named'], { by: 'another session', since: 'an hour ago' }),
+      ),
+    ).toBeTruthy()
+    expect(screen.queryByRole('button', { name: BASE['task.handOver'] })).toBeNull()
+  })
+
+  it('says why the line was not taken, in this app words for what came back', async () => {
+    const wired = await at(taskPath(ROOT, 'AL1'), {
+      handOver: { kind: 'unavailable', tried: [['claude'], ['/home/a/.local/bin/claude']] },
+    })
+
+    fireEvent.click(await screen.findByRole('button', { name: BASE['task.handOver'] }))
+
+    expect(
+      await screen.findByText(
+        fill(BASE['task.handOver.unavailable'], {
+          tried: 'claude, /home/a/.local/bin/claude',
+        }),
+      ),
+    ).toBeTruthy()
+    expect(wired.handedOver).toEqual(['AL1'])
+  })
+
+  it('leads back to a session this window already started for the line', async () => {
+    await at(taskPath(ROOT, 'AL1'), { sessions: [RECORD] })
+
+    const open = await screen.findByRole('link', { name: BASE['task.session.open'] })
+    expect(open.getAttribute('href')).toBe(sessionPath(ROOT, 'AL1', KEY))
+  })
+})
+
+describe('RG153: the session beside its task', () => {
+  it('draws what was handed over, counted off the brief it was started from', async () => {
+    await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
+
+    expect(
+      await screen.findByText(fill(BASE['session.claim'], { from: '📋', to: '🛠' })),
+    ).toBeTruthy()
+    expect(screen.getByText(fill(BASE['session.handed.design'], { words: 120 }))).toBeTruthy()
+    expect(screen.getByText(fill(BASE['session.handed.deps'], { count: 1 }))).toBeTruthy()
+    expect(screen.getByText(fill(BASE['session.handed.criteria'], { count: 1 }))).toBeTruthy()
+    expect(
+      screen.getByText(
+        fill(BASE['session.handed.agent'], { command: 'claude', version: '2.1.263' }),
+      ),
+    ).toBeTruthy()
+  })
+
+  it('draws the stream as acts, a roadkeep call marked and a governed file named', async () => {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
+    await screen.findByText(BASE['session.handed'])
+
+    hear(wired, 'session', { session: KEY, index: 1, line: USED })
+
+    const call = (await screen.findByText('Bash')).closest('li')
+    if (call === null) throw new Error('no act')
+    expect(within(call).getByText(BASE['session.act.roadkeep'])).toBeTruthy()
+    // The raw line is one disclosure away from the act it was read into.
+    expect(within(call).getByText(BASE['session.act.raw'])).toBeTruthy()
+
+    const read = screen.getByText('Read').closest('li')
+    if (read === null) throw new Error('no act')
+    expect(
+      within(read).getByText(fill(BASE['session.act.governed'], { files: 'docs/ROADMAP.md' })),
+    ).toBeTruthy()
+    expect(within(read).queryByText(BASE['session.act.roadkeep'])).toBeNull()
+  })
+
+  it('puts a line heard after the record in its own place in the stream', async () => {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
+    await screen.findByText(BASE['session.handed'])
+
+    hear(wired, 'session', { session: KEY, index: 2, line: USED })
+    hear(wired, 'session', { session: KEY, index: 1, line: SAID })
+
+    // The record's line, then what was heard, each in its place: the tool line carries two.
+    await waitFor(() => {
+      expect(screen.getAllByTestId('act').map((one) => one.dataset['kind'])).toEqual([
+        'note',
+        'said',
+        'used',
+        'used',
+      ])
+    })
+  })
+
+  it('says what the files moved, which is not what the session said it did', async () => {
+    // The session's stream says it shipped; this column is the reread that settles it.
+    await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD], shipped: true })
+
+    const moved = within(await screen.findByTestId('moved'))
+    expect(
+      moved.getByText(fill(BASE['session.change.marker'], { from: '🛠', to: '✅' })),
+    ).toBeTruthy()
+    expect(moved.getByText(BASE['session.change.shipped'])).toBeTruthy()
+    expect(moved.getByText(BASE['session.change.design.deleted'])).toBeTruthy()
+  })
+
+  it('says nothing moved while the line reads as it was handed over', async () => {
+    await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
+
+    expect(await screen.findByText(BASE['session.moved.none'])).toBeTruthy()
+  })
+
+  it('stops the session, and says how it ended when it does', async () => {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
+
+    fireEvent.click(await screen.findByRole('button', { name: BASE['session.stop'] }))
+    expect(wired.stopped).toEqual([KEY])
+
+    hear(wired, 'session', {
+      session: KEY,
+      outcome: { state: 'cancelled', sessionId: 'fake', code: null, said: '', result: '' },
+    })
+
+    expect(await screen.findByText(BASE['session.state.cancelled'])).toBeTruthy()
+    expect(screen.queryByRole('button', { name: BASE['session.stop'] })).toBeNull()
+  })
+
+  it('says so where this window holds no session by that name', async () => {
+    await at(sessionPath(ROOT, 'AL1', 'nobody'))
+
+    expect(await screen.findByText(BASE['session.missing'])).toBeTruthy()
+  })
+})

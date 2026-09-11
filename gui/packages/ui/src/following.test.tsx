@@ -27,7 +27,7 @@ function recording(): { bridge: RendererBridge; taken: Taken[] } {
       const one: Taken = {
         topic,
         key,
-        listener: () => listener({ root: key, session: key, line: '' }),
+        listener: () => listener({ root: key, session: key, index: 0, line: '' }),
         given: 0,
       }
       taken.push(one)

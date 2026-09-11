@@ -123,10 +123,12 @@ describe('RG144: a session line, published by whoever runs the session', () => {
     const one = window(1)
 
     subscriptions.subscribe(one, 'session', 's1')
-    subscriptions.publish('session', 's1', { session: 's1', line: '{"type":"text"}' })
-    subscriptions.publish('session', 's2', { session: 's2', line: 'elsewhere' })
+    subscriptions.publish('session', 's1', { session: 's1', index: 0, line: '{"type":"text"}' })
+    subscriptions.publish('session', 's2', { session: 's2', index: 0, line: 'elsewhere' })
 
-    expect(one.heard).toEqual([[BRIDGE_TOPICS.session, { session: 's1', line: '{"type":"text"}' }]])
+    expect(one.heard).toEqual([
+      [BRIDGE_TOPICS.session, { session: 's1', index: 0, line: '{"type":"text"}' }],
+    ])
     expect(disk.started()).toBe(0)
   })
 })

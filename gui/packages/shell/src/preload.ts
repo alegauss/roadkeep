@@ -50,6 +50,9 @@ const bridge: RendererBridge = {
   roots: () => ipcRenderer.invoke(BRIDGE_CHANNELS.roots),
   chooseRoot: () => ipcRenderer.invoke(BRIDGE_CHANNELS.chooseRoot),
   saveRoots: (roots) => ipcRenderer.invoke(BRIDGE_CHANNELS.saveRoots, roots),
+  handOver: (root, id) => ipcRenderer.invoke(BRIDGE_CHANNELS.handOver, root, id),
+  sessions: () => ipcRenderer.invoke(BRIDGE_CHANNELS.sessions),
+  stopSession: (key) => ipcRenderer.invoke(BRIDGE_CHANNELS.stopSession, key),
 }
 
 contextBridge.exposeInMainWorld(BRIDGE_KEY, Object.freeze(bridge))

@@ -352,6 +352,26 @@ Stopping kills the process and leaves the claim to the registry's own expiry rat
 releasing a line the session may have moved. The rail's Sessions entry lists the ones
 running.
 
+### §RG175 The line a session already has
+
+A claim `brief --claim` makes names nobody: the marker moves and `held` stays empty,
+which is what the live handover measured against a real fixture. So the task screen,
+which offers Hand to Claude Code while readiness is ready and nobody holds the line,
+offers it again for a line this window started a minute ago. Pressing it reaches the
+engine's own second guard — *was claimed 0m ago … read it without the claim* — and that
+refusal is drawn beside the button, so nothing is taken twice. What is wrong is the
+offer and not the outcome.
+
+**The window already knows.** `sessions` answers every session this process started, and
+the task screen asks it to draw the way back to one. A line whose session is still
+running is a line this window will not offer again: the button gives way to Open the
+session, which is the control a reader wanted anyway.
+
+**A session that ended holds nothing.** It left the marker where the agent put it and
+the claim expires on its own, so the offer returns when the state does — read from the
+record's outcome, never from a timer kept here. A line held by somebody else is the
+other case and is unchanged: the holder is named, which is the block's own criterion.
+
 ## Block G — The shell (an executable now, a service later)
 
 ### §RG49 The signature, and what it needs that code cannot supply
@@ -536,3 +556,25 @@ and one that nothing draws goes the same way.
 
 **The pseudo-locale run should see a narrowed listing.** RG51's run draws the window
 with no project on it, so this sentence has never been on the screen that run reads.
+
+### §RG176 Every surface under the pseudo-locale
+
+RG51's run opens the window with no project on it, opens the shortcuts sheet and the
+palette, and reads every leaf of the document and every name a screen reader would say.
+Three surfaces have arrived since and none of them is in it: a project's backlog, a
+line, and the session a line was handed to — about a hundred keys between them. A string
+typed into any of those three passes the one run written to catch it, and the guard's
+own claim, that nothing on the screen was typed into a component, is now about one
+screen out of four.
+
+**Draw every surface at its own route, in the same pseudo-locale window.** The harness
+already takes a route and those screens' own tests already stub a bridge that opens a
+project and answers a brief; what this needs is that bridge beside this run and one
+render per surface, each asked the same two questions — nothing bare in the text,
+nothing bare in the names.
+
+**One render per surface, not per state.** A state a person cannot reach without a
+refusal is one this run would have to arrange, and chasing them would be a second suite
+of the screens' own tests. What it holds is that every surface a reader can route to has
+been read once, which is the claim RG51 makes and the one that quietly stopped being
+true.

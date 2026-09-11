@@ -6,6 +6,7 @@ import {
   actsOf,
   governedIn,
   isRoadkeep,
+  marksOf,
   NOTHING_MARKED,
   subjectOf,
   touched,
@@ -277,5 +278,33 @@ describe('RG40: the raw form stays reachable', () => {
 
     expect(acts.map((act) => act.seq)).toEqual([1, 2, 3, 4])
     expect(acts.map((act) => act.kind)).toEqual(['said', 'note', 'used', 'returned'])
+  })
+})
+
+describe('RG153: the marks of one open project', () => {
+  it('reads the governed files off the opening and the engine name off its command', () => {
+    const marks = marksOf({ roadmap: 'docs/ROADMAP.md', changelog: 'docs/CHANGELOG.md' }, [
+      'python',
+      'D:\\code\\alpha\\.claude\\hooks\\roadkeep-launch.py',
+    ])
+
+    expect(marks.governed).toEqual(['docs/ROADMAP.md', 'docs/CHANGELOG.md'])
+    expect(marks.engine).toEqual(['roadkeep-launch', 'mcp__roadkeep__'])
+  })
+
+  it('marks a Bash call through the launcher and a call to the project server alike', () => {
+    const marks = marksOf({}, ['python', '/home/a/.claude/hooks/roadkeep-launch.py'])
+
+    expect(isRoadkeep('Bash', 'python .claude/hooks/roadkeep-launch.py lint', marks)).toBe(true)
+    expect(isRoadkeep('mcp__roadkeep__brief', '', marks)).toBe(true)
+    expect(isRoadkeep('Bash', 'npm test', marks)).toBe(false)
+  })
+
+  it('is the engine itself where it runs off PATH', () => {
+    expect(marksOf({}, ['roadkeep']).engine).toEqual(['roadkeep', 'mcp__roadkeep__'])
+  })
+
+  it('marks nothing as roadkeep where no engine was resolved', () => {
+    expect(marksOf({}, []).engine).toEqual([])
   })
 })

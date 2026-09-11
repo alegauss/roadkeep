@@ -38,9 +38,11 @@ describe('RG60: what the renderer was given', () => {
     const methods = await app.evaluate<string[]>(`Object.keys(window['${BRIDGE_KEY}']).sort()`)
 
     // RG143 added the three that reach an engine: which projects, open one, run against it.
-    // RG144 added the one that is told rather than asked, and RG146 the three that name roots.
+    // RG144 added the one that is told rather than asked, RG146 the three that name roots, and
+    // RG153 the three that start a session, say what is running and stop one.
     expect(methods).toEqual([
       'chooseRoot',
+      'handOver',
       'identify',
       'open',
       'projects',
@@ -49,7 +51,9 @@ describe('RG60: what the renderer was given', () => {
       'saveLocale',
       'saveRoots',
       'saveTheme',
+      'sessions',
       'settings',
+      'stopSession',
       'subscribe',
     ])
   })
@@ -168,7 +172,7 @@ describe('RG60: what the renderer was not given', () => {
       `Object.values(window['${BRIDGE_KEY}']).map((one) => typeof one)`,
     )
 
-    expect(reachable).toHaveLength(11)
+    expect(reachable).toHaveLength(14)
     expect(reachable.every((one) => one === 'function')).toBe(true)
   })
 })

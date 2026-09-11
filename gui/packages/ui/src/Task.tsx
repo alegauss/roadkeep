@@ -1,20 +1,26 @@
 import {
   briefToCopy,
   folderName,
+  handoverOf,
+  mayHandOver,
   quotedFirst,
   routeOf,
   whereDesignLives,
   type Design,
   type DepStanding,
+  type HandedOver,
+  type SessionRecord,
   type TaskDetail,
+  type Translate,
   type Whereabouts,
 } from '@rk/core'
 import { Button } from '@viglet/viglet-design-system'
 import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-system/bento'
-import { useCallback, useMemo, useState, type ReactNode } from 'react'
-import { useParams } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
-import { projectPath } from './areas'
+import { projectPath, sessionPath } from './areas'
+import { getBridge } from './bridge'
 import { Glyph, Pill, type Intent } from './marks'
 import { useTask, type OpenedTask } from './useTask'
 import { useWording } from './wording'
@@ -33,9 +39,9 @@ import { useWording } from './wording'
  * ones this design quotes first: a quoted lead is one its author already reasoned about.
  *
  * Copy the brief hands on the line as the file writes it and its design as stored, both the
- * file's own text. Hand to Claude Code belongs to the session line and is absent until it
- * lands, rather than drawn disabled. A paused line opens here too, with the store's entry and
- * the verb that brings it back (RG80).
+ * file's own text. Hand to Claude Code takes the line and starts a session from that brief
+ * (RG153), and a held line names its holder instead of offering one. A paused line opens here
+ * too, with the store's entry and the verb that brings it back (RG80).
  */
 
 /** What shipping inside this backlog can do about a dep, in the design system's intents. */
@@ -86,7 +92,113 @@ function CopyBrief({ detail }: { readonly detail: TaskDetail }) {
       <Button variant="outline" size="sm" onClick={copy}>
         {say('task.copy')}
       </Button>
-      <output className="text-muted-foreground min-h-4 text-xs">{said}</output>
+      <output data-testid="copied" className="text-muted-foreground min-h-4 text-xs">
+        {said}
+      </output>
+    </div>
+  )
+}
+
+/** Why a line was not handed over, in this app's words for what the far side answered. */
+function saidOfHanded(handed: Exclude<HandedOver, { readonly kind: 'started' }>, say: Translate) {
+  if (handed.kind === 'held') {
+    const holder = handed.held[0]
+    return say('task.held.named', { by: holder?.by ?? '', since: holder?.since ?? '' })
+  }
+  if (handed.kind === 'unready') return say('task.handOver.unready', handed)
+  if (handed.kind === 'refused') return say('task.handOver.refused', { reason: handed.said })
+  if (handed.kind === 'unavailable') {
+    return say('task.handOver.unavailable', {
+      tried: handed.tried.map((command) => command.join(' ')).join(', '),
+    })
+  }
+  return say('task.handOver.withheld', handed)
+}
+
+type Handing =
+  | { readonly kind: 'idle' }
+  | { readonly kind: 'handing' }
+  | { readonly kind: 'said'; readonly text: string }
+
+const NOT_HANDING: Handing = { kind: 'idle' }
+
+/**
+ * Hand to Claude Code, and the way back to a session already started from this line (RG153).
+ *
+ * **A held line is named and nothing is offered**, which is block F's third criterion, and the
+ * same answer comes back from the far side — the check here is what a reader sees, and the one
+ * there is what holds. A line the engine does not call ready offers nothing either: the
+ * readiness card beside this says what it is waiting for.
+ */
+function HandOver({ root, task }: { readonly root: string; readonly task: OpenedTask }) {
+  const say = useWording()
+  const navigate = useNavigate()
+  const line = task.detail.payload
+  const id = line.id
+  const handover = handoverOf(line)
+  const [handing, setHanding] = useState<Handing>(NOT_HANDING)
+  const [session, setSession] = useState<SessionRecord | null>(null)
+
+  useEffect(() => {
+    const bridge = getBridge()
+    if (bridge === undefined) return undefined
+    let live = true
+    const stillHere = (): boolean => live
+    void bridge.sessions().then(
+      (all) => {
+        if (!stillHere()) return
+        setSession(all.findLast((one) => one.root === root && one.id === id) ?? null)
+      },
+      // A bridge that will not say is the same as one holding none: this offers a way back
+      // to a session and never a reason the line cannot be handed over.
+      () => undefined,
+    )
+    return () => {
+      live = false
+    }
+  }, [root, id])
+
+  const hand = useCallback(() => {
+    const bridge = getBridge()
+    if (bridge === undefined) return
+    setHanding({ kind: 'handing' })
+    void bridge.handOver(root, id).then(
+      (handed) => {
+        if (handed.kind !== 'started') {
+          setHanding({ kind: 'said', text: saidOfHanded(handed, say) })
+          return
+        }
+        setSession(handed.session)
+        setHanding(NOT_HANDING)
+        void navigate(sessionPath(root, id, handed.session.key))
+      },
+      (cause: unknown) => {
+        const reason = cause instanceof Error ? cause.message : ''
+        setHanding({ kind: 'said', text: say('task.handOver.withheld', { reason }) })
+      },
+    )
+  }, [root, id, navigate, say])
+
+  const holder = handover.held[0]
+  return (
+    <div className="flex flex-col items-end gap-1">
+      {session === null ? null : (
+        <Button asChild variant="outline" size="sm">
+          <Link to={sessionPath(root, id, session.key)}>{say('task.session.open')}</Link>
+        </Button>
+      )}
+      {holder === undefined && mayHandOver(handover) ? (
+        <Button size="sm" onClick={hand} disabled={handing.kind === 'handing'}>
+          {say('task.handOver')}
+        </Button>
+      ) : null}
+      <output className="text-muted-foreground max-w-72 text-right text-xs">
+        {holder === undefined
+          ? null
+          : say('task.held.named', { by: holder.by, since: holder.since })}
+        {handing.kind === 'handing' ? say('task.handing') : null}
+        {handing.kind === 'said' ? handing.text : null}
+      </output>
     </div>
   )
 }
@@ -365,8 +477,14 @@ export function Task() {
     [task],
   )
   const trailing = useMemo(
-    () => (task === null ? undefined : <CopyBrief detail={task.detail} />),
-    [task],
+    () =>
+      task === null ? undefined : (
+        <div className="flex items-start gap-3">
+          <CopyBrief detail={task.detail} />
+          <HandOver root={root} task={task} />
+        </div>
+      ),
+    [root, task],
   )
 
   return (

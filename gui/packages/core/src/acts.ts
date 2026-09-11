@@ -42,6 +42,29 @@ export interface Marks {
 export const NOTHING_MARKED: Marks = { governed: [], engine: [] }
 
 /**
+ * The marks of one open project (RG153): the files its `config` governs, and the name its
+ * resolved engine runs under.
+ *
+ * The name is the file the engine's command runs, with no folder and no extension — the
+ * launcher a python install goes through, or the engine on PATH — so a Bash call running it
+ * is marked. A session reaches the project's own server as `mcp__<server>__<tool>`, and the
+ * server is named for that command's first word: a guess, and one that loses a label and
+ * never a fact, since the raw line is on every act.
+ */
+export function marksOf(
+  governed: Readonly<Record<string, string>>,
+  engine: readonly string[],
+): Marks {
+  const file = (engine.at(-1) ?? '').split(/[\\/]/).at(-1) ?? ''
+  const name = file.replace(/\.[^.]*$/, '')
+  const word = /^[a-z0-9]+/i.exec(name)?.[0] ?? ''
+  return {
+    governed: Object.values(governed).filter((path) => path !== ''),
+    engine: [name, word === '' ? '' : `mcp__${word}__`].filter((one) => one !== ''),
+  }
+}
+
+/**
  * The input keys that carry what a tool was called on, in the order they are looked for.
  *
  * Claude Code's schema and not roadkeep's, so this is a convenience with a fallback rather

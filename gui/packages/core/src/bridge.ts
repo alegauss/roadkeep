@@ -13,12 +13,15 @@
  * added here is a method a web transport has to be able to implement.
  */
 
+import type { Agent } from './agent'
 import type { BuildIdentity } from './build'
 import type { CapabilityReport } from './capabilities'
 import type { ProjectCatalogue } from './catalogue'
 import type { ResolvedEngine } from './engine-resolution'
 import type { Opening } from './opening'
+import type { BriefPayload, HeldClaim } from './payloads'
 import type { KnownRoot, ScanRoot } from './roots'
+import type { SessionOutcome } from './session'
 import type { SettingsRead, Theme } from './settings'
 import type { EngineFailure, EngineRequest, EngineResult } from './transport'
 
@@ -153,7 +156,60 @@ export interface RendererBridge {
    * would undo a hand edit made since — the reason every save here re-reads the file.
    */
   saveRoots(roots: readonly ScanRoot[]): Promise<readonly KnownRoot[]>
+  /**
+   * Hand one line to a Claude Code session (RG153): take it with `brief --claim` and start the
+   * session from that payload, or say why not.
+   *
+   * **The renderer names a line and nothing else.** The prompt is built on the far side from
+   * the brief the far side read, so a page cannot start an agent with words of its own — which
+   * over HTTP is the same call, a line in and an answer out. A held line is named and nothing
+   * is taken, and a line the engine does not call ready is not taken either.
+   */
+  handOver(root: string, id: string): Promise<HandedOver>
+  /** Every session this process started, each with what it has written so far (RG153). */
+  sessions(): Promise<readonly SessionRecord[]>
+  /**
+   * Stop one session (RG153). Its claim is left to the registry's own expiry: the session
+   * may have moved the line, and releasing it here would undo a state nobody reviewed.
+   */
+  stopSession(key: string): Promise<void>
 }
+
+/**
+ * One session, as the process holding it knows it (RG153). Plain data, so it crosses as it is.
+ */
+export interface SessionRecord {
+  /** This process's name for it, which is what its events are keyed on. */
+  readonly key: string
+  readonly root: string
+  /** The line it was handed. */
+  readonly id: string
+  /** The brief it was started from, as the claiming read answered it: what it was told. */
+  readonly handed: BriefPayload
+  /** Which Claude Code runs it, as resolution found it. */
+  readonly agent: Agent
+  /** Every line of its stream so far, raw and in order. */
+  readonly lines: readonly string[]
+  /** How it ended, or null while it runs. */
+  readonly outcome: SessionOutcome | null
+}
+
+/**
+ * What handing a line over did (RG153). Every way of not starting is its own kind, since each
+ * is a different thing for a screen to say and none of them is the session going wrong.
+ */
+export type HandedOver =
+  | { readonly kind: 'started'; readonly session: SessionRecord }
+  /** Somebody holds the line: named, and nothing taken — block F's third criterion. */
+  | { readonly kind: 'held'; readonly held: readonly HeldClaim[] }
+  /** The engine does not call the line ready. Its word, carried and not worked out. */
+  | { readonly kind: 'unready'; readonly readiness: string }
+  /** The engine refused to brief the line or to take it. Its sentence, quoted. */
+  | { readonly kind: 'refused'; readonly said: string }
+  /** No Claude Code answered on this machine, so nothing was taken. Every command tried. */
+  | { readonly kind: 'unavailable'; readonly tried: readonly (readonly string[])[] }
+  /** Not a project the carrier opens, or not a line id. */
+  | { readonly kind: 'withheld'; readonly reason: string }
 
 /**
  * What each topic carries, one event at a time (RG144). The table main, the preload and a
@@ -166,8 +222,15 @@ export interface TopicEvents {
    * costs a read and never a wrong answer.
    */
   readonly governed: { readonly root: string }
-  /** One line of a session's stream, raw, and the session it belongs to. */
-  readonly session: { readonly session: string; readonly line: string }
+  /**
+   * One line of a session's stream, raw, with its place in the stream — or how it ended.
+   *
+   * The index is what lets a screen that asked `sessions` for the lines so far and then heard
+   * the rest put them together with nothing doubled and nothing missed (RG153).
+   */
+  readonly session:
+    | { readonly session: string; readonly index: number; readonly line: string }
+    | { readonly session: string; readonly outcome: SessionOutcome }
 }
 
 export type Topic = keyof TopicEvents
@@ -244,4 +307,7 @@ export const BRIDGE_CHANNELS = {
   roots: 'roadkeep:roots',
   chooseRoot: 'roadkeep:choose-root',
   saveRoots: 'roadkeep:save-roots',
+  handOver: 'roadkeep:hand-over',
+  sessions: 'roadkeep:sessions',
+  stopSession: 'roadkeep:stop-session',
 } as const satisfies Record<keyof RendererBridge, string>

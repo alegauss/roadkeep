@@ -225,6 +225,9 @@ async function at(path: string): Promise<void> {
       open: () => Promise.resolve(opened),
       run: (root, request) => bridgedRun(() => transport.run({ ...request, root })),
       subscribe: () => () => undefined,
+      // The line's own sessions (RG153): none here, which is what a window holds until one
+      // is handed over.
+      sessions: () => Promise.resolve([]),
     }),
     configurable: true,
   })
@@ -319,9 +322,8 @@ describe('RG150: the line, as brief joins it', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: BASE['task.copy'] }))
 
-    expect(await screen.findByRole('status')).toBeTruthy()
     await waitFor(() => {
-      expect(screen.getByRole('status').textContent).not.toBe('')
+      expect(screen.getByTestId('copied').textContent).not.toBe('')
     })
     expect(screen.queryByText(BASE['task.copied'])).toBeNull()
   })

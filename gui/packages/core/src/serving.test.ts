@@ -174,7 +174,7 @@ describe('RG144: a subscription, as the renderer names one', () => {
 
   it('reads the key an event belongs to, which is how one channel carries every source', () => {
     expect(keyOfEvent('governed', { root: '/proj' })).toBe('/proj')
-    expect(keyOfEvent('session', { session: 's1', line: '{}' })).toBe('s1')
+    expect(keyOfEvent('session', { session: 's1', index: 0, line: '{}' })).toBe('s1')
   })
 })
 

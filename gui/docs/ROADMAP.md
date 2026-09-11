@@ -35,7 +35,8 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG153** (deps: RG150 ✅, RG144 ✅, RG40 ✅, RG41 ✅) **nothing in the window hands a task to Claude Code or shows the session, so block F's acts and landings reach no one** — Sessao.dc.html draws the handover, the stream as acts and what moved in the backlog beside it, and every reader for them has shipped. → §RG153
+- ⏳ **RG153** (deps: RG150 ✅, RG144 ✅, RG40 ✅, RG41 ✅) **nothing in the window hands a task to Claude Code or shows the session, so block F's acts and landings reach no one** — The governed files' last change and the claims held elsewhere, beside the stream, and the rail's Sessions entry. → §RG153
+- 📋 **RG175** (deps: —) **a line this window handed over is offered to a second session, since the claim it took names nobody** — The engine refuses the second claim, so nothing is taken twice, but the offer stands where the window already knows a session is running. → §RG175
 
 ## Block G — The shell (an executable now, a service later)
 
@@ -52,6 +53,7 @@
 
 - 📋 **RG168** (deps: —) **an unreadable row's reason is composed in English in core, so a Portuguese window shows it untranslated** — Resolution and the opening write their own sentences into Unreadable.message, and the row draws that field whatever language is speaking. → §RG168
 - 📋 **RG172** (deps: RG168) **a listing narrower than its file is explained in English composed in core, so a Portuguese window shows it untranslated** — refusedSummary builds the sentence and the backlog draws it, and five more core helpers compose sentences the next screen would draw the same way. → §RG172
+- 📋 **RG176** (deps: —) **the pseudo-locale run draws the portfolio alone, so three of this window's four surfaces are never read for a literal** — A project, a task and a session each arrived after RG51's run was written, and a string typed into any of them passes it. → §RG176
 
 ## Done when — Block A
 
@@ -171,6 +173,19 @@
 - **The released installer and executable carry a valid signature**
   Get-AuthenticodeSignature reads Valid on both, the signer is the name the manifest
   gives, and the build line says signed.
+
+## Done when — RG153
+
+- **What moved names each governed file and when it last changed** The landing says
+  which fields of the line moved; a session's evidence is also the files themselves, and
+  which one changed when is a fact only the process watching them has.
+- **A claim held elsewhere is named beside the stream** A session works a project other
+  sessions are also in, and a line somebody else took while this one ran is what a
+  reader has to see before trusting what the stream says it did.
+- **Every session this window holds is reachable from the rail** A session is reached
+  today only from the line it was handed, so one whose task screen was left is found by
+  remembering its route. The rail lists what is running, the way it lists every other
+  surface.
 
 ## Non-goals
 

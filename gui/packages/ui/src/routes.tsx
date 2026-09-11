@@ -1,9 +1,10 @@
 import type { ReactElement } from 'react'
 import { Route, Routes } from 'react-router-dom'
 
-import { HOME_ROUTE, PROJECT_ROUTE, TASK_ROUTE } from './areas'
+import { HOME_ROUTE, PROJECT_ROUTE, SESSION_ROUTE, TASK_ROUTE } from './areas'
 import { Portfolio } from './Portfolio'
 import { Project } from './Project'
+import { Session } from './Session'
 import { AppShell } from './Shell'
 import { Task } from './Task'
 
@@ -38,12 +39,13 @@ export interface Surface {
 
 /**
  * The portfolio at `/`, where the scaffold stood until RG145 retired it, one project's backlog
- * (RG148), and one of its lines (RG150).
+ * (RG148), one of its lines (RG150), and a session that line was handed to (RG153).
  */
 export const SURFACES: readonly Surface[] = [
   { path: HOME_ROUTE, element: <Portfolio /> },
   { path: PROJECT_ROUTE, element: <Project /> },
   { path: TASK_ROUTE, element: <Task /> },
+  { path: SESSION_ROUTE, element: <Session /> },
 ]
 
 /** Just the paths, which is what a check about the map needs and all it needs. */

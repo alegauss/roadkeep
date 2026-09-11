@@ -6,22 +6,27 @@ import {
   isTopic,
   LOCALE_TAGS,
   requestFrom,
+  resolveAgent,
   translator,
   withheldResult,
   withPresence,
   wordingFor,
   type BridgedResult,
   type BridgeIdentity,
+  type HandedOver,
   type KnownRoot,
   type LaunchSettings,
   type OpenedProject,
 } from '@rk/core'
 import { app, BrowserWindow, dialog, ipcMain, type WebContents } from 'electron'
 
+import { agentCandidates } from './agent-candidates'
 import { createCarrier, type Carrier } from './carrier'
 import { createSubscriptions, type Subscriber } from './subscriptions'
 import { localeChoice } from './locale'
+import { createProcessTransport } from './process-transport'
 import { rootExists, rootKey } from './root-paths'
+import { createSessions } from './sessions'
 import { loadSettings, saveSettings } from './settings-file'
 import { readStamp } from './stamp'
 
@@ -40,10 +45,10 @@ export interface BridgeHooks {
 }
 
 /**
- * Register every handler, and hand back the carrier behind the three that reach an engine —
- * the one thing registered here that holds processes, and so the one thing quitting awaits.
+ * Register every handler, and hand back what holds processes: the carrier's engines and the
+ * sessions started from a window (RG153), which are what quitting awaits.
  */
-export function registerBridge(hooks: BridgeHooks = {}): Carrier {
+export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> {
   const build = readStamp(import.meta.dirname, app.isPackaged)
 
   ipcMain.handle(BRIDGE_CHANNELS.identify, (): BridgeIdentity => ({ transport: 'ipc', build }))
@@ -183,5 +188,43 @@ export function registerBridge(hooks: BridgeHooks = {}): Carrier {
     return known(roots)
   })
 
-  return carrier
+  // A line handed to Claude Code (RG153), and the one power here that starts an agent. The
+  // renderer names a root and an id; the prompt is the brief `sessions` reads through the
+  // carrier, so a page cannot put words of its own in front of a session.
+  const sessions = createSessions({
+    carrier,
+    agent: (root) =>
+      resolveAgent(
+        (command) =>
+          createProcessTransport({ command: command[0] ?? '', prefixArgs: command.slice(1) }),
+        root,
+        agentCandidates(),
+      ),
+    publish: (event) => {
+      subscriptions.publish('session', event.session, event)
+    },
+  })
+
+  ipcMain.handle(
+    BRIDGE_CHANNELS.handOver,
+    (_event, root: unknown, id: unknown): Promise<HandedOver> => {
+      if (typeof root !== 'string' || typeof id !== 'string') {
+        return Promise.resolve({ kind: 'withheld', reason: 'no line was named' })
+      }
+      return sessions.handOver(root, id)
+    },
+  )
+  ipcMain.handle(BRIDGE_CHANNELS.sessions, () => sessions.list())
+  ipcMain.handle(BRIDGE_CHANNELS.stopSession, (_event, key: unknown): void => {
+    if (typeof key === 'string') sessions.stop(key)
+  })
+
+  return {
+    // The sessions first: each one stands in its project, and the engines it reads through
+    // are the carrier's.
+    close: async () => {
+      await sessions.close()
+      await carrier.close()
+    },
+  }
 }

@@ -13,9 +13,8 @@ import { BRIDGE_TOPICS, type Topic, type TopicEvents } from '@rk/core'
  * subscriptions up gives them up here, when it is dropped: a listener that outlives its
  * screen is a handle held on a folder for nothing.
  *
- * `session` has no source here yet. RG153 starts sessions from a window, and what it hears
- * is published through `publish`; the channel and its shape are fixed now so that line is
- * one call and not a second design.
+ * `session` has no source to start: a session is started by a window's handover (RG153), and
+ * every line it writes arrives here through `publish`, keyed on the session.
  */
 
 /** A window, as far as a subscription needs one. */
