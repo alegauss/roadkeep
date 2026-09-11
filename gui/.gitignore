@@ -40,12 +40,17 @@ release/
 # no `/plugin`) the same guard a local machine gets from the plugin, and skills/
 # is the copy `roadkeep install` keeps in step.
 #
+# agents/ joins them for the same reason skills/ is here: the /audit flow is a skill
+# that dispatches two subagent definitions, and a clone missing them has a skill that
+# names agents nobody on that machine has.
+#
 # settings.local.json is deliberately NOT un-ignored: it carries this machine's
 # permission mode and absolute memory paths, which are true of nobody else's clone.
 /.claude/*
 !/.claude/settings.json
 !/.claude/hooks/
 !/.claude/skills/
+!/.claude/agents/
 
 # Python's bytecode cache under hooks/. `!/.claude/hooks/` un-ignores that directory,
 # so the generic `__pycache__/` rule above no longer reaches it — a hook the interpreter
