@@ -92,6 +92,8 @@ export interface ProjectRow {
   readonly description: string
   readonly aliases: readonly string[]
   readonly commonDir: string | null
+  /** Which branch this member is on (RG199) — a fact about the checkout, off git's files. */
+  readonly branch: string
   readonly state: RowState
   readonly counts: RowCounts | null
   readonly next: RowNext | null
@@ -127,6 +129,7 @@ function shell(project: RecordedProject): Omit<ProjectRow, 'state'> {
     description: '',
     aliases: project.aliases,
     commonDir: project.commonDir,
+    branch: project.branch,
     counts: null,
     next: null,
     gate: null,

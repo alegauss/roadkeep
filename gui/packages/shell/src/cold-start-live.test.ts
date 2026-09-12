@@ -35,6 +35,7 @@ const recorded = (projectPath: string): RecordedProject => ({
   root: path.dirname(projectPath),
   confirmed: '2026-09-01T10:00:00.000Z',
   presence: 'present',
+  branch: '',
 })
 
 /** One stage: read one verb through the pool and turn it into the row's fields. */

@@ -35,6 +35,8 @@ export interface ProjectSite {
   readonly realPath: string
   /** Git's common directory for this worktree, or null where this is not a git checkout. */
   readonly commonDir: string | null
+  /** Which branch it is on, a short sha where detached, empty where it is not a checkout. */
+  readonly branch: string
 }
 
 export interface ProjectMember {
@@ -42,6 +44,11 @@ export interface ProjectMember {
   readonly path: string
   /** Other names for the same folder — a junction, a symlink. */
   readonly aliases: readonly string[]
+  /**
+   * Which branch this member is on (RG199). A family's members share a repository and a
+   * declared name, so this is what tells two of them apart.
+   */
+  readonly branch: string
 }
 
 export interface ProjectFamily {
@@ -109,6 +116,7 @@ export function groupProjects(sites: readonly ProjectSite[], keyOf: KeyOf): Proj
     const member: ProjectMember = {
       path: held.site.path,
       aliases: held.paths.filter((path) => keyOf(path) !== keyOf(held.site.path)),
+      branch: held.site.branch,
     }
 
     // A project outside git is its own family. Grouping every one of them under "no common

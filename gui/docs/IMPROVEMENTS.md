@@ -6,29 +6,6 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-### §RG199 Which branch this member is on
-
-`git-worktree.ts` already reads git's own files to find a common directory, and
-`families.ts` is explicit that nothing here runs git. The branch arrives the same way:
-`HEAD` in the worktree's git directory is one line, either `ref: refs/heads/2026.3` or a
-bare sha. No spawn, no library, no second reading of a format this app does not own.
-
-**The declared name is what makes this necessary rather than pleasant.** Today the
-folder name separates the members of a family by accident: `2026.3` and `2026.2` are
-different words. A declared name is one word for a whole repository — the same
-`roadkeep.toml` reached by three paths — so every worktree of Turing renders as
-**Turing**, identical rows under a badge that says only _worktree_. The name solves one
-problem by making another, and the branch is what answers the second.
-
-So the branch goes where that badge is. `portfolio.worktree` states what two rows
-sharing a name already imply; the branch says which of them this is, which is the
-question actually being asked.
-
-**A detached HEAD is not an error.** It is a bisect, a tag checkout, a shallow clone,
-and the row shows the short sha rather than going blank. A folder that is not a git
-checkout has no branch and shows none — which is not the same as a checkout whose `HEAD`
-would not read, and the two do not share a rendering.
-
 ### §RG203 A missing project keeps its name
 
 A declared name is read out of the checkout that declares it. A missing project is one

@@ -98,7 +98,15 @@ const machine: Transport = {
 }
 
 function recorded(path: string): RecordedProject {
-  return { path, aliases: [], commonDir: null, root: '/code', confirmed: '', presence: 'present' }
+  return {
+    path,
+    aliases: [],
+    commonDir: null,
+    root: '/code',
+    confirmed: '',
+    presence: 'present',
+    branch: '',
+  }
 }
 
 const THREE: ProjectCatalogue = {

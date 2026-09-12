@@ -25,6 +25,7 @@ const seen = (path: string, over: Partial<RecordedProject> = {}): RecordedProjec
   root: '/code',
   confirmed: TUESDAY,
   presence: 'present',
+  branch: '',
   ...over,
 })
 
@@ -40,11 +41,11 @@ describe('RG14: turning a scan into rows', () => {
       {
         commonDir: '/code/turing/2026.3/.git',
         members: [
-          { path: '/code/turing/2026.3', aliases: ['/code/turing/latest'] },
-          { path: '/code/turing/2026.2', aliases: [] },
+          { path: '/code/turing/2026.3', aliases: ['/code/turing/latest'], branch: '' },
+          { path: '/code/turing/2026.2', aliases: [], branch: '' },
         ],
       },
-      { commonDir: null, members: [{ path: '/code/plain', aliases: [] }] },
+      { commonDir: null, members: [{ path: '/code/plain', aliases: [], branch: '' }] },
     ]
 
     const rows = rowsFrom(families, () => '/code', FRIDAY)

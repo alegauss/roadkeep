@@ -16,9 +16,15 @@ const TURING_OLD = '/git/viglet/turing/2026.2'
 const TURING_LATEST = '/git/viglet/turing/latest'
 const TURING_GIT = '/git/viglet/turing/2026.3/.git'
 
-const site = (path: string, realPath: string, commonDir: string | null): ProjectSite => ({
+const site = (
+  path: string,
+  realPath: string,
+  commonDir: string | null,
+  branch = '',
+): ProjectSite => ({
   path,
   realPath,
+  branch,
   commonDir,
 })
 
@@ -159,6 +165,7 @@ describe('RG72: which version of a family reads first', () => {
   const member = (path: string, aliases: readonly string[] = []): ProjectMember => ({
     path,
     aliases,
+    branch: '',
   })
 
   it('puts the member the stable name points at first', () => {

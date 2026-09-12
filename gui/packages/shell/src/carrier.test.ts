@@ -30,7 +30,7 @@ const A = '/work/alpha'
 const B = '/work/beta'
 
 function recorded(path: string, presence: 'present' | 'missing'): RecordedProject {
-  return { path, aliases: [], commonDir: null, root: '/work', confirmed: '', presence }
+  return { path, aliases: [], commonDir: null, root: '/work', confirmed: '', presence, branch: '' }
 }
 
 const FOUND: ProjectCatalogue = {

@@ -12,6 +12,7 @@ const project = (path: string): RecordedProject => ({
   root: '/code',
   confirmed: '2026-09-01T10:00:00.000Z',
   presence: 'present',
+  branch: '',
 })
 
 // A null pick comes with a null tier, which is how the engine prints it (RG141).

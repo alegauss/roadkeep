@@ -152,9 +152,12 @@ function ProjectCell({ row, shared }: { readonly row: ProjectRow; readonly share
               {row.name}
             </span>
           )}
+          {/* Which member of the family this is (RG199). Two rows sharing a declared name
+              already imply *worktree*; the branch answers the question actually being asked,
+              so it takes the badge rather than standing beside it. */}
           {shared ? (
             <span className="bg-muted text-muted-foreground rounded px-1.5 text-[10.5px] font-semibold">
-              {say('portfolio.worktree')}
+              {row.branch === '' ? say('portfolio.worktree') : row.branch}
             </span>
           ) : null}
         </div>

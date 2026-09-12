@@ -35,6 +35,7 @@ const RECORD: ProjectCatalogue = {
       root: 'D:\\code',
       confirmed: '2026-09-11T10:00:00.000Z',
       presence: 'present',
+      branch: '',
     },
     {
       path: 'D:\\code\\beta',
@@ -43,6 +44,7 @@ const RECORD: ProjectCatalogue = {
       root: 'D:\\code',
       confirmed: '2026-09-10T10:00:00.000Z',
       presence: 'missing',
+      branch: '',
     },
   ],
 }

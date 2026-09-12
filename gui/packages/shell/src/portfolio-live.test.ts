@@ -29,6 +29,7 @@ const recorded = (projectPath: string): RecordedProject => ({
   root: path.dirname(projectPath),
   confirmed: '2026-09-01T10:00:00.000Z',
   presence: 'present',
+  branch: '',
 })
 
 /** Read one project the way the portfolio would, and build its row. */

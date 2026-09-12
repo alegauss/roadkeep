@@ -42,6 +42,12 @@ export interface RecordedProject {
   readonly aliases: readonly string[]
   /** The git directory its family shares, or null where it is not a worktree. */
   readonly commonDir: string | null
+  /**
+   * Which branch this checkout is on (RG199), a short sha where detached, empty where it is
+   * not a checkout at all. Recorded so a row can say which member of a family it is —
+   * a declared name is one word for a whole repository.
+   */
+  readonly branch: string
   /** The root it was found under. */
   readonly root: string
   /** When a scan last actually saw it. Stops moving once it goes missing. */
@@ -95,6 +101,7 @@ export function rowsFrom(
       path: member.path,
       aliases: member.aliases,
       commonDir: family.commonDir,
+      branch: member.branch,
       root: rootOf(member.path),
       confirmed: now,
       presence: 'present' as const,
@@ -153,6 +160,9 @@ const readRecordedProject: Reader<RecordedProject> = record<RecordedProject>({
   path: aString,
   aliases: orMissing(listOf(aString), []),
   commonDir: orMissing(orNull(aString), null),
+  // Missing on a catalogue written before this was recorded, which is a project whose
+  // branch is simply not known yet rather than one with none.
+  branch: orMissing(aString, ''),
   root: orMissing(aString, ''),
   confirmed: orMissing(aString, ''),
   presence: (value, path) =>

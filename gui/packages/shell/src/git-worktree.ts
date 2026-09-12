@@ -24,6 +24,8 @@ import { probing } from './probing'
 export interface GitSite {
   readonly realPath: string
   readonly commonDir: string | null
+  /** The branch this checkout is on, a short sha where detached, empty where neither. */
+  readonly branch: string
 }
 
 /**
@@ -87,9 +89,74 @@ export async function gitCommonDir(project: string): Promise<string | null> {
   return realPathOf(gitDir)
 }
 
+/**
+ * Where this checkout's own git directory is: `.git`, or what the `.git` file points at.
+ *
+ * The same two shapes `gitCommonDir` reads, stopping one step earlier — a linked worktree's
+ * `HEAD` is its own and not the repository's, which is the whole of what this answers.
+ */
+async function gitDirOf(project: string): Promise<string | null> {
+  const dotGit = path.join(path.resolve(project), '.git')
+
+  let entry
+  try {
+    entry = await probing(async () => stat(dotGit))
+  } catch {
+    return null
+  }
+  if (entry.isDirectory()) return dotGit
+  if (!entry.isFile()) return null
+
+  let pointer: string
+  try {
+    pointer = await probing(async () => readFile(dotGit, 'utf8'))
+  } catch {
+    return null
+  }
+  const named = /^gitdir:\s*(.+?)\s*$/m.exec(pointer)
+  if (named?.[1] === undefined || named[1] === '') return null
+  return path.resolve(path.dirname(dotGit), named[1])
+}
+
+/**
+ * Which branch a checkout is on, or the short sha where its `HEAD` is detached (RG199).
+ *
+ * `HEAD` is one line in git's own files — `ref: refs/heads/2026.3`, or a bare sha — read
+ * the way the common directory already is. No spawn, no library, no second reading of a
+ * format this app does not own.
+ *
+ * **A detached HEAD is not an error.** It is a bisect, a tag checkout, a shallow clone, so
+ * the short sha is the answer rather than nothing. Empty means no branch to show at all: a
+ * folder that is not a checkout, or a `HEAD` that would not read — and a row draws nothing
+ * either way, which is not the same rendering as a sha.
+ */
+export async function gitBranch(project: string): Promise<string> {
+  const gitDir = await gitDirOf(project)
+  if (gitDir === null) return ''
+
+  let head: string
+  try {
+    head = await probing(async () => readFile(path.join(gitDir, 'HEAD'), 'utf8'))
+  } catch {
+    return ''
+  }
+
+  const named = /^ref:\s*refs\/heads\/(.+?)\s*$/m.exec(head)
+  if (named?.[1] !== undefined && named[1] !== '') return named[1]
+
+  // Detached: git writes the sha alone. Shortened here for a row, which is a rendering
+  // choice and not a reading of the format — the whole sha is what the file holds.
+  const sha = head.trim()
+  return /^[0-9a-f]{40}$/i.test(sha) ? sha.slice(0, 7) : ''
+}
+
 export async function gitSite(project: string): Promise<GitSite> {
   // Together rather than in turn: they read different files and the bound above decides how
   // many of those reach the disk at once.
-  const [realPath, commonDir] = await Promise.all([realPathOf(project), gitCommonDir(project)])
-  return { realPath, commonDir }
+  const [realPath, commonDir, branch] = await Promise.all([
+    realPathOf(project),
+    gitCommonDir(project),
+    gitBranch(project),
+  ])
+  return { realPath, commonDir, branch }
 }

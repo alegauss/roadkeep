@@ -48,7 +48,15 @@ function machine(failing: readonly string[] = []) {
 }
 
 function recorded(path: string): RecordedProject {
-  return { path, aliases: [], commonDir: null, root: '/code', confirmed: '', presence: 'present' }
+  return {
+    path,
+    aliases: [],
+    commonDir: null,
+    root: '/code',
+    confirmed: '',
+    presence: 'present',
+    branch: '',
+  }
 }
 
 async function reachOver(

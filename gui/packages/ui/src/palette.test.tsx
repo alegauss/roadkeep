@@ -92,6 +92,7 @@ async function wired(): Promise<void> {
     root: '/code',
     confirmed: '',
     presence: 'present' as const,
+    branch: '',
   }))
 
   /** One machine per root, so a `list` answers that root's own lines. */

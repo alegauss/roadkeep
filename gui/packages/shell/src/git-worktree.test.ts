@@ -1,10 +1,12 @@
-import { existsSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
 
 import { groupProjects, isFamily } from '@rk/core'
 import { describe, expect, it } from 'vitest'
 
-import { gitCommonDir, gitSite, realPathOf } from './git-worktree'
+import { gitBranch, gitCommonDir, gitSite, realPathOf } from './git-worktree'
+import { removeTree } from './scratch'
 import { rootKey } from './root-paths'
 
 const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
@@ -86,5 +88,54 @@ describe.skipIf(worktreesPresent)('RG12: the worktree family this machine does n
     // A skip nobody reads is a test that stopped covering something. This says which
     // arrangement went unchecked and where it would be.
     expect(worktreesPresent).toBe(false)
+  })
+})
+
+describe('RG199: which branch a checkout is on', () => {
+  it('reads this repository’s own HEAD, which is a real checkout and not a fixture', async () => {
+    const branch = await gitBranch(REPO)
+
+    // Whatever branch this is read on, it is a name and not a sha: a repository somebody is
+    // working in is on a branch, and the sha case has its own test below.
+    expect(branch).not.toBe('')
+    expect(branch).not.toMatch(/^[0-9a-f]{7}$/)
+  })
+
+  it.skipIf(!worktreesPresent)('tells two worktrees of one repository apart', async () => {
+    // The whole reason this exists: a declared name is one word for a whole repository, so
+    // every worktree of Turing renders as `Turing` and the branch is what says which.
+    const [first, second] = await Promise.all(versions.map(gitBranch))
+
+    expect(first).not.toBe('')
+    expect(second).not.toBe('')
+    expect(first).not.toBe(second)
+  })
+
+  it('answers empty for a folder that is not a checkout at all', async () => {
+    // Not the same state as a checkout whose HEAD would not read, and the row draws nothing
+    // for it rather than drawing a sha.
+    expect(await gitBranch(path.join(REPO, 'docs'))).toBe('')
+  })
+
+  it('answers the short sha where HEAD is detached', async () => {
+    // The one case no real checkout here is in — a bisect, a tag checkout, a shallow clone.
+    // Fabricated deliberately and only for the *parse*: what this file refuses to invent is
+    // git's worktree layout, and this is one documented line in one file.
+    const at = mkdtempSync(path.join(tmpdir(), 'rk-detached-'))
+    try {
+      const sha = '0123456789abcdef0123456789abcdef01234567'
+      mkdirSync(path.join(at, '.git'))
+      writeFileSync(path.join(at, '.git', 'HEAD'), `${sha}\n`, 'utf8')
+
+      expect(await gitBranch(at)).toBe('0123456')
+    } finally {
+      removeTree(at)
+    }
+  })
+
+  it('carries the branch onto the site the scan groups by', async () => {
+    const site = await gitSite(REPO)
+
+    expect(site.branch).toBe(await gitBranch(REPO))
   })
 })

@@ -551,6 +551,7 @@ describe('RG190: the screen a handover moves after it is gone', () => {
                 root: '/code',
                 confirmed: '',
                 presence: 'present' as const,
+                branch: '',
               },
             ],
           }),
