@@ -4,6 +4,8 @@
 
 ## Block A — The client (payloads in, types out)
 
+- 📋 **RG193** (deps: —) **an engine too old for `config` reads as an unreadable answer, so a row shows a usage dump and no version** — Which copy answered is the useful half of that failure, and the reader is left to recognise a Python usage dump as a version that is behind. → §RG193
+
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 ## Block C — The portfolio (many backlogs in one view)
