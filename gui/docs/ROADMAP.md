@@ -9,10 +9,9 @@
 ## Block C — The portfolio (many backlogs in one view)
 
 - 📋 **RG199** (deps: RG198 ✅) **nothing on a row says which branch a worktree is on, so a declared name renders a family as identical rows** — `HEAD` is one line in git's own files, read the way the common directory already is, and it takes the badge that only says worktree. → §RG199
-- 📋 **RG200** (deps: RG198 ✅, roadkeep RK1682) **every project chip is the same folder glyph tinted by a hash, so no row is recognisable at a glance** — The declared emoji goes in the chip that is already drawn, and the glyph stays wherever nothing declares one. → §RG200
 - 📋 **RG201** (deps: RG198 ✅) **a row says a path and never what the project is for, so seventeen rows read as seventeen paths** — The declared description takes the line the path is on, and the path keeps the tooltip it already has. → §RG201
 - 📋 **RG203** (deps: RG198 ✅) **a declared name is read from the checkout, so a project reverts to its folder name as it goes missing** — The catalogue records the name it last saw, as it already records aliases and a common dir, so a grey row keeps its identity. → §RG203
-- 📋 **RG204** (deps: RG200, roadkeep RK1683) **an emoji is the only icon a row can draw, so a project with a logo file cannot show it** — The shell resolves the declared path inside the project and hands over bytes, never a file URL, and any failure falls back to the emoji. → §RG204
+- 📋 **RG204** (deps: RG200 ✅, roadkeep RK1683) **an emoji is the only icon a row can draw, so a project with a logo file cannot show it** — The shell resolves the declared path inside the project and hands over bytes, never a file URL, and any failure falls back to the emoji. → §RG204
 
 ## Block D — The project surface (one backlog, read)
 

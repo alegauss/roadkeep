@@ -440,3 +440,32 @@ describe('RG202: one name, wherever a project is named', () => {
     expect(nameOf(declares, project.path)).toBe(readRow(project, { declares }).name)
   })
 })
+
+describe('RG200: the emoji a project declares', () => {
+  it('carries what the project declared, so the chip can draw it', () => {
+    const row = readRow(project, { declares: { ...DECLARES_NOTHING, icon: '🔎' } })
+
+    expect(row.icon).toBe('🔎')
+  })
+
+  it('is empty where nothing declares one, which is what keeps the folder glyph', () => {
+    expect(readRow(project, { declares: DECLARES_NOTHING }).icon).toBe('')
+    expect(readRow(project, {}).icon).toBe('')
+    expect(pendingRow(project).icon).toBe('')
+  })
+
+  it('is carried through as text, whatever the sequence is made of', () => {
+    // Never parsed: no grapheme splitting and no codepoint arithmetic, so a ZWJ sequence
+    // arrives exactly as the file spelled it.
+    const family = '👩‍💻'
+    const row = readRow(project, { declares: { ...DECLARES_NOTHING, icon: family } })
+
+    expect(row.icon).toBe(family)
+  })
+
+  it('survives a second fill, the way the name does', () => {
+    const marked = readRow(project, { declares: { ...DECLARES_NOTHING, icon: '🔎' } })
+
+    expect(fillRow(marked, {}).icon).toBe('🔎')
+  })
+})

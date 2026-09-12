@@ -48,7 +48,16 @@ const SAID: Record<string, string> = {
     split: false,
     swapped: false,
   }),
-  config: JSON.stringify({ version: '0.2.400', source: 'roadkeep.toml', keys: [] }),
+  config: JSON.stringify({
+    version: '0.2.472',
+    source: 'roadkeep.toml',
+    keys: [
+      // The mark this project declares (RG200). Only the icon: the three projects here
+      // answer from one machine, so a declared *name* would rename all of them and the
+      // ordering assertions elsewhere are about which row is which.
+      { table: 'project', key: 'icon', address: 'project.icon', declared: true, set: '"🔎"' },
+    ],
+  }),
   commands: JSON.stringify({ version: '0.2.400', source: null, commands: [] }),
   stats: JSON.stringify({
     file: 'docs/ROADMAP.md',
@@ -699,9 +708,14 @@ describe('RG167: a row that follows its project', () => {
       expect(rowOf('alpha').textContent).toContain('59')
     })
 
-    expect(
-      screen.getAllByTestId('portfolio-row').map((row) => row.textContent.slice(0, 5)),
-    ).toEqual(['alpha', 'beta/', 'gamma'])
+    // By the path each row says it is, and not by a slice of its rendered text: the cell
+    // holds a chip, counts and a verdict, so slicing characters off it asserts the layout
+    // as much as the order.
+    expect(screen.getAllByTestId('portfolio-row').map((row) => row.dataset['path'])).toEqual([
+      READ,
+      PENDING,
+      REFUSED,
+    ])
   })
 })
 
@@ -887,5 +901,41 @@ describe('RG180: hearing the walk behind the record land', () => {
     expect(asked.filter((one) => one.topic === 'catalogue')).toEqual([
       { topic: 'catalogue', key: EVERY_SOURCE },
     ])
+  })
+})
+
+describe('RG200: the chip a row is recognised by', () => {
+  it('draws the emoji the project declared, in the chip that was already there', async () => {
+    await threeStates()
+    drawWindow()
+
+    await waitFor(() => {
+      expect(within(rowOf('alpha')).getByText('🔎')).toBeTruthy()
+    })
+  })
+
+  it('keeps the folder glyph where a project declares nothing', async () => {
+    // `gamma` never opens, so nothing was ever read for it to declare — which is also the
+    // state every project is in before a single repository adopts the key.
+    await threeStates()
+    drawWindow()
+
+    await waitFor(() => {
+      expect(rowOf('gamma')).toBeTruthy()
+    })
+    expect(within(rowOf('gamma')).queryByText('🔎')).toBeNull()
+  })
+
+  it('leaves the chip presentational, so a reader by ear hears the name and not a glyph', async () => {
+    await threeStates()
+    drawWindow()
+
+    await waitFor(() => {
+      expect(within(rowOf('alpha')).getByText('🔎')).toBeTruthy()
+    })
+    // The emoji sits inside the `aria-hidden` chip: announced before the project's name it
+    // would be noise, and the name is already there.
+    const chip = within(rowOf('alpha')).getByText('🔎').closest('[aria-hidden="true"]')
+    expect(chip).not.toBeNull()
   })
 })

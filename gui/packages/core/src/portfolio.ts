@@ -74,6 +74,14 @@ export interface ProjectRow {
   readonly path: string
   /** The folder's own name. A fact about the path, not a field this app made up. */
   readonly name: string
+  /**
+   * One emoji the project declared to stand for itself, or empty (RG200).
+   *
+   * **Text and never parsed**: no grapheme splitting, no codepoint arithmetic, no attempt to
+   * decide whether a ZWJ sequence counts as one emoji. What the file said is what is drawn,
+   * and a project declaring nothing keeps the folder glyph.
+   */
+  readonly icon: string
   readonly aliases: readonly string[]
   readonly commonDir: string | null
   readonly state: RowState
@@ -107,6 +115,7 @@ function shell(project: RecordedProject): Omit<ProjectRow, 'state'> {
   return {
     path: project.path,
     name: folderName(project.path),
+    icon: '',
     aliases: project.aliases,
     commonDir: project.commonDir,
     counts: null,
@@ -163,6 +172,7 @@ export function fillRow(row: ProjectRow, reads: RowReads): ProjectRow {
     // A declared name replaces the folder's; nothing declared leaves what was there, which
     // is the folder — so this is safe to call twice, like every other field here.
     name: reads.declares?.name || row.name,
+    icon: reads.declares?.icon || row.icon,
     counts: reads.stats ? countsFrom(reads.stats) : row.counts,
     next: reads.pick ? nextFrom(reads.pick) : row.next,
     gate: reads.gate ?? row.gate,

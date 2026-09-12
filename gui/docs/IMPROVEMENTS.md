@@ -29,29 +29,6 @@ and the row shows the short sha rather than going blank. A folder that is not a 
 checkout has no branch and shows none — which is not the same as a checkout whose `HEAD`
 would not read, and the two do not share a rendering.
 
-### §RG200 The chip is already drawn
-
-The chip is already drawn: `size-8`, `rounded-[10px]`, tinted by `toneOf(row.name)`,
-holding `IconFolder` at seventeen pixels. Every row holds the same glyph, so the chip
-carries one bit — _this is a folder_ — that was never in doubt. The tone varies, but a
-hash over a name is not something a person learns to read.
-
-**The declared emoji goes in that slot and nothing else about the cell moves.** The
-tinted square stays, because it is what gives the emoji an edge and a consistent
-footprint against both themes; the emoji replaces the glyph inside it. No new layout, no
-new size, no second element to align.
-
-Three things this has to get right. It is **presentational**, so the `aria-hidden` on
-the chip stays: an emoji announced before the project's name is noise, and the name is
-already there for anyone reading by ear. It is rendered as **text and never parsed** —
-no grapheme splitting, no codepoint arithmetic, no attempt to decide whether a ZWJ
-sequence counts as one emoji. And a project declaring nothing keeps `IconFolder`, which
-is what makes this safe to ship before a single repository has adopted the key.
-
-Whether the tint should still come from the name once an emoji sits on it is a question
-for the screen. Keeping it costs nothing and a flat chip loses its edge, so the tint
-stays until something argues otherwise.
-
 ### §RG201 What a row is for, not where it is
 
 A row's second line is `row.path` in mono, truncated, with the full path in `title`.

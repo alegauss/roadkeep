@@ -132,7 +132,10 @@ function ProjectCell({ row, shared }: { readonly row: ProjectRow; readonly share
         aria-hidden="true"
         className={`flex size-8 shrink-0 items-center justify-center rounded-[10px] ${chip}`}
       >
-        <IconFolder size={17} />
+        {/* The declared emoji in the slot the glyph was in, and nothing else about the cell
+            moves: the tinted square is what gives it an edge and a consistent footprint
+            against both themes. Rendered as text and never parsed (RG200). */}
+        {row.icon === '' ? <IconFolder size={17} /> : <span className="text-lg">{row.icon}</span>}
       </span>
       <div className="min-w-0">
         <div className="flex items-center gap-2">
@@ -322,7 +325,12 @@ function Row({
 
   if (row.state === 'unreadable') {
     return (
-      <tr data-state={row.state} data-testid="portfolio-row" className="border-t">
+      <tr
+        data-state={row.state}
+        data-path={row.path}
+        data-testid="portfolio-row"
+        className="border-t"
+      >
         <td className={cell}>
           <ProjectCell row={row} shared={shared} />
         </td>
@@ -344,7 +352,12 @@ function Row({
 
   if (row.state === 'pending') {
     return (
-      <tr data-state={row.state} data-testid="portfolio-row" className="border-t">
+      <tr
+        data-state={row.state}
+        data-path={row.path}
+        data-testid="portfolio-row"
+        className="border-t"
+      >
         <td className={cell}>
           <ProjectCell row={row} shared={shared} />
         </td>
@@ -368,7 +381,12 @@ function Row({
   }
 
   return (
-    <tr data-state={row.state} data-testid="portfolio-row" className="border-t">
+    <tr
+      data-state={row.state}
+      data-path={row.path}
+      data-testid="portfolio-row"
+      className="border-t"
+    >
       <td className={cell}>
         <ProjectCell row={row} shared={shared} />
       </td>

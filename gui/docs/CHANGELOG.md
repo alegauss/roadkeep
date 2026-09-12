@@ -92,6 +92,7 @@
 - ✅ **RG147** **the palette says it finds a line in every backlog and lists only surfaces, so search over all projects reaches no one** — The palette offers the lines search returned, from every backlog read, and says what it does not cover (design recorded in `packages/ui/src/useSearchable.ts`).
 - ✅ **RG198** **a row is named by its folder, so two worktrees of one product read as 2026.3 and 2026.2** — A row is named what the project calls itself, off the config it was opened with, and the folder where nothing says (design recorded in `packages/core/src/payloads.ts`).
 - ✅ **RG202** **five screens still name a project by its folder, so a declared name vanishes the moment one is opened** — Four screens take the name off the config they opened with, and the session list keeps the folder (design recorded in `packages/core/src/portfolio.ts`).
+- ✅ **RG200** **every project chip is the same folder glyph tinted by a hash, so no row is recognisable at a glance** — The chip draws the emoji the project declared, and keeps the folder glyph where nothing does (design recorded in `packages/core/src/portfolio.ts`).
 
 ## Block D — The project surface (one backlog, read)
 
