@@ -6,28 +6,6 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-### §RG204 A picture from a repository this app does not own
-
-An emoji is recognisable and it is not a logo. Where a project declares `project.logo`
-the row should draw the file — and that file lives in an arbitrary repository on this
-machine, which is what makes this its own line rather than a clause in the icon's.
-
-**The renderer never gets a path.** A `file://` URL from the portfolio into an Electron
-renderer widens what the window can read to whatever a path can reach, and the path was
-written by a repository rather than by this app. The shell resolves it against the
-project root, refuses anything that climbs out, reads the bytes, checks they are an
-image it agreed to draw, and hands back a data URL over the transport that already
-exists. The renderer receives a picture or it receives nothing.
-
-**A size ceiling, enforced on the bytes and not on a declaration.** A logo here is a
-list-row icon at thirty-two pixels; a repository pointing at a four-megabyte PNG should
-get the emoji and a note on the row, not a portfolio that stalls on seventeen reads.
-
-Every failure — missing file, wrong type, too large, outside the root — falls back to
-`project.icon`, and that to `IconFolder`. The chain is why the emoji stays worth
-declaring even where a logo exists, and it means a broken logo is a cosmetic outcome
-rather than an empty cell.
-
 ## Block D — The project surface (one backlog, read)
 
 ## Block E — The write path (the app composes an argv; the command writes)

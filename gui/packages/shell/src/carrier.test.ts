@@ -1,3 +1,7 @@
+import { mkdtempSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import nodePath from 'node:path'
+
 import {
   DECLARES_NOTHING,
   buildArgv,
@@ -17,6 +21,7 @@ import {
 import { describe, expect, it } from 'vitest'
 
 import { createCarrier, type CarrierOptions } from './carrier'
+import { removeTree } from './scratch'
 
 /**
  * RG143: the main-process end of every read a window makes, with nothing started.
@@ -779,6 +784,33 @@ describe('RG187: how many projects gate at once', () => {
   })
 })
 
+/** A machine whose `config` declares the logo a test names (RG204). */
+function withLogo(logo: string): Transport {
+  return {
+    run(request) {
+      const verb = request.argv[2] ?? ''
+      if (verb === 'config') {
+        return Promise.resolve({
+          code: 0,
+          stdout: JSON.stringify({
+            version: '0.2.472',
+            source: 'roadkeep.toml',
+            keys: [
+              { table: 'files', key: 'roadmap', declared: true, set: '"docs/ROADMAP.md"' },
+              { table: 'project', key: 'logo', declared: true, set: `"${logo}"` },
+            ],
+          }),
+          stderr: '',
+          durationMs: 1,
+        })
+      }
+      const said = SAID[verb]
+      if (said === undefined) throw new EngineCallFailed('unspawnable', 'no', 1)
+      return Promise.resolve({ code: 0, stdout: said, stderr: '', durationMs: 1 })
+    },
+  }
+}
+
 /** A machine whose `config` declares the name a test names (RG203). */
 function declaring(name: string): Transport {
   return {
@@ -865,5 +897,51 @@ describe('RG203: what the record remembers about a project', () => {
     await carrier.open(A)
 
     expect(kept.at(-1)?.projects.find((one) => one.path === A)?.declared.name).toBe('')
+  })
+})
+
+describe('RG204: what crosses for a declared logo', () => {
+  it('hands over the picture and never the path it came from', async () => {
+    const root = mkdtempSync(nodePath.join(tmpdir(), 'rk-carrier-logo-'))
+    try {
+      writeFileSync(
+        nodePath.join(root, 'mark.png'),
+        Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00]),
+      )
+      const held: ProjectCatalogue = {
+        ...FOUND,
+        projects: [{ ...FOUND.projects[0]!, path: root }],
+      }
+      const { carrier } = world({
+        remembered: () => held,
+        rescan: () => Promise.resolve({ catalogue: held, changes: [] }),
+        open: (at) => openProject(at, [['python', '/x/launch.py']], () => withLogo('mark.png')),
+      })
+
+      await carrier.projects()
+      const opened = await carrier.open(root)
+
+      if (opened.kind !== 'open') throw new Error(`opened as ${opened.kind}`)
+      expect(opened.mark.startsWith('data:image/png;base64,')).toBe(true)
+      // A `file://` URL into a renderer would widen what the window can read to whatever a
+      // path can reach, and the path was a repository's word rather than this app's.
+      expect(opened.declares.logo).toBe('')
+      expect(JSON.stringify(opened)).not.toContain('mark.png')
+    } finally {
+      removeTree(root)
+    }
+  })
+
+  it('hands over nothing where the declared file is not there', async () => {
+    const { carrier } = world({
+      open: (at) => openProject(at, [['python', '/x/launch.py']], () => withLogo('absent.png')),
+    })
+
+    await carrier.projects()
+    const opened = await carrier.open(A)
+
+    if (opened.kind !== 'open') throw new Error(`opened as ${opened.kind}`)
+    // Every way of not having a picture is the same way, and the row falls back to the emoji.
+    expect(opened.mark).toBe('')
   })
 })

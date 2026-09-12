@@ -90,6 +90,11 @@ export interface ProjectRow {
    * that disagrees with the file it is reading.
    */
   readonly description: string
+  /**
+   * The declared logo as a data URL, or empty (RG204). Never a path: it is resolved, refused
+   * and read by the side that has the disk, and what reaches a row is a picture or nothing.
+   */
+  readonly mark: string
   readonly aliases: readonly string[]
   readonly commonDir: string | null
   /** Which branch this member is on (RG199) — a fact about the checkout, off git's files. */
@@ -130,6 +135,10 @@ function shell(project: RecordedProject): Omit<ProjectRow, 'state'> {
     name: nameOf(project.declared, project.path),
     icon: project.declared.icon,
     description: project.declared.description,
+    // Not recorded: a picture is bytes off a checkout, and a record that held one would be
+    // a store of somebody else's file. A project the scan cannot reach falls back to its
+    // emoji, which is why that stays worth declaring beside a logo.
+    mark: '',
     aliases: project.aliases,
     commonDir: project.commonDir,
     branch: project.branch,
@@ -161,6 +170,8 @@ export interface RowReads {
    * product.
    */
   readonly declares?: Declared | null
+  /** The declared logo as a data URL, resolved by the shell (RG204). */
+  readonly mark?: string
   /**
    * Not a read. The gate's last verdict comes off the ledger, because running `lint`
    * seventeen times to draw a list is the cost this whole arrangement avoids.
@@ -189,6 +200,7 @@ export function fillRow(row: ProjectRow, reads: RowReads): ProjectRow {
     name: reads.declares?.name || row.name,
     icon: reads.declares?.icon || row.icon,
     description: reads.declares?.description || row.description,
+    mark: reads.mark ?? row.mark,
     counts: reads.stats ? countsFrom(reads.stats) : row.counts,
     next: reads.pick ? nextFrom(reads.pick) : row.next,
     gate: reads.gate ?? row.gate,

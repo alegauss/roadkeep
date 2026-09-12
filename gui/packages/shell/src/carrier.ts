@@ -34,6 +34,7 @@ import { stampGoverned } from './governed-stamp'
 import { openHere } from './open-here'
 import { rescan } from './rescan'
 import { rootKey } from './root-paths'
+import { logoOf } from './project-logo'
 
 /**
  * The main-process end of every read a window makes (RG143).
@@ -410,7 +411,12 @@ export function createCarrier(options: CarrierOptions): Carrier {
           // aliases and the common directory already recorded beside it.
           recordDeclared(root, reached.project.declares)
         }
-        return openedFrom(reached)
+        const handing = openedFrom(reached)
+        if (handing.kind !== 'open') return handing
+        // The declared logo, resolved and read here: the renderer is handed a picture or
+        // nothing, and never a path into a repository on this machine (RG204).
+        const mark = await logoOf(root, handing.declares.logo)
+        return { ...handing, mark, declares: { ...handing.declares, logo: '' } }
       } catch (cause) {
         // `openProject` answers its failures as states, so reaching here is the scan or the
         // candidates throwing — still an answer a screen draws, and never a rejected call.

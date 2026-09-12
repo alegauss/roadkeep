@@ -76,6 +76,8 @@ export interface OpenProject {
    * thrown away here after `governed` was taken from it.
    */
   readonly declares: Declared
+  /** The declared logo as a data URL where something resolved one (RG204), else empty. */
+  readonly mark: string
   /** Every later read goes through this. Pooled, cached, and reading each verb's shape. */
   readonly client: Client
   /**
@@ -342,6 +344,9 @@ async function compose(
           : capabilitiesOf(commands.value),
       governed,
       declares,
+      // Nothing resolves a picture here: `core` has no disk, and the carrier fills this
+      // before it crosses (RG204).
+      mark: '',
       client,
       transport,
       invalidate: () => {

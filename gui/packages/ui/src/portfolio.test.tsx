@@ -127,8 +127,13 @@ const REFUSAL: OpenedProject = {
   tried: [['python', '/code/gamma/launch.py']],
 }
 
+/** The picture the carrier resolved for a project, or none. Set by a test that wants one. */
+let mark = ''
+
 async function opened(root: string): Promise<OpenedProject> {
-  return openedFrom(await openProject(root, [['python', '/code/launch.py']], () => machine))
+  const said = openedFrom(await openProject(root, [['python', '/code/launch.py']], () => machine))
+  // What the carrier hands over (RG204): a picture, and never the path it came from.
+  return said.kind === 'open' ? { ...said, mark, declares: { ...said.declares, logo: '' } } : said
 }
 
 /**
@@ -992,5 +997,36 @@ describe('RG201: what a row is for, not where it is', () => {
       expect(rowOf('gamma')).toBeTruthy()
     })
     expect(within(rowOf('gamma')).getByText(REFUSED)).toBeTruthy()
+  })
+})
+
+describe('RG204: the picture a project declares', () => {
+  const PICTURE = 'data:image/png;base64,iVBORw0KGgo='
+
+  afterEach(() => {
+    mark = ''
+  })
+
+  it('draws the picture the shell resolved, in place of the emoji', async () => {
+    mark = PICTURE
+    await threeStates()
+    drawWindow()
+
+    await waitFor(() => {
+      expect(within(rowOf('alpha')).getByTestId('project-mark')).toBeTruthy()
+    })
+    expect(within(rowOf('alpha')).getByTestId('project-mark').getAttribute('src')).toBe(PICTURE)
+    // The emoji gives way to it, and stays declared for every project that has no picture.
+    expect(within(rowOf('alpha')).queryByText('🔎')).toBeNull()
+  })
+
+  it('falls back to the emoji where nothing resolved, which is the whole chain', async () => {
+    await threeStates()
+    drawWindow()
+
+    await waitFor(() => {
+      expect(within(rowOf('alpha')).getByText('🔎')).toBeTruthy()
+    })
+    expect(within(rowOf('alpha')).queryByTestId('project-mark')).toBeNull()
   })
 })

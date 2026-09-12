@@ -435,8 +435,21 @@ export type OpenedProject =
       readonly engine: ResolvedEngine
       readonly capabilities: CapabilityReport
       readonly governed: Readonly<Record<string, string>>
-      /** What the project says about itself (RG198), read once where it was opened. */
+      /**
+       * What the project says about itself (RG198), read once where it was opened.
+       *
+       * `logo` is blank here whatever the file declares: it is a path into a repository on
+       * the machine, and the renderer gets the picture as `mark` or gets nothing (RG204).
+       */
       readonly declares: Declared
+      /**
+       * The declared logo as a data URL, or empty for every way of not having one.
+       *
+       * Resolved, refused and read by the side that has the disk. A `file://` URL into an
+       * Electron renderer would widen what the window can read to whatever a path can
+       * reach — and that path was written by a repository rather than by this app.
+       */
+      readonly mark: string
       /** Why its engine could not be held, as of the opening, or null. */
       readonly unheld: string | null
     }

@@ -135,7 +135,16 @@ function ProjectCell({ row, shared }: { readonly row: ProjectRow; readonly share
         {/* The declared emoji in the slot the glyph was in, and nothing else about the cell
             moves: the tinted square is what gives it an edge and a consistent footprint
             against both themes. Rendered as text and never parsed (RG200). */}
-        {row.icon === '' ? <IconFolder size={17} /> : <span className="text-lg">{row.icon}</span>}
+        {/* A picture where one resolved, the declared emoji next, the folder glyph last
+            (RG204). The chain is why the emoji stays worth declaring beside a logo: every
+            way of not having a picture is cosmetic rather than an empty cell. */}
+        {row.mark !== '' ? (
+          <img src={row.mark} alt="" data-testid="project-mark" className="size-5 object-contain" />
+        ) : row.icon === '' ? (
+          <IconFolder size={17} />
+        ) : (
+          <span className="text-lg">{row.icon}</span>
+        )}
       </span>
       <div className="min-w-0">
         <div className="flex items-center gap-2">

@@ -271,6 +271,7 @@ export function openedFrom(opening: Opening): OpenedProject {
     capabilities: project.capabilities,
     governed: project.governed,
     declares: project.declares,
+    mark: project.mark,
     unheld: project.unheld(),
   }
 }
@@ -348,6 +349,7 @@ export async function openOver(
       capabilities: opened.capabilities,
       governed: opened.governed,
       declares: opened.declares,
+      mark: opened.mark,
       client: createClient(transport),
       transport,
       invalidate: () => undefined,
