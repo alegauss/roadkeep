@@ -158,8 +158,15 @@ function ProjectCell({ row, shared }: { readonly row: ProjectRow; readonly share
             </span>
           ) : null}
         </div>
-        <div className="text-muted-foreground truncate font-mono text-xs" title={row.path}>
-          {row.path}
+        {/* What the project is for, where it says — otherwise where it is (RG201). One line
+            either way: this cell sits in a table beside counts, a next line, a gate and an
+            engine, and a row that grows for some projects and not others makes it ragged.
+            The path is not lost, it keeps the tooltip it already had. */}
+        <div
+          className={`text-muted-foreground truncate text-xs ${row.description === '' ? 'font-mono' : ''}`}
+          title={row.path}
+        >
+          {row.description === '' ? row.path : row.description}
         </div>
       </div>
     </div>

@@ -82,6 +82,14 @@ export interface ProjectRow {
    * and a project declaring nothing keeps the folder glyph.
    */
   readonly icon: string
+  /**
+   * What the project says it is for, or empty (RG201).
+   *
+   * Drawn as it was given: the limit is the engine's, declared in `[limits]` and refused
+   * where the description is written — a screen that silently shortens prose is a screen
+   * that disagrees with the file it is reading.
+   */
+  readonly description: string
   readonly aliases: readonly string[]
   readonly commonDir: string | null
   readonly state: RowState
@@ -116,6 +124,7 @@ function shell(project: RecordedProject): Omit<ProjectRow, 'state'> {
     path: project.path,
     name: folderName(project.path),
     icon: '',
+    description: '',
     aliases: project.aliases,
     commonDir: project.commonDir,
     counts: null,
@@ -173,6 +182,7 @@ export function fillRow(row: ProjectRow, reads: RowReads): ProjectRow {
     // is the folder — so this is safe to call twice, like every other field here.
     name: reads.declares?.name || row.name,
     icon: reads.declares?.icon || row.icon,
+    description: reads.declares?.description || row.description,
     counts: reads.stats ? countsFrom(reads.stats) : row.counts,
     next: reads.pick ? nextFrom(reads.pick) : row.next,
     gate: reads.gate ?? row.gate,

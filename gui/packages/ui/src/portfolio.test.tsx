@@ -56,6 +56,13 @@ const SAID: Record<string, string> = {
       // answer from one machine, so a declared *name* would rename all of them and the
       // ordering assertions elsewhere are about which row is which.
       { table: 'project', key: 'icon', address: 'project.icon', declared: true, set: '"🔎"' },
+      {
+        table: 'project',
+        key: 'description',
+        address: 'project.description',
+        declared: true,
+        set: '"A search engine, and the console around it"',
+      },
     ],
   }),
   commands: JSON.stringify({ version: '0.2.400', source: null, commands: [] }),
@@ -937,5 +944,43 @@ describe('RG200: the chip a row is recognised by', () => {
     // would be noise, and the name is already there.
     const chip = within(rowOf('alpha')).getByText('🔎').closest('[aria-hidden="true"]')
     expect(chip).not.toBeNull()
+  })
+})
+
+describe('RG201: what a row is for, not where it is', () => {
+  const SAYS = 'A search engine, and the console around it'
+
+  it('puts the declared description on the line the path was on', async () => {
+    await threeStates()
+    drawWindow()
+
+    await waitFor(() => {
+      expect(within(rowOf('alpha')).getByText(SAYS)).toBeTruthy()
+    })
+    // One line, not two: this cell sits in a table and a row that grows for some projects
+    // and not others makes it ragged.
+    expect(within(rowOf('alpha')).queryByText(READ)).toBeNull()
+  })
+
+  it('keeps the path in the tooltip, which is where a path belongs', async () => {
+    await threeStates()
+    drawWindow()
+
+    await waitFor(() => {
+      expect(within(rowOf('alpha')).getByText(SAYS)).toBeTruthy()
+    })
+    expect(within(rowOf('alpha')).getByText(SAYS).getAttribute('title')).toBe(READ)
+  })
+
+  it('leaves the path on the line where nothing is declared', async () => {
+    // `gamma` never opens, so nothing was read for it to declare — a mixed portfolio has
+    // to be readable in both states.
+    await threeStates()
+    drawWindow()
+
+    await waitFor(() => {
+      expect(rowOf('gamma')).toBeTruthy()
+    })
+    expect(within(rowOf('gamma')).getByText(REFUSED)).toBeTruthy()
   })
 })

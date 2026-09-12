@@ -29,29 +29,6 @@ and the row shows the short sha rather than going blank. A folder that is not a 
 checkout has no branch and shows none — which is not the same as a checkout whose `HEAD`
 would not read, and the two do not share a rendering.
 
-### §RG201 What a row is for, not where it is
-
-A row's second line is `row.path` in mono, truncated, with the full path in `title`.
-Seventeen rows of that is seventeen paths, and a path answers _where_ when the question
-a portfolio screen is open to answer is _which_. Nothing on the row says what the
-project is for.
-
-**The declared description takes that line and the path keeps the tooltip it already
-has.** Not a third line: the cell is one row of a table beside counts, a next line, a
-gate and an engine, and a row that grows by a line for some projects and not others
-makes the table ragged. The path is not lost — `title={row.path}` is there today and
-stays, which is where a path belongs once something better can be shown in its place.
-
-**One line, truncated, never wrapped.** The limit is the engine's, declared in
-`[limits]` and reported by `budget`, so the refusal happens where the description is
-written rather than where it is drawn. This app does not enforce it; it draws what it
-was given and lets CSS cut the overflow. A screen that silently shortens prose is a
-screen that disagrees with the file it is reading.
-
-Where nothing is declared the path stays on the line, which is what it does today. The
-change is visible only on projects that opted in, and a mixed portfolio is readable in
-both states.
-
 ### §RG203 A missing project keeps its name
 
 A declared name is read out of the checkout that declares it. A missing project is one
