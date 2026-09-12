@@ -629,6 +629,7 @@ its choices from, and a test asserts that join rather than the words.
 - ✅ **RK1396** **A path argument ignores -C, so a door this tool prints is refused as a file that does not exist** — A path argument this tool ever composes is read against the project root: a door printed project-relative and read process-relative is a command the tool refuses itself.
 - ✅ **RK1678** **the launcher drops an engine the caller named when its probe fails, and answers from a clone hundreds of versions old** — A named engine is never stepped past: where ROADKEEP_HOME is set it is the whole list, and guard is left unenforced rather than run by a copy nobody chose.
 - ✅ **RK1682** **a reader of many checkouts has only the folder name: roadkeep.toml declares no name, description or icon** — A `[project]` row past its width is a gate finding and never a parse refusal, a value that is merely wide having no business closing the config behind every verb.
+- ✅ **RK1683** **an emoji is all `[project]` can point at, so a repository with a real logo has nowhere to name the file** — A path in this config is held to shape and containment and never to existence, a gate that stats the disk reporting a defect on every sparse checkout, unfetched submodule and LFS pointer.
 
 ### §RK1367 Why the whole run and not the paragraph a verb placed
 
@@ -692,6 +693,21 @@ hand edit L1 exists against, reached by bricking the project first.
 What is accepted is that a checkout runs with an over-wide row until the gate runs. That
 is the latitude a symptom over its limit already has one file over, and the commit
 passes through `lint` either way.
+
+### §RK1683 Weighed against statting the file
+
+The alternative was to stat the file, which is the check a reader wants and the one a
+gate cannot make. A configuration defect is a statement that is wrong; a missing file is
+a checkout that is partial. Three ordinary states produce the second without the first —
+a sparse checkout, an unfetched submodule, an LFS pointer — and a gate red on any of
+them is a gate turned off.
+
+The other half is timing. Existence at lint time is not existence at read time: the
+commit passes, the artefact is built elsewhere, and the file is renamed in between. A
+check here buys a guarantee that has expired by the moment it is needed.
+
+What is accepted is that `logo` can name a file the clone does not carry. `icon` is the
+fallback standing beside it, which is why declaring both is the ordinary case.
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

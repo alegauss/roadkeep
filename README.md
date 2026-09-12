@@ -120,16 +120,16 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 234 | 2 |
 | C — Query (consult without reading the file) | 0 | 198 | 7 |
 | D — The gate | 0 | 318 | 7 |
-| E — Adoption | 1 | 120 | 1 |
+| E — Adoption | 1 | 121 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 163 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 1 | 1156 | 24 |
+| **Total** | 1 | 1157 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1683** (deps: —) **an emoji is all `[project]` can point at, so a repository with a real logo has nowhere to name the file** — `project.logo` names a path inside the project, validated here for shape and containment; whether the file is there belongs to the reader, not to the config. → §RK1683
+- 📋 **RK1684** (deps: —) **`[files]` takes a path that climbs out of the project root, and its absolute-path refusal misses `/x` on Windows** — The check is whichever interpreter is running, so one committed config resolves to `C:\etc` on Windows and is refused on Linux, and nothing tests containment at all. → §RK1684
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

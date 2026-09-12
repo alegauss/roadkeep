@@ -3193,3 +3193,89 @@ def test_the_identity_widths_hold_undeclared(tmp_path):
     config = project(tmp_path, config=IDENTITY.replace("A project", "x" * 61))
     assert config.identity.name == 60
     assert [one.code for one in lint(config).findings] == ["project.name"]
+
+
+# -- and the file the glyph stands in for (RK1683) ----------------------------
+
+
+def _logo(tmp_path, value: str) -> Config:
+    # A TOML *literal* string, so a backslash reaches the parser as a backslash rather than
+    # as the invalid escape a basic string reads it as — the input this key has to refuse.
+    return project(tmp_path, config=CONFIG + f"\n[project]\nlogo = '{value}'\n")
+
+
+def test_a_logo_is_a_path_inside_the_project(tmp_path):
+    config = _logo(tmp_path, "docs/mark.svg")
+    assert config.project is not None
+    assert config.project.logo == "docs/mark.svg"
+    assert lint(config).clean
+
+
+@pytest.mark.parametrize("value", ["/mark.svg", "C:/mark.svg", "C:\\mark.svg"])
+def test_an_absolute_logo_is_refused_on_either_flavour(tmp_path, value):
+    """Both flavours and never this interpreter's. `Path("/mark.svg")` is relative on Windows
+    and absolute on Linux, so a config written on one and gated on the other would pass one
+    machine and fail the next — which is the class of defect this key's rule is about."""
+    with pytest.raises(ConfigError) as raised:
+        _logo(tmp_path, value)
+    assert "project.logo must be" in str(raised.value)
+    assert "relative to the project root" in str(raised.value) or "forward slashes" in str(
+        raised.value
+    )
+
+
+def test_a_logo_that_climbs_out_of_the_root_is_refused(tmp_path):
+    with pytest.raises(ConfigError) as raised:
+        _logo(tmp_path, "../shared/mark.svg")
+    assert "must stay inside the project root" in str(raised.value)
+
+
+@pytest.mark.parametrize("value", ["https://example.test/mark.svg", "file://mark.svg"])
+def test_a_url_is_not_a_path(tmp_path, value):
+    with pytest.raises(ConfigError) as raised:
+        _logo(tmp_path, value)
+    assert "and not a URL" in str(raised.value)
+
+
+def test_a_backslash_is_refused_before_it_reads_as_a_separator(tmp_path):
+    with pytest.raises(ConfigError) as raised:
+        _logo(tmp_path, "docs\\mark.svg")
+    assert "forward slashes" in str(raised.value)
+
+
+def test_a_dot_dot_inside_a_filename_is_not_a_climb(tmp_path):
+    """The check is on path *segments*, so a file somebody named oddly is still a file."""
+    config = _logo(tmp_path, "docs/mark..svg")
+    assert config.project is not None
+    assert config.project.logo == "docs/mark..svg"
+
+
+def test_a_logo_naming_nothing_on_disk_is_not_a_finding(tmp_path):
+    """A decision rather than an omission. A gate that stats the disk reports a finding on a
+    sparse checkout, on a submodule nobody fetched and on an LFS pointer, none of which is a
+    configuration defect — and existence at lint time is not existence at read time."""
+    config = _logo(tmp_path, "docs/nothing-is-here.svg")
+    assert not (tmp_path / "docs" / "nothing-is-here.svg").exists()
+    assert lint(config).clean
+
+
+def test_a_logo_carries_no_width_and_the_other_three_do(tmp_path):
+    """A path is not printed in the row, so there is no listing it can crowd; the only thing a
+    number here would refuse is a deep directory somebody chose."""
+    from roadkeep.config import _IDENTITY_KEYS
+
+    assert "logo" not in _IDENTITY_KEYS
+    config = _logo(tmp_path, "docs/" + "a" * 300 + "/mark.svg")
+    assert lint(config).clean
+
+
+def test_the_icon_stays_beside_the_logo(tmp_path):
+    """The fallback when the file is missing has to be something, and nothing is a hole in a
+    row — so declaring both is the ordinary case and not a duplicate."""
+    config = project(
+        tmp_path,
+        config=CONFIG + '\n[project]\nicon = "\U0001f680"\nlogo = "docs/mark.svg"\n',
+    )
+    assert config.project is not None
+    assert config.project.icon and config.project.logo
+    assert lint(config).clean

@@ -25,7 +25,7 @@ import re
 import tomllib
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field, replace
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # a string annotation under `from __future__ import annotations` (RK261)
@@ -407,12 +407,24 @@ class Project:
     description: str = ""
     #: One emoji, for the same row where a name is too wide. Held to a width and not to a
     #: grapheme count: segmentation is a table this tool does not carry and would not take a
-    #: dependency for (L2's economics), so the limit is the check.
+    #: dependency for (L2's economics), so the limit is the check. It stays worth declaring
+    #: beside :attr:`logo` (RK1683): the fallback when the file is missing has to be
+    #: something, and *nothing* is a hole in a row.
     icon: str = ""
+    #: The project's actual mark, as a path **relative to the project root** and spelled with
+    #: forward slashes (RK1683). Its own key and never an overloaded `icon`: a string that is
+    #: sometimes a grapheme and sometimes a path is two schemas sharing one name, and every
+    #: reader would have to tell them apart by sniffing.
+    #:
+    #: Held to shape and containment and **not to existence** — see :func:`_logo`, and the
+    #: width the other three carry is deliberately absent: a path is not printed in the row,
+    #: so there is no listing it can crowd, and the only thing a number here would refuse is
+    #: a deep directory somebody chose.
+    logo: str = ""
 
     def __bool__(self) -> bool:
         """Whether the table says anything, an open-and-empty one being a legal state."""
-        return bool(self.name or self.description or self.icon)
+        return bool(self.name or self.description or self.icon or self.logo)
 
 
 @dataclass(frozen=True, slots=True)
@@ -440,9 +452,10 @@ class Identity:
     icon: int = 16
 
 
-#: `[project]` — three rows and no fourth. Anything a reader wants beyond a name, a sentence
-#: and a glyph is a fact about *how* the project is read, which belongs to the reader.
-_PROJECT_KEYS = frozenset({"name", "description", "icon"})
+#: `[project]` — a name, a sentence, a glyph and the file the glyph stands in for. Anything a
+#: reader wants beyond those is a fact about *how* the project is read, which belongs to the
+#: reader. Three of the four are values held to a width; `logo` is a path held to a shape.
+_PROJECT_KEYS = frozenset({"name", "description", "icon", "logo"})
 #: The `[limits]` keys that bound `[project]` rather than a task line, mapped to their field
 #: on :class:`Identity`. `description` is bounded by `why` because it is the same measurement
 #: — one sentence about one thing — and a second number would be the same corpus read twice.
@@ -1881,8 +1894,63 @@ def _project(raw: object, problems: list[str]) -> Project | None:
                 f"break in it is a row that breaks the listing around it"
             )
             continue
+        if key == "logo" and not _logo(value.strip(), problems):
+            continue
         values[key] = value.strip()
     return Project(**values)
+
+
+#: A URL, as far as this needs to tell one from a path: a scheme of **two or more** characters
+#: before the colon. Two and not one, so a Windows drive (`C:/mark.svg`) falls to the absolute
+#: check below it and is refused with the sentence about machines rather than about schemes.
+_SCHEME = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]+:")
+
+
+def _logo(value: str, problems: list[str]) -> bool:
+    """`[project] logo` — shape and containment, and deliberately not existence (RK1683).
+
+    A path relative to the project root, and the relativity is the point: an absolute path is
+    a statement about one machine, committed to a repository other machines clone. A URL is
+    refused for one step further along the same argument — it is a statement about one host,
+    and what it names can change without the commit that named it.
+
+    Checked on **both** flavours of absolute, not on this interpreter's. `Path("/mark.svg")`
+    is relative on Windows and absolute on Linux, so a config written on one and gated on the
+    other would pass one machine and fail the next — which is the class of defect this key's
+    whole rule is about. Forward slashes for the same reason, one layer down: a backslash is a
+    separator on one OS and an ordinary filename character on the other.
+
+    **Existence is not checked**, and that is a decision rather than an omission. A gate that
+    stats the disk reports a finding on a sparse checkout, on a submodule nobody fetched and
+    on an LFS pointer, none of which is a configuration defect — and existence at lint time is
+    not existence at read time anyway. Whether the bytes are there is the reader's question,
+    answered where the picture is drawn.
+    """
+    if _SCHEME.match(value):
+        problems.append(
+            "project.logo must be a path inside the project and not a URL: a mark served "
+            "from a host is one that can change without the commit that named it"
+        )
+        return False
+    if "\\" in value:
+        problems.append(
+            "project.logo must be spelled with forward slashes: a backslash separates on "
+            "one operating system and is part of the filename on the other"
+        )
+        return False
+    if value.startswith("/") or PureWindowsPath(value).is_absolute():
+        problems.append(
+            "project.logo must be relative to the project root: an absolute path is "
+            "checked in and then wrong on every other machine"
+        )
+        return False
+    if ".." in PurePosixPath(value).parts:
+        problems.append(
+            "project.logo must stay inside the project root: a path that climbs out of it "
+            "names a file the clone does not carry"
+        )
+        return False
+    return True
 
 
 def _by_role(raw: object, problems: list[str]) -> dict[str, dict[str, int]]:

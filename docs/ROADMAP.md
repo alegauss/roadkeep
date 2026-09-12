@@ -32,7 +32,7 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1683** (deps: —) **an emoji is all `[project]` can point at, so a repository with a real logo has nowhere to name the file** — `project.logo` names a path inside the project, validated here for shape and containment; whether the file is there belongs to the reader, not to the config. → §RK1683
+- 📋 **RK1684** (deps: —) **`[files]` takes a path that climbs out of the project root, and its absolute-path refusal misses `/x` on Windows** — The check is whichever interpreter is running, so one committed config resolves to `C:\etc` on Windows and is refused on Linux, and nothing tests containment at all. → §RK1684
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
