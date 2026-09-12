@@ -1541,9 +1541,12 @@ def relocate(config: Config, address: str, to: str = "") -> Moved:
         )
     candidates = _declaring(key, written)
     if not candidates:
+        # Bound before the f-string rather than escaped inside one: a backslash in an
+        # expression part is 3.12 syntax, and this package's floor is 3.11 (RK1679).
+        named = written or '""'
         raise ValueError(
             f"this build declares no key `{key}`, so there is no table to move it to: "
-            f"`config --table {written or '\"\"'}` prints what this one accepts, and a key no "
+            f"`config --table {named}` prints what this one accepts, and a key no "
             f"version ever declared is a typo rather than a misplacement"
         )
     destination = _destination(address, key, candidates, to)

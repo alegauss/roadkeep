@@ -1189,6 +1189,7 @@
 - ✅ **RK1629** **two modules walk back from a file's last blank line under two names, and the kernel that owns blank has no name for it** — Document.written_end is the third of the three end readers and the one about the whole file, so the two modules that append a section ask it instead of walking back twice.
 - ✅ **RK1633** **one verb handler writes a governed file itself, and it is the writer every enumeration of the config's has missed** — The write moved onto Namespaced.save, so the config's writers are one layer again and the ordering is a property a test holds.
 - ✅ **RK1636** **a name a module imports and then defines is bound by the later one, and nothing here reports the dead import** — The dead-import scan gained the one binding it read as live, and it found a second instance standing in installing.
+- ✅ **RK1679** **a source line uses 3.12 f-string syntax while the manifest promises 3.11, so the package does not import there** — Every source file parses under the floor the manifest promises, checked without needing that interpreter (design recorded in `tests/test_packaging.py`).
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 

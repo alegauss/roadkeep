@@ -22,8 +22,11 @@ would be a second reading that can disagree with the builder's.
 
 from __future__ import annotations
 
+import ast
+import io
 import os
 import re
+import tokenize
 import tomllib
 from importlib import import_module
 from pathlib import Path
@@ -39,6 +42,9 @@ from roadkeep.history import git_available
 HERE = Path(__file__).resolve().parents[1]
 PYPROJECT = HERE / "pyproject.toml"
 PACKAGE = HERE / "src" / "roadkeep"
+
+#: Spelled rather than written, since a literal one here is what the check below reports.
+BACKSLASH = chr(92)
 
 #: PEP 440, the subset a release is allowed to be. A local version or a `.dev` suffix is a
 #: build nobody should be able to tag: PyPI takes the number once and forever.
@@ -607,3 +613,84 @@ def test_the_environment_it_composes_removes_the_identity_and_keeps_the_ownershi
     assert env["CLAUDE_CONFIG_DIR"] == str(tmp_path / "g")
     assert "CLAUDE_PROJECT_DIR" not in env
     assert env["PATH"].startswith(str(tmp_path / "s"))
+
+
+# -- the floor is one every source file actually parses under ----------------
+
+
+def _enclosing_quote(start: str) -> str:
+    """The quote an f-string opened with: `rf\"\"\"` is three, `f'` is one."""
+    return start.lstrip("fFrRbB")
+
+
+def _needs_312(source: str) -> list[str]:
+    """Where a file uses an f-string PEP 701 allowed and the floor refuses.
+
+    `ast.parse(feature_version=...)` gates the features it knows — a `match` statement, a PEP
+    695 type parameter — and f-strings are not among them: 3.12 rewrote the tokenizer, so an
+    expression part carrying a backslash, a comment, a newline or the f-string's own quote
+    parses cleanly on a developer's interpreter and is a `SyntaxError` on the floor.
+
+    That is the class this catches and it is the class that shipped (RK1679): one escaped
+    quote inside one message broke every consumer pinned to 3.11, while `like_ci` reported the
+    floor interpreter as the one difference it could not apply.
+    """
+    found: list[str] = []
+    quotes: list[str] = []
+    for token in tokenize.generate_tokens(io.StringIO(source).readline):
+        name = tokenize.tok_name[token.type]
+        if name == "FSTRING_START":
+            quotes.append(_enclosing_quote(token.string))
+            continue
+        if name == "FSTRING_END":
+            if quotes:
+                quotes.pop()
+            continue
+        if not quotes or name == "FSTRING_MIDDLE":
+            continue
+        where = f"line {token.start[0]}"
+        if BACKSLASH in token.string:
+            found.append(f"{where}: a backslash in an f-string expression")
+        elif name == "COMMENT":
+            found.append(f"{where}: a comment in an f-string expression")
+        elif name in {"NL", "NEWLINE"} and len(quotes[-1]) == 1:
+            found.append(f"{where}: a newline in a single-quoted f-string")
+        elif name == "STRING" and token.string.lstrip("rRbBuU").startswith(quotes[-1]):
+            found.append(f"{where}: the f-string's own quote reused inside it")
+    return found
+
+
+def test_every_source_file_parses_under_the_floor_the_manifest_promises() -> None:
+    """`requires-python` is a promise an installer enforces, so a file this interpreter
+    accepts and that one does not is a package that does not import for the people it was
+    published to (RK1679). Read from the manifest rather than restated, so raising the floor
+    one day moves this with it."""
+    stated = metadata()["project"]["requires-python"]
+    assert stated.startswith(">="), stated
+    supported = tuple(int(part) for part in stated.removeprefix(">=").split("."))
+
+    # Through `surface.modules` and never a glob of its own (RK496): a survey that asked the
+    # filesystem itself would keep passing over a subpackage added tomorrow.
+    refused: list[str] = []
+    for module in modules():
+        try:
+            ast.parse(module.text, filename=module.where, feature_version=supported)
+        except SyntaxError as beyond:
+            refused.append(f"{module.where}: line {beyond.lineno}: {beyond.msg}")
+        refused.extend(f"{module.where}: {one}" for one in _needs_312(module.text))
+
+    assert refused == [], (
+        "these need a newer Python than the manifest promises "
+        + f"({stated}): "
+        + "; ".join(refused)
+    )
+
+
+def test_the_check_above_finds_the_one_that_shipped() -> None:
+    """A gate nobody has seen fail is a gate nobody trusts, and this one passed for months.
+    The source is built here rather than planted in the tree, which this very check would
+    then report."""
+    escaped = "'" + BACKSLASH + '"' + BACKSLASH + '"' + "'"
+
+    assert _needs_312(f"x = f\"{{written or {escaped}}}\"" + chr(10)) != []
+    assert _needs_312('x = f"{written}"' + chr(10)) == []
