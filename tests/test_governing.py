@@ -846,6 +846,12 @@ IMPOSSIBLE: dict[str, str] = {
     "non_goals.why": "[non_goals]\nwhy = 1\n",
     "criteria.lead": "[criteria]\nlead = 1\n",
     "criteria.why": "[criteria]\nwhy = 1\n",
+    # RK1682. Three widths in `[limits]` that bound `[project]` and never a line, so the
+    # fixture has to declare the row as well as the number — a limit on a table the project
+    # never opened holds nothing, which is the state every other project is in.
+    "limits.name": '[project]\nname = "A project"\n\n[limits]\nname = 1\n',
+    "limits.description": '[project]\ndescription = "What it is."\n\n[limits]\ndescription = 1\n',
+    "limits.icon": '[project]\nicon = "\U0001f680"\n\n[limits]\nicon = 1\n',
 }
 
 

@@ -3083,3 +3083,113 @@ def test_the_check_is_silent_where_the_package_is_not_here(tmp_path):
         ),
     )
     assert _cited_code(config, {}, {"improvements": config.document("improvements")}) == []
+
+
+# -- what a project calls itself (RK1682) -------------------------------------
+
+
+def test_the_codes_the_identity_check_emits_cover_every_row_it_reads():
+    """The closure `_IDENTITY_CODES` exists for. The codes are literals so every reader of
+    what this build can report finds them by reading this file; the field mapping is one
+    table over. A fourth row declared and no literal beside it is a finding the remedy table,
+    `explain` and the site would each be silent about, which is RK428 arriving again."""
+    from roadkeep.config import _IDENTITY_KEYS
+    from roadkeep.linting import _IDENTITY_CODES
+
+    assert {key for _, key in _IDENTITY_CODES} == set(_IDENTITY_KEYS)
+    assert [code for code, key in _IDENTITY_CODES] == [f"project.{key}" for _, key in _IDENTITY_CODES]
+
+
+IDENTITY = CONFIG + '\n[project]\nname = "A project"\ndescription = "What it is."\nicon = "\U0001f680"\n'
+
+
+def test_a_project_that_declares_no_identity_is_judged_about_none(tmp_path):
+    """Opting in is the whole of it: an undeclared table is *nothing said*, and a reader that
+    asks the engine is told that rather than handed a folder name."""
+    config = project(tmp_path)
+    assert config.project is None
+    assert lint(config).clean
+
+
+def test_a_declared_identity_is_read_back_whole(tmp_path):
+    config = project(tmp_path, config=IDENTITY)
+    assert config.project is not None
+    assert config.project.name == "A project"
+    assert config.project.description == "What it is."
+    assert config.project.icon == "\U0001f680"
+    assert lint(config).clean
+
+
+def test_an_open_and_empty_table_is_a_legal_state(tmp_path):
+    """What `declare project` leaves. The project has an identity to state and has not stated
+    it, which is a different answer from having none."""
+    config = project(tmp_path, config=CONFIG + "\n[project]\n")
+    assert config.project is not None
+    assert not config.project
+    assert lint(config).clean
+
+
+def test_a_row_over_its_width_is_a_finding_and_not_a_refusal(tmp_path):
+    """The decision this check is. An unknown key closes the config behind every verb; a name
+    three units too long is a shape that is right and a value that is wide, and bricking the
+    project over one would leave the repair to the single verb that runs on an unreadable
+    config."""
+    config = project(tmp_path, config=IDENTITY + "\n[limits]\nname = 5\n")
+    assert config.project is not None  # it parsed
+    found = [one for one in lint(config).findings if one.code == "project.name"]
+    assert len(found) == 1
+    assert found[0].file == "roadkeep.toml"
+    assert "9 utf-16 code units" in found[0].message
+    assert found[0].subject == "limits.name"
+
+
+def test_the_icon_is_measured_in_code_units_and_not_in_characters(tmp_path):
+    """Why the unit is load-bearing rather than pedantic: an astral glyph is two units, so a
+    ceiling written in characters would accept a row this one refuses."""
+    config = project(tmp_path, config=IDENTITY + "\n[limits]\nicon = 1\n")
+    found = [one for one in lint(config).findings if one.code == "project.icon"]
+    assert len(found) == 1
+    assert "2 utf-16 code units" in found[0].message
+
+
+def test_a_row_the_project_left_empty_is_judged_about_nothing(tmp_path):
+    config = project(tmp_path, config=CONFIG + '\n[project]\nicon = "\U0001f680"\n\n[limits]\nname = 1\n')
+    assert not [one for one in lint(config).findings if one.code == "project.name"]
+
+
+def test_a_break_in_a_row_is_refused_where_a_width_is_not(tmp_path):
+    """Shape at the parse and width at the gate. A row a reader prints in a listing cannot
+    carry a line break — that breaks the rows around it — and no gate could report it, the
+    file having stopped being about one line by then."""
+    with pytest.raises(ConfigError) as raised:
+        project(tmp_path, config=CONFIG + '\n[project]\nname = """A\nproject"""\n')
+    assert "project.name must be one line" in str(raised.value)
+
+
+def test_an_empty_row_is_refused(tmp_path):
+    with pytest.raises(ConfigError) as raised:
+        project(tmp_path, config=CONFIG + '\n[project]\nname = ""\n')
+    assert "project.name must be a non-empty string" in str(raised.value)
+
+
+def test_an_unknown_row_is_refused_like_every_other_key(tmp_path):
+    with pytest.raises(ConfigError) as raised:
+        project(tmp_path, config=CONFIG + '\n[project]\nslogan = "Ship it"\n')
+    assert "unknown key 'project.slogan'" in str(raised.value)
+
+
+def test_an_identity_width_is_not_per_role(tmp_path):
+    """A project has one name. The refusal says that rather than *unknown key*: the key is
+    known and it is the role that makes no sense."""
+    with pytest.raises(ConfigError) as raised:
+        project(tmp_path, config=CONFIG + "\n[limits.changelog]\nname = 40\n")
+    assert "limits.changelog.name: not per role" in str(raised.value)
+
+
+def test_the_identity_widths_hold_undeclared(tmp_path):
+    """Unlike the table they bound. `[project]` is opt-in because a project may have nothing
+    to say; a width is what holds whatever it does say, so an undeclared one is this build's
+    number and never an absent gate."""
+    config = project(tmp_path, config=IDENTITY.replace("A project", "x" * 61))
+    assert config.identity.name == 60
+    assert [one.code for one in lint(config).findings] == ["project.name"]

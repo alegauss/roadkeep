@@ -3257,3 +3257,35 @@ def test_the_read_a_table_already_open_names_runs(tmp_path, capsys) -> None:
     # the list holds, beside the number this project declared.
     answered = capsys.readouterr().out
     assert "non_goals.lead" in answered and "declared 8" in answered, answered
+
+
+def test_declaring_the_identity_table_opens_it_and_names_the_read(tmp_path: Path, capsys) -> None:
+    """RK1682's half of the same argument. `[project]` is the odd opt-in: the other two open a
+    gate and this one opens three rows a project fills in, so the verb its answer names is the
+    read that says whether they landed — there being no verb that writes a name."""
+    from roadkeep.config import Config
+
+    where = ["-C", str(tmp_path)]
+    assert main([*where, "init"]) == EXIT_OK
+    capsys.readouterr()
+    assert Config.discover(tmp_path).project is None
+
+    assert main([*where, "declare", "project"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "declared [project]" in said
+    assert "config --table project" in said
+    # Open and empty, which is what opting in means: an identity to state, not yet stated.
+    opened = Config.discover(tmp_path).project
+    assert opened is not None
+    assert not opened
+    assert main([*where, "lint"]) == EXIT_OK
+
+
+def test_the_identity_table_is_refused_once_it_is_open(tmp_path: Path, capsys) -> None:
+    where = ["-C", str(tmp_path)]
+    assert main([*where, "init"]) == EXIT_OK
+    capsys.readouterr()
+    assert main([*where, "declare", "project"]) == EXIT_OK
+    capsys.readouterr()
+    assert main([*where, "declare", "project"]) == EXIT_USAGE
+    assert "already declares [project]" in capsys.readouterr().err

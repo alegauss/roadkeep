@@ -83,29 +83,6 @@ already written, not authorship.
 
 ## Block E — Adoption
 
-### §RK1682 A project says what it is called
-
-A folder name is a fact about a path, and for a growing share of adopters it is the
-wrong fact. Worktrees put the version in the last segment: `viglet/turing/2026.3` and
-`viglet/turing/2026.2` are one product, and a junction named `latest` is a third name
-for one of them. Nothing in the format lets that repository say _Turing_.
-
-**An unknown key is refused**, so this cannot be left to convention. A project writing
-`name = "Turing"` today gets `unknown key 'name'` from every verb: there is no informal
-version to adopt first, and the table either exists or the field cannot be written.
-
-`[project]` carries three — `name`, a one-line `description`, and `icon`, an emoji. All
-optional, for the reason `[non_goals]` and `[criteria]` are: a default that reports a
-finding on the first run is a gate that gets bypassed rather than adopted. `declare`
-opens it (RK1328), so a project past `init` reaches it without hand-editing the file
-this tool owns the writes to.
-
-The limits sit in `[limits]` beside the others and `budget` answers them, a description
-overflowing a row being the same class of problem as a symptom overflowing a line.
-**Counted in UTF-16 code units** — which the icon makes load-bearing rather than
-pedantic: a flag is two units and a ZWJ sequence more, so a limit written in characters
-would refuse emoji this accepts.
-
 ### §RK1683 A logo is a path, and a path is not an emoji
 
 An emoji reads at sixteen pixels in a list and carries no brand. A project with an

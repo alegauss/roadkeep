@@ -918,6 +918,28 @@ _TABLE: Mapping[str, _Rule] = {
             "here can choose between them",
         ),
     ),
+    # Three rows and one door, a `read` for `budget.tool`'s reason (RK1682): the value lives in
+    # roadkeep.toml, which no verb writes and the guard deliberately does not govern, so there
+    # is no command that shortens the row. `{id}` is the finding's own governed address, so
+    # what this offers is the number, what it is holding, and the argument above it.
+    "project.name": _read(
+        ("govern", "{id}"),
+        "the name is wider than the row it is printed in; this reads the width beside what "
+        "the project declared and the argument written above the number — what closes it is "
+        "a shorter name, or a ceiling re-argued in roadkeep.toml",
+    ),
+    "project.description": _read(
+        ("govern", "{id}"),
+        "the description outgrew the subtitle it is printed as; this reads the width beside "
+        "what the project declared, and a sentence that will not fit a row is usually one "
+        "that belongs in the README the row points at",
+    ),
+    "project.icon": _read(
+        ("govern", "{id}"),
+        "the icon is wider than one emoji; this reads the width beside what the project "
+        "declared, and the ceiling clears any single glyph — so what is over it is more "
+        "than one, or is a word",
+    ),
     "priority.config": _read(
         ("priority", "list"),
         "the section wins over the config: read the queue that is live, then take the "

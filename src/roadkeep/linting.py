@@ -109,6 +109,7 @@ from roadkeep.backlog import Backlog, DepStatus, Stage, id_order
 from roadkeep.blocking import removable
 from roadkeep.config import LINE_ROLES as _LINE_ROLES
 from roadkeep.config import DESIGN_ROLES, PROSE_ROLES, ROLES, Config, spent, translated
+from roadkeep.config import _IDENTITY_KEYS
 from roadkeep.kernel.document import Document, Entry, Heading, ending
 from roadkeep.exporting import (
     BEGIN,
@@ -143,6 +144,7 @@ from roadkeep.kernel.schema import (
     indentation,
     over_by,
     suspect,
+    width,
 )
 from roadkeep.sections import Section, anchored, find, references
 from roadkeep.sections import owners as section_owners
@@ -936,7 +938,9 @@ def _checked(
     # The config is judged where it declares a queue (RK354) and where it declares what a
     # served tool may cost (RK1059) — the second being the one budget whose subject is not
     # a file, so `roadkeep.toml` is both what declared it and the only place to name.
-    if config.priority or config.tool_characters is not None:
+    # …and where it says what the project is called (RK1682), for the same reason again: the
+    # rows are in the config and there is no other file a reader could be pointed at.
+    if config.priority or config.tool_characters is not None or config.project:
         checked.append(_configured(config))
     return tuple(checked)
 
@@ -1376,7 +1380,58 @@ def _budgets(config: Config, tree: Tree) -> tuple[list[Finding], list[Note]]:
                 )
             )
     over, said = _reads(config)
-    return out + _served(config) + over, notes + said + _incidental(config, tree)
+    return out + _served(config) + over + _identity(config), notes + said + _incidental(
+        config, tree
+    )
+
+
+def _identity(config: Config) -> list[Finding]:
+    """Each `[project]` row against the width `[limits]` holds it to (RK1682).
+
+    A finding and not a parse refusal, which is the decision this check *is*. An unknown key
+    closes the config behind every verb, correctly — nothing can be done with a file whose
+    shape is wrong — but a name three characters too long is a shape that is right and a value
+    that is wide, and bricking a project over one would leave the repair to the single verb
+    that runs on an unreadable config. So it lands here, where a symptom over its limit lands,
+    and reads as the same class of problem one file over.
+
+    Silent on a project that declared no table, and on every row it left empty: what is judged
+    is what somebody wrote.
+    """
+    if config.project is None or config.source is None:
+        return []
+    where = config.relative(config.source)
+    return [
+        Finding(
+            code,
+            where,
+            f"{width(value)} utf-16 code units against `[limits] {key}` of {allowed}: this "
+            f"is a row in somebody else's listing, and one that does not fit crowds out the "
+            f"project beside it",
+            # The **governed address** and not the row's own name, because this is what a
+            # remedy substitutes and `govern limits.name` is the only door there is: nothing
+            # writes the value, so what a caller can act on is the number beside it.
+            subject=f"limits.{key}",
+        )
+        for code, key in _IDENTITY_CODES
+        for value in [getattr(config.project, key)]
+        for allowed in [getattr(config.identity, _IDENTITY_KEYS[key])]
+        if value and width(value) > allowed
+    ]
+
+
+#: Each `[project]` row and the code the gate reports for it (RK1682). Spelled out rather than
+#: composed from `_IDENTITY_KEYS`, and that is the whole reason it exists: every reader of what
+#: this build can report — the remedy table's closure, `explain`, the site's situations — finds
+#: a code by reading this file's own literals, so one assembled from a loop variable is a code
+#: at runtime and no code at all to any of them. RK428 is the twelve-code version of it.
+#: `tests/test_linting.py` holds this total against `_IDENTITY_KEYS`, so a fourth row is a red
+#: here rather than a finding nothing can explain.
+_IDENTITY_CODES = (
+    ("project.name", "name"),
+    ("project.description", "description"),
+    ("project.icon", "icon"),
+)
 
 
 def _incidental(config: Config, tree: Tree) -> list[Note]:

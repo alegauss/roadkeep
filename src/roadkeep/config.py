@@ -190,6 +190,8 @@ _TOP_KEYS = frozenset(
         "requirements",
         # RK1496. What a commit here touches for reasons that are not the work.
         "history",
+        # RK1682. What this project is called, for a reader that has only the folder name.
+        "project",
     }
 )
 #: `[history]` — what a reader of this project's commits may not take at face value (RK1496).
@@ -378,6 +380,77 @@ class Scope:
     #: The rest of the bullet. Longer than a task's `why` and not one sentence: the corpus
     #: argues these in two, and the file has no rationale section to send the second to.
     why: int = 320
+
+
+@dataclass(frozen=True, slots=True)
+class Project:
+    """What a project says it is called, where it declared `[project]` (RK1682).
+
+    A folder name is a fact about a path, and for a worktree it is the wrong one:
+    `viglet/turing/2026.3` and `viglet/turing/2026.2` are one product and a junction named
+    `latest` is a third name for one of them. Nothing else in the format lets that repository
+    say *Turing*, and an unknown key is refused, so there was no informal version to adopt
+    first — the table either exists in the schema or the field cannot be written at all.
+
+    **Every field optional**, for `[non_goals]`' and `[criteria]`' reason: a default that
+    reports a finding on the first run is a gate that gets bypassed rather than adopted. So
+    declaring the table says only that this project has an identity to state, and each row is
+    written when there is something true to put in it.
+
+    Read and never composed. Nothing here is defaulted from the directory name, which would be
+    the same guess one layer in, told apart from a declaration by nothing.
+    """
+
+    #: What the project is called, as a reader would print it in a list.
+    name: str = ""
+    #: One line about what it is. A row in somebody's listing, not a README paragraph.
+    description: str = ""
+    #: One emoji, for the same row where a name is too wide. Held to a width and not to a
+    #: grapheme count: segmentation is a table this tool does not carry and would not take a
+    #: dependency for (L2's economics), so the limit is the check.
+    icon: str = ""
+
+    def __bool__(self) -> bool:
+        """Whether the table says anything, an open-and-empty one being a legal state."""
+        return bool(self.name or self.description or self.icon)
+
+
+@dataclass(frozen=True, slots=True)
+class Identity:
+    """What each `[project]` row may cost, declared in `[limits]` beside the others (RK1682).
+
+    Here rather than in `[project]` itself, which cannot hold both: `name` is the row and a
+    `name` limit would be the same key twice. Here rather than in :class:`~roadkeep.kernel.
+    schema.Schema` too, and that is the load-bearing half — the kernel is *one template, the
+    task line*, and a project's own name is not a field of one. So these three are read onto
+    the config and never reach the schema, and `[limits.<role>]` refuses them: a project has
+    one name, and a per-file one would be an identity that disagrees with itself.
+
+    **Counted in UTF-16 code units**, like every other width here, which the icon makes
+    load-bearing rather than pedantic: a flag is two units and a ZWJ sequence more, so a limit
+    written in characters would refuse emoji this accepts.
+    """
+
+    #: A label, so the two lists' `lead` measured on the same corpus.
+    name: int = 60
+    #: A sentence, so a task's `why`.
+    why: int = 200
+    #: One emoji, whole. The longest single grapheme anybody writes is a ZWJ sequence with two
+    #: skin-tone modifiers, which measures 15; 16 clears it and refuses a word.
+    icon: int = 16
+
+
+#: `[project]` — three rows and no fourth. Anything a reader wants beyond a name, a sentence
+#: and a glyph is a fact about *how* the project is read, which belongs to the reader.
+_PROJECT_KEYS = frozenset({"name", "description", "icon"})
+#: The `[limits]` keys that bound `[project]` rather than a task line, mapped to their field
+#: on :class:`Identity`. `description` is bounded by `why` because it is the same measurement
+#: — one sentence about one thing — and a second number would be the same corpus read twice.
+_IDENTITY_KEYS = {"name": "name", "description": "why", "icon": "icon"}
+#: What `[limits]` accepts whole — the line's widths and the identity's. One name, because
+#: `_reject_unknown` is the single gate on this file and `describing.TABLES` is a projection
+#: of its call sites: a union composed at the call would be a set no reader could follow back.
+_LIMITS_ACCEPTED = frozenset(_LIMIT_KEYS) | frozenset(_IDENTITY_KEYS)
 
 
 #: `[claims] held`, in **minutes** — how long a claim reads as held before a later caller
@@ -729,6 +802,14 @@ class Config:
     #: a criterion that inherited the non-goals' limits would be judged by numbers measured on
     #: a different corpus.
     criteria: Scope | None = None
+    #: `[project]` — what this project calls itself (RK1682), and **None** where it has not
+    #: said: a reader of many checkouts then knows it is holding a folder name rather than a
+    #: name, which is the distinction the table exists to make.
+    project: Project | None = None
+    #: `[limits] name/description/icon` — the widths those three rows are held to. Always a
+    #: value, unlike the table it bounds: a limit undeclared is this build's number, and only
+    #: the identity itself is opt-in.
+    identity: Identity = field(default_factory=Identity)
     #: `[report] upstream` — where a capture of a defect *in this tool* would be filed
     #: (RK87), as `owner/repo`. Configuration and not a constant, so a fork reports to
     #: itself (L6); **None** means `report --issue` refuses rather than guessing a
@@ -860,6 +941,8 @@ class Config:
         grammars = _grammars(data.get("grammar"), problems)
         non_goals = _scope(data.get("non_goals"), problems)
         criteria = _scope(data.get("criteria"), problems, "criteria")
+        project = _project(data.get("project"), problems)
+        identity = _identity(data.get("limits"), problems)
         upstream = _upstream(data.get("report"), problems)
         incidental = _incidental(data.get("history"), problems)
         held = _held(data.get("claims"), problems)
@@ -913,6 +996,8 @@ class Config:
             refs=refs,
             non_goals=non_goals,
             criteria=criteria,
+            project=project,
+            identity=identity,
             upstream=upstream,
             incidental=incidental,
             held=held,
@@ -1730,8 +1815,74 @@ def _limits(raw: object, problems: list[str]) -> dict[str, int]:
         problems.append("limits must be a table")
         return {}
     scalars = {key: value for key, value in raw.items() if not isinstance(value, Mapping)}
-    _reject_unknown(scalars, frozenset(_LIMIT_KEYS), "limits.", problems)
+    # The identity widths are legal here and are *not* returned: they bound `[project]` and
+    # never a line, so they are read onto the config by :func:`_identity` and never reach the
+    # schema (RK1682). One `_reject_unknown` all the same — a key refused by one reader and
+    # accepted by the other is the disagreement this table has exactly one answer to.
+    _reject_unknown(scalars, _LIMITS_ACCEPTED, "limits.", problems)
     return _read_limits(scalars, "limits", problems)
+
+
+def _identity(raw: object, problems: list[str]) -> Identity:
+    """`[limits] name/description/icon` — what a `[project]` row may cost (RK1682).
+
+    Never per role, which :func:`_by_role` enforces by not accepting them: a project has one
+    name, so a `[limits.changelog] name` would be an identity that disagrees with itself in a
+    file nobody reads it out of.
+
+    Defaulted rather than optional, unlike the table they bound: `[project]` is opt-in because
+    a project may have nothing to say, and a width is what holds whatever it does say — so an
+    undeclared limit is :class:`Identity`'s number and not an absent gate.
+    """
+    if not isinstance(raw, Mapping):
+        return Identity()
+    numbers: dict[str, int] = {}
+    for key, field_name in _IDENTITY_KEYS.items():
+        if key not in raw:
+            continue
+        value = raw[key]
+        if not isinstance(value, int) or isinstance(value, bool) or value < 1:
+            problems.append(f"limits.{key} must be a positive integer")
+            continue
+        numbers[field_name] = value
+    return Identity(**numbers)
+
+
+def _project(raw: object, problems: list[str]) -> Project | None:
+    """`[project]` — what this project is called, where it says so at all (RK1682).
+
+    None undeclared, which is the whole of opting in: a reader that asks the engine gets
+    *nothing declared* rather than a name guessed off the last path segment, and the two are
+    different answers. An empty table is legal and says the project has an identity it has not
+    filled in yet — the same state `declare project` leaves.
+
+    What is refused here is shape, and only shape: a row that is not a string, an empty one,
+    and one carrying a line break. A **width** is not refused here — it is a `lint` finding,
+    for the reason a symptom over its limit is: a config that stops parsing closes every verb
+    behind it, and a long name is a row to shorten, not a project to brick.
+    """
+    if raw is None:
+        return None
+    if not isinstance(raw, Mapping):
+        problems.append("project must be a table of name = …, description = …, icon = …")
+        return None
+    _reject_unknown(raw, _PROJECT_KEYS, "project.", problems)
+    values: dict[str, str] = {}
+    for key in sorted(_PROJECT_KEYS):
+        if key not in raw:
+            continue
+        value = raw[key]
+        if not isinstance(value, str) or not value.strip():
+            problems.append(f"project.{key} must be a non-empty string")
+            continue
+        if "\n" in value or "\r" in value:
+            problems.append(
+                f"project.{key} must be one line: a reader prints this in a row, and a "
+                f"break in it is a row that breaks the listing around it"
+            )
+            continue
+        values[key] = value.strip()
+    return Project(**values)
 
 
 def _by_role(raw: object, problems: list[str]) -> dict[str, dict[str, int]]:
@@ -1755,7 +1906,18 @@ def _by_role(raw: object, problems: list[str]) -> dict[str, dict[str, int]]:
                 f"for a file the format does not know is a limit nothing reads"
             )
             continue
-        _reject_unknown(value, frozenset(_LIMIT_KEYS), f"{where}.", problems)
+        # The same accepted set as the shared table, and the identity widths refused after it
+        # by name (RK1682). Not a narrower `_reject_unknown`: that function's call sites are
+        # what `describing.TABLES` publishes, so two sets under one table name would be a key
+        # the file refuses and the read cannot say it refuses — and *unknown key* is the wrong
+        # sentence anyway. The key is known; it is the role that makes no sense.
+        _reject_unknown(value, _LIMITS_ACCEPTED, f"{where}.", problems)
+        for key in _IDENTITY_KEYS:
+            if key in value:
+                problems.append(
+                    f"{where}.{key}: not per role — a project has one name, one description "
+                    f"and one icon, so this width is `[limits] {key}` and nothing else"
+                )
         found = _read_limits(value, where, problems)
         if found:
             out[role] = found

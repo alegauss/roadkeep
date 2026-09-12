@@ -37,15 +37,19 @@ from roadkeep.config import (
     PROSE_ROLES,
     ROLES,
     Config,
+    Identity,
     Scope,
     _BUDGET_KEYS,
     _CLAIMS_KEYS,
     _GRAMMAR_KEYS,
     _HEADING_KEYS,
+    _IDENTITY_KEYS,
     _IDS_KEYS,
     _INSTALL_KEYS,
+    _PROJECT_KEYS,
     _LEDGER_KEYS,
     _LIMIT_KEYS,
+    _LIMITS_ACCEPTED,
     _MARKER_KEYS,
     _HISTORY_KEYS,
     _REPORT_KEYS,
@@ -77,8 +81,11 @@ TABLES: Mapping[str, frozenset[str]] = {
     "install": _INSTALL_KEYS,
     "markers": _MARKER_KEYS,
     "ledger": _LEDGER_KEYS,
-    "limits": frozenset(_LIMIT_KEYS),
+    # The three identity widths are in this table and not in a fourth of their own (RK1682):
+    # they are limits, and `[project]` cannot hold them without spelling `name` twice.
+    "limits": _LIMITS_ACCEPTED,
     "rules.<role>": frozenset(_RULE_KEYS),
+    "project": _PROJECT_KEYS,
     "non_goals": _SCOPE_KEYS,
     "criteria": _SCOPE_KEYS,
     "claims": _CLAIMS_KEYS,
@@ -108,6 +115,10 @@ def _limit(key: str) -> object:
 
 def _rule(key: str) -> object:
     return getattr(Config.default().schema, _RULE_KEYS[key])
+
+
+def _identity(key: str) -> object:
+    return getattr(Identity(), _IDENTITY_KEYS[key])
 
 
 #: How each key's value is reached on a project that declared nothing — the one thing this
@@ -152,6 +163,12 @@ WHERE: Mapping[tuple[str, str], object] = {
     ("ledger", "marker"): lambda: Config.default().schema.ledger_marker,
     ("ledger", "symptom"): lambda: Config.default().schema.ledger_symptom,
     **{("limits", key): (lambda k=key: _limit(k)) for key in _LIMIT_KEYS},
+    # The identity widths, read off `Identity` for `_limit`'s reason: the default printed here
+    # is the one the code holds an undeclared row to, not a second list of numbers (RK1682).
+    **{("limits", key): (lambda k=key: _identity(k)) for key in _IDENTITY_KEYS},
+    # `[project]` itself has no defaults at all — every row is absent until the project writes
+    # one, and a name guessed off the directory is the fact the table exists to replace.
+    **{("project", key): None for key in _PROJECT_KEYS},
     **{("rules.<role>", key): (lambda k=key: _rule(k)) for key in _RULE_KEYS},
     ("non_goals", "lead"): lambda: Scope().lead,
     ("non_goals", "why"): lambda: Scope().why,
@@ -348,6 +365,7 @@ _DESCRIBED = {
     "non_goals": "_SCOPE_KEYS",
     "criteria": ".criteria",
     "claims": "_CLAIMS_KEYS",
+    "project": "_PROJECT_KEYS",
     "report": "_REPORT_KEYS",
     "history": "_HISTORY_KEYS",
     "budgets.<path>": "_BUDGET_KEYS",

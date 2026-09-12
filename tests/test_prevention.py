@@ -247,6 +247,12 @@ PREVENTION: tuple[Prevented, ...] = (
         "refused",
         ("criterion", "add", "--block", "A", "--lead", "A short lead", "--why", LONG),
     ),
+    # RK1682. `FILE` for `priority.config`'s reason exactly: the row is a value somebody wrote
+    # into `roadkeep.toml`, which no verb writes and the guard deliberately does not govern, so
+    # there was never a door that could have refused a name three units too wide.
+    Prevented("project.name", "gate", because=FILE),
+    Prevented("project.description", "gate", because=FILE),
+    Prevented("project.icon", "gate", because=FILE),
     Prevented("priority.config", "gate", because=FILE),
     Prevented("priority.unmigrated", "gate", because=FILE),
     Prevented("engine.disagreement", "gate", because=FILE),

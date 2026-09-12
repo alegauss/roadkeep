@@ -628,6 +628,7 @@ its choices from, and a test asserts that join rather than the words.
 - ✅ **RK1386** **register wires whatever installed the console script, so a developer's checkout cannot be the driver its own merges run** — A tool that may not write somebody's git config may not pick the copy it would have named either: it states both and the caller chooses.
 - ✅ **RK1396** **A path argument ignores -C, so a door this tool prints is refused as a file that does not exist** — A path argument this tool ever composes is read against the project root: a door printed project-relative and read process-relative is a command the tool refuses itself.
 - ✅ **RK1678** **the launcher drops an engine the caller named when its probe fails, and answers from a clone hundreds of versions old** — A named engine is never stepped past: where ROADKEEP_HOME is set it is the whole list, and guard is left unenforced rather than run by a copy nobody chose.
+- ✅ **RK1682** **a reader of many checkouts has only the folder name: roadkeep.toml declares no name, description or icon** — A `[project]` row past its width is a gate finding and never a parse refusal, a value that is merely wide having no business closing the config behind every verb.
 
 ### §RK1367 Why the whole run and not the paragraph a verb placed
 
@@ -676,6 +677,21 @@ RK1395 made the cost visible rather than theoretical: both readers now print a
 project-relative path, so the tool composed a door and then refused it — naming the
 directory the file was in. The test that keeps the surviving half is the body file read
 from outside the tree.
+
+### §RK1682 Weighed against refusing at the parse
+
+The alternative was refusing at the parse, which is what every other `[project]` problem
+gets: a row that is not a string, one that is empty, one carrying a line break. Those
+are shapes, and a file whose shape is wrong is one nothing can be done with.
+
+A width is not a shape. Refusing one closes the config behind every verb over a name
+three units too long, and the single verb that runs on an unreadable config is `declare
+--move`, which relocates a key and cannot shorten a value — so the repair would be the
+hand edit L1 exists against, reached by bricking the project first.
+
+What is accepted is that a checkout runs with an over-wide row until the gate runs. That
+is the latitude a symptom over its limit already has one file over, and the commit
+passes through `lint` either way.
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

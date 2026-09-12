@@ -453,6 +453,14 @@ def _fallback(table: str, key: str, config: Config | None = None) -> int | None:
         return getattr(Scope(), key) if opened else None
     if table != "limits":
         return None
+    from roadkeep.config import _IDENTITY_KEYS  # noqa: PLC0415 - RK260
+
+    if key in _IDENTITY_KEYS:
+        # The identity widths always hold, declared or not (RK1682) — unlike the table they
+        # bound, which is opt-in. So this is a real fallback and never `None`.
+        from roadkeep.config import Identity  # noqa: PLC0415 - RK260
+
+        return getattr(Identity(), _IDENTITY_KEYS[key])
     from roadkeep.kernel.schema import Schema  # noqa: PLC0415 - RK1065's edge, deferred
 
     return getattr(Schema(), f"{key}_max", None)
@@ -460,8 +468,13 @@ def _fallback(table: str, key: str, config: Config | None = None) -> int | None:
 
 def _current(config: Config, table: str, key: str, *, file: str, role: str) -> int | None:
     """What this project declares for a key today, read off the live config and not the file."""
-    from roadkeep.config import _LIMIT_KEYS  # noqa: PLC0415 - RK260
+    from roadkeep.config import _IDENTITY_KEYS, _LIMIT_KEYS  # noqa: PLC0415 - RK260
 
+    if table == "limits" and key in _IDENTITY_KEYS:
+        # Never through `schema_for` (RK1682): these three bound `[project]` and are not
+        # fields of a line, so there is no role to read them under and no per-role override
+        # to apply — one project, one name.
+        return getattr(config.identity, _IDENTITY_KEYS[key])
     if table == "limits":
         return getattr(config.schema_for(role or "roadmap"), _LIMIT_KEYS[key])
     if table == "tools":
@@ -488,8 +501,10 @@ def _limits(
     the rendered line for `line` — because a number compared against the wrong unit is the one
     kind of reading that looks right.
     """
-    from roadkeep.config import LINE_ROLES  # noqa: PLC0415 - RK260
+    from roadkeep.config import _IDENTITY_KEYS, LINE_ROLES  # noqa: PLC0415 - RK260
 
+    if key in _IDENTITY_KEYS:
+        return _stated(config, address, key, declared)
     if key == "prose":
         # A width and not a ceiling, which is the one key in this table nothing refuses: it
         # says how wide a section this tool *writes* is filled, so the widest line on disk is
@@ -553,6 +568,30 @@ def _limits(
         # the design's own sentence is carried forward — so a project that declared `why` and
         # not `line` has bounded every field but that one, and nothing at the number said so.
         excepted=_EXCEPTED.get(key, ""),
+    )
+
+
+def _stated(config: Config, address: str, key: str, declared: int | None) -> Measured:
+    """One `[project]` row against the width it is held to (RK1682).
+
+    The narrowest population in this module — one value, in one file, and often none at all —
+    and it is measured for the same reason every other key is: a limit is worth reading beside
+    what it is currently holding, and *nothing declared* is the answer that says the number is
+    a promise about a row nobody has written yet.
+
+    Reported as one site, at `roadkeep.toml` itself. There is no line file to point into: the
+    row is in the config, which is the same file the limit is in — the only key here where the
+    measurement and the declaration sit two lines apart.
+    """
+    written = getattr(config.project, key, "") if config.project else ""
+    where = config.relative(config.source) if written and config.source else ""
+    return Measured(
+        address=address,
+        unit="utf-16 code units",
+        worst=width(written),
+        where=where,
+        sites=1 if written else 0,
+        declared=declared,
     )
 
 

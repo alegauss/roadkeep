@@ -187,12 +187,18 @@ class RoleDeclared(ValueError):
         )
 
 
-#: The tables a project opts into by declaring them at all (RK1328). Two, and both are
+#: The tables a project opts into by declaring them at all (RK1328). Two of the three are
 #: `_scope`'s: `[non_goals]` says what is not built and `[criteria]` what would finish a
 #: block, and writing either governs its list — the numbers under it are what a project may
 #: then tune. `[requirements]` is deliberately not here: that one is a *vocabulary*, and
 #: `declared = []` governs nothing and only changes which refusal the author reads (RK1313).
-OPT_IN: tuple[str, ...] = ("non_goals", "criteria")
+#:
+#: `[project]` is the third and is the odd one, opt-in for a different reason (RK1682): the
+#: other two open a *gate*, and this one opens three rows a project fills in. It belongs here
+#: all the same, because the state it is opted out of is the one that matters — a reader with
+#: no declaration knows it is holding a folder name, where an always-present table would hand
+#: back an empty name indistinguishable from a project that has none.
+OPT_IN: tuple[str, ...] = ("non_goals", "criteria", "project")
 
 
 class TableDeclared(ValueError):
@@ -1401,6 +1407,11 @@ class Opened:
 _TABLE_OPENS = {
     "non_goals": "non-goal add --lead … --why …",
     "criteria": "criterion add --block <x> --lead … --why …",
+    # The read and not a write, which is the one row here that does not name a verb that
+    # composes (RK1682): `[project]` carries values a person writes into the opened table —
+    # roadkeep.toml being the file the guard deliberately does not govern — and `config` is
+    # what says whether they landed and what each row may cost.
+    "project": "config --table project",
 }
 
 
