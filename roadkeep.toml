@@ -276,3 +276,8 @@ list = 40000
 # against it, which is the narrower thing: the alternatives rejected and the
 # consequences accepted, and never that design moved here.
 section = 150
+
+[project]
+name = "roadkeep"
+description = "Owns the writes to a project's roadmap and changelog, so the format is a schema."
+icon = "🛣️"
