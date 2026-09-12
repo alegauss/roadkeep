@@ -1,4 +1,4 @@
-import { appendFileSync, cpSync, existsSync, mkdtempSync } from 'node:fs'
+import { appendFileSync, cpSync, existsSync, mkdtempSync, realpathSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
@@ -93,7 +93,12 @@ export async function buildFixture(
   shape: FixtureShape = DEFAULT_SHAPE,
   timeoutMs = 30000,
 ): Promise<Fixture> {
-  const root = mkdtempSync(path.join(tmpdir(), 'rk-fixture-'))
+  // Resolved to the spelling the filesystem itself uses (RG195). On a Windows account whose
+  // name is longer than eight characters, `tmpdir()` answers the 8.3 short form —
+  // `C:\Users\RUNNER~1\…` on a GitHub runner — while any process that opens the directory
+  // reports the long one. One directory and two spellings is an assertion comparing places
+  // that are the same, and it only ever fails on the machines nobody writes tests on.
+  const root = realpathSync.native(mkdtempSync(path.join(tmpdir(), 'rk-fixture-')))
   const dispose = () => {
     // The suite's reads hold a `roadkeep mcp` per root since RG130, and one standing in this
     // directory is one Windows will not let it be removed from. Given back first, whether or

@@ -195,6 +195,7 @@
 - ✅ **RG184** **a source file carrying control characters passes every gate, so an invisible byte reaches a commit** — No file this repository owns carries an invisible byte (design superseded: it is a fast test, since reading bytes starts nothing) (design recorded in `packages/shell/src/bytes.test.ts`).
 - ✅ **RG128** **a checkout busy when the probe runs is skipped, so the launcher answers from a cache 446 versions old** — No engine is named here, the stale clone is gone, and resolution reaches the sibling under development (design recorded in `.claude/settings.json`).
 - ✅ **RG194** **no public page says who may request a signature and what gets signed, so the certificate cannot be applied for** — The page the terms ask for is written (design superseded: there is no README here, so SIGNING.md links it) (design recorded in `docs/CODE-SIGNING-POLICY.md`).
+- ✅ **RG195** **the fixture hands out an unresolved temp path, so a live assertion fails on a Windows account with a short name** — The fixture hands out the spelling the filesystem uses, so an assertion compares one place with itself (design recorded in `packages/shell/src/fixture.ts`).
 
 ## Block H — The look (a design system for governed prose)
 
