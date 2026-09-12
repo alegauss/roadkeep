@@ -2,32 +2,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-### §RG193 A refused `config` should name the build, not print its usage
-
-`openProject` reads `config` first, because the governed files it names are what the
-cache is keyed on. When that read fails, `attemptRead` has already chosen the sentence:
-stdout is empty and stderr holds prose, so the prose is the engine's own and `code` is
-empty. On a build that never heard of the verb, that prose is a Python usage dump naming
-every command the build has and nothing about the one it lacks.
-
-Measured against `D:/Git/alegauss/freewilly`, whose vendored `.roadkeep` is 0.1.888
-while `config` arrived in 0.2. The version is already in hand — `engines` answered, or
-nothing would have resolved — and what is missing is the discrimination: a refused
-`config` is a build behind this app, a `roadkeep.toml` that does not parse, or a folder
-that is not a project, and only the first is a sentence about this app.
-
-Ask `commands` on the failure path, through the pooled transport rather than the cache
-the failed `config` never built. `capabilitiesOf` already answers whether a build
-publishes a verb, and `readCapabilities` already turns prose from a build too old to
-answer into `unsupported` with its version. A `config` this build does not publish
-becomes its own `UnreadableCode`, carrying the version `engines` gave and the verb that
-was missing. One extra read, paid only where a project has already failed to open.
-
-What the non-goal "No engine the reader cannot name" asks for: a usage dump names every
-verb except the one that mattered.
-
-On ship: --recorded-in packages/core/src/opening.ts
-
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 ## Block C — The portfolio (many backlogs in one view)

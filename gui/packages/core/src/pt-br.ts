@@ -289,6 +289,8 @@ export const PT_BR: Wording = {
     'A resposta não tem um formato que esta versão lê: {path} deveria ser {expected}, e era {got}.',
   'unreadable.declares':
     '`{verb}` foi recusado, então este projeto não declara nada que este app saiba ler.',
+  'unreadable.behind':
+    'A cópia que responde aqui é o roadkeep {version}, que não tem `{verb}`. Atualize esse checkout.',
   'unreadable.refused': '`{verb}` foi recusado.',
   'unreadable.ungoverned':
     'O engine que responde aqui diz que nenhum projeto roadkeep governa esta pasta.',

@@ -83,6 +83,14 @@ export type UnreadableCode =
   | 'shape'
   /** `config` was refused, so the project declares nothing this app can read. */
   | 'declares'
+  /**
+   * The build answering for this project is older than the verb the read needed (RG193).
+   *
+   * Its own code because the engine's prose here is a usage dump naming every command the
+   * build has and nothing about the one it lacks — and the useful half, which copy answered
+   * and at what version, is already in hand by the time it fails.
+   */
+  | 'behind'
   /** A verb was refused where a row needed it. */
   | 'refused'
   /** The engine says no roadkeep project governs this folder. */

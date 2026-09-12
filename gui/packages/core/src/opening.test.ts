@@ -419,3 +419,98 @@ describe('RG103: which answers may be remembered', () => {
     expect(readsOnly(['-C', '/proj', 'section', 'add', 'RG1', '--json'])).toBe(false)
   })
 })
+
+describe('RG193: a refused config names the build, not its usage', () => {
+  /** A build that never heard of the verb: a usage dump on stderr and a non-zero exit. */
+  const USAGE = 'usage: roadkeep [-h] {add,ship,list,show,lint,engines,commands} ...'
+
+  function tooOld(over: Record<string, string> = {}) {
+    const asked: string[][] = []
+    const transportFor = (): Transport => ({
+      run(request) {
+        asked.push([...request.argv])
+        const verb = request.argv[2] ?? ''
+        if (verb === 'engines') {
+          return Promise.resolve({ code: 0, stdout: ENGINES, stderr: '', durationMs: 1 })
+        }
+        if (verb === 'commands') {
+          const said =
+            over['commands'] ??
+            JSON.stringify({
+              version: '0.1.888',
+              source: null,
+              // Every verb this build has, and `config` is not among them — which is the
+              // whole of what the usage dump was trying to say.
+              commands: [{ command: 'list', arguments: [] }],
+            })
+          return Promise.resolve({ code: 0, stdout: said, stderr: '', durationMs: 2 })
+        }
+        if (verb === 'config') {
+          // What a build too old for it actually does: nothing on stdout, usage on stderr.
+          return Promise.resolve({ code: 2, stdout: '', stderr: USAGE, durationMs: 1 })
+        }
+        return Promise.reject(new EngineCallFailed('unspawnable', 'no engine', 1))
+      },
+    })
+    return { transportFor, verbs: () => asked.map((argv) => argv[2] ?? '') }
+  }
+
+  it('names the version and the verb, rather than handing the usage dump on', async () => {
+    const held = tooOld()
+
+    const opened = await openProject('/proj', [LAUNCHER], held.transportFor)
+
+    expect(opened.kind).toBe('unreadable')
+    if (opened.kind !== 'unreadable') return
+    // A code, so a window speaking Portuguese says it in Portuguese (RG168) — the usage
+    // dump could only ever be shown in the engine's own English.
+    expect(opened.unreadable.code).toBe('behind')
+    expect(opened.unreadable.fields['verb']).toBe('config')
+    expect(opened.unreadable.fields['version']).toBe('0.2.400')
+  })
+
+  it('keeps the usage dump, since it is what the engine actually said', async () => {
+    const held = tooOld()
+
+    const opened = await openProject('/proj', [LAUNCHER], held.transportFor)
+
+    if (opened.kind !== 'unreadable') throw new Error('unreachable')
+    expect(opened.unreadable.said).toContain('usage: roadkeep')
+  })
+
+  it('asks commands only on the failure, and never before it', async () => {
+    const held = tooOld()
+
+    await openProject('/proj', [LAUNCHER], held.transportFor)
+
+    // `config` is read before `commands` in the opening order, and this extra read is paid
+    // only by a project that has already failed to open.
+    const verbs = held.verbs()
+    expect(verbs.indexOf('config')).toBeLessThan(verbs.indexOf('commands'))
+  })
+
+  it('leaves a shape it could not read alone, since that build has the verb', async () => {
+    // A payload came back, so the verb exists: diagnosing this as an old build would
+    // replace a true sentence with a wrong one.
+    const held = machine({ config: '{"version":"0.2.400"}' })
+
+    const opened = await openProject('/proj', [LAUNCHER], held.transportFor)
+
+    if (opened.kind !== 'unreadable') throw new Error('unreachable')
+    expect(opened.unreadable.code).not.toBe('behind')
+  })
+
+  it('leaves an unreadable commands alone, rather than guessing from it', async () => {
+    // `commands` itself unreadable says nothing about `config`, and a wrong diagnosis is
+    // worse than the prose it would replace.
+    const held = tooOld({ commands: 'roadkeep: unrecognised command' })
+
+    const opened = await openProject('/proj', [LAUNCHER], held.transportFor)
+
+    if (opened.kind !== 'unreadable') throw new Error('unreachable')
+    expect(opened.unreadable.code).toBe('behind')
+    // A build that cannot answer `commands` is a build behind this app too, and the version
+    // is what a reader needs either way.
+    expect(opened.unreadable.fields['version']).toBe('0.2.400')
+  })
+})

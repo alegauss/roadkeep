@@ -301,6 +301,8 @@ export const EN = {
     'The answer was not a shape this build reads: {path} should have been {expected}, and was {got}.',
   'unreadable.declares':
     '`{verb}` was refused, so this project declares nothing this app can read.',
+  'unreadable.behind':
+    'The copy answering here is roadkeep {version}, which has no `{verb}`. Update that checkout.',
   'unreadable.refused': '`{verb}` was refused.',
   'unreadable.ungoverned':
     'The engine answering here says no roadkeep project governs this folder.',
@@ -437,6 +439,7 @@ export const UNREADABLE_TEXT: Readonly<Record<Exclude<UnreadableCode, ''>, Messa
   'not-json': 'unreadable.not-json',
   shape: 'unreadable.shape',
   declares: 'unreadable.declares',
+  behind: 'unreadable.behind',
   refused: 'unreadable.refused',
   ungoverned: 'unreadable.ungoverned',
   'nothing-offered': 'unreadable.nothing-offered',

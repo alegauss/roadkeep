@@ -1,5 +1,10 @@
-import { capabilitiesOf, type CapabilityReport } from './capabilities'
-import { createClient, type Client } from './client'
+import {
+  capabilitiesOf,
+  readCapabilities,
+  type CalledName,
+  type CapabilityReport,
+} from './capabilities'
+import { buildArgv, createClient, type CallOptions, type Client } from './client'
 import { createCachingTransport, type CachingTransport } from './cache'
 import {
   resolveEngine,
@@ -10,7 +15,7 @@ import {
 import { saidBy, type Unreadable } from './limits'
 import { governedFiles } from './payloads'
 import { createPooledTransport } from './pool'
-import type { CancelSignal, Transport } from './transport'
+import type { CancelSignal, EngineResult, Transport } from './transport'
 import { keysOf } from './reading'
 import { spell, VERBS, VERB_WORDS } from './verbs'
 
@@ -257,6 +262,23 @@ async function compose(
   // Since RG99 the client carries the call that never happened as a state too, so this is
   // the whole of what can go wrong here rather than the two thirds a `try` used to leave.
   if (config.kind === 'unreadable') {
+    // **Which copy answered is the useful half** (RG193). A build older than the verb answers
+    // with its own usage dump — every command it has, and nothing about the one it lacks — so
+    // the prose reaches a row as prose and the reader is left to recognise a version that is
+    // behind.
+    //
+    // **Only where the answer was no payload at all.** A build that does not publish a verb
+    // cannot produce that verb's payload, and cannot refuse it either: a refusal is this
+    // engine's own document about a verb it knows. So a shape this app could not read is a
+    // build that *has* `config`, and asking `commands` about it would replace a true sentence
+    // with a wrong one. `not-json` and the engine's own prose are the two that can be a usage
+    // dump, and they are the two asked about.
+    if (config.unreadable.code === '' || config.unreadable.code === 'not-json') {
+      // Asked here and only here: on a path that has already failed, and through the pooled
+      // transport rather than the cache the failed `config` never built.
+      const behind = await notPublished(pooled, root, 'config', engine, call, config.unreadable)
+      if (behind !== null) return { kind: 'unreadable', root, engine, unreadable: behind }
+    }
     return { kind: 'unreadable', root, engine, unreadable: config.unreadable }
   }
   if (config.kind === 'refused') {
@@ -330,6 +352,56 @@ async function compose(
  * hands back an `Unreadable` already carrying the argv, the elapsed time and whatever the
  * engine wrote — all of which this had to leave empty.
  */
+/**
+ * The unreadable for a build that does not publish the verb a read needed, or null (RG193).
+ *
+ * Null is every other case and is the important half: this only ever says *behind*, never
+ * *broken*. A `commands` that cannot be read at all, a build that publishes the verb after
+ * all, a call that never launched — each leaves the original failure to speak for itself,
+ * because a wrong diagnosis is worse than the usage dump it replaces.
+ *
+ * `readCapabilities` already turns prose from a build too old to answer `commands` into
+ * `unsupported` with its version, and `capabilitiesOf` already says whether a build
+ * publishes a verb. Nothing is decided here that those two do not already answer.
+ */
+async function notPublished(
+  transport: Transport,
+  root: string,
+  verb: CalledName,
+  engine: ResolvedEngine,
+  call: CallOptions,
+  failed: Unreadable,
+): Promise<Unreadable | null> {
+  let ran: EngineResult
+  try {
+    ran = await transport.run({ root, argv: buildArgv(root, 'commands', {}), ...call })
+  } catch {
+    // The failure being explained is the one that already happened; this read failing adds
+    // nothing to it.
+    return null
+  }
+  if (ran.code !== 0) return null
+
+  // The version that is *running*, which is what a reader has to update.
+  const running = engine.payload.writing.version
+  const report = readCapabilities(ran.stdout, running)
+  // A build too old to answer `commands` is one too old to be asked about `config`, and its
+  // version is what the reader needs either way.
+  const missing = report.kind === 'unsupported' ? true : !report.byVerb[verb].callable
+  if (!missing) return null
+
+  const version = running === '' ? 'of an unknown version' : running
+  // The diagnosis replaces the sentence and nothing else. What the engine wrote, what was
+  // asked and how long it took stay the failed call's: the usage dump is the evidence for
+  // this answer, and reporting `commands`' own silence instead would drop it.
+  return {
+    ...failed,
+    message: `the copy answering here is roadkeep ${version}, which has no \`${verb}\``,
+    code: 'behind',
+    fields: { verb, version },
+  }
+}
+
 function refusedBy(verb: string, said: string): Unreadable {
   return {
     reason: 'unreadable-payload',
