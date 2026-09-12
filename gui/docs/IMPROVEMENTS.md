@@ -2,6 +2,27 @@
 
 ## Block A — The client (payloads in, types out)
 
+### §RG219 An outside dep read from a fixture that holds still
+
+`detail-live.test.ts` and `graph-live.test.ts` look through this repository's open lines
+for one whose dep is `unresolvable` — work outside the backlog — and fail when there is
+none: `detail-live` in its `beforeAll`, skipping eleven tests, and `graph-live` in two
+assertions. Every open line's deps are ids in the file today, so those are red on a day
+nothing they read had changed. RG196 fixed the same shape for a blocked line by building
+it into a fixture; the outside case was left reading the repository.
+
+**The fixture holds it.** `FixtureShape` gains `outside: true`, which files a line
+depending on work no ship in the fixture can satisfy, through `add --deps` as a person
+would, and both files read that line from the fixture instead of scanning `REPO`.
+`detail-live` keeps reading this repository for a line with resolved deps, which any
+backlog with work in it has.
+
+**The premise sentence moves with it**: a fixture that stopped producing an unresolvable
+dep says so where it is built, rather than a test finding nothing.
+
+Done when both files pass against a backlog with no outside dep anywhere, and the
+fixture's line reads `unresolvable` through the real engine.
+
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 ## Block C — The portfolio (many backlogs in one view)
@@ -12,29 +33,30 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-### §RG210 A scripted agent the unpackaged app can be pointed at
+### §RG217 A stream region measured to the space it has
 
-`agentCandidates` looks on PATH and under the install folders, and `fake-claude.ts`
-lives only inside the live suite. RG206 and RG208 shipped with the session screen seen
-by jsdom alone: following, the jump control and a folded run have never been drawn in a
-real layout.
+RG206 bounded the stream region at `calc(100dvh - 12rem)`. At 1280 by 800 the header and
+the session's hero take about 290 pixels, not 192, so the region runs some 150 pixels
+past the bottom of the window. RG210's pictures show it: following keeps the region at
+its own end, and that end is off screen; scrolled up, *Jump to latest* is drawn below
+the fold. A reader still scrolls the page to see the newest act, which is the complaint
+RG206 answered.
 
-**`ROADKEEP_AGENT`, read only unpackaged.** A JSON argv put first among the candidates
-when `app.isPackaged` is false, and ignored otherwise, so a shipped window never runs an
-agent a variable chose. The session screen already names the command it started, so a
-fake shows as one.
+**The height is measured, not guessed.** A fixed subtraction is wrong for every hero
+that wraps differently — a long symptom, a second language, a narrower window. The
+region takes the space from its own top to the bottom of the viewport, less the page's
+bottom gutter, read with `getBoundingClientRect` on mount and on every resize, and never
+less than 20rem, below which the page scrolls instead.
 
-**The fake answers what resolution asks.** `--version` prints a version line and `auth
-status` a login, so RG43 and RG205 resolve it like the real one. Its session replays a
-stream file, `captured/session-stream.jsonl` by default, one line per interval, with
-notes, tool calls and a long tail, so a run is mid-stream when it is photographed.
+**Against the document, not the viewport**, so a reader who scrolled the page a little
+does not shrink it.
 
-**Shots take a session.** `shots.ts` hands a fixture line over through the bridge, waits
-for a number of lines, and captures the session surface following, scrolled up with the
-jump control showing, and with notes folded.
+jsdom measures nothing, so the rule — top, viewport, gutter and floor in, a height out —
+is a pure function beside `follow.ts`, and RG213's browser project is where the layout
+is held.
 
-Done when `npm run shots` leaves session screens mid-run in both note choices, and a
-packaged build ignores the variable.
+Done when `npm run shots` shows the session's newest act and the jump control inside the
+window at 1280 by 800 and at 400 wide.
 
 ## Block G — The shell (an executable now, a service later)
 
@@ -73,6 +95,26 @@ beside the test that covers it.
 
 Done when the skill loads on a screen edit, the gates table carries the shots, and the
 MCP either attaches or is recorded as refused.
+
+### §RG218 Git's bash for the tag step on Windows
+
+`release-live.test.ts` runs the workflow's tag step as `spawnSync('bash', ['-c',
+script])`. On a Windows machine where `%LOCALAPPDATA%\Microsoft\WindowsApps` comes first
+on PATH, `bash` is WSL's launcher and not Git's: the script runs inside a Linux
+distribution with no `node`, exits 127, and all three assertions fail on every run with
+nothing in the step wrong. The file's own comment says Windows's bash is the one git
+installs, which is true of the runner and not of every machine.
+
+**Git's bash, found beside git.** On Windows the test walks PATH for `git.exe` and takes
+`..\bin\bash.exe` from the Git for Windows layout (`cmd\git.exe` beside `bin\bash.exe`),
+with no git command run to ask. Elsewhere `bash` on PATH is right and stays.
+
+**A machine with no Git bash fails naming what was looked for** — the PATH entries and
+the file it expected — rather than as an exit code a reader takes for the step's own
+refusal.
+
+Done when the three assertions pass on a Windows machine whose PATH puts WSL's bash
+first, and the step still fails where its condition is inverted.
 
 ## Block H — The look (a design system for governed prose)
 

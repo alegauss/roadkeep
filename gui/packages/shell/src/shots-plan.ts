@@ -1,4 +1,11 @@
-import { filledRoute, LOCALE_TAGS, routeParams, SURFACE_ROUTES, type Theme } from '@rk/core'
+import {
+  filledRoute,
+  LOCALE_TAGS,
+  routeParams,
+  SESSION_ROUTE,
+  SURFACE_ROUTES,
+  type Theme,
+} from '@rk/core'
 
 /**
  * What `npm run shots` photographs, worked out before anything is started (RG209).
@@ -16,16 +23,26 @@ import { filledRoute, LOCALE_TAGS, routeParams, SURFACE_ROUTES, type Theme } fro
  * the other two the machine is on, so photographing it would photograph one of them twice.
  */
 
-/** What the fixture puts in a route: its root, one of its lines, and a session key. */
+/** What the fixture puts in a route: its root, one of its lines, and the session a run started. */
 export interface ShotValues {
   readonly root: string
+  /** The line the task surface shows, which is left as it was: ready, and nobody on it. */
   readonly id: string
   /**
-   * A key naming no session until a run starts one (RG210), so the session surface draws the
-   * state a window with none draws.
+   * The line handed to the scripted agent (RG210), a different one, so the task surface is not
+   * photographed with a session on it.
    */
+  readonly sessionId: string
+  /** The key the handover answered. */
   readonly key: string
 }
+
+/**
+ * The states the session surface is photographed in (RG210): following its end as a run writes,
+ * scrolled up with the way back showing, and with its notes folded (RG208).
+ */
+export const SESSION_SHOTS = ['following', 'scrolled', 'folded'] as const
+export type SessionShot = (typeof SESSION_SHOTS)[number]
 
 export const SHOT_GROUNDS: readonly Exclude<Theme, 'system'>[] = ['light', 'dark']
 
@@ -48,6 +65,8 @@ export interface Capture {
   readonly locale: string
   readonly width: number
   readonly height: number
+  /** Which state a session surface is put in before the capture; null for every other surface. */
+  readonly state: SessionShot | null
   /** The PNG's name under the output directory. */
   readonly file: string
 }
@@ -67,7 +86,9 @@ export function surfaceName(pattern: string): string {
  */
 export function capturesFor(values: ShotValues, only: readonly string[] = []): Capture[] {
   const surfaces = SURFACE_ROUTES.map((pattern) => {
-    const route = filledRoute(pattern, { ...values })
+    // A session's line is the one handed over, not the one the task surface shows.
+    const id = pattern === SESSION_ROUTE ? values.sessionId : values.id
+    const route = filledRoute(pattern, { root: values.root, id, key: values.key })
     if (route === null) {
       throw new Error(
         `the screenshot run cannot fill ${pattern}: it knows root, id and key, and this names ` +
@@ -88,17 +109,22 @@ export function capturesFor(values: ShotValues, only: readonly string[] = []): C
   for (const ground of SHOT_GROUNDS) {
     for (const locale of LOCALE_TAGS) {
       for (const { surface, pattern, route } of kept) {
-        for (const { width, height } of SHOT_SIZES) {
-          captures.push({
-            surface,
-            pattern,
-            route,
-            ground,
-            locale,
-            width,
-            height,
-            file: `${surface}.${ground}.${locale}.${String(width)}.png`,
-          })
+        const states = pattern === SESSION_ROUTE ? SESSION_SHOTS : [null]
+        for (const state of states) {
+          for (const { width, height } of SHOT_SIZES) {
+            const named = state === null ? surface : `${surface}.${state}`
+            captures.push({
+              surface,
+              pattern,
+              route,
+              ground,
+              locale,
+              width,
+              height,
+              state,
+              file: `${named}.${ground}.${locale}.${String(width)}.png`,
+            })
+          }
         }
       }
     }

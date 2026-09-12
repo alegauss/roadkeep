@@ -12,12 +12,14 @@ import path from 'node:path'
 
 import { DEFAULT_SETTINGS, listedTasks } from '@rk/core'
 
+import { AGENT_VAR } from './agent-candidates'
 import { refuseIfStale } from './built'
 import { buildFixture } from './fixture'
 import { liveEngine, liveHeld, read, REPO } from './live'
 import { removeTree } from './scratch'
 import { saveSettings } from './settings-file'
-import { buildOf, launchForShots, speakAndPaint, takeCapture } from './shots-app'
+import { scriptedAgent } from './scripted-agent'
+import { buildOf, launchForShots, speakAndPaint, startSession, takeCapture } from './shots-app'
 import { capturesFor, onlyFrom, SHOTS_DIRECTORY, type Capture } from './shots-plan'
 
 /**
@@ -96,15 +98,21 @@ async function main(): Promise<number> {
 
   const fixture = await buildFixture(liveEngine, { open: 3, shipped: 1, deferred: 1 })
   const userData = mkdtempSync(path.join(tmpdir(), 'rk-shots-'))
+  // The session surface is photographed mid-run against an agent that replays one (RG210).
+  const agent = scriptedAgent()
   let failed = 0
   try {
-    const id = listedTasks(await read(fixture.root, 'list', {}))[0]?.id ?? ''
-    const captures = capturesFor({ root: fixture.root, id, key: 'no-session' }, only)
+    const [first, second] = listedTasks(await read(fixture.root, 'list', {}))
     saveSettings(userData, { ...DEFAULT_SETTINGS, roots: [{ path: fixture.root, depth: 0 }] })
 
-    const shot = await launchForShots(userData)
+    const shot = await launchForShots(userData, { [AGENT_VAR]: JSON.stringify(agent.command) })
     const taken: Taken[] = []
     try {
+      const key = await startSession(shot, fixture.root, second?.id ?? '', agent.lines)
+      const captures = capturesFor(
+        { root: fixture.root, id: first?.id ?? '', sessionId: second?.id ?? '', key },
+        only,
+      )
       let painted = ''
       for (const capture of captures) {
         const look = `${capture.ground}.${capture.locale}`
@@ -134,6 +142,7 @@ async function main(): Promise<number> {
     fixture.dispose()
     await liveHeld.close()
     removeTree(userData)
+    agent.dispose()
   }
   return failed === 0 ? 0 : 1
 }

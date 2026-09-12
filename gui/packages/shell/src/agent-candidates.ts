@@ -24,6 +24,40 @@ export interface AgentCandidateOptions {
   readonly onPath?: string
   /** The person's home directory. Taken as an argument so a test can point it elsewhere. */
   readonly home?: string
+  /** A command put before every other candidate: what `agentOverride` read, or nothing. */
+  readonly override?: readonly string[] | null
+}
+
+/** The variable an unpackaged app reads for an agent of somebody's choosing (RG210). */
+export const AGENT_VAR = 'ROADKEEP_AGENT'
+
+/**
+ * The agent a variable names, or null (RG210).
+ *
+ * **Read only unpackaged.** A shipped window never runs an agent a variable chose: an
+ * environment is easier to reach than a binary on PATH, and the person who installed the app
+ * chose Claude Code, not whatever a variable says. Unpackaged — `npm run dev`, `npm start`,
+ * the screenshot run — is a developer's own tree, and the session screen names the command it
+ * started, so a scripted agent shows as one.
+ *
+ * **A JSON argv**, the one spelling that needs no quoting rules: a path with spaces is an
+ * element, never something split. Anything else is ignored rather than guessed at.
+ */
+export function agentOverride(value: string | undefined, packaged: boolean): string[] | null {
+  if (packaged || value === undefined || value === '') return null
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(value)
+  } catch {
+    return null
+  }
+  if (!Array.isArray(parsed) || parsed.length === 0) return null
+  const argv: string[] = []
+  for (const part of parsed) {
+    if (typeof part !== 'string' || part === '') return null
+    argv.push(part)
+  }
+  return argv
 }
 
 /** Where an install puts the executable, relative to a home directory. */
@@ -38,7 +72,10 @@ export function agentCandidates(
 ): readonly (readonly string[])[] {
   const onPath = options.onPath ?? 'claude'
   const home = options.home ?? homedir()
-  const candidates: string[][] = [[onPath]]
+  const candidates: string[][] = [
+    ...(options.override === undefined || options.override === null ? [] : [[...options.override]]),
+    [onPath],
+  ]
 
   for (const relative of UNDER_HOME) {
     const full = path.join(home, relative)

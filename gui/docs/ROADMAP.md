@@ -4,6 +4,8 @@
 
 ## Block A — The client (payloads in, types out)
 
+- 📋 **RG219** (deps: RG196 ✅) **the detail and graph tests hunt this backlog for a line waiting on outside work, so a backlog without one reddens them** — RG196 moved the blocked-line case into a fixture and left the outside case reading the repository, where no open line has an outside dep today. → §RG219
+
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 ## Block C — The portfolio (many backlogs in one view)
@@ -14,12 +16,13 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG210** (deps: RG209 ✅) **the session screen only draws behind a real Claude Code run, so its stream, scroll and folded notes are checked blind** — The agent is resolved from PATH and install folders alone, and a real session costs usage and moves a line. → §RG210
+- 📋 **RG217** (deps: RG206 ✅) **the stream region is taller than the space under the hero, so its end and the jump control sit below the fold** — RG206 bounds it at the viewport less 12rem while the header and hero take more, which RG210's session pictures at 1280 by 800 show. → §RG217
 
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
-- 📋 **RG212** (deps: RG209 ✅, RG210, RG211) **an agent checking a screen improvises its own harness, and nothing says what to look for once it has the pictures** — CLAUDE.md lists gates that never open the window, so each session rediscovers how to see one and what a screen owes. → §RG212
+- 📋 **RG212** (deps: RG209 ✅, RG210 ✅, RG211) **an agent checking a screen improvises its own harness, and nothing says what to look for once it has the pictures** — CLAUDE.md lists gates that never open the window, so each session rediscovers how to see one and what a screen owes. → §RG212
+- 📋 **RG218** (deps: RG157 ✅) **the release tag test runs whichever bash is first on PATH, and on Windows that can be WSL's, which has no node** — RG157's step runs under bash -c, and WSL's launcher can precede Git's bash, so three live assertions exit 127 on a machine nothing is wrong with. → §RG218
 
 ## Block H — The look (a design system for governed prose)
 

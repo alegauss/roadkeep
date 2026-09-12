@@ -1,0 +1,147 @@
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import path from 'node:path'
+
+import { removeTree } from './scratch'
+
+/**
+ * A `claude` that replays a run, for the window to be pointed at (RG210).
+ *
+ * `fake-claude.ts` writes the few lines a live test asserts and exits. The session screen needs
+ * something else to be looked at: a run long enough to overflow the stream region, with notes to
+ * fold and tool calls to draw, and one still running when it is photographed. So this replays a
+ * captured run and a tail after it, then stays up writing nothing — running, with a document
+ * that settles.
+ *
+ * **It answers what resolution asks.** `--version` prints a version line and `auth status` a
+ * login, so RG43 resolves it and RG205 decides its environment exactly as for the real one.
+ *
+ * **It never ends on its own.** The captured run's closing `result` line is left out, since a
+ * result is what makes a session done; stopping the session, or quitting the window, ends it.
+ */
+
+/**
+ * The captured headless run this replays by default.
+ *
+ * Reached through the package and not beside this file: bundled into `dist/shots.js`, this
+ * module's own directory is `dist`, and the capture stays in `src`.
+ */
+export const CAPTURED_STREAM = path.resolve(
+  import.meta.dirname,
+  '..',
+  'src',
+  'captured',
+  'session-stream.jsonl',
+)
+
+export interface ScriptedAgentOptions {
+  /** A `stream-json` file to replay. The captured run unless a caller has another. */
+  readonly stream?: string
+  /** How many acts to add after it, so the region has more to hold than it shows. */
+  readonly tail?: number
+  /** The pause between lines, so the stream arrives as a run's does rather than all at once. */
+  readonly intervalMs?: number
+}
+
+export interface ScriptedAgent {
+  /** The argv to start it with: this process's node and the script. */
+  readonly command: readonly string[]
+  /** How many lines a session will have once the replay is through. */
+  readonly lines: number
+  dispose(): void
+}
+
+/** One cycle of the tail: something said, a call, its answer, and a note between turns. */
+function tailCycle(at: number): string[] {
+  const id = `scripted-${String(at)}`
+  return [
+    {
+      type: 'assistant',
+      message: { content: [{ type: 'text', text: `Step ${String(at)} of the scripted run.` }] },
+    },
+    {
+      type: 'assistant',
+      message: {
+        content: [{ type: 'tool_use', id, name: 'Read', input: { file_path: 'docs/ROADMAP.md' } }],
+      },
+    },
+    {
+      type: 'user',
+      message: {
+        content: [{ type: 'tool_result', tool_use_id: id, content: `read ${String(at)}` }],
+      },
+    },
+    { type: 'rate_limit_event', rate_limit_info: { status: 'allowed' } },
+  ].map((line) => JSON.stringify(line))
+}
+
+/**
+ * The lines a replay writes: the captured run without its `result`, then `tail` more acts.
+ *
+ * Pure over the file's text, so which lines a session will hold is a fact a test reads without
+ * starting anything.
+ */
+export function scriptedLines(captured: string, tail: number): string[] {
+  const kept = captured
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line !== '')
+    .filter((line) => {
+      try {
+        const parsed: unknown = JSON.parse(line)
+        return !(
+          typeof parsed === 'object' &&
+          parsed !== null &&
+          'type' in parsed &&
+          parsed.type === 'result'
+        )
+      } catch {
+        return true
+      }
+    })
+  const added: string[] = []
+  for (let at = 1; added.length < tail; at += 1) added.push(...tailCycle(at))
+  return [...kept, ...added.slice(0, tail)]
+}
+
+function script(linesFile: string, intervalMs: number): string {
+  return [
+    "import { readFileSync } from 'node:fs'",
+    'const argv = process.argv.slice(2)',
+    "if (argv.includes('--version')) { process.stdout.write('2.1.263 (Claude Code, scripted)\\n'); process.exit(0) }",
+    "if (argv[0] === 'auth' && argv[1] === 'status') {",
+    "  process.stdout.write(JSON.stringify({ loggedIn: true, authMethod: 'scripted' }) + '\\n')",
+    '  process.exit(0)',
+    '}',
+    "if (!argv.includes('-p')) { process.stderr.write('the scripted agent takes -p\\n'); process.exit(2) }",
+    `const lines = JSON.parse(readFileSync(${JSON.stringify(linesFile)}, 'utf8'))`,
+    'let at = 0',
+    'const next = () => {',
+    '  if (at === lines.length) { setInterval(() => undefined, 1 << 30); return }',
+    "  process.stdout.write(lines[at] + '\\n')",
+    '  at += 1',
+    `  setTimeout(next, ${String(intervalMs)})`,
+    '}',
+    'next()',
+  ].join('\n')
+}
+
+export function scriptedAgent(options: ScriptedAgentOptions = {}): ScriptedAgent {
+  const lines = scriptedLines(
+    readFileSync(options.stream ?? CAPTURED_STREAM, 'utf8'),
+    options.tail ?? 40,
+  )
+  const home = mkdtempSync(path.join(tmpdir(), 'rk-scripted-agent-'))
+  const linesFile = path.join(home, 'lines.json')
+  const file = path.join(home, 'claude.mjs')
+  writeFileSync(linesFile, JSON.stringify(lines), 'utf8')
+  writeFileSync(file, script(linesFile, options.intervalMs ?? 15), 'utf8')
+
+  return {
+    command: [process.execPath, file],
+    lines: lines.length,
+    dispose() {
+      removeTree(home)
+    },
+  }
+}

@@ -22,7 +22,7 @@ import {
 } from '@rk/core'
 import { app, BrowserWindow, dialog, ipcMain, type WebContents } from 'electron'
 
-import { agentCandidates } from './agent-candidates'
+import { AGENT_VAR, agentCandidates, agentOverride } from './agent-candidates'
 import { loadCatalogue, saveCatalogue } from './catalogue-file'
 import { createCarrier, type Carrier } from './carrier'
 import { governedAt } from './governed-at'
@@ -248,7 +248,8 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
         (command) =>
           createProcessTransport({ command: command[0] ?? '', prefixArgs: command.slice(1) }),
         root,
-        agentCandidates(),
+        // A scripted agent first where an unpackaged app was pointed at one (RG210).
+        agentCandidates({ override: agentOverride(process.env[AGENT_VAR], app.isPackaged) }),
       ),
     // The login this machine's Claude Code has, over a key the machine carries (RG205).
     environment: (agent, root) =>

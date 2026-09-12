@@ -2,12 +2,16 @@ import { mkdtempSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
-import { DEFAULT_SETTINGS } from '@rk/core'
+import { DEFAULT_SETTINGS, listedTasks } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { AGENT_VAR } from './agent-candidates'
+import { buildFixture, type Fixture } from './fixture'
+import { liveEngine, read } from './live'
 import { removeTree } from './scratch'
+import { scriptedAgent, type ScriptedAgent } from './scripted-agent'
 import { saveSettings } from './settings-file'
-import { launchForShots, speakAndPaint, takeCapture, type ShotApp } from './shots-app'
+import { launchForShots, speakAndPaint, startSession, takeCapture, type ShotApp } from './shots-app'
 import { capturesFor } from './shots-plan'
 
 /**
@@ -52,7 +56,8 @@ describe('RG209: a surface photographed through Playwright', () => {
   it('takes the settings surface at phone width, in the dark ground and Portuguese', async () => {
     const out = mkdtempSync(path.join(tmpdir(), 'rk-shots-out-'))
     directories.push(out)
-    const capture = capturesFor({ root: 'unused', id: 'unused', key: 'unused' }, ['settings']).find(
+    const unused = { root: 'unused', id: 'unused', sessionId: 'unused', key: 'unused' }
+    const capture = capturesFor(unused, ['settings']).find(
       (one) => one.ground === 'dark' && one.locale === 'pt-BR' && one.width === 400,
     )
     if (capture === undefined) throw new Error('the plan has no dark Portuguese phone capture')
@@ -77,4 +82,72 @@ describe('RG209: a surface photographed through Playwright', () => {
     expect(shot.exited()).toBe(true)
     expect(Date.now() - started).toBeLessThan(10000)
   }, 20000)
+})
+
+describe('RG210: a session photographed mid-run, against a scripted agent', () => {
+  let fixture: Fixture
+  let agent: ScriptedAgent
+  let running: ShotApp
+  let key = ''
+  let sessionId = ''
+  let out = ''
+
+  beforeAll(async () => {
+    fixture = await buildFixture(liveEngine, { open: 2, shipped: 0, deferred: 0 })
+    agent = scriptedAgent({ tail: 60, intervalMs: 5 })
+    const userData = mkdtempSync(path.join(tmpdir(), 'rk-shots-session-'))
+    out = mkdtempSync(path.join(tmpdir(), 'rk-shots-session-out-'))
+    directories.push(userData, out)
+    saveSettings(userData, { ...DEFAULT_SETTINGS, roots: [{ path: fixture.root, depth: 0 }] })
+    sessionId = listedTasks(await read(fixture.root, 'list', {}))[1]?.id ?? ''
+
+    running = await launchForShots(userData, { [AGENT_VAR]: JSON.stringify(agent.command) })
+    // English and light whatever the desktop speaks: the assertions below read the words.
+    await speakAndPaint(running, 'light', 'en')
+    key = await startSession(running, fixture.root, sessionId, agent.lines)
+  }, 180000)
+
+  afterAll(async () => {
+    if (typeof running !== 'undefined') await running.close()
+    agent.dispose()
+    fixture.dispose()
+  })
+
+  function sessionCapture(state: string) {
+    const found = capturesFor({ root: fixture.root, id: sessionId, sessionId, key }, [
+      'project-task-session',
+    ]).find((one) => one.state === state && one.width === 1280 && one.ground === 'light')
+    if (found === undefined) throw new Error(`the plan has no ${state} session capture`)
+    return found
+  }
+
+  it('starts the session on the scripted agent, which the screen names', async () => {
+    const capture = sessionCapture('following')
+    expect(await takeCapture(running, capture, out)).toBe(true)
+
+    expect(await running.page.evaluate('document.body.innerText')).toContain('2.1.263')
+  })
+
+  it('shows the way back to the end once the stream is scrolled up', async () => {
+    const capture = sessionCapture('scrolled')
+    await takeCapture(running, capture, out)
+
+    // The region overflows and was left at its top, so following stopped (RG206).
+    expect(
+      await running.page.evaluate('document.querySelector(\'[data-testid="stream"]\').scrollTop'),
+    ).toBe(0)
+    expect(await running.page.evaluate('document.body.innerText')).toMatch(/Jump to latest/)
+  })
+
+  it('folds the notes for its picture, and puts the preference back after it', async () => {
+    const capture = sessionCapture('folded')
+    await takeCapture(running, capture, out)
+
+    expect(
+      await running.page.evaluate(
+        'window.roadkeep.settings().then((s) => s.settings.sessionNotes)',
+      ),
+    ).toBe('shown')
+    expect(sizeOf(path.join(out, capture.file))).toEqual({ png: true, width: 1280, height: 800 })
+  })
 })

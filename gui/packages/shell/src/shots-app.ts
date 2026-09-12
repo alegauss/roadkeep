@@ -54,13 +54,21 @@ async function drawn(page: Page): Promise<void> {
   await page.waitForSelector('#root > *', { state: 'attached' })
 }
 
-/** Start the built app on a profile somebody seeded, and wait for it to draw. */
-export async function launchForShots(userData: string): Promise<ShotApp> {
+/**
+ * Start the built app on a profile somebody seeded, and wait for it to draw.
+ *
+ * @param extraEnv what this launch adds: `ROADKEEP_AGENT`, where a session is to be started
+ *   against a scripted agent (RG210).
+ */
+export async function launchForShots(
+  userData: string,
+  extraEnv: Record<string, string> = {},
+): Promise<ShotApp> {
   const app = await _electron.launch({
     executablePath: electronPath,
     // The switch before the app path, which is how `spawnElectron` orders them too.
     args: [`--user-data-dir=${userData}`, shellRoot],
-    env: launchEnv(),
+    env: launchEnv(extraEnv),
   })
   const page = await app.firstWindow()
   await drawn(page)
@@ -104,7 +112,78 @@ export async function speakAndPaint(shot: ShotApp, ground: string, locale: strin
 }
 
 /**
- * Take one picture: the width, the route, a settled document, the capture.
+ * Hand one line to the agent the app was pointed at, through the bridge a window uses (RG210),
+ * and wait until the session holds every line the agent will write.
+ *
+ * @returns the session's key, for its route.
+ */
+export async function startSession(
+  shot: ShotApp,
+  root: string,
+  id: string,
+  lines: number,
+): Promise<string> {
+  const { page } = shot
+  // The carrier opens only a root its catalogue holds, so the scan the portfolio asks for runs
+  // first; a window arriving at a line has always passed through it.
+  await page.evaluate('window.roadkeep.projects()')
+  const handed: unknown = await page.evaluate(
+    `window.roadkeep.handOver(${JSON.stringify(root)}, ${JSON.stringify(id)})`,
+  )
+  const key =
+    typeof handed === 'object' &&
+    handed !== null &&
+    'kind' in handed &&
+    handed.kind === 'started' &&
+    'session' in handed &&
+    typeof handed.session === 'object' &&
+    handed.session !== null &&
+    'key' in handed.session &&
+    typeof handed.session.key === 'string'
+      ? handed.session.key
+      : ''
+  if (key === '') throw new Error(`the handover did not start a session: ${JSON.stringify(handed)}`)
+
+  const held = await page.evaluate(`new Promise((resolve) => {
+  const started = performance.now()
+  const ask = () => window.roadkeep.sessions().then((all) => {
+    const one = all.find((record) => record.key === ${JSON.stringify(key)})
+    const count = one === undefined ? 0 : one.lines.length
+    if (count >= ${String(lines)} || performance.now() - started > ${String(SETTLE_CEILING_MS * 3)}) resolve(count)
+    else setTimeout(ask, 100)
+  })
+  ask()
+})`)
+  if (held !== lines) {
+    const count = typeof held === 'number' ? held : 0
+    throw new Error(
+      `the session held ${String(count)} of the ${String(lines)} lines the agent writes`,
+    )
+  }
+  return key
+}
+
+/** Move a preference and reload, as the settings screen's write and a relaunch would. */
+async function prefer(shot: ShotApp, key: string, value: string): Promise<void> {
+  await shot.page.evaluate(
+    `window.roadkeep.savePreference(${JSON.stringify(key)}, ${JSON.stringify(value)})`,
+  )
+  await shot.page.reload()
+  await drawn(shot.page)
+}
+
+/** Scroll the session's stream back to its start, which is a reader leaving its end (RG206). */
+const SCROLL_STREAM_UP =
+  '(() => { const region = document.querySelector(\'[data-testid="stream"]\'); if (region) region.scrollTop = 0 })()'
+
+async function settle(page: Page): Promise<boolean> {
+  await page.evaluate(TWO_FRAMES)
+  return (await page.evaluate(settleScript(QUIET_MS, SETTLE_CEILING_MS))) === true
+}
+
+/**
+ * Take one picture: the width, the route, the state a session is put in, a settled document, the
+ * capture.
  *
  * @returns whether the surface settled before the ceiling. A surface that never did is still
  *   photographed, and the index says so.
@@ -115,22 +194,32 @@ export async function takeCapture(
   directory: string,
 ): Promise<boolean> {
   const { page } = shot
-  await page.setViewportSize({ width: capture.width, height: capture.height })
-  await page.evaluate(
-    `location.hash = ${JSON.stringify(`#${capture.route}`)}; window.scrollTo(0, 0)`,
-  )
-  await page.evaluate(TWO_FRAMES)
-  const settled = (await page.evaluate(settleScript(QUIET_MS, SETTLE_CEILING_MS))) === true
-
-  const file = path.join(directory, capture.file)
+  // Folded notes are a preference the stream reads at launch (RG208), so it is set and taken
+  // back around the one picture that needs it.
+  if (capture.state === 'folded') await prefer(shot, 'sessionNotes', 'hidden')
   try {
-    await page.screenshot({ path: file, timeout: CAPTURE_TIMEOUT_MS })
-  } catch {
-    // Once more after the frames an emulated resize takes to land, which is the case measured.
-    await page.evaluate(TWO_FRAMES)
-    await page.screenshot({ path: file, timeout: CAPTURE_TIMEOUT_MS })
+    await page.setViewportSize({ width: capture.width, height: capture.height })
+    await page.evaluate(
+      `location.hash = ${JSON.stringify(`#${capture.route}`)}; window.scrollTo(0, 0)`,
+    )
+    let settled = await settle(page)
+    if (capture.state === 'scrolled') {
+      await page.evaluate(SCROLL_STREAM_UP)
+      settled = await settle(page)
+    }
+
+    const file = path.join(directory, capture.file)
+    try {
+      await page.screenshot({ path: file, timeout: CAPTURE_TIMEOUT_MS })
+    } catch {
+      // Once more after the frames an emulated resize takes to land, which is the case measured.
+      await page.evaluate(TWO_FRAMES)
+      await page.screenshot({ path: file, timeout: CAPTURE_TIMEOUT_MS })
+    }
+    return settled
+  } finally {
+    if (capture.state === 'folded') await prefer(shot, 'sessionNotes', 'shown')
   }
-  return settled
 }
 
 /** What the window says it is, for the index: the build every picture came from. */

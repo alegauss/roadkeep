@@ -151,6 +151,7 @@
 - ✅ **RG205** **a session bills an ANTHROPIC_API_KEY the machine carries, not its Claude Code login, and dies for lack of credit** — A session runs on the Claude Code login: where auth status answers without ANTHROPIC_API_KEY the child no longer inherits it, and a machine with only the key keeps it.
 - ✅ **RG206** **the session stream does not follow new acts, so a running task is read by scrolling the page by hand** — The stream scrolls in its own region and follows its end; scrolling up stops it and offers Jump to latest with what arrived since (design recorded in `packages/core/src/follow.ts`).
 - ✅ **RG208** **the session stream draws every system note, init to token counts, between the acts a reader follows** — A sessionNotes preference folds each run of system notes into one counted row whose disclosure keeps every note; the default still draws each (design recorded in `packages/core/src/acts.ts`).
+- ✅ **RG210** **the session screen only draws behind a real Claude Code run, so its stream, scroll and folded notes are checked blind** — An unpackaged app takes ROADKEEP_AGENT, and npm run shots photographs a scripted session following, scrolled and folded (design recorded in `packages/shell/src/scripted-agent.ts`).
 
 ## Block G — The shell (an executable now, a service later)
 

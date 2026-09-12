@@ -39,6 +39,8 @@ const REACHES_OUT: readonly { readonly what: string; readonly found: RegExp }[] 
   { what: 'an HTTP handler', found: /serveEngine/ },
   { what: 'a built fixture', found: /buildFixture/ },
   { what: 'a fake agent', found: /fakeClaude/ },
+  // RG210's agent replays a run, and a test starting it starts a node process.
+  { what: 'a scripted agent', found: /scriptedAgent\(/ },
   // The plainest way out there is: a request leaves the machine, so the run depends on a
   // network and on somebody else's service being up (RG154).
   { what: 'the network', found: /\bfetch\(/ },

@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import {
   capturesFor,
   onlyFrom,
+  SESSION_SHOTS,
   settleScript,
   SHOT_GROUNDS,
   SHOT_SIZES,
@@ -17,7 +18,7 @@ import {
  * photographed in each ground, language and width, under a name no two captures share.
  */
 
-const VALUES = { root: 'C:\\Temp\\rk-fixture-abc', id: 'FX1', key: 'no-session' }
+const VALUES = { root: 'C:\\Temp\\rk-fixture-abc', id: 'FX1', sessionId: 'FX2', key: 'session-1' }
 
 describe('RG209: every surface the router serves', () => {
   it('is filled from the fixture, so a surface routed without a shot fails here', () => {
@@ -29,8 +30,10 @@ describe('RG209: every surface the router serves', () => {
   it('is taken in both grounds, every language and both widths', () => {
     const captures = capturesFor(VALUES)
 
+    // The session surface once per state it is put in (RG210), every other surface once.
+    const pictured = SURFACE_ROUTES.length - 1 + SESSION_SHOTS.length
     expect(captures).toHaveLength(
-      SURFACE_ROUTES.length * SHOT_GROUNDS.length * LOCALE_TAGS.length * SHOT_SIZES.length,
+      pictured * SHOT_GROUNDS.length * LOCALE_TAGS.length * SHOT_SIZES.length,
     )
     expect(new Set(captures.map((one) => one.ground))).toEqual(new Set(['light', 'dark']))
     expect(new Set(captures.map((one) => one.width))).toEqual(new Set([1280, 400]))
@@ -55,6 +58,29 @@ describe('RG209: every surface the router serves', () => {
     const runs = grounds.filter((one, at) => at === 0 || grounds[at - 1] !== one)
 
     expect(runs).toHaveLength(SHOT_GROUNDS.length * LOCALE_TAGS.length)
+  })
+})
+
+describe('RG210: the session, photographed in the states a reader puts it in', () => {
+  it('takes it following, scrolled up and with its notes folded, each under a name of its own', () => {
+    const session = capturesFor(VALUES, ['project-task-session'])
+
+    expect(new Set(session.map((one) => one.state))).toEqual(new Set(SESSION_SHOTS))
+    expect(session.map((one) => one.file)).toContain(
+      'project-task-session.scrolled.dark.pt-BR.400.png',
+    )
+    // Every other surface has no state to be put in.
+    expect(capturesFor(VALUES, ['settings']).every((one) => one.state === null)).toBe(true)
+  })
+
+  it('goes to the line that was handed over, and leaves the task surface on a line nobody holds', () => {
+    const [session] = capturesFor(VALUES, ['project-task-session'])
+    const [task] = capturesFor(VALUES, ['project-task'])
+
+    expect(session?.route).toBe(
+      `/project/${encodeURIComponent(VALUES.root)}/task/FX2/session/session-1`,
+    )
+    expect(task?.route).toBe(`/project/${encodeURIComponent(VALUES.root)}/task/FX1`)
   })
 })
 
