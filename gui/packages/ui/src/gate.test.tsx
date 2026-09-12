@@ -11,6 +11,7 @@ import {
   timeIn,
   type GateHealth,
   type ProjectGate,
+  withheldResult,
 } from '@rk/core'
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -325,5 +326,48 @@ describe('RG185: opening on the verdict already held', () => {
 
     await screen.findByTestId('counted')
     expect(wired.gates).toHaveLength(1)
+  })
+})
+
+describe('RG192: a refusal drawn in the window’s language', () => {
+  /** The window at the gate, where the carrier refuses the read rather than running it. */
+  async function refusing(answer: BridgedResult): Promise<void> {
+    const transport = engine()
+    const opened = openedFrom(await openProject(ROOT, [['python', 'launch.py']], () => transport))
+
+    Object.defineProperty(window, 'roadkeep', {
+      value: stubBridge({
+        projects: () => Promise.resolve({ version: 1, roots: [], projects: [] }),
+        open: () => Promise.resolve(opened),
+        subscribe: () => () => undefined,
+        sessions: () => Promise.resolve([]),
+        gates: () => Promise.resolve([]),
+        run: (_root, request): Promise<BridgedResult> =>
+          request.argv.includes('lint')
+            ? Promise.resolve(answer)
+            : bridgedRun(() => transport.run({ ...request, root: ROOT })),
+      }),
+      configurable: true,
+    })
+    drawWindow({ at: gatePath(ROOT) })
+  }
+
+  it('says the catalogue sentence for the code, and not the English it carried', async () => {
+    const english = `${ROOT} is not a project the scan of the person’s roots found`
+    await refusing(withheldResult(english, 'not-catalogued', { root: ROOT }))
+
+    const said = fill(BASE['withheld.not-catalogued'], { root: ROOT })
+    expect(await screen.findByText(fill(BASE['gate.failed'], { reason: said }))).toBeTruthy()
+    // The whole point: the sentence the far side wrote is on no screen.
+    expect(screen.queryByText(fill(BASE['gate.failed'], { reason: english }))).toBeNull()
+  })
+
+  it('quotes prose nobody translates, which is what an empty code means', async () => {
+    // This app's own report of a command line it composed: a defect report naming a flag,
+    // drawn as written because a translation of it would say the same identifiers.
+    const said = '`--nope` is not an option this app composes `lint` with'
+    await refusing(withheldResult(said))
+
+    expect(await screen.findByText(fill(BASE['gate.failed'], { reason: said }))).toBeTruthy()
   })
 })

@@ -15,6 +15,7 @@ import {
   openOver,
   requestFrom,
   withheldBecause,
+  withheldResult,
 } from './serving'
 import {
   EngineCallFailed,
@@ -220,6 +221,10 @@ describe('RG143: a failure, across a crossing a class cannot make', () => {
       kind: 'failed',
       reason: 'timeout',
       message: 'ran past 5ms',
+      // A deadline is the transport's own sentence, so there is no code and the screen
+      // quotes it rather than looking one up (RG192).
+      code: '',
+      fields: {},
       durationMs: 5,
     })
   })
@@ -230,11 +235,32 @@ describe('RG143: a failure, across a crossing a class cannot make', () => {
     expect(answer).toMatchObject({ kind: 'failed', reason: 'unspawnable', message: 'no such file' })
   })
 
+  it('RG192: carries the code a screen says, beside the sentence a log keeps', () => {
+    const withheld = withheldResult('D:/x is not a project', 'not-catalogued', { root: 'D:/x' })
+
+    expect(withheld).toEqual({
+      kind: 'failed',
+      reason: 'withheld',
+      message: 'D:/x is not a project',
+      code: 'not-catalogued',
+      fields: { root: 'D:/x' },
+      durationMs: 0,
+    })
+  })
+
+  it('RG192: leaves the code empty for a refusal nobody translates', () => {
+    // The default, and the one a caller takes when its sentence is this app's own report of
+    // a command line it composed: drawn as written rather than looked up.
+    expect(withheldResult('`--nope` is not an option')).toMatchObject({ code: '', fields: {} })
+  })
+
   it('puts the class back together on the far side', async () => {
     const failed: BridgedResult = {
       kind: 'failed',
       reason: 'withheld',
       message: 'no',
+      code: '',
+      fields: {},
       durationMs: 0,
     }
     const transport = bridgedTransport({ run: () => Promise.resolve(failed) })

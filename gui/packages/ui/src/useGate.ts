@@ -8,11 +8,13 @@ import {
   openOver,
   readAnswerFrom,
   readLintPayload,
+  saidPlainly,
   type BridgedResult,
   type GateHealth,
   type Gated,
   type LintPayload,
   type OpenProject,
+  type Withholding,
 } from '@rk/core'
 import { useCallback, useEffect, useState } from 'react'
 
@@ -52,8 +54,13 @@ export type Gate =
       /** What the far side calls this answer's doors, where it kept any. */
       readonly offered: string | null
     }
-  /** It never ran, or answered something no reader could take. */
-  | { readonly kind: 'failed'; readonly reason: string }
+  /**
+   * It never ran, or answered something no reader could take.
+   *
+   * A refusal and not a sentence: the screen looks the code up when it draws, so a window
+   * whose language changes while this is on it says the new one (RG192).
+   */
+  | { readonly kind: 'failed'; readonly reason: Withholding }
   | { readonly kind: 'unreadable'; readonly reason: string }
 
 export interface Gating {
@@ -111,14 +118,14 @@ export function useGate(root: string): Gating {
     void answering.then(
       (answered) => {
         if (answered.kind === 'failed') {
-          setGate({ kind: 'failed', reason: answered.message })
+          setGate({ kind: 'failed', reason: answered })
           return
         }
         let source: unknown
         try {
           source = JSON.parse(answered.result.stdout)
         } catch {
-          setGate({ kind: 'failed', reason: answered.result.stderr })
+          setGate({ kind: 'failed', reason: saidPlainly(answered.result.stderr) })
           return
         }
         // A gate that found something exits non-zero and is still an answer, which is the
@@ -129,7 +136,7 @@ export function useGate(root: string): Gating {
           return
         }
         if (read.value.kind === 'refused') {
-          setGate({ kind: 'failed', reason: read.value.refusal.said })
+          setGate({ kind: 'failed', reason: saidPlainly(read.value.refusal.said) })
           return
         }
         const payload = read.value.value
@@ -143,7 +150,10 @@ export function useGate(root: string): Gating {
         })
       },
       (cause: unknown) => {
-        setGate({ kind: 'failed', reason: cause instanceof Error ? cause.message : '' })
+        setGate({
+          kind: 'failed',
+          reason: saidPlainly(cause instanceof Error ? cause.message : ''),
+        })
       },
     )
   }, [])

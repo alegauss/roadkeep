@@ -396,15 +396,26 @@ export function createCarrier(options: CarrierOptions): Carrier {
 
     async run(root, request) {
       try {
-        if (!(await catalogued(root))) return withheldResult(notCatalogued(root))
+        if (!(await catalogued(root))) {
+          return withheldResult(notCatalogued(root), 'not-catalogued', { root })
+        }
 
         const full = { ...request, root }
         const why = withheldBecause(full, sameRoot)
+        // No code, so the sentence is drawn as it was written (RG192). This one names a verb
+        // and a flag in an argv *this app* composed, which makes it a defect report rather
+        // than a state a person can act on — and a translation of it would say the same
+        // English identifiers inside a Portuguese sentence, costing the reader the only part
+        // that says which call was wrong.
         if (why !== null) return withheldResult(why)
 
         const answer = await opening(root)
         if (answer.kind !== 'open') {
-          return withheldResult(`${root} did not open: ${whyNotOpen(answer)}`)
+          const whyNot = whyNotOpen(answer)
+          return withheldResult(`${root} did not open: ${whyNot}`, 'not-open', {
+            root,
+            why: whyNot,
+          })
         }
         return keeping(root, full.argv, await bridgedRun(() => answer.project.transport.run(full)))
       } catch (cause) {
@@ -414,20 +425,26 @@ export function createCarrier(options: CarrierOptions): Carrier {
 
     async door(root, offered, which, words) {
       try {
-        if (!(await catalogued(root))) return withheldResult(notCatalogued(root))
+        if (!(await catalogued(root))) {
+          return withheldResult(notCatalogued(root), 'not-catalogued', { root })
+        }
 
         const kept = await doors.taken(root, offered, which)
-        if (kept === null) return withheldResult(NO_SUCH_DOOR)
+        if (kept === null) return withheldResult(NO_SUCH_DOOR, 'no-such-door')
 
         // The engine's own argv, with the person's prose where the engine left a blank and
         // nowhere else. A caller who sent more words than the door has blanks, or fewer, is
         // refused rather than helped: what runs is what came back.
         const argv = filledArgv(kept.argv, words)
-        if (argv === null) return withheldResult(NOT_THE_WORDS)
+        if (argv === null) return withheldResult(NOT_THE_WORDS, 'not-the-words')
 
         const answer = await opening(root)
         if (answer.kind !== 'open') {
-          return withheldResult(`${root} did not open: ${whyNotOpen(answer)}`)
+          const whyNot = whyNotOpen(answer)
+          return withheldResult(`${root} did not open: ${whyNot}`, 'not-open', {
+            root,
+            why: whyNot,
+          })
         }
         // Wrapped by `composeDoor`, which adds where to run it and the request for a
         // machine-readable answer and nothing else — and with no tool call beside it, since

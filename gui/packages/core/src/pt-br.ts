@@ -298,6 +298,13 @@ export const PT_BR: Wording = {
     'Nenhum candidato respondeu `engines --json`, então não se sabe qual roadkeep governa este projeto.',
   'unreadable.withheld': 'Esta pasta não é uma que a varredura das suas raízes encontrou.',
 
+  'withheld.not-carried': 'Essa não é uma requisição que este app leva até o engine.',
+  'withheld.no-such-door':
+    'Nenhuma porta com esse nome está em oferta para este projeto. Leia de novo e use uma que a resposta traga.',
+  'withheld.not-the-words': 'Uma porta recebe uma palavra para cada lacuna, e essa não era.',
+  'withheld.not-catalogued': '`{root}` não é um projeto que a varredura das suas raízes encontrou.',
+  'withheld.not-open': '`{root}` não abriu, então a requisição não rodou: {why}',
+
   'roots.label': 'Raízes',
   'roots.add': 'Adicionar uma raiz',
   'roots.rescan': 'Reescanear as raízes',

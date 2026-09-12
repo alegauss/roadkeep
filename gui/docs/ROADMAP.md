@@ -29,8 +29,6 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- 📋 **RG192** (deps: RG191 ✅) **two screens draw the English a failed bridge call carried, a field whose code no catalogue entry covers** — `withheldResult` puts this app's own prose there, so a window speaking Portuguese says it in English. → §RG192
-
 ## Done when — Block A
 
 - **The client runs with no Electron and no React** The transport is one interface, so

@@ -131,7 +131,9 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
     (_event, root: unknown, request: unknown): Promise<BridgedResult> => {
       const asked = requestFrom(request)
       if (typeof root !== 'string' || asked === null) {
-        return Promise.resolve(withheldResult('the request is not one this bridge carries'))
+        return Promise.resolve(
+          withheldResult('the request is not one this bridge carries', 'not-carried'),
+        )
       }
       return carrier.run(root, asked)
     },
@@ -150,7 +152,9 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
         !Array.isArray(words) ||
         !words.every((word) => typeof word === 'string')
       ) {
-        return Promise.resolve(withheldResult('that is not a door this bridge can take'))
+        return Promise.resolve(
+          withheldResult('that is not a door this bridge can take', 'no-such-door'),
+        )
       }
       return carrier.door(root, offered, which, words)
     },

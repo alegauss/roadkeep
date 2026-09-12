@@ -5,6 +5,7 @@ import {
   openOver,
   readAddedPayload,
   readAnswerFrom,
+  saidPlainly,
   type AddedPayload,
   type BridgedResult,
   type Bounds,
@@ -14,6 +15,7 @@ import {
   type Door,
   type OpenProject,
   type Refusal,
+  type Withholding,
   type WriteInputs,
 } from '@rk/core'
 import { useCallback, useEffect, useState } from 'react'
@@ -72,8 +74,13 @@ export type Filed =
       /** What the far side calls those doors, where it kept any. */
       readonly offered: string | null
     }
-  /** It never ran: the command did not launch, or was refused before it did. */
-  | { readonly kind: 'failed'; readonly reason: string }
+  /**
+   * It never ran: the command did not launch, or was refused before it did.
+   *
+   * A refusal and not a sentence: the screen looks the code up when it draws, so a window
+   * whose language changes while this is on it says the new one (RG192).
+   */
+  | { readonly kind: 'failed'; readonly reason: Withholding }
   /**
    * It ran and answered a shape no reader could take, which is a different thing to say: the
    * write may well have landed, and what is wrong is this app's reading of the answer.
@@ -215,14 +222,14 @@ export function useFiling(root: string, draft: Draft): Filing {
     void answering.then(
       (answered) => {
         if (answered.kind === 'failed') {
-          setFiled({ kind: 'failed', reason: answered.message })
+          setFiled({ kind: 'failed', reason: answered })
           return
         }
         let source: unknown
         try {
           source = JSON.parse(answered.result.stdout)
         } catch {
-          setFiled({ kind: 'failed', reason: answered.result.stderr })
+          setFiled({ kind: 'failed', reason: saidPlainly(answered.result.stderr) })
           return
         }
         const read = readAnswerFrom(readAddedPayload, source, '')
@@ -242,7 +249,10 @@ export function useFiling(root: string, draft: Draft): Filing {
         setFiled({ kind: 'wrote', added: read.value.value })
       },
       (cause: unknown) => {
-        setFiled({ kind: 'failed', reason: cause instanceof Error ? cause.message : '' })
+        setFiled({
+          kind: 'failed',
+          reason: saidPlainly(cause instanceof Error ? cause.message : ''),
+        })
       },
     )
   }, [])

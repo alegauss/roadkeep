@@ -374,9 +374,45 @@ export type BridgedResult =
   | {
       readonly kind: 'failed'
       readonly reason: EngineFailure
+      /**
+       * The sentence, in English, for a log and a defect report.
+       *
+       * @notForScreen `refusalOf(answered, say)`, which reads `code`
+       */
       readonly message: string
+      /** Which of this app's sentences applies, or empty where the prose is not translated. */
+      readonly code: WithheldCode
+      /** What the sentence's holes are filled with. Empty for the codes that take none. */
+      readonly fields: Readonly<Record<string, string>>
       readonly durationMs: number
     }
+
+/**
+ * Which of this app's own sentences explains a request the carrier would not run (RG192).
+ *
+ * A code and not the sentence, for the reason `UnreadableCode` is one: the sentence is a
+ * translation, the catalogue holds one per code in every language this build ships, and a
+ * screen looks it up rather than drawing what the far side wrote.
+ *
+ * **The empty string is the state to read twice.** Two different things arrive as it and
+ * both are drawn as they came: prose that is not this app's — a transport's, an engine's —
+ * and this app's own report of a command line it composed wrongly. The second is a defect
+ * report naming a verb and a flag, so translating it would say the same English words in a
+ * Portuguese sentence and cost a reader the one thing that identifies the bug.
+ */
+export type WithheldCode =
+  /** No method by that name crosses this bridge. */
+  | 'not-carried'
+  /** No door by that name is on offer for this project. */
+  | 'no-such-door'
+  /** A door takes one word for each blank it has, and that was not it. */
+  | 'not-the-words'
+  /** Not a project the scan of the person's roots found. */
+  | 'not-catalogued'
+  /** The project would not open, so a request that needed it open never ran. */
+  | 'not-open'
+  /** The prose is somebody else's, or this app's own report of what it composed. */
+  | ''
 
 /** The carrier would not open it: a folder no root the person named holds (RG143). */
 export interface Withheld {

@@ -3,6 +3,7 @@ import {
   counterFor,
   fieldsRefused,
   folderName,
+  refusalOf,
   sectionCounter,
   type Bounds,
   type BudgetPayload,
@@ -263,7 +264,7 @@ function Answered({
   if (filed.kind === 'failed') {
     return (
       <p className="text-destructive text-xs" data-testid="failed">
-        {say('filing.failed', { reason: filed.reason })}
+        {say('filing.failed', { reason: refusalOf(filed.reason, say) })}
       </p>
     )
   }

@@ -363,6 +363,8 @@ describe('RG143: what it opens, and keeps', () => {
       kind: 'failed',
       reason: 'timeout',
       message: 'ran past 5ms',
+      code: '',
+      fields: {},
       durationMs: 5,
     })
   })

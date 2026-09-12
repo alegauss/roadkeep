@@ -22,6 +22,7 @@ export type {
   TopicEvents,
   TransportName,
   Withheld,
+  WithheldCode,
 } from './bridge'
 export {
   CALLED_NAMES,
@@ -256,12 +257,23 @@ export {
   PSEUDO_OPEN,
   pseudo,
   reasonOf,
+  refusalOf,
+  saidPlainly,
   stale,
   timeIn,
   translator,
   untranslated,
+  WITHHELD_TEXT,
 } from './wording'
-export type { Bundle, BundleGaps, Fill, MessageKey, Translate, Wording } from './wording'
+export type {
+  Bundle,
+  BundleGaps,
+  Fill,
+  MessageKey,
+  Translate,
+  Withholding,
+  Wording,
+} from './wording'
 export { LOCALE_NAMES, LOCALE_TAGS, LOCALES, wordingFor } from './locales'
 export {
   compareVersions,

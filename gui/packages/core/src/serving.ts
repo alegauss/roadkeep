@@ -8,6 +8,7 @@ import {
   type Topic,
   type TopicEvents,
   type Withheld,
+  type WithheldCode,
 } from './bridge'
 import { argumentsOf, CALLED_NAMES, CALLED_WORDS, flagsFor, type CalledName } from './capabilities'
 import { createClient } from './client'
@@ -209,9 +210,20 @@ export function heardBy<T extends Topic>(topic: T, event: TopicEvents[T], asked:
   return asked === EVERY_SOURCE || keyOfEvent(topic, event) === asked
 }
 
-/** A request that will not run, as the answer `run` gives. Nothing started, so no time passed. */
-export function withheldResult(reason: string): BridgedResult {
-  return { kind: 'failed', reason: 'withheld', message: reason, durationMs: 0 }
+/**
+ * A request that will not run, as the answer `run` gives. Nothing started, so no time passed.
+ *
+ * The sentence and the code are both given because they answer different readers: the first
+ * is what a log and a defect report keep, and the second is what a screen says in the
+ * window's own language (RG192). A caller with no code is one whose prose is its own report
+ * of a command line this app composed, which is drawn as it was written.
+ */
+export function withheldResult(
+  reason: string,
+  code: WithheldCode = '',
+  fields: Readonly<Record<string, string>> = {},
+): BridgedResult {
+  return { kind: 'failed', reason: 'withheld', message: reason, code, fields, durationMs: 0 }
 }
 
 /**
@@ -224,11 +236,16 @@ export async function bridgedRun(run: () => Promise<EngineResult>): Promise<Brid
   try {
     return { kind: 'ran', result: await run() }
   } catch (cause) {
+    // No code on either: a spawn that failed, a deadline, a thrown class — the words are the
+    // transport's own, quoted rather than translated, which is the reading `attemptRead`
+    // already settled for the same prose arriving the other way (RG192).
     if (cause instanceof EngineCallFailed) {
       return {
         kind: 'failed',
         reason: cause.reason,
         message: cause.message,
+        code: '',
+        fields: {},
         durationMs: cause.durationMs,
       }
     }
@@ -236,6 +253,8 @@ export async function bridgedRun(run: () => Promise<EngineResult>): Promise<Brid
       kind: 'failed',
       reason: 'unspawnable',
       message: cause instanceof Error ? cause.message : String(cause),
+      code: '',
+      fields: {},
       durationMs: 0,
     }
   }

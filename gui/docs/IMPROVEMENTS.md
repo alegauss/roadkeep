@@ -164,28 +164,3 @@ digest is then required to carry that set.
 
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
-
-### §RG192 The refusal that is this app's own words
-
-`BridgedResult.failed` carries both halves: `reason` is an `EngineFailure` —
-`unspawnable`, `timeout`, `aborted`, `withheld` — and `message` is a sentence. Two
-screens read the sentence. `useGate` and `useFiling` each set their own `{ kind:
-'failed', reason: answered.message }` and draw it through `say`, so the words a person
-reads are English whatever the window is speaking.
-
-RG191's gate does not hold this, and why is worth keeping: it refuses the fields whose
-docstring names a code to draw instead, and this field's code has no catalogue entry to
-name. Tagging it would demand a replacement that does not exist yet.
-
-**Two cases, and only one of them is a defect.** `attemptRead` sets `code: ''` for a
-transport failure on purpose — a spawn that failed or a deadline is the transport's own
-prose, quoted rather than translated — and that is right for `unspawnable`, `timeout`
-and `aborted`. It is not right for `withheld`: `withheldResult` composes this app's own
-English, and `carrier.ts`, `sessions.ts` and `shell/bridge.ts` each hand it a sentence
-they wrote. `Withheld.reason` on the bridge's own shape is the same prose by another
-route.
-
-The arrangement is already in `updates.ts`: a code, a `fields` table for the holes, and
-the empty code kept for words that are not this app's. Give the withheld refusals codes,
-put their sentences in the catalogue, then tag the field `@notForScreen` — and the gate
-holds it from then on.

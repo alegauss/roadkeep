@@ -14,12 +14,16 @@ import {
   localeFor,
   pseudo,
   reasonOf,
+  refusalOf,
+  saidPlainly,
   stale,
   timeIn,
   translator,
   UNREADABLE_TEXT,
   untranslated,
+  WITHHELD_TEXT,
   type Wording,
+  type Withholding,
 } from './wording'
 import type { Unreadable } from './limits'
 
@@ -240,6 +244,46 @@ describe('RG168: why a project could not be read, in the window’s language', (
     const say = translator()
 
     for (const key of Object.values(UNREADABLE_TEXT)) expect(say(key)).not.toBe('')
+  })
+})
+
+describe('RG192: why a request did not run, in the window’s language', () => {
+  /** A refusal as the carrier builds one, with the code and the hole it carries. */
+  const withheld = (over: Partial<Withholding> = {}): Withholding => ({
+    message: 'D:/x is not a project the scan of the person’s roots found',
+    code: 'not-catalogued',
+    fields: { root: 'D:/x' },
+    ...over,
+  })
+
+  it('says the catalogue sentence for the code, with the holes the fields fill', () => {
+    const say = translator()
+
+    expect(refusalOf(withheld(), say)).toBe(fill(BASE['withheld.not-catalogued'], { root: 'D:/x' }))
+  })
+
+  it('says it in the window’s language, which is the whole point of a code', () => {
+    const say = translator(pseudo())
+
+    expect(isPseudo(refusalOf(withheld(), say))).toBe(true)
+  })
+
+  it('draws an untranslated sentence as written, which is what an empty code means', () => {
+    // Two things arrive as the empty code and neither is looked up: a transport's own prose,
+    // and this app's report of a command line it composed wrongly. This is the second.
+    const said = withheld({ code: '', fields: {}, message: '`--nope` is not an option' })
+
+    expect(refusalOf(said, translator(pseudo()))).toBe('`--nope` is not an option')
+  })
+
+  it('has a sentence for every code, so a code added without one does not compile', () => {
+    const say = translator()
+
+    for (const key of Object.values(WITHHELD_TEXT)) expect(say(key)).not.toBe('')
+  })
+
+  it('takes a sentence that is already what a person reads', () => {
+    expect(refusalOf(saidPlainly('roadkeep: no'), translator(pseudo()))).toBe('roadkeep: no')
   })
 })
 

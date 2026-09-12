@@ -1,4 +1,4 @@
-import { folderName, type GateHealth, type Gated, type LintPayload } from '@rk/core'
+import { folderName, refusalOf, type GateHealth, type Gated, type LintPayload } from '@rk/core'
 import { Button } from '@viglet/viglet-design-system'
 import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-system/bento'
 import { useEffect, useMemo, type ReactNode } from 'react'
@@ -216,7 +216,7 @@ export function Gate() {
         ) : null}
         {gate.kind === 'failed' ? (
           <BentoPanel contentClassName="p-6">
-            <BentoEmptyState title={say('gate.failed', { reason: gate.reason })} />
+            <BentoEmptyState title={say('gate.failed', { reason: refusalOf(gate.reason, say) })} />
           </BentoPanel>
         ) : null}
         {gate.kind === 'unreadable' ? (

@@ -20,6 +20,7 @@
  */
 
 import type { NarrowedCase } from './backlog'
+import type { WithheldCode } from './bridge'
 import type { Unreadable, UnreadableCode } from './limits'
 import type { Lost, Theme } from './settings'
 import { keysOf } from './reading'
@@ -309,6 +310,13 @@ export const EN = {
     'No candidate answered `engines --json`, so which roadkeep governs this project is unknown.',
   'unreadable.withheld': 'This folder is not one the scan of your roots found.',
 
+  'withheld.not-carried': 'That is not a request this app carries to the engine.',
+  'withheld.no-such-door':
+    'No door by that name is on offer for this project. Read again and take one the answer carries.',
+  'withheld.not-the-words': 'A door takes one word for each blank it has, and that was not it.',
+  'withheld.not-catalogued': '`{root}` is not a project the scan of your roots found.',
+  'withheld.not-open': '`{root}` did not open, so the request never ran: {why}',
+
   'roots.label': 'Roots',
   'roots.add': 'Add a root',
   'roots.rescan': 'Rescan roots',
@@ -448,6 +456,46 @@ export function reasonOf(unreadable: Unreadable, say: Translate): string {
   return unreadable.code === ''
     ? unreadable.message
     : say(UNREADABLE_TEXT[unreadable.code], unreadable.fields)
+}
+
+/**
+ * The sentence for each way the carrier would not run a request (RG192).
+ *
+ * `UNREADABLE_TEXT`'s arrangement and for its reason: a code added without a sentence fails
+ * to compile. The empty code has no entry here either — it is the prose of a transport, or
+ * this app's own report of a command line it composed, and neither is looked up.
+ */
+export const WITHHELD_TEXT: Readonly<Record<Exclude<WithheldCode, ''>, MessageKey>> = {
+  'not-carried': 'withheld.not-carried',
+  'no-such-door': 'withheld.no-such-door',
+  'not-the-words': 'withheld.not-the-words',
+  'not-catalogued': 'withheld.not-catalogued',
+  'not-open': 'withheld.not-open',
+}
+
+/** What a refusal carries: the sentence for a log, and the code a screen says instead. */
+export interface Withholding {
+  readonly message: string
+  readonly code: WithheldCode
+  readonly fields: Readonly<Record<string, string>>
+}
+
+/**
+ * Why a request did not run, in the window's language where the sentence is this app's and
+ * in the words they were written in where it is not (RG192).
+ *
+ * `reasonOf`'s shape, because it is the same question asked of the other half of the bridge:
+ * a code picks a key, `say` fills its holes, and an empty code is prose nobody translates.
+ */
+export function refusalOf(withholding: Withholding, say: Translate): string {
+  return withholding.code === ''
+    ? withholding.message
+    : say(WITHHELD_TEXT[withholding.code], withholding.fields)
+}
+
+/** A sentence that is already what a person should read, as a refusal the screens can take. */
+export function saidPlainly(message: string): Withholding {
+  return { message, code: '', fields: {} }
 }
 
 /**
