@@ -13,7 +13,7 @@ import {
   type TransportFor,
 } from './engine-resolution'
 import { saidBy, type Unreadable } from './limits'
-import { governedFiles } from './payloads'
+import { governedFiles, projectDeclares, type Declared } from './payloads'
 import { createPooledTransport } from './pool'
 import type { CancelSignal, EngineResult, Transport } from './transport'
 import { keysOf } from './reading'
@@ -68,6 +68,14 @@ export interface OpenProject {
   readonly capabilities: CapabilityReport
   /** The governed files this project declares, by role. What the stamp is taken over. */
   readonly governed: Readonly<Record<string, string>>
+  /**
+   * What the project says about itself — its name, description and mark (RG198).
+   *
+   * Off the same `config` this already read, so it costs nothing: a row that named a folder
+   * was naming a worktree's version, and the payload that could say otherwise was being
+   * thrown away here after `governed` was taken from it.
+   */
+  readonly declares: Declared
   /** Every later read goes through this. Pooled, cached, and reading each verb's shape. */
   readonly client: Client
   /**
@@ -293,6 +301,7 @@ async function compose(
   // — this never looks for a `roadkeep.toml` above the one it was given.
   if (!config.value.governed) return { kind: 'ungoverned', root, engine }
   const governed = governedFiles(config.value)
+  const declares = projectDeclares(config.value)
 
   const files = Object.values(governed)
   const stampFor = options.stampFor
@@ -332,6 +341,7 @@ async function compose(
             }
           : capabilitiesOf(commands.value),
       governed,
+      declares,
       client,
       transport,
       invalidate: () => {

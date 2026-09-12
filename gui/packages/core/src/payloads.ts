@@ -1799,6 +1799,44 @@ export const readConfigPayload: Reader<ConfigPayload> = (value, path) => {
  * format this app has no business knowing. `set` arrives with the quotes the file spells,
  * so they come off here and nowhere else.
  */
+/**
+ * What a project says about itself, or empty strings (RG198).
+ *
+ * Off the payload's own keys and never off the file: `governedFiles` below is the precedent
+ * and this is the same few lines with a different filter — `table`, `key`, `declared` and
+ * `set`, with the quotes taken off in one place.
+ *
+ * **Undeclared and unsupported answer the same**, deliberately. An engine older than the
+ * table reports no such key; a project that has the table and declares nothing reports it
+ * undeclared. Both are empty here, so a caller falls back to the folder either way and a
+ * portfolio spanning engines at different versions is legible rather than half blank.
+ */
+export interface Declared {
+  /** What to call it. Empty falls back to the folder, which is a fact about the path. */
+  readonly name: string
+  readonly description: string
+  /** One emoji standing in for a mark. */
+  readonly icon: string
+  /** A repository-relative path to a real mark, which only the shell can resolve. */
+  readonly logo: string
+}
+
+export const DECLARES_NOTHING: Declared = { name: '', description: '', icon: '', logo: '' }
+
+export function projectDeclares(payload: ConfigPayload): Declared {
+  const said = (key: string): string => {
+    const entry = payload.keys.find((one) => one.table === 'project' && one.key === key)
+    if (entry === undefined || !entry.declared || entry.set === null) return ''
+    return entry.set.replace(/^["']|["']$/g, '')
+  }
+  return {
+    name: said('name'),
+    description: said('description'),
+    icon: said('icon'),
+    logo: said('logo'),
+  }
+}
+
 export function governedFiles(payload: ConfigPayload): Record<string, string> {
   const files: Record<string, string> = {}
   for (const entry of payload.keys) {

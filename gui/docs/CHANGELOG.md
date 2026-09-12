@@ -90,6 +90,7 @@
 - ✅ **RG167** **a row is read once, so a line shipped in a terminal leaves the portfolio stale until the window reopens** — A read row follows its own project and reads itself again where it stands when the files move (design recorded in `packages/ui/src/usePortfolio.ts`).
 - ✅ **RG187** **the carrier gates every project as it opens, so a cold start over seventeen starts seventeen lints at once** — A launch gates one project at a time, so the rest of the machine goes to what the reader is looking at (design recorded in `packages/shell/src/carrier.ts`).
 - ✅ **RG147** **the palette says it finds a line in every backlog and lists only surfaces, so search over all projects reaches no one** — The palette offers the lines search returned, from every backlog read, and says what it does not cover (design recorded in `packages/ui/src/useSearchable.ts`).
+- ✅ **RG198** **a row is named by its folder, so two worktrees of one product read as 2026.3 and 2026.2** — A row is named what the project calls itself, off the config it was opened with, and the folder where nothing says (design recorded in `packages/core/src/payloads.ts`).
 
 ## Block D — The project surface (one backlog, read)
 

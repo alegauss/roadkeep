@@ -2,7 +2,7 @@ import type { RecordedProject } from './catalogue'
 import type { EnginesPayload } from './engines'
 import type { GateHealth } from './gate'
 import type { Unreadable } from './limits'
-import type { PickPayload, StatsPayload } from './payloads'
+import type { Declared, PickPayload, StatsPayload } from './payloads'
 
 /**
  * One row per project, and what it is allowed to hold.
@@ -119,6 +119,12 @@ export interface RowReads {
   readonly pick?: PickPayload | null
   readonly engines?: EnginesPayload | null
   /**
+   * What the project declares about itself (RG198). The name is the one fact a folder gets
+   * wrong: two worktrees of one product are `2026.3` and `2026.2`, and neither says which
+   * product.
+   */
+  readonly declares?: Declared | null
+  /**
    * Not a read. The gate's last verdict comes off the ledger, because running `lint`
    * seventeen times to draw a list is the cost this whole arrangement avoids.
    */
@@ -141,6 +147,9 @@ export function fillRow(row: ProjectRow, reads: RowReads): ProjectRow {
   return {
     ...row,
     state: 'read',
+    // A declared name replaces the folder's; nothing declared leaves what was there, which
+    // is the folder — so this is safe to call twice, like every other field here.
+    name: reads.declares?.name || row.name,
     counts: reads.stats ? countsFrom(reads.stats) : row.counts,
     next: reads.pick ? nextFrom(reads.pick) : row.next,
     gate: reads.gate ?? row.gate,

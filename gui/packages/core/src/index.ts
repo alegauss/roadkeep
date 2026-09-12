@@ -320,6 +320,8 @@ export { readEngineProvenance, readEnginesPayload, splitCommandLine } from './en
 export type { EngineProvenance, EnginesPayload } from './engines'
 export {
   governedFiles,
+  DECLARES_NOTHING,
+  projectDeclares,
   insteadOf,
   listedTasks,
   lineOf,

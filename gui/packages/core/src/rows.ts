@@ -152,7 +152,9 @@ export function rowStages(
           'stats',
         )
         if (!stats.ok) throw stats.why
-        return { stats: stats.value, engines: project.engine.payload }
+        // `declares` came off the `config` this project was opened with, so naming a row
+        // by what it calls itself costs no read of its own (RG198).
+        return { stats: stats.value, engines: project.engine.payload, declares: project.declares }
       },
     },
     {

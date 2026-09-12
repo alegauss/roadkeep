@@ -20,7 +20,7 @@ import type { ProjectCatalogue } from './catalogue'
 import type { ResolvedEngine } from './engine-resolution'
 import type { GateHealth } from './gate'
 import type { Opening } from './opening'
-import type { BriefPayload, HeldClaim } from './payloads'
+import type { BriefPayload, Declared, HeldClaim } from './payloads'
 import type { KnownRoot, ScanRoot } from './roots'
 import type { SessionOutcome } from './session'
 import type { SettingsRead, Theme } from './settings'
@@ -435,6 +435,8 @@ export type OpenedProject =
       readonly engine: ResolvedEngine
       readonly capabilities: CapabilityReport
       readonly governed: Readonly<Record<string, string>>
+      /** What the project says about itself (RG198), read once where it was opened. */
+      readonly declares: Declared
       /** Why its engine could not be held, as of the opening, or null. */
       readonly unheld: string | null
     }

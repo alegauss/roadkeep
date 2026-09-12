@@ -6,29 +6,6 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-### §RG198 The name a project declares
-
-`readRow` names a row `folderName(project.path)`, and the comment beside it is right
-that this is a fact about the path rather than a field the app made up. The trouble is
-that for a worktree the fact is the version: the fixture in `portfolio.test.ts` is
-`/code/viglet/turing/2026.3`, and the row it produces is called **2026.3**. Two of those
-side by side, plus a `latest` junction, is a portfolio in which the product never
-appears.
-
-**The name comes off the `config` payload, not off the file.** `payloads.ts` already
-refuses a TOML parser here, and `governedFiles` is the precedent: the keys arrive as
-`table`, `key`, `declared` and `set`, and reading `project.name` out of them is the same
-few lines with a different filter. The quotes come off in one place, as they already do.
-
-**Undeclared and unsupported are the same answer, deliberately.** An engine older than
-the table reports no such key; a project that has one and declares nothing reports it
-undeclared. Both fall back to the folder name, so a portfolio spanning engines at
-different versions is legible rather than half blank — the `engines` payload already
-tells that story where the version itself is the subject.
-
-`toneOf(row.name)` follows the name, which means a declared name recolours a chip. That
-is correct: the tone identifies the project, and the project is now what it says it is.
-
 ### §RG199 Which branch this member is on
 
 `git-worktree.ts` already reads git's own files to find a common directory, and

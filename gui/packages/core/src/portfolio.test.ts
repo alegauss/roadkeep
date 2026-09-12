@@ -4,7 +4,15 @@ import type { RecordedProject } from './catalogue'
 import type { EnginesPayload } from './engines'
 import type { Unreadable } from './limits'
 import { gateHealth, recordGate, UNKNOWN_GATE } from './gate'
-import { readPickPayload, type PickPayload, type StatsPayload } from './payloads'
+import {
+  DECLARES_NOTHING,
+  projectDeclares,
+  readPickPayload,
+  type ConfigPayload,
+  type Declared,
+  type PickPayload,
+  type StatsPayload,
+} from './payloads'
 import {
   filterCounts,
   folderName,
@@ -14,6 +22,7 @@ import {
   ROW_FILTERS,
   tally,
   unreadableRow,
+  fillRow,
 } from './portfolio'
 
 const project: RecordedProject = {
@@ -320,5 +329,91 @@ describe('RG145: the chips a portfolio narrows by', () => {
     expect(
       ROW_FILTERS.filter((filter) => filter !== 'all' && matchesFilter(pending, filter)),
     ).toEqual([])
+  })
+})
+
+describe('RG198: the name a project declares', () => {
+  const declares = (over: Partial<Declared> = {}): Declared => ({
+    ...DECLARES_NOTHING,
+    ...over,
+  })
+
+  it('names a row what the project calls itself, not what the folder is called', () => {
+    // The fixture is a worktree, so its folder is the version: `2026.3` says nothing about
+    // which product it is, and two of them side by side are a portfolio of versions.
+    const row = readRow(project, { declares: declares({ name: 'Turing' }) })
+
+    expect(folderName(project.path)).toBe('2026.3')
+    expect(row.name).toBe('Turing')
+  })
+
+  it('keeps the folder where nothing is declared, which is a fact about the path', () => {
+    const row = readRow(project, { declares: declares() })
+
+    expect(row.name).toBe('2026.3')
+  })
+
+  it('keeps the folder where the engine is too old to have the table', () => {
+    // Undeclared and unsupported are the same answer on purpose: a portfolio spanning
+    // engines at different versions is legible rather than half blank.
+    const row = readRow(project, {})
+
+    expect(row.name).toBe('2026.3')
+  })
+
+  it('survives a second fill, the way every other field on a row does', () => {
+    // A row is filled in more than one moment (RG73), and a stage that read no config must
+    // not undo the name an earlier one resolved.
+    const named = readRow(project, { declares: declares({ name: 'Turing' }) })
+
+    expect(fillRow(named, {}).name).toBe('Turing')
+  })
+})
+
+describe('RG198: what a config declares, read off the payload', () => {
+  const keyed = (table: string, key: string, set: string | null) => ({
+    table,
+    key,
+    address: `${table}.${key}`,
+    declared: set !== null,
+    set,
+    fallback: null,
+  })
+
+  const payload = (keys: ReturnType<typeof keyed>[]): ConfigPayload => ({
+    version: '0.2.472',
+    source: 'roadkeep.toml',
+    governed: true,
+    root: '/proj',
+    keys,
+  })
+
+  it('reads the four rows the table carries, with the quotes off', () => {
+    const said = projectDeclares(
+      payload([
+        keyed('project', 'name', '"Turing"'),
+        keyed('project', 'description', "'A search engine'"),
+        keyed('project', 'icon', '"🔎"'),
+        keyed('project', 'logo', '"docs/mark.svg"'),
+      ]),
+    )
+
+    expect(said).toEqual({
+      name: 'Turing',
+      description: 'A search engine',
+      icon: '🔎',
+      logo: 'docs/mark.svg',
+    })
+  })
+
+  it('answers empty for an undeclared row, and for a build that has no table at all', () => {
+    expect(projectDeclares(payload([keyed('project', 'name', null)])).name).toBe('')
+    expect(projectDeclares(payload([])).name).toBe('')
+  })
+
+  it('never reads a key from another table that happens to share its name', () => {
+    // `governedFiles` filters on the table for the same reason: a key is `table` and `key`
+    // together, and a `files.name` is not a project's name.
+    expect(projectDeclares(payload([keyed('files', 'name', '"roadmap.md"')])).name).toBe('')
   })
 })

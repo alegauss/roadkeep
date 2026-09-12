@@ -34,6 +34,8 @@ import {
   type VerbAnswers,
   type VerbInputs,
   type VerbName,
+  folderName,
+  projectDeclares,
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
@@ -103,6 +105,8 @@ const SECOND_SHAPES = {
   // and each was found the day this repository had nothing ready (RG141, RG142).
   'brief with nothing to hand over': '`empty` and `reason` in place of a line, with no `id`',
   'pick with nothing ready': '`tier`: the word that chose on a pick, null beside a null pick',
+  'config with a declared project':
+    '`[project]` rows: a declared name and icon, and a row this build has that nothing sets',
   'config on a folder nothing governs':
     '`source`: the file on a project, null with `governed` false',
 } as const
@@ -403,6 +407,42 @@ describe('RG4: every read this client makes, against a live engine', () => {
       expect(lineOf(await read(waiting.root, 'brief', { have: [wanted] }))?.id).toBe(added.value.id)
     } finally {
       waiting.dispose()
+    }
+  })
+
+  it('reads what a project declares about itself, off the payload (RG198)', async () => {
+    // Its own fixture, since this writes a `[project]` table into the config — and the two
+    // states worth holding are a declared row and an undeclared one, which the same payload
+    // carries at once.
+    const named = await buildFixture(transport, { open: 1, shipped: 0, deferred: 0 })
+    try {
+      appendFileSync(
+        path.join(named.root, 'roadkeep.toml'),
+        '\n[project]\nname = "Turing"\nicon = "🔎"\n',
+        'utf8',
+      )
+      const answer = await createClient(transport).call(
+        named.root,
+        'config',
+        {},
+        {
+          timeoutMs: CEILING,
+        },
+      )
+      if (answer.kind !== 'read') throw new Error(`config was ${answer.kind}`)
+
+      const said = projectDeclares(answer.value)
+
+      expect(said.name).toBe('Turing')
+      expect(said.icon).toBe('🔎')
+      // Declared and undeclared in one answer: `description` is a row this build has and
+      // this project does not set, which is the state a folder name falls back on.
+      expect(said.description).toBe('')
+      // And the folder is what the row would otherwise be called, which is the whole point.
+      expect(folderName(named.root)).not.toBe('Turing')
+      covers('config with a declared project')
+    } finally {
+      named.dispose()
     }
   })
 
