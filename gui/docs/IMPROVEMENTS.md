@@ -93,21 +93,6 @@ ready task forever. What can be built without it is the pipeline that would use 
 the about surface saying plainly that this build is unsigned — which is the honest half
 and is worth having on its own.
 
-### §RG128 The engine a session actually got
-
-The launcher resolves an engine in four steps — `ROADKEEP_HOME`, a vendored
-`.roadkeep/`, the sibling `../roadkeep`, then a clone under the user cache — and takes
-the first that *answers a probe*. A checkout being written while the probe runs does not
-answer, so resolution falls through. During RG120 three commands were served by `0.2.4`
-out of `~/.cache/roadkeep-src` while the sibling stood at `0.2.450`; `ROADKEEP_HOME` did
-not help, being a candidate the same probe drops.
-
-**Decided, and the half left is upstream's.** Three levers, measured on 2026-09-10:
-
-- **Vendoring is rejected here.** `.roadkeep/` outranks the sibling, and this project's live suite tests the roadkeep checkout under development on purpose (`live.ts`, RG84). A pin would change what that suite tests without anything saying so, and freeze the engine on the one machine where it moves daily.
-- **The launcher is not this repository's to change.** It is identical to what `roadkeep install` writes today, so an edit here is overwritten by the next refresh. Making a *named* engine fatal rather than skippable is its behaviour, and the dep names it.
-- **The cache is the hazard on this machine.** It still answers — `0.2.4`, from 2026-08-28 — and is the candidate a busy sibling falls to. Removing `~/.cache/roadkeep-src` turns a stale answer into a refusal naming the missing engine: louder, and never wrong. It is a directory outside this repository, so it is named here for whoever owns the machine rather than removed.
-
 ### §RG154 The first release, read by the check
 
 RG50's check has been read against answers described by hand, and GitHub's own is the

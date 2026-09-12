@@ -193,6 +193,7 @@
 - ✅ **RG161** **the signing procedure breaks the Windows CI job on one route and leaves the app exe unsigned on another** — The Certum subject name is a local command line, SignPath signs the app before the installer, and four sentences beside them are true now (design recorded in `docs/SIGNING.md`).
 - ✅ **RG162 (the licence and the version)** **no LICENSE file ships and every build says 0.0.0, so the first release the maintainer decided on cannot be cut** — The repository carries an MIT LICENSE and says 0.1.0 in the manifest and the lockfile, so a v0.1.0 tag matches what the package job checks.
 - ✅ **RG184** **a source file carrying control characters passes every gate, so an invisible byte reaches a commit** — No file this repository owns carries an invisible byte (design superseded: it is a fast test, since reading bytes starts nothing) (design recorded in `packages/shell/src/bytes.test.ts`).
+- ✅ **RG128** **a checkout busy when the probe runs is skipped, so the launcher answers from a cache 446 versions old** — No engine is named here, the stale clone is gone, and resolution reaches the sibling under development (design recorded in `.claude/settings.json`).
 
 ## Block H — The look (a design system for governed prose)
 
