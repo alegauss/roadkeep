@@ -94,3 +94,8 @@ declared = ["signing-cert", "macos-machine", "published-artifact", "maintainer-r
 
 [install]
 wired = "0.2.472"
+
+[project]
+name = "roadkeep desktop"
+description = "A desktop reader for roadkeep backlogs across every project on this machine."
+icon = "🗺️"
