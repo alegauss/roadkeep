@@ -101,10 +101,18 @@ describe('RG16: rows over more than one project', () => {
 
     expect(rows.map((row) => row.state)).toEqual(['read', 'read'])
     expect(rows[0]?.name).toBe(path.basename(REPO))
-
-    // Two projects, two counts, and they are different numbers off two backlogs.
     expect(rows[0]?.counts?.total).toBeGreaterThan(0)
     expect(rows[1]?.counts?.total).toBeGreaterThan(0)
+  })
+
+  it('counts each backlog on its own, and not one read shared between rows', async () => {
+    // Both sides are fixtures whose sizes are declared here (RG197). Comparing this
+    // repository's total against a fixture's was the same claim measured against a number
+    // that moves: it held until shipping brought the backlog down to the fixture's three,
+    // and then failed on a day nothing about a row had changed.
+    const rows = [await rowFor(fixture.root), await rowFor(other.root)]
+
+    expect(rows.map((row) => row.state)).toEqual(['read', 'read'])
     expect(rows[0]?.counts?.total).not.toBe(rows[1]?.counts?.total)
   })
 

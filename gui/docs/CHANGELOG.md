@@ -55,6 +55,7 @@
 - ✅ **RG189** **a cache entry refreshed against a new stamp keeps its old place, so eviction takes the entries being used most** — A refreshed entry moves to the end, so eviction takes what nobody has asked for since (design recorded in `packages/core/src/cache.ts`).
 - ✅ **RG196** **the graph test hunts this backlog for a blocked line, so draining the backlog reddens three assertions** — The edges finishing work removes are read from a fixture that holds still, not from this backlog (design recorded in `packages/shell/src/graph-live.test.ts`).
 - ✅ **RG193** **an engine too old for `config` reads as an unreadable answer, so a row shows a usage dump and no version** — A config the build does not publish names that build and its version, in the window's language (design recorded in `packages/core/src/opening.ts`).
+- ✅ **RG197** **a live row test needs this backlog to be a different size from a fixture, and shipping made them equal** — Two counts are compared between two fixtures whose sizes this file declares (design recorded in `packages/shell/src/portfolio-live.test.ts`).
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
