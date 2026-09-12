@@ -74,8 +74,26 @@ and no padding of its own — a table wants `p-0` and a toolbar wants `py-2`.
 Never hand-roll `bento-glass rounded-2xl border`: the moment two call sites pick
 different radii the product is inconsistent for a reason no diff shows.
 
-Two rules that outrank convenience:
+Three rules that outrank convenience:
 
+- **A back-link eyebrow leads with the arrow, and only a back-link does.** The
+  eyebrow above a hero's title is small, upper-case and set in muted text, which
+  is the same treatment whether it names the parent list or merely says what kind
+  of thing this is. The arrow is what separates them: with it the line reads as
+  the way back, without it as a label. So it is not decoration, and it is not
+  optional on one page because the layout looked tidier — it is the only
+  difference a reader has.
+  - `BentoEntityShell` gives you this for free: it links the eyebrow to
+    `listRoute` and puts the arrow in, so you pass the label alone.
+  - Every other hero takes `backTo` + `backLabel`. `BentoHero` and
+    `BentoFormHero` both render `BentoBackLink` from them.
+  - An eyebrow that needs something after the link — a status marker, a count —
+    is the one case for passing `eyebrow` yourself, and it composes
+    `BentoBackLink` rather than re-typing an arrow. `eyebrow` wins over `backTo`,
+    so a page that sets both silently loses the arrow.
+  - **Never put one on an eyebrow that navigates nowhere.** An arrow promises a
+    destination, and a promise the click does not keep is worse than the plain
+    label would have been.
 - **Identity lives in the hero, never in the form.** Title, description, icon
   and enabled state are the shell's; a form field for any of them is a second
   place to edit the same thing.
