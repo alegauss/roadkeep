@@ -10,11 +10,11 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-- 📋 **RG147** (deps: RG145 ✅, RG20 ✅, RG150 ✅, a grouped palette) **the palette says it finds a line in every backlog and lists only surfaces, so search over all projects reaches no one** — RG20's search reaches no screen, and the package palette only filters nav items. → §RG147
+- 📋 **RG147** (deps: RG145 ✅, RG20 ✅, RG150 ✅, viglet VDS123) **the palette says it finds a line in every backlog and lists only surfaces, so search over all projects reaches no one** — RG20's search reaches no screen, and the package palette only filters nav items. → §RG147
 
 ## Block D — The project surface (one backlog, read)
 
-- 📋 **RG170** (deps: roadkeep list with readiness) **list prints no readiness per line, so every row costs a deps read and startable only cannot be offered** — Readiness is the engine's word, and a list of eight hundred is eight hundred reads before the column is full. → §RG170
+- 📋 **RG170** (deps: roadkeep RK1680) **list prints no readiness per line, so every row costs a deps read and startable only cannot be offered** — Readiness is the engine's word, and a list of eight hundred is eight hundred reads before the column is full. → §RG170
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
