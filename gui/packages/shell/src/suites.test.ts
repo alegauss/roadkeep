@@ -34,6 +34,8 @@ const REACHES_OUT: readonly { readonly what: string; readonly found: RegExp }[] 
   // that builds one. Opening on the seam is the same reach: it hands back an engine.
   { what: 'the live seam', found: /from '\.\/live'/ },
   { what: 'Electron', found: /spawnElectron|startApp\(/ },
+  // RG209 starts the built app through Playwright, which spawns it from inside the library.
+  { what: 'Electron through Playwright', found: /launchForShots\(|_electron\.launch\(/ },
   { what: 'an HTTP handler', found: /serveEngine/ },
   { what: 'a built fixture', found: /buildFixture/ },
   { what: 'a fake agent', found: /fakeClaude/ },

@@ -89,6 +89,19 @@ export type {
   ResolveAgentOptions,
   TransportFor as TransportForAgent,
 } from './agent'
+export {
+  FILE_ROUTE,
+  filledRoute,
+  GATE_ROUTE,
+  HOME_ROUTE,
+  PROJECT_ROUTE,
+  routeParams,
+  SESSION_ROUTE,
+  SESSIONS_ROUTE,
+  SETTINGS_ROUTE,
+  SURFACE_ROUTES,
+  TASK_ROUTE,
+} from './surfaces'
 export { isPreferenceKey, PREFERENCES, withPreference } from './preferences'
 export type { PreferenceKey } from './preferences'
 export { arrivedSince, atEnd, END_SLACK_PX, FOLLOWING, scrolledTo } from './follow'

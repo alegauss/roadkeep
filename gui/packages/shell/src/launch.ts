@@ -20,7 +20,20 @@ if (typeof required !== 'string') {
     `the electron module resolved to ${typeof required} and not the path of the binary`,
   )
 }
-const electronPath = required
+/** The Electron binary, which the screenshot run hands to Playwright as well (RG209). */
+export const electronPath = required
+
+/**
+ * The environment a launch runs in: this process's, plus what the run adds, minus
+ * `ELECTRON_RUN_AS_NODE` — see `spawnElectron` for why that one never survives.
+ */
+export function launchEnv(extraEnv: Record<string, string> = {}): Record<string, string> {
+  const env: Record<string, string> = {}
+  for (const [name, value] of Object.entries({ ...process.env, ...extraEnv })) {
+    if (value !== undefined && name !== 'ELECTRON_RUN_AS_NODE') env[name] = value
+  }
+  return env
+}
 
 /**
  * Spawn the app and hand back the child.
@@ -43,10 +56,7 @@ export function spawnElectron(
   extraArgs: readonly string[] = [],
   stdio: 'inherit' | 'pipe' = 'inherit',
 ): ChildProcess {
-  const env = { ...process.env, ...extraEnv }
-  delete env['ELECTRON_RUN_AS_NODE']
-
   // The switches come first: Chromium reads its own before the positional path, and one
   // after it is an argument to the app rather than to the browser.
-  return spawn(electronPath, [...extraArgs, shellRoot], { stdio, env })
+  return spawn(electronPath, [...extraArgs, shellRoot], { stdio, env: launchEnv(extraEnv) })
 }

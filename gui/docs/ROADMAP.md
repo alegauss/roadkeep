@@ -14,19 +14,20 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG210** (deps: RG209) **the session screen only draws behind a real Claude Code run, so its stream, scroll and folded notes are checked blind** — The agent is resolved from PATH and install folders alone, and a real session costs usage and moves a line. → §RG210
+- 📋 **RG210** (deps: RG209 ✅) **the session screen only draws behind a real Claude Code run, so its stream, scroll and folded notes are checked blind** — The agent is resolved from PATH and install folders alone, and a real session costs usage and moves a line. → §RG210
 
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
-- 📋 **RG209** (deps: RG60 ✅) **no command shows what a screen looks like, so an agent checks a screen change with tests that never see the window** — jsdom lays nothing out, so a chosen toggle at 1.35:1 was caught only by a screenshot script improvised outside the repository. → §RG209
-- 📋 **RG212** (deps: RG209, RG210, RG211) **an agent checking a screen improvises its own harness, and nothing says what to look for once it has the pictures** — CLAUDE.md lists gates that never open the window, so each session rediscovers how to see one and what a screen owes. → §RG212
+- 📋 **RG212** (deps: RG209 ✅, RG210, RG211) **an agent checking a screen improvises its own harness, and nothing says what to look for once it has the pictures** — CLAUDE.md lists gates that never open the window, so each session rediscovers how to see one and what a screen owes. → §RG212
 
 ## Block H — The look (a design system for governed prose)
 
-- 📋 **RG211** (deps: RG209) **no accessibility check runs over a rendered surface, so a defect only real layout and colour show ships green** — RG54 computes contrast over tokens and keyboard reach in jsdom, and a chosen state drawn in the package accent passed both. → §RG211
+- 📋 **RG211** (deps: RG209 ✅) **no accessibility check runs over a rendered surface, so a defect only real layout and colour show ships green** — RG54 computes contrast over tokens and keyboard reach in jsdom, and a chosen state drawn in the package accent passed both. → §RG211
 - 📋 **RG213** (deps: RG206 ✅) **the renderer's tests run in jsdom alone, so a test about scroll, overflow or focus order asserts numbers it invented** — jsdom computes no layout and fakes its events, so RG206's follow tests set scrollHeight by hand and pass against any CSS. → §RG213
-- 📋 **RG214** (deps: RG213) **no test asks whether a surface scrolls sideways at 400 wide, or whether Tab walks its controls in reading order** — The phone-width rule and RG54's keyboard reach are asserted in jsdom, which has no width to overflow and no real Tab. → §RG214
+- 📋 **RG214** (deps: RG213, RG215) **no test asks whether a surface scrolls sideways at 400 wide, or whether Tab walks its controls in reading order** — The phone-width rule and RG54's keyboard reach are asserted in jsdom, which has no width to overflow and no real Tab. → §RG214
+- 📋 **RG215** (deps: —) **the header and a hero's actions do not fit at 400 wide, so every surface scrolls sideways at phone width** — RG209's pictures show the palette trigger crushed, the ground label clipped and a portfolio action cut, where the contract says a page never scrolls sideways. → §RG215
+- 📋 **RG216** (deps: —) **a count of one is written as a plural, so the portfolio says 1 projetos and 1 lidos** — Every counted sentence has one form per language, and only backlog.refused carries a singular of its own, chosen by hand. → §RG216
 
 ## Done when — Block A
 

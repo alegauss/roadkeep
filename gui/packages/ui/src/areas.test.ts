@@ -1,4 +1,4 @@
-import { BASE_LOCALE, bundleGaps, bundlePaths, keysOf } from '@rk/core'
+import { BASE_LOCALE, bundleGaps, bundlePaths, keysOf, SURFACE_ROUTES } from '@rk/core'
 import { describe, expect, it } from 'vitest'
 
 import {
@@ -9,6 +9,7 @@ import {
   SETTINGS_ROUTE,
   surfacesIn,
 } from './areas'
+import { ROUTED } from './routes'
 
 /**
  * RG125: the half of the wording nothing compared.
@@ -68,6 +69,15 @@ describe('RG125: every language against the base', () => {
       `these paths say the same words in \`en\` and \`${language}\`. A name is allowed to;` +
         ' a sentence copied across is the thing this catches.',
     ).toEqual([])
+  })
+})
+
+describe('RG209: the routes the router serves are the list core names', () => {
+  it('routes every pattern the screenshot run visits, and nothing it does not', () => {
+    // Two readers of one list: `routes.tsx` gives each pattern its element, and `shell`'s
+    // screenshot run visits each. A surface routed here and missing there is a screen an
+    // agent is never shown.
+    expect([...ROUTED].sort()).toEqual([...SURFACE_ROUTES].sort())
   })
 })
 

@@ -26,11 +26,16 @@ export default defineConfig({
         // The gate behind `npm run audit`: it reads `npm audit --json` against the list of
         // advisories this project has answered, and fails on anything else (RG95).
         audit: 'src/audit.ts',
+        // The command behind `npm run shots`: every surface photographed through Playwright,
+        // for an agent to read (RG209).
+        shots: 'src/shots.ts',
       },
       formats: ['es'],
     },
     rollupOptions: {
-      external: [/^node:/, 'electron', 'vite'],
+      // Playwright stays external for the reason Electron does: it is present at runtime,
+      // and it resolves its own files relative to where it is installed.
+      external: [/^node:/, 'electron', 'vite', /^playwright-core/],
     },
   },
 })

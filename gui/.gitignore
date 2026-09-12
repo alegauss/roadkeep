@@ -19,6 +19,10 @@ dist/
 dist-types/
 *.tsbuildinfo
 
+# `npm run shots` writes its pictures and their index here (RG209): a reading of this tree
+# for whoever changed it, regenerated on demand and true of no other clone.
+.shots/
+
 # Electron Builder's output. RG46 is the task that configures it; the directory is
 # named here so a local packaging experiment cannot be committed by accident.
 release/

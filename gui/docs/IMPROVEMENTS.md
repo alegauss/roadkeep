@@ -47,31 +47,6 @@ ready task forever. What can be built without it is the pipeline that would use 
 the about surface saying plainly that this build is unsigned — which is the honest half
 and is worth having on its own.
 
-### §RG209 Every surface photographed through Playwright, in both grounds, both languages and two widths
-
-RG207's toggle was checked by a scratch script over `running-app.ts`, which speaks the
-DevTools protocol by hand: the chosen option sat at 1.35:1 against its panel, which
-jsdom cannot see.
-
-**Playwright, not a second hand-written client.** `playwright-core` drives Electron
-itself — `_electron.launch` on the built main, `firstWindow`, `setViewportSize`,
-`screenshot` — and needs no browser download, since Electron is the browser. Its
-Electron support is marked experimental, so the first commit proves a launch and a
-capture on Windows and on the Linux runner.
-
-**`npm run shots`.** `shots.ts` refuses a stale build as the live suite does, builds a
-fixture project, seeds a throwaway profile naming it, and launches. Each routed surface
-is captured in both grounds, `en` and `pt-BR`, at 1280 by 800 and 400 wide, into
-`.shots/`, gitignored, beside an `index.json` naming each capture and whether it
-settled: nothing `aria-busy` and no DOM change for 400 ms, bounded at 10 s.
-
-**One list of surfaces.** The route patterns move to `core` and `routes.tsx` keeps the
-elements, so a surface routed without a shot fails `shots.test.ts`. `--only <route>`
-narrows a run.
-
-Done when one command leaves a PNG per surface, ground, language and width, through
-Playwright.
-
 ### §RG212 How an agent looks at a screen
 
 No gate in CLAUDE.md opens the window, so a session that changed a screen improvised a
@@ -206,3 +181,50 @@ unfocused style.
 
 Done when a surface that scrolls sideways at 400 wide, tabs out of reading order, or
 focuses without a visible ring fails `surfaces.browser.test.tsx`.
+
+### §RG215 A header and hero that fit at phone width
+
+`npm run shots` at 400 wide shows every surface 499 wide. The header keeps each control
+at its desktop size — the brand, the palette trigger at `flex-1`, `?`, the language menu
+and the ground in words, `fundo: seguindo o sistema` — so the trigger collapses to a
+sliver and the ground runs off the edge. The portfolio's hero sets two actions beside
+its title, and the second is cut.
+
+The desktop window has a 900-pixel minimum, so nobody sees this in Electron today. The
+contract is about the page, not the window: a served build is a browser tab, and RG214's
+gate reads 400.
+
+**The header below `sm`.** The palette trigger is its icon and key hint, still named by
+`shell.palette`; `?` hides, since a shortcut sheet is for a keyboard; the ground says
+the setting without its `ground:` prefix, through short catalogue keys, its `aria-label`
+unchanged — words still, never a lone icon, which the header's own comment rules out.
+
+**A hero's actions wrap.** The trailing node a page passes becomes a wrapping row, so
+its buttons fall under the title rather than past the edge; `BentoHero` keeps the layout
+around it.
+
+Done when every surface `npm run shots` takes at 400 is no wider than 400 in both
+languages, and the header at 1280 draws as it does today.
+
+### §RG216 Counted sentences in the forms each language has
+
+The catalogue fills `{count}` into one sentence per key: `portfolio.title` is `{count}
+projetos nesta máquina` and `{count} projects on this machine`, so a machine with one
+project reads *1 projetos*, and the tally beside it *1 lidos*. RG209's pictures show it,
+and the English is as wrong. `backlog.refused.one` is the one key with a singular,
+chosen by hand where it is said.
+
+**A plural form is the language's rule, so it comes from `Intl.PluralRules`.** A counted
+key may carry siblings named by the categories CLDR gives — `portfolio.title.one` beside
+`portfolio.title`, which stays the `other` form — and `fill` picks by the locale's rule
+for the value of `count`. Portuguese and English need `one` and `other`; a language with
+more forms adds keys and no code.
+
+**Found, not remembered.** A test walks the base catalogue: every sentence holding
+`{count}` has a `.one` sibling, or is named in a short list where one already reads
+right — `{count} of {total}`, a label beside a number. `untranslated` then holds every
+locale to the same keys, and `backlog.refused.one` moves onto the mechanism, its hand
+choice gone.
+
+Done when the portfolio with one project says *1 projeto* and *1 project*, and a new
+counted key without a singular fails the catalogue test.

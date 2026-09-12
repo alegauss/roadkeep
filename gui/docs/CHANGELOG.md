@@ -213,6 +213,7 @@
 - ✅ **RG195** **the fixture hands out an unresolved temp path, so a live assertion fails on a Windows account with a short name** — The fixture hands out the spelling the filesystem uses, so an assertion compares one place with itself (design recorded in `packages/shell/src/fixture.ts`).
 - ✅ **RG154** **the update check has only met answers written by hand, never GitHub's own for a published release** — The check is held against GitHub's own payload for v0.1.0, and a run that cannot reach it says so (design recorded in `packages/shell/src/updates-live.test.ts`).
 - ✅ **RG207** **no settings screen, so the ground and the language are loose header controls and a new preference has nowhere to go** — A settings screen writes ground and language through one savePreference over a core table; anything outside it is refused aloud (design recorded in `packages/core/src/preferences.ts`).
+- ✅ **RG209** **no command shows what a screen looks like, so an agent checks a screen change with tests that never see the window** — npm run shots photographs every routed surface through Playwright, in both grounds, both languages and two widths, indexed (design recorded in `packages/shell/src/shots-app.ts`).
 
 ## Block H — The look (a design system for governed prose)
 

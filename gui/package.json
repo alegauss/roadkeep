@@ -31,6 +31,7 @@
     "clean": "tsc -b --clean",
     "stamp": "node packages/shell/dist/stamp-build.js",
     "audit": "npm run build:app && node packages/shell/dist/audit.js",
+    "shots": "npm run build:app && node packages/shell/dist/shots.js",
     "package": "npm run build && npm run stamp && electron-builder --config electron-builder.yml --publish never",
     "icon": "electron build/render-icon.cjs"
   },
@@ -46,6 +47,7 @@
     "jsdom": "^30.0.1",
     "oxlint": "^1.82.0",
     "oxlint-tsgolint": "^7.0.2001",
+    "playwright-core": "^1.63.0",
     "prettier": "^3.9.6",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",

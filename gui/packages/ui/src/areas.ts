@@ -1,4 +1,4 @@
-import type { Bundle } from '@rk/core'
+import { HOME_ROUTE, SESSIONS_ROUTE, SETTINGS_ROUTE, type Bundle } from '@rk/core'
 import { IconLayoutGrid, IconSettings, IconTerminal2 } from '@tabler/icons-react'
 import type { BentoNavGroup, BentoNavItem } from '@viglet/viglet-design-system/bento'
 
@@ -21,71 +21,49 @@ import type { BentoNavGroup, BentoNavItem } from '@viglet/viglet-design-system/b
  * i18next in `speaking`, beside the tag that chooses among them.
  */
 
-/** Where the rail's Home button leads, and where the portfolio is (RG145). */
-export const HOME_ROUTE = '/'
-
-/**
- * One project's backlog (RG148), the root in the path.
+/*
+ * The route patterns are `core`'s since RG209, because the screenshot run in `shell` visits
+ * the same list the router serves and may not import this package. They are re-exported here
+ * so a screen keeps importing its routes from the map it is on.
  *
- * No entry in `AREAS`: the surface is always about a project, so a rail button to it would
- * lead nowhere until one was chosen. A portfolio row is how a reader arrives.
+ * Which of them have an entry in `AREAS` is still this file's rule: the portfolio, the
+ * sessions and the settings are about no project, so the rail and the palette reach them. A
+ * project, its filing and its gate, a line and one session are each about something a reader
+ * chose, and a rail button to one would lead nowhere until it was chosen — a row above it is
+ * how a reader arrives.
  */
-export const PROJECT_ROUTE = '/project/:root'
+export {
+  FILE_ROUTE,
+  GATE_ROUTE,
+  HOME_ROUTE,
+  PROJECT_ROUTE,
+  SESSION_ROUTE,
+  SESSIONS_ROUTE,
+  SETTINGS_ROUTE,
+  TASK_ROUTE,
+} from '@rk/core'
 
 /** The route for one project. Encoded whole, since a root carries slashes and a drive colon. */
 export function projectPath(root: string): string {
   return `/project/${encodeURIComponent(root)}`
 }
 
-/**
- * Filing a line into one project (RG151), which is about that project and so has no entry
- * in `AREAS` either: File a line on the project surface is how a reader arrives.
- */
-export const FILE_ROUTE = '/project/:root/file'
-
 export function filePath(root: string): string {
   return `${projectPath(root)}/file`
 }
 
-/**
- * One project's gate (RG152), reached by Run the gate on the project surface. About that
- * project and so not in `AREAS`, like the two around it.
- */
-export const GATE_ROUTE = '/project/:root/gate'
-
 export function gatePath(root: string): string {
   return `${projectPath(root)}/gate`
 }
-
-/**
- * One line of one project (RG150), under the project it belongs to. No entry in `AREAS`
- * either, for the same reason: a project's row is how a reader arrives.
- */
-export const TASK_ROUTE = '/project/:root/task/:id'
 
 /** The route for one line. The id is encoded too: its shape is the project's, not this app's. */
 export function taskPath(root: string, id: string): string {
   return `${projectPath(root)}/task/${encodeURIComponent(id)}`
 }
 
-/** One session this window started, beside the line it was handed (RG153). */
-export const SESSION_ROUTE = '/project/:root/task/:id/session/:key'
-
 export function sessionPath(root: string, id: string, key: string): string {
   return `${taskPath(root, id)}/session/${encodeURIComponent(key)}`
 }
-
-/**
- * Every session this window started (RG153), which is the one session surface with an entry in
- * `AREAS`: it is about no project in particular, so a reader can reach it from the rail.
- */
-export const SESSIONS_ROUTE = '/sessions'
-
-/**
- * The preferences a person chooses (RG207). About no project, so reached from the rail and the
- * palette like the sessions.
- */
-export const SETTINGS_ROUTE = '/settings'
 
 /**
  * The sections and their surfaces, already filtered by whatever this reader may see —
