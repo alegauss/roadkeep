@@ -25,6 +25,8 @@
 ## Block H — The look (a design system for governed prose)
 
 - 📋 **RG211** (deps: RG209) **no accessibility check runs over a rendered surface, so a defect only real layout and colour show ships green** — RG54 computes contrast over tokens and keyboard reach in jsdom, and a chosen state drawn in the package accent passed both. → §RG211
+- 📋 **RG213** (deps: RG206 ✅) **the renderer's tests run in jsdom alone, so a test about scroll, overflow or focus order asserts numbers it invented** — jsdom computes no layout and fakes its events, so RG206's follow tests set scrollHeight by hand and pass against any CSS. → §RG213
+- 📋 **RG214** (deps: RG213) **no test asks whether a surface scrolls sideways at 400 wide, or whether Tab walks its controls in reading order** — The phone-width rule and RG54's keyboard reach are asserted in jsdom, which has no width to overflow and no real Tab. → §RG214
 
 ## Done when — Block A
 

@@ -156,3 +156,53 @@ paints it.
 
 Done when a surface whose chosen state is told by shade alone fails the run, and RG207's
 toggle, which carries a mark, passes.
+
+### §RG213 A browser project beside jsdom, for what only a layout answers
+
+The `ui` project runs in jsdom, which lays nothing out and fakes its events. RG206's
+follow tests define `scrollHeight` and `clientHeight` on the region by hand, so they
+pass whatever the stylesheet says: a region the CSS never bounds passes them and never
+scrolls in the window.
+
+**A `ui-browser` project.** Vitest Browser Mode with `@vitest/browser-playwright`,
+headless Chromium, over files named `*.browser.test.tsx`, rendered with
+`vitest-browser-react`. It sits beside `ui` in the root config rather than replacing it:
+jsdom stays the fast half for what has no layout. `npm test` keeps to jsdom; `test:live`
+runs the browser project, since it starts a browser, which is the line RG64 drew, and
+the gates table says so.
+
+**The same window.** `drawWindow`, the provider stack and `stubBridge` render unchanged,
+with the app's CSS imported so a class is a real rule.
+
+**The first file proves the move.** RG206's three follow tests move here with nothing
+measured by hand: acts are appended until the bounded region overflows, the reader
+scrolls with the wheel, and `page.viewport` narrows the window to 400 wide.
+
+**CI installs the browser**, `npx playwright install chromium`, beside python.
+
+Done when a region the CSS stops bounding fails `session.browser.test.tsx`, and jsdom's
+copies of those tests are gone.
+
+### §RG214 Width, Tab order and a visible focus, asserted in a real page
+
+The design system's contract says a page never scrolls sideways at phone width. RG54
+asserts keyboard reach as named controls in document order, read off a DOM with no width
+and no focus of its own. A table overflowing at 400 wide, or a toolbar whose Tab order
+is not its visual order, passes both.
+
+**Every surface, narrow.** For each routed surface, with the stubs `wording.test.tsx`
+already builds for the pseudo-locale run, `page.viewport(400, 800)`, and the document's
+`scrollWidth` may not exceed the viewport. What the contract lets be wider — a table, a
+diagram, a code block — is recognised by its own `overflow-x: auto` container, never by
+a list of exceptions.
+
+**Tab walks it.** `userEvent.tab()` from the top of each surface, a real key through the
+DevTools protocol: every control RG54 counts is reached, none twice, and inside the page
+each next control sits below or to the right of the last.
+
+**The focus is visible in both grounds**, since a ring is a colour and RG107 was one:
+the focused control's computed outline or box shadow is not `none`, and differs from its
+unfocused style.
+
+Done when a surface that scrolls sideways at 400 wide, tabs out of reading order, or
+focuses without a visible ring fails `surfaces.browser.test.tsx`.
