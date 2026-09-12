@@ -6,27 +6,165 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-### §RG147 Lines in the palette
+### §RG198 The name a project declares
 
-The header's palette trigger reads "Find a line in every backlog" in `Main.dc.html`, and
-the palette the shell mounts lists `AREAS`, which is surfaces. RG20 shipped `search`
-over every open project, and nothing puts a line into the list a person types at.
+`readRow` names a row `folderName(project.path)`, and the comment beside it is right
+that this is a fact about the path rather than a field the app made up. The trouble is
+that for a worktree the fact is the version: the fixture in `portfolio.test.ts` is
+`/code/viglet/turing/2026.3`, and the row it produces is called **2026.3**. Two of those
+side by side, plus a `latest` junction, is a portfolio in which the product never
+appears.
 
-**The package's palette, fed a second group.** `BentoCommandPalette` takes items; the
-lines `search` answers go in beside the surfaces as their own group, ranked as `search`
-ranked them, each showing id, marker and symptom. Choosing one opens the task detail.
-Nothing is matched in the renderer: a query is `search`'s, and a line the verb did not
-return is not offered, which is block C's first criterion applied to a list.
+**The name comes off the `config` payload, not off the file.** `payloads.ts` already
+refuses a TOML parser here, and `governedFiles` is the precedent: the keys arrive as
+`table`, `key`, `declared` and `set`, and reading `project.name` out of them is the same
+few lines with a different filter. The quotes come off in one place, as they already do.
 
-**Only projects already read are searched.** A project still pending is named at the
-foot of the results as not yet searched, never silently absent, which is what
-`coversEverything` answers.
+**Undeclared and unsupported are the same answer, deliberately.** An engine older than
+the table reports no such key; a project that has one and declares nothing reports it
+undeclared. Both fall back to the folder name, so a portfolio spanning engines at
+different versions is legible rather than half blank — the `engines` payload already
+tells that story where the version itself is the subject.
 
-**It cannot yet, which is the finding for the package.** `BentoCommandPalette` takes
-only nav items and filters them with its own matching, so lines would be matched in the
-renderer. The "a grouped palette" dep is that change in the design system: a second
-group whose items the product supplies per query. Choosing a line waits on RG150's task
-detail.
+`toneOf(row.name)` follows the name, which means a declared name recolours a chip. That
+is correct: the tone identifies the project, and the project is now what it says it is.
+
+### §RG199 Which branch this member is on
+
+`git-worktree.ts` already reads git's own files to find a common directory, and
+`families.ts` is explicit that nothing here runs git. The branch arrives the same way:
+`HEAD` in the worktree's git directory is one line, either `ref: refs/heads/2026.3` or a
+bare sha. No spawn, no library, no second reading of a format this app does not own.
+
+**The declared name is what makes this necessary rather than pleasant.** Today the
+folder name separates the members of a family by accident: `2026.3` and `2026.2` are
+different words. A declared name is one word for a whole repository — the same
+`roadkeep.toml` reached by three paths — so every worktree of Turing renders as
+**Turing**, identical rows under a badge that says only _worktree_. The name solves one
+problem by making another, and the branch is what answers the second.
+
+So the branch goes where that badge is. `portfolio.worktree` states what two rows
+sharing a name already imply; the branch says which of them this is, which is the
+question actually being asked.
+
+**A detached HEAD is not an error.** It is a bisect, a tag checkout, a shallow clone,
+and the row shows the short sha rather than going blank. A folder that is not a git
+checkout has no branch and shows none — which is not the same as a checkout whose `HEAD`
+would not read, and the two do not share a rendering.
+
+### §RG200 The chip is already drawn
+
+The chip is already drawn: `size-8`, `rounded-[10px]`, tinted by `toneOf(row.name)`,
+holding `IconFolder` at seventeen pixels. Every row holds the same glyph, so the chip
+carries one bit — _this is a folder_ — that was never in doubt. The tone varies, but a
+hash over a name is not something a person learns to read.
+
+**The declared emoji goes in that slot and nothing else about the cell moves.** The
+tinted square stays, because it is what gives the emoji an edge and a consistent
+footprint against both themes; the emoji replaces the glyph inside it. No new layout, no
+new size, no second element to align.
+
+Three things this has to get right. It is **presentational**, so the `aria-hidden` on
+the chip stays: an emoji announced before the project's name is noise, and the name is
+already there for anyone reading by ear. It is rendered as **text and never parsed** —
+no grapheme splitting, no codepoint arithmetic, no attempt to decide whether a ZWJ
+sequence counts as one emoji. And a project declaring nothing keeps `IconFolder`, which
+is what makes this safe to ship before a single repository has adopted the key.
+
+Whether the tint should still come from the name once an emoji sits on it is a question
+for the screen. Keeping it costs nothing and a flat chip loses its edge, so the tint
+stays until something argues otherwise.
+
+### §RG201 What a row is for, not where it is
+
+A row's second line is `row.path` in mono, truncated, with the full path in `title`.
+Seventeen rows of that is seventeen paths, and a path answers _where_ when the question
+a portfolio screen is open to answer is _which_. Nothing on the row says what the
+project is for.
+
+**The declared description takes that line and the path keeps the tooltip it already
+has.** Not a third line: the cell is one row of a table beside counts, a next line, a
+gate and an engine, and a row that grows by a line for some projects and not others
+makes the table ragged. The path is not lost — `title={row.path}` is there today and
+stays, which is where a path belongs once something better can be shown in its place.
+
+**One line, truncated, never wrapped.** The limit is the engine's, declared in
+`[limits]` and reported by `budget`, so the refusal happens where the description is
+written rather than where it is drawn. This app does not enforce it; it draws what it
+was given and lets CSS cut the overflow. A screen that silently shortens prose is a
+screen that disagrees with the file it is reading.
+
+Where nothing is declared the path stays on the line, which is what it does today. The
+change is visible only on projects that opted in, and a mixed portfolio is readable in
+both states.
+
+### §RG202 One name, wherever a project is named
+
+`folderName(root)` appears in five more places: the project header's title, the back
+label on the gate screen, the one on a task, the one on the filing screen, and the
+session list's row. Each was correct while the folder name was the only name there was.
+Once a project can declare one, they are five screens disagreeing with the portfolio
+about what a project is called — and the disagreement lands on navigation, where a
+label's whole job is to say where the back arrow goes.
+
+**The name is the row's, resolved once.** The portfolio already holds it and the screens
+below need it without asking again, which means it travels with the route rather than
+being recomputed from the path at each leaf. Recomputing is how five call sites came to
+agree with each other and with nothing else.
+
+The session list is the awkward one: a `SessionRecord` carries a root and little else,
+and the sessions on it may name projects the catalogue has never read. Those fall back
+to the folder name, which is the same rule as everywhere else rather than an exception
+carved for one screen.
+
+`folderName` itself stays exported and stays tested. It is still the fallback, still
+correct about paths, and still the only thing that can answer for a folder nothing has
+read.
+
+### §RG203 A missing project keeps its name
+
+A declared name is read out of the checkout that declares it. A missing project is one
+the rescan did not find, so nothing can be read from it — and a row built the obvious
+way falls back to the folder name at exactly the moment the project disappears. The row
+changes its identity as it goes grey, which is the worst possible moment for it: _last
+seen on Tuesday_ about a name nobody recognises is not the sentence this was built to
+say.
+
+**The catalogue records the last name it saw.** That is not a second copy of roadkeep's
+data — the bound this file states is against caching a backlog, and the record already
+holds `aliases`, `commonDir` and `confirmed` for the same reason. They are facts about a
+machine's folders that have to survive the folder being unreachable, and a name last
+seen is the same kind of fact. `confirmed` already dates it.
+
+`CATALOGUE_VERSION` goes to 2. `catalogueFrom` refuses a version this build does not
+know and answers null, which is a rebuild behind a screen rather than an error, so the
+bump costs one scan on the first launch after an upgrade. The reader takes the new
+fields as optional with an empty default, so nothing about the refusal path changes.
+
+A returning project takes whatever it now declares, including nothing: the record is a
+memory, never an override.
+
+### §RG204 A picture from a repository this app does not own
+
+An emoji is recognisable and it is not a logo. Where a project declares `project.logo`
+the row should draw the file — and that file lives in an arbitrary repository on this
+machine, which is what makes this its own line rather than a clause in the icon's.
+
+**The renderer never gets a path.** A `file://` URL from the portfolio into an Electron
+renderer widens what the window can read to whatever a path can reach, and the path was
+written by a repository rather than by this app. The shell resolves it against the
+project root, refuses anything that climbs out, reads the bytes, checks they are an
+image it agreed to draw, and hands back a data URL over the transport that already
+exists. The renderer receives a picture or it receives nothing.
+
+**A size ceiling, enforced on the bytes and not on a declaration.** A logo here is a
+list-row icon at thirty-two pixels; a repository pointing at a four-megabyte PNG should
+get the emoji and a note on the row, not a portfolio that stalls on seventeen reads.
+
+Every failure — missing file, wrong type, too large, outside the root — falls back to
+`project.icon`, and that to `IconFolder`. The chain is why the emoji stays worth
+declaring even where a logo exists, and it means a broken logo is a cosmetic outcome
+rather than an empty cell.
 
 ## Block D — The project surface (one backlog, read)
 

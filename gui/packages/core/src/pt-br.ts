@@ -75,6 +75,8 @@ export const PT_BR: Wording = {
   'project.opening': 'Abrindo o projeto.',
   'project.refused': 'Este projeto não abriu: {reason}',
   'project.roles': 'Arquivos governados',
+  'palette.lines': 'Linhas',
+  'palette.lines.partial': 'Linhas — {searched} de {total} backlogs pesquisados',
   'project.blocks': 'Blocos',
   'project.block.finished': 'concluído',
   'project.filter.marker': 'marcador',

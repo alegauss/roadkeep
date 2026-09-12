@@ -24,7 +24,7 @@ import {
   type Transport,
   composeWrite,
 } from '@rk/core'
-import { vigDesignSystemTranslations } from '@viglet/viglet-design-system'
+import { vigDesignSystemTranslations } from '@viglet/viglet-design-system/i18n'
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import i18next from 'i18next'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'

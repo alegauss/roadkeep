@@ -1,4 +1,12 @@
-import { PRODUCT, RESET_TEXT, saidOfVersion, THEME_TEXT } from '@rk/core'
+import {
+  coversEverything,
+  PRODUCT,
+  RESET_TEXT,
+  saidOfVersion,
+  search,
+  THEME_TEXT,
+  type Hit,
+} from '@rk/core'
 import { AppFooter, Button, LanguageSwitcher, Toaster, toast } from '@viglet/viglet-design-system'
 import {
   BentoBackToTop,
@@ -6,15 +14,16 @@ import {
   BentoNavRail,
   BentoShortcutsDialog,
 } from '@viglet/viglet-design-system/bento'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Outlet, useNavigate } from 'react-router-dom'
 
-import { AREAS, HOME_ROUTE, surfacesIn } from './areas'
+import { AREAS, HOME_ROUTE, surfacesIn, taskPath } from './areas'
 import { BrandMark } from './BrandMark'
 import { useGround } from './ground'
 import { noticesAtLaunch } from './launch'
 import { SPOKEN_LOCALES } from './speaking'
 import { useIdentity } from './useTransport'
+import { useSearchable } from './useSearchable'
 import { useWording } from './wording'
 
 /**
@@ -61,6 +70,16 @@ import { useWording } from './wording'
  */
 
 /** Past which the two global keys are the platform's own. */
+/**
+ * One hit's key, which is what a chosen item is looked back up by.
+ *
+ * The separator is NUL, written as an escape: no path and no id can hold one, and a
+ * literal byte here is invisible in every editor and every diff (RG184).
+ */
+function keyOf(hit: Hit): string {
+  return `${hit.project}\u0000${hit.line.id}`
+}
+
 function isMac(): boolean {
   return typeof navigator === 'object' && navigator.userAgent.includes('Mac')
 }
@@ -89,12 +108,51 @@ export function AppShell() {
   const { theme, cycle } = useGround()
   const identified = useIdentity()
   const [paletteOpen, setPaletteOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const searchable = useSearchable()
+  const navigate = useNavigate()
+  // RG20's search, over the lines this app holds. Nothing is matched here: the palette does
+  // not re-rank what it is given, and a line `search` did not return is not offered — block
+  // C's first criterion applied to a list (RG147).
+  const found = useMemo(() => search(searchable.projects, query), [searchable.projects, query])
+  const hits = useMemo(() => new Map(found.hits.map((hit) => [keyOf(hit), hit])), [found])
+  const navigateTo = useCallback(
+    (item: { id: string }) => {
+      const hit = hits.get(item.id)
+      if (hit !== undefined) void navigate(taskPath(hit.project, hit.line.id))
+    },
+    [hits, navigate],
+  )
+  // Memoised, or the palette is handed a new object every render.
+  const lineGroup = useMemo(
+    () => ({
+      // The heading says how much of the backlog this answer is about. A search that quietly
+      // covered eleven of seventeen projects is one whose empty answer means nothing — and an
+      // empty answer is when somebody concludes a line does not exist.
+      label: coversEverything(found)
+        ? say('palette.lines')
+        : say('palette.lines.partial', {
+            searched: found.searched,
+            total: found.searched + found.unsearched.length,
+          }),
+      items: found.hits.map((hit) => ({
+        id: keyOf(hit),
+        label: `${hit.line.status} ${hit.line.id}`,
+        description: `${hit.name} — ${hit.line.symptom}`,
+      })),
+      pending: searchable.pending,
+      onSelect: navigateTo,
+    }),
+    [found, say, searchable.pending, navigateTo],
+  )
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const mac = isMac()
-
   const openPalette = useCallback(() => {
+    // The listings are read here and not at launch: a read per project for a window nobody
+    // has typed into is the cold start RG17 exists to bound (RG147).
+    searchable.ask()
     setPaletteOpen(true)
-  }, [])
+  }, [searchable])
   const openShortcuts = useCallback(() => {
     setShortcutsOpen(true)
   }, [])
@@ -240,6 +298,8 @@ export function AppShell() {
         open={paletteOpen}
         onOpenChange={setPaletteOpen}
         items={surfacesIn(AREAS)}
+        onQueryChange={setQuery}
+        group={lineGroup}
       />
       <BentoShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} isMac={mac} />
       <BentoBackToTop />

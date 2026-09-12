@@ -89,6 +89,7 @@
 - ✅ **RG166** **every row's gate reads unknown, since the ledger RG18 built is fed by nothing a window runs** — A row's gate is the verdict the carrier ran, heard as it lands (design superseded: the health rides a gate topic, not the opening) (design recorded in `packages/shell/src/carrier.ts`).
 - ✅ **RG167** **a row is read once, so a line shipped in a terminal leaves the portfolio stale until the window reopens** — A read row follows its own project and reads itself again where it stands when the files move (design recorded in `packages/ui/src/usePortfolio.ts`).
 - ✅ **RG187** **the carrier gates every project as it opens, so a cold start over seventeen starts seventeen lints at once** — A launch gates one project at a time, so the rest of the machine goes to what the reader is looking at (design recorded in `packages/shell/src/carrier.ts`).
+- ✅ **RG147** **the palette says it finds a line in every backlog and lists only surfaces, so search over all projects reaches no one** — The palette offers the lines search returned, from every backlog read, and says what it does not cover (design recorded in `packages/ui/src/useSearchable.ts`).
 
 ## Block D — The project surface (one backlog, read)
 

@@ -89,6 +89,8 @@ export const EN = {
   'project.opening': 'Opening the project.',
   'project.refused': 'This project did not open: {reason}',
   'project.roles': 'Governed files',
+  'palette.lines': 'Lines',
+  'palette.lines.partial': 'Lines — {searched} of {total} backlogs searched',
   'project.blocks': 'Blocks',
   'project.block.finished': 'finished',
   'project.filter.marker': 'marker',

@@ -1,5 +1,5 @@
 import { BASE, PT_BR, translator } from '@rk/core'
-import { vigDesignSystemTranslations } from '@viglet/viglet-design-system'
+import { vigDesignSystemTranslations } from '@viglet/viglet-design-system/i18n'
 import { render, screen } from '@testing-library/react'
 import i18next, { changeLanguage, t } from 'i18next'
 import { act } from 'react'

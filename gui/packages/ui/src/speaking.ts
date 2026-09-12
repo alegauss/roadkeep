@@ -1,5 +1,8 @@
 import { BASE, LOCALE_NAMES, LOCALE_TAGS } from '@rk/core'
-import { initVigI18n, toast } from '@viglet/viglet-design-system'
+import { toast } from '@viglet/viglet-design-system'
+// The i18n runtime is its own subpath since 2026.3.10: the root barrel no longer re-exports
+// it, so a consumer that never speaks more than one language stops resolving i18next.
+import { initVigI18n } from '@viglet/viglet-design-system/i18n'
 import type { LanguageOption } from '@viglet/viglet-design-system'
 // The default export is the shared instance and the named ones are bound to it, which is
 // the whole reason this file exists: there is one instance and everybody reads it.
