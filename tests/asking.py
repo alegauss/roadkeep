@@ -59,6 +59,10 @@ QUESTIONS: tuple[Question, ...] = (
     Question("what is this task, across the files that hold a piece of it", ("show", "RK1")),
     Question("what is this task waiting on, and what waits on it", ("deps", "RK1")),
     Question("which lines carry this marker", ("list",)),
+    # RK1680. A second row for one verb, which is this inventory's own rule: the readiness
+    # `pick` applies to choose *one* line answers a different question asked of all of them,
+    # and a consumer with no command for it resolved the deps of every row itself.
+    Question("which of these lines could somebody begin right now", ("list", "--startable")),
     Question("how much is in this file", ("stats",)),
     Question("which marker lines did the grammar fail to read", ("audit",)),
     Question("does this backlog still conform to its own rules", ("lint",)),

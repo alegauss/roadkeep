@@ -79,32 +79,31 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1680 Readiness on the listing
-
-`list --json` prints each line's id, status, block, symptom, why, deps and ref — and no
-readiness. The summary beside them says how many are startable and how many are waiting,
-so the classification already happens: that count is built by walking the open lines and
-testing each one's requirements, then keeping the total. The per-line answer exists for
-the length of a loop and is thrown away.
-
-**A consumer redraws it, one subprocess at a time.** roadkeep-gui paints a readiness
-column by calling `deps` once per listed row, that being the only verb answering it per
-line. Forty lines is cheap against a held engine; eight hundred is eight hundred reads
-to draw one screen, and its cache holds two hundred answers.
-
-**The same gap removed a filter.** *Startable only* narrows by readiness. Every other
-narrowing on that screen is an argument `list` takes and this one is not, so it was not
-offered rather than computed in the client.
-
-**Neither half is a consumer's to build.** A readiness resolver written into a client is
-the one that disagrees with this tool without anyone noticing — the re-parse this design
-exists to make unnecessary, and the argument `startable` itself was filed under.
-
-**Two things, the second smaller than the first.** `list --json` carries each open
-line's readiness beside its status; `list --startable` narrows to those. The filter is
-the predicate the summary already applies, named.
-
 ## Block D — The gate
+
+### §RK1681 The door that prices the wrong file
+
+`section add RK1680 --role decisions` refused at 157 words against the decisions file's
+own limit of 150, and offered `budget --anchor <id> --body-file <path>` as the read that
+measures the same draft first. Run verbatim, that command answers `§RK1681
+improvements`, prices the draft against 250, and reports 200 words as *fits, 50 spare*.
+The write that just refused would refuse it again.
+
+**The argv is fixed per code.** `foreseen(code, bound)` maps `body.too-long` to one
+argv, and `bound` was added by RK1503 for this same failure one axis over: naming the
+wrong read sends a caller to a measurement that says it fits. The role is the second
+axis, and `[limits.decisions] section` is what makes it one — a project declaring a
+narrower limit for one file is the supported case and not an edge.
+
+**The cost is the refusal the door exists to prevent.** A caller who trusts it composes
+the write again unchanged and spends a second refusal on the same paragraph, which is
+the round trip the preventive read was added to remove; a caller who does not trust it
+reads the limit out of `roadkeep.toml`, which is the file read this tool exists to
+replace.
+
+What is unsettled is where the role is carried. `bound` is already a second key on the
+same lookup, so a third may belong there, or the door may be composed with the refusing
+call's own `--role` rather than selected from a table.
 
 ## Block E — Adoption
 

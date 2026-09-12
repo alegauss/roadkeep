@@ -35,7 +35,7 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
-from roadkeep.backlog import Standing
+from roadkeep.backlog import Readiness, Standing
 from roadkeep.capturing import Debt
 from roadkeep.config import Config
 from roadkeep.kernel.document import Document, Entry, Reject, declares, shading
@@ -49,6 +49,11 @@ if TYPE_CHECKING:  # a name for the annotation only: `deferring` writes, and thi
 #: ones history could not place last. A phrase and not a code, like `picked`, because the one
 #: fact a client needs from it is that the first row is the longest-standing.
 OLDEST_FIRST = "oldest first"
+
+#: The one readiness `--startable` keeps (RK1680). Named off the enum and never spelled as a
+#: string here: this module resolves nothing, but the word it compares against is still the
+#: resolver's own, and a literal would be a second vocabulary drifting from the first.
+READY = str(Readiness.READY)
 
 
 @dataclass(frozen=True, slots=True)
@@ -457,6 +462,71 @@ class Census:
         }
         return status in self.schema.markers and status not in terminal
 
+    def open_entries(self) -> tuple[Entry, ...]:
+        """The lines a question about *beginning* is about — `[markers]`' own open set.
+
+        Its own reader since RK1680, because three callers ask it and two of them are outside
+        this module: the split counts them, the filter narrows to a subset of them, and the
+        verb resolving readiness would otherwise resolve the deps of every ✅ in the file to
+        have the answer thrown away.
+        """
+        return tuple(
+            entry for entry in self.counted if self._is_open(entry.task.status)
+        )
+
+    def _unmet(self, entry: Entry, has: frozenset[str]) -> list[str]:
+        """What this line names and the caller has not, which is one test and not two (RK1680).
+
+        Factored out when the filter joined the count: `startable` in the summary and
+        `--startable` on the listing have to be the same predicate, and two spellings of it
+        is how a payload comes to say `waiting 0` beside a line nobody can begin.
+        """
+        return [one for one in entry.task.requires if one not in has]
+
+    def readiness(self, resolved: Mapping[str, str]) -> dict[str, str | None]:
+        """Each counted line's readiness, for the rows a listing carries (RK1680).
+
+        ``resolved`` is the caller's, and that is this module's law rather than a preference:
+        readiness needs the ledger and the store, a count needs one file, and a census that
+        opened a second one could go stale against a changelog it never promised to read. So
+        what is answered here is which lines the question is *about* — a ✅ or a 🗑 the roadmap
+        still holds is `None`, the answer being neither ready nor blocked but *done*.
+        """
+        return {
+            entry.task.id: (
+                resolved.get(entry.task.id)
+                if self._is_open(entry.task.status)
+                else None
+            )
+            for entry in self.counted
+        }
+
+    def startable(
+        self, ready: Mapping[str, str | None], available: Iterable[str] = ()
+    ) -> Census:
+        """The same census over the lines nothing is holding up (RK1680).
+
+        **Both halves, because either alone is a filter that lies.** A line whose deps are
+        unsatisfied is not startable however little it requires, and a line waiting on a
+        console is not startable however clear its deps are — so this is `pick`'s own offer
+        expressed as a narrowing, and the split riding the narrowed payload then reads
+        `waiting 0` truthfully rather than contradicting the rows printed beside it.
+
+        The misses go, for :meth:`select`'s reason under `--marker`: a line the grammar
+        refused has no status this filter can trust and no dep it could resolve, so a census
+        claiming to have counted them here would be claiming to have read them.
+        """
+        has = frozenset(available)
+        return replace(
+            self,
+            counted=tuple(
+                entry
+                for entry in self.open_entries()
+                if ready.get(entry.task.id) == READY and not self._unmet(entry, has)
+            ),
+            missed=(),
+        )
+
     def split(self, available: Iterable[str] = ()) -> Split:
         """How many open lines nothing absent is holding up, and what the rest wait for.
 
@@ -471,13 +541,11 @@ class Census:
         depending on the machine it ran on.
         """
         has = frozenset(available)
-        open_lines = tuple(
-            entry for entry in self.counted if self._is_open(entry.task.status)
-        )
+        open_lines = self.open_entries()
         counts: dict[str, int] = {}
         waiting = 0
         for entry in open_lines:
-            missing = [one for one in entry.task.requires if one not in has]
+            missing = self._unmet(entry, has)
             if not missing:
                 continue
             waiting += 1
@@ -571,6 +639,7 @@ class Census:
         available: Iterable[str] = (),
         bound: Bound | None = None,
         stood: tuple[Stood, ...] | None = None,
+        ready: Mapping[str, str | None] | None = None,
     ) -> dict[str, object]:
         """The same answer as data, with what the label it was scoped to turned out to be.
 
@@ -583,10 +652,16 @@ class Census:
         says so. Without it the payload is exactly what it was: the age is a git call, and a
         key that appears only where the caller passed the flag asking for it is one that
         caller knows to read — which a key appearing only on a refusal is not.
+
+        ``ready`` is each line's readiness, resolved by the caller (RK1680) and carried on
+        every row rather than on the open ones alone: a key some rows have is one a client
+        writes a branch for, and the answer for a line the question is not about is `None`.
+        Absent where the listing is of a file with no open population, which is the whole of
+        what a ledger row would have said.
         """
         from roadkeep.rendering import _miss_json, _row_json  # noqa: PLC0415 - RK260
 
-        rows: list[dict[str, object]] = [_row_json(entry) for entry in self.counted]
+        rows: list[dict[str, object]] = [_row_json(entry, ready) for entry in self.counted]
         if stood is not None:
             aged = {one.task_id: one for one in stood}
             rank = {one.task_id: index for index, one in enumerate(stood)}
@@ -594,7 +669,7 @@ class Census:
             # line, and the sort being stable keeps two lines sharing an id where the file had them.
             rows = [
                 {
-                    **_row_json(entry),
+                    **_row_json(entry, ready),
                     "since": aged[entry.task.id].since,
                     "reason": aged[entry.task.id].reason,
                 }

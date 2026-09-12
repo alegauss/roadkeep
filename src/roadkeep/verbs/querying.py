@@ -150,14 +150,65 @@ def _list_argv(args: argparse.Namespace) -> tuple[str, ...]:
         out += ["--role", _role(args)]
     if getattr(args, "marker", None):
         out += ["--marker", args.marker]
+    if getattr(args, "startable", False):
+        out.append("--startable")
     if args.ids:
         out.append("--ids")
     return tuple(out)
 
 
+def _ready(
+    config: Config, args: argparse.Namespace, census: Census
+) -> dict[str, str | None] | None:
+    """Each listed line's readiness, resolved once for the whole listing (RK1680).
+
+    Read **once** and handed to both the payload and the filter, which is `_stood`'s shape and
+    for a stronger reason: the consumer this replaces called `deps` once per row, so the
+    subprocess per line is exactly the cost being removed and a second resolution here would
+    put half of it back.
+
+    `None` on any role but the roadmap. A ledger and a store declare their whole contents
+    settled, so there is no open population to ask about, and a key answering `null` on every
+    row of an eight-hundred-entry listing is width spent saying nothing — against `[reads]
+    list`, which is the bound this verb applies to itself.
+
+    Only the open lines are resolved, and :meth:`Census.readiness` puts the `None` back for
+    the rest: resolving a ✅'s deps is a walk whose answer the row then discards.
+    """
+    if _role(args) != "roadmap":
+        return None
+    backlog = Backlog.load(config)
+    return census.readiness(
+        {
+            entry.task.id: str(backlog.readiness(entry.task))
+            for entry in census.open_entries()
+        }
+    )
+
+
+#: Why `--startable` is refused where readiness is not a question (RK1680). A filter nobody
+#: validated is a filter that silently matches nothing, which is `select`'s rule about a block
+#: and a marker and the same one here: the empty listing a ledger would give back reads exactly
+#: like a roadmap on which nothing can be begun.
+_NOT_STARTABLE = (
+    "--startable narrows by readiness, and a {role} declares its whole contents settled: "
+    "there is no open line in it to be ready. Ask it of the roadmap, or drop the flag to "
+    "list this file"
+)
+
+
 def _list(config: Config, args: argparse.Namespace) -> Result | int:
+    have = getattr(args, "have", ())
     try:
         census, standing = _census(config, args)
+        # Resolved before the narrowing and kept after it (RK1680): the map is keyed by id, so
+        # it answers for the subset too, and re-reading the backlog for the filtered listing
+        # would be the per-row resolution this verb exists to replace, made twice.
+        ready = _ready(config, args, census)
+        if getattr(args, "startable", False):
+            if ready is None:
+                return _refused(ValueError(_NOT_STARTABLE.format(role=_role(args))))
+            census = census.startable(ready, have)
     except (KeyError, OSError) as error:
         return _refused(error)
 
@@ -170,7 +221,6 @@ def _list(config: Config, args: argparse.Namespace) -> Result | int:
     # there. The served tool takes no such flag and never will while `[tools] session` is this
     # close — the agent on that transport is the caller with no hands, which is the population
     # this split already assumes.
-    have = getattr(args, "have", ())
     listed = census.listed(args.ids)
     stood = _stood(config, args, census)
     # **One bound, taken over the register that was asked for** (RK1615). The cap is measured on
@@ -178,7 +228,7 @@ def _list(config: Config, args: argparse.Namespace) -> Result | int:
     # `args.json` where the rest of the handler no longer does. That is not the branch the type
     # removed: this decides the verdict, not which answer to hand over.
     bound = census.bounded(
-        json.dumps(census.listing(standing, have, stood=stood), indent=2)
+        json.dumps(census.listing(standing, have, stood=stood, ready=ready), indent=2)
         if args.json
         else listed,
         config.list_read,
@@ -190,13 +240,13 @@ def _list(config: Config, args: argparse.Namespace) -> Result | int:
         # consumer piping `--ids` gets the empty listing the exit code explains, and never
         # a sentence where the ids were.
         return Result(
-            census.listing(standing, have, bound, stood=stood),
+            census.listing(standing, have, bound, stood=stood, ready=ready),
             "",
             noted=bound.stated(),
             code=EXIT_GATE,
         )
     return Result(
-        census.listing(standing, have, stood=stood),
+        census.listing(standing, have, stood=stood, ready=ready),
         listed,
         noted="\n".join([*census.notes(standing), *_standing_rows(stood)]),
     )
@@ -1551,6 +1601,20 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     # order goes to stderr beside the notes, this verb's own rule about that stream (RK1170).
     # And in the payload, where the order and the reason ride on each pause (RK1677): stderr is
     # prose, and a client that refuses to scrape it had no age to draw.
+    # The filter the payload's own split already counts (RK1680). Its readiness half is on
+    # every row of a roadmap listing and costs no flag; this is the narrowing, which a client
+    # holding the rows can make for itself and a terminal cannot — so it is the CLI's, like
+    # `--have`, whose absence it also reads: passing nothing is having nothing.
+    list_parser.add_argument(
+        "--startable",
+        action="store_true",
+        help=(
+            "only the lines nothing is holding up — deps all satisfied and nothing they "
+            "require absent, which is what `pick` offers and what the payload's `startable` "
+            "counts. Roadmap only: a ledger declares its contents settled, so it has no open "
+            "line to be ready"
+        ),
+    )
     list_parser.add_argument(
         "--stale",
         action="store_true",
@@ -1565,6 +1629,7 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         list_parser,
         ids='how a terminal prints: the payload carries every id in `tasks`, so a caller over this transport already has what the flag composes',
         have='the caller on this transport is the one with no hands, which is what the split already assumes — and the flag `brief` and `pick` expose costs the connect budget a read that answers without it does not',
+        startable='the narrowing is over rows this transport already holds: every roadmap row in the payload carries its own `readiness`, so a caller here filters the answer it has rather than paying the connect budget for a flag that spends a second call to return less',
         stale='the age is a git call and this surface is charged at connect for every session that never asks it; a caller here reads the store with `--role deferred` and takes the ordering at a terminal, where the cost is paid by whoever wanted it',
     )
     # `verdict=True` for `lint`'s reason (RK1421): the one non-zero exit this verb has is the

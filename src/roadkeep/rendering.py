@@ -932,11 +932,23 @@ def _served(config: Config) -> str:
     return served_by(config.root)
 
 
-def _row_json(entry: Entry) -> dict[str, object]:
+def _row_json(
+    entry: Entry, ready: Mapping[str, str | None] | None = None
+) -> dict[str, object]:
+    """One line as data, with its readiness where the listing was asked about one (RK1680).
+
+    ``ready`` is resolved elsewhere and looked up here: the marker says what somebody wrote
+    and this says whether anything is holding the line up, which are two facts a client drew
+    by calling `deps` once per row. `None` throughout is *not asked* — a ledger has no open
+    population — and `None` for one id inside a map is *not a question about this line*,
+    which is what a ✅ left in the roadmap is.
+    """
     task = entry.task
     return {
         "id": task.id,
         "status": task.status,
+        # Beside the status, because that is the column it is read against.
+        **({} if ready is None else {"readiness": ready.get(task.id)}),
         "block": task.block,
         "symptom": task.symptom,
         "why": task.why,

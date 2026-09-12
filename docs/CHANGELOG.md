@@ -503,6 +503,7 @@
   checked **The listing's payload carries each carried lead's reason** Keyed by the lead as the answer prints it, the join non_goals_quoted already makes, so a client reads the argument without opening the file.
   checked **Every key the listing already published is unchanged** non_goals stays a list of strings and the elided count and the quoted map keep their types, because a client outside this process reads them today.
 - ✅ **RK1677** **list --role deferred --json carries no age for a pause, which --stale computes and prints only for a terminal** — list --stale --json gives each pause its since and reason, oldest first under an order key, and both registers age one selection (design recorded in `src/roadkeep/counting.py`).
+- ✅ **RK1680** **list prints no readiness per line, so a consumer resolves deps once per row to draw a column it already counted** — Every roadmap row of the list payload carries its readiness, and --startable narrows to the lines no dep and no absent requirement is holding up.
 
 ## Block D — The gate
 

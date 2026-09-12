@@ -213,7 +213,15 @@ both answers ride `list --json` instead — `startable` is the split, computed o
 the lines the filter selected, and `uncounted` is every marker line the grammar refused,
 each with its reason. So a served caller asks `list` and reads the payload, and a caller
 passing no `--have` is counted as having nothing, which is the population that axis was
-written for;
+written for. **Every roadmap row of that payload carries its own `readiness`** — `ready`,
+`blocked`, `blocked-outside` or `blocked-paused`, and `null` on a line the question is not
+about, a ✅ the file still holds being done rather than either — so a column that cost one
+`deps` per row is one read, and a ledger or store listing carries no such key, having no
+open line to be ready. `list --startable` is the narrowing the same classification allows:
+the lines whose deps are all satisfied *and* which nothing they require is holding up,
+which is `pick`'s offer as a filter rather than as a choice, refused on any role but the
+roadmap. Terminal-only for `--have`'s reason — a caller over the tool surface already holds
+the rows and narrows them without a second call;
 `claims` is the registry read against the files —
 held, expired or stale, oldest first, where each id went and where the registry lives, and
 `--prune` drops the rows that are not claims; `writes` is the same read for the other

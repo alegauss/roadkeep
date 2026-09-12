@@ -195,6 +195,9 @@ _UNMEASURED: dict[tuple[str, str, str], str] = {
     "fixture declares none — the same state `budget --defer` wants, and declaring one here "
     "would change what every other pair is measured against",
     ("list", "--json", "--stale"): "the same, one form over",
+    ("list", "--startable", "--stale"): "the same absent store, which is what refuses here "
+    "before either flag is read — and on a project that declares one the pair is refused on "
+    "its own merits (RK1680), a store having no open line to be ready",
     ("merge", "--check", "--json"): "exit 1 is this verb's finding and not a refusal — a "
     "clean tree is the state it wants, and the fixture's is mid-build",
 }

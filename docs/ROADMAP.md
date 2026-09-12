@@ -28,9 +28,9 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1680** (deps: —) **list prints no readiness per line, so a consumer resolves deps once per row to draw a column it already counted** — The summary's startable count classifies every open line and keeps only the total. → §RK1680
-
 ## Block D — The gate
+
+- 📋 **RK1681** (deps: —) **a refusal on the decisions role hands back a budget door that measures the draft against the improvements limit** — The foreseen door carries a fixed argv with no --role, so the read it names answers about the file the refusal was not about. → §RK1681
 
 ## Block E — Adoption
 

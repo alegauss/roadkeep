@@ -93,6 +93,7 @@ line already there. Its refusal names `section add` against that line's own anch
 - ✅ **RK1656** **a dep on a ruled-out finding resolves as unknown, which says nothing can answer about a file that answers exactly** — A dep on a recorded decision not to file is unresolvable and not deferred: a pause is revivable by resume, and what would lift this one is the premise breaking.
 - ✅ **RK1663** **the per-block half of a pin's shape counts the roadmap's headings, so a finished block's entries land in no row** — A per-block reading of a corpus is over the union of both files' headings: a finished block keeps its heading in the ledger, and the rows have to sum to the totals.
 - ✅ **RK1677** **list --role deferred --json carries no age for a pause, which --stale computes and prints only for a terminal** — A listing carries the age keys only where --stale asked: the age is a git call, and a key the caller requested by flag is one it knows to read.
+- ✅ **RK1680** **list prints no readiness per line, so a consumer resolves deps once per row to draw a column it already counted** — Startable means both halves at once: an unsatisfied dep and an absent requirement each disqualify a line, so a narrowed listing never says waiting above zero.
 
 ### §RK1362 Why a projection and not a wider read
 
@@ -272,6 +273,21 @@ for 280 of Shio's 668 and 55 of Turing's 901, and nothing asked whether they add
 The order is the roadmap's and then the ledger's own, so a reader who knew these rows
 keeps them where they were and the finished blocks arrive after — which is the honest
 reading of the two files: the open work first, the history behind it.
+
+### §RK1680 Startable is both halves
+
+The summary already divided the open count by what a line requires, and `pick` already
+set aside the ones nothing satisfies the deps of. Naming only one of those `--startable`
+was the alternative, and it fails against the payload it rides in: the split is computed
+over the lines the call selected, so narrowing by readiness alone returns a listing
+whose own summary says two are waiting. Narrowing by requirements alone offers work no
+ship unblocks.
+
+What is accepted is that the filter is stricter than the number beside it. `startable`
+in the payload still counts one axis, because it is `stats`' own figure and a count
+reads one file; the filter reads two, being a verb's answer rather than a census's.
+Every roadmap row carries its `readiness` so that difference is legible rather than
+inferred — which is also what a consumer drew by calling `deps` once per row.
 
 ## Block D — The gate
 

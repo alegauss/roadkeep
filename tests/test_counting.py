@@ -440,6 +440,122 @@ def test_the_split_follows_the_block_the_count_was_scoped_to(tmp_path, capsys):
     assert split["open"] == 1 and split["startable"] == 0
 
 
+# -- readiness per line, and the filter that is the same predicate (RK1680) ---
+
+#: The four states a readiness column has to tell apart in one listing: ready, blocked on an
+#: open line, ready-but-waiting on a requirement, and a line the question is not about.
+MIXED = """# Roadmap
+
+## Block A — The model
+
+- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1
+- 📋 **RK2** (deps: RK1) **A second symptom** — Because of a reason. → §RK2
+- 📋 **RK3** (deps: —) (requires: console) **A third symptom** — Because of a reason. → §RK3
+- ✅ **RK4** (deps: —) **A fourth symptom** — Because of a reason. → §RK4
+"""
+
+
+def _rows(capsys) -> dict[str, dict]:
+    return {row["id"]: row for row in json.loads(capsys.readouterr().out)["tasks"]}
+
+
+def test_every_row_carries_the_readiness_a_consumer_resolved_one_subprocess_at_a_time(
+    tmp_path, capsys
+):
+    """RK1680. The column existed and was thrown away: the summary classifies every open
+    line to keep a total, while a client redrew it by calling `deps` once per row."""
+    project(tmp_path, roadmap=MIXED, extra=DECLARED)
+    assert main(["-C", str(tmp_path), "list", "--json"]) == EXIT_OK
+    rows = _rows(capsys)
+    assert rows["RK1"]["readiness"] == "ready"
+    assert rows["RK2"]["readiness"] == "blocked"
+    # Readiness is what the deps resolve to, so a line waiting on a console is still ready:
+    # the two axes are separate, and `--startable` is where they meet.
+    assert rows["RK3"]["readiness"] == "ready"
+
+
+def test_a_line_the_question_is_not_about_answers_null_and_never_drops_the_key(
+    tmp_path, capsys
+):
+    """A ✅ the roadmap still holds is neither ready nor blocked but done, and a key some
+    rows carry is one a client writes a branch for."""
+    project(tmp_path, roadmap=MIXED, extra=DECLARED)
+    assert main(["-C", str(tmp_path), "list", "--json"]) == EXIT_OK
+    row = _rows(capsys)["RK4"]
+    assert "readiness" in row and row["readiness"] is None
+
+
+def test_a_file_with_no_open_population_carries_no_readiness_at_all(tmp_path, capsys):
+    """A ledger declares its whole contents settled, so `null` on every one of eight hundred
+    rows is width spent saying nothing — against `[reads] list`, which this verb holds."""
+    project(tmp_path, roadmap=MIXED, extra=DECLARED)
+    assert main(["-C", str(tmp_path), "list", "--role", "changelog", "--json"]) == EXIT_OK
+    assert all("readiness" not in row for row in _rows(capsys).values())
+
+
+def test_startable_keeps_the_lines_neither_a_dep_nor_a_requirement_is_holding_up(
+    tmp_path, capsys
+):
+    """Both halves, because either alone is a filter that lies: a blocked line is not
+    startable however little it requires, and a line waiting on a console is not startable
+    however clear its deps are."""
+    project(tmp_path, roadmap=MIXED, extra=DECLARED)
+    assert main(["-C", str(tmp_path), "list", "--startable", "--ids"]) == EXIT_OK
+    assert capsys.readouterr().out.split() == ["RK1"]
+
+
+def test_what_the_caller_has_moves_a_line_into_the_startable_listing(tmp_path, capsys):
+    """The same axis the split takes, so the filter and the number beside it cannot
+    disagree about which lines a person at the desk can begin."""
+    project(tmp_path, roadmap=MIXED, extra=DECLARED)
+    argv = ["-C", str(tmp_path), "list", "--startable", "--have", "console", "--ids"]
+    assert main(argv) == EXIT_OK
+    assert capsys.readouterr().out.split() == ["RK1", "RK3"]
+
+
+def test_the_narrowed_listings_own_split_has_nothing_left_waiting(tmp_path, capsys):
+    """The self-consistency the filter is for: the split is computed over the lines this
+    call selected, so a `--startable` listing saying `waiting 2` would be the payload
+    contradicting the rows printed beside it."""
+    project(tmp_path, roadmap=MIXED, extra=DECLARED)
+    assert main(["-C", str(tmp_path), "list", "--startable", "--json"]) == EXIT_OK
+    listing = json.loads(capsys.readouterr().out)
+    assert listing["startable"] == {
+        "open": 1,
+        "startable": 1,
+        "waiting": 0,
+        "absent": [],
+    }
+    assert [row["readiness"] for row in listing["tasks"]] == ["ready"]
+
+
+def test_startable_is_refused_where_there_is_no_open_line_to_be_ready(tmp_path, capsys):
+    """A filter nobody validated is a filter that silently matches nothing, which is
+    `select`'s rule about a block and a marker and the same one here: the empty listing a
+    ledger gives back reads exactly like a roadmap on which nothing can be begun."""
+    project(tmp_path, roadmap=MIXED, extra=DECLARED)
+    argv = ["-C", str(tmp_path), "list", "--role", "changelog", "--startable"]
+    assert main(argv) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "declares its whole contents settled" in said and "changelog" in said
+
+
+def test_the_door_out_of_a_bounded_listing_keeps_the_narrowing_that_was_asked_for(
+    tmp_path, capsys
+):
+    """`[reads] list` answers with the call that would fit, and a door dropping the filter
+    would offer a listing the caller did not ask for."""
+    wide = MIXED + "\n## Block B — Authoring\n\n" + "".join(
+        f"- 📋 **RK{n}** (deps: —) **A symptom** — Because of a reason. → §RK{n}\n"
+        for n in range(5, 9)
+    )
+    project(tmp_path, roadmap=wide, extra=DECLARED + "\n[reads]\nlist = 10\n")
+    argv = ["-C", str(tmp_path), "list", "--startable", "--ids"]
+    assert main(argv) == EXIT_GATE
+    said = capsys.readouterr().err
+    assert "`roadkeep list --startable --ids --block A` is the largest" in said
+
+
 def test_audit_names_the_line_the_reason_and_the_block(tmp_path, capsys):
     broken = CLEAN + "- 📋 **RK4** (deps: —) A symptom with no bold — a reason.\n"
     project(tmp_path, roadmap=broken)
