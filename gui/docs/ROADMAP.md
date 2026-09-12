@@ -23,8 +23,7 @@
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
-- 📋 **RG154** (deps: RG50 ✅, RG162 ⏳) (requires: published-artifact) **the update check has only met answers written by hand, never GitHub's own for a published release** — No release is published yet, so the shape it reads and the page it opens are held by fakes until the first one exists. → §RG154
-- ⏳ **RG162** (deps: —) (requires: maintainer-release) **no LICENSE file ships and every build says 0.0.0, so the first release the maintainer decided on cannot be cut** — Pushing main and the tag v0.1.0, which drafts the release, and publishing that draft: both are the maintainer's to make. → §RG162
+- 📋 **RG154** (deps: RG50 ✅, RG162 ✅) (requires: published-artifact) **the update check has only met answers written by hand, never GitHub's own for a published release** — No release is published yet, so the shape it reads and the page it opens are held by fakes until the first one exists. → §RG154
 
 ## Block H — The look (a design system for governed prose)
 
@@ -152,14 +151,6 @@
   it, the signer is the name that route signs under — the foundation on SignPath, an
   Open Source Developer on Certum, neither being the manifest's — and the build line
   says signed.
-
-## Done when — RG162
-
-- **v0.1.0 is a published release, cut from this commit** The tag reaches the remote,
-  the package job builds both installers against a manifest that matches it, and a
-  person reads the draft the release job leaves and publishes it. Pushing and publishing
-  are the maintainer's acts, which is why this is what is left rather than something a
-  commit could finish.
 
 ## Non-goals
 

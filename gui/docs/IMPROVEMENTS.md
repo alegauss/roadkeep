@@ -104,23 +104,6 @@ manifest, publish the draft `ci.yml` leaves, then run the packaged app of the ve
 before it and choose Help, Check for updates: it has to name both versions and open that
 page. Then the same from the new build, which has to say it is current.
 
-### §RG162 Cutting v0.1.0
-
-The maintainer decided to cut v0.1.0, and two things stand in the way. `package.json`
-declares MIT and ships no `LICENSE` file, so GitHub detects no licence — and SignPath's
-open-source route (RG161, RG49) requires a recognised one. And every build says `0.0.0`,
-the version the stamp reads from the manifest, while `ci.yml` refuses a tag that names
-another.
-
-**The steps, in order.** Add `LICENSE` with the MIT text and the manifest's author,
-Alexandre Oliveira. Set `version` to `0.1.0` in the root `package.json` (and the
-lockfile). Commit, push, then push the tag `v0.1.0`: the package job checks the tag
-against the manifest, builds both installers, and the release job leaves a draft. A
-person reads the draft and publishes it.
-
-That publish is what RG154 needs to read the update check against a real release, and
-what SignPath's "already released" condition asks for.
-
 ## Block H — The look (a design system for governed prose)
 
 ### §RG62 Joining the checks the other consoles already answer to
