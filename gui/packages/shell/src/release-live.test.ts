@@ -1,10 +1,11 @@
 import { spawnSync } from 'node:child_process'
-import { mkdtempSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
 import { afterAll, describe, expect, it } from 'vitest'
 
+import { bashFor } from './git-bash'
 import { removeTree } from './scratch'
 import { job, stepScript } from './workflow'
 
@@ -20,9 +21,13 @@ import { job, stepScript } from './workflow'
  * the fast suite and the suite's own rule is the one that binds. It costs three shells of a
  * few milliseconds.
  *
- * `bash` is the shell the step declares, so a machine without one cannot run this; on Windows
- * it is the one git installs.
+ * `bash` is the shell the step declares, so a machine without one cannot run this. On Windows
+ * it is the one git installs, found beside git rather than first on PATH (RG218): WSL's
+ * launcher can come first there, and a script it runs has no `node` and exits 127, which reads
+ * as the step refusing.
  */
+
+const BASH = bashFor(process.platform, process.env['PATH'] ?? '', existsSync)
 
 const STEP = 'the tag names the version the manifest carries'
 const scratches: string[] = []
@@ -38,7 +43,8 @@ function manifest(version: string): string {
 function ran(tag: string, version: string) {
   const script = stepScript(job('package'), STEP)
   expect(script, `ci.yml has no script under "${STEP}"`).not.toBe('')
-  return spawnSync('bash', ['-c', script], {
+  if (BASH.kind === 'missing') throw new Error(BASH.said)
+  return spawnSync(BASH.command, ['-c', script], {
     cwd: manifest(version),
     env: { ...process.env, GITHUB_REF_NAME: tag },
     encoding: 'utf8',

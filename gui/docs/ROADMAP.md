@@ -20,7 +20,6 @@
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
 - 📋 **RG212** (deps: RG209 ✅, RG210 ✅, RG211) **an agent checking a screen improvises its own harness, and nothing says what to look for once it has the pictures** — CLAUDE.md lists gates that never open the window, so each session rediscovers how to see one and what a screen owes. → §RG212
-- 📋 **RG218** (deps: RG157 ✅) **the release tag test runs whichever bash is first on PATH, and on Windows that can be WSL's, which has no node** — RG157's step runs under bash -c, and WSL's launcher can precede Git's bash, so three live assertions exit 127 on a machine nothing is wrong with. → §RG218
 
 ## Block H — The look (a design system for governed prose)
 

@@ -75,26 +75,6 @@ beside the test that covers it.
 Done when the skill loads on a screen edit, the gates table carries the shots, and the
 MCP either attaches or is recorded as refused.
 
-### §RG218 Git's bash for the tag step on Windows
-
-`release-live.test.ts` runs the workflow's tag step as `spawnSync('bash', ['-c',
-script])`. On a Windows machine where `%LOCALAPPDATA%\Microsoft\WindowsApps` comes first
-on PATH, `bash` is WSL's launcher and not Git's: the script runs inside a Linux
-distribution with no `node`, exits 127, and all three assertions fail on every run with
-nothing in the step wrong. The file's own comment says Windows's bash is the one git
-installs, which is true of the runner and not of every machine.
-
-**Git's bash, found beside git.** On Windows the test walks PATH for `git.exe` and takes
-`..\bin\bash.exe` from the Git for Windows layout (`cmd\git.exe` beside `bin\bash.exe`),
-with no git command run to ask. Elsewhere `bash` on PATH is right and stays.
-
-**A machine with no Git bash fails naming what was looked for** — the PATH entries and
-the file it expected — rather than as an exit code a reader takes for the step's own
-refusal.
-
-Done when the three assertions pass on a Windows machine whose PATH puts WSL's bash
-first, and the step still fails where its condition is inverted.
-
 ## Block H — The look (a design system for governed prose)
 
 ### §RG62 Joining the checks the other consoles already answer to
