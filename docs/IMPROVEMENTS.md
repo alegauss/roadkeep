@@ -83,28 +83,6 @@ already written, not authorship.
 
 ## Block E — Adoption
 
-### §RK1684 The containment check its sibling key already has
-
-`_logo` was written for RK1683 with two checks `_paths` has never had, and the two
-functions sit in the same file.
-
-**Containment.** `roadmap = "../other/ROADMAP.md"` resolves outside the root and is
-accepted. Measured on a throwaway project: the resolved path landed in the parent
-directory, and every verb then reads and writes a governed file the clone does not
-carry.
-
-**The flavour of absolute.** `_paths` asks `Path(value).is_absolute()`, which is
-whichever interpreter is running. `/etc/ROADMAP.md` carries no drive, so Windows calls
-it relative and resolves it to `C:\etc\ROADMAP.md` while Linux refuses the same
-committed bytes — which is the failure that refusal's own sentence claims to prevent.
-
-Both checks are three lines and both are already written one function away. What has to
-be decided is the blast radius: `_paths` runs on every project, and an adopter whose
-`[files]` points outside the root today would meet a build that stopped loading. `lint
---baseline` forgives standing drift by name, and a config refusal is not a finding it
-can reach — so the choice is between refusing, reporting, and refusing only what a
-`declare` writes from here on.
-
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

@@ -957,6 +957,7 @@
 - ✅ **RK1678** **the launcher drops an engine the caller named when its probe fails, and answers from a clone hundreds of versions old** — ROADKEEP_HOME is the only engine tried where set: absent or failing its probe, it is refused by name with what the probe said (design recorded in `hooks/roadkeep-launch.py`).
 - ✅ **RK1682** **a reader of many checkouts has only the folder name: roadkeep.toml declares no name, description or icon** — `declare project` opens `[project]`, whose name, description and icon rows are each held to a `[limits]` width the gate reports (design recorded in `src/roadkeep/config.py`).
 - ✅ **RK1683** **an emoji is all `[project]` can point at, so a repository with a real logo has nowhere to name the file** — `project.logo` names a mark as a repository-relative path, refused for a climb, a backslash or a scheme, and never for a missing file (design recorded in `src/roadkeep/config.py`).
+- ✅ **RK1684** **`[files]` takes a path that climbs out of the project root, and its absolute-path refusal misses `/x` on Windows** — One reader holds both path keys: absolute is refused on either flavour and not on this one, and a climb out of the root is refused at all (design recorded in `src/roadkeep/config.py`).
 
 ## Block F — The Claude Code plugin
 

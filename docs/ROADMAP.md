@@ -32,8 +32,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1684** (deps: —) **`[files]` takes a path that climbs out of the project root, and its absolute-path refusal misses `/x` on Windows** — The check is whichever interpreter is running, so one committed config resolves to `C:\etc` on Windows and is refused on Linux, and nothing tests containment at all. → §RK1684
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)

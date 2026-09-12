@@ -25,7 +25,7 @@ import re
 import tomllib
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field, replace
-from pathlib import Path, PurePosixPath, PureWindowsPath
+from pathlib import Path, PureWindowsPath
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # a string annotation under `from __future__ import annotations` (RK261)
@@ -1938,16 +1938,42 @@ def _logo(value: str, problems: list[str]) -> bool:
             "one operating system and is part of the filename on the other"
         )
         return False
-    if value.startswith("/") or PureWindowsPath(value).is_absolute():
+    return _contained(value, "project.logo", problems)
+
+
+def _contained(value: str, where: str, problems: list[str]) -> bool:
+    """A path this config declares, held to the root it is relative to (RK1683, RK1684).
+
+    Shared by `[files].<role>` and `[project] logo`, which is the whole of RK1684: one table
+    cannot hold two path keys with two containment policies, and it held them for as long as
+    only one key had ever been checked.
+
+    **Absolute on either flavour**, never on this interpreter's. `Path("/etc/ROADMAP.md")`
+    carries no drive, so Windows called it relative and resolved it under `C:\\`, while Linux
+    refused the same committed bytes — which is precisely what `[files]`' own refusal said it
+    was preventing. So the platform half is not a new rule here; it is the rule that was
+    already written, finally applied on both machines.
+
+    **Climbing out is new**, and refused rather than reported, for the reason the parse
+    refuses every other shape: a governed file outside the root is one the clone does not
+    carry, and every path this tool then prints — the `git add --` line, the report's own
+    file column — addresses somewhere the repository is not. Both silent failures, which is
+    what picks these two out: a backslash spelling fails loudly on the other platform, and a
+    refusal there would widen this to a key that has shipped for a hundred versions.
+
+    Segments are read the Windows way on purpose, since that reader splits on both separators
+    — so `..\\other` is caught as a climb even where the spelling itself is accepted.
+    """
+    if value.startswith(("/", "\\")) or PureWindowsPath(value).is_absolute():
         problems.append(
-            "project.logo must be relative to the project root: an absolute path is "
-            "checked in and then wrong on every other machine"
+            f"{where} must be relative to the project root: an absolute path is checked in "
+            f"and then wrong on every other machine"
         )
         return False
-    if ".." in PurePosixPath(value).parts:
+    if ".." in PureWindowsPath(value).parts:
         problems.append(
-            "project.logo must stay inside the project root: a path that climbs out of it "
-            "names a file the clone does not carry"
+            f"{where} must stay inside the project root: a path that climbs out of it names "
+            f"a file the clone does not carry"
         )
         return False
     return True
@@ -2581,14 +2607,12 @@ def _paths(raw: object, base: Path, problems: list[str]) -> dict[str, Path]:
         if not isinstance(value, str):
             problems.append(f"files.{role} must be a string path")
             continue
-        candidate = Path(value)
-        if candidate.is_absolute():
-            problems.append(
-                f"files.{role} must be relative to the project root: an absolute "
-                f"path is checked in and then wrong on every other machine"
-            )
+        # RK1684. The same reading `[project] logo` gets, and the same function: this key
+        # asked `Path.is_absolute()`, which is whichever interpreter is running, so the
+        # sentence it printed about *every other machine* was the one thing it could not keep.
+        if not _contained(value, f"files.{role}", problems):
             continue
-        out[role] = (base / candidate).resolve()
+        out[role] = (base / Path(value)).resolve()
     return out
 
 

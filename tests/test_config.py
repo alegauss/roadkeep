@@ -712,6 +712,60 @@ def test_an_absolute_path_is_refused_because_it_is_checked_in(tmp_path):
         Config.load(path)
 
 
+@pytest.mark.parametrize(
+    "value",
+    ["/etc/ROADMAP.md", "C:/ROADMAP.md", "C:\\ROADMAP.md", "\\\\srv\\share\\ROADMAP.md"],
+)
+def test_absolute_is_refused_on_either_flavour_and_not_on_this_one(tmp_path, value):
+    """RK1684. The sentence this key printed — *wrong on every other machine* — was the one
+    thing it could not keep: it asked `Path.is_absolute()`, which is whichever interpreter is
+    running, so `/etc/ROADMAP.md` was refused on Linux and resolved under `C:\\` on Windows.
+    Every value here is absolute on one of the two, and none is spelled with this platform's
+    own root, so the test asserts the same thing on both."""
+    path = write(tmp_path, f"[files]\nroadmap = '{value}'\n")
+    with pytest.raises(ConfigError, match="must be relative to the project root"):
+        Config.load(path)
+
+
+@pytest.mark.parametrize("value", ["../other/ROADMAP.md", "..\\other\\ROADMAP.md"])
+def test_a_path_that_climbs_out_of_the_root_is_refused(tmp_path, value):
+    """The half `[files]` never had, and the reason it is a refusal rather than a report: a
+    governed file outside the root is one the clone does not carry, and every path the tool
+    then prints — the `git add --` line, the report's file column — addresses somewhere the
+    repository is not. Both spellings, because the segments are read the Windows way and that
+    reader splits on either separator."""
+    path = write(tmp_path, f"[files]\nroadmap = '{value}'\n")
+    with pytest.raises(ConfigError, match="must stay inside the project root"):
+        Config.load(path)
+
+
+def test_a_backslash_spelling_is_still_accepted_where_the_logo_refuses_one(tmp_path):
+    """What picks the two refusals out is that both fail *silently*: an absolute path resolves
+    somewhere wrong and a climb resolves outside. A backslash resolves to a filename that is
+    simply not there on POSIX, which is loud — and this key has shipped for a hundred versions,
+    so `[project] logo`'s stricter rule is left where it was written."""
+    path = write(tmp_path, "[files]\nroadmap = 'docs\\ROADMAP.md'\n")
+    assert Config.load(path).has("roadmap")
+
+
+def test_a_dot_dot_inside_a_filename_is_not_a_climb(tmp_path):
+    path = write(tmp_path, "[files]\nroadmap = 'docs/road..map.md'\n")
+    assert Config.load(path).path("roadmap").name == "road..map.md"
+
+
+def test_both_path_keys_are_held_by_one_reader(tmp_path):
+    """RK1684's whole claim. One table cannot hold two path keys with two containment
+    policies, and it held them for as long as only one key had ever been checked."""
+    from roadkeep.config import _contained, _logo
+
+    for value in ("../out/x.svg", "/x.svg"):
+        for check, where in ((_contained, "files.roadmap"), (_logo, "project.logo")):
+            problems: list[str] = []
+            args = (value, where, problems) if check is _contained else (value, problems)
+            assert not check(*args), (check, value)
+            assert problems
+
+
 def test_an_invisible_marker_is_refused_where_it_is_typed(tmp_path):
     # 📋 + U+FE0F is the same picture and a different string: declaring one would
     # put every line in the file permanently out of round-trip.
