@@ -52,6 +52,15 @@ export interface FixtureShape {
    * this repository offers none on a day nothing here is ready.
    */
   readonly prefix?: string
+  /**
+   * Make the second open line wait on the first (RG196).
+   *
+   * A backlog with an edge in it, which this project's own stops having the moment the work
+   * is done: three live assertions read the repository for a line blocked by another open
+   * one, and draining it reddened them on a day the graph reader had not changed. A fixture
+   * is the source that holds still.
+   */
+  readonly chained?: boolean
 }
 
 const DEFAULT_SHAPE: FixtureShape = { open: 3, shipped: 1, deferred: 1 }
@@ -162,6 +171,12 @@ export async function buildFixture(
     const total = shape.open + shape.shipped + shape.deferred
     const ids: string[] = []
     for (let index = 0; index < total; index += 1) {
+      // The chain is between the two lines that stay open, so no ship in the fixture's own
+      // shape can clear it: the shipped ones are taken from the head of this list.
+      const waitsOn =
+        shape.chained === true && index === total - 1 && ids.length > 0
+          ? ['--dep', ids[ids.length - 1] ?? '']
+          : []
       const stdout = await must(
         transport,
         root,
@@ -169,6 +184,7 @@ export async function buildFixture(
           'add',
           '--block',
           index % 2 === 0 ? 'A' : 'B',
+          ...waitsOn,
           '--symptom',
           `nothing answers question ${String(index)} yet`,
           '--why',
@@ -233,6 +249,9 @@ function nameOf(shape: FixtureShape): string {
     `deferred-${String(shape.deferred)}`,
     `read-${String(shape.listRead ?? 0)}`,
     `prefix-${shape.prefix ?? 'FX'}`,
+    // Part of the name, or a project built without the chain answers an ask for one: the
+    // cache is keyed on the shape and a field left out of the key is a field it ignores.
+    `chained-${shape.chained === true ? 'yes' : 'no'}`,
   ].join('-')
 }
 

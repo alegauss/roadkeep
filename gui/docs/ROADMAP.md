@@ -23,7 +23,7 @@
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
-- 📋 **RG154** (deps: RG50 ✅, RG162 ✅) (requires: published-artifact) **the update check has only met answers written by hand, never GitHub's own for a published release** — No release is published yet, so the shape it reads and the page it opens are held by fakes until the first one exists. → §RG154
+- 🛠 **RG154** (deps: RG50 ✅, RG162 ✅) (requires: published-artifact) **the update check has only met answers written by hand, never GitHub's own for a published release** — No release is published yet, so the shape it reads and the page it opens are held by fakes until the first one exists. → §RG154
 
 ## Block H — The look (a design system for governed prose)
 
