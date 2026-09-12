@@ -4,8 +4,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-- 📋 **RG219** (deps: RG196 ✅) **the detail and graph tests hunt this backlog for a line waiting on outside work, so a backlog without one reddens them** — RG196 moved the blocked-line case into a fixture and left the outside case reading the repository, where no open line has an outside dep today. → §RG219
-
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 ## Block C — The portfolio (many backlogs in one view)

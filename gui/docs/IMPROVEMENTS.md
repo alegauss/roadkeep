@@ -2,27 +2,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-### §RG219 An outside dep read from a fixture that holds still
-
-`detail-live.test.ts` and `graph-live.test.ts` look through this repository's open lines
-for one whose dep is `unresolvable` — work outside the backlog — and fail when there is
-none: `detail-live` in its `beforeAll`, skipping eleven tests, and `graph-live` in two
-assertions. Every open line's deps are ids in the file today, so those are red on a day
-nothing they read had changed. RG196 fixed the same shape for a blocked line by building
-it into a fixture; the outside case was left reading the repository.
-
-**The fixture holds it.** `FixtureShape` gains `outside: true`, which files a line
-depending on work no ship in the fixture can satisfy, through `add --deps` as a person
-would, and both files read that line from the fixture instead of scanning `REPO`.
-`detail-live` keeps reading this repository for a line with resolved deps, which any
-backlog with work in it has.
-
-**The premise sentence moves with it**: a fixture that stopped producing an unresolvable
-dep says so where it is built, rather than a test finding nothing.
-
-Done when both files pass against a backlog with no outside dep anywhere, and the
-fixture's line reads `unresolvable` through the real engine.
-
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 ## Block C — The portfolio (many backlogs in one view)

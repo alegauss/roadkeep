@@ -61,6 +61,31 @@ export interface FixtureShape {
    * is the source that holds still.
    */
   readonly chained?: boolean
+  /**
+   * File one more open line, waiting on work outside the backlog (RG219).
+   *
+   * The other edge a finished backlog stops having: `detail-live` and `graph-live` hunted this
+   * repository for a line whose dep is `unresolvable`, and reddened the day none was left. The
+   * line comes after every ship and every deferral, so it is always open and never moves an id
+   * the other fields name.
+   */
+  readonly outside?: boolean
+}
+
+/** Work no ship in a fixture can satisfy, spelled as a person files it: prose, not an id. */
+export const OUTSIDE_WORK = 'the design system ships a stepper'
+
+/** Whether a `deps --json` answer carries a dep the engine calls unresolvable. */
+function waitsOutside(answer: string): boolean {
+  const parsed: unknown = JSON.parse(answer)
+  const deps = typeof parsed === 'object' && parsed !== null && 'deps' in parsed ? parsed.deps : []
+  return (
+    Array.isArray(deps) &&
+    deps.some(
+      (dep: unknown) =>
+        typeof dep === 'object' && dep !== null && 'status' in dep && dep.status === 'unresolvable',
+    )
+  )
 }
 
 const DEFAULT_SHAPE: FixtureShape = { open: 3, shipped: 1, deferred: 1 }
@@ -217,6 +242,38 @@ export async function buildFixture(
       )
     }
 
+    if (shape.outside === true) {
+      const stdout = await must(
+        transport,
+        root,
+        [
+          'add',
+          '--block',
+          'A',
+          '--dep',
+          OUTSIDE_WORK,
+          '--symptom',
+          'nothing draws a stepper until the design system ships one',
+          '--why',
+          'The control is the package’s to ship, and no work in this backlog makes it exist.',
+          '--section',
+          'Why the stepper waits on the package',
+          '--section-body',
+          'A rationale long enough to be prose and short enough to stay inside the budget the project declares for a section.',
+          '--json',
+        ],
+        timeoutMs,
+      )
+      const id = (JSON.parse(stdout) as { id: string }).id
+      // The premise, stated where it is built (RG219): a line that stopped reading as waiting
+      // outside is this builder's failure, not a test's empty search.
+      if (!waitsOutside(await must(transport, root, ['deps', id, '--json'], timeoutMs))) {
+        throw new Error(
+          `the fixture's ${id} waits on ${OUTSIDE_WORK}, and deps did not call it unresolvable`,
+        )
+      }
+    }
+
     // Last, so every write above runs against a project with no ceiling on a read. The
     // table is appended rather than templated: what the file already holds is `init`'s,
     // and this adds the one line that makes the listing bounded.
@@ -252,6 +309,7 @@ function nameOf(shape: FixtureShape): string {
     // Part of the name, or a project built without the chain answers an ask for one: the
     // cache is keyed on the shape and a field left out of the key is a field it ignores.
     `chained-${shape.chained === true ? 'yes' : 'no'}`,
+    `outside-${shape.outside === true ? 'yes' : 'no'}`,
   ].join('-')
 }
 

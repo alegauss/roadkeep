@@ -5,9 +5,10 @@ import { aLine, CEILING, liveEngine as engine, openWithDesign, read, REPO } from
 import { buildFixture, type Fixture } from './fixture'
 
 /**
- * The detail read against real backlogs. This repository is the interesting one: it has
- * shipped deps, blocked lines, deps outside the backlog and a claim held by this very
- * session, which between them cover every state the screen has to draw.
+ * The detail read against real backlogs. This repository has shipped deps and designed lines,
+ * which any backlog with work in it keeps. A line waiting on work outside the backlog is a state
+ * a backlog loses the day its last outside dep resolves, so that one is read from a fixture that
+ * holds still (RG219).
  */
 /** The engine's word for a dep nothing shipped in this backlog will ever satisfy. */
 const UNRESOLVABLE = 'unresolvable'
@@ -21,6 +22,8 @@ let fixture: Fixture
  * dependence nothing in the file would say out loud.
  */
 let taken: Fixture
+/** A fixture with one line waiting on work no ship in it can satisfy (RG219). */
+let waiting: Fixture
 /**
  * An open line this repository has designed, found off the listing rather than written here.
  *
@@ -63,30 +66,39 @@ async function takeInFixture(root: string, id: string): Promise<void> {
 }
 
 /**
- * Brief the lines that have deps at all, until both states above are in hand.
+ * The first line of a backlog, carrying a dep, whose brief says what that dep is.
  *
- * The listing is the cheap half: it says which ids carry a dep without saying anything
- * about what the dep resolves to, and most of this backlog carries none — so the briefs,
- * which each cost an interpreter start, run over a handful of lines rather than over all
- * of them. Only `brief` can answer the second question, since `unresolvable` is the
- * engine's verdict and reading it off the dep's text would be this app resolving deps.
+ * The listing is the cheap half: it says which ids carry a dep without saying anything about
+ * what the dep resolves to — so the briefs, which each cost an interpreter start, run over a
+ * handful of lines rather than over all of them. Only `brief` can answer the second question,
+ * since `unresolvable` is the engine's verdict and reading it off the dep's text would be this
+ * app resolving deps.
  */
-async function findStates(): Promise<void> {
-  let resolved: TaskDetail | undefined
-  let never: TaskDetail | undefined
-  for (const task of listedTasks(await read(REPO, 'list', {}))) {
+async function firstWith(
+  root: string,
+  holds: (detail: TaskDetail) => boolean,
+): Promise<TaskDetail | undefined> {
+  for (const task of listedTasks(await read(root, 'list', {}))) {
     if (task.deps.length === 0) continue
-    const detail = await detailOf(REPO, task.id)
-    if (detail.payload.depsResolved.length === 0) continue
-    resolved ??= detail
-    if (detail.payload.depsResolved.some((dep) => dep.status === UNRESOLVABLE)) never ??= detail
-    if (never !== undefined) break
+    const detail = await detailOf(root, task.id)
+    if (detail.payload.depsResolved.length > 0 && holds(detail)) return detail
   }
+  return undefined
+}
 
-  // The premise of this file, stated where it fails. A backlog that stopped carrying one
-  // of these has not broken the app; it has taken away what these two tests read.
+async function findStates(): Promise<void> {
+  const resolved = await firstWith(REPO, () => true)
+  // The fixture says so itself where it fails to build this line; finding nothing here is a
+  // reader that stopped reading the dep, which is what this file is about.
+  const never = await firstWith(waiting.root, (detail) =>
+    detail.payload.depsResolved.some((dep) => dep.status === UNRESOLVABLE),
+  )
+
+  // The premise of this file, stated where it fails. A backlog that stopped carrying a dep to
+  // resolve has not broken the app; it has taken away what that test reads.
   if (resolved === undefined) throw new Error('no line in this backlog has a dep to resolve')
-  if (never === undefined) throw new Error('no line in this backlog waits on work outside it')
+  if (never === undefined)
+    throw new Error('the outside fixture has no line the brief reads as waiting')
   withDeps = resolved
   outside = never
 }
@@ -94,6 +106,7 @@ async function findStates(): Promise<void> {
 beforeAll(async () => {
   fixture = await buildFixture(engine, { open: 3, shipped: 1, deferred: 1 })
   taken = await buildFixture(engine, { open: 1, shipped: 0, deferred: 0 })
+  waiting = await buildFixture(engine, { open: 1, shipped: 0, deferred: 0, outside: true })
   open = await detailOf(REPO, await openWithDesign())
   await findStates()
 }, 240000)
@@ -101,6 +114,7 @@ beforeAll(async () => {
 afterAll(() => {
   fixture.dispose()
   taken.dispose()
+  waiting.dispose()
 })
 
 describe('RG23: a real task, in one read', () => {
@@ -133,9 +147,9 @@ describe('RG23: a real task, in one read', () => {
   })
 
   it('reads a line blocked on work outside this backlog', () => {
-    // Some line here waits on a task in another repository, which shipping in this one can
-    // never unblock. The engine knows that and this app must not try to work it out — so
-    // the dep is named by the verdict it came back with, not by the project it points into.
+    // The outside fixture's line waits on work no ship in it can clear (RG219). The engine
+    // knows that and this app must not try to work it out — so the dep is named by the verdict
+    // it came back with, not by what it points at.
     const never = outside.payload.depsResolved.find((dep) => dep.status === UNRESOLVABLE)
 
     expect(outside.startable).toBe(false)
