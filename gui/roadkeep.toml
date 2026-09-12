@@ -93,4 +93,4 @@ held = 60
 declared = ["signing-cert", "macos-machine", "published-artifact", "maintainer-release"]
 
 [install]
-wired = "0.2.450"
+wired = "0.2.464"
