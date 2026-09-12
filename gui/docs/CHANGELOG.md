@@ -135,6 +135,7 @@
 - ✅ **RG153** **nothing in the window hands a task to Claude Code or shows the session, so block F's acts and landings reach no one** — The session says when each governed file changed, names a claim held elsewhere, and the rail lists what is running (design recorded in `packages/ui/src/Session.tsx`).
 - ✅ **RG175** **a line this window handed over is offered to a second session, since the claim it took names nobody** — A line this window has a session running on is not offered a second one; the way back to it is (design recorded in `packages/core/src/handover.ts`).
 - ✅ **RG178** **the sessions list asks once when it opens, so one that ends while it stands still reads as running** — The sessions list hears every session through one key meaning all of them, and reads again when one speaks (design recorded in `packages/ui/src/Sessions.tsx`).
+- ✅ **RG190** **a handover landing after the reader left the task screen moves the window to the session anyway** — A handover that lands after the reader left the task screen no longer moves the window (design recorded in `packages/ui/src/Task.tsx`).
 
 ## Block G — The shell (an executable now, a service later)
 

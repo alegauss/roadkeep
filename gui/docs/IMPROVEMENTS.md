@@ -56,30 +56,6 @@ project that large can narrow by block first.
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-### §RG190 The screen a handover moves after it is gone
-
-Hand to Claude Code starts a session and then navigates to it. The call is a promise,
-and nothing between the press and its answer checks that the person is still on the task
-screen. Handing over takes as long as resolving an agent and starting a process, which
-is long enough to press Back — and when the answer lands the window moves to the session
-anyway.
-
-**Every read on this screen already guards, and this one does not.** The effects around
-it take a `live` flag and give it up in their cleanup, which is what the task screen was
-built around; the handover is a callback rather than an effect, so it was written
-without one and nobody noticed, the failure needing a person to leave a screen inside a
-second.
-
-**What it costs is a screen nobody asked for.** The session did start, and it is on the
-sessions list — but a reader who went back to the project is taken somewhere they did
-not choose, with nothing saying what moved them.
-
-**A ref the screen clears is the whole of it.** The callback reads it before navigating
-and does nothing where the screen has gone; the session it started is still listed and
-still reachable. The state writes beside it are harmless — React drops them — so the
-navigation is the one thing to hold, and a test that unmounts between the press and the
-answer holds it.
-
 ## Block G — The shell (an executable now, a service later)
 
 ### §RG49 The signature, and what it needs that code cannot supply

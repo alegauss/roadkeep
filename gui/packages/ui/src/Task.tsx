@@ -21,7 +21,7 @@ import {
 } from '@rk/core'
 import { Button } from '@viglet/viglet-design-system'
 import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-system/bento'
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { projectPath, sessionPath, taskPath } from './areas'
@@ -136,6 +136,17 @@ function HandOver({ root, task }: { readonly root: string; readonly task: Opened
   const handover = handoverOf(line)
   const [handing, setHanding] = useState<Handing>(NOT_HANDING)
   const [session, setSession] = useState<SessionRecord | null>(null)
+  // Handing over takes as long as resolving an agent and starting a process, which is long
+  // enough to press Back — and a window moved to a session after that is a window moved
+  // somewhere nobody chose (RG190). Every read here guards; this is a callback, so it needs
+  // its own.
+  const onScreen = useRef(true)
+  useEffect(() => {
+    onScreen.current = true
+    return () => {
+      onScreen.current = false
+    }
+  }, [])
 
   useEffect(() => {
     const bridge = getBridge()
@@ -168,7 +179,9 @@ function HandOver({ root, task }: { readonly root: string; readonly task: Opened
         }
         setSession(handed.session)
         setHanding(NOT_HANDING)
-        void navigate(sessionPath(root, id, handed.session.key))
+        // The session did start and is on the sessions list either way; what is withheld is
+        // taking a reader somewhere they have already left.
+        if (onScreen.current) void navigate(sessionPath(root, id, handed.session.key))
       },
       (cause: unknown) => {
         const reason = cause instanceof Error ? cause.message : ''

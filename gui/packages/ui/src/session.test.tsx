@@ -15,6 +15,7 @@ import {
   timeIn,
   EVERY_SOURCE,
   type SessionOutcome,
+  folderName,
 } from '@rk/core'
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -527,5 +528,64 @@ describe('RG178: a list that hears what it lists', () => {
     await waitFor(() => {
       expect(screen.getByTestId('session').dataset['id']).toBe('AL1')
     })
+  })
+})
+
+describe('RG190: the screen a handover moves after it is gone', () => {
+  it('leaves a reader who went back where they went, when the handover lands', async () => {
+    let landing: ((handed: HandedOver) => void) | null = null
+    const alpha = openedFrom(
+      await openProject(ROOT, [['roadkeep']], () => engine({ shipped: false })),
+    )
+    Object.defineProperty(window, 'roadkeep', {
+      value: stubBridge({
+        projects: () =>
+          Promise.resolve({
+            version: 1,
+            roots: [],
+            projects: [
+              {
+                path: ROOT,
+                aliases: [],
+                commonDir: null,
+                root: '/code',
+                confirmed: '',
+                presence: 'present' as const,
+              },
+            ],
+          }),
+        open: () => Promise.resolve(alpha),
+        run: (root, request) =>
+          bridgedRun(() => engine({ shipped: false }).run({ ...request, root })),
+        sessions: () => Promise.resolve([]),
+        governedAt: () => Promise.resolve(FILES),
+        // Held open, so the press and the answer are two moments a test can stand between.
+        handOver: () =>
+          new Promise<HandedOver>((answer) => {
+            landing = answer
+          }),
+      }),
+      configurable: true,
+    })
+    drawWindow({ at: taskPath(ROOT, 'AL1') })
+
+    fireEvent.click(await screen.findByRole('button', { name: BASE['task.handOver'] }))
+    await waitFor(() => {
+      expect(landing).not.toBeNull()
+    })
+
+    // Back to the project, which is the screen this window is on when the answer arrives.
+    fireEvent.click(screen.getByRole('link', { name: folderName(ROOT) }))
+    await screen.findByText(BASE['project.blocks'])
+
+    await act(async () => {
+      landing?.({ kind: 'started', session: RECORD })
+      await Promise.resolve()
+    })
+
+    // Still where the reader put themselves: the session started and is on the list, and
+    // nothing moved the window to it.
+    expect(screen.queryByText(BASE['session.handed'])).toBeNull()
+    expect(screen.getByText(BASE['project.blocks'])).toBeTruthy()
   })
 })

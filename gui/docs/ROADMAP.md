@@ -18,8 +18,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG190** (deps: —) **a handover landing after the reader left the task screen moves the window to the session anyway** — Every read on that screen gives its answer up on unmount, and the one callback that navigates does not. → §RG190
-
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
