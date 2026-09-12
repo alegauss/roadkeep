@@ -1835,17 +1835,37 @@ FORESEEN_BOUND: Mapping[tuple[str, str], tuple[str, ...]] = {
 }
 
 
-def foreseen(code: str, bound: str = "") -> Door | None:
+#: Which role a preventive read defaults to, and therefore the one it need not be told
+#: (RK1681). `budget --anchor` prices a body against the improvements limit unless `--role`
+#: says otherwise, so naming it would be a token that changes nothing on the common refusal.
+_ASSUMED_ROLE = "improvements"
+
+
+def foreseen(code: str, bound: str = "", role: str = "") -> Door | None:
     """The preventive read for one code, or ``None`` where nothing predicts it (RK1435).
 
     ``bound`` is which ceiling refused, where the violation says (RK1503, RK1538). RK1503 made
     that fact structural for three readers and this was one of the two still matching on prose:
     a field over its own number and a field a full line refused want different reads, and
     naming the field's one on the second sends a caller to a measurement that says it fits.
+
+    ``role`` is which governed file refused, where the refusal says (RK1681) — the same failure
+    one axis over. A limit is per role (`[limits.<role>]`, RK50), and a body over the decisions
+    file's 150 was handed a read that prices it against improvements' 250 and answers *fits*,
+    so the caller who trusted the door spent the refusal it exists to prevent. Appended only to
+    a read that takes the flag and only where the answer would differ: a `--symptom` draft is
+    not about a file, and :data:`_ASSUMED_ROLE` is the one this verb already reads.
+
+    And only where that read **accepts** the word, which is the rule RK1475 sets and this is the
+    second way to break: `section add --role changelog` is refused for the prose before the role
+    is judged, so the fact reaching here is whatever the caller typed — and a door naming it
+    would be a command argparse rejects, which is worse than the one that priced the wrong file.
     """
     argv = FORESEEN_BOUND.get((code, bound)) or FORESEEN.get(code)
     if argv is None:
         return None
+    if role in PROSE_ROLES and role != _ASSUMED_ROLE and "--anchor" in argv:
+        argv = (*argv, "--role", role)
     return Door(
         argv=argv,
         what="measures the same draft against the same limit and writes nothing",

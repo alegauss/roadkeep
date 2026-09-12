@@ -325,6 +325,7 @@ inferred — which is also what a consumer drew by calling `deps` once per row.
 - ✅ **RK1665** **the backstop reads a code only where it is a literal, so six a write refuses are outside a total that says it is one** — A closure that widens its found set on a value it cannot read is a closure agreeing with itself: an unresolvable code raises, and what it may be is declared.
 - ✅ **RK1666** **govern writes a caller's sentence into roadkeep.toml and no validator reads it, so a mangled run lands and stays** — A composed field with no length, sentence or line rule still takes the character pair: bytes through the wrong codec and codepoints a reader cannot see.
 - ✅ **RK1667** **the report door mangles a symptom carrying a backtick in the shell this repository is developed in** — A composed command never carries a token no shell delivers: the token is a placeholder and the flag is named, because printing a line that will not arrive is the defect.
+- ✅ **RK1681** **a refusal on the decisions role hands back a budget door that measures the draft against the improvements limit** — A preventive door names only what the read it offers accepts: the role reaching it is unvalidated, and a command argparse rejects is worse than one pricing the wrong file.
 
 ### §RK1394 Proof, not age
 
@@ -602,6 +603,20 @@ What is left is `_transient`'s answer at a second door (RK484): the token become
 the clause under it names the flag, and the caller types back one field they are looking
 at. The instrument RK1635 built now holds the stronger property: the printed line
 arrives intact in every shell, the ones this table named included.
+
+### §RK1681 A door names only what the read accepts
+
+Two ways to compose this door and both were taken here. The first named no role and
+priced the draft against whichever file the read defaults to, which is the defect. The
+second named whatever arrived: `section add --role` takes a free string and the prose is
+measured before the word is judged, so `--role changelog` reaches a body refusal intact
+and a door repeating it offers a command argparse rejects — found one smoke test after
+the first fix looked right.
+
+So the word is let through only where the read declares it, and what was rejected is
+carrying the caller's role unfiltered because the write accepted it. What is accepted is
+one more list to keep true: the guard reads `PROSE_ROLES`, where `budget --role` takes
+its choices from, and a test asserts that join rather than the words.
 
 ## Block E — Adoption
 

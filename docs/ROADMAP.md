@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1681** (deps: —) **a refusal on the decisions role hands back a budget door that measures the draft against the improvements limit** — The foreseen door carries a fixed argv with no --role, so the read it names answers about the file the refusal was not about. → §RK1681
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

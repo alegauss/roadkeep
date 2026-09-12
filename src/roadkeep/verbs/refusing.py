@@ -268,7 +268,12 @@ def _foreseeing(error: SchemaError) -> Door | None:
         # With the ceiling that refused (RK1538): a `why` inside its own maximum and a `why`
         # a full line refused are two states, and the read that prevents the second prices
         # the line — the first was being offered on both, and says the draft fits.
-        door = foreseen(violation.code, violation.bound)
+        #
+        # And with the file (RK1681), which is the same sentence one axis over: a limit is per
+        # role, so a body over the decisions file's own number was offered a read that prices
+        # it against improvements' and answers that it fits. A field access and not a `getattr`
+        # guess — `SchemaError` declares the channel and the writer that took the role fills it.
+        door = foreseen(violation.code, violation.bound, error.role)
         if door is not None:
             return door
     return None

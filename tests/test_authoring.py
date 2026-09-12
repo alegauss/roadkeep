@@ -2770,6 +2770,82 @@ def test_a_refusal_no_read_predicts_says_nothing(tmp_path, capsys):
     assert "foresee" not in capsys.readouterr().err
 
 
+# -- and the file that read is about (RK1681) ---------------------------------
+
+DECISIONS = "docs/DECISIONS.md"
+
+DECIDED = """# Decisions
+
+## Block A — The model
+
+## Block B — Authoring
+"""
+
+
+def _deciding(tmp_path: Path) -> Config:
+    """The fixture plus a declared `decisions` role holding its own narrower section limit.
+
+    `[limits.<role>]` (RK50) is what makes one governed file's ceiling differ from another's,
+    and it is the whole of what this is about: a read that does not know which file it is
+    pricing prices the wrong one.
+    """
+    project(tmp_path, prose=DESIGN, files={DECISIONS: DECIDED})
+    (tmp_path / "roadkeep.toml").write_text(
+        (tmp_path / "roadkeep.toml")
+        .read_text(encoding="utf-8")
+        .replace(
+            f'improvements = "{IMPROVEMENTS}"',
+            f'improvements = "{IMPROVEMENTS}"\ndecisions = "{DECISIONS}"',
+        )
+        + "\n[limits.decisions]\nsection = 40\n",
+        encoding="utf-8",
+    )
+    return Config.discover(tmp_path)
+
+
+def test_the_read_a_body_refusal_names_is_about_the_file_that_refused(tmp_path, capsys):
+    """RK1681, which is RK1538's find one axis over. A body over the decisions file's own
+    limit was offered `budget --anchor <id> --body-file <path>` — the read that defaults to
+    improvements — so the command the refusal told the caller to run prices the same draft
+    against a looser number and answers that it fits."""
+    config = _deciding(tmp_path)
+    argv = [
+        "-C", str(config.root), "section", "add", "RK1", "--role", "decisions",
+        "--title", "A decision", "--body", " ".join(["word"] * 60),
+    ]
+    assert main(argv) == EXIT_USAGE
+    assert "--role decisions" in _foresight(capsys.readouterr().err)
+
+
+def test_the_offered_read_returns_the_verdict_the_write_gave(tmp_path, capsys):
+    """A door has to work (RK1475): the number it quotes is the number that refused, so the
+    second draft is composed once instead of against a limit nothing enforces."""
+    config = _deciding(tmp_path)
+    draft = tmp_path / "draft.md"
+    draft.write_text(" ".join(["word"] * 60) + "\n", encoding="utf-8")
+    argv = [
+        "-C", str(config.root), "budget", "--anchor", "RK1",
+        "--body-file", str(draft), "--role", "decisions",
+    ]
+    # Exit 1, which is the whole point: the read reproduces the refusal instead of clearing it.
+    assert main(argv) == EXIT_GATE
+    said = capsys.readouterr().out
+    assert "decisions" in said
+    assert "against 40" in said and "20 over" in said
+
+
+def test_a_refusal_about_the_assumed_role_names_no_flag_at_all(tmp_path, capsys):
+    """The read already prices improvements, so naming it would be a token that changes
+    nothing on the common refusal — and a door grows by what it has to say."""
+    config = project(tmp_path, prose=DESIGN)
+    argv = [
+        "-C", str(config.root), "section", "add", "RK1",
+        "--title", "A design", "--body", " ".join(["word"] * 300),
+    ]
+    assert main(argv) == EXIT_USAGE
+    assert "--role" not in _foresight(capsys.readouterr().err)
+
+
 # -- adding a dep without restating the ones that were right (RK1480) ----------
 
 

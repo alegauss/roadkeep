@@ -55,11 +55,12 @@ author. That is the same line L4 draws, one file down.
 
 from __future__ import annotations
 
+import functools
 import re
 import textwrap
-from collections.abc import Iterator, Mapping, Sequence
+from collections.abc import Callable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field, replace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ParamSpec, TypeVar
 
 from roadkeep.backlog import Whereabouts
 from roadkeep.config import PROSE_ROLES, Config, readable
@@ -99,6 +100,11 @@ _FENCES = ("```", "~~~")
 #: marker is deliberately absent: a bullet is how an argument is written in these files.
 _DATA = ("|", ">")
 
+#: The one decorator in this module, so its types are here rather than at the top with the
+#: constants: :func:`_about_the_role` returns what it wraps and says so.
+P = ParamSpec("P")
+T = TypeVar("T")
+
 
 class SectionError(SchemaError):
     """A section the schema refuses, carrying every violation, not the first.
@@ -106,6 +112,35 @@ class SectionError(SchemaError):
     A :class:`~roadkeep.kernel.schema.SchemaError` because it is the same law one file down —
     which also means every caller that already reports violations reports these.
     """
+
+
+def _about_the_role(writer: Callable[P, T]) -> Callable[P, T]:
+    """Fill :attr:`SchemaError.role` on anything this writer refuses (RK1681).
+
+    The channel the kernel declares and cannot fill: a limit is per role and the checks below
+    are handed a schema, so the fact is lost exactly where it is needed — in the preventive
+    read the refusal names, which prices the draft against whichever file it defaults to.
+
+    Here and not at each `raise`, because the rule is about a **door** and not about a rule
+    broken: every violation these three writers can raise is one raised about the role they
+    were called with, and stamping it per site would be six places to forget it and two
+    (`_check`, `promised`) that could not. Applied to the writers whose second positional
+    argument is the role, which is the whole of what this reads.
+
+    Never overwritten: a refusal that already named a role was stamped by a nested writer, and
+    the inner one is about the file that actually refused.
+    """
+
+    @functools.wraps(writer)
+    def stamping(*args: P.args, **kwargs: P.kwargs) -> T:
+        try:
+            return writer(*args, **kwargs)
+        except SchemaError as error:
+            if not error.role and len(args) > 1 and isinstance(args[1], str):
+                error.role = args[1]
+            raise
+
+    return stamping
 
 
 class NoSuchSection(ValueError):
@@ -1734,6 +1769,7 @@ def _quoting(roadmap: Document, section: Section) -> tuple[str, ...]:
     return scoping.answered(roadmap, section.body)
 
 
+@_about_the_role
 def add(
     config: Config,
     role: str,
@@ -2031,6 +2067,7 @@ def _refuse_subtree(document: Document, anchor: str, body: str) -> None:
             )
 
 
+@_about_the_role
 def amend(
     config: Config,
     role: str,
@@ -2184,6 +2221,7 @@ def amend(
     return Rewritten(updated, amended, changed, role)
 
 
+@_about_the_role
 def amend_untitled(
     config: Config,
     role: str,

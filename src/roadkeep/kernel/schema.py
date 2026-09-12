@@ -749,6 +749,15 @@ class SchemaError(ValueError):
         #: `--remainder`, which *becomes* that field, and there the field name alone names the
         #: wrong argument — with the right one adjacent on the same command line.
         self.about = ""
+        #: Which governed file this write was refused about (RK1681). Empty here and always,
+        #: for the reason the three above are: the kernel is handed a schema and never a role,
+        #: so what it declares is the channel and the writer that took the role fills it.
+        #:
+        #: Filled because a **limit is per role** (`[limits.<role>]`, RK50) and the preventive
+        #: read a refusal names has to be told which one: a body over the decisions file's 150
+        #: was offered `budget --anchor <id> --body-file <path>`, which defaults to
+        #: improvements, priced the same draft against 250 and answered *fits*.
+        self.role = ""
         super().__init__("; ".join(str(v) for v in self.violations))
 
     def payload(self) -> dict[str, object]:

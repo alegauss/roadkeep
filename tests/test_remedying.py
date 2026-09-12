@@ -1871,6 +1871,58 @@ def test_a_code_with_no_bound_reads_the_table_it_always_did():
     assert foreseen("why.too-long").argv == FORESEEN["why.too-long"]
 
 
+def test_the_preventive_read_names_the_file_that_refused(tmp_path):
+    """RK1681, the same find one axis over. A limit is per role (`[limits.<role>]`), and the
+    read a body refusal names prices the draft against whichever file it defaults to — so a
+    body over the decisions ceiling was handed a command that measures it against the
+    improvements one and answers that it fits."""
+    from roadkeep.remedying import foreseen
+
+    assumed = foreseen("body.too-long", "", "improvements")
+    named = foreseen("body.too-long", "", "decisions")
+    assert assumed is not None and named is not None
+    # The read already prices improvements, so the flag would be a token changing nothing.
+    assert "--role" not in assumed.argv, assumed.argv
+    assert named.argv[-2:] == ("--role", "decisions"), named.argv
+
+
+def test_a_read_that_is_not_about_a_file_takes_no_role(tmp_path):
+    """`--symptom <draft>` prices a field of a task line, which no `[limits.<role>]` for a
+    prose file bears on: a flag appended there would be one the read does not take."""
+    from roadkeep.remedying import FORESEEN, foreseen
+
+    for code, argv in FORESEEN.items():
+        door = foreseen(code, "", "decisions")
+        assert ("--role" in door.argv) == ("--anchor" in argv), code
+
+
+def test_a_role_the_read_would_refuse_is_never_named():
+    """A door that refuses in turn is worse than none (RK1475), and `section add --role` takes
+    a free string checked after the prose — so the word arriving here is whatever the caller
+    typed, and appending it unguarded composes a command argparse rejects."""
+    from roadkeep.remedying import foreseen
+
+    assert "--role" not in foreseen("body.too-long", "", "changelog").argv
+    assert "--role" not in foreseen("body.too-long", "", "not-a-role").argv
+
+
+def test_every_role_this_door_may_name_is_one_the_read_declares():
+    """The join that keeps the guard honest: the words it lets through are the words
+    `budget --role` offers, read off the parser rather than restated."""
+    from roadkeep.cli import build_parser
+    from roadkeep.config import PROSE_ROLES
+    from roadkeep.remedying import foreseen
+
+    verbs = [one for one in build_parser()._actions if getattr(one, "choices", None)][0].choices  # noqa: SLF001
+    reading = next(
+        one for one in verbs["budget"]._actions if "--role" in one.option_strings  # noqa: SLF001
+    )
+    assert tuple(reading.choices) == PROSE_ROLES
+    for role in reading.choices:
+        door = foreseen("body.too-long", "", role)
+        assert ("--role" in door.argv) == (role != "improvements"), role
+
+
 def test_every_bound_keyed_row_names_a_code_the_table_above_has():
     """The population is one and the join is what keeps it honest: a row keyed on a code the
     plain table does not carry would be a preventive read reachable only through a flag, which

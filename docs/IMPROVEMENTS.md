@@ -81,30 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1681 The door that prices the wrong file
-
-`section add RK1680 --role decisions` refused at 157 words against the decisions file's
-own limit of 150, and offered `budget --anchor <id> --body-file <path>` as the read that
-measures the same draft first. Run verbatim, that command answers `§RK1681
-improvements`, prices the draft against 250, and reports 200 words as *fits, 50 spare*.
-The write that just refused would refuse it again.
-
-**The argv is fixed per code.** `foreseen(code, bound)` maps `body.too-long` to one
-argv, and `bound` was added by RK1503 for this same failure one axis over: naming the
-wrong read sends a caller to a measurement that says it fits. The role is the second
-axis, and `[limits.decisions] section` is what makes it one — a project declaring a
-narrower limit for one file is the supported case and not an edge.
-
-**The cost is the refusal the door exists to prevent.** A caller who trusts it composes
-the write again unchanged and spends a second refusal on the same paragraph, which is
-the round trip the preventive read was added to remove; a caller who does not trust it
-reads the limit out of `roadkeep.toml`, which is the file read this tool exists to
-replace.
-
-What is unsettled is where the role is carried. `bound` is already a second key on the
-same lookup, so a third may belong there, or the door may be composed with the refusing
-call's own `--role` rather than selected from a table.
-
 ## Block E — Adoption
 
 ## Block F — The plugin
