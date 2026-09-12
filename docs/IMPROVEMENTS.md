@@ -79,6 +79,31 @@ already written, not authorship.
 
 ## Block C — Query
 
+### §RK1680 Readiness on the listing
+
+`list --json` prints each line's id, status, block, symptom, why, deps and ref — and no
+readiness. The summary beside them says how many are startable and how many are waiting,
+so the classification already happens: that count is built by walking the open lines and
+testing each one's requirements, then keeping the total. The per-line answer exists for
+the length of a loop and is thrown away.
+
+**A consumer redraws it, one subprocess at a time.** roadkeep-gui paints a readiness
+column by calling `deps` once per listed row, that being the only verb answering it per
+line. Forty lines is cheap against a held engine; eight hundred is eight hundred reads
+to draw one screen, and its cache holds two hundred answers.
+
+**The same gap removed a filter.** *Startable only* narrows by readiness. Every other
+narrowing on that screen is an argument `list` takes and this one is not, so it was not
+offered rather than computed in the client.
+
+**Neither half is a consumer's to build.** A readiness resolver written into a client is
+the one that disagrees with this tool without anyone noticing — the re-parse this design
+exists to make unnecessary, and the argument `startable` itself was filed under.
+
+**Two things, the second smaller than the first.** `list --json` carries each open
+line's readiness beside its status; `list --startable` narrows to those. The filter is
+the predicate the summary already applies, named.
+
 ## Block D — The gate
 
 ## Block E — Adoption

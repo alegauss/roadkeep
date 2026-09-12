@@ -28,6 +28,8 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1680** (deps: —) **list prints no readiness per line, so a consumer resolves deps once per row to draw a column it already counted** — The summary's startable count classifies every open line and keeps only the total. → §RK1680
+
 ## Block D — The gate
 
 ## Block E — Adoption
