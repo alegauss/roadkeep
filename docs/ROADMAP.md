@@ -32,6 +32,9 @@
 
 ## Block E — Adoption
 
+- 📋 **RK1682** (deps: —) **a reader of many checkouts has only the folder name: roadkeep.toml declares no name, description or icon** — `[project]` carries name, description and icon as an opt-in table `declare` opens, so a tool reading many checkouts asks the engine rather than the path. → §RK1682
+- 📋 **RK1683** (deps: —) **an emoji is all `[project]` can point at, so a repository with a real logo has nowhere to name the file** — `project.logo` names a path inside the project, validated here for shape and containment; whether the file is there belongs to the reader, not to the config. → §RK1683
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)

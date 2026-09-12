@@ -83,6 +83,51 @@ already written, not authorship.
 
 ## Block E — Adoption
 
+### §RK1682 A project says what it is called
+
+A folder name is a fact about a path, and for a growing share of adopters it is the
+wrong fact. Worktrees put the version in the last segment: `viglet/turing/2026.3` and
+`viglet/turing/2026.2` are one product, and a junction named `latest` is a third name
+for one of them. Nothing in the format lets that repository say _Turing_.
+
+**An unknown key is refused**, so this cannot be left to convention. A project writing
+`name = "Turing"` today gets `unknown key 'name'` from every verb: there is no informal
+version to adopt first, and the table either exists or the field cannot be written.
+
+`[project]` carries three — `name`, a one-line `description`, and `icon`, an emoji. All
+optional, for the reason `[non_goals]` and `[criteria]` are: a default that reports a
+finding on the first run is a gate that gets bypassed rather than adopted. `declare`
+opens it (RK1328), so a project past `init` reaches it without hand-editing the file
+this tool owns the writes to.
+
+The limits sit in `[limits]` beside the others and `budget` answers them, a description
+overflowing a row being the same class of problem as a symptom overflowing a line.
+**Counted in UTF-16 code units** — which the icon makes load-bearing rather than
+pedantic: a flag is two units and a ZWJ sequence more, so a limit written in characters
+would refuse emoji this accepts.
+
+### §RK1683 A logo is a path, and a path is not an emoji
+
+An emoji reads at sixteen pixels in a list and carries no brand. A project with an
+actual mark — an SVG in `docs/`, a PNG the README already shows — has nowhere to name
+it, and `icon` is the wrong field to overload: a string that is sometimes a grapheme and
+sometimes a path is two schemas sharing one key, and every reader has to guess which by
+sniffing it.
+
+So `project.logo` is its own key, a **path relative to the project root**, and the
+relativity is the point: an absolute path is a statement about one machine, committed to
+a repository other machines clone.
+
+What is validated here is shape and containment — that it is relative, that it does not
+climb out of the root with `..`, that it is a path and not a URL. **Not that the file
+exists.** A config gate that stats the disk reports a finding on a sparse checkout, on a
+submodule nobody fetched, and on an LFS pointer, none of which is a configuration
+defect; and existence at lint time is not existence at read time anyway. Whether the
+bytes are there is the reader's question, answered where the picture is drawn.
+
+`icon` stays beside it and stays worth declaring: the fallback when the file is missing
+has to be something, and _nothing_ is a hole in a row.
+
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)
