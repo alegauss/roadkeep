@@ -104,7 +104,7 @@ function Choice({
         aria-labelledby={labelled}
       >
         {/* The chosen option carries a mark, not the package's accent alone: measured in the
-            dark ground, that accent sits about 1.35:1 against the panel — a state told by a
+            dark ground, that accent sits at 1.27:1 against the panel — a state told by a
             shade nobody can see, and by colour at that. `aria-checked` says it to a reader. */}
         {options.map((option) => (
           <ToggleGroupItem key={option.value} value={option.value}>

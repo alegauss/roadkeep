@@ -35,7 +35,8 @@ export default defineConfig({
     rollupOptions: {
       // Playwright stays external for the reason Electron does: it is present at runtime,
       // and it resolves its own files relative to where it is installed.
-      external: [/^node:/, 'electron', 'vite', /^playwright-core/],
+      // axe likewise (RG211): its builder reads axe's own source off disk at runtime.
+      external: [/^node:/, 'electron', 'vite', /^playwright-core/, /^@axe-core\//, 'axe-core'],
     },
   },
 })

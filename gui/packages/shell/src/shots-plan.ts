@@ -132,18 +132,47 @@ export function capturesFor(values: ShotValues, only: readonly string[] = []): C
   return captures
 }
 
-/** Read `--only a --only b` and `--only a,b` alike. Anything else on the line is refused. */
-export function onlyFrom(argv: readonly string[]): string[] {
-  const names: string[] = []
+export interface ShotOptions {
+  /** Surface names to keep. Empty is every surface. */
+  readonly only: readonly string[]
+  /** Scan for accessibility and write no pictures (RG211). */
+  readonly a11yOnly: boolean
+}
+
+/**
+ * Read `--only a --only b`, `--only a,b` and `--a11y-only`. Anything else on the line is
+ * refused, since a flag misspelt and ignored is a run that did something else than asked.
+ */
+export function optionsFrom(argv: readonly string[]): ShotOptions {
+  const only: string[] = []
+  let a11yOnly = false
   for (let at = 0; at < argv.length; at += 1) {
     const arg = argv[at]
-    if (arg !== '--only') throw new Error(`the screenshot run takes --only <surface>, not ${arg}`)
+    if (arg === '--a11y-only') {
+      a11yOnly = true
+      continue
+    }
+    if (arg !== '--only') {
+      throw new Error(`the screenshot run takes --only <surface> and --a11y-only, not ${arg}`)
+    }
     const value = argv[at + 1]
     if (value === undefined || value.startsWith('--')) throw new Error('--only names a surface')
-    names.push(...value.split(',').filter((name) => name !== ''))
+    only.push(...value.split(',').filter((name) => name !== ''))
     at += 1
   }
-  return names
+  return { only, a11yOnly }
+}
+
+/**
+ * Whether a capture is also scanned for accessibility (RG211): once per surface, state and
+ * ground, at the desktop width and in the base language.
+ *
+ * Not at every width and language: what axe and the chosen-state rule read is colour, names
+ * and structure, which a translation or a narrower window does not change — and eighty scans
+ * would cost the run a minute to say the same thing four times.
+ */
+export function isScanned(capture: Capture): boolean {
+  return capture.width === SHOT_SIZES[0]?.width && capture.locale === LOCALE_TAGS[0]
 }
 
 /**

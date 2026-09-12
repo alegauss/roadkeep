@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest'
 
 import {
   capturesFor,
-  onlyFrom,
+  isScanned,
+  optionsFrom,
   SESSION_SHOTS,
   settleScript,
   SHOT_GROUNDS,
@@ -84,9 +85,20 @@ describe('RG210: the session, photographed in the states a reader puts it in', (
   })
 })
 
+describe('RG211: which pictures are scanned for accessibility', () => {
+  it('scans each surface, state and ground once, at the desktop width in the base language', () => {
+    const scanned = capturesFor(VALUES).filter(isScanned)
+    const pictured = SURFACE_ROUTES.length - 1 + SESSION_SHOTS.length
+
+    expect(scanned).toHaveLength(pictured * SHOT_GROUNDS.length)
+    expect(scanned.every((one) => one.width === 1280 && one.locale === LOCALE_TAGS[0])).toBe(true)
+    expect(new Set(scanned.map((one) => one.ground))).toEqual(new Set(SHOT_GROUNDS))
+  })
+})
+
 describe('RG209: narrowing a run', () => {
   it('keeps the surfaces --only names, however they are spelled on the line', () => {
-    expect(onlyFrom(['--only', 'settings', '--only', 'sessions,home'])).toEqual([
+    expect(optionsFrom(['--only', 'settings', '--only', 'sessions,home']).only).toEqual([
       'settings',
       'sessions',
       'home',
@@ -101,8 +113,16 @@ describe('RG209: narrowing a run', () => {
   })
 
   it('refuses anything on the line it does not take', () => {
-    expect(() => onlyFrom(['--all'])).toThrow(/--only/)
-    expect(() => onlyFrom(['--only'])).toThrow(/names a surface/)
+    expect(() => optionsFrom(['--all'])).toThrow(/--only/)
+    expect(() => optionsFrom(['--only'])).toThrow(/names a surface/)
+  })
+
+  it('reads --a11y-only beside --only, and neither by default (RG211)', () => {
+    expect(optionsFrom([])).toEqual({ only: [], a11yOnly: false })
+    expect(optionsFrom(['--a11y-only', '--only', 'settings'])).toEqual({
+      only: ['settings'],
+      a11yOnly: true,
+    })
   })
 
   it('refuses a fixture that cannot fill a route, rather than skipping the surface', () => {

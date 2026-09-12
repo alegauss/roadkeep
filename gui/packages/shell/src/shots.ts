@@ -12,6 +12,7 @@ import path from 'node:path'
 
 import { DEFAULT_SETTINGS, listedTasks } from '@rk/core'
 
+import { GATED_IMPACTS, outlivedFindings, unexcusedFindings } from './accessibility'
 import { AGENT_VAR } from './agent-candidates'
 import { refuseIfStale } from './built'
 import { buildFixture } from './fixture'
@@ -19,13 +20,20 @@ import { liveEngine, liveHeld, read, REPO } from './live'
 import { removeTree } from './scratch'
 import { saveSettings } from './settings-file'
 import { scriptedAgent } from './scripted-agent'
-import { buildOf, launchForShots, speakAndPaint, startSession, takeCapture } from './shots-app'
-import { capturesFor, onlyFrom, SHOTS_DIRECTORY, type Capture } from './shots-plan'
+import {
+  buildOf,
+  launchForShots,
+  speakAndPaint,
+  startSession,
+  takeCapture,
+  type Scan,
+} from './shots-app'
+import { capturesFor, isScanned, optionsFrom, SHOTS_DIRECTORY, type Capture } from './shots-plan'
 
 /**
  * `npm run shots`: every surface the window serves, photographed (RG209).
  *
- * The tests render jsdom, which lays nothing out, so a chosen toggle at 1.35:1 against its
+ * The tests render jsdom, which lays nothing out, so a chosen toggle at 1.27:1 against its
  * panel passed every one of them and was found by a screenshot somebody improvised. This is
  * that screenshot, made a command: a fixture project, a throwaway profile naming it, the built
  * app, and a PNG per surface, ground, language and width in `.shots/` — which an agent reads
@@ -84,13 +92,49 @@ function indexed(directory: string, build: unknown, taken: readonly Taken[], nar
   return captures
 }
 
+/**
+ * Judge the scans and write what they found beside the pictures (RG211).
+ *
+ * @returns how many things fail the run: findings nobody excused, and — on a run over every
+ *   surface, the only one that could have met them — exceptions nothing named any more.
+ */
+function judged(directory: string, scans: readonly Scanned[], narrowed: boolean): number {
+  const findings = scans.flatMap((one) => one.findings)
+  const unexcused = unexcusedFindings(findings)
+  const outlived = narrowed ? [] : outlivedFindings(findings)
+  writeFileSync(
+    path.join(directory, 'a11y.json'),
+    `${JSON.stringify({ gatedAt: GATED_IMPACTS, scans, unexcused, outlived }, null, 2)}\n`,
+    'utf8',
+  )
+  for (const one of unexcused) {
+    process.stderr.write(
+      `a11y ${one.impact} ${one.rule} on ${one.surface} (${one.ground}): ${one.target} — ${one.help}\n`,
+    )
+  }
+  for (const one of outlived) {
+    process.stderr.write(`a11y exception no scan named: ${one.rule} ${one.target}\n`)
+  }
+  process.stdout.write(
+    `${String(scans.length)} scans: ${String(findings.length)} findings, ` +
+      `${String(unexcused.length)} unexcused, ${String(outlived.length)} outlived exceptions\n`,
+  )
+  return unexcused.length + outlived.length
+}
+
+interface Scanned extends Scan {
+  readonly surface: string
+  readonly state: string | null
+  readonly ground: string
+}
+
 async function main(): Promise<number> {
-  const only = onlyFrom(process.argv.slice(2))
+  const { only, a11yOnly } = optionsFrom(process.argv.slice(2))
   refuseIfStale()
 
   const directory = path.join(REPO, SHOTS_DIRECTORY)
   mkdirSync(directory, { recursive: true })
-  if (only.length === 0) {
+  if (only.length === 0 && !a11yOnly) {
     for (const name of readdirSync(directory)) {
       if (name.endsWith('.png') || name === 'index.json') rmSync(path.join(directory, name))
     }
@@ -107,12 +151,14 @@ async function main(): Promise<number> {
 
     const shot = await launchForShots(userData, { [AGENT_VAR]: JSON.stringify(agent.command) })
     const taken: Taken[] = []
+    const scans: Scanned[] = []
     try {
       const key = await startSession(shot, fixture.root, second?.id ?? '', agent.lines)
-      const captures = capturesFor(
+      const planned = capturesFor(
         { root: fixture.root, id: first?.id ?? '', sessionId: second?.id ?? '', key },
         only,
       )
+      const captures = a11yOnly ? planned.filter(isScanned) : planned
       let painted = ''
       for (const capture of captures) {
         const look = `${capture.ground}.${capture.locale}`
@@ -121,20 +167,32 @@ async function main(): Promise<number> {
           painted = look
         }
         try {
-          const settled = await takeCapture(shot, capture, directory)
-          taken.push({ ...capture, settled })
-          process.stdout.write(`${settled ? 'settled  ' : 'unsettled'} ${capture.file}\n`)
+          const done = await takeCapture(shot, capture, directory, {
+            picture: !a11yOnly,
+            scan: isScanned(capture),
+          })
+          if (done.scan !== null) {
+            const { surface, state, ground } = capture
+            scans.push({ surface, state, ground, ...done.scan })
+          }
+          if (!a11yOnly) {
+            taken.push({ ...capture, settled: done.settled })
+            process.stdout.write(`${done.settled ? 'settled  ' : 'unsettled'} ${capture.file}\n`)
+          }
         } catch (cause) {
           failed += 1
           process.stderr.write(`not taken ${capture.file}: ${String(cause).split('\n')[0]}\n`)
         }
       }
-      const all = indexed(directory, await buildOf(shot), taken, only.length > 0)
-      const unsettled = taken.filter((one) => !one.settled).length
-      process.stdout.write(
-        `${String(taken.length)} pictures in ${SHOTS_DIRECTORY}/ (${String(unsettled)} unsettled, ` +
-          `${String(failed)} not taken); the index lists ${String(all.length)}\n`,
-      )
+      if (!a11yOnly) {
+        const all = indexed(directory, await buildOf(shot), taken, only.length > 0)
+        const unsettled = taken.filter((one) => !one.settled).length
+        process.stdout.write(
+          `${String(taken.length)} pictures in ${SHOTS_DIRECTORY}/ (${String(unsettled)} ` +
+            `unsettled, ${String(failed)} not taken); the index lists ${String(all.length)}\n`,
+        )
+      }
+      failed += judged(directory, scans, only.length > 0)
     } finally {
       await shot.close()
     }

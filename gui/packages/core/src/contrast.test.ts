@@ -4,6 +4,7 @@ import {
   AA_LARGE,
   AA_TEXT,
   contrastOf,
+  fromSrgbBytes,
   luminanceOf,
   parseOklch,
   ratioBetween,
@@ -106,6 +107,21 @@ describe('RG54: the ratio', () => {
 
   it('holds the thresholds apart, because they are different questions', () => {
     expect(AA_TEXT).toBeGreaterThan(AA_LARGE)
+  })
+})
+
+describe('RG211: a colour the window painted, read back as bytes', () => {
+  it('takes the ends of the byte scale to the ends of the light scale', () => {
+    expect(luminanceOf(fromSrgbBytes(255, 255, 255))).toBeCloseTo(1, 6)
+    expect(luminanceOf(fromSrgbBytes(0, 0, 0))).toBeCloseTo(0, 6)
+  })
+
+  it("measures RG207's chosen toggle as the shade nobody could see", () => {
+    // The accent and the panel as the dark ground painted them, sampled off RG207's picture.
+    const chosen = luminanceOf(fromSrgbBytes(51, 51, 51))
+    const panel = luminanceOf(fromSrgbBytes(33, 33, 33))
+
+    expect(said(ratioBetween(chosen, panel))).toBe('1.27:1')
   })
 })
 

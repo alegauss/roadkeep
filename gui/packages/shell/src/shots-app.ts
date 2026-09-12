@@ -1,8 +1,19 @@
 import path from 'node:path'
 import { setTimeout as after } from 'node:timers/promises'
 
+import { AxeBuilder } from '@axe-core/playwright'
 import { _electron, type ElectronApplication, type Page } from 'playwright-core'
 
+import {
+  AXE_TAGS,
+  CHOSEN_SCRIPT,
+  chosenFindings,
+  findingsIn,
+  judgeChosen,
+  readingsFrom,
+  type ChosenVerdict,
+  type Finding,
+} from './accessibility'
 import { electronPath, launchEnv, shellRoot } from './launch'
 import { settleScript, type Capture } from './shots-plan'
 
@@ -181,21 +192,64 @@ async function settle(page: Page): Promise<boolean> {
   return (await page.evaluate(settleScript(QUIET_MS, SETTLE_CEILING_MS))) === true
 }
 
+/** What a scan of one surface in one state and ground found (RG211). */
+export interface Scan {
+  /** Every violation axe named, at any impact. */
+  readonly findings: readonly Finding[]
+  /** Every chosen option read beside a sibling, told apart or not. */
+  readonly chosen: readonly ChosenVerdict[]
+}
+
 /**
- * Take one picture: the width, the route, the state a session is put in, a settled document, the
- * capture.
+ * Scan the page as it is drawn: axe at WCAG A and AA, then the chosen-state rule axe lacks.
  *
- * @returns whether the surface settled before the ceiling. A surface that never did is still
- *   photographed, and the index says so.
+ * Axe is injected over the DevTools protocol by `AxeBuilder`, which the renderer's content
+ * policy does not govern — the same reason every expression here reaches the page that way.
+ *
+ * **In legacy mode, and that was measured.** The builder's default finishes a run in a blank
+ * page it opens beside the window, and Electron refuses `Target.createTarget`: every scan failed
+ * with *not supported*. Legacy mode runs axe in the window's own frame, which is all a single
+ * window with no iframes has.
+ */
+async function scanPage(page: Page, capture: Capture): Promise<Scan> {
+  const result = await new AxeBuilder({ page })
+    .withTags([...AXE_TAGS])
+    .setLegacyMode(true)
+    .analyze()
+  const chosen = readingsFrom(await page.evaluate(CHOSEN_SCRIPT)).map((one) => judgeChosen(one))
+  const named = capture.state === null ? capture.surface : `${capture.surface}.${capture.state}`
+  return {
+    findings: [
+      ...findingsIn(result, named, capture.ground),
+      ...chosenFindings(chosen, named, capture.ground),
+    ],
+    chosen,
+  }
+}
+
+export interface Taking {
+  /** Write the PNG. False for a scan-only run. */
+  readonly picture: boolean
+  /** Scan the page before it moves on (RG211). */
+  readonly scan: boolean
+}
+
+/**
+ * Take one capture: the width, the route, the state a session is put in, a settled document,
+ * then the picture and the scan it was asked for — both of the page in that state.
+ *
+ * @returns whether the surface settled before the ceiling, and what a scan found. A surface
+ *   that never settled is still photographed, and the index says so.
  */
 export async function takeCapture(
   shot: ShotApp,
   capture: Capture,
   directory: string,
-): Promise<boolean> {
+  taking: Taking = { picture: true, scan: false },
+): Promise<{ readonly settled: boolean; readonly scan: Scan | null }> {
   const { page } = shot
   // Folded notes are a preference the stream reads at launch (RG208), so it is set and taken
-  // back around the one picture that needs it.
+  // back around the one capture that needs it.
   if (capture.state === 'folded') await prefer(shot, 'sessionNotes', 'hidden')
   try {
     await page.setViewportSize({ width: capture.width, height: capture.height })
@@ -208,15 +262,18 @@ export async function takeCapture(
       settled = await settle(page)
     }
 
-    const file = path.join(directory, capture.file)
-    try {
-      await page.screenshot({ path: file, timeout: CAPTURE_TIMEOUT_MS })
-    } catch {
-      // Once more after the frames an emulated resize takes to land, which is the case measured.
-      await page.evaluate(TWO_FRAMES)
-      await page.screenshot({ path: file, timeout: CAPTURE_TIMEOUT_MS })
+    if (taking.picture) {
+      const file = path.join(directory, capture.file)
+      try {
+        await page.screenshot({ path: file, timeout: CAPTURE_TIMEOUT_MS })
+      } catch {
+        // Once more after the frames an emulated resize takes to land, which is the case
+        // measured.
+        await page.evaluate(TWO_FRAMES)
+        await page.screenshot({ path: file, timeout: CAPTURE_TIMEOUT_MS })
+      }
     }
-    return settled
+    return { settled, scan: taking.scan ? await scanPage(page, capture) : null }
   } finally {
     if (capture.state === 'folded') await prefer(shot, 'sessionNotes', 'shown')
   }

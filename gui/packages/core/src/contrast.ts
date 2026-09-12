@@ -85,6 +85,22 @@ export function toLinearRgb(colour: Oklch): LinearRgb {
   }
 }
 
+/**
+ * Eight-bit sRGB to linear light (RG211).
+ *
+ * What a window paints, read back as bytes: the browser resolves any colour a stylesheet
+ * writes — `oklch`, a mix, a variable — and this is the half that turns its answer into
+ * something `luminanceOf` reads, so a rendered pair is measured by the same rule a token
+ * pair is.
+ */
+export function fromSrgbBytes(red: number, green: number, blue: number): LinearRgb {
+  const linear = (byte: number) => {
+    const value = clamp(byte / 255)
+    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
+  }
+  return { r: linear(red), g: linear(green), b: linear(blue) }
+}
+
 /** WCAG relative luminance, over linear sRGB. */
 export function luminanceOf(rgb: LinearRgb): number {
   return 0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b

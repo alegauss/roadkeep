@@ -478,6 +478,7 @@ export {
   AA_NON_TEXT,
   AA_TEXT,
   contrastOf,
+  fromSrgbBytes,
   luminanceOf,
   parseOklch,
   ratioBetween,

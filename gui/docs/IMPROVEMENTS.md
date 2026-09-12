@@ -106,33 +106,6 @@ digest is then required to carry that set.
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
 
-### §RG211 axe through Playwright over every photographed surface
-
-RG54 holds token pairs to AA and asserts keyboard reach in jsdom. Neither sees what a
-component draws: RG207's chosen toggle was the package's accent on a panel, 1.35:1, and
-passed both.
-
-**`@axe-core/playwright` on every surface.** Each surface `shots.ts` captures, in both
-grounds, is scanned with `AxeBuilder` tagged `wcag2a`, `wcag2aa` and `wcag21aa`. The
-report lands beside the PNGs as `a11y.json`, and a `serious` or `critical` violation
-fails the run. Axe's own documentation says automated checks find some problems and not
-most, so a pass is a floor and never a verdict.
-
-**Exceptions expire.** An accepted finding carries its rule, its selector and a reason,
-as `advisories.ts` keeps npm's: one nobody excused fails, and one the report no longer
-names fails too.
-
-**What axe does not measure, measured beside it.** A chosen option — `aria-checked`,
-`aria-pressed`, `aria-selected` or `aria-current` — must differ from an unchosen sibling
-by 3:1 in background, or carry a mark the sibling lacks. Read through `page.evaluate`,
-with computed colours resolved by `contrast.ts` so an `oklch` token reads as the window
-paints it.
-
-`--a11y-only` scans without writing images.
-
-Done when a surface whose chosen state is told by shade alone fails the run, and RG207's
-toggle, which carries a mark, passes.
-
 ### §RG213 A browser project beside jsdom, for what only a layout answers
 
 The `ui` project runs in jsdom, which lays nothing out and fakes its events. RG206's
