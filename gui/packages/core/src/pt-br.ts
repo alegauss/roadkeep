@@ -78,6 +78,8 @@ export const PT_BR: Wording = {
   'project.blocks': 'Blocos',
   'project.block.finished': 'concluído',
   'project.filter.marker': 'marcador',
+  'project.filter.readiness': 'Prontidão',
+  'project.filter.startable': 'Só as que dá para começar',
   'project.filter.requirement': 'requisito',
   'project.filter.note':
     'a prontidão é o que o deps respondeu para cada linha, nunca calculada aqui',
@@ -86,9 +88,6 @@ export const PT_BR: Wording = {
   'project.design.written': 'design escrito · §{ref}',
   'project.design.none': 'sem design ainda',
   'project.deps.none': 'sem dependências',
-  'project.readiness.asking': 'perguntando',
-  'project.waiting': 'esperando {ids}',
-  'project.cycle': 'em ciclo com {ids}',
   'project.unheld': 'marcada, sem dono',
   'project.unheld.why': 'o marcador diz iniciada; o registro de claims não nomeia ninguém',
   'project.held': 'com {by}',

@@ -47,6 +47,7 @@ const LINES = [
     ref: 'AL1',
     line: 7,
     length: 90,
+    readiness: 'ready',
   },
   {
     id: 'AL2',
@@ -58,6 +59,7 @@ const LINES = [
     ref: null,
     line: 8,
     length: 90,
+    readiness: 'blocked',
   },
   {
     id: 'AL3',
@@ -69,6 +71,7 @@ const LINES = [
     ref: 'AL3',
     line: 12,
     length: 90,
+    readiness: 'ready',
   },
 ]
 
@@ -209,7 +212,11 @@ function answer(argv: readonly string[]): string | undefined {
               ],
         // The order is the engine's, and only `--stale` names one (RG28).
         ...(argv.includes('--stale') ? { order: 'oldest first' } : {}),
-        tasks: tasks.filter((line) => narrowedTo === null || line.block === narrowedTo),
+        tasks: tasks
+          .filter((line) => narrowedTo === null || line.block === narrowedTo)
+          .map((line) =>
+            readinessOverride === undefined ? line : { ...line, readiness: readinessOverride },
+          ),
       })
     }
     case 'reversals':
@@ -262,6 +269,9 @@ function answer(argv: readonly string[]): string | undefined {
   }
 }
 
+/** Set by a test that wants every row's readiness replaced, and cleared between them. */
+let readinessOverride: string | undefined
+
 function engine(): { transport: Transport; asked: string[][] } {
   const asked: string[][] = []
   const transport: Transport = {
@@ -277,7 +287,10 @@ function engine(): { transport: Transport; asked: string[][] } {
 
 const CATALOGUE: ProjectCatalogue = { version: 1, roots: [], projects: [] }
 
-async function atProject(): Promise<{ asked: string[][] }> {
+async function atProject(over: { readiness?: string } = {}): Promise<{ ran: string[][] }> {
+  // A build that does not answer the field leaves it empty on every row, which is what the
+  // reader falls back to (RG170).
+  readinessOverride = over.readiness
   const { transport, asked } = engine()
   const opened = openedFrom(await openProject(ROOT, [['python', 'launch.py']], () => transport))
   Object.defineProperty(window, 'roadkeep', {
@@ -290,7 +303,7 @@ async function atProject(): Promise<{ asked: string[][] }> {
     configurable: true,
   })
   drawWindow({ at: projectPath(ROOT) })
-  return { asked }
+  return { ran: asked }
 }
 
 function lineOf(id: string): HTMLElement {
@@ -332,16 +345,28 @@ describe('RG148: one backlog, as rows', () => {
     expect(within(lineOf('AL2')).getByText(BASE['project.design.none'])).toBeTruthy()
   })
 
-  it('draws readiness in the engine words, with what holds a line back', async () => {
-    await atProject()
+  it('draws readiness in the engine words, off the listing (RG170)', async () => {
+    const wired = await atProject()
 
     await waitFor(() => {
       expect(within(lineOf('AL2')).getByText('blocked')).toBeTruthy()
     })
-    expect(
-      within(lineOf('AL2')).getByText(fill(BASE['project.waiting'], { ids: 'AL1' })),
-    ).toBeTruthy()
     expect(within(lineOf('AL1')).getByText('ready')).toBeTruthy()
+    // And nothing was asked per row to draw it: `list` already classified every line.
+    expect(wired.ran.filter((argv) => argv.includes('deps'))).toEqual([])
+  })
+
+  it('draws no readiness where the build does not answer it, rather than a guess', async () => {
+    // A project on a roadkeep older than the field: a state, not a failure, and block D's
+    // second criterion says the word is never worked out here.
+    const wired = await atProject({ readiness: '' })
+
+    await waitFor(() => {
+      expect(lineOf('AL1')).toBeTruthy()
+    })
+    expect(within(lineOf('AL1')).queryByText('ready')).toBeNull()
+    expect(within(lineOf('AL2')).queryByText('blocked')).toBeNull()
+    expect(wired.ran.filter((argv) => argv.includes('deps'))).toEqual([])
   })
 
   it('says a started line nobody holds is marked and unheld, rather than choosing', async () => {
@@ -355,7 +380,7 @@ describe('RG148: one backlog, as rows', () => {
   })
 
   it('narrows to a block by asking list for it, and clears it on a second press', async () => {
-    const { asked } = await atProject()
+    const { ran: asked } = await atProject()
     await waitFor(() => {
       expect(screen.getAllByTestId('line')).toHaveLength(3)
     })
@@ -497,5 +522,40 @@ describe('RG172: a narrowed listing, in the window’s language', () => {
     )
     // The engine's words after this app's sentence, not instead of it.
     expect(narrowed.textContent).toContain('a marker this project does not declare')
+  })
+})
+
+describe('RG170: the narrowing the engine does', () => {
+  it('asks list for the startable ones, rather than deciding here', async () => {
+    const { ran: asked } = await atProject()
+    await waitFor(() => {
+      expect(screen.getAllByTestId('line')).toHaveLength(3)
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: BASE['project.filter.startable'] }))
+
+    await waitFor(() => {
+      expect(asked.some((argv) => argv[2] === 'list' && argv.includes('--startable'))).toBe(true)
+    })
+  })
+
+  it('clears it on a second press, so the flag stops being sent', async () => {
+    const { ran: asked } = await atProject()
+    await waitFor(() => {
+      expect(screen.getAllByTestId('line')).toHaveLength(3)
+    })
+    const chip = screen.getByRole('button', { name: BASE['project.filter.startable'] })
+
+    fireEvent.click(chip)
+    await waitFor(() => {
+      expect(asked.some((argv) => argv.includes('--startable'))).toBe(true)
+    })
+    const before = asked.length
+    fireEvent.click(chip)
+
+    await waitFor(() => {
+      expect(asked.length).toBeGreaterThan(before)
+    })
+    expect(asked.slice(before).some((argv) => argv.includes('--startable'))).toBe(false)
   })
 })

@@ -257,6 +257,43 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect(narrowingOfList(payload).complete).toBe(true)
   })
 
+  it("reads each line's readiness off the listing, which is the engine's word (RG170)", async () => {
+    const payload = await readVerb('list', {})
+    const lines = listedTasks(payload)
+
+    expect(lines.length).toBeGreaterThan(0)
+    // Every open line carries one, and it is a word the engine chose: this app draws it and
+    // never works one out, so a shape that let it be missing would draw an empty column
+    // against a build that does answer.
+    for (const line of lines) {
+      expect(line.readiness, `${line.id} carries no readiness`).not.toBe('')
+    }
+    expect(lines.some((one) => one.readiness === 'ready')).toBe(true)
+  })
+
+  it('narrows to the startable lines, which is a flag and not a filter here (RG170)', async () => {
+    // Its own fixture, with one line waiting on another: the narrowing has to remove
+    // something, and an assertion that passed on two equal lists would prove nothing.
+    const chained = await buildFixture(transport, {
+      open: 2,
+      shipped: 1,
+      deferred: 0,
+      chained: true,
+    })
+    try {
+      const all = listedTasks(await read(chained.root, 'list', {}))
+      const startable = listedTasks(await read(chained.root, 'list', { startable: true }))
+
+      expect(all.length).toBeGreaterThan(startable.length)
+      expect(startable.length).toBeGreaterThan(0)
+      expect(startable.every((one) => one.readiness === 'ready')).toBe(true)
+      // And the line it removed is one the listing itself calls something other than ready.
+      expect(all.some((one) => one.readiness !== 'ready')).toBe(true)
+    } finally {
+      chained.dispose()
+    }
+  })
+
   it('reads a listing narrowed to one block', async () => {
     const payload = await readVerb('list', { block: 'A' })
 

@@ -12,8 +12,6 @@
 
 ## Block D — The project surface (one backlog, read)
 
-- 🛠 **RG170** (deps: roadkeep RK1680) **list prints no readiness per line, so every row costs a deps read and startable only cannot be offered** — Readiness is the engine's word, and a list of eight hundred is eight hundred reads before the column is full. → §RG170
-
 ## Block E — The write path (the app composes an argv; the command writes)
 
 ## Block F — The agent surface (handing one task to Claude Code)

@@ -7,7 +7,6 @@ import {
   reasonOf,
   type BacklogFilter,
   type BlockStanding,
-  type DepsPayload,
   type OpenProject,
   type TaskLine,
   type Underway,
@@ -107,28 +106,23 @@ function BlockLabel({ block }: { readonly block: BlockStanding }) {
 
 /** Readiness in the engine's words, and what the engine says holds it back. */
 function Readiness({
-  deps,
+  readiness,
   state,
 }: {
-  readonly deps: DepsPayload | undefined
+  readonly readiness: string
   readonly state: Underway | undefined
 }) {
   const say = useWording()
-  if (deps === undefined) return <Pill intent={null}>{say('project.readiness.asking')}</Pill>
 
   return (
     <div className="flex flex-col items-start gap-1">
-      <Pill intent={deps.readiness === 'ready' ? 'on' : 'warn'}>{deps.readiness}</Pill>
-      {deps.blockers.length > 0 ? (
-        <span className="text-muted-foreground text-xs">
-          {say('project.waiting', { ids: deps.blockers.join(', ') })}
-        </span>
-      ) : null}
-      {deps.cycle.length > 0 ? (
-        <span className="text-muted-foreground text-xs">
-          {say('project.cycle', { ids: deps.cycle.join(', ') })}
-        </span>
-      ) : null}
+      {/* The engine's own word, off the listing (RG170). Empty is a build that does not
+          answer it — a state, not a failure — and nothing is drawn rather than a word this
+          app worked out. What is waiting on what is the task screen's, which reads `deps`
+          for the one line somebody opened instead of for every row. */}
+      {readiness === '' ? null : (
+        <Pill intent={readiness === 'ready' ? 'on' : 'warn'}>{readiness}</Pill>
+      )}
       {state?.disagree === true && state.held === null ? (
         <>
           <Pill intent="warn">{say('project.unheld')}</Pill>
@@ -147,12 +141,10 @@ function Readiness({
 function Line({
   root,
   line,
-  deps,
   state,
 }: {
   readonly root: string
   readonly line: TaskLine
-  readonly deps: DepsPayload | undefined
   readonly state: Underway | undefined
 }) {
   const say = useWording()
@@ -192,7 +184,7 @@ function Line({
         </div>
       </div>
       <div className="flex flex-col items-start gap-2">
-        <Readiness deps={deps} state={state} />
+        <Readiness readiness={line.readiness} state={state} />
         <Button asChild size="sm">
           <Link
             to={taskPath(root, line.id)}
@@ -230,6 +222,12 @@ function Roadmap({
     },
     [filter, onFilter],
   )
+  // The narrowing `list` itself does (RG170). A chip and not a predicate here: readiness is
+  // the engine's word, so the filter is its flag — and a line this app decided was startable
+  // is a line that can disagree with `pick` without anyone noticing.
+  const pickStartable = useCallback(() => {
+    onFilter(withField(filter, 'startable', filter.startable === true ? undefined : true))
+  }, [filter, onFilter])
   const pickRequirement = useCallback(
     (requirement: string) => {
       const held = filter.have?.[0] === requirement
@@ -274,6 +272,14 @@ function Roadmap({
             </Choice>
           ))}
         </fieldset>
+        <fieldset className="m-0 flex flex-wrap items-center gap-2 border-0 p-0">
+          <legend className="text-muted-foreground float-left mr-1 text-xs">
+            {say('project.filter.readiness')}
+          </legend>
+          <Choice value="startable" active={filter.startable === true} onPick={pickStartable}>
+            {say('project.filter.startable')}
+          </Choice>
+        </fieldset>
         {surface.choices.requirements.length === 0 ? null : (
           <fieldset className="m-0 flex flex-wrap items-center gap-2 border-0 p-0">
             <legend className="text-muted-foreground float-left mr-1 text-xs">
@@ -316,7 +322,6 @@ function Roadmap({
                 key={line.id}
                 root={surface.project.root}
                 line={line}
-                deps={surface.readiness[line.id]}
                 state={surface.underway[line.id]}
               />
             ))}

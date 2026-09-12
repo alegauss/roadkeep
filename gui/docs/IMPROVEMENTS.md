@@ -30,28 +30,6 @@ detail.
 
 ## Block D — The project surface (one backlog, read)
 
-### §RG170 Readiness off the listing
-
-RG148 draws each row's readiness from `deps`, one read per listed line, because `list`
-prints the lines and not their readiness. A held engine answers each in milliseconds and
-the carrier's pool bounds them, so a backlog of forty lines is cheap. One of eight
-hundred is eight hundred reads to draw a screen, and the cache holds two hundred
-answers.
-
-The same gap removed a filter the design asked for. "Startable only" narrows by
-readiness, and block D says readiness is never derived here. Every narrowing on that
-screen is also an argument `list` takes, and `list` takes none for this. So the filter
-is not offered, rather than being computed in React.
-
-**The fix is roadkeep's, and the dep says so.** When `list --json` carries each line's
-readiness beside its status, the row reads it off the listing and the `deps` reads go.
-When `list` takes a `--startable`, the filter is one more chip handed to
-`filterAsInput`. Neither is this app's to build: a resolver written into the client is
-the one that disagrees with the engine without anyone noticing.
-
-Until then the per-line reads stay. They are correct, just slow on a long list, and a
-project that large can narrow by block first.
-
 ## Block E — The write path (the app composes an argv; the command writes)
 
 ## Block F — The agent surface (handing one task to Claude Code)

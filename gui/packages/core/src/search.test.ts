@@ -15,6 +15,7 @@ const line = (id: string, symptom: string, why: string): TaskLine => ({
   length: 100,
   since: 0,
   reason: '',
+  readiness: '',
 })
 
 const ROADKEEP: SearchableProject = {

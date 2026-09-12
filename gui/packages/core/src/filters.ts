@@ -41,6 +41,12 @@ export interface BacklogFilter {
    * rest: the store is a governed role and reading it is one call, not a predicate.
    */
   readonly stale?: boolean
+  /**
+   * Only what is startable, which is a narrowing `list` takes and never one computed here
+   * (RG170). Block D's second criterion applied to a list: readiness is the engine's word,
+   * so the filter is its flag.
+   */
+  readonly startable?: boolean
 }
 
 export const FILTER_FIELDS = ['block', 'role', 'marker', 'have', 'stale'] as const
@@ -57,6 +63,7 @@ export function filterAsInput(filter: BacklogFilter): VerbInputs['list'] {
     // False is not a narrowing, so it is left off rather than sent as a flag the engine
     // would then have to read as "not the store".
     ...(filter.stale === true ? { stale: true } : {}),
+    ...(filter.startable === true ? { startable: true } : {}),
   }
 }
 

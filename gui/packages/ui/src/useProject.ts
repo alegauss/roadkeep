@@ -11,7 +11,6 @@ import {
   type Backlog,
   type BacklogFilter,
   type BlockStanding,
-  type DepsPayload,
   type FilterChoices,
   type OpenProject,
   type StatsPayload,
@@ -36,8 +35,6 @@ export interface OpenedSurface {
   readonly working: string
   /** The lines `list` answered for the filter, or null while that read is out. */
   readonly backlog: Backlog | null
-  /** Each listed line's resolved deps, as they arrive: readiness in the engine's words. */
-  readonly readiness: Readonly<Record<string, DepsPayload>>
   /** For a line carrying the working marker, the marker and the claim side by side (RG74). */
   readonly underway: Readonly<Record<string, Underway>>
 }
@@ -124,7 +121,6 @@ export function useProject(root: string, filter: BacklogFilter): ProjectView {
         markers: read === null ? [] : openMarkers(read),
         working: read === null ? '' : workingMarker(read),
         backlog: null,
-        readiness: {},
         underway: {},
       })
     })()
@@ -148,7 +144,7 @@ export function useProject(root: string, filter: BacklogFilter): ProjectView {
       const listed = await project.client.call(root, 'list', input)
       if (!stillHere() || listed.kind !== 'read') return
       const backlog = backlogFrom(listed.value)
-      // After the files moved, each row keeps the readiness it had until its own `deps`
+      // After the files moved, each row keeps what it had until its own read
       // answers again, rather than every row flashing back to asking. A new narrowing is a
       // new list, and starts from nothing.
       const reread = generation > 0
@@ -157,23 +153,18 @@ export function useProject(root: string, filter: BacklogFilter): ProjectView {
           ? {
               ...was,
               backlog,
-              readiness: reread ? was.readiness : {},
               underway: reread ? was.underway : {},
             }
           : was,
       )
 
+      // Readiness comes off the listing now (RG170), so nothing is asked per row for it:
+      // `list` already classifies every open line to produce its own `startable` count, and
+      // a `deps` call per line was eight hundred reads to draw one screen.
       await Promise.all(
         backlog.blocks
           .flatMap((block) => block.lines)
           .map(async (line) => {
-            const deps = await project.client.call(root, 'deps', { id: line.id })
-            if (!stillHere() || deps.kind !== 'read') return
-            setView((was) =>
-              was.kind === 'open'
-                ? { ...was, readiness: { ...was.readiness, [line.id]: deps.value } }
-                : was,
-            )
             if (working === '' || line.status !== working) return
             const brief = await project.client.call(root, 'brief', { id: line.id })
             if (!stillHere() || brief.kind !== 'read' || 'empty' in brief.value) return

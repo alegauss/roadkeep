@@ -32,6 +32,12 @@ export interface VerbInputs {
      * payload, so with `--json` this asks for the store and nothing more.
      */
     stale?: boolean
+    /**
+     * Only the lines nothing is holding up (RG170): every dep settled and no requirement
+     * this caller has not declared. The engine's own narrowing, which is what keeps
+     * "startable only" from being readiness derived in a client.
+     */
+    startable?: boolean
   }
   show: {
     id: string
@@ -214,6 +220,7 @@ export const VERBS: { [K in VerbName]: ArgvFor<K> } = {
     ...optional('--marker', input.marker),
     ...repeated('--have', input.have),
     ...(input.stale === true ? ['--stale'] : []),
+    ...(input.startable === true ? ['--startable'] : []),
   ],
   show: (input) => [input.id, ...(input.noBody === true ? ['--no-body'] : [])],
   stats: (input) => [

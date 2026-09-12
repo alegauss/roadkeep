@@ -15,6 +15,7 @@ const task = (id: string, block: string, line: number): TaskLine => ({
   length: 100,
   since: 0,
   reason: '',
+  readiness: '',
 })
 
 const refused = (line: number, block: string, reason: string): RefusedLine => ({

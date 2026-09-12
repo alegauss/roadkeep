@@ -62,6 +62,19 @@ export interface TaskLine {
    */
   readonly since: number | null
   readonly reason: string
+  /**
+   * What is holding this line up, in the engine's own word (RG170).
+   *
+   * Read here rather than resolved per row: the listing already classifies every open line
+   * to produce its own `startable` count, and a `deps` call per row was eight hundred reads
+   * to draw one screen of a large backlog.
+   *
+   * **Empty is a build that does not answer it**, which is a state and not a failure: the
+   * field arrived in roadkeep 0.2.466, and a project on an older copy draws no column rather
+   * than a wrong one. Never derived here — block D's second criterion — so a row with nothing
+   * to read shows nothing.
+   */
+  readonly readiness: string
 }
 
 export const readTaskLine: Reader<TaskLine> = record<TaskLine>({
@@ -76,6 +89,7 @@ export const readTaskLine: Reader<TaskLine> = record<TaskLine>({
   length: aNumber,
   since: orMissing(orNull(aNumber), null),
   reason: orMissing(aString, ''),
+  readiness: orMissing(aString, ''),
 })
 
 /** How a block stands, as a sentence the engine composed and this app never rewrites. */
