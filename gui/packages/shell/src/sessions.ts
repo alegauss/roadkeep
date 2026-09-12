@@ -34,7 +34,8 @@ import { startSession, type RunningSession, type SessionWatcher } from './sessio
  * what keeps a renderer from starting an agent with a prompt of its own.
  *
  * **Nothing is taken that cannot be started.** Which Claude Code this machine has is asked
- * before the claim, so a machine with none answers that and leaves the line as it was.
+ * before the claim, so a machine with none answers that and leaves the line as it was. The
+ * environment the session runs in is decided there too (RG205), once, beside the agent.
  *
  * Every line the session writes is kept and published with its place in the stream, and its
  * outcome is published when it ends, so a screen that opens late asks for what it missed and
@@ -49,10 +50,19 @@ export interface SessionsOptions {
   readonly carrier: Pick<Carrier, 'open' | 'run'>
   /** Which Claude Code answers here, asked from a project's root. */
   readonly agent: (root: string) => Promise<AgentResolution>
+  /**
+   * The environment that agent's sessions run in (RG205), asked once it resolved. The one
+   * this process inherited unless the caller says otherwise.
+   */
+  readonly environment?: (agent: Agent, root: string) => Promise<NodeJS.ProcessEnv>
   /** Where each line and each ending goes: the `session` topic, keyed on the session. */
   readonly publish: (event: TopicEvents['session']) => void
   /** Start the process. `startSession` unless a test says otherwise. */
-  readonly start?: (call: SessionCall, watcher: SessionWatcher) => RunningSession
+  readonly start?: (
+    call: SessionCall,
+    watcher: SessionWatcher,
+    env: NodeJS.ProcessEnv,
+  ) => RunningSession
   /** Name a new session. A random UUID unless a test says otherwise. */
   readonly key?: () => string
 }
@@ -106,11 +116,15 @@ function recordOf(held: Held): SessionRecord {
 
 export function createSessions(options: SessionsOptions): Sessions {
   const start = options.start ?? startSession
+  const environment = options.environment ?? (() => Promise.resolve(process.env))
   const named = options.key ?? randomUUID
   const held = new Map<string, Held>()
   // Kept once found: which Claude Code a machine has does not change under a running app. A
   // machine that had none is asked again, since installing one is what somebody does next.
   let agent: Promise<AgentResolution> | null = null
+  // Kept for the same reason, and asked only of an agent that resolved — which is also kept,
+  // so the two never belong to different installations.
+  let env: Promise<NodeJS.ProcessEnv> | null = null
 
   const resolved = async (root: string): Promise<AgentResolution> => {
     agent ??= options.agent(root)
@@ -119,7 +133,13 @@ export function createSessions(options: SessionsOptions): Sessions {
     return answer
   }
 
-  const begin = (root: string, id: string, handed: BriefPayload, found: Agent): Held => {
+  const begin = (
+    root: string,
+    id: string,
+    handed: BriefPayload,
+    found: Agent,
+    inherits: NodeJS.ProcessEnv,
+  ): Held => {
     const [command = '', ...prefix] = found.command
     const call = sessionCall(command, root, promptFor(handed))
     const session: Held = {
@@ -142,6 +162,7 @@ export function createSessions(options: SessionsOptions): Sessions {
           options.publish({ session: session.key, index: session.lines.length - 1, line })
         },
       },
+      inherits,
     )
     void session.running.finished.then((outcome) => {
       session.outcome = outcome
@@ -171,10 +192,15 @@ export function createSessions(options: SessionsOptions): Sessions {
 
       const found = await resolved(root)
       if (found.kind !== 'resolved') return { kind: 'unavailable', tried: found.tried }
+      env ??= environment(found.agent, root)
+      const inherits = await env
 
       const took = briefed(await client.call(root, 'brief', claimingBrief(id)), id)
       if ('said' in took) return { kind: 'refused', said: took.said }
-      return { kind: 'started', session: recordOf(begin(root, id, took.payload, found.agent)) }
+      return {
+        kind: 'started',
+        session: recordOf(begin(root, id, took.payload, found.agent, inherits)),
+      }
     },
 
     list() {

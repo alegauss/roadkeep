@@ -31,6 +31,7 @@ import { createSubscriptions, type Subscriber } from './subscriptions'
 import { localeChoice } from './locale'
 import { createProcessTransport } from './process-transport'
 import { rootExists, rootKey } from './root-paths'
+import { sessionEnvironment } from './session-environment'
 import { createSessions } from './sessions'
 import { loadSettings, saveSettings } from './settings-file'
 import { readStamp } from './stamp'
@@ -256,6 +257,14 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
           createProcessTransport({ command: command[0] ?? '', prefixArgs: command.slice(1) }),
         root,
         agentCandidates(),
+      ),
+    // The login this machine's Claude Code has, over a key the machine carries (RG205).
+    environment: (agent, root) =>
+      sessionEnvironment(
+        (command, env) =>
+          createProcessTransport({ command: command[0] ?? '', prefixArgs: command.slice(1), env }),
+        agent.command,
+        root,
       ),
     publish: (event) => {
       subscriptions.publish('session', event.session, event)

@@ -111,6 +111,8 @@ const FOUND: AgentResolution = {
 /** A process the test drives: it writes what it is handed and ends when it is told to. */
 interface Fake {
   readonly calls: SessionCall[]
+  /** The environment each call was started with, in the same order. */
+  readonly envs: NodeJS.ProcessEnv[]
   readonly cancelled: number
   write(line: string): void
   end(outcome: SessionOutcome): void
@@ -118,11 +120,13 @@ interface Fake {
 
 function process(): { fake: Fake; start: NonNullable<SessionsOptions['start']> } {
   const calls: SessionCall[] = []
+  const envs: NodeJS.ProcessEnv[] = []
   let watcher: SessionWatcher = {}
   let finish: (outcome: SessionOutcome) => void = () => undefined
   let cancelled = 0
   const fake: Fake = {
     calls,
+    envs,
     get cancelled() {
       return cancelled
     },
@@ -131,8 +135,13 @@ function process(): { fake: Fake; start: NonNullable<SessionsOptions['start']> }
       finish(outcome)
     },
   }
-  const start = (call: SessionCall, heard: SessionWatcher): RunningSession => {
+  const start = (
+    call: SessionCall,
+    heard: SessionWatcher,
+    env: NodeJS.ProcessEnv,
+  ): RunningSession => {
     calls.push(call)
+    envs.push(env)
     watcher = heard
     const finished = new Promise<SessionOutcome>((resolve) => {
       finish = resolve
@@ -149,6 +158,9 @@ function process(): { fake: Fake; start: NonNullable<SessionsOptions['start']> }
   return { fake, start }
 }
 
+/** The environment the fake decision hands back, so a test can find it at the process. */
+const DECIDED: NodeJS.ProcessEnv = { PATH: '/bin', DECIDED: 'yes' }
+
 async function sessions(agent: AgentResolution = FOUND) {
   const { transport, asked } = engine()
   const opened: OpenedProject = openedFrom(
@@ -157,6 +169,8 @@ async function sessions(agent: AgentResolution = FOUND) {
   const published: TopicEvents['session'][] = []
   const { fake, start } = process()
   let asksForAgent = 0
+  const environmentsAsked: { agent: string; root: string; claimsBefore: number }[] = []
+  const claims = () => asked.filter((argv) => argv[2] === 'brief' && argv.includes('--claim'))
   const made = createSessions({
     carrier: {
       open: () => Promise.resolve(opened),
@@ -166,12 +180,26 @@ async function sessions(agent: AgentResolution = FOUND) {
       asksForAgent += 1
       return Promise.resolve(agent)
     },
+    environment: (found, root) => {
+      environmentsAsked.push({
+        agent: found.command.join(' '),
+        root,
+        claimsBefore: claims().length,
+      })
+      return Promise.resolve(DECIDED)
+    },
     publish: (event) => published.push(event),
     start,
     key: () => 'session-1',
   })
-  const claims = () => asked.filter((argv) => argv[2] === 'brief' && argv.includes('--claim'))
-  return { made, fake, published, claims, asksForAgent: () => asksForAgent }
+  return {
+    made,
+    fake,
+    published,
+    claims,
+    asksForAgent: () => asksForAgent,
+    environmentsAsked,
+  }
 }
 
 const DONE: SessionOutcome = { state: 'done', sessionId: 's', code: 0, said: '', result: 'done' }
@@ -232,6 +260,27 @@ describe('RG153: a line handed to a session', () => {
     await found.made.handOver(ROOT, 'FX1')
     await found.made.handOver(ROOT, 'FX1')
     expect(found.asksForAgent()).toBe(1)
+  })
+
+  it('starts the session in the environment decided for its agent, asked before the claim', async () => {
+    const { made, fake, environmentsAsked } = await sessions()
+
+    await made.handOver(ROOT, 'FX1')
+
+    expect(fake.envs).toEqual([DECIDED])
+    // Asked of the agent that resolved, from the project, and with nothing taken yet.
+    expect(environmentsAsked).toEqual([{ agent: 'node claude.mjs', root: ROOT, claimsBefore: 0 }])
+  })
+
+  it('decides the environment once, and never for a machine with no Claude Code', async () => {
+    const found = await sessions()
+    await found.made.handOver(ROOT, 'FX1')
+    await found.made.handOver(ROOT, 'FX1')
+    expect(found.environmentsAsked).toHaveLength(1)
+
+    const missing = await sessions({ kind: 'unresolved', reason: 'none', tried: [] })
+    await missing.made.handOver(ROOT, 'FX1')
+    expect(missing.environmentsAsked).toEqual([])
   })
 
   it('quotes the engine where it refused to brief the line', async () => {

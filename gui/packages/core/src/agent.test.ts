@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { resolveAgent, saidOfAgent, versionIn, type TransportFor } from './agent'
+import { loggedIn, resolveAgent, saidOfAgent, versionIn, type TransportFor } from './agent'
 import { EngineCallFailed, type EngineResult, type Transport } from './transport'
 
 /** What a real `claude --version` printed on the machine this was written on. */
@@ -90,6 +90,30 @@ describe('RG43: resolving the command that runs a session', () => {
     expect(resolution.agent.version).toBe('')
     expect(resolution.agent.said).toBe('Claude Code (dev build)')
     expect(saidOfAgent(resolution)).toBe('claude — Claude Code (dev build)')
+  })
+})
+
+describe('RG205: whether a login answers', () => {
+  it('says yes where auth status says loggedIn, whatever the method', () => {
+    // What a real `claude auth status` printed with the variable removed, on a Max login.
+    expect(
+      loggedIn(
+        '{\n  "loggedIn": true,\n  "authMethod": "claude.ai",\n  "subscriptionType": "max"\n}\n',
+      ),
+    ).toBe(true)
+    // A key Claude Code stores itself stands on its own too: it is not the variable.
+    expect(loggedIn('{"loggedIn": true, "authMethod": "api_key"}')).toBe(true)
+  })
+
+  it('says no for anything short of a literal true', () => {
+    // And that is the one printed with no login and no variable, beside an exit of 1.
+    expect(loggedIn('{"loggedIn": false, "authMethod": "none"}')).toBe(false)
+    expect(loggedIn('{"loggedIn": "true"}')).toBe(false)
+    expect(loggedIn('{"authMethod": "claude.ai"}')).toBe(false)
+    expect(loggedIn('[true]')).toBe(false)
+    // A build with no `auth status` answers with prose, which is no login and no throw.
+    expect(loggedIn("error: unknown command 'auth'")).toBe(false)
+    expect(loggedIn('')).toBe(false)
   })
 })
 

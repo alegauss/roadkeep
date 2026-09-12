@@ -37,6 +37,8 @@ export interface ProcessTransportOptions {
   readonly command: string
   /** Arguments before the engine's own, e.g. the launcher script a python install needs. */
   readonly prefixArgs?: readonly string[]
+  /** The child's environment. Inherited whole unless a caller has one to leave out (RG205). */
+  readonly env?: NodeJS.ProcessEnv
 }
 
 export function createProcessTransport(options: ProcessTransportOptions): Transport {
@@ -52,6 +54,7 @@ export function createProcessTransport(options: ProcessTransportOptions): Transp
           cwd: request.root,
           shell: false,
           windowsHide: true,
+          env: options.env ?? process.env,
         })
 
         const out: Buffer[] = []

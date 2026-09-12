@@ -56,8 +56,15 @@ export interface SessionWatcher {
  * Nothing here waits for the whole run before reporting: `stream-json` exists so that a
  * window can show the turns as they happen, and buffering to the end would throw away
  * exactly what it is for.
+ *
+ * @param env the session's environment: inherited whole, unless RG205 decided one variable
+ *   is not the session's to see.
  */
-export function startSession(call: SessionCall, watcher: SessionWatcher = {}): RunningSession {
+export function startSession(
+  call: SessionCall,
+  watcher: SessionWatcher = {},
+  env: NodeJS.ProcessEnv = process.env,
+): RunningSession {
   const events: SessionEvent[] = []
   let cancelled = false
   let stderr = ''
@@ -76,6 +83,7 @@ export function startSession(call: SessionCall, watcher: SessionWatcher = {}): R
         cwd: call.cwd,
         shell: false,
         windowsHide: true,
+        env,
         // Closed: the prompt is an argument, and an open stdin makes the CLI wait for
         // input that is never coming.
         stdio: ['ignore', 'pipe', 'pipe'],

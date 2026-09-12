@@ -81,7 +81,7 @@ export {
   touched,
 } from './acts'
 export type { Act, Marks } from './acts'
-export { resolveAgent, saidOfAgent, versionIn } from './agent'
+export { loggedIn, resolveAgent, saidOfAgent, versionIn } from './agent'
 export type {
   Agent,
   AgentResolution,

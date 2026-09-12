@@ -1,3 +1,4 @@
+import { asRecord } from './reading'
 import type { CancelSignal, Transport } from './transport'
 
 /**
@@ -119,6 +120,24 @@ export async function resolveAgent(
             .join(', ')}`,
     tried,
   }
+}
+
+/**
+ * Whether `claude auth status` says a credential answers (RG205).
+ *
+ * Read off the JSON and not the exit code: `loggedIn` is the field the command states, and
+ * anything short of a literal `true` is no login — a build without the subcommand, a line
+ * that is not JSON, a `"true"` somebody quoted. Answering no there costs nothing, since the
+ * caller keeps the environment it had and the session runs as it always did.
+ */
+export function loggedIn(said: string): boolean {
+  let source: unknown
+  try {
+    source = JSON.parse(said.trim())
+  } catch {
+    return false
+  }
+  return asRecord(source)?.['loggedIn'] === true
 }
 
 /**
