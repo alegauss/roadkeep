@@ -14,11 +14,17 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
+- 📋 **RG210** (deps: RG209) **the session screen only draws behind a real Claude Code run, so its stream, scroll and folded notes are checked blind** — The agent is resolved from PATH and install folders alone, and a real session costs usage and moves a line. → §RG210
+
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
+- 📋 **RG209** (deps: RG60 ✅) **no command shows what a screen looks like, so an agent checks a screen change with tests that never see the window** — jsdom lays nothing out, so a chosen toggle at 1.35:1 was caught only by a screenshot script improvised outside the repository. → §RG209
+- 📋 **RG212** (deps: RG209, RG210, RG211) **an agent checking a screen improvises its own harness, and nothing says what to look for once it has the pictures** — CLAUDE.md lists gates that never open the window, so each session rediscovers how to see one and what a screen owes. → §RG212
 
 ## Block H — The look (a design system for governed prose)
+
+- 📋 **RG211** (deps: RG209) **no accessibility check runs over a rendered surface, so a defect only real layout and colour show ships green** — RG54 computes contrast over tokens and keyboard reach in jsdom, and a chosen state drawn in the package accent passed both. → §RG211
 
 ## Done when — Block A
 
