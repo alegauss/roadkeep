@@ -14,8 +14,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG208** (deps: RG207 ✅) **the session stream draws every system note, init to token counts, between the acts a reader follows** — Notes are read so the act list never runs shorter than the stream, but most say nothing a person watching the work needs. → §RG208
-
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49

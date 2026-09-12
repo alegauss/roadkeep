@@ -176,6 +176,7 @@ export const PT_BR: Wording = {
   'session.stream.empty': 'Nada foi escrito ainda.',
   'session.follow': 'Ir para o fim',
   'session.follow.since': 'Ir para o fim, {count} novo(s)',
+  'session.notes.folded': '{count} nota(s) de sistema oculta(s)',
   'session.act.roadkeep': 'chamada ao roadkeep',
   'session.act.governed': 'toca {files}',
   'session.act.failed': 'falhou',
@@ -336,6 +337,12 @@ export const PT_BR: Wording = {
   'settings.ground.light': 'Claro',
   'settings.ground.dark': 'Escuro',
   'settings.language': 'Idioma',
+  'settings.sessions': 'Sessões',
+  'settings.sessions.about':
+    'Como o fluxo de uma sessão do Claude Code é desenhado enquanto ela trabalha.',
+  'settings.notes': 'Notas de sistema',
+  'settings.notes.shown': 'Mostrar cada uma',
+  'settings.notes.hidden': 'Agrupar e contar',
 
   'settings.lost.unparsable': '{file} não pode ser lido como JSON, então ele fica intacto',
   'settings.lost.file':
@@ -350,6 +357,8 @@ export const PT_BR: Wording = {
   'settings.lost.width': 'a largura do pool não era um número inteiro, então voltou para {width}',
   'settings.lost.theme': 'o fundo não é um que esta build conhece, então voltou para {theme}',
   'settings.lost.locale': 'o idioma não era um texto, então o sistema decide',
+  'settings.lost.sessionNotes':
+    'o modo de desenhar as notas de sistema de uma sessão não é um que esta build conhece, então toda nota é desenhada',
 
   'shell.home': 'Início',
   'shell.palette': 'Encontre uma linha em qualquer backlog',

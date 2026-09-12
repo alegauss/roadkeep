@@ -1,6 +1,14 @@
-import { BASE_LOCALE, type RendererBridge, type Reset, type Theme } from '@rk/core'
+import {
+  BASE_LOCALE,
+  DEFAULT_SETTINGS,
+  type RendererBridge,
+  type Reset,
+  type SessionNotes,
+  type Theme,
+} from '@rk/core'
 
 import { getBridge } from './bridge'
+import { holdSessionNotes } from './preferring'
 
 /**
  * What this window opens as, asked once before anything is drawn.
@@ -52,9 +60,16 @@ export interface LaunchChoices {
    * crosses now is what happened, and this side says it.
    */
   readonly reset: readonly Reset[]
+  /** How a session draws its system notes (RG208), or every note where nothing answered. */
+  readonly sessionNotes: SessionNotes
 }
 
-const AT_WORST: LaunchChoices = { locale: BASE_LOCALE, theme: null, reset: [] }
+const AT_WORST: LaunchChoices = {
+  locale: BASE_LOCALE,
+  theme: null,
+  reset: [],
+  sessionNotes: DEFAULT_SETTINGS.sessionNotes,
+}
 
 /**
  * How long the first frame waits on the shell.
@@ -88,6 +103,7 @@ export async function choicesFromBridge(
         locale: answer.locale,
         theme: answer.settings.theme,
         reset: answer.reset,
+        sessionNotes: answer.settings.sessionNotes,
       })),
       deadline,
     ])
@@ -115,5 +131,6 @@ export function noticesAtLaunch(): readonly Reset[] {
 export async function choicesAtLaunch(): Promise<LaunchChoices> {
   const choices = await choicesFromBridge(getBridge())
   lost = choices.reset
+  holdSessionNotes(choices.sessionNotes)
   return choices
 }

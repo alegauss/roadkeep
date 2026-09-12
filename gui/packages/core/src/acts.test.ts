@@ -4,6 +4,7 @@ import {
   actLine,
   actsIn,
   actsOf,
+  foldedNotes,
   governedIn,
   isRoadkeep,
   marksOf,
@@ -306,5 +307,50 @@ describe('RG153: the marks of one open project', () => {
 
   it('marks nothing as roadkeep where no engine was resolved', () => {
     expect(marksOf({}, []).engine).toEqual([])
+  })
+})
+
+describe('RG208: notes folded where they stand', () => {
+  const INIT = JSON.stringify({ type: 'system', subtype: 'init', session_id: 's' })
+  const LIMIT = JSON.stringify({ type: 'rate_limit_event' })
+  const FAILED = JSON.stringify({
+    type: 'user',
+    message: {
+      content: [{ tool_use_id: 't', type: 'tool_result', content: 'no', is_error: true }],
+    },
+  })
+
+  /** The rows as kinds, a folded run spelled by how many notes it carries. */
+  const shape = (lines: string[]) =>
+    foldedNotes(actsIn(lines)).map((row) =>
+      row.kind === 'act' ? row.act.kind : `folded:${String(row.notes.length)}`,
+    )
+
+  it('folds each run of consecutive notes into one row, in the place the run stood', () => {
+    expect(shape([INIT, LIMIT, SAID, THINKING, TOOL_USE, LIMIT])).toEqual([
+      'folded:2',
+      'said',
+      'folded:1',
+      'used',
+      'folded:1',
+    ])
+  })
+
+  it('accounts for every act, so the rows are never quietly shorter than the stream', () => {
+    const acts = actsIn([INIT, LIMIT, SAID, THINKING, TOOL_USE, TOOL_RESULT, LIMIT])
+    const counted = foldedNotes(acts).reduce(
+      (sum, row) => sum + (row.kind === 'act' ? 1 : row.notes.length),
+      0,
+    )
+
+    expect(counted).toBe(acts.length)
+  })
+
+  it('never folds a result, a failure or anything the session said', () => {
+    expect(shape([SAID, TOOL_RESULT, FAILED])).toEqual(['said', 'returned', 'returned'])
+  })
+
+  it('draws nothing for a stream that wrote nothing', () => {
+    expect(foldedNotes([])).toEqual([])
   })
 })

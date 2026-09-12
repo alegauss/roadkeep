@@ -19,8 +19,9 @@ const HELD: Settings = {
 }
 
 describe('RG207: the table', () => {
-  it('names the two preferences a page chose before it existed, and nothing that decides a scan', () => {
-    expect(Object.keys(PREFERENCES).sort()).toEqual(['locale', 'theme'])
+  it('names the preferences a page chooses, and nothing that decides a scan', () => {
+    // The ground and the language (RG207), and how a session draws its notes (RG208).
+    expect(Object.keys(PREFERENCES).sort()).toEqual(['locale', 'sessionNotes', 'theme'])
     for (const reaching of ['roots', 'skip', 'width', 'version']) {
       expect(isPreferenceKey(reaching)).toBe(false)
     }
@@ -45,7 +46,15 @@ describe('RG207: writing one', () => {
     expect(withPreference(HELD, 'locale', shipped)?.locale).toBe(shipped)
   })
 
+  it('writes how a session draws its notes', () => {
+    expect(withPreference(HELD, 'sessionNotes', 'hidden')).toEqual({
+      ...HELD,
+      sessionNotes: 'hidden',
+    })
+  })
+
   it('refuses a value the reader would reset, so the file never holds one', () => {
+    expect(withPreference(HELD, 'sessionNotes', 'folded')).toBeNull()
     expect(withPreference(HELD, 'theme', 'midnight')).toBeNull()
     expect(withPreference(HELD, 'locale', 'ja')).toBeNull()
     expect(withPreference(HELD, 'locale', 42)).toBeNull()

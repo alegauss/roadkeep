@@ -25,6 +25,7 @@ import { SESSIONS_ROUTE, sessionPath, taskPath } from './areas'
 import i18next, { changeLanguage } from 'i18next'
 
 import { drawWindow } from './harness'
+import { holdSessionNotes } from './preferring'
 import { startSpeaking } from './speaking'
 import { stubBridge } from './stub-bridge'
 
@@ -436,6 +437,53 @@ describe('RG153: the session beside its task', () => {
     await at(sessionPath(ROOT, 'AL1', 'nobody'))
 
     expect(await screen.findByText(BASE['session.missing'])).toBeTruthy()
+  })
+})
+
+describe('RG208: system notes folded by choice', () => {
+  const LIMIT = JSON.stringify({ type: 'rate_limit_event', rate_limit_info: { status: 'allowed' } })
+
+  afterEach(() => {
+    holdSessionNotes('shown')
+  })
+
+  it('folds each run of notes into one counted row, and leaves every other act drawn', async () => {
+    holdSessionNotes('hidden')
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
+    await screen.findByText(BASE['session.handed'])
+
+    hear(wired, 'session', { session: KEY, index: 1, line: LIMIT })
+    hear(wired, 'session', { session: KEY, index: 2, line: SAID })
+    hear(wired, 'session', { session: KEY, index: 3, line: USED })
+
+    // The record's init and the rate limit are one run; the text and both calls stand.
+    const folded = await screen.findByTestId('folded')
+    expect(folded.dataset['count']).toBe('2')
+    expect(within(folded).getByText(fill(BASE['session.notes.folded'], { count: 2 }))).toBeTruthy()
+    const stream = within(screen.getByTestId('stream'))
+    expect(stream.getByText('Working it now.')).toBeTruthy()
+    expect(stream.getByText('Bash')).toBeTruthy()
+    // Folded and not dropped: each note is still there, one disclosure away.
+    expect(
+      within(folded)
+        .getAllByTestId('act')
+        .map((one) => one.dataset['kind']),
+    ).toEqual(['note', 'note'])
+  })
+
+  it('draws every note as its own row by default, which is what it drew before the choice', async () => {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
+    await screen.findByText(BASE['session.handed'])
+
+    hear(wired, 'session', { session: KEY, index: 1, line: LIMIT })
+
+    await waitFor(() => {
+      expect(screen.getAllByTestId('act').map((one) => one.dataset['kind'])).toEqual([
+        'note',
+        'note',
+      ])
+    })
+    expect(screen.queryByTestId('folded')).toBeNull()
   })
 })
 

@@ -224,6 +224,40 @@ export function actsIn(lines: readonly string[], marks: Marks = NOTHING_MARKED):
   return acts
 }
 
+/** One row of a stream as drawn: an act, or a run of notes folded into one (RG208). */
+export type StreamRow =
+  | { readonly kind: 'act'; readonly act: Act }
+  | { readonly kind: 'folded'; readonly notes: readonly Act[] }
+
+/**
+ * The acts with every run of consecutive notes folded into one row (RG208).
+ *
+ * **Folded, never dropped.** `actsIn` keeps a note so the act list is never quietly shorter
+ * than the stream, and a reader who asked not to see notes has not asked for that to stop
+ * being true: each folded row carries the notes it stands for, so its count accounts for them
+ * and each is still one disclosure away.
+ *
+ * **A run, not all of them.** Notes gathered into one row wherever they fell would move a
+ * rate limit away from the turn it interrupted; folded where they stand, the order of the
+ * stream is the order on screen. Only `note` folds — a failed tool or anything the session
+ * said is what a reader is watching for.
+ */
+export function foldedNotes(acts: readonly Act[]): StreamRow[] {
+  const rows: StreamRow[] = []
+  let run: Act[] = []
+  for (const act of acts) {
+    if (act.kind === 'note') {
+      run.push(act)
+      continue
+    }
+    if (run.length > 0) rows.push({ kind: 'folded', notes: run })
+    run = []
+    rows.push({ kind: 'act', act })
+  }
+  if (run.length > 0) rows.push({ kind: 'folded', notes: run })
+  return rows
+}
+
 /**
  * The governed files a session has touched so far.
  *

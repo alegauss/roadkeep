@@ -12,6 +12,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { SETTINGS_ROUTE } from './areas'
 import { drawWindow } from './harness'
+import { holdSessionNotes } from './preferring'
 import { startSpeaking } from './speaking'
 import { stubBridge } from './stub-bridge'
 
@@ -46,6 +47,8 @@ beforeEach(async () => {
 
 afterEach(async () => {
   Reflect.deleteProperty(window, 'roadkeep')
+  // One value for the window's life, so a choice one test made is the next test's start.
+  holdSessionNotes('shown')
   if (i18next.isInitialized) await changeLanguage('en')
 })
 
@@ -108,6 +111,29 @@ describe('RG207: the settings screen', () => {
     await waitFor(() => {
       expect(kept).toEqual([['locale', 'pt-BR']])
     })
+  })
+
+  it('writes how a session draws its notes as the sessionNotes row, under sessions', async () => {
+    const kept = recording()
+    drawWindow({ initial: 'light', at: SETTINGS_ROUTE })
+
+    const sessions = within(await screen.findByTestId('sessions-settings'))
+    const notes = within(sessions.getByRole('radiogroup', { name: BASE['settings.notes'] }))
+    // Every note drawn is the default, so that is the one marked before anything is chosen.
+    expect(
+      notes.getByRole('radio', { name: BASE['settings.notes.shown'] }).getAttribute('aria-checked'),
+    ).toBe('true')
+
+    fireEvent.click(notes.getByRole('radio', { name: BASE['settings.notes.hidden'] }))
+
+    await waitFor(() => {
+      expect(kept).toEqual([['sessionNotes', 'hidden']])
+    })
+    expect(
+      notes
+        .getByRole('radio', { name: BASE['settings.notes.hidden'] })
+        .getAttribute('aria-checked'),
+    ).toBe('true')
   })
 
   it('says a refused write was not kept, rather than looking kept until the next launch', async () => {

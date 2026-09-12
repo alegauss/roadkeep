@@ -188,6 +188,7 @@ export const EN = {
   'session.stream.empty': 'Nothing has been written yet.',
   'session.follow': 'Jump to latest',
   'session.follow.since': 'Jump to latest, {count} new',
+  'session.notes.folded': '{count} system note(s) hidden',
   'session.act.roadkeep': 'roadkeep call',
   'session.act.governed': 'touches {files}',
   'session.act.failed': 'failed',
@@ -347,6 +348,11 @@ export const EN = {
   'settings.ground.light': 'Light',
   'settings.ground.dark': 'Dark',
   'settings.language': 'Language',
+  'settings.sessions': 'Sessions',
+  'settings.sessions.about': 'How a Claude Code session’s stream is drawn while it works.',
+  'settings.notes': 'System notes',
+  'settings.notes.shown': 'Show each one',
+  'settings.notes.hidden': 'Fold and count them',
 
   'settings.lost.unparsable': '{file} is not readable as JSON, so it is left alone',
   'settings.lost.file':
@@ -361,6 +367,8 @@ export const EN = {
   'settings.lost.width': 'the pool width was not a whole number, so it is back to {width}',
   'settings.lost.theme': 'the theme was not one this build knows, so it is back to {theme}',
   'settings.lost.locale': 'the locale was not a string, so the desktop decides',
+  'settings.lost.sessionNotes':
+    'how a session draws its system notes was not a choice this build knows, so every note is drawn',
 
   'shell.home': 'Home',
   'shell.palette': 'Find a line in every backlog',
@@ -427,6 +435,7 @@ export const RESET_TEXT: Readonly<Record<Lost, MessageKey>> = {
   width: 'settings.lost.width',
   theme: 'settings.lost.theme',
   locale: 'settings.lost.locale',
+  sessionNotes: 'settings.lost.sessionNotes',
 }
 
 /**

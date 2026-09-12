@@ -7,8 +7,8 @@ import { asRecord } from './reading'
  * The one thing this app owns.
  *
  * Everything on screen is read from a repository except this: the roots, their depths, the
- * ignore set, the pool width, the theme and the locale. Small, versioned, validated on
- * read.
+ * ignore set, the pool width, the theme, the locale and how a session draws its notes.
+ * Small, versioned, validated on read.
  *
  * **A bad file resets and says so, rather than taking the window down** — and field by
  * field: a pool width typed as a word should not cost somebody the roots they spent a
@@ -32,6 +32,12 @@ export const SETTINGS_VERSION = 1
 /** Which ground the window paints. `system` follows the desktop. */
 export type Theme = 'system' | 'light' | 'dark'
 
+/**
+ * Whether a session's stream draws its system notes one row each, or folds each run of them
+ * into one counted row (RG208). `shown` is what every build before this one drew.
+ */
+export type SessionNotes = 'shown' | 'hidden'
+
 export interface Settings {
   readonly version: number
   /** The folders to scan, and how far under each. The person's statement, never a scan's. */
@@ -43,6 +49,8 @@ export interface Settings {
   readonly theme: Theme
   /** A BCP-47 tag, or the empty string for whatever the desktop says. */
   readonly locale: string
+  /** How a session's stream draws its system notes (RG208). */
+  readonly sessionNotes: SessionNotes
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -52,6 +60,8 @@ export const DEFAULT_SETTINGS: Settings = {
   width: DEFAULT_LIMITS.width,
   theme: 'system',
   locale: '',
+  // Every note drawn, as before there was a choice: an upgrade changes nothing on screen.
+  sessionNotes: 'shown',
 }
 
 /**
@@ -78,6 +88,7 @@ export type Lost =
   | 'width'
   | 'theme'
   | 'locale'
+  | 'sessionNotes'
 
 export interface Reset {
   readonly lost: Lost
@@ -109,6 +120,16 @@ const THEMES = new Set<Theme>(['system', 'light', 'dark'])
  */
 export function isTheme(value: unknown): value is Theme {
   return typeof value === 'string' && THEMES.has(value as Theme)
+}
+
+const SESSION_NOTES = new Set<SessionNotes>(['shown', 'hidden'])
+
+/**
+ * Whether a value is a way of drawing system notes this build knows (RG208). Exported for the
+ * reason `isTheme` is: the reader and the preference table have to accept the same set.
+ */
+export function isSessionNotes(value: unknown): value is SessionNotes {
+  return typeof value === 'string' && SESSION_NOTES.has(value as SessionNotes)
 }
 
 /** One root, or null where it is not one. A bad entry is dropped, not the whole list. */
@@ -217,12 +238,24 @@ export function readSettings(source: unknown): SettingsRead {
     DEFAULT_SETTINGS.locale,
     { lost: 'locale' },
   )
+  const [sessionNotes, saidOfNotes] = field<SessionNotes>(
+    file['sessionNotes'],
+    isSessionNotes,
+    DEFAULT_SETTINGS.sessionNotes,
+    { lost: 'sessionNotes' },
+  )
 
   return {
-    settings: { version: SETTINGS_VERSION, roots, skip, width, theme, locale },
-    reset: [version.said, saidOfRoots, saidOfSkip, saidOfWidth, saidOfTheme, saidOfLocale].filter(
-      (said): said is Reset => said !== null,
-    ),
+    settings: { version: SETTINGS_VERSION, roots, skip, width, theme, locale, sessionNotes },
+    reset: [
+      version.said,
+      saidOfRoots,
+      saidOfSkip,
+      saidOfWidth,
+      saidOfTheme,
+      saidOfLocale,
+      saidOfNotes,
+    ].filter((said): said is Reset => said !== null),
   }
 }
 

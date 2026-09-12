@@ -5,6 +5,7 @@ import { DEPTH_CEILING } from './roots'
 import { DEFAULT_POLICY } from './scanning'
 import {
   DEFAULT_SETTINGS,
+  isSessionNotes,
   isTheme,
   readSettings,
   SETTINGS_VERSION,
@@ -20,6 +21,7 @@ const WRITTEN = {
   width: 8,
   theme: 'dark',
   locale: 'pt-BR',
+  sessionNotes: 'hidden',
 }
 
 describe('RG47: the one thing this app owns', () => {
@@ -44,6 +46,7 @@ describe('RG47: the one thing this app owns', () => {
     expect(Object.keys(DEFAULT_SETTINGS).sort()).toEqual([
       'locale',
       'roots',
+      'sessionNotes',
       'skip',
       'theme',
       'version',
@@ -106,6 +109,7 @@ describe('RG47: a bad file resets field by field, and says so', () => {
       width: -3,
       theme: 'neon',
       locale: 42,
+      sessionNotes: 'whispered',
     })
 
     // One code per field, in the order the fields are read.
@@ -115,6 +119,7 @@ describe('RG47: a bad file resets field by field, and says so', () => {
       'width',
       'theme',
       'locale',
+      'sessionNotes',
     ])
     expect(read.settings).toEqual(DEFAULT_SETTINGS)
   })
@@ -165,6 +170,23 @@ describe('RG47: the version is read first', () => {
 
     expect(read.settings.theme).toBe('dark')
     expect(read.settings.version).toBe(SETTINGS_VERSION)
+  })
+})
+
+describe('RG208: how a session draws its notes', () => {
+  it('draws every note where the file says nothing, which is what every earlier build did', () => {
+    // A file from before the choice existed: no loss, and nothing changes on screen.
+    const read = readSettings({ version: SETTINGS_VERSION, theme: 'dark' })
+
+    expect(read.settings.sessionNotes).toBe('shown')
+    expect(read.reset).toEqual([])
+  })
+
+  it('knows the two choices and refuses anything else', () => {
+    expect(['shown', 'hidden'].every(isSessionNotes)).toBe(true)
+    for (const junk of ['', 'Hidden', 'folded', true, 0, null, undefined]) {
+      expect(isSessionNotes(junk)).toBe(false)
+    }
   })
 })
 

@@ -12,30 +12,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-### §RG208 System notes hidden by choice, and counted where hidden
-
-`actsIn` reads a line it has no use for as a `note` — `system` (init, thinking token
-counts), `rate_limit_event`, an empty thinking turn, a `user` turn carrying no tool
-result — and `Session.tsx` draws each as a row with its raw line. `acts.ts` says why
-they are kept: returning nothing would make the act list quietly shorter than the stream
-it was read from.
-
-**A preference, not a filter somebody forgets.** `Settings.sessionNotes`: `shown` or
-`hidden`, default `shown`, so an upgrade changes nothing on screen. `readSettings` reads
-it with a `Lost` code of its own — an absent field takes the default, so no version bump
-— and the settings screen writes it under a *Sessions* group.
-
-**Hidden is never silent.** `actsIn` stays whole and the choice applies where the stream
-is drawn. Consecutive notes fold into one quiet row — *3 system notes hidden* — whose
-disclosure lists them with their raw lines, so the count on screen still accounts for
-the stream and each note is one click away. The session record, the published lines and
-*What moved* are untouched.
-
-**Only `note`.** A failed tool, a result or anything the session said is never folded.
-
-Done when a reader who chose hidden sees the acts plus one folded row per run of notes,
-and the default still draws every note as today.
-
 ## Block G — The shell (an executable now, a service later)
 
 ### §RG49 The signature, and what it needs that code cannot supply

@@ -1,5 +1,5 @@
 import { LOCALE_TAGS } from './locales'
-import { isTheme, type Settings } from './settings'
+import { isSessionNotes, isTheme, type Settings } from './settings'
 
 /**
  * What the renderer may write into the settings file, and nothing past it (RG207).
@@ -34,6 +34,7 @@ function isShippedLocale(value: unknown): value is string {
 export const PREFERENCES = {
   theme: isTheme satisfies Check<'theme'>,
   locale: isShippedLocale satisfies Check<'locale'>,
+  sessionNotes: isSessionNotes satisfies Check<'sessionNotes'>,
 } as const
 
 /** Whether a key the renderer named is one it may write. The renderer's word, so unknown. */

@@ -73,6 +73,7 @@ export {
   actLine,
   actsIn,
   actsOf,
+  foldedNotes,
   governedIn,
   isRoadkeep,
   marksOf,
@@ -80,7 +81,7 @@ export {
   subjectOf,
   touched,
 } from './acts'
-export type { Act, Marks } from './acts'
+export type { Act, Marks, StreamRow } from './acts'
 export { loggedIn, resolveAgent, saidOfAgent, versionIn } from './agent'
 export type {
   Agent,
@@ -235,13 +236,14 @@ export { CONFIG_FILE, createWatching, QUIET_MS, watchedFiles } from './watching'
 export type { Clock, Interest, OnChanged, Watcher, Watching } from './watching'
 export {
   DEFAULT_SETTINGS,
+  isSessionNotes,
   isTheme,
   readSettings,
   SETTINGS_VERSION,
   settingsText,
   wasReset,
 } from './settings'
-export type { Lost, Reset, Settings, SettingsRead, Theme } from './settings'
+export type { Lost, Reset, SessionNotes, Settings, SettingsRead, Theme } from './settings'
 export {
   BASE,
   BASE_LOCALE,

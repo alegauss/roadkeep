@@ -1,11 +1,19 @@
-import { isTheme, THEME_ORDER, type MessageKey, type Theme } from '@rk/core'
-import { IconCheck, IconPalette } from '@tabler/icons-react'
+import {
+  isSessionNotes,
+  isTheme,
+  THEME_ORDER,
+  type MessageKey,
+  type SessionNotes,
+  type Theme,
+} from '@rk/core'
+import { IconCheck, IconPalette, IconTerminal2 } from '@tabler/icons-react'
 import { ToggleGroup, ToggleGroupItem } from '@viglet/viglet-design-system'
 import { BentoFormSection, BentoHero } from '@viglet/viglet-design-system/bento'
 import { changeLanguage } from 'i18next'
 import { useCallback, useId, useMemo } from 'react'
 
 import { useGround } from './ground'
+import { chooseSessionNotes, useSessionNotes } from './preferring'
 import { SPOKEN_LOCALES, useSpokenLocale } from './speaking'
 import { useWording } from './wording'
 
@@ -31,6 +39,14 @@ const GROUND_TEXT: Readonly<Record<Theme, MessageKey>> = {
   system: 'settings.ground.system',
   light: 'settings.ground.light',
   dark: 'settings.ground.dark',
+}
+
+/** How a session draws its system notes (RG208), shown first because that is the default. */
+const NOTES_ORDER: readonly SessionNotes[] = ['shown', 'hidden']
+
+const NOTES_TEXT: Readonly<Record<SessionNotes, MessageKey>> = {
+  shown: 'settings.notes.shown',
+  hidden: 'settings.notes.hidden',
 }
 
 interface Option {
@@ -121,6 +137,15 @@ export function Settings() {
     void changeLanguage(next)
   }, [])
 
+  const notes = useSessionNotes()
+  const noteChoices = useMemo(
+    () => NOTES_ORDER.map((one) => ({ value: one, label: say(NOTES_TEXT[one]) })),
+    [say],
+  )
+  const chooseNotes = useCallback((next: string) => {
+    if (isSessionNotes(next)) chooseSessionNotes(next)
+  }, [])
+
   return (
     <>
       <BentoHero
@@ -146,6 +171,21 @@ export function Settings() {
             value={spoken}
             options={LANGUAGES}
             onChoose={chooseLanguage}
+          />
+        </div>
+      </BentoFormSection>
+      <BentoFormSection
+        icon={IconTerminal2}
+        tone="amber"
+        title={say('settings.sessions')}
+        description={say('settings.sessions.about')}
+      >
+        <div className="flex flex-col gap-4" data-testid="sessions-settings">
+          <Choice
+            label={say('settings.notes')}
+            value={notes}
+            options={noteChoices}
+            onChoose={chooseNotes}
           />
         </div>
       </BentoFormSection>

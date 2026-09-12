@@ -131,6 +131,18 @@ describe('RG60: what the renderer was given', () => {
     expect(after.settings?.theme).toBe('light')
   })
 
+  it('keeps how a session draws its notes, the row RG208 added and nothing else changed', async () => {
+    // A preference is one row: no channel, preload or handler moved for this one, and the
+    // running app is the only place that can say the three still line up.
+    await app.evaluate<null>(`window['${BRIDGE_KEY}'].savePreference('sessionNotes', 'hidden')`)
+
+    const after = await app.evaluate<{ settings?: { sessionNotes?: string } }>(
+      `window['${BRIDGE_KEY}'].settings()`,
+    )
+
+    expect(after.settings?.sessionNotes).toBe('hidden')
+  })
+
   it('refuses a field outside the table, so a page cannot reach what decides a scan', async () => {
     // RG207's boundary, asked of the running handler: the roots are chosen through a dialog
     // main opens, and a preference write naming them reaches nothing.

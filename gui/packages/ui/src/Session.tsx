@@ -1,6 +1,7 @@
 import {
   actsIn,
   arrivedSince,
+  foldedNotes,
   FOLLOWING,
   landingBetween,
   scrolledTo,
@@ -25,6 +26,7 @@ import { taskPath } from './areas'
 import { getBridge } from './bridge'
 import { PanelTitle } from './forms'
 import { Glyph, Pill, type Intent } from './marks'
+import { useSessionNotes } from './preferring'
 import { useSession } from './useSession'
 import { useWhen, useWording } from './wording'
 
@@ -132,6 +134,35 @@ function ActRow({ act }: { readonly act: Act }) {
     >
       <Spoken act={act} />
       <Raw line={act.line} />
+    </li>
+  )
+}
+
+/**
+ * A run of notes folded into one quiet row (RG208), counted so the stream is still accounted
+ * for, and each note with its raw line one disclosure away.
+ */
+function FoldedRow({ notes }: { readonly notes: readonly Act[] }) {
+  const say = useWording()
+  return (
+    <li
+      className="border-t px-4 py-2 first:border-t-0"
+      data-testid="folded"
+      data-count={notes.length}
+    >
+      <details className="text-[11px]">
+        <summary className="text-muted-foreground cursor-pointer">
+          {say('session.notes.folded', { count: notes.length })}
+        </summary>
+        <ul className="mt-1.5 flex flex-col gap-1.5">
+          {notes.map((note) => (
+            <li key={note.seq} data-testid="act" data-kind={note.kind}>
+              <Spoken act={note} />
+              <Raw line={note.line} />
+            </li>
+          ))}
+        </ul>
+      </details>
     </li>
   )
 }
@@ -324,6 +355,14 @@ function Moved({
 function Stream({ lines, marks }: { readonly lines: readonly string[]; readonly marks: Marks }) {
   const say = useWording()
   const acts = useMemo(() => actsIn(lines, marks), [lines, marks])
+  // Folded where the reader chose it, and applied here rather than in `actsIn`: the acts stay
+  // whole, and following still counts every one of them (RG208).
+  const notes = useSessionNotes()
+  const rows = useMemo(
+    () =>
+      notes === 'hidden' ? foldedNotes(acts) : acts.map((act) => ({ kind: 'act' as const, act })),
+    [acts, notes],
+  )
   const region = useRef<HTMLDivElement>(null)
   const [follow, setFollow] = useState<Follow>(FOLLOWING)
   const count = acts.length
@@ -376,9 +415,13 @@ function Stream({ lines, marks }: { readonly lines: readonly string[]; readonly 
         data-testid="stream"
       >
         <ul>
-          {acts.map((act) => (
-            <ActRow key={act.seq} act={act} />
-          ))}
+          {rows.map((row) =>
+            row.kind === 'act' ? (
+              <ActRow key={row.act.seq} act={row.act} />
+            ) : (
+              <FoldedRow key={`folded-${String(row.notes[0]?.seq ?? 0)}`} notes={row.notes} />
+            ),
+          )}
         </ul>
       </div>
       {follow.leftAt === null ? null : (
