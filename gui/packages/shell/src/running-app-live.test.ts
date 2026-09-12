@@ -41,7 +41,8 @@ describe('RG60: what the renderer was given', () => {
     // RG144 added the one that is told rather than asked, RG146 the three that name roots, and
     // RG153 the four that start a session, say what is running, stop one, and say when each
     // governed file last changed. RG165 added the one that takes a door the engine offered, and
-    // RG152 the one that reads the gate verdicts the carrier holds.
+    // RG152 the one that reads the gate verdicts the carrier holds. RG207 folded the ground's
+    // and the language's writes into the one that writes a preference.
     expect(methods).toEqual([
       'chooseRoot',
       'door',
@@ -53,9 +54,8 @@ describe('RG60: what the renderer was given', () => {
       'projects',
       'roots',
       'run',
-      'saveLocale',
+      'savePreference',
       'saveRoots',
-      'saveTheme',
       'sessions',
       'settings',
       'stopSession',
@@ -105,7 +105,7 @@ describe('RG60: what the renderer was given', () => {
     // asks, a handler validates the value and rewrites this profile's settings file, and
     // the next read is the one the next launch would get. The profile is a throwaway
     // temporary directory, so nothing here touches a person's own settings.
-    await app.evaluate<null>(`window['${BRIDGE_KEY}'].saveTheme('dark')`)
+    await app.evaluate<null>(`window['${BRIDGE_KEY}'].savePreference('theme', 'dark')`)
 
     const after = await app.evaluate<{ settings?: { theme?: string } }>(
       `window['${BRIDGE_KEY}'].settings()`,
@@ -114,12 +114,15 @@ describe('RG60: what the renderer was given', () => {
     expect(after.settings?.theme).toBe('dark')
   })
 
-  it('refuses a ground that is not one, rather than writing it', async () => {
+  it('refuses a ground that is not one, out loud and rather than writing it', async () => {
     // The argument is the renderer's word, and a resolved ground is not a setting. What is
     // held is that a value the reader would reset never reaches the file at all — so the
-    // last real choice is still what a read answers.
-    await app.evaluate<null>(`window['${BRIDGE_KEY}'].saveTheme('light')`)
-    await app.evaluate<null>(`window['${BRIDGE_KEY}'].saveTheme('midnight')`)
+    // last real choice is still what a read answers — and that the page hears the refusal
+    // (RG207), which is what lets it say the choice was not kept.
+    await app.evaluate<null>(`window['${BRIDGE_KEY}'].savePreference('theme', 'light')`)
+    await expect(
+      app.evaluate<null>(`window['${BRIDGE_KEY}'].savePreference('theme', 'midnight')`),
+    ).rejects.toThrow(/theme/)
 
     const after = await app.evaluate<{ settings?: { theme?: string } }>(
       `window['${BRIDGE_KEY}'].settings()`,
@@ -128,12 +131,20 @@ describe('RG60: what the renderer was given', () => {
     expect(after.settings?.theme).toBe('light')
   })
 
+  it('refuses a field outside the table, so a page cannot reach what decides a scan', async () => {
+    // RG207's boundary, asked of the running handler: the roots are chosen through a dialog
+    // main opens, and a preference write naming them reaches nothing.
+    await expect(
+      app.evaluate<null>(`window['${BRIDGE_KEY}'].savePreference('roots', [])`),
+    ).rejects.toThrow(/roots/)
+  })
+
   it('keeps a language the page chose, which is the second write and the same path', async () => {
     // RG116. The menu is the design system's and moves i18next; what reaches the file is
     // this call, and only a running app can say that the channel, the handler and the
     // rewrite all line up. `pt-BR` because a tag with a region is the one a careless
     // comparison against the package's `pt` would drop.
-    await app.evaluate<null>(`window['${BRIDGE_KEY}'].saveLocale('pt-BR')`)
+    await app.evaluate<null>(`window['${BRIDGE_KEY}'].savePreference('locale', 'pt-BR')`)
 
     const after = await app.evaluate<{ settings?: { locale?: string } }>(
       `window['${BRIDGE_KEY}'].settings()`,
@@ -146,8 +157,10 @@ describe('RG60: what the renderer was given', () => {
     // A tag nobody wrote reads back as English at the next launch, so storing it would
     // look exactly like the setting having never been saved. Refused at the handler, where
     // `LOCALE_TAGS` is the same list the reader uses.
-    await app.evaluate<null>(`window['${BRIDGE_KEY}'].saveLocale('en')`)
-    await app.evaluate<null>(`window['${BRIDGE_KEY}'].saveLocale('ja')`)
+    await app.evaluate<null>(`window['${BRIDGE_KEY}'].savePreference('locale', 'en')`)
+    await expect(
+      app.evaluate<null>(`window['${BRIDGE_KEY}'].savePreference('locale', 'ja')`),
+    ).rejects.toThrow(/locale/)
 
     const after = await app.evaluate<{ locale?: string; settings?: { locale?: string } }>(
       `window['${BRIDGE_KEY}'].settings()`,
@@ -177,7 +190,8 @@ describe('RG60: what the renderer was not given', () => {
       `Object.values(window['${BRIDGE_KEY}']).map((one) => typeof one)`,
     )
 
-    expect(reachable).toHaveLength(17)
+    // Sixteen since RG207 folded the ground's and the language's writes into one.
+    expect(reachable).toHaveLength(16)
     expect(reachable.every((one) => one === 'function')).toBe(true)
   })
 })

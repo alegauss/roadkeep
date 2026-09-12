@@ -21,8 +21,7 @@ import { stubBridge } from './stub-bridge'
 function bridge(over: Partial<RendererBridge> = {}): RendererBridge {
   return stubBridge({
     settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: 'en' }),
-    saveTheme: () => Promise.resolve(),
-    saveLocale: () => Promise.resolve(),
+    savePreference: () => Promise.resolve(),
     ...over,
   })
 }
@@ -94,7 +93,7 @@ describe('RG115: a settings file that lost a field', () => {
 
 describe('RG115: a choice that could not be saved', () => {
   it('says so rather than letting it look kept until the next launch', async () => {
-    withBridge(bridge({ saveTheme: () => Promise.reject(new Error('the disk is full')) }))
+    withBridge(bridge({ savePreference: () => Promise.reject(new Error('the disk is full')) }))
     drawWindow({ initial: 'light' })
 
     await act(async () => {

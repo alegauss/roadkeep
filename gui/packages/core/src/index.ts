@@ -88,6 +88,8 @@ export type {
   ResolveAgentOptions,
   TransportFor as TransportForAgent,
 } from './agent'
+export { isPreferenceKey, PREFERENCES, withPreference } from './preferences'
+export type { PreferenceKey } from './preferences'
 export { arrivedSince, atEnd, END_SLACK_PX, FOLLOWING, scrolledTo } from './follow'
 export type { Follow, Scrolled } from './follow'
 export { blanksIn, doorsIn, filledArgv, isBlank } from './doors'

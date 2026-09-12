@@ -1,5 +1,5 @@
 import type { Bundle } from '@rk/core'
-import { IconLayoutGrid, IconTerminal2 } from '@tabler/icons-react'
+import { IconLayoutGrid, IconSettings, IconTerminal2 } from '@tabler/icons-react'
 import type { BentoNavGroup, BentoNavItem } from '@viglet/viglet-design-system/bento'
 
 /**
@@ -82,6 +82,12 @@ export function sessionPath(root: string, id: string, key: string): string {
 export const SESSIONS_ROUTE = '/sessions'
 
 /**
+ * The preferences a person chooses (RG207). About no project, so reached from the rail and the
+ * palette like the sessions.
+ */
+export const SETTINGS_ROUTE = '/settings'
+
+/**
  * The sections and their surfaces, already filtered by whatever this reader may see —
  * which here is everything, there being no account and no privileges (a non-goal).
  *
@@ -117,6 +123,21 @@ export const AREAS: BentoNavGroup[] = [
         tone: 'amber',
         bentoRoute: SESSIONS_ROUTE,
         fallbackRoute: SESSIONS_ROUTE,
+      },
+    ],
+  },
+  {
+    section: { id: 'app', labelKey: 'areas.app' },
+    items: [
+      {
+        id: 'settings',
+        titleKey: 'areas.settings',
+        descriptionKey: 'areas.settingsAbout',
+        icon: IconSettings,
+        section: 'app',
+        tone: 'amber',
+        bentoRoute: SETTINGS_ROUTE,
+        fallbackRoute: SETTINGS_ROUTE,
       },
     ],
   },
@@ -162,6 +183,9 @@ export const AREA_WORDING: Readonly<Record<'en' | 'pt', Bundle>> = {
       work: 'Work',
       sessions: 'Sessions',
       sessionsAbout: 'Every Claude Code session this window started, one row each',
+      app: 'This app',
+      settings: 'Settings',
+      settingsAbout: 'The ground, the language, and the rest of what you choose here',
     },
   },
   pt: {
@@ -173,6 +197,9 @@ export const AREA_WORDING: Readonly<Record<'en' | 'pt', Bundle>> = {
       work: 'Trabalho',
       sessions: 'Sessões',
       sessionsAbout: 'Cada sessão do Claude Code iniciada por esta janela, uma linha para cada',
+      app: 'Este aplicativo',
+      settings: 'Configurações',
+      settingsAbout: 'O fundo, o idioma e o resto do que você escolhe aqui',
     },
   },
 }

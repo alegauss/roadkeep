@@ -23,8 +23,7 @@ import {
 const bridge: RendererBridge = {
   identify: () => ipcRenderer.invoke(BRIDGE_CHANNELS.identify),
   settings: () => ipcRenderer.invoke(BRIDGE_CHANNELS.settings),
-  saveTheme: (theme) => ipcRenderer.invoke(BRIDGE_CHANNELS.saveTheme, theme),
-  saveLocale: (locale) => ipcRenderer.invoke(BRIDGE_CHANNELS.saveLocale, locale),
+  savePreference: (key, value) => ipcRenderer.invoke(BRIDGE_CHANNELS.savePreference, key, value),
   projects: () => ipcRenderer.invoke(BRIDGE_CHANNELS.projects),
   open: (root) => ipcRenderer.invoke(BRIDGE_CHANNELS.open, root),
   run: (root, request) => ipcRenderer.invoke(BRIDGE_CHANNELS.run, root, request),

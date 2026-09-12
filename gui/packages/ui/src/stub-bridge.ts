@@ -22,8 +22,7 @@ export function stubBridge(over: Partial<RendererBridge> = {}): RendererBridge {
   return {
     identify: unasked,
     settings: unasked,
-    saveTheme: unasked,
-    saveLocale: unasked,
+    savePreference: unasked,
     projects: unasked,
     open: unasked,
     run: unasked,

@@ -2,14 +2,13 @@ import {
   acceptRoots,
   BRIDGE_CHANNELS,
   BRIDGE_UNSUBSCRIBE,
-  isTheme,
   EVERY_SOURCE,
   isTopic,
-  LOCALE_TAGS,
   requestFrom,
   resolveAgent,
   translator,
   withheldResult,
+  withPreference,
   withPresence,
   wordingFor,
   type BridgedResult,
@@ -68,25 +67,18 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
     return { ...read, locale: localeChoice(read.settings.locale, app.getLocale()) }
   })
 
-  // The one write the renderer can ask for, and it reaches exactly one field. The file is
-  // re-read rather than remembered so a root somebody added by hand a moment ago survives
-  // a click on the ground switch, and the value is checked here because a channel argument
-  // is the renderer's word: `isTheme` is the same set the reader uses, so nothing gets in
-  // that a later read would reset.
-  ipcMain.handle(BRIDGE_CHANNELS.saveTheme, (_event, theme: unknown): void => {
-    if (!isTheme(theme)) return
+  // The one write of a preference the renderer can ask for (RG207), and it reaches exactly
+  // the fields `PREFERENCES` names. The file is re-read rather than remembered so a root
+  // somebody added by hand a moment ago survives a click on the ground, and both arguments
+  // are checked here because a channel argument is the renderer's word: each row's check is
+  // the reader's, so nothing gets in that a later read would reset. A refusal throws, which
+  // rejects the page's call — a choice not kept is said, not discovered at the next launch.
+  ipcMain.handle(BRIDGE_CHANNELS.savePreference, (_event, key: unknown, value: unknown): void => {
     const userData = app.getPath('userData')
-    saveSettings(userData, { ...loadSettings(userData).settings, theme })
-  })
-
-  // The same shape for the language (RG116), and the same reason for checking here: a tag
-  // is the renderer's word, and one this build does not ship reads back as English at the
-  // next launch — which looks like the setting was never saved.
-  ipcMain.handle(BRIDGE_CHANNELS.saveLocale, (_event, locale: unknown): void => {
-    if (typeof locale !== 'string' || !LOCALE_TAGS.includes(locale)) return
-    const userData = app.getPath('userData')
-    saveSettings(userData, { ...loadSettings(userData).settings, locale })
-    hooks.localeSaved?.()
+    const written = withPreference(loadSettings(userData).settings, key, value)
+    if (written === null) throw new Error(`${String(key)} cannot be set to that value`)
+    saveSettings(userData, written)
+    if (key === 'locale') hooks.localeSaved?.()
   })
 
   // The three that reach an engine (RG143). Where to look is read per call, like the

@@ -8,6 +8,7 @@ import {
   PROJECT_ROUTE,
   SESSION_ROUTE,
   SESSIONS_ROUTE,
+  SETTINGS_ROUTE,
   TASK_ROUTE,
 } from './areas'
 import { Filing } from './Filing'
@@ -16,6 +17,7 @@ import { Portfolio } from './Portfolio'
 import { Project } from './Project'
 import { Session } from './Session'
 import { Sessions } from './Sessions'
+import { Settings } from './Settings'
 import { AppShell } from './Shell'
 import { Task } from './Task'
 
@@ -61,6 +63,7 @@ export const SURFACES: readonly Surface[] = [
   { path: SESSIONS_ROUTE, element: <Sessions /> },
   { path: FILE_ROUTE, element: <Filing /> },
   { path: GATE_ROUTE, element: <Gate /> },
+  { path: SETTINGS_ROUTE, element: <Settings /> },
 ]
 
 /** Just the paths, which is what a check about the map needs and all it needs. */

@@ -21,8 +21,7 @@ const closed = (): Promise<never> => Promise.reject(new Error('channel closed'))
 const CLOSED: RendererBridge = stubBridge({
   identify: closed,
   settings: closed,
-  saveTheme: closed,
-  saveLocale: closed,
+  savePreference: closed,
 })
 
 describe('RG86: the locale the window opens in', () => {
@@ -55,8 +54,7 @@ describe('RG87: the ground the window opens in', () => {
           locale: 'pt-BR',
         })
       },
-      saveTheme: () => Promise.resolve(),
-      saveLocale: () => Promise.resolve(),
+      savePreference: () => Promise.resolve(),
     })
 
     expect(await choicesFromBridge(counting)).toEqual({
@@ -85,8 +83,7 @@ describe('RG106: an answer that never comes', () => {
     // channel not at all, and Electron has already shown a window painted its background.
     const silent: RendererBridge = stubBridge({
       settings: () => new Promise(() => undefined),
-      saveTheme: () => Promise.resolve(),
-      saveLocale: () => Promise.resolve(),
+      savePreference: () => Promise.resolve(),
     })
 
     const opened = await choicesFromBridge(silent, 20)
@@ -110,8 +107,7 @@ describe('RG106: an answer that never comes', () => {
             5,
           ),
         ),
-      saveTheme: () => Promise.resolve(),
-      saveLocale: () => Promise.resolve(),
+      savePreference: () => Promise.resolve(),
     })
 
     expect(await choicesFromBridge(slow, 500)).toEqual({
@@ -125,8 +121,7 @@ describe('RG106: an answer that never comes', () => {
     // A window that hangs for two seconds and one that hangs for ten are different windows.
     const silent: RendererBridge = stubBridge({
       settings: () => new Promise(() => undefined),
-      saveTheme: () => Promise.resolve(),
-      saveLocale: () => Promise.resolve(),
+      savePreference: () => Promise.resolve(),
     })
 
     const startedAt = Date.now()

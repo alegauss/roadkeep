@@ -4,6 +4,7 @@ import {
   DARK_QUERY,
   DEFAULT_SETTINGS,
   identityFrom,
+  isTheme,
   THEME_ORDER,
   type RendererBridge,
   type Theme,
@@ -89,11 +90,10 @@ function recordingBridge(): { kept: Theme[] } {
         build: identityFrom({ version: '0.0.0', commit: 'abc1234', signed: 'unsigned' }),
       }),
     settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: BASE_LOCALE }),
-    saveTheme: (theme) => {
-      kept.push(theme)
+    savePreference: (key, value) => {
+      if (key === 'theme' && isTheme(value)) kept.push(value)
       return Promise.resolve()
     },
-    saveLocale: () => Promise.resolve(),
   })
   Object.defineProperty(window, 'roadkeep', { value: bridge, configurable: true })
   return { kept }

@@ -67,7 +67,7 @@ function seedGroundCache(theme: Theme): null {
  */
 function keepGround(theme: Theme): void {
   void getBridge()
-    ?.saveTheme(theme)
+    ?.savePreference('theme', theme)
     .catch(() => {
       toast.warning(BASE['settings.unsaved'])
     })

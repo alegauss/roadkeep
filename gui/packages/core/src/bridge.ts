@@ -23,7 +23,8 @@ import type { Opening } from './opening'
 import type { BriefPayload, Declared, HeldClaim } from './payloads'
 import type { KnownRoot, ScanRoot } from './roots'
 import type { SessionOutcome } from './session'
-import type { SettingsRead, Theme } from './settings'
+import type { PreferenceKey } from './preferences'
+import type { Settings, SettingsRead } from './settings'
 import type { EngineFailure, EngineRequest, EngineResult } from './transport'
 
 /** The single property the preload adds to `window`. */
@@ -70,32 +71,20 @@ export interface RendererBridge {
    */
   settings(): Promise<LaunchSettings>
   /**
-   * Keep the ground somebody just chose, which is what makes the file the source of it.
+   * Keep one preference somebody just chose, which is what makes the file the source of it
+   * (RG207).
    *
-   * The switch persists to browser storage on its own, and that copy is a cache: it is read
-   * before React runs so the first frame is not the wrong colour. A cache nothing refreshes
-   * is a second answer, so the choice comes back through here and the file wins at the next
-   * launch.
+   * The ground and the language were a method each, `saveTheme` (RG87) and `saveLocale`
+   * (RG116), and the second said a third would be the moment to ask again. The settings
+   * screen is that third, and the answer is one method over `PREFERENCES`: not
+   * `Partial<Settings>`, which would hand a page the roots and the ignore list, but the rows a
+   * person chooses from a screen and the check each value passes.
    *
-   * **One field and not a settings patch.** A method that took `Partial<Settings>` would
-   * hand the renderer the roots and the ignore list as well, and the screen that needs those
-   * does not exist yet — widening this is a decision that belongs to whoever builds it.
+   * **Refused out loud.** A key outside the table, or a value its row refuses — a ground that
+   * is not one, a tag this build does not ship — rejects and writes nothing, so a page says
+   * the choice was not kept rather than finding out at the next launch.
    */
-  saveTheme(theme: Theme): Promise<void>
-  /**
-   * Keep the language somebody just chose (RG116).
-   *
-   * The second of these and not a settings patch, which is the decision `saveTheme` left to
-   * whoever needed the second write. A patch would hand the renderer the roots and the
-   * ignore list as well, and the screen that needs those still does not exist — so the
-   * surface grows by one method that names what it writes. A third would be the moment to
-   * ask again; two is a pair, not a list.
-   *
-   * A tag this build does not ship is refused rather than stored: `Settings.locale` is read
-   * back through `localeFor`, so a value nobody can draw would silently become English at
-   * the next launch and look like the setting had not been saved.
-   */
-  saveLocale(locale: string): Promise<void>
+  savePreference<K extends PreferenceKey>(key: K, value: Settings[K]): Promise<void>
   /**
    * The projects under the roots the person named, scanned now and folded into what this
    * carrier already held (RG143). What `open` and `run` accept is exactly this list.
@@ -461,8 +450,7 @@ export type OpenedProject =
 export const BRIDGE_CHANNELS = {
   identify: 'roadkeep:identify',
   settings: 'roadkeep:settings',
-  saveTheme: 'roadkeep:save-theme',
-  saveLocale: 'roadkeep:save-locale',
+  savePreference: 'roadkeep:save-preference',
   projects: 'roadkeep:projects',
   open: 'roadkeep:open',
   run: 'roadkeep:run',

@@ -47,30 +47,6 @@ ready task forever. What can be built without it is the pipeline that would use 
 the about surface saying plainly that this build is unsigned — which is the honest half
 and is worth having on its own.
 
-### §RG207 One settings screen, and one way to write a preference
-
-Two preferences are written today, each by a control in the header and a bridge method
-named for it: `saveTheme` and `saveLocale`. `RendererBridge` stops there on purpose — *a
-third would be the moment to ask again* — and a session preference is that third.
-
-**The screen.** A `/settings` route in `AREAS`, so the rail and the palette reach it: a
-`BentoHero`, then one `BentoFormSection` per group — *Appearance* (ground, language)
-first. A control is written as it changes, as the header's already are, so there is no
-save bar to morph. The header keeps its ground control, which the shell contract puts
-there.
-
-**The write.** Not `Partial<Settings>`, which hands the renderer the roots and the
-ignore list. `savePreference(key, value)` over a table in `core` naming each writable
-key with the validator `readSettings` applies, as `isTheme` is shared today — so the
-main process refuses a key outside it, and a new preference is one row, one reader field
-and one catalogue entry. `saveTheme` and `saveLocale` become its first two rows.
-
-**A refused or failed write keeps the old value** and says so through
-`settings.unsaved`.
-
-Done when the ground and the language are chosen from the screen and written through the
-table, and a key outside it is refused.
-
 ## Block H — The look (a design system for governed prose)
 
 ### §RG62 Joining the checks the other consoles already answer to

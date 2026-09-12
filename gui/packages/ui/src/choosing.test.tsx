@@ -26,8 +26,7 @@ import { stubBridge } from './stub-bridge'
 function bridge(over: Partial<RendererBridge> = {}): RendererBridge {
   return stubBridge({
     settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: 'en' }),
-    saveTheme: () => Promise.resolve(),
-    saveLocale: () => Promise.resolve(),
+    savePreference: () => Promise.resolve(),
     ...over,
   })
 }
@@ -41,8 +40,8 @@ function recording(): { kept: string[] } {
   const kept: string[] = []
   withBridge(
     bridge({
-      saveLocale: (locale) => {
-        kept.push(locale)
+      savePreference: (key, value) => {
+        if (key === 'locale') kept.push(value)
         return Promise.resolve()
       },
     }),
@@ -81,7 +80,7 @@ describe('RG116: the choice reaches the file', () => {
 
   it('says so when the write is refused, rather than looking kept until the next launch', async () => {
     await startSpeaking('en')
-    withBridge(bridge({ saveLocale: () => Promise.reject(new Error('the disk is full')) }))
+    withBridge(bridge({ savePreference: () => Promise.reject(new Error('the disk is full')) }))
     drawWindow({ initial: 'light' })
 
     await act(async () => {

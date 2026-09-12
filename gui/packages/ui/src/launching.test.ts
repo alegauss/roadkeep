@@ -23,9 +23,8 @@ const kept: string[] = []
 
 const bridge: RendererBridge = stubBridge({
   settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: 'pt-BR' }),
-  saveTheme: () => Promise.resolve(),
-  saveLocale: (locale) => {
-    kept.push(locale)
+  savePreference: (key, value) => {
+    if (key === 'locale') kept.push(value)
     return Promise.resolve()
   },
 })

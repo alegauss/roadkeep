@@ -24,6 +24,7 @@ import {
   type SessionRecord,
   type Transport,
   composeWrite,
+  LOCALE_NAMES,
 } from '@rk/core'
 import { vigDesignSystemTranslations } from '@viglet/viglet-design-system/i18n'
 import { fireEvent, screen, waitFor } from '@testing-library/react'
@@ -65,8 +66,7 @@ function withBridge(parts: Partial<RendererBridge>): void {
   const bridge: RendererBridge = stubBridge({
     identify: () => Promise.resolve({ transport: 'ipc', build: BUILT }),
     settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: BASE_LOCALE }),
-    saveTheme: () => Promise.resolve(),
-    saveLocale: () => Promise.resolve(),
+    savePreference: () => Promise.resolve(),
     // A machine with no project under its roots (RG145): the portfolio settles on a sentence
     // of its own, and no payload's prose reaches a screen this run reads.
     projects: () => Promise.resolve(EMPTY_CATALOGUE),
@@ -447,6 +447,10 @@ const DATA = new Set([
   // from the write table, which is a thing to run and not a sentence to translate — derived
   // here rather than typed, so it is the same string the screen builds.
   composeWrite(SURFACE_ROOT, 'add', { block: '', symptom: '', why: '' }).argv.join(' '),
+  // Each language by the name it calls itself, which the settings screen offers (RG207). An
+  // endonym is a name and the same in every window: wrapping it would hand a Portuguese
+  // reader looking for English a word they cannot find.
+  ...Object.values(LOCALE_NAMES),
 ])
 
 const asJson = (value: unknown) => JSON.stringify(value)

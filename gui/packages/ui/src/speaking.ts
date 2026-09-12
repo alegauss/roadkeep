@@ -94,7 +94,7 @@ function keepSpokenLocale(tag: string): void {
   onFile = tag
 
   void getBridge()
-    ?.saveLocale(tag)
+    ?.savePreference('locale', tag)
     .catch(() => {
       onFile = ''
       toast.warning(BASE['settings.unsaved'])

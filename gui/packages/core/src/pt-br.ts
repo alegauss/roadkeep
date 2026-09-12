@@ -325,6 +325,17 @@ export const PT_BR: Wording = {
 
   'settings.reset': 'Algumas configurações não puderam ser lidas e voltaram aos valores padrão.',
   'settings.unsaved': 'Essa escolha não pôde ser salva, então a próxima abertura não a terá.',
+  'settings.kicker': 'Este aplicativo',
+  'settings.title': 'Configurações',
+  'settings.subtitle':
+    'Cada escolha fica no arquivo de configurações deste aplicativo assim que é feita.',
+  'settings.appearance': 'Aparência',
+  'settings.appearance.about': 'Como esta janela aparece, e o idioma em que ela fala.',
+  'settings.ground': 'Fundo',
+  'settings.ground.system': 'Seguir o sistema',
+  'settings.ground.light': 'Claro',
+  'settings.ground.dark': 'Escuro',
+  'settings.language': 'Idioma',
 
   'settings.lost.unparsable': '{file} não pode ser lido como JSON, então ele fica intacto',
   'settings.lost.file':

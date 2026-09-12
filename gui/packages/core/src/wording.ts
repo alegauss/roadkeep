@@ -337,6 +337,16 @@ export const EN = {
 
   'settings.reset': 'Some settings could not be read, so they are back to their defaults.',
   'settings.unsaved': 'That choice could not be saved, so the next launch will not have it.',
+  'settings.kicker': 'This app',
+  'settings.title': 'Settings',
+  'settings.subtitle': 'Each choice is kept in this app’s settings file the moment it is made.',
+  'settings.appearance': 'Appearance',
+  'settings.appearance.about': 'How this window looks, and the language it speaks.',
+  'settings.ground': 'Ground',
+  'settings.ground.system': 'Follow the desktop',
+  'settings.ground.light': 'Light',
+  'settings.ground.dark': 'Dark',
+  'settings.language': 'Language',
 
   'settings.lost.unparsable': '{file} is not readable as JSON, so it is left alone',
   'settings.lost.file':
