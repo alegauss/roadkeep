@@ -1,4 +1,4 @@
-import { folderName, refusalOf, type GateHealth, type Gated, type LintPayload } from '@rk/core'
+import { nameOf, refusalOf, type GateHealth, type Gated, type LintPayload } from '@rk/core'
 import { Button } from '@viglet/viglet-design-system'
 import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-system/bento'
 import { useEffect, useMemo, type ReactNode } from 'react'
@@ -203,7 +203,7 @@ export function Gate() {
     <>
       <BentoHero
         backTo={projectPath(root)}
-        backLabel={folderName(root)}
+        backLabel={nameOf(project?.declares, root)}
         title={say('gate.title')}
         subtitle={say('gate.about')}
         trailing={trailing}

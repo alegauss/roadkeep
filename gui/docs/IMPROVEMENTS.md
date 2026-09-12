@@ -75,29 +75,6 @@ Where nothing is declared the path stays on the line, which is what it does toda
 change is visible only on projects that opted in, and a mixed portfolio is readable in
 both states.
 
-### §RG202 One name, wherever a project is named
-
-`folderName(root)` appears in five more places: the project header's title, the back
-label on the gate screen, the one on a task, the one on the filing screen, and the
-session list's row. Each was correct while the folder name was the only name there was.
-Once a project can declare one, they are five screens disagreeing with the portfolio
-about what a project is called — and the disagreement lands on navigation, where a
-label's whole job is to say where the back arrow goes.
-
-**The name is the row's, resolved once.** The portfolio already holds it and the screens
-below need it without asking again, which means it travels with the route rather than
-being recomputed from the path at each leaf. Recomputing is how five call sites came to
-agree with each other and with nothing else.
-
-The session list is the awkward one: a `SessionRecord` carries a root and little else,
-and the sessions on it may name projects the catalogue has never read. Those fall back
-to the folder name, which is the same rule as everywhere else rather than an exception
-carved for one screen.
-
-`folderName` itself stays exported and stays tested. It is still the fallback, still
-correct about paths, and still the only thing that can answer for a folder nothing has
-read.
-
 ### §RG203 A missing project keeps its name
 
 A declared name is read out of the checkout that declares it. A missing project is one

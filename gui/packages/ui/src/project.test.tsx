@@ -145,6 +145,9 @@ function answer(argv: readonly string[]): string | undefined {
           key('markers', 'open', '["📋", "💭", "⏳", "🛠"]'),
           key('markers', 'working', null, '"🛠"'),
           key('requirements', 'declared', '["signing-cert"]'),
+          // What the project calls itself (RG202): the folder here is `alpha`, so a header
+          // saying `Turing` is a header reading the config and not the path.
+          key('project', 'name', declaredName === '' ? null : `"${declaredName}"`),
         ],
       })
     case 'commands':
@@ -287,7 +290,13 @@ function engine(): { transport: Transport; asked: string[][] } {
 
 const CATALOGUE: ProjectCatalogue = { version: 1, roots: [], projects: [] }
 
-async function atProject(over: { readiness?: string } = {}): Promise<{ ran: string[][] }> {
+/** What this project declares it is called, or empty for one that declares nothing. */
+let declaredName = ''
+
+async function atProject(
+  over: { readiness?: string; name?: string } = {},
+): Promise<{ ran: string[][] }> {
+  declaredName = over.name ?? ''
   // A build that does not answer the field leaves it empty on every row, which is what the
   // reader falls back to (RG170).
   readinessOverride = over.readiness
@@ -557,5 +566,25 @@ describe('RG170: the narrowing the engine does', () => {
       expect(asked.length).toBeGreaterThan(before)
     })
     expect(asked.slice(before).some((argv) => argv.includes('--startable'))).toBe(false)
+  })
+})
+
+describe('RG202: the name this screen shows', () => {
+  it('is what the project declares, and not the folder it sits in', async () => {
+    await atProject({ name: 'Turing' })
+
+    await waitFor(() => {
+      expect(screen.getByText('Turing')).toBeTruthy()
+    })
+    // The fixture's folder, which is what a worktree's path says and a product's name is not.
+    expect(screen.queryByRole('heading', { name: 'alpha' })).toBeNull()
+  })
+
+  it('falls back to the folder where the project declares nothing', async () => {
+    await atProject()
+
+    await waitFor(() => {
+      expect(screen.getByText('alpha')).toBeTruthy()
+    })
   })
 })

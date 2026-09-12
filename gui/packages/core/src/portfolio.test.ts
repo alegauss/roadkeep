@@ -23,6 +23,7 @@ import {
   tally,
   unreadableRow,
   fillRow,
+  nameOf,
 } from './portfolio'
 
 const project: RecordedProject = {
@@ -415,5 +416,27 @@ describe('RG198: what a config declares, read off the payload', () => {
     // `governedFiles` filters on the table for the same reason: a key is `table` and `key`
     // together, and a `files.name` is not a project's name.
     expect(projectDeclares(payload([keyed('files', 'name', '"roadmap.md"')])).name).toBe('')
+  })
+})
+
+describe('RG202: one name, wherever a project is named', () => {
+  it('answers what the project declares', () => {
+    expect(nameOf({ ...DECLARES_NOTHING, name: 'Turing' }, '/code/viglet/turing/2026.3')).toBe(
+      'Turing',
+    )
+  })
+
+  it('answers the folder where nothing is declared, and where nothing was read', () => {
+    // The fallback is the same rule everywhere, rather than an exception carved for the one
+    // screen that cannot reach a config.
+    expect(nameOf(DECLARES_NOTHING, '/code/viglet/turing/2026.3')).toBe('2026.3')
+    expect(nameOf(null, '/code/viglet/turing/2026.3')).toBe('2026.3')
+    expect(nameOf(undefined, '/code/viglet/turing/2026.3')).toBe('2026.3')
+  })
+
+  it('is the same answer a row gets, which is what stops a label disagreeing', () => {
+    const declares = { ...DECLARES_NOTHING, name: 'Turing' }
+
+    expect(nameOf(declares, project.path)).toBe(readRow(project, { declares }).name)
   })
 })

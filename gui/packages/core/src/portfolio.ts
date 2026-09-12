@@ -90,6 +90,19 @@ export function folderName(path: string): string {
   return parts.at(-1) ?? path
 }
 
+/**
+ * What to call a project: what it declares, or its folder (RG202).
+ *
+ * One function, because five screens each recomputed the folder name and so agreed with
+ * each other and with nothing else — and the disagreement landed on navigation, where a
+ * label's whole job is to say where the back arrow goes. `folderName` stays: it is still
+ * the fallback, still correct about paths, and still the only thing that can answer for a
+ * folder nothing has read.
+ */
+export function nameOf(declares: Declared | null | undefined, path: string): string {
+  return declares?.name || folderName(path)
+}
+
 function shell(project: RecordedProject): Omit<ProjectRow, 'state'> {
   return {
     path: project.path,

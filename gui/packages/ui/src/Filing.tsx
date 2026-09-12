@@ -2,7 +2,7 @@ import {
   anyOver,
   counterFor,
   fieldsRefused,
-  folderName,
+  nameOf,
   refusalOf,
   sectionCounter,
   type Bounds,
@@ -445,7 +445,7 @@ export function Filing() {
     <>
       <BentoHero
         backTo={projectPath(root)}
-        backLabel={folderName(root)}
+        backLabel={nameOf(filing.project?.declares, root)}
         title={say('filing.title')}
         subtitle={about}
         trailing={trailing}

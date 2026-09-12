@@ -161,6 +161,7 @@ export {
   gatedRows,
   filterCounts,
   folderName,
+  nameOf,
   matchesFilter,
   pendingRow,
   readRow,

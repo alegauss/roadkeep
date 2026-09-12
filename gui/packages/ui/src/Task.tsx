@@ -582,7 +582,7 @@ export function Task() {
     <>
       <BentoHero
         backTo={projectPath(root)}
-        backLabel={folderName(root)}
+        backLabel={view.kind === 'open' ? view.name : folderName(root)}
         leading={leading}
         title={id}
         subtitle={subtitle}

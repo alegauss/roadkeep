@@ -1,5 +1,5 @@
 import {
-  folderName,
+  nameOf,
   NO_FILTER,
   narrowedBy,
   NARROWED_TEXT,
@@ -470,7 +470,7 @@ export function Project() {
       <BentoHero
         backTo={HOME_ROUTE}
         backLabel={say('project.back')}
-        title={folderName(root)}
+        title={nameOf(view.kind === 'open' ? view.project.declares : null, root)}
         subtitle={subtitle}
         trailing={filing}
       />

@@ -91,6 +91,7 @@
 - ✅ **RG187** **the carrier gates every project as it opens, so a cold start over seventeen starts seventeen lints at once** — A launch gates one project at a time, so the rest of the machine goes to what the reader is looking at (design recorded in `packages/shell/src/carrier.ts`).
 - ✅ **RG147** **the palette says it finds a line in every backlog and lists only surfaces, so search over all projects reaches no one** — The palette offers the lines search returned, from every backlog read, and says what it does not cover (design recorded in `packages/ui/src/useSearchable.ts`).
 - ✅ **RG198** **a row is named by its folder, so two worktrees of one product read as 2026.3 and 2026.2** — A row is named what the project calls itself, off the config it was opened with, and the folder where nothing says (design recorded in `packages/core/src/payloads.ts`).
+- ✅ **RG202** **five screens still name a project by its folder, so a declared name vanishes the moment one is opened** — Four screens take the name off the config they opened with, and the session list keeps the folder (design recorded in `packages/core/src/portfolio.ts`).
 
 ## Block D — The project surface (one backlog, read)
 

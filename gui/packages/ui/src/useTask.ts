@@ -1,4 +1,6 @@
 import {
+  nameOf,
+  projectDeclares,
   designFrom,
   detailFrom,
   graphOfBrief,
@@ -32,6 +34,12 @@ import { useGovernedMoves } from './following'
 /** A line that opened: the one brief, laid out by `core` and nothing added. */
 export interface OpenedTask {
   readonly kind: 'open'
+  /**
+   * What the project calls itself, or its folder (RG202). Carried here because the back
+   * label on this screen is navigation: recomputing it from the path is how five screens
+   * came to agree with each other and with nothing else.
+   */
+  readonly name: string
   readonly detail: TaskDetail
   readonly design: Design
   readonly graph: Graph
@@ -55,11 +63,14 @@ const ABSENT: TaskView = { kind: 'absent' }
 const OPENING: TaskView = { kind: 'opening' }
 
 /** The brief, laid out by `core`, with what the project's config says about its marker. */
-function openedTask(line: BriefPayload, config: ConfigPayload | null): OpenedTask {
+function openedTask(line: BriefPayload, config: ConfigPayload | null, root: string): OpenedTask {
   const detail = detailFrom(line)
   const working = config === null ? '' : workingMarker(config)
   return {
     kind: 'open',
+    // The same config this already reads for the working marker, which is why naming the
+    // project here costs nothing extra (RG202).
+    name: nameOf(config === null ? null : projectDeclares(config), root),
     detail,
     design: designFrom(line),
     graph: graphOfBrief(line),
@@ -145,7 +156,7 @@ export function useTask(root: string, id: string): TaskView {
 
       const line = brief.kind === 'read' ? lineOf(brief.value) : null
       if (line !== null) {
-        setView(openedTask(line, config.kind === 'read' ? config.value : null))
+        setView(openedTask(line, config.kind === 'read' ? config.value : null, root))
         return
       }
       if (brief.kind === 'unreadable') {
