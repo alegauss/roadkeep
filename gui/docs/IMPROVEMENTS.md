@@ -12,30 +12,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-### §RG206 The stream follows its end until the reader scrolls away
-
-`Sessao.dc.html` draws the stream as a region with a height of its own — `flex:1;
-overflow:hidden` under a `main` bound to the viewport. `Session.tsx` renders it as a
-list the page grows around, so a new act lands below the fold and nothing brings it into
-view.
-
-**The stream becomes its own scroll region.** Under the hero the three-column grid is
-bound to the viewport's height, the stream panel scrolls inside it, and the side columns
-stay put. Below `lg` the columns stack and following scrolls the window instead.
-
-**Following is the reader's state, not a preference.** It starts on, and each new act
-scrolls the region to its end, instantly: smooth scrolling under several lines a second
-never arrives. Scrolling away turns it off and shows *Jump to latest* at the region's
-foot, with the count of acts since. Taking it, or scrolling back to the end, turns it
-on. An ended session stops following.
-
-jsdom has no layout and no `scrollIntoView`, so the rule — at the end within a few
-pixels, acts since leaving — is a pure function tests call with numbers, and the DOM
-half is thin.
-
-Done when a running session keeps its newest act in view and a reader scrolled up is
-never pulled down.
-
 ### §RG208 System notes hidden by choice, and counted where hidden
 
 `actsIn` reads a line it has no use for as a `note` — `system` (init, thinking token

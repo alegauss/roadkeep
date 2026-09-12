@@ -1,9 +1,13 @@
 import {
   actsIn,
+  arrivedSince,
+  FOLLOWING,
   landingBetween,
+  scrolledTo,
   type Act,
   type Change,
   type ClaimsPayload,
+  type Follow,
   type GovernedFile,
   type Marks,
   type MessageKey,
@@ -14,7 +18,7 @@ import {
 } from '@rk/core'
 import { Button } from '@viglet/viglet-design-system'
 import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-system/bento'
-import { useCallback, useMemo, type ReactNode } from 'react'
+import { useCallback, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { taskPath } from './areas'
@@ -305,27 +309,87 @@ function Moved({
   )
 }
 
+/**
+ * The session's own words, in a region that scrolls by itself and follows its end (RG206).
+ *
+ * The drawing gives the stream a height of its own; drawn as a list the page grows around, a
+ * new act landed below the fold and a running session was read by scrolling the window. The
+ * region is bounded by the viewport at every width, so there is one scroller and one rule —
+ * `scrolledTo` — rather than a window below `lg` and a region above it.
+ *
+ * Following moves with the reader's own scroll: away from the end it stops and offers the way
+ * back with what arrived since, and at the end it follows again. The jump is instant, because
+ * a smooth scroll chasing several lines a second never arrives.
+ */
 function Stream({ lines, marks }: { readonly lines: readonly string[]; readonly marks: Marks }) {
   const say = useWording()
   const acts = useMemo(() => actsIn(lines, marks), [lines, marks])
+  const region = useRef<HTMLDivElement>(null)
+  const [follow, setFollow] = useState<Follow>(FOLLOWING)
+  const count = acts.length
+  // How many acts the region was last put at the end for, so only a new one moves it: a
+  // redraw for anything else — a reread of the line, a raw line opened — leaves it be.
+  const placed = useRef(0)
 
-  if (acts.length === 0) {
+  // Before paint, so an act that lands while following is never seen below the fold first.
+  useLayoutEffect(() => {
+    const element = region.current
+    if (element === null || follow.leftAt !== null || placed.current === count) return
+    placed.current = count
+    element.scrollTop = element.scrollHeight
+  }, [count, follow])
+
+  const scrolled = useCallback(() => {
+    const element = region.current
+    if (element === null) return
+    const where = {
+      top: element.scrollTop,
+      height: element.scrollHeight,
+      visible: element.clientHeight,
+    }
+    setFollow((was) => scrolledTo(was, where, count))
+  }, [count])
+
+  const jump = useCallback(() => {
+    const element = region.current
+    if (element !== null) element.scrollTop = element.scrollHeight
+    setFollow(FOLLOWING)
+  }, [])
+
+  if (count === 0) {
     return (
       <BentoPanel className="min-w-0" contentClassName="p-6">
         <BentoEmptyState title={say('session.stream.empty')} />
       </BentoPanel>
     )
   }
+  const arrived = arrivedSince(follow, count)
   return (
-    <BentoPanel className="min-w-0" contentClassName="p-0">
+    <BentoPanel className="min-w-0" contentClassName="relative p-0">
       <span className="block px-5 pt-4">
         <PanelTitle>{say('session.stream')}</PanelTitle>
       </span>
-      <ul className="mt-2">
-        {acts.map((act) => (
-          <ActRow key={act.seq} act={act} />
-        ))}
-      </ul>
+      <div
+        ref={region}
+        onScroll={scrolled}
+        className="mt-2 max-h-[70dvh] overflow-y-auto overscroll-contain lg:max-h-[calc(100dvh-12rem)]"
+        data-testid="stream"
+      >
+        <ul>
+          {acts.map((act) => (
+            <ActRow key={act.seq} act={act} />
+          ))}
+        </ul>
+      </div>
+      {follow.leftAt === null ? null : (
+        <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center">
+          <Button size="sm" className="pointer-events-auto shadow-md" onClick={jump}>
+            {arrived === 0
+              ? say('session.follow')
+              : say('session.follow.since', { count: arrived })}
+          </Button>
+        </div>
+      )}
     </BentoPanel>
   )
 }

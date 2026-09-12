@@ -439,6 +439,79 @@ describe('RG153: the session beside its task', () => {
   })
 })
 
+describe('RG206: a stream that follows its end', () => {
+  /** Each act 200 tall in a region showing 150, since jsdom lays nothing out. */
+  function measured(region: HTMLElement): void {
+    Object.defineProperty(region, 'scrollHeight', {
+      configurable: true,
+      get: () => screen.getAllByTestId('act').length * 200,
+    })
+    Object.defineProperty(region, 'clientHeight', { configurable: true, value: 150 })
+  }
+
+  async function streaming() {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
+    const region = await screen.findByTestId('stream')
+    measured(region)
+    return { wired, region }
+  }
+
+  it('keeps the newest act in view while the reader is at the end', async () => {
+    const { wired, region } = await streaming()
+
+    hear(wired, 'session', { session: KEY, index: 1, line: USED })
+
+    // Three acts now, the tool line carrying two: the region is at its new end.
+    await waitFor(() => {
+      expect(region.scrollTop).toBe(600)
+    })
+    expect(screen.queryByRole('button', { name: BASE['session.follow'] })).toBeNull()
+  })
+
+  it('leaves a reader who scrolled up where they are, and says what arrived since', async () => {
+    const { wired, region } = await streaming()
+
+    region.scrollTop = 0
+    fireEvent.scroll(region)
+    expect(await screen.findByRole('button', { name: BASE['session.follow'] })).toBeTruthy()
+
+    hear(wired, 'session', { session: KEY, index: 1, line: USED })
+
+    const back = await screen.findByRole('button', {
+      name: fill(BASE['session.follow.since'], { count: 2 }),
+    })
+    // Not pulled down: the next line landed and the reader is still where they put themselves.
+    expect(region.scrollTop).toBe(0)
+
+    fireEvent.click(back)
+
+    expect(region.scrollTop).toBe(600)
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: /Jump to latest/ })).toBeNull()
+    })
+  })
+
+  it('follows again once the reader scrolls back to the end by hand', async () => {
+    const { wired, region } = await streaming()
+
+    region.scrollTop = 0
+    fireEvent.scroll(region)
+    await screen.findByRole('button', { name: BASE['session.follow'] })
+
+    // One act 200 tall shown 150 at a time: fifty down is its end.
+    region.scrollTop = 50
+    fireEvent.scroll(region)
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: BASE['session.follow'] })).toBeNull()
+    })
+
+    hear(wired, 'session', { session: KEY, index: 1, line: SAID })
+    await waitFor(() => {
+      expect(region.scrollTop).toBe(400)
+    })
+  })
+})
+
 describe('RG153: every session this window started', () => {
   it('lists what is running, each leading to its own screen', async () => {
     await at(SESSIONS_ROUTE, { sessions: [RECORD] })

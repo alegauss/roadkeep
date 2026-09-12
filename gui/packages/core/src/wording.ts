@@ -186,6 +186,8 @@ export const EN = {
   'session.handed.agent': 'started with {command}, Claude Code {version}',
   'session.stream': 'The stream',
   'session.stream.empty': 'Nothing has been written yet.',
+  'session.follow': 'Jump to latest',
+  'session.follow.since': 'Jump to latest, {count} new',
   'session.act.roadkeep': 'roadkeep call',
   'session.act.governed': 'touches {files}',
   'session.act.failed': 'failed',

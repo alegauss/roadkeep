@@ -14,7 +14,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG206** (deps: RG153 ✅) **the session stream does not follow new acts, so a running task is read by scrolling the page by hand** — The stream grows inside a page that scrolls as a whole, where the drawing gave it a region of its own, so nothing keeps the newest act in view. → §RG206
 - 📋 **RG208** (deps: RG207) **the session stream draws every system note, init to token counts, between the acts a reader follows** — Notes are read so the act list never runs shorter than the stream, but most say nothing a person watching the work needs. → §RG208
 
 ## Block G — The shell (an executable now, a service later)

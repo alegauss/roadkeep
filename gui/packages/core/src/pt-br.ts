@@ -174,6 +174,8 @@ export const PT_BR: Wording = {
   'session.handed.agent': 'iniciada com {command}, Claude Code {version}',
   'session.stream': 'O fluxo',
   'session.stream.empty': 'Nada foi escrito ainda.',
+  'session.follow': 'Ir para o fim',
+  'session.follow.since': 'Ir para o fim, {count} novo(s)',
   'session.act.roadkeep': 'chamada ao roadkeep',
   'session.act.governed': 'toca {files}',
   'session.act.failed': 'falhou',

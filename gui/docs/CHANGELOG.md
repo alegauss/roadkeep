@@ -149,6 +149,7 @@
 - ✅ **RG178** **the sessions list asks once when it opens, so one that ends while it stands still reads as running** — The sessions list hears every session through one key meaning all of them, and reads again when one speaks (design recorded in `packages/ui/src/Sessions.tsx`).
 - ✅ **RG190** **a handover landing after the reader left the task screen moves the window to the session anyway** — A handover that lands after the reader left the task screen no longer moves the window (design recorded in `packages/ui/src/Task.tsx`).
 - ✅ **RG205** **a session bills an ANTHROPIC_API_KEY the machine carries, not its Claude Code login, and dies for lack of credit** — A session runs on the Claude Code login: where auth status answers without ANTHROPIC_API_KEY the child no longer inherits it, and a machine with only the key keeps it.
+- ✅ **RG206** **the session stream does not follow new acts, so a running task is read by scrolling the page by hand** — The stream scrolls in its own region and follows its end; scrolling up stops it and offers Jump to latest with what arrived since (design recorded in `packages/core/src/follow.ts`).
 
 ## Block G — The shell (an executable now, a service later)
 
