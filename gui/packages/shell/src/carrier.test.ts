@@ -1,4 +1,5 @@
 import {
+  DECLARES_NOTHING,
   buildArgv,
   buildCall,
   createWatching,
@@ -30,7 +31,16 @@ const A = '/work/alpha'
 const B = '/work/beta'
 
 function recorded(path: string, presence: 'present' | 'missing'): RecordedProject {
-  return { path, aliases: [], commonDir: null, root: '/work', confirmed: '', presence, branch: '' }
+  return {
+    path,
+    aliases: [],
+    commonDir: null,
+    root: '/work',
+    confirmed: '',
+    presence,
+    branch: '',
+    declared: DECLARES_NOTHING,
+  }
 }
 
 const FOUND: ProjectCatalogue = {
@@ -766,5 +776,94 @@ describe('RG187: how many projects gate at once', () => {
 
     expect(most()).toBeGreaterThan(1)
     letGo()
+  })
+})
+
+/** A machine whose `config` declares the name a test names (RG203). */
+function declaring(name: string): Transport {
+  return {
+    run(request) {
+      const verb = request.argv[2] ?? ''
+      if (verb === 'config') {
+        return Promise.resolve({
+          code: 0,
+          stdout: JSON.stringify({
+            version: '0.2.472',
+            source: 'roadkeep.toml',
+            keys: [
+              { table: 'files', key: 'roadmap', declared: true, set: '"docs/ROADMAP.md"' },
+              {
+                table: 'project',
+                key: 'name',
+                declared: name !== '',
+                set: name === '' ? null : `"${name}"`,
+              },
+            ],
+          }),
+          stderr: '',
+          durationMs: 1,
+        })
+      }
+      const said = SAID[verb]
+      if (said === undefined) throw new EngineCallFailed('unspawnable', 'no', 1)
+      return Promise.resolve({ code: 0, stdout: said, stderr: '', durationMs: 1 })
+    },
+  }
+}
+
+describe('RG203: what the record remembers about a project', () => {
+  it('keeps the name a project declared, the moment it opens', async () => {
+    const kept: ProjectCatalogue[] = []
+    const { carrier } = world({
+      remember: (one) => kept.push(one),
+      open: (root) => openProject(root, [['python', '/x/launch.py']], () => declaring('Turing')),
+    })
+
+    await carrier.projects()
+    await carrier.open(A)
+
+    // A walk reads no config, so the record could only learn this here.
+    const last = kept.at(-1)
+    expect(last?.projects.find((one) => one.path === A)?.declared.name).toBe('Turing')
+  })
+
+  it('writes nothing where the declaration has not changed', async () => {
+    const kept: ProjectCatalogue[] = []
+    const { carrier } = world({
+      remember: (one) => kept.push(one),
+      open: (root) => openProject(root, [['python', '/x/launch.py']], () => declaring('Turing')),
+    })
+
+    await carrier.projects()
+    await carrier.open(A)
+    const after = kept.length
+    await carrier.open(A)
+
+    // The record is written when it moves, not once per open: a screen that reopens a
+    // project would otherwise rewrite the file for nothing.
+    expect(kept.length).toBe(after)
+  })
+
+  it('takes what a project declares now, including nothing', async () => {
+    // A memory and never an override. The record already holds a name; the project this
+    // opens declares none, so the record gives way rather than keeping a name no file says.
+    const kept: ProjectCatalogue[] = []
+    const held: ProjectCatalogue = {
+      ...FOUND,
+      projects: FOUND.projects.map((one) =>
+        one.path === A ? { ...one, declared: { ...DECLARES_NOTHING, name: 'Turing' } } : one,
+      ),
+    }
+    const { carrier } = world({
+      remembered: () => held,
+      rescan: () => Promise.resolve({ catalogue: held, changes: [] }),
+      remember: (one) => kept.push(one),
+      open: (root) => openProject(root, [['python', '/x/launch.py']], () => declaring('')),
+    })
+
+    await carrier.projects()
+    await carrier.open(A)
+
+    expect(kept.at(-1)?.projects.find((one) => one.path === A)?.declared.name).toBe('')
   })
 })

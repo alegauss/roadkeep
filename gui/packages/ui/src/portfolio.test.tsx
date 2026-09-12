@@ -1,4 +1,5 @@
 import {
+  DECLARES_NOTHING,
   BASE,
   bridgedRun,
   DEFAULT_DEPTH,
@@ -106,6 +107,7 @@ function recorded(path: string): RecordedProject {
     confirmed: '',
     presence: 'present',
     branch: '',
+    declared: DECLARES_NOTHING,
   }
 }
 

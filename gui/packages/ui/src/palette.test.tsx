@@ -1,4 +1,4 @@
-import { BASE, fill, openedFrom, openProject, type Transport } from '@rk/core'
+import { DECLARES_NOTHING, BASE, fill, openedFrom, openProject, type Transport } from '@rk/core'
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
@@ -93,6 +93,7 @@ async function wired(): Promise<void> {
     confirmed: '',
     presence: 'present' as const,
     branch: '',
+    declared: DECLARES_NOTHING,
   }))
 
   /** One machine per root, so a `list` answers that root's own lines. */

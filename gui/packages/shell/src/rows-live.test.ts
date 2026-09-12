@@ -1,6 +1,12 @@
 import path from 'node:path'
 
-import { glanceRow, withNext, type OpenProject, type RecordedProject } from '@rk/core'
+import {
+  DECLARES_NOTHING,
+  glanceRow,
+  withNext,
+  type OpenProject,
+  type RecordedProject,
+} from '@rk/core'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { buildFixture, type Fixture } from './fixture'
@@ -33,6 +39,7 @@ const recorded = (projectPath: string): RecordedProject => ({
   confirmed: '2026-09-01T10:00:00.000Z',
   presence: 'present',
   branch: '',
+  declared: DECLARES_NOTHING,
 })
 
 beforeAll(async () => {

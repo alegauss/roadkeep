@@ -1,6 +1,7 @@
 import path from 'node:path'
 
 import {
+  DECLARES_NOTHING,
   attemptRead,
   buildArgv,
   coldStart,
@@ -36,6 +37,7 @@ const recorded = (projectPath: string): RecordedProject => ({
   confirmed: '2026-09-01T10:00:00.000Z',
   presence: 'present',
   branch: '',
+  declared: DECLARES_NOTHING,
 })
 
 /** One stage: read one verb through the pool and turn it into the row's fields. */

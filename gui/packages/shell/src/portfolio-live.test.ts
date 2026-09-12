@@ -1,6 +1,7 @@
 import path from 'node:path'
 
 import {
+  DECLARES_NOTHING,
   candidateBoard,
   createGateLedger,
   pendingRow,
@@ -30,6 +31,7 @@ const recorded = (projectPath: string): RecordedProject => ({
   confirmed: '2026-09-01T10:00:00.000Z',
   presence: 'present',
   branch: '',
+  declared: DECLARES_NOTHING,
 })
 
 /** Read one project the way the portfolio would, and build its row. */

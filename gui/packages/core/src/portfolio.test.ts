@@ -34,6 +34,7 @@ const project: RecordedProject = {
   confirmed: '2026-09-01T10:00:00.000Z',
   presence: 'present',
   branch: '',
+  declared: DECLARES_NOTHING,
 }
 
 const STATS: StatsPayload = {

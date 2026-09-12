@@ -12,8 +12,12 @@ import {
 } from './catalogue'
 import type { ProjectFamily } from './families'
 import type { ScanRoot } from './roots'
+import { DECLARES_NOTHING } from './payloads'
 
 const keyOf = (path: string) => path.toLowerCase()
+
+/** One timestamp, so a fold's dates are the test's and not the clock's. */
+const NOW = '2026-09-12T12:00:00.000Z'
 const ROOTS: ScanRoot[] = [{ path: '/code', depth: 2 }]
 const TUESDAY = '2026-09-01T10:00:00.000Z'
 const FRIDAY = '2026-09-04T10:00:00.000Z'
@@ -26,6 +30,7 @@ const seen = (path: string, over: Partial<RecordedProject> = {}): RecordedProjec
   confirmed: TUESDAY,
   presence: 'present',
   branch: '',
+  declared: DECLARES_NOTHING,
   ...over,
 })
 
@@ -215,5 +220,58 @@ describe('RG14: reading a record back', () => {
     })
 
     expect(catalogueFrom(broken)).toBeNull()
+  })
+})
+
+describe('RG203: a missing project keeps its name', () => {
+  const named = (path: string, name: string, presence: 'present' | 'missing'): RecordedProject => ({
+    path,
+    aliases: [],
+    commonDir: null,
+    root: '/code',
+    confirmed: '2026-09-01T10:00:00.000Z',
+    presence,
+    branch: '',
+    declared: { ...DECLARES_NOTHING, name },
+  })
+
+  const scanned = (path: string): RecordedProject => ({
+    ...named(path, '', 'present'),
+    confirmed: '',
+  })
+
+  it('keeps what a project last declared when the scan cannot find it', () => {
+    const held = {
+      version: CATALOGUE_VERSION,
+      roots: [],
+      projects: [named('/code/a', 'Turing', 'present')],
+    }
+
+    const { catalogue } = reconcile(held, [], [], keyOf, NOW)
+
+    expect(catalogue.projects[0]?.presence).toBe('missing')
+    // The moment a row goes grey is the worst one for it to change identity: *last seen on
+    // Tuesday* about a name nobody recognises says nothing.
+    expect(catalogue.projects[0]?.declared.name).toBe('Turing')
+  })
+
+  it('keeps it across a scan that does find it, since a walk reads no config', () => {
+    const held = {
+      version: CATALOGUE_VERSION,
+      roots: [],
+      projects: [named('/code/a', 'Turing', 'present')],
+    }
+
+    const { catalogue } = reconcile(held, [], [scanned('/code/a')], keyOf, NOW)
+
+    expect(catalogue.projects[0]?.presence).toBe('present')
+    expect(catalogue.projects[0]?.declared.name).toBe('Turing')
+  })
+
+  it('knows nothing about a project it has just found', () => {
+    // The declaration is read when a project opens, not when it is walked over.
+    const { catalogue } = reconcile(EMPTY_CATALOGUE, [], [scanned('/code/new')], keyOf, NOW)
+
+    expect(catalogue.projects[0]?.declared).toEqual(DECLARES_NOTHING)
   })
 })

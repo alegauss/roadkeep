@@ -5,6 +5,7 @@ import { coldStart } from './cold-start'
 import { openProject, type OpenProject } from './opening'
 import { openingUnreadable, rowStages } from './rows'
 import { EngineCallFailed, type Transport } from './transport'
+import { DECLARES_NOTHING } from './payloads'
 
 /**
  * RG145: the two reads a portfolio row is filled with, as a cold start runs them.
@@ -56,6 +57,7 @@ function recorded(path: string): RecordedProject {
     confirmed: '',
     presence: 'present',
     branch: '',
+    declared: DECLARES_NOTHING,
   }
 }
 

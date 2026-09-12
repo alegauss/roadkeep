@@ -4,6 +4,7 @@ import type { RecordedProject } from './catalogue'
 import { coldStart, type ColdStartProgress, type ColdStartStage } from './cold-start'
 import type { StatsPayload } from './payloads'
 import { EngineCallFailed } from './transport'
+import { DECLARES_NOTHING } from './payloads'
 
 const project = (path: string): RecordedProject => ({
   path,
@@ -13,6 +14,7 @@ const project = (path: string): RecordedProject => ({
   confirmed: '2026-09-01T10:00:00.000Z',
   presence: 'present',
   branch: '',
+  declared: DECLARES_NOTHING,
 })
 
 const PROJECTS = ['/code/a', '/code/b', '/code/c'].map(project)

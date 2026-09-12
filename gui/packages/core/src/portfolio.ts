@@ -124,9 +124,12 @@ export function nameOf(declares: Declared | null | undefined, path: string): str
 function shell(project: RecordedProject): Omit<ProjectRow, 'state'> {
   return {
     path: project.path,
-    name: folderName(project.path),
-    icon: '',
-    description: '',
+    // What it last declared, which is what a project the scan cannot reach still is
+    // (RG203): falling back to the folder at the moment a row goes grey changes its
+    // identity exactly when that is least useful.
+    name: nameOf(project.declared, project.path),
+    icon: project.declared.icon,
+    description: project.declared.description,
     aliases: project.aliases,
     commonDir: project.commonDir,
     branch: project.branch,

@@ -1,4 +1,5 @@
 import type { ProjectFamily } from './families'
+import { DECLARES_NOTHING, type Declared } from './payloads'
 import {
   aString,
   listOf,
@@ -48,6 +49,16 @@ export interface RecordedProject {
    * a declared name is one word for a whole repository.
    */
   readonly branch: string
+  /**
+   * What this project last declared about itself (RG203).
+   *
+   * **A memory, never an override.** A returning project takes whatever it now declares,
+   * including nothing; this is here so a project the scan cannot reach keeps the identity it
+   * had rather than reverting to its folder name as it goes grey. The same kind of fact as
+   * `aliases` and `commonDir` beside it — about a machine's folders, and having to outlive
+   * the folder being unreachable. `confirmed` already dates it.
+   */
+  readonly declared: Declared
   /** The root it was found under. */
   readonly root: string
   /** When a scan last actually saw it. Stops moving once it goes missing. */
@@ -63,7 +74,7 @@ export interface ProjectCatalogue {
   readonly projects: readonly RecordedProject[]
 }
 
-export const CATALOGUE_VERSION = 1
+export const CATALOGUE_VERSION = 2
 
 export const EMPTY_CATALOGUE: ProjectCatalogue = {
   version: CATALOGUE_VERSION,
@@ -102,6 +113,9 @@ export function rowsFrom(
       aliases: member.aliases,
       commonDir: family.commonDir,
       branch: member.branch,
+      // Nothing is known at scan time: the declaration is read when a project opens, and
+      // `reconcile` keeps what the record already held for one it cannot reach.
+      declared: DECLARES_NOTHING,
       root: rootOf(member.path),
       confirmed: now,
       presence: 'present' as const,
@@ -139,7 +153,11 @@ export function reconcile(
     }
 
     if (held.presence === 'missing') changes.push({ kind: 'returned', path: found.path })
-    projects.push({ ...found, confirmed: now })
+    // A scan knows nothing about declarations — they are read when a project opens — so the
+    // record keeps what it last saw rather than being blanked by every walk (RG203). The
+    // open that follows writes whatever the project now declares, including nothing, which
+    // is what makes this a memory and not an override.
+    projects.push({ ...found, confirmed: now, declared: held.declared })
   }
 
   for (const [key, found] of fresh) {
@@ -163,6 +181,15 @@ const readRecordedProject: Reader<RecordedProject> = record<RecordedProject>({
   // Missing on a catalogue written before this was recorded, which is a project whose
   // branch is simply not known yet rather than one with none.
   branch: orMissing(aString, ''),
+  declared: orMissing(
+    record<Declared>({
+      name: orMissing(aString, ''),
+      description: orMissing(aString, ''),
+      icon: orMissing(aString, ''),
+      logo: orMissing(aString, ''),
+    }),
+    DECLARES_NOTHING,
+  ),
   root: orMissing(aString, ''),
   confirmed: orMissing(aString, ''),
   presence: (value, path) =>

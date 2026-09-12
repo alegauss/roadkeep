@@ -323,6 +323,7 @@ export {
   governedFiles,
   DECLARES_NOTHING,
   projectDeclares,
+  type Declared,
   insteadOf,
   listedTasks,
   lineOf,

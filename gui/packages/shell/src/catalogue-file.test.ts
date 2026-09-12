@@ -2,7 +2,12 @@ import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
-import { EMPTY_CATALOGUE, type ProjectCatalogue } from '@rk/core'
+import {
+  CATALOGUE_VERSION,
+  DECLARES_NOTHING,
+  EMPTY_CATALOGUE,
+  type ProjectCatalogue,
+} from '@rk/core'
 import { afterAll, describe, expect, it } from 'vitest'
 
 import { cataloguePath, CATALOGUE_FILE, loadCatalogue, saveCatalogue } from './catalogue-file'
@@ -25,7 +30,9 @@ function userData(): string {
 }
 
 const RECORD: ProjectCatalogue = {
-  version: 1,
+  // The version this build writes, read rather than pinned: a record from an older one is
+  // refused and rebuilt, which is what the constant moving is supposed to cause.
+  version: CATALOGUE_VERSION,
   roots: [{ path: 'D:\\code', depth: 2 }],
   projects: [
     {
@@ -36,6 +43,7 @@ const RECORD: ProjectCatalogue = {
       confirmed: '2026-09-11T10:00:00.000Z',
       presence: 'present',
       branch: '',
+      declared: DECLARES_NOTHING,
     },
     {
       path: 'D:\\code\\beta',
@@ -45,6 +53,7 @@ const RECORD: ProjectCatalogue = {
       confirmed: '2026-09-10T10:00:00.000Z',
       presence: 'missing',
       branch: '',
+      declared: DECLARES_NOTHING,
     },
   ],
 }

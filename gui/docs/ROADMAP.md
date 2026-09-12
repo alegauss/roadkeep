@@ -8,7 +8,6 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-- 📋 **RG203** (deps: RG198 ✅) **a declared name is read from the checkout, so a project reverts to its folder name as it goes missing** — The catalogue records the name it last saw, as it already records aliases and a common dir, so a grey row keeps its identity. → §RG203
 - 📋 **RG204** (deps: RG200 ✅, roadkeep RK1683) **an emoji is the only icon a row can draw, so a project with a logo file cannot show it** — The shell resolves the declared path inside the project and hands over bytes, never a file URL, and any failure falls back to the emoji. → §RG204
 
 ## Block D — The project surface (one backlog, read)

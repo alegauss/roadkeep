@@ -95,6 +95,7 @@
 - ✅ **RG200** **every project chip is the same folder glyph tinted by a hash, so no row is recognisable at a glance** — The chip draws the emoji the project declared, and keeps the folder glyph where nothing does (design recorded in `packages/core/src/portfolio.ts`).
 - ✅ **RG201** **a row says a path and never what the project is for, so seventeen rows read as seventeen paths** — A row's second line says what the project is for where it declares one, and the path keeps its tooltip (design recorded in `packages/ui/src/Portfolio.tsx`).
 - ✅ **RG199** **nothing on a row says which branch a worktree is on, so a declared name renders a family as identical rows** — A worktree's row says which branch it is on, read off git's own HEAD, and a short sha where detached (design recorded in `packages/shell/src/git-worktree.ts`).
+- ✅ **RG203** **a declared name is read from the checkout, so a project reverts to its folder name as it goes missing** — The record keeps the name a project last declared, so a row that goes grey keeps its identity (design recorded in `packages/core/src/catalogue.ts`).
 
 ## Block D — The project surface (one backlog, read)
 

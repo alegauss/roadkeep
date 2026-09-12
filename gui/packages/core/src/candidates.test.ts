@@ -4,6 +4,7 @@ import { candidateBoard, inTier } from './candidates'
 import type { RecordedProject } from './catalogue'
 import type { PickPayload } from './payloads'
 import { pendingRow, readRow, unreadableRow, type ProjectRow } from './portfolio'
+import { DECLARES_NOTHING } from './payloads'
 
 const project = (path: string): RecordedProject => ({
   path,
@@ -13,6 +14,7 @@ const project = (path: string): RecordedProject => ({
   confirmed: '2026-09-01T10:00:00.000Z',
   presence: 'present',
   branch: '',
+  declared: DECLARES_NOTHING,
 })
 
 // A null pick comes with a null tier, which is how the engine prints it (RG141).

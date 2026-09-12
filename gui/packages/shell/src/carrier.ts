@@ -2,6 +2,7 @@ import {
   bridgedRun,
   createGateLedger,
   createLimiter,
+  type Declared,
   createWatching,
   EMPTY_CATALOGUE,
   buildArgv,
@@ -337,6 +338,28 @@ export function createCarrier(options: CarrierOptions): Carrier {
   // Across projects, not within one: each project's own pool bounds what it runs at once,
   // and what was unbounded is how many projects run a gate together (RG187).
   const gateLimit = createLimiter(options.gatesAtOnce ?? 1)
+
+  /**
+   * Keep what a project declared, where it changed what the record holds.
+   *
+   * A memory and never an override: a returning project takes whatever it now declares,
+   * including nothing, because the next fold writes what the open said.
+   */
+  function recordDeclared(root: string, declares: Declared): void {
+    if (catalogue === null) return
+    const key = rootKey(root)
+    const recorded = catalogue.projects.map((one) =>
+      rootKey(one.path) !== key || one.declared.name === declares.name
+        ? one
+        : { ...one, declared: { ...one.declared, name: declares.name } },
+    )
+    // Unchanged entries come back as the same objects, so this says whether anything moved
+    // without a flag the compiler cannot see being set.
+    if (recorded.every((one, at) => one === catalogue?.projects[at])) return
+    const next = { ...catalogue, projects: recorded }
+    catalogue = next
+    options.remember?.(next)
+  }
   const gateIfStale = async (root: string, project: OpenProject): Promise<void> => {
     const key = rootKey(root)
     // One at a time per project: two runs against one tree answer the same thing twice.
@@ -377,7 +400,16 @@ export function createCarrier(options: CarrierOptions): Carrier {
         // this is the moment the engine to ask with exists. Never awaited: the opening is
         // what a screen is waiting for, and it is handed the project this call already has
         // rather than opening one of its own (RG166).
-        if (reached.kind === 'open') void gateIfStale(root, reached.project).catch(() => undefined)
+        if (reached.kind === 'open') {
+          void gateIfStale(root, reached.project).catch(() => undefined)
+          // And the record remembers what it declared (RG203). A declared name is read out
+          // of the checkout that declares it, so a project the next scan does not find would
+          // fall back to its folder at exactly the moment it goes grey — and *last seen on
+          // Tuesday* about a name nobody recognises is not the sentence this was built to
+          // say. A fact about a machine's folders that has to outlive the folder, like the
+          // aliases and the common directory already recorded beside it.
+          recordDeclared(root, reached.project.declares)
+        }
         return openedFrom(reached)
       } catch (cause) {
         // `openProject` answers its failures as states, so reaching here is the scan or the

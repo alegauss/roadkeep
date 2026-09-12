@@ -1,4 +1,5 @@
 import {
+  DECLARES_NOTHING,
   BASE,
   bridgedRun,
   EngineCallFailed,
@@ -552,6 +553,7 @@ describe('RG190: the screen a handover moves after it is gone', () => {
                 confirmed: '',
                 presence: 'present' as const,
                 branch: '',
+                declared: DECLARES_NOTHING,
               },
             ],
           }),

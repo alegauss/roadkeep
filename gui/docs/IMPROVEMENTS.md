@@ -6,29 +6,6 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-### §RG203 A missing project keeps its name
-
-A declared name is read out of the checkout that declares it. A missing project is one
-the rescan did not find, so nothing can be read from it — and a row built the obvious
-way falls back to the folder name at exactly the moment the project disappears. The row
-changes its identity as it goes grey, which is the worst possible moment for it: _last
-seen on Tuesday_ about a name nobody recognises is not the sentence this was built to
-say.
-
-**The catalogue records the last name it saw.** That is not a second copy of roadkeep's
-data — the bound this file states is against caching a backlog, and the record already
-holds `aliases`, `commonDir` and `confirmed` for the same reason. They are facts about a
-machine's folders that have to survive the folder being unreachable, and a name last
-seen is the same kind of fact. `confirmed` already dates it.
-
-`CATALOGUE_VERSION` goes to 2. `catalogueFrom` refuses a version this build does not
-know and answers null, which is a rebuild behind a screen rather than an error, so the
-bump costs one scan on the first launch after an upgrade. The reader takes the new
-fields as optional with an empty default, so nothing about the refusal path changes.
-
-A returning project takes whatever it now declares, including nothing: the record is a
-memory, never an override.
-
 ### §RG204 A picture from a repository this app does not own
 
 An emoji is recognisable and it is not a logo. Where a project declares `project.logo`
