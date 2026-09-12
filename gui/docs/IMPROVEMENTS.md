@@ -93,17 +93,6 @@ ready task forever. What can be built without it is the pipeline that would use 
 the about surface saying plainly that this build is unsigned — which is the honest half
 and is worth having on its own.
 
-### §RG154 The first release, read by the check
-
-RG50's check has been read against answers described by hand, and GitHub's own is the
-part nobody has seen yet: the shape of `releases/latest` for this repository, a 404
-while every release is a draft, and the page it names.
-
-**The first published release is the test.** Push a `v` tag whose version matches the
-manifest, publish the draft `ci.yml` leaves, then run the packaged app of the version
-before it and choose Help, Check for updates: it has to name both versions and open that
-page. Then the same from the new build, which has to say it is current.
-
 ## Block H — The look (a design system for governed prose)
 
 ### §RG62 Joining the checks the other consoles already answer to

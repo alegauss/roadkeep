@@ -197,6 +197,7 @@
 - ✅ **RG128** **a checkout busy when the probe runs is skipped, so the launcher answers from a cache 446 versions old** — No engine is named here, the stale clone is gone, and resolution reaches the sibling under development (design recorded in `.claude/settings.json`).
 - ✅ **RG194** **no public page says who may request a signature and what gets signed, so the certificate cannot be applied for** — The page the terms ask for is written (design superseded: there is no README here, so SIGNING.md links it) (design recorded in `docs/CODE-SIGNING-POLICY.md`).
 - ✅ **RG195** **the fixture hands out an unresolved temp path, so a live assertion fails on a Windows account with a short name** — The fixture hands out the spelling the filesystem uses, so an assertion compares one place with itself (design recorded in `packages/shell/src/fixture.ts`).
+- ✅ **RG154** **the update check has only met answers written by hand, never GitHub's own for a published release** — The check is held against GitHub's own payload for v0.1.0, and a run that cannot reach it says so (design recorded in `packages/shell/src/updates-live.test.ts`).
 
 ## Block H — The look (a design system for governed prose)
 

@@ -37,6 +37,9 @@ const REACHES_OUT: readonly { readonly what: string; readonly found: RegExp }[] 
   { what: 'an HTTP handler', found: /serveEngine/ },
   { what: 'a built fixture', found: /buildFixture/ },
   { what: 'a fake agent', found: /fakeClaude/ },
+  // The plainest way out there is: a request leaves the machine, so the run depends on a
+  // network and on somebody else's service being up (RG154).
+  { what: 'the network', found: /\bfetch\(/ },
   // RG191's gate loads a whole program through the TypeScript API, which starts a server and
   // reads a `tsconfig`. The call and not the import: the fast half of that test asserts the
   // rule's text-only pieces and names the module without ever starting one.
