@@ -51,7 +51,9 @@ comercial ou uma empresa por trás.
   artefato que vai ser assinado, e descrito na página de download.
 - **Só para o SignPath, mais duas coisas que os termos exigem:** uma página pública de
   política de assinatura de código (quem pode pedir uma assinatura, e o que é assinado) e
-  autenticação multifator na conta de quem assina. Sem as duas a candidatura não passa.
+  autenticação multifator na conta de quem assina. Sem as duas a candidatura não passa. A
+  página é [CODE-SIGNING-POLICY.md](CODE-SIGNING-POLICY.md) (RG194), e é o endereço que a
+  candidatura aponta; o MFA é de quem tem a conta.
 
 ### 2. Obter o certificado
 
