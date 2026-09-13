@@ -39,7 +39,11 @@ export function WordingProvider({
   // Rebuilt only when the translation itself changes: a lookup that was a new function on
   // every render would re-render every screen that reads one. `wordingFor` returns the
   // stored object, so the identity is stable for as long as the tag is.
-  const say = useMemo(() => translator(wording), [wording])
+  //
+  // The tag goes in beside it since RG216, because which form of a counted sentence to say
+  // is the language's rule and not the sentence's. A test forcing `over` gets the tag the
+  // window is speaking, which is what it is already rendering under.
+  const say = useMemo(() => translator(wording, spoken), [wording, spoken])
 
   return <Wording.Provider value={say}>{children}</Wording.Provider>
 }

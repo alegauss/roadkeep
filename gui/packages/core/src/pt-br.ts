@@ -27,6 +27,7 @@ export const PT_BR: Wording = {
 
   'portfolio.kicker': 'Portfólio',
   'portfolio.title': '{count} projetos nesta máquina',
+  'portfolio.title.one': '{count} projeto nesta máquina',
   'portfolio.title.unknown': 'Projetos nesta máquina',
   'portfolio.tally': '{read} lidos · {pending} ainda lendo · {unreadable} ilegíveis',
   'portfolio.progress': '{stage}: {done} de {total}',
@@ -51,8 +52,10 @@ export const PT_BR: Wording = {
   'portfolio.worktree': 'worktree do git',
   'portfolio.pending': 'ainda lendo',
   'portfolio.open': '{count} abertas',
+  'portfolio.open.one': '{count} aberta',
   'portfolio.startable': '{startable} prontas para começar · {waiting} esperando',
   'portfolio.uncounted': '{count} não contadas',
+  'portfolio.uncounted.one': '{count} não contada',
   'portfolio.tier': 'nível: {tier}',
   'portfolio.next.none': 'nada pronto · {blocked} bloqueadas',
   'portfolio.next.missing': 'a próxima linha não chegou',
@@ -61,6 +64,7 @@ export const PT_BR: Wording = {
   'portfolio.gate.drifted': 'divergente',
   'portfolio.gate.never': 'nunca rodou aqui',
   'portfolio.gate.findings': '{count} achados',
+  'portfolio.gate.findings.one': '{count} achado',
   'portfolio.gate.stale': 'desatualizado',
   'portfolio.engine.modified': 'árvore de trabalho',
   'portfolio.unreadable': 'ilegível',
@@ -103,6 +107,7 @@ export const PT_BR: Wording = {
   'project.deferred.none': 'Nada foi posto de lado.',
   'project.deferred.order': 'Na ordem que o engine deu: {order}.',
   'project.deferred.since': 'posta de lado há {count} commits',
+  'project.deferred.since.one': 'posta de lado há {count} commit',
   'project.improvements.none': 'Nenhuma linha aberta tem design escrito ainda.',
   'project.read.failed': 'Este arquivo não respondeu: {reason}',
   'project.line.open': 'Abrir',
@@ -138,9 +143,11 @@ export const PT_BR: Wording = {
   'task.criteria.own': 'O que esta linha precisa verificar',
   'task.criteria.folded': 'de {id}',
   'task.criteria.elided': 'mais {count} critérios não listados',
+  'task.criteria.elided.one': 'mais {count} critério não listado',
   'task.quoted': 'Não-objetivos que este design cita',
   'task.bounds': 'Não-objetivos',
   'task.bounds.elided': 'mais {count} não listados',
+  'task.bounds.elided.one': 'mais {count} não listado',
   'task.paused': 'Esta linha foi posta de lado.',
   'task.paused.back': '{verb} {id} a traz de volta',
   'task.unfiled': 'Nada neste projeto carrega {id}.',
@@ -169,14 +176,19 @@ export const PT_BR: Wording = {
   'session.handed.design': 'o design, {words} palavras',
   'session.handed.nodesign': 'nenhum design escrito',
   'session.handed.deps': '{count} dependências',
+  'session.handed.deps.one': '{count} dependência',
   'session.handed.criteria': '{count} critérios',
+  'session.handed.criteria.one': '{count} critério',
   'session.handed.bounds': '{count} não-objetivos',
+  'session.handed.bounds.one': '{count} não-objetivo',
   'session.handed.agent': 'iniciada com {command}, Claude Code {version}',
   'session.stream': 'O fluxo',
   'session.stream.empty': 'Nada foi escrito ainda.',
   'session.follow': 'Ir para o fim',
-  'session.follow.since': 'Ir para o fim, {count} novo(s)',
-  'session.notes.folded': '{count} nota(s) de sistema oculta(s)',
+  'session.follow.since': 'Ir para o fim, {count} novos',
+  'session.follow.since.one': 'Ir para o fim, {count} novo',
+  'session.notes.folded': '{count} notas de sistema ocultas',
+  'session.notes.folded.one': '{count} nota de sistema oculta',
   'session.act.roadkeep': 'chamada ao roadkeep',
   'session.act.governed': 'toca {files}',
   'session.act.failed': 'falhou',
@@ -201,6 +213,7 @@ export const PT_BR: Wording = {
 
   'sessions.kicker': 'Sessões',
   'sessions.title': '{count} sessões iniciadas por esta janela',
+  'sessions.title.one': '{count} sessão iniciada por esta janela',
   'sessions.title.none': 'Sessões iniciadas por esta janela',
   'sessions.none': 'Nenhuma sessão foi iniciada a partir desta janela.',
   'sessions.none.hint':
@@ -280,12 +293,16 @@ export const PT_BR: Wording = {
 
   'backlog.over.narrows':
     '{count} linhas em {file} não foram listadas: esta leitura tem {characters} caracteres contra os {limit} que este projeto declara, então peça por {narrows}.',
+  'backlog.over.narrows.one':
+    '{count} linha em {file} não foi listada: esta leitura tem {characters} caracteres contra os {limit} que este projeto declara, então peça por {narrows}.',
   'backlog.over.whole':
     '{count} linhas em {file} não foram listadas: esta leitura tem {characters} caracteres contra os {limit} que este projeto declara, e nenhum bloco é pequeno o bastante para pedir sozinho.',
-  'backlog.refused.one':
-    'Uma linha em {file} tem um marcador que a gramática não aceitou, então nada a conta nem a escolhe.',
-  'backlog.refused.many':
+  'backlog.over.whole.one':
+    '{count} linha em {file} não foi listada: esta leitura tem {characters} caracteres contra os {limit} que este projeto declara, e nenhum bloco é pequeno o bastante para pedir sozinho.',
+  'backlog.refused':
     '{count} linhas em {file} têm um marcador que a gramática não aceitou, então nada as conta nem as escolhe.',
+  'backlog.refused.one':
+    '{count} linha em {file} tem um marcador que a gramática não aceitou, então nada a conta nem a escolhe.',
   'backlog.refused.reasons': 'O que o portão disse: {reasons}',
 
   'unreadable.not-json': '`{command}` respondeu algo que não é JSON.',
@@ -352,7 +369,8 @@ export const PT_BR: Wording = {
   'settings.lost.version':
     'o arquivo de configurações é da versão {found} e esta build lê {reads}, então ele fica intacto',
   'settings.lost.roots': 'as raízes não eram uma lista, então nenhuma foi lida',
-  'settings.lost.dropped': '{count} raiz(es) não puderam ser lidas e foram descartadas',
+  'settings.lost.dropped': '{count} raízes não puderam ser lidas e foram descartadas',
+  'settings.lost.dropped.one': '{count} raiz não pôde ser lida e foi descartada',
   'settings.lost.skip': 'a lista de nomes a ignorar não era uma lista, então vale a lista padrão',
   'settings.lost.width': 'a largura do pool não era um número inteiro, então voltou para {width}',
   'settings.lost.theme': 'o fundo não é um que esta build conhece, então voltou para {theme}',

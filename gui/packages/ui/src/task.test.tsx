@@ -423,7 +423,7 @@ describe('RG174: a line’s own finish line', () => {
     const own = await screen.findByTestId('own-criteria')
     expect(within(own).getByText('Every dep opens its own line')).toBeTruthy()
     expect(within(own).getByText(fill(BASE['task.criteria.folded'], { id: 'AL7' }))).toBeTruthy()
-    expect(within(own).getByText(fill(BASE['task.criteria.elided'], { count: 1 }))).toBeTruthy()
+    expect(within(own).getByText(fill(BASE['task.criteria.elided.one'], { count: 1 }))).toBeTruthy()
   })
 
   it('keeps the block’s finish line where it was, since the two are not one list', async () => {

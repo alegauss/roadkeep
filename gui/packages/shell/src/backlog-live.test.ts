@@ -96,7 +96,9 @@ describe('RG21: a line the grammar refuses', () => {
   it('answers the code and the fills a sentence is looked up with (RG172)', async () => {
     const narrowed = narrowedBy(await backlogOf(fixture.root))
 
-    expect(narrowed?.code).toBe('refused-one')
+    // One code whatever the count, since RG216: the singular is a form of the sentence and
+    // the count is a fill, so nothing here chooses a plural by counting.
+    expect(narrowed?.code).toBe('refused')
     expect(narrowed?.fields['file']).toContain('ROADMAP.md')
     expect(narrowed?.fields['count']).toBe('1')
     // The gate's own words, quoted rather than reworded.

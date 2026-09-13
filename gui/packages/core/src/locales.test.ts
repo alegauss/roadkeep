@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { LOCALE_TAGS, LOCALES, wordingFor } from './locales'
 import { PT_BR, PT_BR_LOCALE } from './pt-br'
-import { BASE, BASE_LOCALE, localeFor, keys, stale, untranslated } from './wording'
+import { BASE, BASE_LOCALE, localeFor, keys, stale, translator, untranslated } from './wording'
 
 describe('RG86: what this build ships', () => {
   it('lists the base and one translation', () => {
@@ -50,6 +50,27 @@ describe('RG86: every shipped locale, against the base', () => {
     const same = keys().filter((key) => key !== 'app.name' && PT_BR[key] === BASE[key])
 
     expect(same).toEqual([])
+  })
+})
+
+describe('RG216: the shipped translation says one of something', () => {
+  const inPtBr = translator(PT_BR, PT_BR_LOCALE)
+
+  it('agrees with the number, which is what *1 projetos* did not', () => {
+    expect(inPtBr('portfolio.title', { count: 1 })).toBe('1 projeto nesta máquina')
+    expect(inPtBr('portfolio.title', { count: 3 })).toBe('3 projetos nesta máquina')
+  })
+
+  it('inflects where English does not, which is why the base declares the form at all', () => {
+    // `{count} more not listed` is the same sentence at every number in English and is not in
+    // Portuguese, so the singular is a key in the base that only a translation puts to use.
+    expect(inPtBr('task.bounds.elided', { count: 1 })).toBe('mais 1 não listado')
+    expect(inPtBr('task.bounds.elided', { count: 2 })).toBe('mais 2 não listados')
+  })
+
+  it('spells both forms out, where one sentence used to carry a (s)', () => {
+    expect(inPtBr('session.notes.folded', { count: 1 })).toBe('1 nota de sistema oculta')
+    expect(inPtBr('session.notes.folded', { count: 2 })).toBe('2 notas de sistema ocultas')
   })
 })
 

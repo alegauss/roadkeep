@@ -117,6 +117,13 @@ const THREE: ProjectCatalogue = {
   projects: [recorded(READ), recorded(PENDING), recorded(REFUSED)],
 }
 
+/** One project, which is the count a plural used to be written for (RG216). */
+const ONE: ProjectCatalogue = {
+  version: 1,
+  roots: [{ path: '/code', depth: 1 }],
+  projects: [recorded(READ)],
+}
+
 const REFUSED_BECAUSE = 'no candidate answered `engines --json`'
 
 const REFUSAL: OpenedProject = {
@@ -188,6 +195,25 @@ describe('RG145: the portfolio at the root route', () => {
     expect(
       screen.getByText(fill(BASE['portfolio.tally'], { read: 1, pending: 1, unreadable: 1 })),
     ).toBeTruthy()
+  })
+
+  it('says one project rather than 1 projects, where the machine has one (RG216)', async () => {
+    // The defect as a reader met it, on the screen it was read off. The same sentence in
+    // Portuguese is `locales.test.ts`, which is where a tag is a real one — this is about the
+    // form reaching a screen at all.
+    const alpha = await opened(READ)
+    Object.defineProperty(window, 'roadkeep', {
+      value: stubBridge({
+        projects: () => Promise.resolve(ONE),
+        subscribe: () => () => undefined,
+        open: () => Promise.resolve(alpha),
+        run: (root, request) => bridgedRun(() => machine.run({ ...request, root })),
+      }),
+      configurable: true,
+    })
+    drawWindow()
+
+    expect(await screen.findByText('1 project on this machine')).toBeTruthy()
   })
 
   it('fills a read row with what the verbs printed, and the engine beside the counts', async () => {

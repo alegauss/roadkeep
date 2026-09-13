@@ -41,6 +41,7 @@ export const EN = {
 
   'portfolio.kicker': 'Portfolio',
   'portfolio.title': '{count} projects on this machine',
+  'portfolio.title.one': '{count} project on this machine',
   'portfolio.title.unknown': 'Projects on this machine',
   'portfolio.tally': '{read} read · {pending} still reading · {unreadable} unreadable',
   'portfolio.progress': '{stage}: {done} of {total}',
@@ -65,8 +66,10 @@ export const EN = {
   'portfolio.worktree': 'worktree',
   'portfolio.pending': 'still reading',
   'portfolio.open': '{count} open',
+  'portfolio.open.one': '{count} open',
   'portfolio.startable': '{startable} startable · {waiting} waiting',
   'portfolio.uncounted': '{count} not counted',
+  'portfolio.uncounted.one': '{count} not counted',
   'portfolio.tier': 'tier: {tier}',
   'portfolio.next.none': 'nothing ready · {blocked} blocked',
   'portfolio.next.missing': 'the next line did not arrive',
@@ -75,6 +78,7 @@ export const EN = {
   'portfolio.gate.drifted': 'drifted',
   'portfolio.gate.never': 'never run here',
   'portfolio.gate.findings': '{count} findings',
+  'portfolio.gate.findings.one': '{count} finding',
   'portfolio.gate.stale': 'stale',
   'portfolio.engine.modified': 'working tree',
   'portfolio.unreadable': 'unreadable',
@@ -116,6 +120,7 @@ export const EN = {
   'project.deferred.none': 'Nothing is set aside.',
   'project.deferred.order': 'In the order the engine gave: {order}.',
   'project.deferred.since': 'set aside {count} commits ago',
+  'project.deferred.since.one': 'set aside {count} commit ago',
   'project.improvements.none': 'No open line has a design written yet.',
   'project.read.failed': 'This file did not answer: {reason}',
   'project.line.open': 'Open',
@@ -150,9 +155,11 @@ export const EN = {
   'task.criteria.own': 'What this line must check',
   'task.criteria.folded': 'from {id}',
   'task.criteria.elided': '{count} more criteria not listed',
+  'task.criteria.elided.one': '{count} more criterion not listed',
   'task.quoted': 'Non-goals this design quotes',
   'task.bounds': 'Non-goals',
   'task.bounds.elided': '{count} more not listed',
+  'task.bounds.elided.one': '{count} more not listed',
   'task.paused': 'This line is set aside.',
   'task.paused.back': '{verb} {id} brings it back',
   'task.unfiled': 'Nothing in this project carries {id}.',
@@ -181,14 +188,19 @@ export const EN = {
   'session.handed.design': 'the design, {words} words',
   'session.handed.nodesign': 'no design written',
   'session.handed.deps': '{count} deps',
+  'session.handed.deps.one': '{count} dep',
   'session.handed.criteria': '{count} criteria',
+  'session.handed.criteria.one': '{count} criterion',
   'session.handed.bounds': '{count} non-goals',
+  'session.handed.bounds.one': '{count} non-goal',
   'session.handed.agent': 'started with {command}, Claude Code {version}',
   'session.stream': 'The stream',
   'session.stream.empty': 'Nothing has been written yet.',
   'session.follow': 'Jump to latest',
   'session.follow.since': 'Jump to latest, {count} new',
-  'session.notes.folded': '{count} system note(s) hidden',
+  'session.follow.since.one': 'Jump to latest, {count} new',
+  'session.notes.folded': '{count} system notes hidden',
+  'session.notes.folded.one': '{count} system note hidden',
   'session.act.roadkeep': 'roadkeep call',
   'session.act.governed': 'touches {files}',
   'session.act.failed': 'failed',
@@ -213,6 +225,7 @@ export const EN = {
 
   'sessions.kicker': 'Sessions',
   'sessions.title': '{count} sessions this window started',
+  'sessions.title.one': '{count} session this window started',
   'sessions.title.none': 'Sessions this window started',
   'sessions.none': 'No session has been started from this window.',
   'sessions.none.hint':
@@ -292,12 +305,16 @@ export const EN = {
 
   'backlog.over.narrows':
     '{count} lines in {file} were not listed: this read is {characters} characters against the {limit} this project declares, so ask for {narrows}.',
+  'backlog.over.narrows.one':
+    '{count} line in {file} was not listed: this read is {characters} characters against the {limit} this project declares, so ask for {narrows}.',
   'backlog.over.whole':
     '{count} lines in {file} were not listed: this read is {characters} characters against the {limit} this project declares, and no block is small enough to ask for on its own.',
-  'backlog.refused.one':
-    'One line in {file} carries a marker the grammar did not accept, so nothing counts or picks it.',
-  'backlog.refused.many':
+  'backlog.over.whole.one':
+    '{count} line in {file} was not listed: this read is {characters} characters against the {limit} this project declares, and no block is small enough to ask for on its own.',
+  'backlog.refused':
     '{count} lines in {file} carry a marker the grammar did not accept, so nothing counts or picks them.',
+  'backlog.refused.one':
+    '{count} line in {file} carries a marker the grammar did not accept, so nothing counts or picks it.',
   'backlog.refused.reasons': 'What the gate said: {reasons}',
 
   'unreadable.not-json': '`{command}` answered with something that is not JSON.',
@@ -362,7 +379,8 @@ export const EN = {
   'settings.lost.version':
     'the settings file is version {found} and this build reads {reads}, so the file is left alone',
   'settings.lost.roots': 'the roots were not a list, so none were read',
-  'settings.lost.dropped': '{count} root(s) could not be read and were dropped',
+  'settings.lost.dropped': '{count} roots could not be read and were dropped',
+  'settings.lost.dropped.one': '{count} root could not be read and was dropped',
   'settings.lost.skip': 'the skip list was not a list of names, so the default one is used',
   'settings.lost.width': 'the pool width was not a whole number, so it is back to {width}',
   'settings.lost.theme': 'the theme was not one this build knows, so it is back to {theme}',
@@ -463,8 +481,9 @@ export const RESET_TEXT: Readonly<Record<Lost, MessageKey>> = {
 export const NARROWED_TEXT: Readonly<Record<NarrowedCase, MessageKey>> = {
   'over-narrows': 'backlog.over.narrows',
   'over-whole': 'backlog.over.whole',
-  'refused-one': 'backlog.refused.one',
-  'refused-many': 'backlog.refused.many',
+  // The plural form, which is the key: the singular beside it is the locale's own rule to
+  // choose, and the count reaches the lookup as a fill (RG216).
+  refused: 'backlog.refused',
 }
 
 /**
@@ -583,6 +602,16 @@ export function keys(): readonly MessageKey[] {
 }
 
 /**
+ * Whether a string the app built is a key the catalogue declares.
+ *
+ * A predicate and not a cast: the one key composed rather than written is a plural form
+ * (RG216), and what makes it safe is the catalogue answering for it.
+ */
+export function isMessageKey(candidate: string): candidate is MessageKey {
+  return candidate in BASE
+}
+
+/**
  * Fill a value's named holes.
  *
  * A hole nobody filled is left as it was written rather than blanked: a visible `{count}`
@@ -595,6 +624,65 @@ export function fill(value: string, values: Fill = {}): string {
   })
 }
 
+/**
+ * The forms a counted sentence may carry beside itself (RG216).
+ *
+ * CLDR's categories less `other`, which is the key itself: `portfolio.title` is the plural
+ * and `portfolio.title.one` the singular beside it, so a language needing no more forms adds
+ * no keys, and one needing `few` adds a key and no code. English and Portuguese use `one` and
+ * `other`; nothing here knows that, and neither does the catalogue.
+ */
+const FORMS: ReadonlySet<string> = new Set(['zero', 'one', 'two', 'few', 'many'])
+
+/**
+ * One `Intl.PluralRules` per locale, kept.
+ *
+ * Built per call it would be a new one for every string on every render, and this is called
+ * once per sentence a screen draws.
+ */
+const RULES = new Map<string, Intl.PluralRules>()
+
+function rulesFor(locale: string): Intl.PluralRules {
+  const held = RULES.get(locale)
+  if (held !== undefined) return held
+
+  // A tag this runtime will not take is not worth failing a screen over, for the reason
+  // `timeIn` gives: the sentence is the point and the default rule still agrees at one.
+  let rules: Intl.PluralRules
+  try {
+    rules = new Intl.PluralRules(locale === '' ? undefined : locale)
+  } catch {
+    rules = new Intl.PluralRules()
+  }
+  RULES.set(locale, rules)
+  return rules
+}
+
+/**
+ * Which form of a key a count asks for, in a locale's own rule.
+ *
+ * The key itself where there is no `count` to agree with, where the rule says `other`, or
+ * where the catalogue writes no such form — so a sentence that reads right at every number
+ * needs nothing, and adding a singular is adding a key.
+ *
+ * The count may arrive as a string: a `Narrowed`'s fields are strings by the time a screen
+ * has them, and a sentence that lost its singular for crossing that seam would be the defect
+ * this exists to remove.
+ */
+export function formOf(key: MessageKey, locale: string, values?: Fill): MessageKey {
+  const given = values?.['count']
+  if (given === undefined) return key
+
+  const count = typeof given === 'number' ? given : Number(given)
+  if (!Number.isFinite(count)) return key
+
+  const chosen = rulesFor(locale).select(count)
+  if (!FORMS.has(chosen)) return key
+
+  const sibling = `${key}.${chosen}`
+  return isMessageKey(sibling) ? sibling : key
+}
+
 /** What a screen calls to get a string. */
 export type Translate = (key: MessageKey, values?: Fill) => string
 
@@ -603,9 +691,15 @@ export type Translate = (key: MessageKey, values?: Fill) => string
  *
  * @param over the translation, covering any part of the base. Absent keys fall through to
  *   English one at a time, which is what makes a partial translation usable.
+ * @param locale whose plural rule chooses among a key's forms (RG216). The form is settled
+ *   first and the fallback then applies to it, so a translation that wrote the singular and
+ *   not the plural is read one key at a time like any other.
  */
-export function translator(over: Wording = {}): Translate {
-  return (key, values) => fill(over[key] ?? BASE[key], values)
+export function translator(over: Wording = {}, locale: string = BASE_LOCALE): Translate {
+  return (key, values) => {
+    const form = formOf(key, locale, values)
+    return fill(over[form] ?? BASE[form], values)
+  }
 }
 
 /**

@@ -217,7 +217,10 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
 
   ipcMain.handle(BRIDGE_CHANNELS.chooseRoot, async (event): Promise<string | null> => {
     const settings = loadSettings(app.getPath('userData')).settings
-    const say = translator(wordingFor(localeChoice(settings.locale, app.getLocale())))
+    // The tag twice rather than once: it chooses the translation, and it is the rule that
+    // chooses among a counted sentence's forms (RG216).
+    const tag = localeChoice(settings.locale, app.getLocale())
+    const say = translator(wordingFor(tag), tag)
     const options = { title: say('roots.choose'), properties: ['openDirectory' as const] }
     const parent = BrowserWindow.fromWebContents(event.sender)
     const answer =

@@ -12,6 +12,7 @@ import {
   isPseudo,
   keys,
   localeFor,
+  type MessageKey,
   pseudo,
   reasonOf,
   refusalOf,
@@ -315,5 +316,117 @@ describe('RG177: a time in the window’s language', () => {
     // A tag this build does not ship is not worth failing a screen over: the time is the
     // point, and the desktop's own format will do.
     expect(timeIn(STAMP, 'not a tag')).toBe(new Date(STAMP).toLocaleString())
+  })
+})
+
+/**
+ * RG216: a count of one written as a plural.
+ *
+ * `portfolio.title` was `{count} projects on this machine` and nothing else, so a machine with
+ * one project read *1 projetos* — and the English was as wrong. What replaced it is the
+ * language's own rule: a key may carry a sibling named for a CLDR category, and the sentence
+ * itself stays the `other` form.
+ */
+
+/** The forms a key may carry beside itself, which a walk must not read as a sentence of its own. */
+const FORM = /\.(zero|one|two|few|many)$/
+
+/**
+ * The counted sentences that read right at one, and so carry no singular.
+ *
+ * Two shapes, and the list is short on purpose: a label drawn beside its own number, where the
+ * count is the whole of what is said, and `{count} of {total}`, where the noun agrees with the
+ * total and never with the count.
+ */
+const READS_AT_ONE: readonly MessageKey[] = [
+  'portfolio.filter.all',
+  'portfolio.filter.drifted',
+  'portfolio.filter.disagrees',
+  'portfolio.filter.unreadable',
+  'task.unblocks',
+]
+
+const counted = () => keys().filter((key) => !FORM.test(key) && BASE[key].includes('{count}'))
+
+describe('RG216: every counted sentence has the forms its languages need', () => {
+  it('reads counted sentences at all, so what follows is about something', () => {
+    expect(counted().length).toBeGreaterThan(10)
+  })
+
+  it('gives each one a singular, or names it as one that already reads right', () => {
+    // The guard the mechanism rests on: a counted key added without a singular fails here,
+    // on the run after it is written, rather than on a screen showing *1 projetos*.
+    const missing = counted().filter(
+      (key) => !READS_AT_ONE.includes(key) && !(`${key}.one` in BASE),
+    )
+
+    expect(missing).toEqual([])
+  })
+
+  it('writes no form beside a sentence that counts nothing', () => {
+    // The other direction. A `.one` whose own sentence lost its `{count}` is a form no rule
+    // can ever choose, and it would sit in the catalogue translated and unread.
+    const orphans = keys()
+      .filter((key) => FORM.test(key))
+      .filter((key) => {
+        const plural = key.replace(FORM, '')
+        return !(plural in BASE) || !BASE[plural as MessageKey].includes('{count}')
+      })
+
+    expect(orphans).toEqual([])
+  })
+
+  it('keeps every sentence in the list a counted one, so the list cannot outlive its reason', () => {
+    expect(READS_AT_ONE.filter((key) => !BASE[key].includes('{count}'))).toEqual([])
+  })
+})
+
+describe('RG216: which form a count chooses', () => {
+  const say = translator()
+
+  it('says the singular at one and the plural at every other number', () => {
+    expect(say('portfolio.title', { count: 1 })).toBe('1 project on this machine')
+    expect(say('portfolio.title', { count: 3 })).toBe('3 projects on this machine')
+    expect(say('portfolio.title', { count: 0 })).toBe('0 projects on this machine')
+  })
+
+  it('reads a count that arrived as a string, which is what a narrowed listing carries', () => {
+    // `Narrowed.fields` are strings by the time a screen has them, and a sentence that lost
+    // its singular for crossing that seam is the defect this exists to remove.
+    const narrowed = say('backlog.refused', { count: '1', file: 'docs/ROADMAP.md' })
+
+    expect(narrowed).toContain('1 line in docs/ROADMAP.md carries')
+    expect(say('backlog.refused', { count: '4', file: 'docs/ROADMAP.md' })).toContain('4 lines')
+  })
+
+  it('asks the locale and not the base, so a language with one form gets one sentence', () => {
+    // Japanese has `other` and nothing else, which is what proves the rule comes from the tag
+    // rather than from a count compared against one somewhere in here.
+    expect(translator({}, 'ja')('portfolio.title', { count: 1 })).toBe('1 projects on this machine')
+  })
+
+  it('leaves a key with no form of its own as it was written', () => {
+    expect(say('portfolio.filter.all', { count: 1 })).toBe('All 1')
+  })
+
+  it('leaves a sentence that counts nothing alone', () => {
+    expect(say('portfolio.title.unknown')).toBe(BASE['portfolio.title.unknown'])
+    expect(say('portfolio.title')).toBe(BASE['portfolio.title'])
+  })
+
+  it('falls back per form, the way the catalogue falls back per key', () => {
+    // A translation that wrote the singular and not the plural reads in both: the form is
+    // settled first, and what is missing is then one key falling through to English.
+    const half: Wording = { 'portfolio.title.one': '{count} projeto nesta máquina' }
+    const partly = translator(half, 'pt-BR')
+
+    expect(partly('portfolio.title', { count: 1 })).toBe('1 projeto nesta máquina')
+    expect(partly('portfolio.title', { count: 2 })).toBe('2 projects on this machine')
+  })
+
+  it('answers rather than throwing for a tag the runtime will not take', () => {
+    expect(translator({}, 'not a tag')('portfolio.title', { count: 1 })).toBe(
+      '1 project on this machine',
+    )
   })
 })

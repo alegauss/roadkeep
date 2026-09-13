@@ -84,10 +84,24 @@ function spelled(): Set<string> {
   return said
 }
 
+/**
+ * A form of a counted sentence, which is said by whoever says the sentence (RG216).
+ *
+ * These are the one kind of key composed at run time, and the shape the scan above says it
+ * cannot see: `formOf` builds `portfolio.title.one` out of `portfolio.title` and the locale's
+ * rule, so nothing spells it anywhere. A form is alive exactly when its own sentence is said,
+ * which keeps the guard — a singular beside a plural nobody draws is dead like any other key.
+ */
+const FORM = /\.(zero|one|two|few|many)$/
+
+function isSaid(said: ReadonlySet<string>, key: string): boolean {
+  return said.has(key) || (FORM.test(key) && said.has(key.replace(FORM, '')))
+}
+
 describe('RG183: the key nobody says', () => {
   it('has a screen for every key the catalogue declares', () => {
     const said = spelled()
-    const dead = messageKeys().filter((key) => !said.has(key))
+    const dead = messageKeys().filter((key) => !isSaid(said, key))
 
     // A key here is either a sentence nothing draws — delete it — or a screen that was
     // meant to draw it and does not, which is the more interesting half.
@@ -102,5 +116,16 @@ describe('RG183: the key nobody says', () => {
     expect(SOURCES.flatMap(everySource).length).toBeGreaterThan(20)
     expect(said.has('task.binds')).toBe(true)
     expect(said.has('portfolio.title')).toBe(true)
+  })
+
+  it('keeps a form alive through its own sentence and not by spelling it (RG216)', () => {
+    // Against a set written here rather than against the scan: which keys a test file happens
+    // to spell moves as tests are written, and what is being asserted is the rule. Both
+    // halves of it, or the branch would be a way for anything ending in `.one` to pass.
+    const only: ReadonlySet<string> = new Set(['portfolio.title'])
+
+    expect(isSaid(only, 'portfolio.title')).toBe(true)
+    expect(isSaid(only, 'portfolio.title.one')).toBe(true)
+    expect(isSaid(only, 'sessions.title.one')).toBe(false)
   })
 })

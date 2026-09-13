@@ -160,22 +160,23 @@ describe('RG21: saying a listing is narrower than its file', () => {
       ),
     )
 
-    expect(narrowed?.code).toBe('refused-many')
+    expect(narrowed?.code).toBe('refused')
     expect(narrowed?.fields['count']).toBe('3')
     expect(narrowed?.fields['file']).toBe('docs/ROADMAP.md')
     expect(narrowed?.fields['reasons']).toContain('no bold')
     expect(narrowed?.fields['reasons']).toContain('does not declare')
   })
 
-  it('answers a different code for one line, which is what a language agrees with', () => {
+  it('answers one code for one line and for many, the count being a fill (RG216)', () => {
     // "1 lines carry" is the kind of thing that makes a person trust the rest of the screen
-    // a little less — and the plural is a rule of each language, so it is two keys and not
-    // a sentence built here (RG172).
+    // a little less. It used to be two codes chosen here by counting (RG172); how many forms
+    // a sentence has is the language's rule, so what crosses now is what happened and the
+    // catalogue carries the singular.
     const narrowed = narrowedBy(
       backlogFrom(listing({ uncounted: [refused(8, 'A', 'no bold id')] })),
     )
 
-    expect(narrowed?.code).toBe('refused-one')
+    expect(narrowed?.code).toBe('refused')
     expect(narrowed?.fields['count']).toBe('1')
   })
 

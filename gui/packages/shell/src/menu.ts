@@ -16,7 +16,8 @@ import { checkForUpdate } from './updates'
  */
 export function installMenu(): void {
   const settings = loadSettings(app.getPath('userData')).settings
-  const say = translator(wordingFor(localeChoice(settings.locale, app.getLocale())))
+  const tag = localeChoice(settings.locale, app.getLocale())
+  const say = translator(wordingFor(tag), tag)
   const current = readStamp(import.meta.dirname, app.isPackaged).version
 
   const ask = (): void => {

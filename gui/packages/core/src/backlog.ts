@@ -147,10 +147,15 @@ export type NarrowedCase =
   | 'over-narrows'
   /** It went past the bound and no block is small enough to ask for. */
   | 'over-whole'
-  /** One line carries a marker the grammar did not accept. */
-  | 'refused-one'
-  /** Several do. */
-  | 'refused-many'
+  /**
+   * Lines carry a marker the grammar did not accept.
+   *
+   * One case and not two since RG216: this was `refused-one` beside `refused-many`, a plural
+   * chosen here by counting, in the one corner of the catalogue that had a singular at all.
+   * How many forms a sentence has is the language's rule, and the count is a fill like any
+   * other — so the sentence carries its own singular and this says what happened.
+   */
+  | 'refused'
 
 export interface Narrowed {
   readonly code: NarrowedCase
@@ -180,7 +185,7 @@ export function narrowedBy(backlog: Backlog): Narrowed | null {
   // them after the sentence the catalogue gives.
   const reasons = [...new Set(backlog.refused.map((line) => line.reason))]
   return {
-    code: count === 1 ? 'refused-one' : 'refused-many',
+    code: 'refused',
     fields: { count: String(count), file: backlog.file, reasons: reasons.join('; ') },
   }
 }

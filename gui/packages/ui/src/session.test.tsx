@@ -101,8 +101,10 @@ describe('RG153: the session beside its task', () => {
       await screen.findByText(fill(BASE['session.claim'], { from: '📋', to: '🛠' })),
     ).toBeTruthy()
     expect(screen.getByText(fill(BASE['session.handed.design'], { words: 120 }))).toBeTruthy()
-    expect(screen.getByText(fill(BASE['session.handed.deps'], { count: 1 }))).toBeTruthy()
-    expect(screen.getByText(fill(BASE['session.handed.criteria'], { count: 1 }))).toBeTruthy()
+    // The singular keys, since the brief hands over one of each: a count of one says the
+    // form the language has for it (RG216).
+    expect(screen.getByText(fill(BASE['session.handed.deps.one'], { count: 1 }))).toBeTruthy()
+    expect(screen.getByText(fill(BASE['session.handed.criteria.one'], { count: 1 }))).toBeTruthy()
     expect(
       screen.getByText(
         fill(BASE['session.handed.agent'], { command: 'claude', version: '2.1.263' }),
