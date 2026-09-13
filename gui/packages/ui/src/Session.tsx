@@ -25,6 +25,7 @@ import { useParams } from 'react-router-dom'
 import { taskPath } from './areas'
 import { getBridge } from './bridge'
 import { PanelTitle } from './forms'
+import { HeroActions } from './hero'
 import { Glyph, Pill, type Intent } from './marks'
 import { useSessionNotes } from './preferring'
 import { useSession } from './useSession'
@@ -472,9 +473,11 @@ export function Session() {
   const trailing = useMemo(
     () =>
       running ? (
-        <Button variant="outline" size="sm" onClick={stop}>
-          {say('session.stop')}
-        </Button>
+        <HeroActions>
+          <Button variant="outline" size="sm" onClick={stop}>
+            {say('session.stop')}
+          </Button>
+        </HeroActions>
       ) : undefined,
     [running, stop, say],
   )

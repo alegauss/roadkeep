@@ -174,3 +174,26 @@ body,
 body {
   margin: 0;
 }
+
+/*
+ * RG215: a hero whose actions do not fit beside its title puts them under it.
+ *
+ * `BentoHero` lays its row out as the title block and then a trailing slot written
+ * `ml-auto flex shrink-0`, which is the package's own contract and right at desktop width.
+ * At 400 it is why every surface scrolled sideways: the slot keeps its full width, the
+ * title shrinks to its longest word, and what is left runs past the edge.
+ *
+ * Two properties, and both belong to the slot rather than to what a page put in it — which
+ * is the reason this is a stylesheet rule and not a class on `HeroActions`: a flex item
+ * cannot tell its own parent to wrap. So the row may run onto a second line, and the slot
+ * may give way when a single line is all there is. `:has` keys both on `data-region`, which
+ * `HeroActions` writes and this app owns, rather than on a package class name.
+ */
+div:has(> div > [data-region='hero-actions']) {
+  flex-wrap: wrap;
+}
+
+div:has(> [data-region='hero-actions']) {
+  min-width: 0;
+  flex-shrink: 1;
+}

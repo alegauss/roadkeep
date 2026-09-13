@@ -27,6 +27,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { projectPath, sessionPath, taskPath } from './areas'
 import { getBridge } from './bridge'
 import { PanelTitle } from './forms'
+import { HeroActions } from './hero'
 import { Glyph, Pill, type Intent } from './marks'
 import { useTask, type OpenedTask } from './useTask'
 import { useWording } from './wording'
@@ -570,10 +571,10 @@ export function Task() {
   const trailing = useMemo(
     () =>
       task === null ? undefined : (
-        <div className="flex items-start gap-3">
+        <HeroActions>
           <CopyBrief detail={task.detail} />
           <HandOver root={root} task={task} />
-        </div>
+        </HeroActions>
       ),
     [root, task],
   )

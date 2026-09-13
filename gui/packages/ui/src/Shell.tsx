@@ -4,9 +4,11 @@ import {
   RESET_TEXT,
   saidOfVersion,
   search,
+  THEME_SHORT,
   THEME_TEXT,
   type Hit,
 } from '@rk/core'
+import { IconSearch } from '@tabler/icons-react'
 import { AppFooter, Button, LanguageSwitcher, Toaster, toast } from '@viglet/viglet-design-system'
 import {
   BentoBackToTop,
@@ -220,21 +222,33 @@ export function AppShell() {
          * The palette trigger carries the platform's own hint, which is why the glyph is
          * computed and not written: a window on a Mac that says `Ctrl K` is a window that
          * lies about its own keyboard.
+         *
+         * Below `sm` the sentence goes and the icon takes its place (RG215), which is what
+         * the header has room for at 400 wide — where the sentence stayed, every control
+         * after it ran off the edge. The label is the sentence at both widths, so the name
+         * a screen reader says is the same one the wide window shows.
          */}
         <Button
           variant="outline"
           size="sm"
           className="text-muted-foreground min-w-0 flex-1 justify-between gap-3"
           onClick={openPalette}
+          aria-label={say('shell.palette')}
           data-testid="palette-trigger"
         >
-          <span className="truncate">{say('shell.palette')}</span>
+          <IconSearch className="size-4 shrink-0 sm:hidden" aria-hidden />
+          <span className="hidden truncate sm:inline">{say('shell.palette')}</span>
           <kbd className="font-mono text-xs">{mac ? '⌘K' : 'Ctrl K'}</kbd>
         </Button>
 
+        {/*
+         * Hidden below `sm`: a sheet of keyboard shortcuts is for a window with a keyboard,
+         * and `?` is the key that opens it (RG215).
+         */}
         <Button
           variant="ghost"
           size="sm"
+          className="max-sm:hidden"
           onClick={openShortcuts}
           aria-label={say('shell.shortcuts')}
           data-testid="shortcuts"
@@ -266,6 +280,10 @@ export function AppShell() {
          * resolved to - `system` and `light` look identical on a machine set to light, and
          * the setting is what the person chose. Words rather than an icon, because nothing
          * on this screen is told by colour or shape alone.
+         *
+         * Below `sm` the same three lose the `ground:` prefix and keep the word (RG215):
+         * `fundo: seguindo o sistema` is most of a phone-width header on its own. Still
+         * words, never a glyph, and the label the control carries does not change.
          */}
         <Button
           variant="outline"
@@ -274,7 +292,12 @@ export function AppShell() {
           aria-label={say('ground.action')}
           data-testid="ground"
         >
-          {say(THEME_TEXT[theme])}
+          <span className="max-sm:hidden" data-region="ground-said">
+            {say(THEME_TEXT[theme])}
+          </span>
+          <span className="sm:hidden" data-region="ground-said-short">
+            {say(THEME_SHORT[theme])}
+          </span>
         </Button>
       </header>
 

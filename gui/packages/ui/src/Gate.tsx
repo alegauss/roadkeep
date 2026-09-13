@@ -7,6 +7,7 @@ import { useParams } from 'react-router-dom'
 import { projectPath } from './areas'
 import { DoorRow } from './Doors'
 import { Caption } from './forms'
+import { HeroActions } from './hero'
 import { Pill } from './marks'
 import { useGate } from './useGate'
 import { useWhen, useWording } from './wording'
@@ -192,9 +193,11 @@ export function Gate() {
 
   const trailing = useMemo(
     () => (
-      <Button size="sm" onClick={run} disabled={gate.kind === 'running'}>
-        {say('gate.run')}
-      </Button>
+      <HeroActions>
+        <Button size="sm" onClick={run} disabled={gate.kind === 'running'}>
+          {say('gate.run')}
+        </Button>
+      </HeroActions>
     ),
     [run, gate.kind, say],
   )

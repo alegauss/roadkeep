@@ -17,6 +17,7 @@ import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import { filePath, gatePath, HOME_ROUTE, taskPath } from './areas'
+import { HeroActions } from './hero'
 import { Glyph, Pill } from './marks'
 import { ChangelogTab, DecisionsTab, DeferredTab, ImprovementsTab } from './ProjectTabs'
 import { useProject, type OpenedSurface } from './useProject'
@@ -453,14 +454,14 @@ export function Project() {
   const filing = useMemo(
     () =>
       opened ? (
-        <span className="flex flex-wrap items-center gap-2">
+        <HeroActions>
           <Button asChild size="sm" variant="outline">
             <Link to={gatePath(root)}>{say('gate.run')}</Link>
           </Button>
           <Button asChild size="sm">
             <Link to={filePath(root)}>{say('filing.title')}</Link>
           </Button>
-        </span>
+        </HeroActions>
       ) : undefined,
     [opened, root, say],
   )

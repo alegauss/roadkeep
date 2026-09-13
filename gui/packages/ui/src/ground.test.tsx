@@ -76,8 +76,16 @@ function visibleText(root: HTMLElement): string[] {
   return seen.toSorted()
 }
 
+/**
+ * What the control says, in the wide window's words.
+ *
+ * The button carries both since RG215 — the sentence, and the same setting without its
+ * prefix for a header at 400 — and which one shows is a media query jsdom does not run. So
+ * the wide one is read by name rather than the button's whole text.
+ */
 function labelOfControl(): string {
-  return screen.getByTestId('ground').textContent.trim()
+  const said = screen.getByTestId('ground').querySelector('[data-region="ground-said"]')
+  return said === null ? '' : said.textContent.trim()
 }
 
 /** A bridge that records what the ground control sent back to the file. */

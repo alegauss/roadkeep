@@ -393,6 +393,11 @@ export const EN = {
   'ground.system': 'ground: following the desktop',
   'ground.light': 'ground: light',
   'ground.dark': 'ground: dark',
+  // The same three where the header has no room for the prefix (RG215). Still words: what
+  // the control is for is its label, which does not narrow.
+  'ground.system.short': 'desktop',
+  'ground.light.short': 'light',
+  'ground.dark.short': 'dark',
   'ground.action': 'Change the ground',
 } as const
 
@@ -410,6 +415,19 @@ export const THEME_TEXT: Readonly<Record<Theme, MessageKey>> = {
   system: 'ground.system',
   light: 'ground.light',
   dark: 'ground.dark',
+}
+
+/**
+ * The same three, said in the room a phone-width header has (RG215).
+ *
+ * The prefix is what goes, not the distinction: *desktop* is still the setting and not the
+ * ground it resolved to. The control's label is `ground.action` either way, so what a
+ * screen reader says does not narrow with the window.
+ */
+export const THEME_SHORT: Readonly<Record<Theme, MessageKey>> = {
+  system: 'ground.system.short',
+  light: 'ground.light.short',
+  dark: 'ground.dark.short',
 }
 
 /**

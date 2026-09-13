@@ -26,6 +26,7 @@ import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
 import { projectPath } from './areas'
+import { HeroActions } from './hero'
 import { usePortfolio, type ReadingProgress, type Tried } from './usePortfolio'
 import { useRoots, type RootsView } from './useRoots'
 import { Bar, Glyph, Pill, type Intent } from './marks'
@@ -482,11 +483,13 @@ function RootChip({
 
   return (
     <li
-      className="bg-muted/60 flex items-center gap-2 rounded-full py-0.5 pr-1 pl-3 text-xs"
+      className="bg-muted/60 flex min-w-0 items-center gap-2 rounded-full py-0.5 pr-1 pl-3 text-xs"
       data-testid="root"
       data-presence={root.presence}
     >
-      <span className="font-mono">{root.path}</span>
+      {/* A path breaks wherever it has to (RG215): its own separators are not breaks a
+          browser takes, so a chip holding one was five pixels wider than the window. */}
+      <span className="min-w-0 font-mono [overflow-wrap:anywhere]">{root.path}</span>
       <span className="flex items-center gap-0.5">
         <Button
           variant="ghost"
@@ -582,14 +585,14 @@ export function Portfolio() {
   const actions = useMemo(
     () =>
       bridged ? (
-        <div className="flex items-center gap-2">
+        <HeroActions>
           <Button variant="outline" onClick={rescan} data-testid="rescan">
             {say('roots.rescan')}
           </Button>
           <Button onClick={add} data-testid="add-root">
             {say('roots.add')}
           </Button>
-        </div>
+        </HeroActions>
       ) : null,
     [bridged, rescan, add, say],
   )

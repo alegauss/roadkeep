@@ -19,6 +19,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { projectPath, taskPath } from './areas'
 import { DoorRow } from './Doors'
 import { BOX, Caption } from './forms'
+import { HeroActions } from './hero'
 import { Pill } from './marks'
 import { EMPTY_DRAFT, useFiling, type Draft } from './useFiling'
 import { useWording } from './wording'
@@ -194,7 +195,9 @@ function Deps({
           deps.map((dep) => <Chip key={dep} dep={dep} onDrop={drop} />)
         )}
       </div>
-      <div className="flex gap-2">
+      {/* Wrapping, because `Acrescentar uma dependência` beside the box is wider than a
+          phone-width column and the button ran off the edge in Portuguese (RG215). */}
+      <div className="flex flex-wrap gap-2">
         <input
           className={`${BOX} w-32 font-mono`}
           value={adding}
@@ -434,9 +437,11 @@ export function Filing() {
   const over = budget !== null && anyOver(budget)
   const trailing = useMemo(
     () => (
-      <Button size="sm" onClick={filing.file} disabled={over || filed.kind === 'filing'}>
-        {say('filing.save')}
-      </Button>
+      <HeroActions>
+        <Button size="sm" onClick={filing.file} disabled={over || filed.kind === 'filing'}>
+          {say('filing.save')}
+        </Button>
+      </HeroActions>
     ),
     [filing.file, over, filed.kind, say],
   )

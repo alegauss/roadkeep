@@ -103,30 +103,6 @@ unfocused style.
 Done when a surface that scrolls sideways at 400 wide, tabs out of reading order, or
 focuses without a visible ring fails `surfaces.browser.test.tsx`.
 
-### §RG215 A header and hero that fit at phone width
-
-`npm run shots` at 400 wide shows every surface 499 wide. The header keeps each control
-at its desktop size — the brand, the palette trigger at `flex-1`, `?`, the language menu
-and the ground in words, `fundo: seguindo o sistema` — so the trigger collapses to a
-sliver and the ground runs off the edge. The portfolio's hero sets two actions beside
-its title, and the second is cut.
-
-The desktop window has a 900-pixel minimum, so nobody sees this in Electron today. The
-contract is about the page, not the window: a served build is a browser tab, and RG214's
-gate reads 400.
-
-**The header below `sm`.** The palette trigger is its icon and key hint, still named by
-`shell.palette`; `?` hides, since a shortcut sheet is for a keyboard; the ground says
-the setting without its `ground:` prefix, through short catalogue keys, its `aria-label`
-unchanged — words still, never a lone icon, which the header's own comment rules out.
-
-**A hero's actions wrap.** The trailing node a page passes becomes a wrapping row, so
-its buttons fall under the title rather than past the edge; `BentoHero` keeps the layout
-around it.
-
-Done when every surface `npm run shots` takes at 400 is no wider than 400 in both
-languages, and the header at 1280 draws as it does today.
-
 ### §RG216 Counted sentences in the forms each language has
 
 The catalogue fills `{count}` into one sentence per key: `portfolio.title` is `{count}
@@ -149,3 +125,82 @@ choice gone.
 
 Done when the portfolio with one project says *1 projeto* and *1 project*, and a new
 counted key without a singular fails the catalogue test.
+
+### §RG221 A rail that reaches every area it holds
+
+`BentoNavRail` draws one tile per **section**, from `section.areaRoute` and
+`section.icon`, and its first act is `groups.filter((group) =>
+!!group.section.areaRoute)`. `AREAS` declares its three sections with an `id` and a
+`labelKey` and puts the route and the icon on the *items* inside them — which the rail
+never reads. So the rail is the Home tile and nothing else, and the settings and the
+sessions are reached by the palette or by typing a route.
+
+The palette does reach them, which is why this has been invisible: `surfacesIn(AREAS)`
+flattens the items and the palette lists all three. A reader who has not learnt `Ctrl K`
+has one button in a nav that is the design system's primary one.
+
+**Each section carries its own route and icon.** `backlogs` is the portfolio at `/`,
+which is where the Home tile already leads — so that group's tile is the duplicate to
+drop rather than draw twice. `work` is `SESSIONS_ROUTE` with `IconTerminal2` and `app`
+is `SETTINGS_ROUTE` with `IconSettings`, the icons their single items already name.
+
+The label under each tile is `section.labelKey`, which the three sections already
+declare and the catalogue already holds.
+
+**Below `md` the rail is gone by contract**, so the palette stays the narrow window's
+nav and nothing here changes that.
+
+Done when the rail draws a tile for the sessions and one for the settings, each leading
+to its surface and named in both languages, and `artboards.test.tsx` holds the drawings
+to the same chrome.
+
+### §RG222 Pictures of the tree the run was asked about
+
+`npm run shots` is `npm run build:app && node packages/shell/dist/shots.js`, and
+`build:app` is `tsc -b` plus the shell's own bundle. The renderer is the other half of
+`npm run build`, and the window the pictures come from loads it off disk — so a change
+to a screen is photographed as it was at the last full build.
+
+Measured on RG215: the header fix was on disk, the tests were green, and two runs of
+`shots` photographed the old header. Nothing reported anything; the pictures simply
+described an older bundle, which is the failure this gate exists to prevent.
+
+`refuseIfStale` is the guard and it reads the shell's build alone (RG209), so it is
+silent about the renderer for the same reason.
+
+**The command builds what it photographs.** `shots` runs `npm run build`, which is
+`build:app` plus `@rk/ui`. It is a second or two on a warm tree and it is the whole of
+the fix; the `shots` step in the gates table already tells a reader to run it after a
+screen change.
+
+**And the guard covers both halves.** `refuseIfStale` compares `packages/ui/dist`
+against `packages/ui/src` as it compares the shell's, so a picture taken by something
+other than this command — an agent calling `shots.js` directly — is refused rather than
+misread.
+
+Done when a screen changed but not built is photographed as it now is, and a stale
+`packages/ui/dist` refuses the run.
+
+### §RG223 A line that reads at phone width
+
+A line in the project's roadmap tab is `grid grid-cols-[6rem_minmax(0,1fr)_11rem]`: the
+id and marker, the symptom, then the readiness and its button. The two fixed columns are
+17rem before the gaps, which at 400 wide leaves the middle one about ten pixels — so
+RG215's pictures show the symptom set one letter per line, a column of single characters
+running down the card.
+
+It is not an overflow: the page does not scroll sideways, and the phone-width gate RG214
+builds would pass it. What it is is the sentence a reader came for, unreadable.
+
+**One column below `sm`.** The row stacks: the id and marker on their own line, the
+symptom under them, the readiness last — `grid-cols-1
+sm:grid-cols-[6rem_minmax(0,1fr)_11rem]`, with the gap the stack needs. Reading order is
+already the order the cells are written in, so nothing moves but the shape.
+
+The same three-column shape appears in the changelog, the improvements and the deferred
+tabs, and in the portfolio's table, which has its own answer: `min-w-[56rem]` inside an
+`overflow-x-auto` panel, which the contract allows and a reader scrolls. This is about
+the rows that are not in that table.
+
+Done when the roadmap tab at 400 wide draws each line's symptom across the card, and the
+four tabs of the project surface look like one screen at both widths.
