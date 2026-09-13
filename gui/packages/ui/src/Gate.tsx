@@ -1,4 +1,4 @@
-import { nameOf, refusalOf, type GateHealth, type Gated, type LintPayload } from '@rk/core'
+import { counted, nameOf, refusalOf, type GateHealth, type Gated, type LintPayload } from '@rk/core'
 import { Button } from '@viglet/viglet-design-system'
 import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-system/bento'
 import { useEffect, useMemo, type ReactNode } from 'react'
@@ -133,7 +133,7 @@ function Held({ health }: { readonly health: GateHealth }) {
         {health.verdict === 'unknown'
           ? say('gate.never')
           : say(health.verdict === 'clean' ? 'gate.held.clean' : 'gate.held.drifted', {
-              problems: health.problems,
+              count: health.problems,
             })}
       </p>
       {health.taken === null ? null : (
@@ -153,16 +153,18 @@ function Held({ health }: { readonly health: GateHealth }) {
 /** What the run counted, which is the engine's sentence about its own read. */
 function Counted({ payload }: { readonly payload: LintPayload }) {
   const say = useWording()
+  // What was read, as a row of fragments each agreeing with its own number (RG216): one
+  // sentence carrying both said `1 linhas e 1 seções`.
+  const read = counted(say, [
+    ['counts.lines', payload.lines],
+    ['counts.sections', payload.sections],
+  ])
   return (
     <BentoPanel contentClassName="p-5">
       <p className="text-sm" data-testid="counted">
         {payload.clean
-          ? say('gate.clean', { lines: payload.lines, sections: payload.sections })
-          : say('gate.problems', {
-              problems: payload.problems,
-              lines: payload.lines,
-              sections: payload.sections,
-            })}
+          ? say('gate.clean', { counted: read })
+          : say('gate.problems', { count: payload.problems, counted: read })}
       </p>
       {payload.checked.length === 0 ? null : (
         <p className="text-muted-foreground mt-2 font-mono text-xs wrap-anywhere">

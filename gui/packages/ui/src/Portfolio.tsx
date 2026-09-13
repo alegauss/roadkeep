@@ -1,4 +1,5 @@
 import {
+  counted,
   filterCounts,
   checkRoot,
   reasonOf,
@@ -201,7 +202,7 @@ function BacklogCell({ row }: { readonly row: ProjectRow }) {
   return (
     <div>
       <div className="font-semibold tabular-nums">
-        {say('portfolio.open', { count: counts.total })}
+        {say('counts.open', { count: counts.total })}
       </div>
       <div className="text-muted-foreground mt-0.5 flex flex-wrap items-center gap-x-2 text-xs">
         {Object.entries(counts.markers).map(([marker, count]) => (
@@ -212,11 +213,14 @@ function BacklogCell({ row }: { readonly row: ProjectRow }) {
         ))}
       </div>
       <div className="text-muted-foreground mt-0.5 text-xs">
-        {say('portfolio.startable', { startable: counts.startable, waiting: counts.waiting })}
+        {counted(say, [
+          ['counts.startable', counts.startable],
+          ['counts.waiting', counts.waiting],
+        ])}
       </div>
       {counts.uncounted > 0 ? (
         <div className="text-muted-foreground text-xs">
-          {say('portfolio.uncounted', { count: counts.uncounted })}
+          {say('counts.uncounted', { count: counts.uncounted })}
         </div>
       ) : null}
     </div>
@@ -236,7 +240,10 @@ function NextCell({ row, settled }: { readonly row: ProjectRow; readonly settled
   if (next.id === null) {
     return (
       <span className="text-muted-foreground text-xs">
-        {say('portfolio.next.none', { blocked: next.blocked })}
+        {counted(say, [
+          ['portfolio.next.none', null],
+          ['counts.blocked', next.blocked],
+        ])}
       </span>
     )
   }
@@ -434,15 +441,15 @@ function Subtitle({
   readonly progress: ReadingProgress | null
 }) {
   const say = useWording()
-  const counted = tally(rows)
+  const tallied = tally(rows)
   return (
     <span className="flex flex-col gap-0.5">
       <span>
-        {say('portfolio.tally', {
-          read: counted.read,
-          pending: counted.pending,
-          unreadable: counted.unreadable,
-        })}
+        {counted(say, [
+          ['counts.read', tallied.read],
+          ['counts.pending', tallied.pending],
+          ['counts.unreadable', tallied.unreadable],
+        ])}
       </span>
       {progress === null ? null : (
         <span data-testid="portfolio-progress">
@@ -502,7 +509,7 @@ function RootChip({
           <IconMinus aria-hidden="true" size={12} />
         </Button>
         <span className="text-muted-foreground" data-testid="root-depth">
-          {say('roots.depth', { depth: root.depth })}
+          {say('roots.depth', { count: root.depth })}
         </span>
         <Button
           variant="ghost"

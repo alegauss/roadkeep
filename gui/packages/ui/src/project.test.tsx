@@ -1,8 +1,10 @@
 import {
   BASE,
   bridgedRun,
+  counted,
   EngineCallFailed,
   fill,
+  translator,
   openedFrom,
   openProject,
   type ProjectCatalogue,
@@ -330,9 +332,15 @@ describe('RG148: one backlog, as rows', () => {
     await atProject()
 
     expect(await screen.findByRole('heading', { name: 'alpha' })).toBeTruthy()
+    // Four fragments, joined (RG216): one sentence carrying four numbers agreed with none.
     expect(
       await screen.findByText(
-        fill(BASE['project.counts'], { open: 3, startable: 3, waiting: 0, uncounted: 0 }),
+        counted(translator(), [
+          ['counts.open', 3],
+          ['counts.startable', 3],
+          ['counts.requirement', 0],
+          ['counts.uncounted', 0],
+        ]),
       ),
     ).toBeTruthy()
   })

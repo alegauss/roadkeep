@@ -39,11 +39,36 @@ export const EN = {
 
   'transport.absent': 'no bridge - running as a plain browser page',
 
+  // Fragments a screen joins into one line with `counted` (RG216). Each carries its own
+  // count and its own forms, because one plural rule chooses one form and a row like
+  // `3 read - 1 still reading` is three numbers agreeing with three different words.
+  // Shared rather than per screen: the portfolio and the project surface say the same
+  // things about the same backlog, and two keys with one sentence in them is one to fix
+  // twice.
+  'counts.read': '{count} read',
+  'counts.read.one': '{count} read',
+  'counts.pending': '{count} still reading',
+  'counts.unreadable': '{count} unreadable',
+  'counts.unreadable.one': '{count} unreadable',
+  'counts.open': '{count} open',
+  'counts.open.one': '{count} open',
+  'counts.startable': '{count} startable',
+  'counts.startable.one': '{count} startable',
+  'counts.waiting': '{count} waiting',
+  'counts.requirement': '{count} waiting on a requirement',
+  'counts.uncounted': '{count} not counted',
+  'counts.uncounted.one': '{count} not counted',
+  'counts.blocked': '{count} blocked',
+  'counts.blocked.one': '{count} blocked',
+  'counts.lines': '{count} lines',
+  'counts.lines.one': '{count} line',
+  'counts.sections': '{count} sections',
+  'counts.sections.one': '{count} section',
+
   'portfolio.kicker': 'Portfolio',
   'portfolio.title': '{count} projects on this machine',
   'portfolio.title.one': '{count} project on this machine',
   'portfolio.title.unknown': 'Projects on this machine',
-  'portfolio.tally': '{read} read · {pending} still reading · {unreadable} unreadable',
   'portfolio.progress': '{stage}: {done} of {total}',
   'portfolio.stage.counting': 'counting each backlog',
   'portfolio.stage.next': 'asking for each next line',
@@ -65,13 +90,8 @@ export const EN = {
   'portfolio.column.engine': 'Engine',
   'portfolio.worktree': 'worktree',
   'portfolio.pending': 'still reading',
-  'portfolio.open': '{count} open',
-  'portfolio.open.one': '{count} open',
-  'portfolio.startable': '{startable} startable · {waiting} waiting',
-  'portfolio.uncounted': '{count} not counted',
-  'portfolio.uncounted.one': '{count} not counted',
   'portfolio.tier': 'tier: {tier}',
-  'portfolio.next.none': 'nothing ready · {blocked} blocked',
+  'portfolio.next.none': 'nothing ready',
   'portfolio.next.missing': 'the next line did not arrive',
   'portfolio.gate.unknown': 'unknown',
   'portfolio.gate.clean': 'clean',
@@ -88,8 +108,6 @@ export const EN = {
     'Every number on this screen is one a verb printed. Nothing is summed across projects.',
 
   'project.back': 'Portfolio',
-  'project.counts':
-    '{open} open · {startable} startable · {waiting} waiting on a requirement · {uncounted} uncounted',
   'project.opening': 'Opening the project.',
   'project.refused': 'This project did not open: {reason}',
   'project.roles': 'Governed files',
@@ -136,7 +154,8 @@ export const EN = {
   'task.design.where': '§{anchor} · {where}',
   'task.design.budget': '{taken} of {limit} {unit}',
   'task.design.over': '{taken} of {limit} {unit}, {over} over',
-  'task.design.count': '{words} words',
+  'task.design.count': '{count} words',
+  'task.design.count.one': '{count} word',
   'task.design.face': 'shown exactly as the file wraps it · no Markdown parsed in this app',
   'task.design.none': 'No design is written for this line.',
   'task.readiness': "{readiness} — the engine's word, not this app's",
@@ -185,7 +204,8 @@ export const EN = {
   'session.state.unavailable': 'no Claude Code',
   'session.claim': 'claim taken: {from} → {to}',
   'session.handed': 'Handed over',
-  'session.handed.design': 'the design, {words} words',
+  'session.handed.design': 'the design, {count} words',
+  'session.handed.design.one': 'the design, {count} word',
   'session.handed.nodesign': 'no design written',
   'session.handed.deps': '{count} deps',
   'session.handed.deps.one': '{count} dep',
@@ -289,12 +309,14 @@ export const EN = {
   'gate.failed': 'The gate did not run: {reason}',
   'gate.unreadable': 'The gate answered something this build could not read: {reason}',
   'gate.held.clean': 'Clean when it last ran.',
-  'gate.held.drifted': '{problems} findings when it last ran.',
+  'gate.held.drifted': '{count} findings when it last ran.',
+  'gate.held.drifted.one': '{count} finding when it last ran.',
   'gate.taken': 'Last run {taken}.',
   'gate.never': 'Not run in this window yet.',
   'gate.stale': 'The files moved since, so this is what they said before.',
-  'gate.clean': 'Clean: {lines} lines and {sections} sections, and nothing to answer for.',
-  'gate.problems': '{problems} findings over {lines} lines and {sections} sections',
+  'gate.clean': 'Clean: {counted}, and nothing to answer for.',
+  'gate.problems': '{count} findings over {counted}',
+  'gate.problems.one': '{count} finding over {counted}',
   'gate.notes': 'Said without failing for it',
   'gate.doors': 'What closes it',
   'gate.doors.none': 'Nothing here closes this one on its own.',
@@ -344,7 +366,8 @@ export const EN = {
   'roots.add': 'Add a root',
   'roots.rescan': 'Rescan roots',
   'roots.choose': 'Choose a folder to look under',
-  'roots.depth': '{depth} levels deep',
+  'roots.depth': '{count} levels deep',
+  'roots.depth.one': '{count} level deep',
   'roots.missing': 'missing',
   'roots.remove': 'Stop looking under {path}',
   'roots.deeper': 'Look one level deeper under {path}',
@@ -685,6 +708,35 @@ export function formOf(key: MessageKey, locale: string, values?: Fill): MessageK
 
 /** What a screen calls to get a string. */
 export type Translate = (key: MessageKey, values?: Fill) => string
+
+/**
+ * What a row of counted fragments is joined with.
+ *
+ * Typographic and not a word: it is the same mark in every language, like a key on a
+ * keyboard, so it is a constant here rather than a sentence in the catalogue. One place,
+ * because four screens drew it inside four sentences of their own before RG216.
+ */
+export const COUNT_SEPARATOR = ' · '
+
+/** One fragment of such a row: a sentence, and the number it agrees with, or none. */
+export type CountedPart = readonly [MessageKey, number | null]
+
+/**
+ * Say a row of fragments as one line, each agreeing with its own number (RG216).
+ *
+ * `{read} read · {pending} still reading · {unreadable} unreadable` was one key with three
+ * numbers in it, and a plural rule chooses one form for a sentence — so at one project the
+ * row read *1 lidos*. Three keys and one join is the shape that can agree: each fragment is
+ * a sentence with its own forms, and what sits between them is punctuation.
+ *
+ * Here rather than in a component, because joining strings needs no DOM — and here rather
+ * than at each screen, because a separator spelled four times is four places to change it.
+ */
+export function counted(say: Translate, parts: readonly CountedPart[]): string {
+  return parts
+    .map(([key, count]) => (count === null ? say(key) : say(key, { count })))
+    .join(COUNT_SEPARATOR)
+}
 
 /**
  * Build the lookup for one locale.

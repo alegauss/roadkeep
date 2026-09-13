@@ -79,31 +79,6 @@ digest is then required to carry that set.
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
 
-### §RG216 The counts a sentence carries, and the forms they need
-
-The mechanism landed: a counted key may carry siblings named by the categories CLDR
-gives — `portfolio.title.one` beside `portfolio.title`, which stays the `other` form —
-and `translator` picks by the locale's rule for the value of `count`. Seventeen
-sentences carry a singular in both languages, two `(s)` workarounds are spelled out, and
-`backlog.refused` is one sentence with a form beside it rather than two codes
-`narrowedBy` chose by counting. The portfolio says *1 projeto* and *1 project*;
-`wording.test.ts` walks the base and fails a counted key with no singular, naming the
-five that read right at one.
-
-**What is left is the other shape**, which the symptom also names: a sentence carrying
-several counts at once. `portfolio.tally` is `{read} read · {pending} still reading ·
-{unreadable} unreadable` and draws *1 lidos*; `project.counts` carries four numbers and
-`portfolio.startable` two. One rule selects one category, so no sibling can agree with
-three numbers — the sentence has to become one key per count, each with its own forms,
-joined by the screen that draws them.
-
-That is the design left to settle: where the separator lives, whether the join is a
-helper or each screen's own, and what the walk should then look for — a number-hole
-named anything, not just `{count}`, which is the guard that would have found these.
-
-Done when the portfolio with one project read says *1 lido*, and a sentence with a
-number-hole no form can agree with fails the catalogue test.
-
 ### §RG221 A rail that reaches every area it holds
 
 `BentoNavRail` draws one tile per **section**, from `section.areaRoute` and

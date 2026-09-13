@@ -26,6 +26,7 @@ import {
   type Wording,
   type Withholding,
 } from './wording'
+import { LOCALE_TAGS, wordingFor } from './locales'
 import type { Unreadable } from './limits'
 
 describe('RG51: the base is the type', () => {
@@ -334,9 +335,10 @@ const FORM = /\.(zero|one|two|few|many)$/
 /**
  * The counted sentences that read right at one, and so carry no singular.
  *
- * Two shapes, and the list is short on purpose: a label drawn beside its own number, where the
- * count is the whole of what is said, and `{count} of {total}`, where the noun agrees with the
- * total and never with the count.
+ * Three shapes, and the list is short on purpose: a label drawn beside its own number, where
+ * the count is the whole of what is said; `{count} of {total}`, where the noun agrees with the
+ * total and never with the count; and a gerund, which inflects in neither language this build
+ * ships — *1 ainda lendo* and *1 esperando* are as right as at fifty.
  */
 const READS_AT_ONE: readonly MessageKey[] = [
   'portfolio.filter.all',
@@ -344,6 +346,9 @@ const READS_AT_ONE: readonly MessageKey[] = [
   'portfolio.filter.disagrees',
   'portfolio.filter.unreadable',
   'task.unblocks',
+  'counts.pending',
+  'counts.waiting',
+  'counts.requirement',
 ]
 
 const counted = () => keys().filter((key) => !FORM.test(key) && BASE[key].includes('{count}'))
@@ -428,5 +433,95 @@ describe('RG216: which form a count chooses', () => {
     expect(translator({}, 'not a tag')('portfolio.title', { count: 1 })).toBe(
       '1 project on this machine',
     )
+  })
+})
+
+/**
+ * RG216: the other shape, where several counts shared one sentence.
+ *
+ * `{read} read · {pending} still reading · {unreadable} unreadable` was one key with three
+ * numbers in it, so at one project it read *1 lidos*: a plural rule chooses one form for a
+ * sentence, and no form can agree with three numbers. Those rows are keys of their own now,
+ * joined by `counted`, and every number a word agrees with is named `count`.
+ *
+ * What keeps that true is the walk below, over both catalogues: a hole followed by a word is
+ * a number something may agree with, and each is `count`, text, or a figure nothing agrees
+ * with. A name in none of those fails — so a hole added to a sentence is classified when it
+ * is written, which is the only moment anybody knows what goes in it.
+ */
+
+/** A hole with a word after it, which is where agreement happens. */
+const AGREES = /\{(\w+)\}\s+\p{Ll}/gu
+
+/** Holes carrying text: a path, a name, an id, a version. No number, so nothing to agree with. */
+const TEXT: readonly string[] = ['block', 'by', 'file', 'found', 'id', 'path', 'version']
+
+/**
+ * Numbers no word agrees with.
+ *
+ * Mostly the `{x} of {y}` shape, where the noun belongs to the total and the figure before it
+ * is just a figure — `3 of 40 backlogs searched`, `12 of 250 words`. `characters` is the one
+ * judgement rather than a shape: its sentence already agrees with the count of lines it could
+ * not list, and a read one character long is not a state this app has.
+ */
+const FIGURES: readonly string[] = [
+  'characters',
+  'done',
+  'left',
+  'limit',
+  'max',
+  'of',
+  'over',
+  'prose',
+  'room',
+  'searched',
+  'structure',
+  'taken',
+  'total',
+]
+
+/** What a sentence puts a word next to without saying which of the three it is. */
+function unclassified(value: string): string[] {
+  return [...value.matchAll(AGREES)]
+    .map((found) => found[1] ?? '')
+    .filter((name) => name !== 'count' && !TEXT.includes(name) && !FIGURES.includes(name))
+}
+
+describe('RG216: a sentence agrees with one number, and it is named count', () => {
+  it('reads holes with a word after them at all, so what follows is about something', () => {
+    const found = keys().flatMap((key) => [...BASE[key].matchAll(AGREES)])
+
+    expect(found.length).toBeGreaterThan(20)
+  })
+
+  it.each([...LOCALE_TAGS])('classifies every one of them: %s', (tag) => {
+    // Both catalogues, because a sentence that agrees in English may not in Portuguese —
+    // `{count} more not listed` against `mais {count} não listados` — and the reverse is
+    // what a translation of a row nobody split would look like.
+    const said = wordingFor(tag)
+    const loose = keys().flatMap((key) =>
+      unclassified(said[key] ?? BASE[key]).map((name) => `${key}: {${name}}`),
+    )
+
+    expect(loose).toEqual([])
+  })
+
+  it('finds a row that shared one sentence between several counts', () => {
+    // The guard on the guard: the sentence as it was written before this, which is what a
+    // clean answer above has to be able to fail on.
+    expect(unclassified('{read} read · {pending} still reading · {unreadable} unreadable')).toEqual(
+      ['read', 'pending', 'unreadable'],
+    )
+    expect(unclassified('{count} lines in {file} carry a marker')).toEqual([])
+  })
+
+  it('leaves every classified name one a sentence still uses', () => {
+    // Neither list outlives its reason: a name nothing spells any more is a line to delete.
+    const spelled = new Set(
+      keys().flatMap((key) => [...BASE[key].matchAll(AGREES)].map((f) => f[1])),
+    )
+    const gone = [...TEXT, ...FIGURES].filter((name) => !spelled.has(name))
+
+    expect(gone).toEqual([])
   })
 })

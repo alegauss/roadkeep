@@ -22,7 +22,6 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- ⏳ **RG216** (deps: —) **a count of one is written as a plural, so the portfolio says 1 projetos and 1 lidos** — A sentence carrying several counts at once still agrees with none of them: the portfolio's tally says 1 lidos, and one rule cannot choose a form for three numbers. → §RG216
 - 📋 **RG221** (deps: —) **the rail draws only Home, so the settings and the sessions are reached through the palette alone** — The rail draws one tile per section from `areaRoute`, and `AREAS` declares its routes on the items inside each section, which the rail never reads. → §RG221
 - 📋 **RG222** (deps: —) **npm run shots builds the shell alone, so a changed screen is photographed from an older renderer bundle** — The command runs `build:app`, which leaves `@rk/ui` unbuilt, and the stale-build guard reads the shell's output alone — so the pictures describe a bundle nobody is looking at. → §RG222
 - 📋 **RG223** (deps: —) **a line's symptom is one letter per line at 400 wide, the column left about ten pixels** — The roadmap tab's row keeps its three desktop columns at every width, and the two fixed ones take more than a phone-width card has. → §RG223
@@ -152,13 +151,6 @@
   it, the signer is the name that route signs under — the foundation on SignPath, an
   Open Source Developer on Certum, neither being the manifest's — and the build line
   says signed.
-
-## Done when — RG216
-
-- **Every number a sentence draws agrees with the words beside it** A sentence with one
-  count says the form its language has for that number, which landed. One carrying
-  several needs a key per count: the portfolio's tally must read 1 lido, and the
-  catalogue walk must fail a number-hole no form can agree with.
 
 ## Non-goals
 

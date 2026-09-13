@@ -187,7 +187,7 @@ function Handed({ record }: { readonly record: SessionRecord }) {
         <li>
           {handed.section === null
             ? say('session.handed.nodesign')
-            : say('session.handed.design', { words: handed.section.words })}
+            : say('session.handed.design', { count: handed.section.words })}
         </li>
         <li>{say('session.handed.deps', { count: handed.deps.length })}</li>
         <li>{say('session.handed.criteria', { count: handed.doneWhen.length })}</li>

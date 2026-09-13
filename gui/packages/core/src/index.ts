@@ -263,6 +263,8 @@ export {
   bundleGaps,
   bundlePaths,
   bundleSays,
+  COUNT_SEPARATOR,
+  counted,
   EN,
   fill,
   isPseudo,
@@ -289,6 +291,7 @@ export {
 export type {
   Bundle,
   BundleGaps,
+  CountedPart,
   Fill,
   MessageKey,
   Translate,

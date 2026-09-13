@@ -2,6 +2,8 @@ import {
   DECLARES_NOTHING,
   BASE,
   bridgedRun,
+  counted,
+  translator,
   DEFAULT_DEPTH,
   DEPTH_CEILING,
   EMPTY_CATALOGUE,
@@ -33,6 +35,9 @@ import { stubBridge } from './stub-bridge'
  * answering by verb, so what arrives is what a real carrier would hand over, and every number
  * asserted below is one the machine printed.
  */
+
+/** The base lookup, for the rows this file reads off the catalogue rather than off a screen. */
+const say = translator()
 
 const READ = '/code/alpha'
 const PENDING = '/code/beta'
@@ -192,8 +197,15 @@ describe('RG145: the portfolio at the root route', () => {
       ])
     })
     expect(screen.getByText(fill(BASE['portfolio.title'], { count: 3 }))).toBeTruthy()
+    // The row of fragments the screen joins, each agreeing with its own number (RG216).
     expect(
-      screen.getByText(fill(BASE['portfolio.tally'], { read: 1, pending: 1, unreadable: 1 })),
+      screen.getByText(
+        counted(say, [
+          ['counts.read', 1],
+          ['counts.pending', 1],
+          ['counts.unreadable', 1],
+        ]),
+      ),
     ).toBeTruthy()
   })
 
@@ -222,10 +234,15 @@ describe('RG145: the portfolio at the root route', () => {
 
     const row = await waitFor(() => rowOf('alpha'))
     await waitFor(() => {
-      expect(within(row).getByText(fill(BASE['portfolio.open'], { count: 60 }))).toBeTruthy()
+      expect(within(row).getByText(fill(BASE['counts.open'], { count: 60 }))).toBeTruthy()
     })
     expect(
-      within(row).getByText(fill(BASE['portfolio.startable'], { startable: 58, waiting: 2 })),
+      within(row).getByText(
+        counted(say, [
+          ['counts.startable', 58],
+          ['counts.waiting', 2],
+        ]),
+      ),
     ).toBeTruthy()
     // The engine's verdict is its own word, drawn as it came.
     expect(within(row).getByText('0.2.400')).toBeTruthy()
@@ -242,7 +259,7 @@ describe('RG145: the portfolio at the root route', () => {
     const row = await waitFor(() => rowOf('beta'))
 
     expect(within(row).getByText(BASE['portfolio.pending'])).toBeTruthy()
-    expect(within(row).queryByText(fill(BASE['portfolio.open'], { count: 0 }))).toBeNull()
+    expect(within(row).queryByText(fill(BASE['counts.open'], { count: 0 }))).toBeNull()
   })
 
   it('says why a project did not open, and what was tried', async () => {
@@ -392,7 +409,7 @@ describe('RG146: naming where the window looks', () => {
     const gone = screen.getAllByTestId('root')[1]
     expect(gone?.dataset['presence']).toBe('missing')
     expect(within(gone ?? document.body).getByText(BASE['roots.missing'])).toBeTruthy()
-    expect(screen.getByText(fill(BASE['roots.depth'], { depth: 2 }))).toBeTruthy()
+    expect(screen.getByText(fill(BASE['roots.depth'], { count: 2 }))).toBeTruthy()
   })
 
   it('adds the folder the shell answered with, and walks again for it', async () => {
@@ -878,7 +895,7 @@ describe('RG169: moving a root’s depth from the window', () => {
 
     await waitFor(() => {
       expect(within(chipFor('D:/code')).getByTestId('root-depth').textContent).toBe(
-        fill(BASE['roots.depth'], { depth: 3 }),
+        fill(BASE['roots.depth'], { count: 3 }),
       )
     })
   })

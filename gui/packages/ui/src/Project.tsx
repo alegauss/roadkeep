@@ -1,4 +1,5 @@
 import {
+  counted,
   nameOf,
   NO_FILTER,
   narrowedBy,
@@ -435,12 +436,12 @@ export function Project() {
         <span className="font-mono text-xs">{root}</span>
         {stats === null ? null : (
           <span>
-            {say('project.counts', {
-              open: stats.total,
-              startable: stats.startable?.startable ?? 0,
-              waiting: stats.startable?.waiting ?? 0,
-              uncounted: stats.uncounted,
-            })}
+            {counted(say, [
+              ['counts.open', stats.total],
+              ['counts.startable', stats.startable?.startable ?? 0],
+              ['counts.requirement', stats.startable?.waiting ?? 0],
+              ['counts.uncounted', stats.uncounted],
+            ])}
           </span>
         )}
       </span>

@@ -226,7 +226,7 @@ function Counted({ design }: { readonly design: Design }) {
     return <span>{say(budget.over > 0 ? 'task.design.over' : 'task.design.budget', fill)}</span>
   }
   return design.words === 0 ? null : (
-    <span>{say('task.design.count', { words: design.words })}</span>
+    <span>{say('task.design.count', { count: design.words })}</span>
   )
 }
 

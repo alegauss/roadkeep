@@ -1,8 +1,10 @@
 import {
   BASE,
   bridgedRun,
+  counted,
   EngineCallFailed,
   fill,
+  translator,
   openedFrom,
   openProject,
   type BridgedResult,
@@ -15,6 +17,8 @@ import {
 } from '@rk/core'
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
+
+const say = translator()
 
 import { gatePath } from './areas'
 import { drawWindow } from './harness'
@@ -204,7 +208,14 @@ describe('RG152: the gate as a surface', () => {
 
     expect(await screen.findByTestId('counted')).toBeTruthy()
     expect(screen.getByTestId('counted').textContent).toBe(
-      fill(BASE['gate.problems'], { problems: 1, lines: 12, sections: 4 }),
+      // One finding, so the singular, over a row of what was read (RG216).
+      fill(BASE['gate.problems.one'], {
+        count: 1,
+        counted: counted(say, [
+          ['counts.lines', 12],
+          ['counts.sections', 4],
+        ]),
+      }),
     )
     expect(wired.gates).toHaveLength(1)
   })
@@ -258,7 +269,14 @@ describe('RG152: the gate as a surface', () => {
     fireEvent.click(within(door).getByRole('button', { name: BASE['door.take'] }))
 
     expect(
-      await screen.findByText(fill(BASE['gate.clean'], { lines: 12, sections: 4 })),
+      await screen.findByText(
+        fill(BASE['gate.clean'], {
+          counted: counted(say, [
+            ['counts.lines', 12],
+            ['counts.sections', 4],
+          ]),
+        }),
+      ),
     ).toBeTruthy()
     expect(screen.queryAllByTestId('finding')).toHaveLength(0)
     expect(wired.gates).toHaveLength(2)
@@ -288,7 +306,7 @@ describe('RG185: opening on the verdict already held', () => {
     const wired = await at(gatePath(ROOT), [verdict()])
 
     expect((await screen.findByTestId('held')).textContent).toBe(
-      fill(BASE['gate.held.drifted'], { problems: 3 }),
+      fill(BASE['gate.held.drifted'], { count: 3 }),
     )
     expect(wired.gates).toEqual([])
   })
