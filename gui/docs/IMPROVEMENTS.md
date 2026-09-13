@@ -48,28 +48,6 @@ ready task forever. What can be built without it is the pipeline that would use 
 the about surface saying plainly that this build is unsigned — which is the honest half
 and is worth having on its own.
 
-### §RG220 A failed launch gives its process back
-
-`launchForShots` starts the app with `_electron.launch`, then waits for the first window
-and for it to draw. When either wait throws, the function throws with it and hands
-nobody a handle: the Electron process it started stays up. One did, for hours, from the
-run where the renderer's content policy refused a string predicate — found only because
-a later check listed every Electron with this repository on its command line. A live
-suite that leaks a window per failure is one whose next run starts beside the last
-one's, on a machine that slows for no visible reason.
-
-**The process is taken before the waits, and killed when they fail.** `app.process()` is
-read right after the launch; a throw out of `firstWindow` or the draw wait kills that
-child and rethrows, so a failed launch leaves nothing behind. `close` already reads the
-same child, so both paths end the process the same way.
-
-**Held by a test that makes the draw wait fail**: a launch whose window can never
-satisfy the wait — a selector no page has, with a short ceiling — throws, and the child
-it started has exited before the test ends.
-
-Done when a launch that throws leaves no Electron process standing, and a launch that
-draws behaves as it does today.
-
 ## Block H — The look (a design system for governed prose)
 
 ### §RG62 Joining the checks the other consoles already answer to

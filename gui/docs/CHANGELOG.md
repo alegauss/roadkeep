@@ -218,6 +218,7 @@
 - ✅ **RG209** **no command shows what a screen looks like, so an agent checks a screen change with tests that never see the window** — npm run shots photographs every routed surface through Playwright, in both grounds, both languages and two widths, indexed (design recorded in `packages/shell/src/shots-app.ts`).
 - ✅ **RG218** **the release tag test runs whichever bash is first on PATH, and on Windows that can be WSL's, which has no node** — On Windows the release tag test runs Git's bash, found beside git.exe, so WSL's launcher first on PATH no longer fails it (design recorded in `packages/shell/src/git-bash.ts`).
 - ✅ **RG212** **an agent checking a screen improvises its own harness, and nothing says what to look for once it has the pictures** — A screens skill says how to look and what to check, CLAUDE.md gates on npm run shots, and Playwright MCP attaches to dev:inspect (design recorded in `.claude/skills/screens/SKILL.md`).
+- ✅ **RG220** **a screenshot launch that fails before the window draws leaves its Electron process running** — A screenshot launch that fails before drawing ends its whole Electron tree, and close does the same past its ceiling (design recorded in `packages/shell/src/shots-app.ts`).
 
 ## Block H — The look (a design system for governed prose)
 

@@ -19,7 +19,6 @@
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
-- 📋 **RG220** (deps: RG209 ✅) **a screenshot launch that fails before the window draws leaves its Electron process running** — launchForShots throws out of its waits with no handle given back, so the app it started outlives the run, as one did after the content policy refused a wait. → §RG220
 
 ## Block H — The look (a design system for governed prose)
 

@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process'
 import { mkdtempSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
@@ -29,6 +30,32 @@ import { capturesFor } from './shots-plan'
 
 const directories: string[] = []
 let shot: ShotApp
+
+/**
+ * The ids of every process running with this profile on its command line (RG220).
+ *
+ * Asked of the operating system rather than of the app, because the case under test is a launch
+ * that threw and handed nothing back.
+ */
+function electronsOn(profile: string): number[] {
+  const listed =
+    process.platform === 'win32'
+      ? spawnSync(
+          'powershell',
+          [
+            '-NoProfile',
+            '-Command',
+            'Get-CimInstance Win32_Process | ForEach-Object { "$($_.ProcessId)`t$($_.CommandLine)" }',
+          ],
+          { encoding: 'utf8', windowsHide: true },
+        ).stdout
+      : spawnSync('ps', ['-eo', 'pid=,args='], { encoding: 'utf8' }).stdout
+  return listed
+    .split('\n')
+    .filter((line) => line.includes(profile))
+    .map((line) => Number.parseInt(line.trim(), 10))
+    .filter((pid) => Number.isInteger(pid))
+}
 
 /** A PNG's width and height, off its header. */
 function sizeOf(file: string): { width: number; height: number; png: boolean } {
@@ -134,6 +161,28 @@ describe('RG209: a surface photographed through Playwright', () => {
     expect(shot.exited()).toBe(true)
     expect(Date.now() - started).toBeLessThan(10000)
   }, 20000)
+})
+
+describe('RG220: a launch that fails gives its process back', () => {
+  it('kills the app it started when the window never draws, and throws', async () => {
+    const userData = mkdtempSync(path.join(tmpdir(), 'rk-shots-failed-'))
+    directories.push(userData)
+    saveSettings(userData, DEFAULT_SETTINGS)
+    const before = new Set(electronsOn(userData))
+
+    // A wait no page can meet, with a short ceiling: the launch has to throw.
+    await expect(
+      launchForShots(userData, {}, { selector: '#no-page-has-this', timeoutMs: 2000 }),
+    ).rejects.toThrow(/no-page-has-this/)
+
+    // Nothing started with that profile is still standing once the call has thrown.
+    await expect
+      .poll(() => electronsOn(userData).filter((pid) => !before.has(pid)), {
+        timeout: 10000,
+        interval: 250,
+      })
+      .toEqual([])
+  }, 60000)
 })
 
 describe('RG210: a session photographed mid-run, against a scripted agent', () => {

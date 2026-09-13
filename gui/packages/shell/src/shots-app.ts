@@ -1,3 +1,4 @@
+import { spawnSync, type ChildProcess } from 'node:child_process'
 import path from 'node:path'
 import { setTimeout as after } from 'node:timers/promises'
 
@@ -61,19 +62,60 @@ const TWO_FRAMES =
  * passed to `evaluate` reach the page over the DevTools protocol, which the policy does not
  * govern.
  */
-async function drawn(page: Page): Promise<void> {
-  await page.waitForSelector('#root > *', { state: 'attached' })
+async function drawn(page: Page, wait: DrawWait = DREW): Promise<void> {
+  await page.waitForSelector(wait.selector, { state: 'attached', timeout: wait.timeoutMs })
+}
+
+/** What a launch waits for before it calls the window drawn, and for how long. */
+export interface DrawWait {
+  readonly selector: string
+  readonly timeoutMs: number
+}
+
+const DREW: DrawWait = { selector: '#root > *', timeoutMs: 30000 }
+
+/**
+ * End the app's whole process tree, now.
+ *
+ * Not `child.kill()`, and that was measured (RG220): on Windows the process Playwright hands back
+ * is a launcher whose child is the Electron main, so killing it left the main, its GPU process,
+ * its renderer and its utility process standing — the same shape `mcp-transport.ts` meets with the
+ * engine's launcher, answered the same way. Elsewhere Playwright starts the app in a process group
+ * of its own, which a negative pid reaches whole.
+ */
+function endTree(child: ChildProcess): void {
+  if (child.pid === undefined) return
+  if (process.platform === 'win32') {
+    spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], {
+      stdio: 'ignore',
+      windowsHide: true,
+    })
+    return
+  }
+  try {
+    process.kill(-child.pid, 'SIGKILL')
+  } catch {
+    child.kill('SIGKILL')
+  }
 }
 
 /**
  * Start the built app on a profile somebody seeded, and wait for it to draw.
  *
+ * **A launch that fails gives its process back** (RG220). The child is taken the moment the app
+ * starts and killed when the window never draws, since a throw out of the waits hands nobody a
+ * handle: one Electron outlived its run for hours that way, after the content policy refused a
+ * wait.
+ *
  * @param extraEnv what this launch adds: `ROADKEEP_AGENT`, where a session is to be started
  *   against a scripted agent (RG210).
+ * @param wait what counts as drawn. The window's root holding anything, unless a test needs a
+ *   wait that cannot be met.
  */
 export async function launchForShots(
   userData: string,
   extraEnv: Record<string, string> = {},
+  wait: DrawWait = DREW,
 ): Promise<ShotApp> {
   const app = await _electron.launch({
     executablePath: electronPath,
@@ -81,13 +123,19 @@ export async function launchForShots(
     args: [`--user-data-dir=${userData}`, shellRoot],
     env: launchEnv(extraEnv),
   })
-  const page = await app.firstWindow()
-  await drawn(page)
-
   // Taken now: once the app is gone Playwright's handle is disposed, and asking it for the
   // process then throws rather than answering.
   const child = app.process()
   const exited = () => child.exitCode !== null || child.signalCode !== null
+
+  let page: Page
+  try {
+    page = await app.firstWindow()
+    await drawn(page, wait)
+  } catch (cause) {
+    endTree(child)
+    throw cause
+  }
 
   return {
     app,
@@ -102,7 +150,7 @@ export async function launchForShots(
         for (const window of BrowserWindow.getAllWindows()) window.close()
       })
       await Promise.race([gone, after(GOODBYE_MS)])
-      if (!exited()) child.kill()
+      if (!exited()) endTree(child)
     },
   }
 }
