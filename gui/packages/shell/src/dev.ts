@@ -17,7 +17,7 @@ import { createServer } from 'vite'
 
 import { compilerLauncher } from './compiler'
 import { REAL_CLOCK } from './governed-watch'
-import { shellRoot, spawnElectron } from './launch'
+import { INSPECT_PORT, shellRoot, spawnElectron } from './launch'
 import { createSourceWatcher, REBUILD_QUIET_MS } from './source-watch'
 
 const uiRoot = path.resolve(shellRoot, '..', 'ui')
@@ -48,8 +48,14 @@ const watched = watching.hold(repoRoot, WATCHED)
 let closing = false
 let child: ChildProcess = start()
 
+// RG212: `--inspect` opens the window's debugging port, where Playwright MCP attaches so an
+// agent can drive the running window into a state no fixture reaches and read what it draws.
+const switches = process.argv.includes('--inspect')
+  ? [`--remote-debugging-port=${String(INSPECT_PORT)}`]
+  : []
+
 function start(): ChildProcess {
-  const started = spawnElectron({ ROADKEEP_GUI_RENDERER_URL: url })
+  const started = spawnElectron({ ROADKEEP_GUI_RENDERER_URL: url }, switches)
   started.on('close', (code) => {
     // A child replaced by a restart is not the run ending. Only the one that is current
     // when it closes takes the run with it, which is the window being closed by hand.

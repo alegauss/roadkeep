@@ -15,6 +15,7 @@
   ],
   "scripts": {
     "dev": "npm run build:app && node packages/shell/dist/dev.js",
+    "dev:inspect": "npm run build:app && node packages/shell/dist/dev.js --inspect",
     "build": "npm run build:app && npm run build --workspace @rk/ui",
     "build:app": "tsc -b && npm run build --workspace @rk/shell",
     "start": "npm run build && node packages/shell/dist/start.js",
@@ -37,6 +38,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
+    "@playwright/mcp": "^0.0.80",
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/react": "^16.3.3",
     "@types/node": "^26.5.0",

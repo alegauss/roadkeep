@@ -48,32 +48,27 @@ ready task forever. What can be built without it is the pipeline that would use 
 the about surface saying plainly that this build is unsigned — which is the honest half
 and is worth having on its own.
 
-### §RG212 How an agent looks at a screen
+### §RG220 A failed launch gives its process back
 
-No gate in CLAUDE.md opens the window, so a session that changed a screen improvised a
-script to see it and looked for whatever occurred to it.
+`launchForShots` starts the app with `_electron.launch`, then waits for the first window
+and for it to draw. When either wait throws, the function throws with it and hands
+nobody a handle: the Electron process it started stays up. One did, for hours, from the
+run where the renderer's content policy refused a string predicate — found only because
+a later check listed every Electron with this repository on its command line. A live
+suite that leaks a window per failure is one whose next run starts beside the last
+one's, on a machine that slows for no visible reason.
 
-**Two ways to look, both Playwright.** `npm run shots` (RG209), `--only` naming what a
-change touched: a gates-table row, the PNGs read before the commit. And
-`@playwright/mcp` in `.mcp.json`, `--cdp-endpoint` at the port `npm run dev:inspect`
-opens, to click into a state no fixture reaches. Its documentation names no Electron, so
-the attach is proved first; failing it, the skill says the shots are the only way.
+**The process is taken before the waits, and killed when they fail.** `app.process()` is
+read right after the launch; a throw out of `firstWindow` or the draw wait kills that
+child and rethrows, so a failed launch leaves nothing behind. `close` already reads the
+same child, so both paths end the process the same way.
 
-**A `screens` skill**, loaded when a screen is edited, listing defects this project has
-had:
+**Held by a test that makes the draw wait fail**: a launch whose window can never
+satisfy the wait — a selector no page has, with a short ceiling — throws, and the child
+it started has exited before the test ends.
 
-- a state told by colour alone, or a shade under 3:1 (RG207);
-- text clipped or overflowing at 400 wide;
-- a sentence unwrapped under the pseudo-locale (RG176);
-- a stream that grows the page instead of following (RG206);
-- one ground checked and the other assumed;
-- the `docs/design/` artboard it answers to, and each departure on purpose.
-
-**What pictures cannot show** is named: keyboard order, a screen reader, motion, each
-beside the test that covers it.
-
-Done when the skill loads on a screen edit, the gates table carries the shots, and the
-MCP either attaches or is recorded as refused.
+Done when a launch that throws leaves no Electron process standing, and a launch that
+draws behaves as it does today.
 
 ## Block H — The look (a design system for governed prose)
 

@@ -43,22 +43,22 @@ commit as the code.
 | `npm run typecheck` | Any `.ts` or `.tsx` change.                                        |
 | `npm test`          | Any change to behaviour something asserts. Fast: starts nothing.   |
 | `npm run test:live` | Anything that spawns or reads the build. Needs python and a build. |
+| `npm run shots`     | Any screen change: read its pictures, per the `screens` skill.     |
 | `roadkeep lint`     | Every task, without exception.                                     |
 | `npm run lint`      | Any file this repo owns. `npm run format` is the writer.           |
 | `npm run build`     | Anything the packaged app loads: a Vite config, an asset path.     |
 
-`npm run dev` opens the window with hot reload; `npm start` runs it against the bundle on
-disk. Neither is a gate.
+`npm run dev` opens the window with hot reload, `npm start` against the bundle on disk;
+neither is a gate.
 
-**Node 26 or newer**, declared in `package.json` and `.nvmrc` (RG97). On Node 20 none of
-the above reports a version problem: every jsdom file dies with a `TypeError` out of the
-undici jsdom bundles, and the window test with `WebSocket is not defined`. Two symptoms
-that look unrelated and neither names the cause.
+**Node 26 or newer**, declared in `package.json` and `.nvmrc` (RG97). On Node 20 no gate
+names the version: every jsdom file dies with a `TypeError` out of the undici jsdom
+bundles, and the window test with `WebSocket is not defined` — neither naming the cause.
 
 ## Two habits that are not obvious
 
 **Check what is already there before building a mechanism.** The design system ships a
-`ThemeProvider` and i18next; a second one is two systems writing the same state, not a
+`ThemeProvider` and i18next; a second one is two systems writing one state, not a
 duplicate. Read `node_modules/@viglet/viglet-design-system/dist/components/` first.
 
 **A 💭 line's design is still to write, and a 📋 line's is not.** Read the design before

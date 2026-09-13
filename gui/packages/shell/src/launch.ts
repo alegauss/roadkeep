@@ -5,6 +5,15 @@ import path from 'node:path'
 /** The directory Electron treats as the app: it holds the package.json naming `main`. */
 export const shellRoot = path.resolve(import.meta.dirname, '..')
 
+/**
+ * The debugging port `npm run dev:inspect` opens, which `.mcp.json` points Playwright MCP at
+ * (RG212).
+ *
+ * Fixed, because the MCP server is configured before the window exists and cannot ask it for
+ * a port. Not Chrome's customary 9222, which a browser somebody left open would already hold.
+ */
+export const INSPECT_PORT = 9333
+
 // The `electron` module means two different things depending on who loads it. Inside
 // the app it is the Electron API, which is what its type declarations describe; loaded
 // from Node it is a one-line module exporting the path of the binary, which is what a
