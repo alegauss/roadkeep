@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { drawWindow } from './harness'
+import { drawWindow, FOCUSABLE } from './harness'
 
 /**
  * RG54: the half a screenshot cannot show.
@@ -10,10 +10,11 @@ import { drawWindow } from './harness'
  * taken of it. What is asserted here is the shape that keeps that from happening — real
  * controls, named, in document order — against the screen there is now, so the screens
  * after it inherit the assertion rather than each having to remember.
+ *
+ * **Document order is not reading order**, which is what this cannot see: jsdom lays nothing
+ * out, so a toolbar tabbing right to left passes every assertion below. `surfaces.browser.test.tsx`
+ * walks the same controls with a real Tab in a browser (RG214).
  */
-
-/** Everything a person can reach with Tab, plus everything that behaves as a control. */
-const FOCUSABLE = 'a[href], button, input, select, textarea, [tabindex], [role="button"]'
 
 /**
  * The whole window since RG63, chrome included: the rail, the palette trigger and the

@@ -79,30 +79,6 @@ digest is then required to carry that set.
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
 
-### §RG214 Width, Tab order and a visible focus, asserted in a real page
-
-The design system's contract says a page never scrolls sideways at phone width. RG54
-asserts keyboard reach as named controls in document order, read off a DOM with no width
-and no focus of its own. A table overflowing at 400 wide, or a toolbar whose Tab order
-is not its visual order, passes both.
-
-**Every surface, narrow.** For each routed surface, with the stubs `wording.test.tsx`
-already builds for the pseudo-locale run, `page.viewport(400, 800)`, and the document's
-`scrollWidth` may not exceed the viewport. What the contract lets be wider — a table, a
-diagram, a code block — is recognised by its own `overflow-x: auto` container, never by
-a list of exceptions.
-
-**Tab walks it.** `userEvent.tab()` from the top of each surface, a real key through the
-DevTools protocol: every control RG54 counts is reached, none twice, and inside the page
-each next control sits below or to the right of the last.
-
-**The focus is visible in both grounds**, since a ring is a colour and RG107 was one:
-the focused control's computed outline or box shadow is not `none`, and differs from its
-unfocused style.
-
-Done when a surface that scrolls sideways at 400 wide, tabs out of reading order, or
-focuses without a visible ring fails `surfaces.browser.test.tsx`.
-
 ### §RG216 Counted sentences in the forms each language has
 
 The catalogue fills `{count}` into one sentence per key: `portfolio.title` is `{count}
@@ -204,3 +180,31 @@ the rows that are not in that table.
 
 Done when the roadmap tab at 400 wide draws each line's symptom across the card, and the
 four tabs of the project surface look like one screen at both widths.
+
+### §RG224 The phone-width run, in the language that overflows
+
+`surfaces.browser.test.tsx` draws each surface at 400 wide in whatever i18next is
+speaking, which under the browser project's setup is English. RG215's own defect was
+Portuguese: `Acrescentar uma dependência` beside its box is wider than a phone-width
+column, and the English `Add a dependency` is not.
+
+Measured while RG214 was built. With RG215's `hero-actions` rule taken out of the
+stylesheet, the portfolio and the project surface overflow at 400 in Portuguese — 475
+and 461 pixels in a window of 400 — and nothing overflows in English. So the gate that
+replaced forty hand-read pictures would not have caught the defect those pictures found.
+
+**Both languages, per surface.** `atSurface` already takes a wording and `LOCALE_TAGS`
+names what this build ships, so the run loops over the tags rather than over a second
+list: a language added to the catalogue is one this reads the day it ships. Sixteen
+measurements instead of eight, each a viewport and a render, on a project that already
+starts a browser.
+
+Not the pseudo-locale, though it is longer still: brackets around every value measure a
+window nobody opens, and a failure there could not be told from one a reader would meet.
+The claim is about the languages this build speaks.
+
+Tab order and the focus ring stay in one language. Neither moves with a translation, and
+the walk is the expensive half of the file.
+
+Done when a surface that fits in English and overflows in Portuguese at 400 wide fails
+`surfaces.browser.test.tsx`.

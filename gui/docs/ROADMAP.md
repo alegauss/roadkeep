@@ -22,11 +22,11 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- 📋 **RG214** (deps: RG213 ✅, RG215 ✅) **no test asks whether a surface scrolls sideways at 400 wide, or whether Tab walks its controls in reading order** — The phone-width rule and RG54's keyboard reach are asserted in jsdom, which has no width to overflow and no real Tab. → §RG214
 - 📋 **RG216** (deps: —) **a count of one is written as a plural, so the portfolio says 1 projetos and 1 lidos** — Every counted sentence has one form per language, and only backlog.refused carries a singular of its own, chosen by hand. → §RG216
 - 📋 **RG221** (deps: —) **the rail draws only Home, so the settings and the sessions are reached through the palette alone** — The rail draws one tile per section from `areaRoute`, and `AREAS` declares its routes on the items inside each section, which the rail never reads. → §RG221
 - 📋 **RG222** (deps: —) **npm run shots builds the shell alone, so a changed screen is photographed from an older renderer bundle** — The command runs `build:app`, which leaves `@rk/ui` unbuilt, and the stale-build guard reads the shell's output alone — so the pictures describe a bundle nobody is looking at. → §RG222
 - 📋 **RG223** (deps: —) **a line's symptom is one letter per line at 400 wide, the column left about ten pixels** — The roadmap tab's row keeps its three desktop columns at every width, and the two fixed ones take more than a phone-width card has. → §RG223
+- 📋 **RG224** (deps: —) **the phone-width run draws every surface in English, so a sentence that overflows only in Portuguese passes** — Measured: with RG215's hero rule removed, two surfaces overflow at 400 in Portuguese and none in English, which is the language the run draws. → §RG224
 
 ## Done when — Block A
 

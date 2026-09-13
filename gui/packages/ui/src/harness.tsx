@@ -28,6 +28,16 @@ import { ProviderStack } from './stack'
  * here is the one thing only a test has — a router with no location bar to start from.
  */
 
+/**
+ * Everything a person can reach with Tab, plus everything that behaves as a control.
+ *
+ * RG54's selector, here since RG214 rather than in `keyboard.test.tsx`, because two runs now
+ * count the same controls: that one reads the shape off a DOM, and `surfaces.browser.test.tsx`
+ * walks them with a real Tab in a browser that lays them out. Written twice, the browser run
+ * could come to pass over a control RG54 still holds.
+ */
+export const FOCUSABLE = 'a[href], button, input, select, textarea, [tabindex], [role="button"]'
+
 /** Where a render starts unless a test says otherwise, which is the one surface so far. */
 const AT_HOME = [HOME_ROUTE]
 
