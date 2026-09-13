@@ -79,32 +79,6 @@ digest is then required to carry that set.
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
 
-### §RG213 A browser project beside jsdom, for what only a layout answers
-
-The `ui` project runs in jsdom, which lays nothing out and fakes its events. RG206's
-follow tests define `scrollHeight` and `clientHeight` on the region by hand, so they
-pass whatever the stylesheet says: a region the CSS never bounds passes them and never
-scrolls in the window.
-
-**A `ui-browser` project.** Vitest Browser Mode with `@vitest/browser-playwright`,
-headless Chromium, over files named `*.browser.test.tsx`, rendered with
-`vitest-browser-react`. It sits beside `ui` in the root config rather than replacing it:
-jsdom stays the fast half for what has no layout. `npm test` keeps to jsdom; `test:live`
-runs the browser project, since it starts a browser, which is the line RG64 drew, and
-the gates table says so.
-
-**The same window.** `drawWindow`, the provider stack and `stubBridge` render unchanged,
-with the app's CSS imported so a class is a real rule.
-
-**The first file proves the move.** RG206's three follow tests move here with nothing
-measured by hand: acts are appended until the bounded region overflows, the reader
-scrolls with the wheel, and `page.viewport` narrows the window to 400 wide.
-
-**CI installs the browser**, `npx playwright install chromium`, beside python.
-
-Done when a region the CSS stops bounding fails `session.browser.test.tsx`, and jsdom's
-copies of those tests are gone.
-
 ### §RG214 Width, Tab order and a visible focus, asserted in a real page
 
 The design system's contract says a page never scrolls sideways at phone width. RG54

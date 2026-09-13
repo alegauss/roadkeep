@@ -105,6 +105,13 @@ jobs:
 
       - run: npm ci
 
+      # RG213: the renderer's layout tests run in headless Chromium through Vitest Browser Mode.
+      # Playwright's browser is a download and not a dependency `npm ci` fetches, so it is put
+      # here beside python — `--with-deps` adds the system libraries a Linux runner lacks.
+      - name: install the browser the layout tests run in
+        run: npx playwright install --with-deps chromium
+        shell: bash
+
       - name: typecheck
         run: npm run typecheck
 

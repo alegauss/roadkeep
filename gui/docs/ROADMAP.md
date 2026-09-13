@@ -22,8 +22,7 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- 📋 **RG213** (deps: RG206 ✅) **the renderer's tests run in jsdom alone, so a test about scroll, overflow or focus order asserts numbers it invented** — jsdom computes no layout and fakes its events, so RG206's follow tests set scrollHeight by hand and pass against any CSS. → §RG213
-- 📋 **RG214** (deps: RG213, RG215) **no test asks whether a surface scrolls sideways at 400 wide, or whether Tab walks its controls in reading order** — The phone-width rule and RG54's keyboard reach are asserted in jsdom, which has no width to overflow and no real Tab. → §RG214
+- 📋 **RG214** (deps: RG213 ✅, RG215) **no test asks whether a surface scrolls sideways at 400 wide, or whether Tab walks its controls in reading order** — The phone-width rule and RG54's keyboard reach are asserted in jsdom, which has no width to overflow and no real Tab. → §RG214
 - 📋 **RG215** (deps: —) **the header and a hero's actions do not fit at 400 wide, so every surface scrolls sideways at phone width** — RG209's pictures show the palette trigger crushed, the ground label clipped and a portfolio action cut, where the contract says a page never scrolls sideways. → §RG215
 - 📋 **RG216** (deps: —) **a count of one is written as a plural, so the portfolio says 1 projetos and 1 lidos** — Every counted sentence has one form per language, and only backlog.refused carries a singular of its own, chosen by hand. → §RG216
 

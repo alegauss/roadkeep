@@ -23,6 +23,9 @@ dist-types/
 # for whoever changed it, regenerated on demand and true of no other clone.
 .shots/
 
+# Vitest Browser Mode writes a screenshot of the page here for every failed layout test (RG213).
+.vitest/
+
 # Electron Builder's output. RG46 is the task that configures it; the directory is
 # named here so a local packaging experiment cannot be committed by accident.
 release/

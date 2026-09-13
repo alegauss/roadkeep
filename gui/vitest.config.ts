@@ -22,6 +22,9 @@ export default defineConfig({
       'packages/shell/vitest.live.config.ts',
       'packages/ui/vite.config.ts',
       'packages/ui/vitest.live.config.ts',
+      // RG213: the renderer's tests that need a layout, in headless Chromium. Live, because
+      // they start a browser.
+      'packages/ui/vitest.browser.config.ts',
     ],
   },
 })

@@ -25,7 +25,13 @@ export default defineConfig({
     // RG64: two of these read the built bundle or run the design system's gate in a child
     // process. They are named `*-live.test.*` and run from `vitest.live.config.ts`, so that
     // `npm test` costs nothing a person would not want to pay between edits.
-    exclude: ['**/node_modules/**', '**/dist/**', 'src/**/*-live.test.{ts,tsx}'],
+    // RG213: and the ones that need a layout run in Chromium from `vitest.browser.config.ts`.
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      'src/**/*-live.test.{ts,tsx}',
+      'src/**/*.browser.test.{ts,tsx}',
+    ],
     setupFiles: ['./src/test-setup.ts'],
   },
 })

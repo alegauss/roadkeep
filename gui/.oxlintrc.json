@@ -212,7 +212,11 @@
       // a command's stdout, an evaluate's answer, a bundle the design system ships — and in
       // a test a wrong assertion is a red test, which is the check the rule would be adding.
       // Held here rather than exempted file by file, the list otherwise being most of them.
-      "files": ["**/*.test.ts", "**/*.test.tsx"],
+      //
+      // `session-harness.ts` is no test's name and every test's code: the session screen's
+      // fixtures, moved out of `session.test.tsx` so the jsdom file and the browser one share
+      // them (RG213). What held for them in a test file holds for them here.
+      "files": ["**/*.test.ts", "**/*.test.tsx", "packages/ui/src/session-harness.ts"],
       "rules": {
         "no-restricted-imports": "off",
         "typescript/no-explicit-any": "off",

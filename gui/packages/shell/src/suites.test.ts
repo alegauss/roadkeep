@@ -51,6 +51,8 @@ const REACHES_OUT: readonly { readonly what: string; readonly found: RegExp }[] 
   // Patterns and not substrings: `'dist'` also appears as a value in an ignore list, and a
   // test that names a directory it never walks into has not reached anywhere.
   { what: 'the built bundle', found: /path\.join\([^)]*'dist'/ },
+  // RG213: the renderer's layout tests run in a real browser Playwright starts.
+  { what: 'a browser', found: /from 'vitest\/browser'/ },
 ]
 
 /**
@@ -70,8 +72,13 @@ function testFilesUnder(root: string): string[] {
 
 const EVERY_TEST = ROOTS.flatMap(testFilesUnder)
 
+/**
+ * Named for the live suite: `*-live.test.*`, or `*.browser.test.*` for the renderer's tests that
+ * run in Chromium (RG213), which start a browser and run under `npm run test:live` too.
+ */
 function isLive(file: string): boolean {
-  return path.basename(file).includes('-live.test.')
+  const name = path.basename(file)
+  return name.includes('-live.test.') || name.includes('.browser.test.')
 }
 
 function reachesOut(file: string): string[] {

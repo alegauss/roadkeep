@@ -3,6 +3,7 @@
 release/
 node_modules/
 .shots/
+.vitest/
 
 # The engine CI checks out at the workspace root so the live tests have something to spawn
 # (RG111) — a whole repository of them, and Prettier walks from the root exactly as oxlint

@@ -2,16 +2,10 @@ import {
   DECLARES_NOTHING,
   BASE,
   bridgedRun,
-  EngineCallFailed,
   fill,
   openedFrom,
   openProject,
-  readBriefPayload,
   type HandedOver,
-  type SessionRecord,
-  type Topic,
-  type TopicEvents,
-  type Transport,
   BASE_LOCALE,
   timeIn,
   EVERY_SOURCE,
@@ -26,6 +20,7 @@ import i18next, { changeLanguage } from 'i18next'
 
 import { drawWindow } from './harness'
 import { holdSessionNotes } from './preferring'
+import { at, CHANGED, engine, FILES, hear, KEY, RECORD, ROOT, SAID, USED } from './session-harness'
 import { startSpeaking } from './speaking'
 import { stubBridge } from './stub-bridge'
 
@@ -36,227 +31,9 @@ import { stubBridge } from './stub-bridge'
  * is running, and the session topic to hear it on — over the same engine the task test builds.
  * What is held is that the stream is drawn as acts off the raw lines, that a line heard after
  * the record lands in its place, and that what moved comes from a reread and not from the
- * session's own account.
+ * session's own account. The engine, the record and the bridge are `session-harness`'s, shared
+ * with the browser project's file (RG213).
  */
-
-const ROOT = 'D:\\code\\alpha'
-const KEY = 'session-1'
-
-const key = (table: string, name: string, set: string | null, fallback: string | null = null) => ({
-  table,
-  key: name,
-  address: `${table}.${name}`,
-  declared: set !== null,
-  set,
-  default: fallback,
-})
-
-/** The brief the session was handed: the claiming read's answer, marker moved. */
-const RAW = {
-  id: 'AL1',
-  status: '🛠',
-  block: 'A',
-  shipped: false,
-  rendered: '- 🛠 **AL1** **a line ready to start** — It is. → §AL1',
-  symptom: 'a line ready to start',
-  why: 'It is.',
-  deps: ['AL0 ✅'],
-  requires: [],
-  ref: 'AL1',
-  section: {
-    anchor: 'AL1',
-    title: 'One read',
-    level: 3,
-    file: 'docs/IMPROVEMENTS.md',
-    first: 1,
-    last: 9,
-    words: 120,
-    own_words: 120,
-    body: 'The design.',
-  },
-  section_absence: '',
-  readiness: 'ready',
-  deps_resolved: [{ dep: 'AL0', kind: 'task', status: 'shipped', detail: '' }],
-  non_goals: ['No Markdown parsed in this app'],
-  done_when: ['A session starts from a brief, not from a prompt somebody typed'],
-  held: [],
-  claimed: { taken: true, from: '📋', to: '🛠' },
-}
-
-/** The line as it reads now: shipped, which is what the files say and the stream does not. */
-const SHIPPED = { ...RAW, status: '✅', shipped: true, section: null }
-
-/** The record carries the payload as the bridge read it, so the fixture is read the same way. */
-function handed() {
-  const parsed = readBriefPayload(RAW, '')
-  if (!parsed.ok) throw new Error(`the fixture does not match the shape: ${parsed.failure.path}`)
-  return parsed.value
-}
-
-const RECORD: SessionRecord = {
-  key: KEY,
-  root: ROOT,
-  id: 'AL1',
-  handed: handed(),
-  agent: { command: ['claude'], version: '2.1.263', said: '2.1.263 (Claude Code)' },
-  lines: [JSON.stringify({ type: 'system', subtype: 'init', session_id: 'fake' })],
-  outcome: null,
-}
-
-/** A call to the engine this project resolved, and a read of a file it governs. */
-const USED = JSON.stringify({
-  type: 'assistant',
-  message: {
-    content: [
-      {
-        type: 'tool_use',
-        id: 't1',
-        name: 'Bash',
-        input: { command: 'roadkeep ship AL1 --why "it works"', description: 'ship it' },
-      },
-      { type: 'tool_use', id: 't2', name: 'Read', input: { file_path: 'docs/ROADMAP.md' } },
-    ],
-  },
-})
-
-const SAID = JSON.stringify({
-  type: 'assistant',
-  message: { content: [{ type: 'text', text: 'Working it now.' }] },
-})
-
-function engine(moved: { shipped: boolean }): Transport {
-  return {
-    run(request) {
-      const verb = request.argv[2] ?? ''
-      const id = request.argv[3] ?? ''
-      const said = (value: unknown) =>
-        Promise.resolve({ code: 0, stdout: JSON.stringify(value), stderr: '', durationMs: 1 })
-      switch (verb) {
-        case 'engines':
-          return said({
-            writing: { version: '0.2.400', home: '/e', revision: 'abc', on_disk: '0.2.400' },
-            invoke: 'roadkeep',
-            declaration: '',
-            verdict: 'agreed',
-            agree: true,
-            readable: true,
-            split: false,
-            swapped: false,
-          })
-        case 'config':
-          return said({
-            version: '0.2.400',
-            source: 'roadkeep.toml',
-            keys: [
-              key('files', 'roadmap', '"docs/ROADMAP.md"'),
-              key('markers', 'open', '["📋", "🛠"]'),
-              key('markers', 'working', null, '"🛠"'),
-            ],
-          })
-        case 'commands':
-          return said({ version: '0.2.400', source: null, commands: [] })
-        case 'claims':
-          return said({
-            window: 60,
-            registry: 'C:\\Temp\\roadkeep-alpha.state',
-            held: 2,
-            claims: [
-              // This session's own line, which is not somebody else being on something.
-              { id: 'AL1', state: 'held', where: 'open', age: 60, since: '1m', marker: '🛠' },
-              { id: 'AL7', state: 'held', where: 'open', age: 900, since: '15m', marker: '🛠' },
-              { id: 'AL8', state: 'expired', where: 'open', age: 9000, since: '2h', marker: '🛠' },
-            ],
-          })
-        case 'brief':
-          if (id === 'AL2') return said({ ...RAW, id, status: '📋', held: [HOLDER] })
-          return said(moved.shipped ? SHIPPED : RAW)
-        default:
-          return Promise.reject(new EngineCallFailed('unspawnable', 'no', 1))
-      }
-    },
-  }
-}
-
-const HOLDER = { by: 'another session', since: 'an hour ago', state: 'held', paths: [] }
-
-/** What the disk says about the files this project governs, as main answers it. */
-const CHANGED = '2026-09-11T10:00:00.000Z'
-const FILES = [
-  { role: 'roadmap', path: 'docs/ROADMAP.md', changed: CHANGED, present: true },
-  { role: 'decisions', path: 'docs/DECISIONS.md', changed: '', present: false },
-]
-
-interface Listening {
-  readonly topic: Topic
-  readonly key: string
-  readonly heard: (event: TopicEvents[Topic]) => void
-}
-
-interface Wired {
-  readonly listeners: Listening[]
-  readonly stopped: string[]
-  readonly handedOver: string[]
-  /** What `sessions` answers next, which main moves under a standing list (RG178). */
-  holds: SessionRecord[]
-}
-
-async function at(
-  path: string,
-  over: {
-    readonly sessions?: readonly SessionRecord[]
-    readonly handOver?: HandedOver
-    readonly shipped?: boolean
-  } = {},
-): Promise<Wired> {
-  const moved = { shipped: over.shipped ?? false }
-  const transport = engine(moved)
-  const opened = openedFrom(await openProject(ROOT, [['roadkeep']], () => transport))
-  const wired: Wired = { listeners: [], stopped: [], handedOver: [], holds: [] }
-  // What this window holds, which a handover adds to — the state RG175 reads to decide
-  // whether the line is offered again, and which a test can move under a standing list
-  // the way main does (RG178).
-  const held = [...(over.sessions ?? [])]
-  wired.holds = held
-
-  Object.defineProperty(window, 'roadkeep', {
-    value: stubBridge({
-      projects: () => Promise.resolve({ version: 1, roots: [], projects: [] }),
-      open: () => Promise.resolve(opened),
-      run: (root, request) => bridgedRun(() => transport.run({ ...request, root })),
-      subscribe: (topic, one, heard) => {
-        const listening = { topic, key: one, heard: heard as Listening['heard'] }
-        wired.listeners.push(listening)
-        return () => {
-          wired.listeners.splice(wired.listeners.indexOf(listening), 1)
-        }
-      },
-      sessions: () => Promise.resolve([...held]),
-      governedAt: () => Promise.resolve(FILES),
-      handOver: (_root, id) => {
-        wired.handedOver.push(id)
-        const answer = over.handOver ?? { kind: 'withheld' as const, reason: 'nothing asked' }
-        if (answer.kind === 'started') held.push(answer.session)
-        return Promise.resolve(answer)
-      },
-      stopSession: (one) => {
-        wired.stopped.push(one)
-        return Promise.resolve()
-      },
-    }),
-    configurable: true,
-  })
-  drawWindow({ at: path })
-  return wired
-}
-
-/** Say one event on a topic, as main would. */
-function hear(wired: Wired, topic: Topic, event: TopicEvents[Topic]): void {
-  act(() => {
-    for (const one of wired.listeners.filter((listening) => listening.topic === topic)) {
-      one.heard(event)
-    }
-  })
-}
 
 afterEach(() => {
   Reflect.deleteProperty(window, 'roadkeep')
@@ -484,79 +261,6 @@ describe('RG208: system notes folded by choice', () => {
       ])
     })
     expect(screen.queryByTestId('folded')).toBeNull()
-  })
-})
-
-describe('RG206: a stream that follows its end', () => {
-  /** Each act 200 tall in a region showing 150, since jsdom lays nothing out. */
-  function measured(region: HTMLElement): void {
-    Object.defineProperty(region, 'scrollHeight', {
-      configurable: true,
-      get: () => screen.getAllByTestId('act').length * 200,
-    })
-    Object.defineProperty(region, 'clientHeight', { configurable: true, value: 150 })
-  }
-
-  async function streaming() {
-    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
-    const region = await screen.findByTestId('stream')
-    measured(region)
-    return { wired, region }
-  }
-
-  it('keeps the newest act in view while the reader is at the end', async () => {
-    const { wired, region } = await streaming()
-
-    hear(wired, 'session', { session: KEY, index: 1, line: USED })
-
-    // Three acts now, the tool line carrying two: the region is at its new end.
-    await waitFor(() => {
-      expect(region.scrollTop).toBe(600)
-    })
-    expect(screen.queryByRole('button', { name: BASE['session.follow'] })).toBeNull()
-  })
-
-  it('leaves a reader who scrolled up where they are, and says what arrived since', async () => {
-    const { wired, region } = await streaming()
-
-    region.scrollTop = 0
-    fireEvent.scroll(region)
-    expect(await screen.findByRole('button', { name: BASE['session.follow'] })).toBeTruthy()
-
-    hear(wired, 'session', { session: KEY, index: 1, line: USED })
-
-    const back = await screen.findByRole('button', {
-      name: fill(BASE['session.follow.since'], { count: 2 }),
-    })
-    // Not pulled down: the next line landed and the reader is still where they put themselves.
-    expect(region.scrollTop).toBe(0)
-
-    fireEvent.click(back)
-
-    expect(region.scrollTop).toBe(600)
-    await waitFor(() => {
-      expect(screen.queryByRole('button', { name: /Jump to latest/ })).toBeNull()
-    })
-  })
-
-  it('follows again once the reader scrolls back to the end by hand', async () => {
-    const { wired, region } = await streaming()
-
-    region.scrollTop = 0
-    fireEvent.scroll(region)
-    await screen.findByRole('button', { name: BASE['session.follow'] })
-
-    // One act 200 tall shown 150 at a time: fifty down is its end.
-    region.scrollTop = 50
-    fireEvent.scroll(region)
-    await waitFor(() => {
-      expect(screen.queryByRole('button', { name: BASE['session.follow'] })).toBeNull()
-    })
-
-    hear(wired, 'session', { session: KEY, index: 1, line: SAID })
-    await waitFor(() => {
-      expect(region.scrollTop).toBe(400)
-    })
   })
 })
 
