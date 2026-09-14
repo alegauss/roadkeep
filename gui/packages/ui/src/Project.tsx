@@ -152,11 +152,13 @@ function Line({
   const say = useWording()
   return (
     <li
-      // One column below `sm` (RG223): the two fixed columns are 17rem before the gaps, which
-      // at 400 wide left the symptom about ten pixels and set it one letter per line. Stacked,
-      // reading order is already the order the cells are written in, so only the shape moves —
-      // and the gap tightens, the row's own padding being 12.
-      className="grid grid-cols-1 gap-2 border-t px-5 py-3 first:border-t-0 sm:grid-cols-[6rem_minmax(0,1fr)_11rem] sm:gap-4"
+      // Three columns, and one below `sm` (RG223) — written as the desktop grid with a
+      // `max-sm:` override, never `grid-cols-1` with an `sm:` one (RG229). The design system's
+      // stylesheet ships `grid-cols-1` and `gap-2` in the utilities layer after this app's, so
+      // a base class it also holds beats a responsive one at every width: RG223's rows were
+      // stacked at 1280. The arbitrary grid is a class it cannot hold, and the gap needs no
+      // variant — a stacked row has only vertical gaps and a gridded one only horizontal.
+      className="grid grid-cols-[6rem_minmax(0,1fr)_11rem] gap-x-4 gap-y-2 border-t px-5 py-3 first:border-t-0 max-sm:grid-cols-1"
       data-testid="line"
       data-id={line.id}
     >

@@ -454,19 +454,21 @@ describe('RG149: the other governed files, as tabs', () => {
     })
   })
 
-  it('stacks a line and a ledger entry alike below sm, so four tabs are one screen (RG223)', async () => {
-    // The roadmap tab's row is what RG223 was filed for and what `npm run shots` photographs;
-    // the other three tabs are one shared `Entry`, and no capture opens them. So what is held
-    // here is that both rows carry the one shape: a column below `sm`, the desktop grid above
-    // it. A class and not a measurement — the measuring is RG214's, in a browser.
+  it('writes a line and a ledger entry in the responsive form that wins (RG223, RG229)', async () => {
+    // Not a layout check — that is `surfaces.browser.test.tsx`, measured, since RG223's version
+    // of this asserted `grid-cols-1 sm:grid-cols-[…]` and the rows carrying exactly that were
+    // stacked at 1280. The design system ships `grid-cols-1` after this app's utilities, so a
+    // base class it holds beats an `sm:` override. What is held here is the form: the desktop
+    // grid as the base and `max-sm:` over it, on both rows, and never the form that loses. The
+    // entry is held this way because no fixture opens the changelog in a browser.
     await atProject()
     const [line] = await screen.findAllByTestId('line')
     await onTab('changelog')
     const [entry] = await screen.findAllByTestId('entry')
 
     for (const row of [line as HTMLElement, entry as HTMLElement]) {
-      expect(row.className).toContain('grid-cols-1')
-      expect(row.className).toContain('sm:grid-cols-[6rem_minmax(0,1fr)')
+      expect(row.className).toContain('max-sm:grid-cols-1')
+      expect(row.className).not.toMatch(/(^|\s)(grid-cols-1|sm:grid-cols-)/)
     }
   })
 

@@ -80,3 +80,31 @@ digest is then required to carry that set.
 
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
+
+### §RG230 The class pair that cannot win, found
+
+`index.css` imports Tailwind and then `@viglet/viglet-design-system/styles`, which carries its
+own compiled utilities in the same `utilities` layer, declared after the app's. So on one
+element, a base class the package also ships beats a responsive class for the same property,
+at every width. RG229 measured it three ways: `grid-cols-1 sm:grid-cols-[…]` stayed one
+column at 1280, `hidden sm:grid` stayed hidden, and `grid max-sm:hidden` stayed visible at
+400. Nothing reported any of it — the classes read correctly, and RG223's own test asserted
+them.
+
+Layout tests see it only where a surface is measured at both widths. The pair is
+findable.
+
+**A scan of the renderer's class strings, beside `check-duplicates`.** For every class
+attribute, split the classes into base and responsive (`sm:`, `md:`, `lg:`, `xl:`,
+`max-*:`); map each to the CSS property it sets; and fail a responsive class whose
+property is also set by a base class that appears in the package's compiled stylesheet.
+The package stylesheet is on disk, so which classes it ships is read rather than listed.
+The answer names the file, the two classes and the form that works: the desktop value as
+a class the package cannot hold, and `max-sm:` over it, or a wrapper that carries the
+responsive class alone.
+
+Property mapping is the part to keep small: display, grid-template-columns, gap, and the
+alignment utilities are what this app varies by width today.
+
+Done when `grid-cols-1 sm:grid-cols-[…]` in any renderer file fails the lint with its
+fix named.

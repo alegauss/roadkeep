@@ -1,5 +1,5 @@
 import { LOCALE_TAGS, type Theme } from '@rk/core'
-import { waitFor } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
@@ -265,5 +265,44 @@ describe('RG214: the focus is visible, in both grounds', () => {
     // own answers the first question without ever having said where the focus is.
     expect({ ground, drawn: isDrawn(focused) }).toEqual({ ground, drawn: true })
     expect(focused).not.toEqual(unfocused)
+  })
+})
+
+/**
+ * RG229: a project's lines, three columns wide and one column narrow — measured.
+ *
+ * RG223 stacked the rows below `sm` and was held by a test of two class strings. The rows
+ * carrying those strings were stacked at 1280 as well, because the design system's stylesheet
+ * declares `grid-cols-1` after this app's utilities and a base class beats a responsive one.
+ * Only a browser applies the cascade, so this is where the columns are read.
+ */
+describe('RG229: a project line is gridded wide and stacked narrow', () => {
+  const PROJECT = everyRoute().find(
+    (route) => route.startsWith('/project/') && !route.includes('/', 9),
+  )
+
+  /** The line's first two cells: its marker and id, then its symptom and why. */
+  async function cells(): Promise<[DOMRect, DOMRect]> {
+    if (PROJECT === undefined) throw new Error('the router serves no project surface')
+    await atSurface(PROJECT)
+    const [row] = await screen.findAllByTestId('line')
+    const [id, symptom] = [...(row as HTMLElement).children]
+    if (id === undefined || symptom === undefined)
+      throw new Error('a line drew fewer than two cells')
+    return [id.getBoundingClientRect(), symptom.getBoundingClientRect()]
+  }
+
+  it('puts the symptom beside the id at 1280', async () => {
+    const [id, symptom] = await cells()
+
+    expect(symptom.left).toBeGreaterThanOrEqual(id.right)
+    expect(Math.abs(symptom.top - id.top)).toBeLessThan(id.height)
+  })
+
+  it('puts the symptom under the id at 400', async () => {
+    await page.viewport(PHONE.width, PHONE.height)
+    const [id, symptom] = await cells()
+
+    expect(symptom.top).toBeGreaterThanOrEqual(id.bottom)
   })
 })
