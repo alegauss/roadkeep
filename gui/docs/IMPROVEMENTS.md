@@ -79,34 +79,6 @@ digest is then required to carry that set.
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
 
-### §RG221 A rail that reaches every area it holds
-
-`BentoNavRail` draws one tile per **section**, from `section.areaRoute` and
-`section.icon`, and its first act is `groups.filter((group) =>
-!!group.section.areaRoute)`. `AREAS` declares its three sections with an `id` and a
-`labelKey` and puts the route and the icon on the *items* inside them — which the rail
-never reads. So the rail is the Home tile and nothing else, and the settings and the
-sessions are reached by the palette or by typing a route.
-
-The palette does reach them, which is why this has been invisible: `surfacesIn(AREAS)`
-flattens the items and the palette lists all three. A reader who has not learnt `Ctrl K`
-has one button in a nav that is the design system's primary one.
-
-**Each section carries its own route and icon.** `backlogs` is the portfolio at `/`,
-which is where the Home tile already leads — so that group's tile is the duplicate to
-drop rather than draw twice. `work` is `SESSIONS_ROUTE` with `IconTerminal2` and `app`
-is `SETTINGS_ROUTE` with `IconSettings`, the icons their single items already name.
-
-The label under each tile is `section.labelKey`, which the three sections already
-declare and the catalogue already holds.
-
-**Below `md` the rail is gone by contract**, so the palette stays the narrow window's
-nav and nothing here changes that.
-
-Done when the rail draws a tile for the sessions and one for the settings, each leading
-to its surface and named in both languages, and `artboards.test.tsx` holds the drawings
-to the same chrome.
-
 ### §RG222 Pictures of the tree the run was asked about
 
 `npm run shots` is `npm run build:app && node packages/shell/dist/shots.js`, and
@@ -186,28 +158,54 @@ the walk is the expensive half of the file.
 Done when a surface that fits in English and overflows in Portuguese at 400 wide fails
 `surfaces.browser.test.tsx`.
 
-### §RG226 A gate assertion that waits on a fact
+### §RG226 Two gate assertions that wait on a fact
 
-`carrier.test.ts` turned red once during RG217 on RG166's *gates a project it just
-opened, without the opening waiting for it*, and was green on the next four runs — twice
-alone and twice whole. Nothing in RG217 touches the carrier, so what moved was timing.
+Two, one task apart. `carrier.test.ts` turned red during RG217 on RG166's *gates a
+project it just opened*; `shots-live.test.ts` turned red during RG221 on RG211's axe
+scan, which took 39 seconds in that run. Each was green on every run after, alone and
+whole, and neither task touches what its test is about.
 
-The claim is about a race by construction: the opening hands back before the gate has
-run, and the test then waits for the gate to have run. A wait with a ceiling passes on a
-fast machine and fails on a loaded one, which is what a suite of 1600 tests on a busy
-laptop is.
+Both are races by construction: the opening hands back before the gate has run, the scan
+is a browser doing work, and each test waits with a ceiling. A ceiling passes on a fast
+machine and fails on a loaded one, which is what 1600 tests on a busy laptop make.
 
 **What this costs is the gate's meaning.** A red run that means nothing teaches a reader
-to run it again, and the next red one — a real one — is read the same way. One flaky
-test is how a suite stops being believed.
+to run it again, and the next red one — a real one — is read the same way. A flaky test
+is how a suite stops being believed.
 
-The fix is to make the wait a fact rather than a deadline: the carrier knows when the
-gate it started has settled, so the test waits on that rather than on the answer
-appearing within some number of milliseconds. Whether the carrier already exposes it,
-and what it would take to, is the first thing to read.
+The fix is to wait on a fact rather than on a deadline: the carrier knows when the gate
+it started has settled, and the scan knows when axe has answered. Whether either already
+says so, and what it would take, is the first thing to read.
 
 Not a rerun and not a longer timeout: both make the failure rarer and neither makes it
 mean something.
 
-Done when the assertion waits on the carrier saying the gate has run, and a hundred runs
-of the fast suite are green.
+Done when each assertion waits on the thing it is about having happened, and a hundred
+runs of the fast suite are green.
+
+### §RG227 The rail, held to its drawing
+
+RG127 holds the drawings to the window by marking each drawn control with `data-control`
+and each region with `data-region`, and `artboards.test.tsx` renders the window and asks
+the two to agree. It reaches the header, control for control. It does not reach the
+rail: no tile in `Shell.dc.html` carries a mark, so the drawing's rail and the window's
+are never compared.
+
+They differ. The drawing gives the rail five tiles — a grid, a list, a document, an
+arrow, and a gear at the foot — and the window draws three: Home, the sessions and the
+settings, which is what RG221 made it draw. Before RG221 it drew one, and the drawing
+said five then too.
+
+Neither is marked *planned* by the file's own convention, which is a dashed border:
+these are drawn solid, so the drawing asserts a rail that has never existed.
+
+**So mark the rail's tiles and let the test fail, then redraw.** The mark is the
+section's own id — `data-control="rail-work"` and the like. `BentoNavRail` renders the
+package's markup, so the window's side reads the rail's links by their route rather than
+by a `data-testid` this app cannot add.
+
+The two tiles the drawing has and the window does not are the interesting half: whether
+either is a surface somebody meant to build is a question for whoever redraws it.
+
+Done when `artboards.test.tsx` compares the rail as it compares the header, and the
+drawing draws the three tiles the window draws.

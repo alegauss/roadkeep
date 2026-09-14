@@ -1,4 +1,4 @@
-import { BASE } from '@rk/core'
+import { BASE, SESSIONS_ROUTE, SETTINGS_ROUTE } from '@rk/core'
 import { bentoNavTarget } from '@viglet/viglet-design-system/bento'
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -173,5 +173,57 @@ describe('RG63: the map is this app`s and it is one array', () => {
     const railed = AREAS.flatMap((group) => group.items.map((item) => item.id))
 
     expect(surfacesIn(AREAS).map((item) => item.id)).toEqual(railed)
+  })
+})
+
+/**
+ * RG221: what the rail actually reaches.
+ *
+ * `BentoNavRail` draws Home and then one tile per **section**, from `section.areaRoute` and
+ * `section.icon` — its first act is to drop every group whose section declares no route.
+ * `AREAS` carried the routes on the *items* inside each section, which the rail never reads,
+ * so the rail was the Home button alone and the settings and the sessions were reached by the
+ * palette or by typing a route. The palette does reach them, which is why it went unseen.
+ */
+describe('RG221: the rail reaches the surfaces about no project', () => {
+  /** Every link the rail draws, by the name a reader hears. */
+  function railed(): string[] {
+    const rail = document.querySelector('nav')
+    if (rail === null) throw new Error('the shell drew no rail')
+    return [...rail.querySelectorAll('a')].map(
+      (link) => link.getAttribute('aria-label') ?? link.textContent.trim(),
+    )
+  }
+
+  it('draws a tile for the sessions and one for the settings, beside Home', async () => {
+    drawWindow()
+    await waitFor(() => {
+      expect(railed().length).toBeGreaterThan(1)
+    })
+
+    // By their section's label and not their item's: the rail is a strip of sections, which
+    // is the package's own contract — `Work` leads to the sessions and `This app` to the
+    // settings, each the one surface its section holds.
+    expect(railed()).toEqual(['Home', 'Work', 'This app'])
+  })
+
+  it('points each tile at the surface its section names', () => {
+    drawWindow()
+    const rail = document.querySelector('nav')
+    const targets = [...(rail?.querySelectorAll('a') ?? [])].map((link) =>
+      (link.getAttribute('href') ?? '').replace(/^#/, ''),
+    )
+
+    expect(targets).toContain(SESSIONS_ROUTE)
+    expect(targets).toContain(SETTINGS_ROUTE)
+  })
+
+  it('draws no second tile for the portfolio, which is where Home already leads', () => {
+    // The one section deliberately without a route: a rail with two buttons to one screen
+    // is worse than the rail that reached nothing.
+    const withRoutes = AREAS.filter((group) => group.section.areaRoute !== undefined)
+
+    expect(withRoutes.map((group) => group.section.id)).toEqual(['work', 'app'])
+    expect(AREAS.every((group) => group.section.labelKey !== undefined)).toBe(true)
   })
 })

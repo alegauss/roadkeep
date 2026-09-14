@@ -75,6 +75,10 @@ export function sessionPath(root: string, id: string, key: string): string {
  */
 export const AREAS: BentoNavGroup[] = [
   {
+    // No `areaRoute`, so the rail draws no tile for this one (RG221). `BentoNavRail` lists
+    // Home and then a tile per section that declares a route, and this section's surface is
+    // the portfolio at `/` — which is where the Home tile already leads. A second button to
+    // the same screen is the one thing worse than a rail that reaches nothing.
     section: { id: 'backlogs', labelKey: 'areas.backlogs' },
     items: [
       {
@@ -90,7 +94,14 @@ export const AREAS: BentoNavGroup[] = [
     ],
   },
   {
-    section: { id: 'work', labelKey: 'areas.work' },
+    // The route and the icon the rail reads, beside the ones its single item carries for
+    // the palette and a hub (RG221): the rail draws sections and never leaves.
+    section: {
+      id: 'work',
+      labelKey: 'areas.work',
+      icon: IconTerminal2,
+      areaRoute: SESSIONS_ROUTE,
+    },
     items: [
       {
         id: 'sessions',
@@ -105,7 +116,12 @@ export const AREAS: BentoNavGroup[] = [
     ],
   },
   {
-    section: { id: 'app', labelKey: 'areas.app' },
+    section: {
+      id: 'app',
+      labelKey: 'areas.app',
+      icon: IconSettings,
+      areaRoute: SETTINGS_ROUTE,
+    },
     items: [
       {
         id: 'settings',
