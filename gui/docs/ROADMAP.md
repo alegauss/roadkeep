@@ -20,6 +20,9 @@
 
 ## Block H — The look (a design system for governed prose)
 
+- 📋 **RG232** (deps: —) **a task test failed once inside a full run and left no message, so nobody can tell what it waited on** — A fast run keeps nothing when a test goes red, and RG226 shipped on four green runs where its own done-when asked for a hundred. → §RG232
+- 📋 **RG233** (deps: —) **CLAUDE.md and the roadmap skill give opposite commit rules, and both are loaded every turn** — CLAUDE.md sends a commit through run-commit.cmd, whose git add * sweeps up a parallel session's files in this shared checkout, which is why the skill forbids it. → §RG233
+
 ## Done when — Block A
 
 - **The client runs with no Electron and no React** The transport is one interface, so

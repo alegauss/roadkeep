@@ -53,3 +53,55 @@ digest is then required to carry that set.
 
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
+
+### §RG232 The one-off failure, kept
+
+During RG226 one full `npm test` drew `task.test.tsx`'s *leads from Open to the line at
+its own route* red. It was green alone and green since: six runs of the file, and four
+whole fast suites, all under load. The message is gone — a fast run prints a failure and
+keeps nothing.
+
+RG226 fixed three tests of this shape by finding what each really waited on: a gate that
+had not run, a directory Windows announced, a process still standing. Its done-when
+asked for a hundred green fast runs and it shipped on four, so this is the part nobody
+has shown.
+
+**The first move is to keep the evidence, not to guess.** The suite can write a
+machine-readable report per run, so a failure that happens once leaves its message and
+its assertion behind. Then run the fast suite under load until the test goes red.
+
+Fix it where RG226 fixed the others: `findByRole` waits on a deadline, and a deadline on
+a loaded worker is what breaks, but what it should wait on is the click reaching the
+route — a fact the router can be asked for.
+
+And if twenty loaded runs stay green, say so on the line with the number: a one-off
+closed with its evidence beats a timeout raised to bury it.
+
+Done when the test has been made to fail on purpose and then waits on a fact, or the
+line is closed as unreproducible with the count of runs behind it.
+
+### §RG233 One commit rule, not two
+
+`CLAUDE.md`'s *One task, one commit* says `run-commit.cmd -m "<title>"`, never `git
+commit` by hand. The `roadkeep-gui-roadmap-docs` skill says the opposite and gives its
+reason: `git add -- <this task's paths>` then `git commit -F <message file>`, "not
+`run-commit.cmd`, whose `git add *` takes the whole tree", because another session works
+this same checkout. That happened on 2026-09-09: one commit carried another session's
+docs, and both messages then described something they did not hold.
+
+Both files are loaded every turn, so whichever is read first decides, and the reader
+cannot tell which is stale. Every commit in block H followed the skill.
+
+**The skill's rule is the one with a measurement behind it, so `CLAUDE.md`'s row is what
+gives way.** Its commit row should say one task one commit, staged by its own paths, and
+name the shared checkout as the reason — short, since the long form is the skill's job.
+
+What is lost is worth saying: `run-commit.cmd` writes the commit body from the staged
+diff, and staging by path means writing it by hand. That is a trade to state in the row,
+not to leave for the next reader to rediscover.
+
+The other way out is a tool that stages only the paths it is given, which would let both
+files agree on `run-commit.cmd`. It lives outside this repo, in `D:\Dev\bin`, so it is
+not this line's to change — name it and leave it.
+
+Done when the two say one thing and the row names why.
