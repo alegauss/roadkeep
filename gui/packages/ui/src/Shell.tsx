@@ -244,17 +244,23 @@ export function AppShell() {
         {/*
          * Hidden below `sm`: a sheet of keyboard shortcuts is for a window with a keyboard,
          * and `?` is the key that opens it (RG215).
+         *
+         * On a wrapper and not on the button (RG231). The design system's `Button` merges its
+         * own `inline-flex` onto the element, the package's stylesheet declares that after this
+         * app's utilities and ships no `max-sm:hidden` — so on the button itself the `?` stayed
+         * at every width. The span carries no `display` class for the package to outrank.
          */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="max-sm:hidden"
-          onClick={openShortcuts}
-          aria-label={say('shell.shortcuts')}
-          data-testid="shortcuts"
-        >
-          <kbd className="font-mono text-xs">?</kbd>
-        </Button>
+        <span className="max-sm:hidden">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={openShortcuts}
+            aria-label={say('shell.shortcuts')}
+            data-testid="shortcuts"
+          >
+            <kbd className="font-mono text-xs">?</kbd>
+          </Button>
+        </span>
 
         {/*
          * The language, beside the ground, which is where `authoring.md` puts a second

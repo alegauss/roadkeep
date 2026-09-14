@@ -53,29 +53,3 @@ digest is then required to carry that set.
 
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
-
-### §RG231 The shortcuts button, hidden by a wrapper
-
-RG215 hid the shortcuts button below `sm`, since a sheet of keyboard shortcuts is for a
-window with a keyboard. It wrote `className="max-sm:hidden"` on the design system's
-`Button` — and every 400-wide picture since draws the `?` beside the palette trigger.
-
-RG230's measurement says why. The `Button` merges its own classes onto the same element,
-and `inline-flex` is one: the package's stylesheet ships `inline-flex`, declared after
-this app's utilities, and ships no `max-sm:hidden`. So `inline-flex` wins at every
-width. The class pair is real, but half of it is inside the component, which is the one
-shape RG230's scan of this app's source says it cannot see.
-
-**A wrapper carries the width, and the button carries nothing about it.** The same form
-the sessions list's heading row took: `<span className="max-sm:hidden">` around the
-`Button`, holding no `display` class for the package to outrank. The header's flex row
-lays a span out as it laid the button out, so the wide header does not move.
-
-`surfaces.browser.test.tsx`'s Tab walk reads only what is visible and would pass either
-way, so the claim goes in beside it: at 400 wide the shortcuts control is not visible,
-and at 1280 it is.
-
-The header's other width-dependent parts are spans and work today; hold them in the same
-test, so the next one gets a line rather than a picture somebody happens to read.
-
-Done when the `?` is gone at 400 wide and still there at 1280, measured.

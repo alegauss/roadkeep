@@ -20,8 +20,6 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- 📋 **RG231** (deps: —) **the shortcuts button still shows at 400 wide, which RG215 meant to hide** — Its max-sm:hidden sits on the design system's Button, whose own inline-flex the package ships after this app's utilities, so the button stays at every width. → §RG231
-
 ## Done when — Block A
 
 - **The client runs with no Electron and no React** The transport is one interface, so

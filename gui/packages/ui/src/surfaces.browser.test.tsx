@@ -306,3 +306,37 @@ describe('RG229: a project line is gridded wide and stacked narrow', () => {
     expect(symptom.top).toBeGreaterThanOrEqual(id.bottom)
   })
 })
+
+/**
+ * RG231: the header's width-dependent parts, each where RG215 put it.
+ *
+ * RG215 hid the shortcuts button below `sm` on the design system's `Button`, whose own
+ * `inline-flex` the package declares after this app's utilities — so the `?` stayed at 400
+ * wide, and the Tab walk above, which reads only what is visible, passed either way. Every part
+ * of the header that changes with the width is held here, so the next one is a line in this
+ * table rather than a picture somebody happens to read.
+ */
+describe('RG231: the header at each width', () => {
+  /** Each part, and whether it is drawn at 400 and at 1280. */
+  const PARTS: readonly (readonly [string, string, boolean, boolean])[] = [
+    ['the shortcuts button', '[data-testid="shortcuts"]', false, true],
+    ["the ground's name", '[data-region="ground-said"]', false, true],
+    ["the ground's short name", '[data-region="ground-said-short"]', true, false],
+  ]
+
+  it.each(PARTS)('draws %s only where it belongs', async (_, selector, narrow, wide) => {
+    for (const [width, drawn] of [
+      [PHONE.width, narrow],
+      [DESKTOP.width, wide],
+    ] as const) {
+      await page.viewport(width, PHONE.height)
+      const { unmount } = await atSurface(HOME_ROUTE)
+      const part = document.querySelector(selector)
+      if (part === null) throw new Error(`the header drew no ${selector}`)
+
+      expect({ width, drawn: part.checkVisibility() }).toEqual({ width, drawn })
+      unmount()
+      Reflect.deleteProperty(window, 'roadkeep')
+    }
+  })
+})
