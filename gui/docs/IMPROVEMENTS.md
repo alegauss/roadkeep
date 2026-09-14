@@ -54,30 +54,28 @@ digest is then required to carry that set.
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
 
-### §RG230 The class pair that cannot win, found
+### §RG231 The shortcuts button, hidden by a wrapper
 
-`index.css` imports Tailwind and then `@viglet/viglet-design-system/styles`, which carries its
-own compiled utilities in the same `utilities` layer, declared after the app's. So on one
-element, a base class the package also ships beats a responsive class for the same property,
-at every width. RG229 measured it three ways: `grid-cols-1 sm:grid-cols-[…]` stayed one
-column at 1280, `hidden sm:grid` stayed hidden, and `grid max-sm:hidden` stayed visible at
-400. Nothing reported any of it — the classes read correctly, and RG223's own test asserted
-them.
+RG215 hid the shortcuts button below `sm`, since a sheet of keyboard shortcuts is for a
+window with a keyboard. It wrote `className="max-sm:hidden"` on the design system's
+`Button` — and every 400-wide picture since draws the `?` beside the palette trigger.
 
-Layout tests see it only where a surface is measured at both widths. The pair is
-findable.
+RG230's measurement says why. The `Button` merges its own classes onto the same element,
+and `inline-flex` is one: the package's stylesheet ships `inline-flex`, declared after
+this app's utilities, and ships no `max-sm:hidden`. So `inline-flex` wins at every
+width. The class pair is real, but half of it is inside the component, which is the one
+shape RG230's scan of this app's source says it cannot see.
 
-**A scan of the renderer's class strings, beside `check-duplicates`.** For every class
-attribute, split the classes into base and responsive (`sm:`, `md:`, `lg:`, `xl:`,
-`max-*:`); map each to the CSS property it sets; and fail a responsive class whose
-property is also set by a base class that appears in the package's compiled stylesheet.
-The package stylesheet is on disk, so which classes it ships is read rather than listed.
-The answer names the file, the two classes and the form that works: the desktop value as
-a class the package cannot hold, and `max-sm:` over it, or a wrapper that carries the
-responsive class alone.
+**A wrapper carries the width, and the button carries nothing about it.** The same form
+the sessions list's heading row took: `<span className="max-sm:hidden">` around the
+`Button`, holding no `display` class for the package to outrank. The header's flex row
+lays a span out as it laid the button out, so the wide header does not move.
 
-Property mapping is the part to keep small: display, grid-template-columns, gap, and the
-alignment utilities are what this app varies by width today.
+`surfaces.browser.test.tsx`'s Tab walk reads only what is visible and would pass either
+way, so the claim goes in beside it: at 400 wide the shortcuts control is not visible,
+and at 1280 it is.
 
-Done when `grid-cols-1 sm:grid-cols-[…]` in any renderer file fails the lint with its
-fix named.
+The header's other width-dependent parts are spans and work today; hold them in the same
+test, so the next one gets a line rather than a picture somebody happens to read.
+
+Done when the `?` is gone at 400 wide and still there at 1280, measured.

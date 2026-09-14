@@ -20,7 +20,7 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- 📋 **RG230** (deps: —) **a responsive class beside a base class the design system ships is overridden at every width, and no gate sees the pair** — The package's utilities are declared after the app's in one layer, and the classes read correctly, so RG223 shipped a desktop layout that was stacked. → §RG230
+- 📋 **RG231** (deps: —) **the shortcuts button still shows at 400 wide, which RG215 meant to hide** — Its max-sm:hidden sits on the design system's Button, whose own inline-flex the package ships after this app's utilities, so the button stays at every width. → §RG231
 
 ## Done when — Block A
 
