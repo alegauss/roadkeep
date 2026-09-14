@@ -1,4 +1,4 @@
-import { BASE, fill } from '@rk/core'
+import { BASE, fill, REGION_FLOOR_REM } from '@rk/core'
 import { screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
@@ -27,6 +27,11 @@ function said(index: number): string {
     type: 'assistant',
     message: { content: [{ type: 'text', text: `Act ${String(index)} of a long run.` }] },
   })
+}
+
+/** A run's worth of acts as a session record already holds them, for a stream opened long. */
+function longRun(): string[] {
+  return Array.from({ length: LONG_RUN }, (_, index) => said(index + 1))
 }
 
 /** Append `count` acts from line `from`, and answer the line after the last. */
@@ -129,10 +134,92 @@ describe('RG206: a stream that follows its end, in the stylesheet’s own layout
     await page.viewport(400, 800)
     const { region } = await overflowing()
 
-    // `max-h-[70dvh]` below `lg`: most of the window, and never taller than it.
-    expect(region.clientHeight).toBeLessThanOrEqual(Math.ceil(window.innerHeight * 0.7) + 1)
+    expect(region.clientHeight).toBeLessThan(window.innerHeight)
     await waitFor(() => {
       expect(atEnd(region)).toBe(true)
     })
+  })
+})
+
+/**
+ * RG217: the region ends inside the window.
+ *
+ * RG206 bounded it at `calc(100dvh - 12rem)`, and the header and the hero take about 290
+ * pixels rather than 192 — so at 1280 by 800 the region ran past the bottom of the window and
+ * its end, the newest act, was below the fold. A reader still scrolled the page to see what
+ * had just arrived, which is the complaint RG206 answered.
+ *
+ * Measured here and not in jsdom for the reason the rest of this file is: the old rule was a
+ * class, and a class is only a number once a browser has read the stylesheet.
+ */
+describe('RG217: the room the stream is given', () => {
+  it('ends inside the window at 1280 by 800, with its newest act in view', async () => {
+    const { region } = await overflowing()
+    await waitFor(() => {
+      expect(atEnd(region)).toBe(true)
+    })
+
+    // The bottom of the region, which under the old rule was some way past 800.
+    expect(region.getBoundingClientRect().bottom).toBeLessThanOrEqual(window.innerHeight)
+    // And it is the room it has rather than a token height: most of what is under its top.
+    const room = window.innerHeight - region.getBoundingClientRect().top
+    expect(region.clientHeight).toBeGreaterThan(room - 80)
+  })
+
+  it('keeps the way back on screen, which is what a reader presses', async () => {
+    const { region } = await overflowing()
+    await waitFor(() => {
+      expect(atEnd(region)).toBe(true)
+    })
+    await userEvent.wheel(region, { delta: { y: -2000 } })
+
+    const back = await screen.findByRole('button', { name: BASE['session.follow'] })
+    const seen = back.getBoundingClientRect()
+    expect(seen.bottom).toBeLessThanOrEqual(window.innerHeight)
+    expect(seen.top).toBeGreaterThanOrEqual(0)
+    // And the page itself never moved. Under the old rule the control was below the fold and
+    // reaching the region at all scrolled the window to it, which is the reader's complaint.
+    expect(window.scrollY).toBe(0)
+  })
+
+  it('opens at the end of a stream that was already long, not at its top', async () => {
+    // The bound is measured after the first paint, so a stream placed while the region was
+    // still unbounded had nowhere to scroll to and stayed at its top — the newest act out of
+    // sight and no way back offered, since the region believed it was at its end. Every other
+    // test here appends acts after mounting, which places it again and hides this.
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), {
+      sessions: [{ ...RECORD, lines: [...RECORD.lines, ...longRun()] }],
+    })
+    const region = await screen.findByTestId('stream')
+
+    await waitFor(() => {
+      expect(region.scrollHeight).toBeGreaterThan(region.clientHeight + 200)
+    })
+    await waitFor(() => {
+      expect(atEnd(region)).toBe(true)
+    })
+    expect(wired.listeners.length).toBeGreaterThan(0)
+  })
+
+  it('takes the room a narrower window leaves, down to a floor it stops at', async () => {
+    // At 400 the columns stack, so the region's top is far down the page and the measurement
+    // hits its floor — below which a region is not worth scrolling inside and the page is.
+    await page.viewport(400, 800)
+    const { region } = await overflowing()
+
+    expect(region.clientHeight).toBeGreaterThanOrEqual(REGION_FLOOR_REM * 16 - 1)
+  })
+
+  it('answers the new window when the reader resizes, not the one it mounted in', async () => {
+    const { region } = await overflowing()
+    const tall = region.clientHeight
+
+    // Shorter, and still above the floor, so what is being read is the measurement and not
+    // the bound under it — at 560 the floor is what answers and the page scrolls instead.
+    await page.viewport(1280, 700)
+    await waitFor(() => {
+      expect(region.clientHeight).toBeLessThan(tall)
+    })
+    expect(region.getBoundingClientRect().bottom).toBeLessThanOrEqual(window.innerHeight)
   })
 })

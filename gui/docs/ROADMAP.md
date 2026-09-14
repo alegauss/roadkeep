@@ -14,7 +14,7 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG217** (deps: RG206 ✅) **the stream region is taller than the space under the hero, so its end and the jump control sit below the fold** — RG206 bounds it at the viewport less 12rem while the header and hero take more, which RG210's session pictures at 1280 by 800 show. → §RG217
+- 📋 **RG225** (deps: —) **at 400 wide the session opens on two panels, so the stream a reader came for starts below the fold** — The columns stack in the order they are written, and the stream is the middle one, so what was handed over and what moved come first. → §RG225
 
 ## Block G — The shell (an executable now, a service later)
 
@@ -26,6 +26,7 @@
 - 📋 **RG222** (deps: —) **npm run shots builds the shell alone, so a changed screen is photographed from an older renderer bundle** — The command runs `build:app`, which leaves `@rk/ui` unbuilt, and the stale-build guard reads the shell's output alone — so the pictures describe a bundle nobody is looking at. → §RG222
 - 📋 **RG223** (deps: —) **a line's symptom is one letter per line at 400 wide, the column left about ten pixels** — The roadmap tab's row keeps its three desktop columns at every width, and the two fixed ones take more than a phone-width card has. → §RG223
 - 📋 **RG224** (deps: —) **the phone-width run draws every surface in English, so a sentence that overflows only in Portuguese passes** — Measured: with RG215's hero rule removed, two surfaces overflow at 400 in Portuguese and none in English, which is the language the run draws. → §RG224
+- 📋 **RG226** (deps: —) **one carrier test fails inside a full run and passes on its own, so a red gate can mean nothing happened** — RG166's gate-after-opening assertion waits on a deadline rather than on the carrier saying the gate ran, and a loaded machine misses it. → §RG226
 
 ## Done when — Block A
 

@@ -28,6 +28,7 @@ import { PanelTitle } from './forms'
 import { HeroActions } from './hero'
 import { Glyph, Pill, type Intent } from './marks'
 import { useSessionNotes } from './preferring'
+import { useRegionHeight } from './useRegionHeight'
 import { useSession } from './useSession'
 import { useWhen, useWording } from './wording'
 
@@ -349,6 +350,11 @@ function Moved({
  * region is bounded by the viewport at every width, so there is one scroller and one rule —
  * `scrolledTo` — rather than a window below `lg` and a region above it.
  *
+ * **The bound is measured** (RG217). It was `calc(100dvh - 12rem)`, a guess at what the header
+ * and the hero take, and they take about 290 pixels rather than 192 — so the region ran past
+ * the bottom of the window and its end, the one thing following exists to keep in view, was
+ * below the fold. `useRegionHeight` reads the room under the region's own top instead.
+ *
  * Following moves with the reader's own scroll: away from the end it stops and offers the way
  * back with what arrived since, and at the end it follows again. The jump is instant, because
  * a smooth scroll chasing several lines a second never arrives.
@@ -365,19 +371,29 @@ function Stream({ lines, marks }: { readonly lines: readonly string[]; readonly 
     [acts, notes],
   )
   const region = useRef<HTMLDivElement>(null)
+  const room = useRegionHeight(region)
+  // Built once per measurement: a fresh object every render is a prop the region redraws for,
+  // which `react-perf` refuses and a stream redrawn several times a second cannot afford.
+  const bound = useMemo(() => (room === null ? undefined : { maxHeight: room }), [room])
   const [follow, setFollow] = useState<Follow>(FOLLOWING)
   const count = acts.length
-  // How many acts the region was last put at the end for, so only a new one moves it: a
-  // redraw for anything else — a reread of the line, a raw line opened — leaves it be.
-  const placed = useRef(0)
+  // What the region was last put at the end for, so only a change moves it: a redraw for
+  // anything else — a reread of the line, a raw line opened — leaves it be.
+  //
+  // The room as well as the count, since RG217. The bound arrives after the first paint —
+  // it is measured off the page — so a stream that was placed while it was still unbounded
+  // had nowhere to scroll to, and stayed at its top with the newest act out of sight. A
+  // window the reader resizes is the same moment: while following, the end stays in view.
+  const placed = useRef({ count: 0, room: null as number | null })
 
   // Before paint, so an act that lands while following is never seen below the fold first.
   useLayoutEffect(() => {
     const element = region.current
-    if (element === null || follow.leftAt !== null || placed.current === count) return
-    placed.current = count
+    if (element === null || follow.leftAt !== null) return
+    if (placed.current.count === count && placed.current.room === room) return
+    placed.current = { count, room }
     element.scrollTop = element.scrollHeight
-  }, [count, follow])
+  }, [count, follow, room])
 
   const scrolled = useCallback(() => {
     const element = region.current
@@ -412,7 +428,8 @@ function Stream({ lines, marks }: { readonly lines: readonly string[]; readonly 
       <div
         ref={region}
         onScroll={scrolled}
-        className="mt-2 max-h-[70dvh] overflow-y-auto overscroll-contain lg:max-h-[calc(100dvh-12rem)]"
+        className="mt-2 overflow-y-auto overscroll-contain"
+        style={bound}
         data-testid="stream"
       >
         <ul>

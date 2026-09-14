@@ -104,8 +104,16 @@ export {
 } from './surfaces'
 export { isPreferenceKey, PREFERENCES, withPreference } from './preferences'
 export type { PreferenceKey } from './preferences'
-export { arrivedSince, atEnd, END_SLACK_PX, FOLLOWING, scrolledTo } from './follow'
-export type { Follow, Scrolled } from './follow'
+export {
+  arrivedSince,
+  atEnd,
+  END_SLACK_PX,
+  FOLLOWING,
+  REGION_FLOOR_REM,
+  regionHeight,
+  scrolledTo,
+} from './follow'
+export type { Follow, Scrolled, Space } from './follow'
 export { blanksIn, doorsIn, filledArgv, isBlank } from './doors'
 export { coldStart } from './cold-start'
 export type { ColdStartProgress, ColdStartStage } from './cold-start'

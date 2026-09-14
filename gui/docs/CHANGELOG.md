@@ -153,6 +153,7 @@
 - ✅ **RG206** **the session stream does not follow new acts, so a running task is read by scrolling the page by hand** — The stream scrolls in its own region and follows its end; scrolling up stops it and offers Jump to latest with what arrived since (design recorded in `packages/core/src/follow.ts`).
 - ✅ **RG208** **the session stream draws every system note, init to token counts, between the acts a reader follows** — A sessionNotes preference folds each run of system notes into one counted row whose disclosure keeps every note; the default still draws each (design recorded in `packages/core/src/acts.ts`).
 - ✅ **RG210** **the session screen only draws behind a real Claude Code run, so its stream, scroll and folded notes are checked blind** — An unpackaged app takes ROADKEEP_AGENT, and npm run shots photographs a scripted session following, scrolled and folded (design recorded in `packages/shell/src/scripted-agent.ts`).
+- ✅ **RG217** **the stream region is taller than the space under the hero, so its end and the jump control sit below the fold** — The stream takes the room measured under its own top, so at 1280 by 800 its newest act and the way back are inside the window (design recorded in `packages/core/src/follow.ts`).
 
 ## Block G — The shell (an executable now, a service later)
 

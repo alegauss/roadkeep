@@ -12,30 +12,30 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-### §RG217 A stream region measured to the space it has
+### §RG225 The session at phone width, stream first
 
-RG206 bounded the stream region at `calc(100dvh - 12rem)`. At 1280 by 800 the header and
-the session's hero take about 290 pixels, not 192, so the region runs some 150 pixels
-past the bottom of the window. RG210's pictures show it: following keeps the region at
-its own end, and that end is off screen; scrolled up, *Jump to latest* is drawn below
-the fold. A reader still scrolls the page to see the newest act, which is the complaint
-RG206 answered.
+RG217 gives the stream the room under its own top, never under a 20rem floor. At 1280 by
+800 that lands: the region ends inside the window and *Jump to latest* is drawn at about
+732. At 400 the columns stack, the region's top is past the middle of an 800-tall
+window, and what is under it is less than the floor — so the floor answers and the page
+scrolls. RG217's pictures show it.
 
-**The height is measured, not guessed.** A fixed subtraction is wrong for every hero
-that wraps differently — a long symptom, a second language, a narrower window. The
-region takes the space from its own top to the bottom of the viewport, less the page's
-bottom gutter, read with `getBoundingClientRect` on mount and on every resize, and never
-less than 20rem, below which the page scrolls instead.
+The floor is right and is not what to change: a scroll region of two hundred pixels is
+one a reader fights, and a page that scrolls is the honest answer. What is left is that
+the surface puts two panels *above* the stream at that width — what was handed over, and
+what moved — so the words a reader opened the screen for start below the fold whatever
+the region does.
 
-**Against the document, not the viewport**, so a reader who scrolled the page a little
-does not shrink it.
+**So this is about the order, not the height.** Below `lg` the stream comes first and
+the other two follow, which is the reading order a person wants: the session's own
+words, then what it was handed, then what moved. Above `lg` nothing moves — the three
+columns are the drawing.
 
-jsdom measures nothing, so the rule — top, viewport, gutter and floor in, a height out —
-is a pure function beside `follow.ts`, and RG213's browser project is where the layout
-is held.
+Reading order is what a Tab walks, so `surfaces.browser.test.tsx` holds it: RG214's rule
+is that each next control sits below or to the right of the last, at 400 as well as at
+1280.
 
-Done when `npm run shots` shows the session's newest act and the jump control inside the
-window at 1280 by 800 and at 400 wide.
+Done when the session at 400 wide draws the stream's newest act inside the window.
 
 ## Block G — The shell (an executable now, a service later)
 
@@ -185,3 +185,29 @@ the walk is the expensive half of the file.
 
 Done when a surface that fits in English and overflows in Portuguese at 400 wide fails
 `surfaces.browser.test.tsx`.
+
+### §RG226 A gate assertion that waits on a fact
+
+`carrier.test.ts` turned red once during RG217 on RG166's *gates a project it just
+opened, without the opening waiting for it*, and was green on the next four runs — twice
+alone and twice whole. Nothing in RG217 touches the carrier, so what moved was timing.
+
+The claim is about a race by construction: the opening hands back before the gate has
+run, and the test then waits for the gate to have run. A wait with a ceiling passes on a
+fast machine and fails on a loaded one, which is what a suite of 1600 tests on a busy
+laptop is.
+
+**What this costs is the gate's meaning.** A red run that means nothing teaches a reader
+to run it again, and the next red one — a real one — is read the same way. One flaky
+test is how a suite stops being believed.
+
+The fix is to make the wait a fact rather than a deadline: the carrier knows when the
+gate it started has settled, so the test waits on that rather than on the answer
+appearing within some number of milliseconds. Whether the carrier already exposes it,
+and what it would take to, is the first thing to read.
+
+Not a rerun and not a longer timeout: both make the failure rarer and neither makes it
+mean something.
+
+Done when the assertion waits on the carrier saying the gate has run, and a hundred runs
+of the fast suite are green.
