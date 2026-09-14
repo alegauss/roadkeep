@@ -41,6 +41,18 @@ const QUIET_MS = 400
 const SETTLE_CEILING_MS = 10000
 const CAPTURE_TIMEOUT_MS = 10000
 const GOODBYE_MS = 5000
+/** What stops a process that will never die from hanging a run, in seconds. Not the measure. */
+const GONE_CEILING_S = 45
+/** How often the listing is asked again while the killed tree is still dying. */
+const GONE_ASK_MS = 250
+
+/**
+ * The most `close` can take: the goodbye it gives the app, then the wait for the tree it kills.
+ *
+ * What bounds a close is these two and never the app's own quit, which this app defers until
+ * its engines are given back and Playwright's `close` would wait on forever (RG209).
+ */
+export const CLOSE_CEILING_MS = GOODBYE_MS + GONE_CEILING_S * 1000
 
 export interface ShotApp {
   readonly app: ElectronApplication
@@ -83,19 +95,87 @@ const DREW: DrawWait = { selector: '#root > *', timeoutMs: 30000 }
  * engine's launcher, answered the same way. Elsewhere Playwright starts the app in a process group
  * of its own, which a negative pid reaches whole.
  */
-function endTree(child: ChildProcess): void {
-  if (child.pid === undefined) return
-  if (process.platform === 'win32') {
-    spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], {
-      stdio: 'ignore',
-      windowsHide: true,
-    })
-    return
+function endTree(child: ChildProcess, profile: string): void {
+  if (child.pid !== undefined) {
+    if (process.platform === 'win32') {
+      spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], {
+        stdio: 'ignore',
+        windowsHide: true,
+      })
+    } else {
+      try {
+        process.kill(-child.pid, 'SIGKILL')
+      } catch {
+        child.kill('SIGKILL')
+      }
+    }
   }
-  try {
-    process.kill(-child.pid, 'SIGKILL')
-  } catch {
-    child.kill('SIGKILL')
+  untilGone(profile)
+}
+
+/**
+ * The ids of every process running with this profile on its command line (RG220).
+ *
+ * Asked of the operating system rather than of Playwright, because the case that matters is a
+ * launch that threw and handed nothing back — and because what Playwright hands back is not
+ * the app: `app.process()` is a launcher whose child is Electron's main process.
+ */
+export function standingOn(profile: string): number[] {
+  const listed =
+    process.platform === 'win32'
+      ? spawnSync(
+          'powershell',
+          [
+            '-NoProfile',
+            '-Command',
+            'Get-CimInstance Win32_Process | ForEach-Object { "$($_.ProcessId)`t$($_.CommandLine)" }',
+          ],
+          { encoding: 'utf8', windowsHide: true },
+        ).stdout
+      : spawnSync('ps', ['-eo', 'pid=,args='], { encoding: 'utf8' }).stdout
+  return listed
+    .split(/\r?\n/)
+    .filter((line) => line.includes(profile))
+    .map((line) => Number.parseInt(line.trim(), 10))
+    .filter((pid) => Number.isInteger(pid) && pid !== process.pid)
+}
+
+/** Block for a moment without a timer, which a synchronous wait cannot await. */
+function pause(ms: number): void {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)
+}
+
+/**
+ * Return once no process on this profile is standing, however long the kill takes (RG226).
+ *
+ * `taskkill` answers when it has asked for every termination, not when they are done, and a
+ * dying Electron still has its memory to give back. On a loaded machine that took longer than
+ * the ten seconds RG220's test polled for: the main process, its GPU and its utility process
+ * were measured standing past it, with threads and hundreds of handles — dying, not dead.
+ *
+ * **The listing is the fact, and it is asked again until it is empty.** A process handle would
+ * be the better thing to wait on, and was tried: `Wait-Process` returned at once, since
+ * Chromium's sandboxed children refuse another process the access a wait needs, and the error
+ * was silenced. Whatever is still listed is killed again by id each round, so something the
+ * tree did not reach is not waited on forever. The ceiling is only what stops a process that
+ * will never die from hanging the run; when it trips, the caller sees what is still standing.
+ */
+function untilGone(profile: string): void {
+  const until = Date.now() + GONE_CEILING_S * 1000
+  for (let left = standingOn(profile); left.length > 0; left = standingOn(profile)) {
+    if (Date.now() >= until) return
+    for (const pid of left) {
+      if (process.platform === 'win32') {
+        spawnSync('taskkill', ['/pid', String(pid), '/F'], { stdio: 'ignore', windowsHide: true })
+        continue
+      }
+      try {
+        process.kill(pid, 'SIGKILL')
+      } catch {
+        // Gone between the listing and the kill, which is the answer this wanted.
+      }
+    }
+    pause(GONE_ASK_MS)
   }
 }
 
@@ -133,7 +213,8 @@ export async function launchForShots(
     page = await app.firstWindow()
     await drawn(page, wait)
   } catch (cause) {
-    endTree(child)
+    // Thrown only once nothing on this profile stands, which is what RG220's test asks of it.
+    endTree(child, userData)
     throw cause
   }
 
@@ -150,7 +231,12 @@ export async function launchForShots(
         for (const window of BrowserWindow.getAllWindows()) window.close()
       })
       await Promise.race([gone, after(GOODBYE_MS)])
-      if (!exited()) endTree(child)
+      if (!exited()) {
+        endTree(child, userData)
+        // And the child's own exit, which is what `exited()` reads: `taskkill` returning is
+        // not that event having arrived, and the close test read `false` under load (RG226).
+        await gone
+      }
     },
   }
 }

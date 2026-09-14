@@ -22,7 +22,6 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- ⏳ **RG226** (deps: —) **tests fail inside a full run and pass on their own, so a red gate can mean the machine was busy** — The Electron half still waits on ceilings: one full live run in three left a process on the shots profile standing 45 seconds through repeated kills, and nothing yet says which. → §RG226
 - 📋 **RG227** (deps: —) **the shell drawing's rail draws five tiles against the window's three, and no rail tile is marked** — RG127 compares the header control for control through `data-control`, and the rail carries no mark, so the two drift without failing anything. → §RG227
 
 ## Done when — Block A
@@ -149,13 +148,6 @@
   it, the signer is the name that route signs under — the foundation on SignPath, an
   Open Source Developer on Certum, neither being the manifest's — and the build line
   says signed.
-
-## Done when — RG226
-
-- **A close and a failed launch leave nothing standing on their profile** The carrier
-  and source-watch halves landed. What is left is checked by shots-live.test.ts asking
-  the operating system right after close and after a launch that threw, with no poll
-  behind it, green on three full live runs.
 
 ## Non-goals
 
