@@ -454,6 +454,22 @@ describe('RG149: the other governed files, as tabs', () => {
     })
   })
 
+  it('stacks a line and a ledger entry alike below sm, so four tabs are one screen (RG223)', async () => {
+    // The roadmap tab's row is what RG223 was filed for and what `npm run shots` photographs;
+    // the other three tabs are one shared `Entry`, and no capture opens them. So what is held
+    // here is that both rows carry the one shape: a column below `sm`, the desktop grid above
+    // it. A class and not a measurement — the measuring is RG214's, in a browser.
+    await atProject()
+    const [line] = await screen.findAllByTestId('line')
+    await onTab('changelog')
+    const [entry] = await screen.findAllByTestId('entry')
+
+    for (const row of [line as HTMLElement, entry as HTMLElement]) {
+      expect(row.className).toContain('grid-cols-1')
+      expect(row.className).toContain('sm:grid-cols-[6rem_minmax(0,1fr)')
+    }
+  })
+
   it('reads the decisions, and a decision reasoning only when somebody opens it', async () => {
     await onTab('decisions')
 

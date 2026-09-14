@@ -118,7 +118,9 @@ function Waiting({
 function Entry({ line, children }: { readonly line: TaskLine; readonly children?: ReactNode }) {
   return (
     <li
-      className="grid grid-cols-[6rem_minmax(0,1fr)] gap-4 border-t px-5 py-3 first:border-t-0"
+      // Stacked below `sm` for the reason the roadmap tab's row is (RG223): the id column is
+      // 6rem whatever the card has, and the four tabs read as one screen or as four.
+      className="grid grid-cols-1 gap-2 border-t px-5 py-3 first:border-t-0 sm:grid-cols-[6rem_minmax(0,1fr)] sm:gap-4"
       data-testid="entry"
       data-id={line.id}
     >

@@ -152,7 +152,11 @@ function Line({
   const say = useWording()
   return (
     <li
-      className="grid grid-cols-[6rem_minmax(0,1fr)_11rem] gap-4 border-t px-5 py-3 first:border-t-0"
+      // One column below `sm` (RG223): the two fixed columns are 17rem before the gaps, which
+      // at 400 wide left the symptom about ten pixels and set it one letter per line. Stacked,
+      // reading order is already the order the cells are written in, so only the shape moves —
+      // and the gap tightens, the row's own padding being 12.
+      className="grid grid-cols-1 gap-2 border-t px-5 py-3 first:border-t-0 sm:grid-cols-[6rem_minmax(0,1fr)_11rem] sm:gap-4"
       data-testid="line"
       data-id={line.id}
     >

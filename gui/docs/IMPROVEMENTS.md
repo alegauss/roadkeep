@@ -37,6 +37,33 @@ is that each next control sits below or to the right of the last, at 400 as well
 
 Done when the session at 400 wide draws the stream's newest act inside the window.
 
+### §RG228 The sessions list at phone width
+
+The sessions list is `grid-cols-[8rem_minmax(0,1fr)_8rem]`, on a heading row and on
+every session row. The two fixed columns are 16rem before the gaps, so at 400 wide the
+middle one is about 70 pixels: RG223's pictures show the headings *Project* and *State*
+drawn over each other, and each project's name and root cut to a letter and an ellipsis.
+
+It is RG223's defect on another surface, and it did not take RG223's fix because the
+shape is not the same. The project tabs' rows stand alone; this list has a row of column
+headings above its rows, and a heading row that stays three columns over rows that stack
+names nothing.
+
+**Below `sm` the headings go and each row says its own.** The row stacks — the line's id
+as the link, the project under it, the state last — and the heading row is hidden, since
+a column is what a heading names and there are none. The state keeps its pill, which
+already says what it is; the project keeps its name and root, which read as a project
+without a label.
+
+Above `sm` nothing moves.
+
+The link keeps its `aria-label`, which names the line it opens, so a stacked row is
+announced the way a gridded one is. `surfaces.browser.test.tsx` holds the sideways
+scroll and the Tab order, and neither changes.
+
+Done when the sessions list at 400 wide draws each project's name whole, and no two
+words on it are drawn over each other.
+
 ## Block G — The shell (an executable now, a service later)
 
 ### §RG49 The signature, and what it needs that code cannot supply
@@ -78,30 +105,6 @@ digest is then required to carry that set.
 
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
-
-### §RG223 A line that reads at phone width
-
-A line in the project's roadmap tab is `grid grid-cols-[6rem_minmax(0,1fr)_11rem]`: the
-id and marker, the symptom, then the readiness and its button. The two fixed columns are
-17rem before the gaps, which at 400 wide leaves the middle one about ten pixels — so
-RG215's pictures show the symptom set one letter per line, a column of single characters
-running down the card.
-
-It is not an overflow: the page does not scroll sideways, and the phone-width gate RG214
-builds would pass it. What it is is the sentence a reader came for, unreadable.
-
-**One column below `sm`.** The row stacks: the id and marker on their own line, the
-symptom under them, the readiness last — `grid-cols-1
-sm:grid-cols-[6rem_minmax(0,1fr)_11rem]`, with the gap the stack needs. Reading order is
-already the order the cells are written in, so nothing moves but the shape.
-
-The same three-column shape appears in the changelog, the improvements and the deferred
-tabs, and in the portfolio's table, which has its own answer: `min-w-[56rem]` inside an
-`overflow-x-auto` panel, which the contract allows and a reader scrolls. This is about
-the rows that are not in that table.
-
-Done when the roadmap tab at 400 wide draws each line's symptom across the card, and the
-four tabs of the project surface look like one screen at both widths.
 
 ### §RG224 The phone-width run, in the language that overflows
 
