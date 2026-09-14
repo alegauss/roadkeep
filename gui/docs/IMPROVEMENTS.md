@@ -12,33 +12,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-### §RG228 The sessions list at phone width
-
-The sessions list is `grid-cols-[8rem_minmax(0,1fr)_8rem]`, on a heading row and on
-every session row. The two fixed columns are 16rem before the gaps, so at 400 wide the
-middle one is about 70 pixels: RG223's pictures show the headings *Project* and *State*
-drawn over each other, and each project's name and root cut to a letter and an ellipsis.
-
-It is RG223's defect on another surface, and it did not take RG223's fix because the
-shape is not the same. The project tabs' rows stand alone; this list has a row of column
-headings above its rows, and a heading row that stays three columns over rows that stack
-names nothing.
-
-**Below `sm` the headings go and each row says its own.** The row stacks — the line's id
-as the link, the project under it, the state last — and the heading row is hidden, since
-a column is what a heading names and there are none. The state keeps its pill, which
-already says what it is; the project keeps its name and root, which read as a project
-without a label.
-
-Above `sm` nothing moves.
-
-The link keeps its `aria-label`, which names the line it opens, so a stacked row is
-announced the way a gridded one is. `surfaces.browser.test.tsx` holds the sideways
-scroll and the Tab order, and neither changes.
-
-Done when the sessions list at 400 wide draws each project's name whole, and no two
-words on it are drawn over each other.
-
 ## Block G — The shell (an executable now, a service later)
 
 ### §RG49 The signature, and what it needs that code cannot supply

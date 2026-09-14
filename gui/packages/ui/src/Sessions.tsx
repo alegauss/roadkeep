@@ -86,14 +86,20 @@ export function Sessions() {
       ) : (
         <BentoPanel className="overflow-hidden" contentClassName="p-0">
           {/* Three columns, each named: a grid whose columns are unlabelled is one a reader
-              has to infer, and the catalogue already held the words (RG183). */}
-          <div
-            className="text-muted-foreground grid grid-cols-[8rem_minmax(0,1fr)_8rem] gap-4 px-5 py-2 text-[11px] font-semibold tracking-wider uppercase"
-            data-testid="sessions-columns"
-          >
-            <span>{say('sessions.column.line')}</span>
-            <span>{say('sessions.column.project')}</span>
-            <span>{say('sessions.column.state')}</span>
+              has to infer, and the catalogue already held the words (RG183). Not drawn below
+              `sm`, where the rows stack and there are no columns to name (RG228): a heading row
+              kept over stacked rows drew *Project* and *State* over each other at 400 wide.
+              Hidden on a wrapper of its own, which carries no `display` class for the design
+              system's `.grid` to outrank — on the grid itself `max-sm:hidden` lost (RG229). */}
+          <div className="max-sm:hidden">
+            <div
+              className="text-muted-foreground grid grid-cols-[8rem_minmax(0,1fr)_8rem] gap-4 px-5 py-2 text-[11px] font-semibold tracking-wider uppercase"
+              data-testid="sessions-columns"
+            >
+              <span>{say('sessions.column.line')}</span>
+              <span>{say('sessions.column.project')}</span>
+              <span>{say('sessions.column.state')}</span>
+            </div>
           </div>
           <ul>
             {held.map((record) => {
@@ -101,7 +107,11 @@ export function Sessions() {
               return (
                 <li
                   key={record.key}
-                  className="grid grid-cols-[8rem_minmax(0,1fr)_8rem] items-center gap-4 border-t px-5 py-3 first:border-t-0"
+                  // One column below `sm` (RG228): the two 8rem columns left the project about
+                  // seventy pixels, cut to a letter. Stacked, the id leads, the project follows
+                  // and the state closes, at its own width rather than the row's. Written as
+                  // the desktop grid with `max-sm:` over it, the form RG229 found that wins.
+                  className="grid grid-cols-[8rem_minmax(0,1fr)_8rem] items-center gap-x-4 gap-y-1.5 border-t px-5 py-3 first:border-t-0 max-sm:grid-cols-1 max-sm:justify-items-start"
                   data-testid="session"
                   data-id={record.id}
                 >
@@ -112,7 +122,7 @@ export function Sessions() {
                   >
                     {record.id}
                   </Link>
-                  <div className="min-w-0">
+                  <div className="w-full min-w-0" data-testid="session-project">
                     <div className="truncate text-sm font-medium">{folderName(record.root)}</div>
                     <div className="text-muted-foreground truncate text-xs">
                       {record.handed.symptom}

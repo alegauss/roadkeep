@@ -14,8 +14,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 🛠 **RG228** (deps: —) **at 400 wide the sessions list draws its headings over each other and cuts each project name to a letter** — Its rows and its heading row keep two 8rem columns at every width, which leaves the project column about seventy pixels on a phone. → §RG228
-
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
