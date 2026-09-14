@@ -53,30 +53,3 @@ digest is then required to carry that set.
 
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
-
-### §RG234 Transforms kept between runs
-
-`npm test` prints its own measurement at the end of every run: `core` spends 17.99s
-transforming modules, 78% of its tracked time, and `shell` 16.69s — both re-done from
-scratch on the next run. A whole run measured between 18s and 37s here, so that is no
-rounding error inside it.
-
-Vitest names the flag itself: `fsModuleCache: true` persists transformed modules across
-runs. RG64 split this suite precisely so `npm test` would stay what somebody runs
-between edits, and this is the part of that cost nothing spends on a test.
-
-**The question is not whether it is faster but whether it is still true.** A cache keyed
-wrong answers with yesterday's module, and a suite green about code nobody changed is
-worse than a slow one. So the work is three measurements and not one flag: a cold run, a
-warm one, then an edit — change a source file, run again, and watch the assertion that
-depended on it go red.
-
-Where the cache lands is part of it. `.vitest/` is already ignored by git and by
-Prettier and holds the browser screenshots and the failure reports; anywhere else is a
-directory somebody has to add to both.
-
-Only `core` and `shell` were measured, the two the banner named. The renderer transforms
-`.tsx` through the React plugin and is the likelier winner of the three.
-
-Done when a warm run is measurably cheaper than a cold one and an edited file still
-fails the test that covers it.

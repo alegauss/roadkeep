@@ -14,6 +14,12 @@ import { defineConfig } from 'vitest/config'
 //
 // `core` has no live half: nothing pure spawns, and a project matching no file is a project
 // that reports an error rather than a suite.
+//
+// **`fsModuleCache` is set in each project below and not here** (RG234). A project inherits
+// almost nothing from this file — only run-wide settings like `reporters` apply — so the flag
+// written once here reads as if it covered the suite while covering nothing: it left a 25 KB
+// cache and three warm runs no faster than three cold ones. Moved into `core`'s own config it
+// left 4.4 MB and took that project from 5.05s to 1.5s. The measurements are in RG234's entry.
 export default defineConfig({
   test: {
     // RG232: `default` prints the run, and the second one keeps it — a JSON report per run

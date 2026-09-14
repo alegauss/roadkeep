@@ -20,8 +20,6 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- 📋 **RG234** (deps: —) **the fast suite re-transforms every module on every run, and nothing caches that between runs** — Vitest measures it at 78% of core's tracked time and names the flag that persists it, and RG64 split this suite so it would stay cheap enough to run between edits. → §RG234
-
 ## Done when — Block A
 
 - **The client runs with no Electron and no React** The transport is one interface, so

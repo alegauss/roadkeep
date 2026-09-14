@@ -33,6 +33,9 @@ export default defineConfig({
       'src/**/*.browser.test.{ts,tsx}',
     ],
     setupFiles: ['./src/test-setup.ts'],
+    // Transformed modules kept between runs (RG234), for the reason `core`'s config gives.
+    // `vitest.live.config.ts` spreads this block, so its two files are cached as well.
+    fsModuleCache: true,
     // Above the five seconds `test-setup.ts` gives a `findBy*`, and for that reason (RG232):
     // vitest's own default is five, so a wait that used its whole budget would be cut off by
     // the test timing out — which reports *test timed out* and throws away the message naming
