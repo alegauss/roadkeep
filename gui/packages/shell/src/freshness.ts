@@ -96,6 +96,26 @@ export function newestBuilt(directories: readonly string[]): Newest {
 }
 
 /**
+ * The oldest of them, which is the one that decides (RG222).
+ *
+ * A build writes several directories and the question is whether *all* of them are the tree —
+ * so the half that was not rebuilt is the answer, and taking the newest hides it behind the
+ * half that was. `npm run shots` built the shell and not the renderer, and the shell's fresh
+ * bundle answered for both: two runs photographed a header that had been fixed.
+ *
+ * Against the whole source and not each package's own, because `core` is compiled into both
+ * bundles — a per-package rule would call the renderer fresh after a change to the half of the
+ * app that decides what it draws.
+ */
+export function oldestBuilt(directories: readonly string[]): Newest {
+  const each = directories.map((directory) => newestUnder(directory, () => true))
+  let oldest = each[0]
+  if (oldest === undefined) return NOTHING
+  for (const one of each) if (one.at < oldest.at) oldest = one
+  return oldest
+}
+
+/**
  * What is wrong with the bundle, said as a sentence, or the empty string.
  *
  * A sentence rather than a boolean because the whole value here is what a reader is told:
@@ -106,7 +126,9 @@ export function staleBundle(
   sourceRoots: readonly string[],
   buildDirectories: readonly string[],
 ): string {
-  const built = newestBuilt(buildDirectories)
+  // The oldest of them, since RG222: a build writes several directories and one that was not
+  // rewritten is what makes the answer false, whatever the others say.
+  const built = oldestBuilt(buildDirectories)
   if (built.at === 0) {
     return (
       'there is no build to test: run `npm run build` first. This asks what the app' +

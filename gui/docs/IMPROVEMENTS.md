@@ -79,33 +79,6 @@ digest is then required to carry that set.
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
 
-### §RG222 Pictures of the tree the run was asked about
-
-`npm run shots` is `npm run build:app && node packages/shell/dist/shots.js`, and
-`build:app` is `tsc -b` plus the shell's own bundle. The renderer is the other half of
-`npm run build`, and the window the pictures come from loads it off disk — so a change
-to a screen is photographed as it was at the last full build.
-
-Measured on RG215: the header fix was on disk, the tests were green, and two runs of
-`shots` photographed the old header. Nothing reported anything; the pictures simply
-described an older bundle, which is the failure this gate exists to prevent.
-
-`refuseIfStale` is the guard and it reads the shell's build alone (RG209), so it is
-silent about the renderer for the same reason.
-
-**The command builds what it photographs.** `shots` runs `npm run build`, which is
-`build:app` plus `@rk/ui`. It is a second or two on a warm tree and it is the whole of
-the fix; the `shots` step in the gates table already tells a reader to run it after a
-screen change.
-
-**And the guard covers both halves.** `refuseIfStale` compares `packages/ui/dist`
-against `packages/ui/src` as it compares the shell's, so a picture taken by something
-other than this command — an agent calling `shots.js` directly — is refused rather than
-misread.
-
-Done when a screen changed but not built is photographed as it now is, and a stale
-`packages/ui/dist` refuses the run.
-
 ### §RG223 A line that reads at phone width
 
 A line in the project's roadmap tab is `grid grid-cols-[6rem_minmax(0,1fr)_11rem]`: the
@@ -158,27 +131,30 @@ the walk is the expensive half of the file.
 Done when a surface that fits in English and overflows in Portuguese at 400 wide fails
 `surfaces.browser.test.tsx`.
 
-### §RG226 Two gate assertions that wait on a fact
+### §RG226 Gate assertions that wait on a fact
 
-Two, one task apart. `carrier.test.ts` turned red during RG217 on RG166's *gates a
-project it just opened*; `shots-live.test.ts` turned red during RG221 on RG211's axe
-scan, which took 39 seconds in that run. Each was green on every run after, alone and
-whole, and neither task touches what its test is about.
+Three, one task apart each. `carrier.test.ts` during RG217, on RG166's *gates a project
+it just opened*; `shots-live.test.ts` during RG221, on RG211's axe scan, which took 39
+seconds that run; `source-watch.test.ts` during RG222, on RG57's *ignores a tree nobody
+asked for*. Each was green on every run after, and no task touched what its test is
+about.
 
-Both are races by construction: the opening hands back before the gate has run, the scan
-is a browser doing work, and each test waits with a ceiling. A ceiling passes on a fast
-machine and fails on a loaded one, which is what 1600 tests on a busy laptop make.
+All three are races by construction: the opening hands back before the gate runs, the
+scan is a browser working, the watch is the filesystem saying so — and each waits with a
+ceiling. A ceiling passes on a fast machine and fails on a loaded one, which is what
+1600 tests make.
 
 **What this costs is the gate's meaning.** A red run that means nothing teaches a reader
 to run it again, and the next red one — a real one — is read the same way. A flaky test
 is how a suite stops being believed.
 
 The fix is to wait on a fact rather than on a deadline: the carrier knows when the gate
-it started has settled, and the scan knows when axe has answered. Whether either already
-says so, and what it would take, is the first thing to read.
+it started has settled, the scan knows when axe has answered, the watch knows when it
+has fired. Whether each already says so, and what it would take, is the first thing to
+read.
 
-Not a rerun and not a longer timeout: both make the failure rarer and neither makes it
-mean something.
+Not a rerun and not a longer timeout: both make it rarer and neither makes it mean
+something.
 
 Done when each assertion waits on the thing it is about having happened, and a hundred
 runs of the fast suite are green.

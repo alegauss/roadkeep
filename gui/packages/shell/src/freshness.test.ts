@@ -5,7 +5,7 @@ import path from 'node:path'
 import { afterAll, describe, expect, it } from 'vitest'
 
 import { BUILD_DIRECTORIES, SOURCE_ROOTS } from './built'
-import { newestBuilt, newestSource, staleBundle } from './freshness'
+import { newestBuilt, newestSource, oldestBuilt, staleBundle } from './freshness'
 
 import { removeTree } from './scratch'
 
@@ -141,5 +141,66 @@ describe('RG96: the roots this repository declares', () => {
   it('names the two directories a build writes and a test then reads', () => {
     expect(BUILD_DIRECTORIES).toHaveLength(2)
     for (const directory of BUILD_DIRECTORIES) expect(directory).toContain('dist')
+  })
+})
+
+/**
+ * RG222: the half of the build that was not rebuilt.
+ *
+ * `npm run shots` ran `build:app`, which writes the shell's bundle and leaves the renderer's,
+ * and the guard took the *newest* file across both directories — so the shell's fresh bundle
+ * answered for the renderer's old one and two runs photographed a header that had been fixed.
+ * Nothing reported anything, which is the direction that costs.
+ */
+describe('RG222: a build is only as fresh as its oldest half', () => {
+  it('answers with the directory that was not rebuilt', () => {
+    const home = tree()
+    fileAt(home, 'shell/main.js', 9000)
+    fileAt(home, 'ui/index.js', 1000)
+
+    // In milliseconds, which is what an mtime is; `fileAt` takes the seconds `utimes` does.
+    const both = [path.join(home, 'shell'), path.join(home, 'ui')]
+    expect(oldestBuilt(both).at).toBe(1000 * 1000)
+    expect(newestBuilt(both).at).toBe(9000 * 1000)
+  })
+
+  it('refuses a run where one bundle is older than the source, whatever the other says', () => {
+    // The defect exactly: the shell rebuilt, the renderer not, and a source edit between.
+    const home = tree()
+    fileAt(home, 'src/Shell.tsx', 5000)
+    fileAt(home, 'shell/main.js', 9000)
+    fileAt(home, 'ui/index.js', 1000)
+
+    const said = staleBundle(
+      [path.join(home, 'src')],
+      [path.join(home, 'shell'), path.join(home, 'ui')],
+    )
+
+    expect(said).toContain('Shell.tsx')
+    expect(said).toContain('npm run build')
+  })
+
+  it('says nothing once both halves are newer, which is what one build leaves', () => {
+    const home = tree()
+    fileAt(home, 'src/Shell.tsx', 5000)
+    fileAt(home, 'shell/main.js', 9000)
+    fileAt(home, 'ui/index.js', 9000)
+
+    expect(
+      staleBundle([path.join(home, 'src')], [path.join(home, 'shell'), path.join(home, 'ui')]),
+    ).toBe('')
+  })
+
+  it('reads a missing half as no build at all, not as a fresh one', () => {
+    const home = tree()
+    fileAt(home, 'src/a.ts', 1000)
+    fileAt(home, 'shell/main.js', 9000)
+
+    const said = staleBundle(
+      [path.join(home, 'src')],
+      [path.join(home, 'shell'), path.join(home, 'never-made')],
+    )
+
+    expect(said).toContain('no build')
   })
 })
