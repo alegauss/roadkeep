@@ -23,7 +23,6 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- 📋 **RG224** (deps: —) **the phone-width run draws every surface in English, so a sentence that overflows only in Portuguese passes** — Measured: with RG215's hero rule removed, two surfaces overflow at 400 in Portuguese and none in English, which is the language the run draws. → §RG224
 - 📋 **RG226** (deps: —) **tests fail inside a full run and pass on their own, so a red gate can mean the machine was busy** — Three so far, each waiting on a deadline rather than on the thing it is about having happened, and 1600 tests on a loaded laptop miss it. → §RG226
 - 📋 **RG227** (deps: —) **the shell drawing's rail draws five tiles against the window's three, and no rail tile is marked** — RG127 compares the header control for control through `data-control`, and the rail carries no mark, so the two drift without failing anything. → §RG227
 

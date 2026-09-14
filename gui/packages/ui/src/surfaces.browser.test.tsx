@@ -1,10 +1,11 @@
-import type { Theme } from '@rk/core'
+import { LOCALE_TAGS, type Theme } from '@rk/core'
 import { waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
 import { HOME_ROUTE } from './areas'
 import { FOCUSABLE } from './harness'
+import { startSpeaking } from './speaking'
 import { atSurface, everyRoute } from './surface-harness'
 
 /**
@@ -160,14 +161,35 @@ beforeEach(async () => {
   await page.viewport(DESKTOP.width, DESKTOP.height)
 })
 
-afterEach(() => {
+afterEach(async () => {
   document.documentElement.className = ''
   localStorage.clear()
   Reflect.deleteProperty(window, 'roadkeep')
+  // Back to the language the setup started in, since a run that left the window Portuguese
+  // would measure every test after it in Portuguese and call that English.
+  await startSpeaking('en')
 })
 
+/**
+ * Every surface in every language this build ships (RG224).
+ *
+ * English alone is the language that overflows least: RG215's own defect was Portuguese —
+ * `Acrescentar uma dependência` beside its box is wider than a phone-width column and `Add a
+ * dependency` is not — and with RG215's hero rule taken out, the portfolio and the project
+ * surface ran 475 and 461 pixels wide in Portuguese and fitted in English. Read off
+ * `LOCALE_TAGS`, so a language added to the catalogue is one this measures the day it ships.
+ *
+ * Spoken for real rather than forced with `over`: the rail and the language menu are
+ * i18next's, and a window whose catalogue is Portuguese and whose chrome is English measures a
+ * page nobody opens.
+ */
+const EVERY_LANGUAGE = everyRoute().flatMap((route) =>
+  LOCALE_TAGS.map((tag) => [route, tag] as const),
+)
+
 describe('RG214: no surface scrolls sideways at phone width', () => {
-  it.each(everyRoute())('fits %s at 400 wide', async (route) => {
+  it.each(EVERY_LANGUAGE)('fits %s at 400 wide in %s', async (route, tag) => {
+    await startSpeaking(tag)
     await page.viewport(PHONE.width, PHONE.height)
     await atSurface(route)
     await settled()
@@ -178,7 +200,7 @@ describe('RG214: no surface scrolls sideways at phone width', () => {
     const root = document.documentElement
     expect(
       root.scrollWidth,
-      `${route} is ${String(root.scrollWidth)} wide in a window of ${String(root.clientWidth)}`,
+      `${route} in ${tag} is ${String(root.scrollWidth)} wide in a window of ${String(root.clientWidth)}`,
     ).toBeLessThanOrEqual(root.clientWidth)
   })
 })

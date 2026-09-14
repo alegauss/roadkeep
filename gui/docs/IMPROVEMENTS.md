@@ -106,34 +106,6 @@ digest is then required to carry that set.
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
 
-### §RG224 The phone-width run, in the language that overflows
-
-`surfaces.browser.test.tsx` draws each surface at 400 wide in whatever i18next is
-speaking, which under the browser project's setup is English. RG215's own defect was
-Portuguese: `Acrescentar uma dependência` beside its box is wider than a phone-width
-column, and the English `Add a dependency` is not.
-
-Measured while RG214 was built. With RG215's `hero-actions` rule taken out of the
-stylesheet, the portfolio and the project surface overflow at 400 in Portuguese — 475
-and 461 pixels in a window of 400 — and nothing overflows in English. So the gate that
-replaced forty hand-read pictures would not have caught the defect those pictures found.
-
-**Both languages, per surface.** `atSurface` already takes a wording and `LOCALE_TAGS`
-names what this build ships, so the run loops over the tags rather than over a second
-list: a language added to the catalogue is one this reads the day it ships. Sixteen
-measurements instead of eight, each a viewport and a render, on a project that already
-starts a browser.
-
-Not the pseudo-locale, though it is longer still: brackets around every value measure a
-window nobody opens, and a failure there could not be told from one a reader would meet.
-The claim is about the languages this build speaks.
-
-Tab order and the focus ring stay in one language. Neither moves with a translation, and
-the walk is the expensive half of the file.
-
-Done when a surface that fits in English and overflows in Portuguese at 400 wide fails
-`surfaces.browser.test.tsx`.
-
 ### §RG226 Gate assertions that wait on a fact
 
 Three, one task apart each. `carrier.test.ts` during RG217, on RG166's *gates a project
