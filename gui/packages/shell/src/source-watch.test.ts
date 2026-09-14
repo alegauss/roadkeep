@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, utimesSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
@@ -17,12 +17,33 @@ import { removeTree } from './scratch'
  */
 const scratch: string[] = []
 
+/** Every directory `tree` makes, deepest first. */
+const MADE = [
+  'packages/shell/src/deep/deeper',
+  'packages/shell/src/deep',
+  'packages/shell/src',
+  'packages/shell',
+  'packages/core/src',
+  'packages/core',
+  'packages/ui/src',
+  'packages/ui',
+  'packages',
+]
+
 function tree(): string {
   const root = mkdtempSync(path.join(tmpdir(), 'rk-source-'))
   scratch.push(root)
   mkdirSync(path.join(root, 'packages', 'shell', 'src', 'deep', 'deeper'), { recursive: true })
   mkdirSync(path.join(root, 'packages', 'core', 'src'), { recursive: true })
   mkdirSync(path.join(root, 'packages', 'ui', 'src'), { recursive: true })
+  // Each directory's times written out before any watch starts (RG226). Making `deeper`
+  // changes `deep`, and on a loaded Windows machine that change is written to the directory
+  // lazily — so a watch started a moment later reported `change: deep` with nothing written
+  // at all, 19 rounds in 30 of a probe under load. That red the test for a renderer write
+  // nobody watches, and could green the ones that wait for a change for the wrong reason.
+  // Set explicitly, nothing is left pending: 0 in 30 under the same load.
+  const now = new Date()
+  for (const made of MADE) utimesSync(path.join(root, made), now, now)
   return root
 }
 

@@ -81,32 +81,32 @@ digest is then required to carry that set.
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
 
-### §RG226 Gate assertions that wait on a fact
+### §RG226 A close that answers once nothing on its profile stands
 
-Four. `carrier.test.ts` on RG166's *gates a project it just opened* (RG217, and again in
-RG225); `shots-live.test.ts` on RG211's axe scan (RG221) and on RG220's *kills the app
-it started*, red twice running in RG225; `source-watch.test.ts` on RG57's *ignores a
-tree nobody asked for* (RG222). Each passed alone and on a later whole run, and no task
-touched its subject.
+Landed: the carrier's gate tests wait on `gatesSettled`, and the source-watch fixture
+sets each directory's times before a watch starts — under load a fresh tree reported
+`change: deep` with nothing written in 19 rounds of 30, and 0 of 30 once set. Both were
+held under two busy loops a core.
 
-All four are races by construction — a gate still running, a browser working, a
-filesystem event, a process exiting — and each waits with a ceiling, which a loaded
-machine misses.
+**Left: `shots-live.test.ts`, RG220's kill and RG209's close.** Measured on Windows:
+`app.process()` is a launcher, the Electron main is its child, and a successful
+`taskkill /T /F` left the main, its GPU and its utility process listed with threads and
+hundreds of handles seconds later. `close()` returned before the child's `exit` event,
+so `exited()` read false.
 
-**What this costs is the gate's meaning.** A red run that means nothing teaches a reader
-to run it again, and the next red one — a real one — is read the same way. A flaky test
-is how a suite stops being believed.
+Tried and not enough. `Wait-Process` returns at once: Chromium's sandboxed children
+refuse another process the access a wait needs. Asking `Win32_Process` again until
+nothing on the profile is listed, killing whatever remains by id each round, fixed the
+kill test — and then in one plain `npm run test:live` of three the close waited its
+whole 45-second ceiling with something still standing on the profile. The old close
+never looked, so that process may always have outlived a close.
 
-The fix is to wait on a fact rather than on a deadline: the carrier knows when the gate
-it started has settled, the scan when axe answered, the watch when it fired, the OS when
-a pid is gone. Whether each already says so, and what it would take, is the first thing
-to read.
+**So the next step is naming it.** When the wait trips its ceiling, log each process
+still listed with its parent and its `--type`, over a few full runs, then decide whether
+it is Electron's to end or this run's.
 
-Not a rerun and not a longer timeout: both make it rarer and neither makes it mean
-something.
-
-Done when each assertion waits on the thing it is about having happened, and a hundred
-runs of the fast suite are green.
+Done when a close and a failed launch answer only once nothing on their profile stands,
+and three full live runs are green.
 
 ### §RG227 The rail, held to its drawing
 

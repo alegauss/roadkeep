@@ -613,9 +613,6 @@ describe('RG166: the gate the carrier runs itself', () => {
     return { carrier, lints, told }
   }
 
-  /** Wait for the gate the carrier started beside the answer it gave. */
-  const settle = () => new Promise((done) => setTimeout(done, 20))
-
   it('gates a project it just opened, without the opening waiting for it', async () => {
     const { carrier, lints, told } = watching()
 
@@ -623,7 +620,7 @@ describe('RG166: the gate the carrier runs itself', () => {
 
     // The opening is what a screen waits for, and it answered before the gate ran.
     expect(answer.kind).toBe('open')
-    await settle()
+    await carrier.gatesSettled()
     expect(lints).toHaveLength(1)
     expect(told.map((one) => one.health.verdict)).toEqual(['clean'])
   })
@@ -632,9 +629,9 @@ describe('RG166: the gate the carrier runs itself', () => {
     const { carrier, lints } = watching()
 
     await carrier.open(A)
-    await settle()
+    await carrier.gatesSettled()
     await carrier.open(A)
-    await settle()
+    await carrier.gatesSettled()
 
     // needsGate compares the verdict against the stamp, and nothing wrote in between.
     expect(lints).toHaveLength(1)
@@ -653,7 +650,7 @@ describe('RG166: the gate the carrier runs itself', () => {
     })
 
     await carrier.open(A)
-    await settle()
+    await carrier.gatesSettled()
 
     expect(lints).toEqual([])
     expect(told).toEqual([])
@@ -675,7 +672,7 @@ describe('RG166: the gate the carrier runs itself', () => {
     })
 
     await carrier.open(A)
-    await settle()
+    await carrier.gatesSettled()
 
     expect(told).toEqual([])
     expect(await carrier.gates()).toEqual([])
@@ -757,30 +754,40 @@ describe('RG187: how many projects gate at once', () => {
       open: (root) => openProject(root, [['python', '/x/launch.py']], () => machine),
       ...over,
     })
-    return { carrier, letGo: () => waiting.splice(0).forEach((go) => go()), most: () => most }
+    return {
+      carrier,
+      letGo: () => waiting.splice(0).forEach((go) => go()),
+      most: () => most,
+      held: () => waiting.length,
+    }
   }
 
-  const settle = () => new Promise((done) => setTimeout(done, 20))
-
   it('runs one at a time by default, whatever a launch opens together', async () => {
-    const { carrier, most, letGo } = slowGates()
+    const { carrier, most, letGo, held } = slowGates()
 
     // Both projects opened at once, which is what a cold start does.
     await Promise.all([carrier.open(A), carrier.open(TWO)])
-    await settle()
+
+    // Waited on as facts rather than slept through (RG226): the first gate in flight, then
+    // the second let in once the first is let go — which is the limiter doing its job.
+    await expect.poll(held).toBe(1)
+    letGo()
+    await expect.poll(held).toBe(1)
+    letGo()
+    await carrier.gatesSettled()
 
     expect(most()).toBe(1)
-    letGo()
   })
 
   it('takes the width it was given, so a machine with room can be told so', async () => {
     const { carrier, most, letGo } = slowGates({ gatesAtOnce: 2 })
 
     await Promise.all([carrier.open(A), carrier.open(TWO)])
-    await settle()
 
-    expect(most()).toBeGreaterThan(1)
+    // Two in flight together is the thing being claimed, so it is what is waited for.
+    await expect.poll(most).toBeGreaterThan(1)
     letGo()
+    await carrier.gatesSettled()
   })
 })
 

@@ -144,6 +144,17 @@ export interface Carrier {
    * inventing a clean row is the one thing `gate.ts` refuses to do.
    */
   gates(): Promise<readonly ProjectGate[]>
+  /**
+   * Resolve once every gate this carrier started has finished, including one started while
+   * waiting (RG226).
+   *
+   * An opening and a move each start a gate nobody awaits, which is right for a screen and
+   * wrong for anything asking what that gate did: the tests slept twenty milliseconds and
+   * hoped, and a loaded machine is one where `stat` and a spawn take longer than that. This
+   * is the fact they wait on — including the case where the gate decided not to run, which
+   * no event announces. Quitting does not wait on it, for the reason opening does not.
+   */
+  gatesSettled(): Promise<void>
   /** Give back every engine held, awaited to the last exit. What quitting waits on. */
   close(): Promise<void>
 }
@@ -388,6 +399,16 @@ export function createCarrier(options: CarrierOptions): Carrier {
     }
   }
 
+  /** The gates started and not yet finished, which `gatesSettled` waits on. */
+  const gatesRunning = new Set<Promise<void>>()
+
+  /** Start a gate nobody awaits, and keep it where `gatesSettled` can find it. */
+  const startGate = (root: string, project: OpenProject): void => {
+    const running = gateIfStale(root, project).catch(() => undefined)
+    gatesRunning.add(running)
+    void running.then(() => gatesRunning.delete(running))
+  }
+
   return {
     projects,
 
@@ -402,7 +423,7 @@ export function createCarrier(options: CarrierOptions): Carrier {
         // what a screen is waiting for, and it is handed the project this call already has
         // rather than opening one of its own (RG166).
         if (reached.kind === 'open') {
-          void gateIfStale(root, reached.project).catch(() => undefined)
+          startGate(root, reached.project)
           // And the record remembers what it declared (RG203). A declared name is read out
           // of the checkout that declares it, so a project the next scan does not find would
           // fall back to its folder at exactly the moment it goes grey — and *last seen on
@@ -528,7 +549,7 @@ export function createCarrier(options: CarrierOptions): Carrier {
         project.invalidate()
         moved()
         // The files moved, so the verdict on record is about a tree that has gone (RG166).
-        void gateIfStale(root, project).catch(() => undefined)
+        startGate(root, project)
       })
 
       let stopped = false
@@ -541,6 +562,11 @@ export function createCarrier(options: CarrierOptions): Carrier {
       }
       following.add(stop)
       return stop
+    },
+
+    async gatesSettled() {
+      // Again until none is left: a gate that finishes can be followed by one a move started.
+      while (gatesRunning.size > 0) await Promise.all([...gatesRunning])
     },
 
     async close() {
