@@ -223,3 +223,47 @@ describe('RG217: the room the stream is given', () => {
     expect(region.getBoundingClientRect().bottom).toBeLessThanOrEqual(window.innerHeight)
   })
 })
+
+/**
+ * RG225: the stream first, where the columns stack.
+ *
+ * RG217 measured the room under the stream's own top, and at 1280 that put its end inside the
+ * window. At 400 the three columns stacked in the order they were written — what was handed
+ * over, the stream, what moved — so the stream's top sat past the middle of the window, the
+ * floor answered, and the newest act was below the fold whatever the region did.
+ */
+describe('RG225: the session at phone width opens on its own words', () => {
+  /** A panel's box, found by the region the screen marks it with. */
+  function region(name: string): DOMRect {
+    const found = document.querySelector(`[data-region="session-${name}"]`)
+    if (found === null) throw new Error(`the session drew no ${name} column`)
+    return found.getBoundingClientRect()
+  }
+
+  it('draws the stream above the other two at 400 wide, with its newest act in view', async () => {
+    await page.viewport(400, 800)
+    const { region: stream } = await overflowing()
+    await waitFor(() => {
+      expect(atEnd(stream)).toBe(true)
+    })
+
+    expect(region('stream').top).toBeLessThan(region('handed').top)
+    expect(region('handed').top).toBeLessThan(region('moved').top)
+    // The claim itself: the end of the stream is on screen without the page being scrolled.
+    expect(window.scrollY).toBe(0)
+    expect(stream.getBoundingClientRect().bottom).toBeLessThanOrEqual(window.innerHeight)
+  })
+
+  it('keeps the drawing at 1280: handed over, the stream, what moved, left to right', async () => {
+    await overflowing()
+
+    const handed = region('handed')
+    const stream = region('stream')
+    const moved = region('moved')
+    expect(handed.right).toBeLessThanOrEqual(stream.left)
+    expect(stream.right).toBeLessThanOrEqual(moved.left)
+    // One row: the three tops agree, which a column that fell to a second row would not.
+    expect(Math.abs(handed.top - stream.top)).toBeLessThanOrEqual(1)
+    expect(Math.abs(stream.top - moved.top)).toBeLessThanOrEqual(1)
+  })
+})

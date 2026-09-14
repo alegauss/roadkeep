@@ -14,7 +14,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG225** (deps: —) **at 400 wide the session opens on two panels, so the stream a reader came for starts below the fold** — The columns stack in the order they are written, and the stream is the middle one, so what was handed over and what moved come first. → §RG225
 - 📋 **RG228** (deps: —) **at 400 wide the sessions list draws its headings over each other and cuts each project name to a letter** — Its rows and its heading row keep two 8rem columns at every width, which leaves the project column about seventy pixels on a phone. → §RG228
 
 ## Block G — The shell (an executable now, a service later)
@@ -23,7 +22,7 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- 📋 **RG226** (deps: —) **tests fail inside a full run and pass on their own, so a red gate can mean the machine was busy** — Three so far, each waiting on a deadline rather than on the thing it is about having happened, and 1600 tests on a loaded laptop miss it. → §RG226
+- 📋 **RG226** (deps: —) **tests fail inside a full run and pass on their own, so a red gate can mean the machine was busy** — Four so far, each waiting on a deadline rather than on the thing it is about having happened, and a loaded machine misses the deadline. → §RG226
 - 📋 **RG227** (deps: —) **the shell drawing's rail draws five tiles against the window's three, and no rail tile is marked** — RG127 compares the header control for control through `data-control`, and the rail carries no mark, so the two drift without failing anything. → §RG227
 
 ## Done when — Block A

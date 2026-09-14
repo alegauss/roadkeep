@@ -509,16 +509,28 @@ export function Session() {
         trailing={trailing}
       />
       {session === null ? null : (
+        // The stream is written first and placed in the middle (RG225). Stacked below `lg`,
+        // the columns fall in the order they are written, and what was handed over and what
+        // moved used to come first — so at 400 wide the session's own words, which a reader
+        // opened this screen for, started below the fold whatever the region's height did.
+        // First in the document is also first for a screen reader, at every width. Above
+        // `lg` each column is placed where the drawing has it, so nothing moves there.
         <div className="grid items-start gap-5 lg:grid-cols-[18rem_minmax(0,1fr)_18rem]">
-          <Handed record={session.record} />
-          <Stream lines={session.lines} marks={session.marks} />
-          <Moved
-            record={session.record}
-            now={session.now}
-            outcome={session.outcome}
-            files={session.files}
-            claims={session.claims}
-          />
+          <div className="min-w-0 lg:col-start-2 lg:row-start-1" data-region="session-stream">
+            <Stream lines={session.lines} marks={session.marks} />
+          </div>
+          <div className="min-w-0 lg:col-start-1 lg:row-start-1" data-region="session-handed">
+            <Handed record={session.record} />
+          </div>
+          <div className="min-w-0 lg:col-start-3 lg:row-start-1" data-region="session-moved">
+            <Moved
+              record={session.record}
+              now={session.now}
+              outcome={session.outcome}
+              files={session.files}
+              claims={session.claims}
+            />
+          </div>
         </div>
       )}
     </>

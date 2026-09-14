@@ -12,31 +12,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-### §RG225 The session at phone width, stream first
-
-RG217 gives the stream the room under its own top, never under a 20rem floor. At 1280 by
-800 that lands: the region ends inside the window and *Jump to latest* is drawn at about
-732. At 400 the columns stack, the region's top is past the middle of an 800-tall
-window, and what is under it is less than the floor — so the floor answers and the page
-scrolls. RG217's pictures show it.
-
-The floor is right and is not what to change: a scroll region of two hundred pixels is
-one a reader fights, and a page that scrolls is the honest answer. What is left is that
-the surface puts two panels *above* the stream at that width — what was handed over, and
-what moved — so the words a reader opened the screen for start below the fold whatever
-the region does.
-
-**So this is about the order, not the height.** Below `lg` the stream comes first and
-the other two follow, which is the reading order a person wants: the session's own
-words, then what it was handed, then what moved. Above `lg` nothing moves — the three
-columns are the drawing.
-
-Reading order is what a Tab walks, so `surfaces.browser.test.tsx` holds it: RG214's rule
-is that each next control sits below or to the right of the last, at 400 as well as at
-1280.
-
-Done when the session at 400 wide draws the stream's newest act inside the window.
-
 ### §RG228 The sessions list at phone width
 
 The sessions list is `grid-cols-[8rem_minmax(0,1fr)_8rem]`, on a heading row and on
@@ -108,25 +83,24 @@ which is why it is written down here rather than made quietly.
 
 ### §RG226 Gate assertions that wait on a fact
 
-Three, one task apart each. `carrier.test.ts` during RG217, on RG166's *gates a project
-it just opened*; `shots-live.test.ts` during RG221, on RG211's axe scan, which took 39
-seconds that run; `source-watch.test.ts` during RG222, on RG57's *ignores a tree nobody
-asked for*. Each was green on every run after, and no task touched what its test is
-about.
+Four. `carrier.test.ts` on RG166's *gates a project it just opened* (RG217, and again in
+RG225); `shots-live.test.ts` on RG211's axe scan (RG221) and on RG220's *kills the app
+it started*, red twice running in RG225; `source-watch.test.ts` on RG57's *ignores a
+tree nobody asked for* (RG222). Each passed alone and on a later whole run, and no task
+touched its subject.
 
-All three are races by construction: the opening hands back before the gate runs, the
-scan is a browser working, the watch is the filesystem saying so — and each waits with a
-ceiling. A ceiling passes on a fast machine and fails on a loaded one, which is what
-1600 tests make.
+All four are races by construction — a gate still running, a browser working, a
+filesystem event, a process exiting — and each waits with a ceiling, which a loaded
+machine misses.
 
 **What this costs is the gate's meaning.** A red run that means nothing teaches a reader
 to run it again, and the next red one — a real one — is read the same way. A flaky test
 is how a suite stops being believed.
 
 The fix is to wait on a fact rather than on a deadline: the carrier knows when the gate
-it started has settled, the scan knows when axe has answered, the watch knows when it
-has fired. Whether each already says so, and what it would take, is the first thing to
-read.
+it started has settled, the scan when axe answered, the watch when it fired, the OS when
+a pid is gone. Whether each already says so, and what it would take, is the first thing
+to read.
 
 Not a rerun and not a longer timeout: both make it rarer and neither makes it mean
 something.
