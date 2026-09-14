@@ -3,7 +3,7 @@
 A desktop app that reads roadkeep-governed backlogs across many local repositories. Electron
 main process, React renderer, and a pure core between them.
 
-This file is loaded on every turn, so it is an index. The long form lives in the
+Loaded every turn, so it is an index. The long form is the
 [`roadkeep-gui-roadmap-docs`](.claude/skills/roadkeep-gui-roadmap-docs/SKILL.md) skill,
 which triggers on the tasks that need it.
 
@@ -32,9 +32,10 @@ fallback is `python .claude/hooks/roadkeep-launch.py`.
 
 ## One task, one commit
 
-`run-commit.cmd -m "<conventional-commits title, ASCII>"` from the repo root — never
-`git commit` by hand, and never two tasks in one commit. The doc sync rides in the same
-commit as the code.
+`git add -- <its paths>` then `git commit -F <file>`: a parallel session shares this
+checkout, and `run-commit.cmd`'s `git add *` would commit its work under your title. It
+wrote the body from the diff, so that is yours now. A stager taking paths would settle it,
+outside this repo in `D:\Dev\bin`. Doc sync in the same commit, never two tasks.
 
 ## The gates, before that commit
 
@@ -47,9 +48,6 @@ commit as the code.
 | `roadkeep lint`     | Every task, without exception.                                   |
 | `npm run lint`      | Any file this repo owns. `npm run format` is the writer.         |
 | `npm run build`     | Anything the packaged app loads: a Vite config, an asset path.   |
-
-`npm run dev` opens the window with hot reload, `npm start` against the bundle on disk;
-neither is a gate.
 
 **Node 26 or newer**, declared in `package.json` and `.nvmrc` (RG97). On Node 20 no gate
 names the version: every jsdom file dies with a `TypeError` out of the undici jsdom

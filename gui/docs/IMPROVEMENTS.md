@@ -54,32 +54,6 @@ digest is then required to carry that set.
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
 
-### §RG233 One commit rule, not two
-
-`CLAUDE.md`'s *One task, one commit* says `run-commit.cmd -m "<title>"`, never `git
-commit` by hand. The `roadkeep-gui-roadmap-docs` skill says the opposite and gives its
-reason: `git add -- <this task's paths>` then `git commit -F <message file>`, "not
-`run-commit.cmd`, whose `git add *` takes the whole tree", because another session works
-this same checkout. That happened on 2026-09-09: one commit carried another session's
-docs, and both messages then described something they did not hold.
-
-Both files are loaded every turn, so whichever is read first decides, and the reader
-cannot tell which is stale. Every commit in block H followed the skill.
-
-**The skill's rule is the one with a measurement behind it, so `CLAUDE.md`'s row is what
-gives way.** Its commit row should say one task one commit, staged by its own paths, and
-name the shared checkout as the reason — short, since the long form is the skill's job.
-
-What is lost is worth saying: `run-commit.cmd` writes the commit body from the staged
-diff, and staging by path means writing it by hand. That is a trade to state in the row,
-not to leave for the next reader to rediscover.
-
-The other way out is a tool that stages only the paths it is given, which would let both
-files agree on `run-commit.cmd`. It lives outside this repo, in `D:\Dev\bin`, so it is
-not this line's to change — name it and leave it.
-
-Done when the two say one thing and the row names why.
-
 ### §RG234 Transforms kept between runs
 
 `npm test` prints its own measurement at the end of every run: `core` spends 17.99s
