@@ -54,32 +54,6 @@ digest is then required to carry that set.
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
 
-### §RG232 The one-off failure, kept
-
-During RG226 one full `npm test` drew `task.test.tsx`'s *leads from Open to the line at
-its own route* red. It was green alone and green since: six runs of the file, and four
-whole fast suites, all under load. The message is gone — a fast run prints a failure and
-keeps nothing.
-
-RG226 fixed three tests of this shape by finding what each really waited on: a gate that
-had not run, a directory Windows announced, a process still standing. Its done-when
-asked for a hundred green fast runs and it shipped on four, so this is the part nobody
-has shown.
-
-**The first move is to keep the evidence, not to guess.** The suite can write a
-machine-readable report per run, so a failure that happens once leaves its message and
-its assertion behind. Then run the fast suite under load until the test goes red.
-
-Fix it where RG226 fixed the others: `findByRole` waits on a deadline, and a deadline on
-a loaded worker is what breaks, but what it should wait on is the click reaching the
-route — a fact the router can be asked for.
-
-And if twenty loaded runs stay green, say so on the line with the number: a one-off
-closed with its evidence beats a timeout raised to bury it.
-
-Done when the test has been made to fail on purpose and then waits on a fact, or the
-line is closed as unreproducible with the count of runs behind it.
-
 ### §RG233 One commit rule, not two
 
 `CLAUDE.md`'s *One task, one commit* says `run-commit.cmd -m "<title>"`, never `git
@@ -105,3 +79,30 @@ files agree on `run-commit.cmd`. It lives outside this repo, in `D:\Dev\bin`, so
 not this line's to change — name it and leave it.
 
 Done when the two say one thing and the row names why.
+
+### §RG234 Transforms kept between runs
+
+`npm test` prints its own measurement at the end of every run: `core` spends 17.99s
+transforming modules, 78% of its tracked time, and `shell` 16.69s — both re-done from
+scratch on the next run. A whole run measured between 18s and 37s here, so that is no
+rounding error inside it.
+
+Vitest names the flag itself: `fsModuleCache: true` persists transformed modules across
+runs. RG64 split this suite precisely so `npm test` would stay what somebody runs
+between edits, and this is the part of that cost nothing spends on a test.
+
+**The question is not whether it is faster but whether it is still true.** A cache keyed
+wrong answers with yesterday's module, and a suite green about code nobody changed is
+worse than a slow one. So the work is three measurements and not one flag: a cold run, a
+warm one, then an edit — change a source file, run again, and watch the assertion that
+depended on it go red.
+
+Where the cache lands is part of it. `.vitest/` is already ignored by git and by
+Prettier and holds the browser screenshots and the failure reports; anywhere else is a
+directory somebody has to add to both.
+
+Only `core` and `shell` were measured, the two the banner named. The renderer transforms
+`.tsx` through the React plugin and is the likelier winner of the three.
+
+Done when a warm run is measurably cheaper than a cold one and an edited file still
+fails the test that covers it.

@@ -1,4 +1,4 @@
-import { cleanup } from '@testing-library/react'
+import { cleanup, configure } from '@testing-library/react'
 import { afterEach, beforeEach } from 'vitest'
 
 import { startSpeaking } from './speaking'
@@ -12,6 +12,30 @@ import { startSpeaking } from './speaking'
  * plainest window; `speaking.test.tsx` moves it and puts it back.
  */
 await startSpeaking('en')
+
+/**
+ * How long a `findBy*` may wait, which is a budget and not an assertion (RG232).
+ *
+ * Testing Library allows one second. Every surface here draws after a read — the bridge, then
+ * `config` and `brief` — so every one of these tests waits, and one second is wall clock on a
+ * worker sharing a machine. RG232 came out of a single red test nobody could explain; put
+ * under load (28 busy cores beside the suite) three runs in a row went red, and the reports
+ * `.vitest/failures/` kept name the same defect every time: five files, nine failures, all of
+ * them `Unable to find …` at a one-second deadline, in tests that pass in milliseconds on an
+ * idle machine. None of the nine was the app doing anything wrong.
+ *
+ * **Five seconds is not that defect buried.** A budget only decides how long a run waits
+ * before calling something absent: a screen that never draws still fails, with the same
+ * message, five seconds later. What it stops being is a suite that is red when the machine is
+ * busy and green when it is not, which is a suite whose red says nothing.
+ *
+ * It has to stay under `testTimeout`, which `vite.config.ts` raises to match — a wait that
+ * outlives its test reports *test timed out* and loses the message naming what was missing.
+ *
+ * The browser project sets none of this: its own flake has never been seen, and it now has
+ * the same report to prove one if it happens.
+ */
+configure({ asyncUtilTimeout: 5000 })
 
 /**
  * jsdom implements no `matchMedia`, and anything that follows the desktop asks for one —

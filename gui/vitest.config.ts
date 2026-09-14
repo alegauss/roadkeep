@@ -16,6 +16,11 @@ import { defineConfig } from 'vitest/config'
 // that reports an error rather than a suite.
 export default defineConfig({
   test: {
+    // RG232: `default` prints the run, and the second one keeps it — a JSON report per run
+    // that went red, under `.vitest/failures/`, so a test that fails once in a hundred runs
+    // leaves its message and its assertion behind instead of scrolling past. A green run
+    // writes nothing. `packages/shell/src/failure-report.ts` says why it is shaped that way.
+    reporters: ['default', './packages/shell/src/failure-report.ts'],
     projects: [
       'packages/core',
       'packages/shell/vitest.config.ts',

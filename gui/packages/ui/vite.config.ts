@@ -33,5 +33,10 @@ export default defineConfig({
       'src/**/*.browser.test.{ts,tsx}',
     ],
     setupFiles: ['./src/test-setup.ts'],
+    // Above the five seconds `test-setup.ts` gives a `findBy*`, and for that reason (RG232):
+    // vitest's own default is five, so a wait that used its whole budget would be cut off by
+    // the test timing out — which reports *test timed out* and throws away the message naming
+    // what never appeared. A ceiling nothing reaches on a green run.
+    testTimeout: 15_000,
   },
 })
