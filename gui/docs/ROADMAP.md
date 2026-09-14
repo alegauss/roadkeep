@@ -22,8 +22,6 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- 📋 **RG227** (deps: —) **the shell drawing's rail draws five tiles against the window's three, and no rail tile is marked** — RG127 compares the header control for control through `data-control`, and the rail carries no mark, so the two drift without failing anything. → §RG227
-
 ## Done when — Block A
 
 - **The client runs with no Electron and no React** The transport is one interface, so

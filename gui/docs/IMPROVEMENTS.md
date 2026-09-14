@@ -80,30 +80,3 @@ digest is then required to carry that set.
 
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
-
-### §RG227 The rail, held to its drawing
-
-RG127 holds the drawings to the window by marking each drawn control with `data-control`
-and each region with `data-region`, and `artboards.test.tsx` renders the window and asks
-the two to agree. It reaches the header, control for control. It does not reach the
-rail: no tile in `Shell.dc.html` carries a mark, so the drawing's rail and the window's
-are never compared.
-
-They differ. The drawing gives the rail five tiles — a grid, a list, a document, an
-arrow, and a gear at the foot — and the window draws three: Home, the sessions and the
-settings, which is what RG221 made it draw. Before RG221 it drew one, and the drawing
-said five then too.
-
-Neither is marked *planned* by the file's own convention, which is a dashed border:
-these are drawn solid, so the drawing asserts a rail that has never existed.
-
-**So mark the rail's tiles and let the test fail, then redraw.** The mark is the
-section's own id — `data-control="rail-work"` and the like. `BentoNavRail` renders the
-package's markup, so the window's side reads the rail's links by their route rather than
-by a `data-testid` this app cannot add.
-
-The two tiles the drawing has and the window does not are the interesting half: whether
-either is a surface somebody meant to build is a question for whoever redraws it.
-
-Done when `artboards.test.tsx` compares the rail as it compares the header, and the
-drawing draws the three tiles the window draws.

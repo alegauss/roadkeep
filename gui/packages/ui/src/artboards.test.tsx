@@ -3,6 +3,7 @@ import path from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
+import { AREAS, HOME_ROUTE } from './areas'
 import { drawWindow } from './harness'
 
 /**
@@ -59,6 +60,41 @@ function renderedControls(): string[] {
   )
 }
 
+/** The tiles an artboard says its rail carries, in the order it draws them. */
+function drawnRail(drawing: Document): string[] {
+  return [...drawing.querySelectorAll('[data-region="rail"] [data-control]')].map(
+    (element) => element.getAttribute('data-control') ?? '',
+  )
+}
+
+/**
+ * The handle a rail link answers to, read off the route it leads to (RG227).
+ *
+ * By route and not by a `data-testid`, because the rail is the package's markup and carries
+ * none this app could add. Derived from `AREAS`, the array the rail renders, so a section
+ * given a route is a tile the drawings must draw before this passes.
+ */
+const RAIL_HANDLES: ReadonlyMap<string, string> = new Map([
+  [HOME_ROUTE, 'rail-home'],
+  ...AREAS.flatMap((group) =>
+    group.section.areaRoute === undefined
+      ? []
+      : [[group.section.areaRoute, `rail-${group.section.id}`] as const],
+  ),
+])
+
+/** The tiles the window's rail renders, by handle, in its order. */
+function renderedRail(): string[] {
+  const { container } = drawWindow({ initial: 'light' })
+  const rail = container.querySelector('nav')
+  if (rail === null) throw new Error('the window rendered no rail to compare against')
+
+  return [...rail.querySelectorAll('a')].map((link) => {
+    const route = link.getAttribute('href') ?? ''
+    return RAIL_HANDLES.get(route) ?? `unmapped:${route}`
+  })
+}
+
 describe('RG127: the chrome the drawings say the window has', () => {
   it('renders four controls, which is what makes the comparison below mean anything', () => {
     // The control. A header that rendered nothing with a handle would agree with an
@@ -97,6 +133,23 @@ describe('RG127: the chrome the drawings say the window has', () => {
     expect(drawn).not.toBeNull()
     expect(geometryOf(drawn)).toEqual(geometryOf(rendered))
     expect(geometryOf(rendered)).toHaveLength(6)
+  })
+
+  it('renders a rail tile per section with a route, beside Home (RG227)', () => {
+    // The control for the rail, as the header has one: a rail that rendered nothing would
+    // agree with a drawing that marked nothing.
+    expect(renderedRail()).toEqual(['rail-home', 'rail-work', 'rail-app'])
+  })
+
+  it.each(DRAWING_CHROME)('draws the rail the window renders, in its order: %s', (name) => {
+    // RG227: the header was compared control for control and the rail was not, so the
+    // drawings kept a rail of five tiles — a grid, a list, a document, an arrow and a gear —
+    // through every change to the window's, which drew one tile and then three.
+    expect(
+      drawnRail(artboard(name)),
+      `${name} draws a different rail from the one the window renders. Redraw it, and mark` +
+        ' each tile `rail-home` or `rail-<section id>`, which is what the window is read by.',
+    ).toEqual(renderedRail())
   })
 
   it('leaves unmarked what is drawn and not rendered, rather than lying about the window', () => {
