@@ -65,6 +65,8 @@ export const PT_BR: Wording = {
   'portfolio.order.record': 'ordem: a do registro',
   'portfolio.order.name-ascending': 'ordem: nome, de A a Z',
   'portfolio.order.name-descending': 'ordem: nome, de Z a A',
+  'portfolio.order.open-descending': 'ordem: mais linhas abertas primeiro',
+  'portfolio.order.open-ascending': 'ordem: menos linhas abertas primeiro',
   'portfolio.column.project': 'Projeto',
   'portfolio.column.backlog': 'Pendências',
   'portfolio.column.next': 'Próxima linha pronta',

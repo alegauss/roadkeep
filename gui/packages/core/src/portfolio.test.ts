@@ -16,10 +16,12 @@ import {
 import {
   filterCounts,
   folderName,
+  keptRanking,
   matchesFilter,
   nextOrder,
   orderRows,
   pendingRow,
+  placeRows,
   readRow,
   ROW_FILTERS,
   sortOf,
@@ -424,6 +426,156 @@ describe('RG239: the order a portfolio is read in', () => {
     expect(sortOf('record', 'name')).toBe('none')
     expect(sortOf('name-ascending', 'name')).toBe('ascending')
     expect(sortOf('name-descending', 'name')).toBe('descending')
+  })
+})
+
+describe('RG240: ranking the portfolio by open lines', () => {
+  /** A read row whose `stats` printed `total` open lines. */
+  const open = (path: string, total: number) =>
+    readRow({ ...project, path }, { stats: { ...STATS, total } })
+  const pending = (path: string) => pendingRow({ ...project, path })
+  const pathsOf = (rows: readonly { readonly path: string }[]) => rows.map((row) => row.path)
+
+  it('ranks by the count stats printed for each row, most first and then fewest', () => {
+    const rows = [open('/a', 5), open('/b', 60), open('/c', 20)]
+
+    expect(pathsOf(orderRows(rows, 'open-descending', 'en'))).toEqual(['/b', '/c', '/a'])
+    expect(pathsOf(orderRows(rows, 'open-ascending', 'en'))).toEqual(['/a', '/c', '/b'])
+  })
+
+  it('puts a row with no count after every row with one, in the record order, both ways', () => {
+    // Zero open lines and not read yet are opposite facts: a pending row ranked as zero would
+    // lead the fewest-first order with a backlog nobody has counted.
+    const rows = [
+      pending('/p'),
+      open('/a', 0),
+      unreadableRow(
+        { ...project, path: '/u' },
+        {
+          reason: 'unspawnable',
+          message: 'no python',
+          code: '',
+          fields: {},
+          said: '',
+          elapsedMs: 0,
+          argv: [],
+        },
+      ),
+      open('/b', 9),
+    ]
+
+    expect(pathsOf(orderRows(rows, 'open-descending', 'en'))).toEqual(['/b', '/a', '/p', '/u'])
+    expect(pathsOf(orderRows(rows, 'open-ascending', 'en'))).toEqual(['/a', '/b', '/p', '/u'])
+  })
+
+  it('keeps the record order between rows with the same count, whichever way', () => {
+    const rows = [open('/first', 7), open('/other', 3), open('/second', 7)]
+
+    expect(pathsOf(orderRows(rows, 'open-descending', 'en'))).toEqual([
+      '/first',
+      '/second',
+      '/other',
+    ])
+    expect(pathsOf(orderRows(rows, 'open-ascending', 'en'))).toEqual([
+      '/other',
+      '/first',
+      '/second',
+    ])
+  })
+
+  it("moves a click on the Backlog head from most open, to fewest, and back to the record's", () => {
+    expect(nextOrder('record', 'open')).toBe('open-descending')
+    expect(nextOrder('open-descending', 'open')).toBe('open-ascending')
+    expect(nextOrder('open-ascending', 'open')).toBe('record')
+    // A click on a head whose column no order is on starts that column's cycle.
+    expect(nextOrder('name-descending', 'open')).toBe('open-descending')
+    expect(nextOrder('open-ascending', 'name')).toBe('name-ascending')
+  })
+
+  it('says which head the ranking is on, and none for the other', () => {
+    expect(sortOf('open-descending', 'open')).toBe('descending')
+    expect(sortOf('open-ascending', 'open')).toBe('ascending')
+    expect(sortOf('open-descending', 'name')).toBe('none')
+    expect(sortOf('name-ascending', 'open')).toBe('none')
+  })
+
+  it('places rows by a list of paths, and a row it does not name after, as recorded', () => {
+    const rows = [open('/a', 1), open('/b', 2), open('/new', 3), open('/c', 4), open('/late', 5)]
+
+    expect(pathsOf(placeRows(rows, ['/c', '/a', '/b']))).toEqual([
+      '/c',
+      '/a',
+      '/b',
+      '/new',
+      '/late',
+    ])
+  })
+
+  describe('the places a ranking keeps', () => {
+    it('holds none for an order that ranks nothing, since a name is on the record already', () => {
+      const rows = [open('/a', 1)]
+
+      expect(keptRanking(null, rows, 'record', true)).toBeNull()
+      expect(keptRanking(null, rows, 'name-ascending', true)).toBeNull()
+      expect(
+        keptRanking(
+          { order: 'open-descending', settled: true, paths: ['/a'] },
+          rows,
+          'record',
+          true,
+        ),
+      ).toBeNull()
+    })
+
+    it('ranks the rows at hand when the order is chosen', () => {
+      const rows = [open('/a', 1), pending('/p'), open('/b', 2)]
+
+      expect(keptRanking(null, rows, 'open-descending', false)).toEqual({
+        order: 'open-descending',
+        settled: false,
+        paths: ['/b', '/a', '/p'],
+      })
+    })
+
+    it('keeps each place while a read is in flight, even where a count landed', () => {
+      const kept = keptRanking(null, [pending('/a'), open('/b', 2)], 'open-descending', false)
+      const landed = [open('/a', 90), open('/b', 2)]
+
+      expect(keptRanking(kept, landed, 'open-descending', false)).toBe(kept)
+    })
+
+    it('ranks again once, as the last read settles', () => {
+      const kept = keptRanking(null, [pending('/a'), open('/b', 2)], 'open-descending', false)
+      const landed = [open('/a', 90), open('/b', 2)]
+      const settled = keptRanking(kept, landed, 'open-descending', true)
+
+      expect(settled?.paths).toEqual(['/a', '/b'])
+      expect(keptRanking(settled, landed, 'open-descending', true)).toBe(settled)
+    })
+
+    it('keeps the last ranking through a reread and a rescan, until the rescan settles', () => {
+      const settled = keptRanking(null, [open('/a', 9), open('/b', 2)], 'open-descending', true)
+      // A reread moved a count, and nothing settled: the places stay.
+      const reread = [open('/a', 1), open('/b', 2)]
+      expect(keptRanking(settled, reread, 'open-descending', true)).toBe(settled)
+
+      // A rescan redraws every row as pending while its reads run.
+      const rescanning = keptRanking(
+        settled,
+        [pending('/a'), pending('/b')],
+        'open-descending',
+        false,
+      )
+      expect(rescanning?.paths).toEqual(['/a', '/b'])
+      expect(keptRanking(rescanning, reread, 'open-descending', true)?.paths).toEqual(['/b', '/a'])
+    })
+
+    it('ranks afresh when the direction is chosen again', () => {
+      const rows = [open('/a', 9), open('/b', 2)]
+      const most = keptRanking(null, rows, 'open-descending', false)
+
+      expect(keptRanking(most, rows, 'open-ascending', false)?.paths).toEqual(['/b', '/a'])
+    })
   })
 })
 

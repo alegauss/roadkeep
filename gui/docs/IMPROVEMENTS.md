@@ -6,32 +6,6 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-### §RG240 Ranking the portfolio by open lines
-
-**The key is `counts.total`**, the number `stats` printed for that row and the Backlog
-column already draws as open. Ranking by it compares rows and adds nothing up, which
-keeps block C's first criterion.
-
-**Most open first, then fewest, then the record's**: RG239's three-state `th` control,
-now on Backlog, with `open-descending` and `open-ascending` added to `RowOrder`, as rows
-of `ORDERED_BY` and `CYCLES` in `portfolio.ts`. Ties keep the record's order.
-
-**A row with no count sorts after every row with one**, in the record's order, whichever
-way the ranking runs. A pending row placed as zero breaks block C's second criterion as
-an order, and an unreadable row has no count to rank.
-
-**Rows do not move under a read.** `coldStart` refuses completion order because the row
-about to be clicked moves, and a count landing would move it the same way. So the
-ranking is a list of paths, taken when the order is chosen and again when
-`view.progress` goes null. While a read is in flight each row keeps the place that list
-gives it, and a row it does not name follows in the record's order. A cold start draws
-the record's order and re-ranks once, as the progress line leaves; a rescan keeps the
-last ranking until it settles. The test keeping a row where the record put it gains a
-twin under this order.
-
-**Filters compose.** `drifted` ranked by open lines says which broken backlog to repair
-first, and neither rule knows the other.
-
 ### §RG241 Keeping the portfolio's order across launches
 
 **One preference row, the way RG208 added one.** `Settings` gains `portfolioOrder`, a

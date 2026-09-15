@@ -21,8 +21,8 @@ import type { Declared, PickPayload, StatsPayload } from './payloads'
  * believed is the wrong one. So every payload field is null until it arrives.
  *
  * Ordering and grouping are the only things here derived rather than read, and an order
- * compares rows without adding anything up across them (RG239). The name is the folder's own, which is a fact about a path and not a field this
- * app composed.
+ * compares rows without adding anything up across them (RG239, RG240). The name is the
+ * folder's own, which is a fact about a path and not a field this app composed.
  */
 
 export type RowState =
@@ -322,12 +322,14 @@ export function filterCounts(rows: readonly ProjectRow[]): Readonly<Record<RowFi
  * column, so a choice is one word from one closed set and never a pair to keep in step.
  *
  * `record` is the order the roots were added in, which is what a cold start draws and what
- * every other order falls back to.
+ * every other order falls back to. `open-*` ranks by the open count `stats` printed for each
+ * row (RG240): it compares rows and adds nothing up across them.
  */
-export type RowOrder = 'record' | 'name-ascending' | 'name-descending'
+export type RowOrder =
+  'record' | 'name-ascending' | 'name-descending' | 'open-descending' | 'open-ascending'
 
-/** A column head an order is chosen from. */
-export type OrderColumn = 'name'
+/** A column head an order is chosen from: the Project head, and the Backlog head. */
+export type OrderColumn = 'name' | 'open'
 
 /** What `aria-sort` says of a column head, spelled as the attribute spells it. */
 export type OrderDirection = 'ascending' | 'descending'
@@ -338,11 +340,17 @@ const ORDERED_BY: Readonly<
   record: null,
   'name-ascending': { column: 'name', direction: 'ascending' },
   'name-descending': { column: 'name', direction: 'descending' },
+  'open-descending': { column: 'open', direction: 'descending' },
+  'open-ascending': { column: 'open', direction: 'ascending' },
 }
 
-/** What one click on a column head moves through, before it hands back the record's order. */
+/**
+ * What one click on a column head moves through, before it hands back the record's order.
+ * Names start at A; counts start at the most open, which is the backlog a day starts from.
+ */
 const CYCLES: Readonly<Record<OrderColumn, readonly RowOrder[]>> = {
   name: ['name-ascending', 'name-descending'],
+  open: ['open-descending', 'open-ascending'],
 }
 
 /** The order a click on `column` chooses, from the one in force. */
@@ -378,6 +386,10 @@ function collatorFor(locale: string): Intl.Collator {
  * family's worktrees, current version first, and that order is worth keeping. So the sort
  * is stable and a descending order negates the comparison rather than reversing the list.
  *
+ * **A row with no count follows every row with one (RG240)**, in the record's order,
+ * whichever way the ranking runs. A pending row placed as zero would be block C's second
+ * criterion broken as an order, and an unreadable row has no count to rank.
+ *
  * `record` hands the rows back as they came. Nothing here filters: a chip narrows first, and
  * the two compose because neither rule knows the other.
  */
@@ -388,7 +400,62 @@ export function orderRows(
 ): readonly ProjectRow[] {
   const by = ORDERED_BY[order]
   if (by === null) return rows
-  const names = collatorFor(locale)
   const sign = by.direction === 'ascending' ? 1 : -1
+  if (by.column === 'open') {
+    return rows.toSorted((left, right) => {
+      if (left.counts === null || right.counts === null) {
+        return Number(left.counts === null) - Number(right.counts === null)
+      }
+      return sign * (left.counts.total - right.counts.total)
+    })
+  }
+  const names = collatorFor(locale)
   return rows.toSorted((left, right) => sign * names.compare(left.name, right.name))
+}
+
+/**
+ * The places an order that ranks by counts keeps while reads land (RG240).
+ *
+ * `coldStart` refuses completion order because the row about to be clicked moves, and a count
+ * landing would move it the same way. So a ranking is a list of paths, taken when the order
+ * is chosen and again when every read has settled, and between those two moments each row
+ * keeps the place the list gave it. A cold start draws the record's order and re-ranks once,
+ * as the progress line leaves; a rescan and a reread keep the last ranking.
+ *
+ * A name is on the record before any read (RG203), so ordering by name holds no places.
+ */
+export interface Ranking {
+  readonly order: RowOrder
+  /** Whether every read had landed when this was last looked at. */
+  readonly settled: boolean
+  readonly paths: readonly string[]
+}
+
+/**
+ * The ranking to draw with, from the one kept, or null where `order` holds no places.
+ *
+ * Handed back as the same object where nothing moved it, so a caller holding it in state
+ * can tell a change by identity.
+ */
+export function keptRanking(
+  kept: Ranking | null,
+  rows: readonly ProjectRow[],
+  order: RowOrder,
+  settled: boolean,
+): Ranking | null {
+  if (ORDERED_BY[order]?.column !== 'open') return null
+  if (kept === null || kept.order !== order || (settled && !kept.settled)) {
+    return { order, settled, paths: orderRows(rows, order, '').map((row) => row.path) }
+  }
+  return kept.settled === settled ? kept : { ...kept, settled }
+}
+
+/** The rows in the places `paths` gives them, and a row it does not name after, as recorded. */
+export function placeRows(
+  rows: readonly ProjectRow[],
+  paths: readonly string[],
+): readonly ProjectRow[] {
+  const place = new Map(paths.map((path, index) => [path, index]))
+  const of = (row: ProjectRow): number => place.get(row.path) ?? paths.length
+  return rows.toSorted((left, right) => of(left) - of(right))
 }

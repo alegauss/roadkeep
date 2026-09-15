@@ -331,11 +331,15 @@ describe('RG145: the portfolio at the root route', () => {
   })
 })
 
-describe('RG239: ordering the portfolio by name', () => {
-  const CHARLIE = '/code/charlie'
-  const ALPHA = '/code/alpha'
-  const BRAVO = '/code/bravo'
+/** Three projects the record holds out of name order, for the orders a person can choose. */
+const CHARLIE = '/code/charlie'
+const ALPHA = '/code/alpha'
+const BRAVO = '/code/bravo'
 
+const drawnPaths = () =>
+  screen.getAllByTestId('portfolio-row').map((row) => row.dataset['path'] ?? '')
+
+describe('RG239: ordering the portfolio by name', () => {
   /** Three projects the record holds out of name order; `refused` names the ones that do not open. */
   async function outOfOrder(refused: readonly string[] = []): Promise<void> {
     const paths = [CHARLIE, ALPHA, BRAVO]
@@ -365,9 +369,6 @@ describe('RG239: ordering the portfolio by name', () => {
       configurable: true,
     })
   }
-
-  const drawnPaths = () =>
-    screen.getAllByTestId('portfolio-row').map((row) => row.dataset['path'] ?? '')
 
   it("orders from the Project head: A to Z, Z to A, then the record's again", async () => {
     await outOfOrder()
@@ -414,6 +415,167 @@ describe('RG239: ordering the portfolio by name', () => {
 
     fireEvent.click(screen.getByTestId('filter-all'))
     expect(drawnPaths()).toEqual([ALPHA, BRAVO, CHARLIE])
+  })
+})
+
+describe('RG240: ranking the portfolio by open lines', () => {
+  /** A machine printing each project's own open count, which a test can change between reads. */
+  function counting(totals: Record<string, number>): Transport {
+    return {
+      run(request) {
+        const verb = request.argv[2] ?? ''
+        if (verb === 'stats') {
+          const total = totals[request.root] ?? 0
+          return Promise.resolve({
+            code: 0,
+            stdout: JSON.stringify({
+              file: 'docs/ROADMAP.md',
+              total,
+              uncounted: 0,
+              markers: { '📋': total },
+              startable: { open: total, startable: total, waiting: 0, absent: [] },
+              blocks: [],
+            }),
+            stderr: '',
+            durationMs: 1,
+          })
+        }
+        const answer = SAID[verb]
+        if (answer === undefined)
+          return Promise.reject(new EngineCallFailed('unspawnable', 'no', 1))
+        return Promise.resolve({ code: 0, stdout: answer, stderr: '', durationMs: 1 })
+      },
+    }
+  }
+
+  /**
+   * CHARLIE, ALPHA and BRAVO with 5, 50 and 20 open lines. ALPHA opens when the test says so,
+   * where it asks to hold it; a files-moved event on ALPHA is the test's to send.
+   */
+  async function ranked(options: { readonly holdAlpha?: boolean } = {}) {
+    const totals: Record<string, number> = { [CHARLIE]: 5, [ALPHA]: 50, [BRAVO]: 20 }
+    const transport = counting(totals)
+    const answers = new Map(
+      await Promise.all(
+        [CHARLIE, ALPHA, BRAVO].map(
+          async (path) =>
+            [
+              path,
+              openedFrom(await openProject(path, [['python', '/code/launch.py']], () => transport)),
+            ] as const,
+        ),
+      ),
+    )
+    let openAlpha: () => void = () => undefined
+    const alphaOpened = new Promise<void>((resolve) => {
+      openAlpha = resolve
+    })
+    const moves: (() => void)[] = []
+    Object.defineProperty(window, 'roadkeep', {
+      value: stubBridge({
+        projects: () =>
+          Promise.resolve({
+            version: 1,
+            roots: [{ path: '/code', depth: 1 }],
+            projects: [CHARLIE, ALPHA, BRAVO].map(recorded),
+          }),
+        open: async (root) => {
+          if (root === ALPHA && options.holdAlpha === true) await alphaOpened
+          return answers.get(root) ?? REFUSAL
+        },
+        run: (root, request) => bridgedRun(() => transport.run({ ...request, root })),
+        gates: () => Promise.resolve([]),
+        subscribe: (topic, key, listener) => {
+          if (topic === 'governed' && key === ALPHA) moves.push(() => (listener as () => void)())
+          return () => undefined
+        },
+      }),
+      configurable: true,
+    })
+    drawWindow()
+    return {
+      totals,
+      openAlpha,
+      moved: async () => {
+        await act(async () => {
+          for (const move of moves) move()
+          await Promise.resolve()
+        })
+      },
+    }
+  }
+
+  const settledOn = async (paths: readonly string[]) => {
+    await waitFor(() => {
+      expect(screen.queryByTestId('portfolio-progress')).toBeNull()
+      expect(drawnPaths()).toEqual(paths)
+    })
+  }
+
+  it("ranks from the Backlog head: most open first, then fewest, then the record's", async () => {
+    await ranked()
+    await settledOn([CHARLIE, ALPHA, BRAVO])
+    const head = screen.getByTestId('order-open')
+    const th = head.closest('th')
+    const caption = screen.getByTestId('portfolio-order')
+
+    fireEvent.click(head)
+    expect(drawnPaths()).toEqual([ALPHA, BRAVO, CHARLIE])
+    expect(th?.getAttribute('aria-sort')).toBe('descending')
+    expect(caption.textContent).toBe(BASE['portfolio.order.open-descending'])
+    // One head carries the order at a time.
+    expect(screen.getByTestId('order-name').closest('th')?.getAttribute('aria-sort')).toBe('none')
+
+    fireEvent.click(head)
+    expect(drawnPaths()).toEqual([CHARLIE, BRAVO, ALPHA])
+    expect(th?.getAttribute('aria-sort')).toBe('ascending')
+    expect(caption.textContent).toBe(BASE['portfolio.order.open-ascending'])
+
+    fireEvent.click(head)
+    expect(drawnPaths()).toEqual([CHARLIE, ALPHA, BRAVO])
+    expect(th?.getAttribute('aria-sort')).toBe('none')
+    expect(caption.textContent).toBe(BASE['portfolio.order.record'])
+  })
+
+  it('ranks a row still being read after the counted ones, and again once the reads settle', async () => {
+    const { openAlpha } = await ranked({ holdAlpha: true })
+    await waitFor(() => {
+      expect(
+        within(rowOf('bravo')).getByText(fill(BASE['counts.open'], { count: 20 })),
+      ).toBeTruthy()
+      expect(
+        within(rowOf('charlie')).getByText(fill(BASE['counts.open'], { count: 5 })),
+      ).toBeTruthy()
+    })
+    expect(screen.getByTestId('portfolio-progress')).toBeTruthy()
+
+    fireEvent.click(screen.getByTestId('order-open'))
+    // Pending is not zero: the row nobody has counted follows the two that were.
+    expect(drawnPaths()).toEqual([BRAVO, CHARLIE, ALPHA])
+
+    openAlpha()
+    await settledOn([ALPHA, BRAVO, CHARLIE])
+  })
+
+  it('keeps each row where the ranking put it when a reread moves a count (RG167)', async () => {
+    const { totals, moved } = await ranked()
+    await settledOn([CHARLIE, ALPHA, BRAVO])
+    fireEvent.click(screen.getByTestId('order-open'))
+    expect(drawnPaths()).toEqual([ALPHA, BRAVO, CHARLIE])
+
+    totals[ALPHA] = 1
+    await moved()
+    await waitFor(() => {
+      expect(within(rowOf('alpha')).getByText(fill(BASE['counts.open'], { count: 1 }))).toBeTruthy()
+    })
+    // The twin of the record order's own test: a row that moved because it was reread would
+    // be a list shuffling under the pointer.
+    expect(drawnPaths()).toEqual([ALPHA, BRAVO, CHARLIE])
+
+    // A rescan keeps the last ranking while it reads, and ranks again as it settles.
+    fireEvent.click(screen.getByTestId('rescan'))
+    expect(drawnPaths()).toEqual([ALPHA, BRAVO, CHARLIE])
+    await settledOn([BRAVO, CHARLIE, ALPHA])
   })
 })
 

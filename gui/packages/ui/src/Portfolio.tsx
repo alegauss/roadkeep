@@ -4,9 +4,11 @@ import {
   checkRoot,
   reasonOf,
   type KnownRoot,
+  keptRanking,
   matchesFilter,
   nextOrder,
   orderRows,
+  placeRows,
   ROW_FILTERS,
   sortOf,
   tally,
@@ -15,6 +17,7 @@ import {
   type MessageKey,
   type OrderColumn,
   type ProjectRow,
+  type Ranking,
   type RowFilter,
   type RowOrder,
   type RowStage,
@@ -58,8 +61,10 @@ import { useWording } from './wording'
  *
  * **Rows and not tiles** (§RG63): a symptom is up to 120 characters and fits in no tile, so
  * the list is a table in a `BentoPanel`, in the record's order and never completion order.
- * A person can order it by name from the Project head (RG239), and the caption beside the
- * chips says which order is in force. The chosen order lasts as long as the window does.
+ * A person can order it by name from the Project head (RG239) or rank it by open lines from
+ * the Backlog head (RG240), and the caption beside the chips says which order is in force. A
+ * ranking holds each row's place while reads land — see `keptRanking`. The chosen order lasts
+ * as long as the window does.
  *
  * **A row still answering is pending, never zero** — block C's second criterion, drawn as
  * bars where the numbers will be. An unreadable row spans the counts and says why, with what
@@ -85,6 +90,8 @@ const ORDER_TEXT: Readonly<Record<RowOrder, MessageKey>> = {
   record: 'portfolio.order.record',
   'name-ascending': 'portfolio.order.name-ascending',
   'name-descending': 'portfolio.order.name-descending',
+  'open-descending': 'portfolio.order.open-descending',
+  'open-ascending': 'portfolio.order.open-ascending',
 }
 
 const ORDER_ICON = {
@@ -660,19 +667,22 @@ export function Portfolio() {
     }
     return sizes
   }, [rows])
+  // The places a ranking keeps while reads land (RG240), adjusted during render rather than in
+  // an effect, so no frame is drawn with rows where the last ranking did not put them.
+  const settled = view.kind === 'listed' && view.progress === null
+  const [kept, setKept] = useState<Ranking | null>(null)
+  const ranking = keptRanking(kept, rows ?? [], order, settled)
+  if (ranking !== kept) setKept(ranking)
+
   // Narrowed first and ordered after, so a chip and an order compose without either knowing
   // the other.
-  const shown = useMemo(
-    () =>
-      rows === null
-        ? []
-        : orderRows(
-            rows.filter((row) => matchesFilter(row, filter)),
-            order,
-            locale,
-          ),
-    [rows, filter, order, locale],
-  )
+  const shown = useMemo(() => {
+    if (rows === null) return []
+    const narrowed = rows.filter((row) => matchesFilter(row, filter))
+    return ranking === null
+      ? orderRows(narrowed, order, locale)
+      : placeRows(narrowed, ranking.paths)
+  }, [rows, filter, order, locale, ranking])
 
   // Built once per change and not in the attribute: the hero is handed an element, and one
   // made in the prop is a new one every render. Nothing to offer a page with no bridge.
@@ -755,9 +765,14 @@ export function Portfolio() {
                   >
                     {say('portfolio.column.project')}
                   </OrderedHead>
-                  <th scope="col" className="w-[16%] px-5 py-3 font-semibold">
+                  <OrderedHead
+                    column="open"
+                    order={order}
+                    onOrder={reorder}
+                    className="w-[16%] px-5 py-3 font-semibold"
+                  >
                     {say('portfolio.column.backlog')}
-                  </th>
+                  </OrderedHead>
                   <th scope="col" className="px-5 py-3 font-semibold">
                     {say('portfolio.column.next')}
                   </th>

@@ -85,6 +85,8 @@ export const EN = {
   'portfolio.order.record': "order: the record's",
   'portfolio.order.name-ascending': 'order: name, A to Z',
   'portfolio.order.name-descending': 'order: name, Z to A',
+  'portfolio.order.open-descending': 'order: most open lines first',
+  'portfolio.order.open-ascending': 'order: fewest open lines first',
   'portfolio.column.project': 'Project',
   'portfolio.column.backlog': 'Backlog',
   'portfolio.column.next': 'Next ready line',

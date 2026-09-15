@@ -99,6 +99,7 @@
 - ✅ **RG203** **a declared name is read from the checkout, so a project reverts to its folder name as it goes missing** — The record keeps the name a project last declared, so a row that goes grey keeps its identity (design recorded in `packages/core/src/catalogue.ts`).
 - ✅ **RG204** **an emoji is the only icon a row can draw, so a project with a logo file cannot show it** — A declared logo is resolved and read where the disk is, and the renderer gets a picture or nothing (design recorded in `packages/shell/src/project-logo.ts`).
 - ✅ **RG239** **the portfolio lists projects only in the record's order, so finding one by name means reading every row** — The Project head orders the portfolio by name, A to Z, Z to A, then the record's; numbers read as numbers and ties keep the record's order (design recorded in `packages/core/src/portfolio.ts`).
+- ✅ **RG240** **the portfolio cannot rank projects by how many lines they have open, so the heaviest backlog is found by reading** — The Backlog head ranks the portfolio by open lines, most first, then fewest; uncounted rows follow, and places hold while reads land (design recorded in `packages/core/src/portfolio.ts`).
 
 ## Block D — The project surface (one backlog, read)
 
