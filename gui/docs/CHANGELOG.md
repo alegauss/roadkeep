@@ -146,6 +146,7 @@
 - ✅ **RG181** **the door keep holds every batch a session offered, since only a file moving drops one** — The keep holds one batch per project, which is the only one a screen still has a button for (design recorded in `packages/shell/src/door-keep.ts`).
 - ✅ **RG182** **the filing form asks nobody what the block already delivered, so the window spends an id the terminal would question** — The filing form ranks what the block already has against the symptom, and each line opens (design recorded in `packages/ui/src/useFiling.ts`).
 - ✅ **RG185** **the gate surface runs lint every time it opens, though the ledger already holds a verdict the files have not moved under** — The gate surface opens on the verdict the ledger holds, and runs where one would say something new (design recorded in `packages/ui/src/useGate.ts`).
+- ✅ **RG254** **the gate opens on a count when its verdict is fresh, so the findings it counts appear only after a second run** — A drifted verdict opens on its rows: the gate runs as the screen opens, with the held count still drawn, and a clean one still runs nothing (design recorded in `packages/ui/src/useGate.ts`).
 
 ## Block F — The agent surface (handing one task to Claude Code)
 

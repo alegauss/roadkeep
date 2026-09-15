@@ -84,30 +84,6 @@ On ship: --recorded-in packages/ui/src/Project.tsx
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-### §RG254 A drifted verdict opens on its rows
-
-**RG185 opens the gate on the verdict the ledger holds**, and runs only where that
-verdict is unknown or stale (`worthRunning` in `Gate.tsx`). For a clean verdict that is
-the whole answer. For a drifted one it is a count and a date, "6 findings when it last
-ran", with no row, no code and no door: the rows arrive only when a person presses Run
-the gate again.
-
-**A drifted verdict runs as the screen opens.** RG185's own rule is to run where a run
-says something new, and the rows are exactly what the ledger never held. A clean, fresh
-verdict still opens without a run. The held sentence stays drawn while `lint` runs, so
-the count does not vanish for the seconds the rows take.
-
-**Holding the report in the carrier was weighed and refused.** Its doors are one batch
-per root (RG181), so any later read that carries doors replaces them, and a held row
-would offer doors that name nothing. RG253 also plans to write the ledger to disk, and a
-held report would grow what that file carries from a count to every message the gate
-wrote.
-
-Tests: `gate.test.tsx`, where RG185's opening case splits in two: a held clean verdict
-runs nothing, and a held drifted one runs once and draws its rows.
-
-On ship: --recorded-in packages/ui/src/useGate.ts
-
 ### §RG258 What a finding's code means, asked of explain
 
 **A finding row draws its code as a pill and the gate's message beside it** (`Finding`

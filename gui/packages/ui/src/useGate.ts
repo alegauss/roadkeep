@@ -63,6 +63,24 @@ export type Gate =
   | { readonly kind: 'failed'; readonly reason: Withholding }
   | { readonly kind: 'unreadable'; readonly reason: string }
 
+/**
+ * Whether opening this screen should run the gate (RG185, RG254).
+ *
+ * **A run says something new, or it does not run.** A verdict nobody has taken, and one the
+ * files have moved under, are both answers this screen cannot draw without asking — so it
+ * asks. A clean verdict against these files is the whole answer, and running `lint` to
+ * redraw it would be the most expensive read there is spent on a sentence already on screen.
+ *
+ * **A drifted one is not the whole answer.** The ledger holds how many findings there were
+ * and never which, so `6 findings when it last ran` is a count with no row, no code and no
+ * door — and the rows are what somebody opened the gate to read. Running is what produces
+ * them, and the held sentence stays drawn while it does.
+ */
+export function worthRunning(gate: Gate): boolean {
+  if (gate.kind !== 'held') return false
+  return gate.health.verdict !== 'clean' || gate.health.stale
+}
+
 export interface Gating {
   readonly project: OpenProject | null
   readonly gate: Gate

@@ -17,7 +17,6 @@
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-- 📋 **RG254** (deps: —) **the gate opens on a count when its verdict is fresh, so the findings it counts appear only after a second run** — The ledger holds how many findings and never which, so a drifted verdict's rows are what a run would say that nothing on screen does. → §RG254
 - 📋 **RG258** (deps: —) **a finding's code is a bare token, so what a class like ref.unresolved means is still looked up in a terminal** — The explain read is typed and contract-tested in core and drawn nowhere, and a message says what is wrong with one line, never why its code exists. → §RG258
 
 ## Block F — The agent surface (handing one task to Claude Code)

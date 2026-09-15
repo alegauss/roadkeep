@@ -9,7 +9,7 @@ import { Caption } from './forms'
 import { HeroActions } from './hero'
 import { Pill } from './marks'
 import { faceOf, ProjectTrail } from './trail'
-import { useGate } from './useGate'
+import { useGate, worthRunning } from './useGate'
 import { useWhen, useWording } from './wording'
 
 /**
@@ -182,16 +182,14 @@ export function Gate() {
   const gating = useGate(root)
   const { gate, project, run, takeDoor } = gating
 
-  // Run as the screen opens only where a run would say something new (RG185): the ledger
-  // holds a verdict and the stamp it was taken against, so a project nobody has written to
-  // since opens on the answer rather than on the most expensive read there is. A person
-  // pressing Run the gate is a person saying they want it run whatever the ledger holds.
+  // Run as the screen opens only where a run would say something new (RG185, RG254), which
+  // `worthRunning` decides. A person pressing Run the gate is a person saying they want it
+  // run whatever the ledger holds.
   const opened = project !== null
-  const worthRunning =
-    gate.kind === 'held' && (gate.health.verdict === 'unknown' || gate.health.stale)
+  const running = worthRunning(gate)
   useEffect(() => {
-    if (opened && worthRunning) run()
-  }, [opened, worthRunning, run])
+    if (opened && running) run()
+  }, [opened, running, run])
 
   const trailing = useMemo(
     () => (

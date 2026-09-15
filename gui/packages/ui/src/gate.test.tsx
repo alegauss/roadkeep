@@ -302,17 +302,29 @@ describe('RG185: opening on the verdict already held', () => {
     },
   })
 
-  it('opens on the verdict on record, running nothing, where the files have not moved', async () => {
-    const wired = await at(gatePath(ROOT), [verdict()])
+  it('opens on a clean verdict, running nothing, where the files have not moved', async () => {
+    const wired = await at(gatePath(ROOT), [verdict({ verdict: 'clean', problems: 0 })])
 
-    expect((await screen.findByTestId('held')).textContent).toBe(
-      fill(BASE['gate.held.drifted'], { count: 3 }),
-    )
+    expect((await screen.findByTestId('held')).textContent).toBe(BASE['gate.held.clean'])
     expect(wired.gates).toEqual([])
   })
 
+  it('runs for a drifted verdict, since its rows are what the ledger never held (RG254)', async () => {
+    // `6 findings when it last ran` is a count with no row, no code and no door, and the
+    // rows are what somebody opened this screen to read.
+    const wired = await at(gatePath(ROOT), [verdict()])
+
+    // The held sentence is drawn while the run happens, so the count does not vanish.
+    expect((await screen.findByTestId('held')).textContent).toBe(
+      fill(BASE['gate.held.drifted'], { count: 3 }),
+    )
+    await screen.findByTestId('counted')
+    expect(wired.gates).toHaveLength(1)
+    expect(screen.getAllByTestId('finding').length).toBeGreaterThan(0)
+  })
+
   it('says when it last ran, in the language the window speaks', async () => {
-    await at(gatePath(ROOT), [verdict()])
+    await at(gatePath(ROOT), [verdict({ verdict: 'clean', problems: 0 })])
 
     await screen.findByTestId('held')
     expect(
@@ -337,7 +349,7 @@ describe('RG185: opening on the verdict already held', () => {
   })
 
   it('runs when a person presses it, whatever the ledger holds', async () => {
-    const wired = await at(gatePath(ROOT), [verdict()])
+    const wired = await at(gatePath(ROOT), [verdict({ verdict: 'clean', problems: 0 })])
 
     await screen.findByTestId('held')
     fireEvent.click(screen.getByRole('button', { name: BASE['gate.run'] }))
