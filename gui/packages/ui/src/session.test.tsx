@@ -16,6 +16,7 @@ import {
   translator,
   type EditedFile,
   type FileText,
+  type MovedPath,
 } from '@rk/core'
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -26,7 +27,19 @@ import i18next, { changeLanguage } from 'i18next'
 import { linesIn } from './file-sheet'
 import { drawWindow } from './harness'
 import { holdSessionNotes } from './preferring'
-import { at, CHANGED, engine, FILES, hear, KEY, RECORD, ROOT, SAID, USED } from './session-harness'
+import {
+  at,
+  CHANGED,
+  engine,
+  FILES,
+  hear,
+  KEY,
+  RECORD,
+  ROOT,
+  SAID,
+  STARTED,
+  USED,
+} from './session-harness'
 import { startSpeaking } from './speaking'
 import { stubBridge } from './stub-bridge'
 
@@ -831,6 +844,79 @@ describe('RG246: what the session changed inside the file', () => {
       expect(screen.queryByTestId('file-sheet')).toBeNull()
     })
     expect(document.getElementById(`act-${seq}`)).not.toBeNull()
+  })
+})
+
+describe('RG247: files that moved on disk while the session ran', () => {
+  const EDIT = JSON.stringify({
+    type: 'assistant',
+    message: {
+      content: [{ type: 'tool_use', id: 'm1', name: 'Edit', input: { file_path: 'src/alpha.ts' } }],
+    },
+  })
+  const MOVED: MovedPath[] = [
+    { path: 'src/alpha.ts', first: STARTED, last: CHANGED, moves: 1 },
+    { path: 'dist/bundle.js', first: STARTED, last: CHANGED, moves: 4 },
+  ]
+
+  it('lists what no edit call named, unattributed, and leaves the edited list its own', async () => {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), {
+      sessions: [RECORD],
+      edited: [
+        {
+          path: 'src/alpha.ts',
+          shown: 'src/alpha.ts',
+          inside: true,
+          present: true,
+          changed: CHANGED,
+        },
+      ],
+    })
+    hear(wired, 'session', { session: KEY, index: 1, line: EDIT })
+    hear(wired, 'session', { session: KEY, moved: MOVED, beyond: 3 })
+
+    const disk = within(await screen.findByTestId('moved-disk'))
+    await waitFor(() => {
+      expect(disk.getAllByTestId('moved-file').map((one) => one.dataset['path'])).toEqual([
+        'dist/bundle.js',
+      ])
+    })
+    // Counted, dated, and said to be nobody's account in particular.
+    expect(
+      disk.getByText(fill(BASE['session.disk.moves'], { count: 4 }), { exact: false }),
+    ).toBeTruthy()
+    expect(disk.getByText(BASE['session.disk.about'])).toBeTruthy()
+    expect(disk.getByText(fill(BASE['session.disk.beyond'], { count: 3 }))).toBeTruthy()
+  })
+
+  it('says nothing else moved before anything has, and opens a moved file in the viewer', async () => {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), {
+      sessions: [RECORD],
+      texts: [
+        {
+          kind: 'read',
+          path: 'dist/bundle.js',
+          shown: 'dist/bundle.js',
+          text: 'built\n',
+          bytes: 6,
+        },
+      ],
+    })
+    const disk = within(await screen.findByTestId('moved-disk'))
+    expect(disk.getByText(BASE['session.disk.none'])).toBeTruthy()
+
+    hear(wired, 'session', { session: KEY, moved: MOVED, beyond: 0 })
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: fill(BASE['session.edited.open'], { path: 'dist/bundle.js' }),
+      }),
+    )
+
+    const sheet = within(await screen.findByTestId('file-sheet'))
+    await waitFor(() => {
+      expect(sheet.getByTestId('file-text').textContent).toBe('built\n')
+    })
+    expect(wired.fileAsked).toEqual([{ key: KEY, path: 'dist/bundle.js' }])
   })
 })
 

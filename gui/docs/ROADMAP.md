@@ -28,8 +28,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG247** (deps: RG244 ✅, RG245 ✅) **files a session changed through a command and not an edit call appear nowhere on the session screen** — A formatter or a generator run through Bash moves files no edit call names, and git is not this app's to ask. → §RG247
-
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49

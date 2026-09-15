@@ -259,6 +259,14 @@ export const PT_BR: Wording = {
   'file.refused.too-large':
     'O arquivo tem {bytes} bytes, além dos {ceiling} que esta janela lê. Abra-o em um editor.',
   'file.refused.not-text': 'O arquivo não é texto, então a janela não o desenha.',
+  'session.disk': 'Mudou no disco enquanto ela rodava',
+  'session.disk.about':
+    'Arquivos que mudaram no projeto enquanto a sessão rodava e que nenhuma chamada de edição nomeou. O que mais escreveu nesse tempo também está aqui.',
+  'session.disk.none': 'Nenhum outro arquivo do projeto mudou enquanto a sessão rodava.',
+  'session.disk.moves': '{count} mudanças',
+  'session.disk.moves.one': '{count} mudança',
+  'session.disk.beyond': 'mais {count} não listados',
+  'session.disk.beyond.one': 'mais {count} não listado',
   'session.files': 'Os arquivos governados',
   'session.file.never': 'ainda não escrito',
   'session.claims': 'Claims tomados em outras linhas',

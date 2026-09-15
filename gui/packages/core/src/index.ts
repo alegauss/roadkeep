@@ -286,8 +286,25 @@ export {
 export type { Policy } from './policy'
 export { AGAIN, createReloading, HELD, REBUILDING, RESTARTING } from './reloading'
 export type { Reloading, ReloadHooks, ReloadState } from './reloading'
-export { CONFIG_FILE, createWatching, QUIET_MS, watchedFiles } from './watching'
-export type { Clock, Interest, OnChanged, Watcher, Watching } from './watching'
+export {
+  CONFIG_FILE,
+  createWatching,
+  MOVED_CEILING,
+  MOVES_QUIET_MS,
+  NEVER_MOVED,
+  QUIET_MS,
+  sessionMoves,
+  watchedFiles,
+} from './watching'
+export type {
+  Clock,
+  Interest,
+  MovedPath,
+  OnChanged,
+  SessionMoves,
+  Watcher,
+  Watching,
+} from './watching'
 export {
   DEFAULT_SETTINGS,
   isSessionNotes,

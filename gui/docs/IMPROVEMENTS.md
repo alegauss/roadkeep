@@ -287,33 +287,6 @@ On ship: --recorded-in packages/ui/src/Gate.tsx
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-### §RG247 Files changed on disk while a session ran
-
-**What the stream cannot name.** A session that runs `sed`, a formatter, a generator or
-`npm run format` through Bash changes files no edit call names, so RG243's list misses
-them, and asking git which files moved is `No git command run by this app`.
-
-**Watched while it runs.** From spawn to outcome, the shell watches the session's root
-recursively and keeps, on the session record, each root-relative path that moved with
-the first and last time it did. Paths and times only, never contents: this run's
-filesystem events, gone with the process, and no mirror of a file. The walk's `skip`
-names from the settings are skipped, `.git` always, and a burst is held the way
-`governed-watch.ts` holds one.
-
-**The policy is core's, the handle the shell's**, split as `watching.ts` and
-`governed-watch.ts` are: which moves count, how a burst folds and the path ceiling, past
-which a count stands in for the rest, all tested with a fake watcher and clock.
-
-**Said as unattributed.** The section lists the moved paths RG243 did not already name,
-under a caption saying they changed on disk while the session ran. An editor saving a
-file in that time counts too, and the caption does not pretend otherwise. Each row opens
-in RG245's viewer.
-
-**Recursive `fs.watch`** holds on Windows and macOS, and on Linux from the Node this
-repo requires.
-
-Tests: the fold in `core` with fakes, and a live test writing into a temporary root.
-
 ## Block G — The shell (an executable now, a service later)
 
 ### §RG49 The signature, and what it needs that code cannot supply

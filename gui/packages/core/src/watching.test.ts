@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest'
 import {
   CONFIG_FILE,
   createWatching,
+  MOVED_CEILING,
   QUIET_MS,
+  sessionMoves,
   watchedFiles,
   type Clock,
   type Watcher,
@@ -250,5 +252,57 @@ describe('RG45: who is told', () => {
 
     expect(first).toEqual(['/w'])
     expect(second).toEqual(['/w'])
+  })
+})
+
+describe('RG247: what moved on disk while a session ran', () => {
+  const AT = '2026-09-15T10:00:00.000Z'
+  const LATER = '2026-09-15T10:05:00.000Z'
+
+  it('folds each path into one row, keeping when it first moved and when it last did', () => {
+    const moves = sessionMoves()
+
+    moves.moved('src/a.ts', AT)
+    moves.moved('src/b.ts', AT)
+    moves.moved('src/a.ts', LATER)
+
+    expect(moves.paths).toEqual([
+      { path: 'src/a.ts', first: AT, last: LATER, moves: 2 },
+      { path: 'src/b.ts', first: AT, last: AT, moves: 1 },
+    ])
+    expect(moves.beyond).toBe(0)
+  })
+
+  it('keeps a path as the side with the filesystem spelled it (RG65, RG98)', () => {
+    const moves = sessionMoves()
+
+    moves.moved('src/deep/a.ts', AT)
+
+    // `spelledMove` in the shell is what turns a platform's own separator into this.
+    expect(moves.paths.map((one) => one.path)).toEqual(['src/deep/a.ts'])
+  })
+
+  it('never counts git, nor a folder the settings skip, nor an empty path', () => {
+    const moves = sessionMoves(['node_modules'])
+
+    moves.moved('.git/index', AT)
+    moves.moved('node_modules/pkg/index.js', AT)
+    moves.moved('packages/node_modules/x.js', AT)
+    moves.moved('', AT)
+    moves.moved('src/a.ts', AT)
+
+    expect(moves.paths.map((one) => one.path)).toEqual(['src/a.ts'])
+  })
+
+  it('stops at the ceiling and counts the rest, so a generator cannot fill the record', () => {
+    const moves = sessionMoves()
+
+    for (let at = 0; at < MOVED_CEILING + 7; at += 1) moves.moved(`src/${String(at)}.ts`, AT)
+    // A path already kept still folds into its row past the ceiling.
+    moves.moved('src/0.ts', LATER)
+
+    expect(moves.paths).toHaveLength(MOVED_CEILING)
+    expect(moves.beyond).toBe(7)
+    expect(moves.paths[0]?.moves).toBe(2)
   })
 })

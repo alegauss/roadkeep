@@ -276,6 +276,14 @@ export const EN = {
   'file.refused.too-large':
     'The file is {bytes} bytes, past the {ceiling} this window reads. Open it in an editor.',
   'file.refused.not-text': 'The file is not text, so the window does not draw it.',
+  'session.disk': 'Changed on disk while it ran',
+  'session.disk.about':
+    'Files that moved under the project while the session ran, that no edit call named. Anything else writing then is in here too.',
+  'session.disk.none': 'No other file under the project moved while the session ran.',
+  'session.disk.moves': '{count} changes',
+  'session.disk.moves.one': '{count} change',
+  'session.disk.beyond': '{count} more not listed',
+  'session.disk.beyond.one': '{count} more not listed',
   'session.files': 'The governed files',
   'session.file.never': 'not written yet',
   'session.claims': 'Claims held elsewhere',

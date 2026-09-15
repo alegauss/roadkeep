@@ -53,6 +53,9 @@ const REACHES_OUT: readonly { readonly what: string; readonly found: RegExp }[] 
   { what: 'the built bundle', found: /path\.join\([^)]*'dist'/ },
   // RG213: the renderer's layout tests run in a real browser Playwright starts.
   { what: 'a browser', found: /from 'vitest\/browser'/ },
+  // A real watch on a real directory (RG247, RG42): it opens an operating-system handle and
+  // waits on the platform to report a write, which is a wait no fake clock shortens.
+  { what: 'a filesystem watch', found: /watchSessionRoot\(|createGovernedWatcher\(/ },
 ]
 
 /**

@@ -9,20 +9,26 @@ import {
   openOver,
   promptFor,
   sessionCall,
+  MOVES_QUIET_MS,
+  sessionMoves,
   type Agent,
   type AgentResolution,
   type BriefAnswer,
   type BriefPayload,
   type HandedOver,
   type ReadOutcome,
+  type Clock,
   type SessionCall,
+  type SessionMoves,
   type SessionOutcome,
   type SessionRecord,
   type TopicEvents,
 } from '@rk/core'
 
 import type { Carrier } from './carrier'
+import { REAL_CLOCK } from './governed-watch'
 import { startSession, type RunningSession, type SessionWatcher } from './session-process'
+import { watchSessionRoot, type OnMoved, type SessionWatch } from './session-watch'
 
 /**
  * The sessions a window started, held by the process that can stop them (RG153).
@@ -67,6 +73,15 @@ export interface SessionsOptions {
   readonly key?: () => string
   /** The time a session is spawned at (RG244). The clock unless a test says otherwise. */
   readonly now?: () => Date
+  /**
+   * The folder names the walk skips, as the settings spell them (RG247): what moved under one
+   * of those is not this session's work. Nothing skipped unless the caller says so.
+   */
+  readonly skip?: () => readonly string[]
+  /** Watch a session's root while it runs (RG247). `watchSessionRoot` unless a test says otherwise. */
+  readonly watch?: (root: string, moved: OnMoved) => SessionWatch
+  /** How a burst of moves is held before it is published. `REAL_CLOCK` unless a test drives it. */
+  readonly clock?: Clock
 }
 
 export interface Sessions {
@@ -92,6 +107,12 @@ interface Held {
   readonly handed: BriefPayload
   readonly agent: Agent
   readonly lines: string[]
+  /** What has moved on disk under the root since it was spawned (RG247). */
+  readonly moves: SessionMoves
+  /** The recursive watch behind those moves, given back when the session ends. */
+  watching: SessionWatch | null
+  /** How to call off a held burst, so a formatter touching two hundred files is told once. */
+  holding: (() => void) | null
   outcome: SessionOutcome | null
   running: RunningSession | null
 }
@@ -119,6 +140,8 @@ function recordOf(held: Held): SessionRecord {
     handed: held.handed,
     agent: held.agent,
     lines: [...held.lines],
+    moved: held.moves.paths,
+    movedBeyond: held.moves.beyond,
     outcome: held.outcome,
   }
 }
@@ -128,6 +151,9 @@ export function createSessions(options: SessionsOptions): Sessions {
   const environment = options.environment ?? (() => Promise.resolve(process.env))
   const named = options.key ?? randomUUID
   const now = options.now ?? (() => new Date())
+  const skip = options.skip ?? (() => [])
+  const watching = options.watch ?? ((root, moved) => watchSessionRoot(root, moved))
+  const clock = options.clock ?? REAL_CLOCK
   const held = new Map<string, Held>()
   // Kept once found: which Claude Code a machine has does not change under a running app. A
   // machine that had none is asked again, since installing one is what somebody does next.
@@ -161,10 +187,29 @@ export function createSessions(options: SessionsOptions): Sessions {
       handed,
       agent: found,
       lines: [],
+      moves: sessionMoves(skip()),
+      watching: null,
+      holding: null,
       outcome: null,
       running: null,
     }
     held.set(session.key, session)
+
+    // What the stream cannot name (RG247): a formatter or a generator run through Bash. Watched
+    // from the spawn, given back at the outcome, and told in bursts rather than per event.
+    const tell = () => {
+      session.holding = null
+      options.publish({
+        session: session.key,
+        moved: session.moves.paths,
+        beyond: session.moves.beyond,
+      })
+    }
+    session.watching = watching(root, (path, at) => {
+      session.moves.moved(path, at)
+      session.holding?.()
+      session.holding = clock.after(MOVES_QUIET_MS, tell)
+    })
 
     session.running = start(
       { ...call, argv: [...prefix, ...call.argv] },
@@ -178,6 +223,12 @@ export function createSessions(options: SessionsOptions): Sessions {
     )
     void session.running.finished.then((outcome) => {
       session.outcome = outcome
+      // The watch goes with the process, and what it saw is told once more before the ending:
+      // a screen that hears the outcome has the whole list beside it.
+      session.watching?.stop()
+      session.watching = null
+      session.holding?.()
+      tell()
       options.publish({ session: session.key, outcome })
     })
     return session

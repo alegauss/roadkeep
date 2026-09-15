@@ -3,7 +3,6 @@ import {
   editStanding,
   FILE_REFUSAL_TEXT,
   type Act,
-  type Edited,
   type FileEdit,
   type FileText,
 } from '@rk/core'
@@ -162,14 +161,20 @@ function Edits({
 
 export function FileSheet({
   sessionKey,
-  file,
+  path,
+  version,
   acts,
   onAct,
   onClose,
 }: {
   readonly sessionKey: string
-  /** The edited file this opened on, as the stream has it now. */
-  readonly file: Edited
+  /** The file to read, as the call or the watch spelled its path. */
+  readonly path: string
+  /**
+   * What makes this file worth reading again: an edited file's last call and whether it has
+   * answered, a moved one's last move. A changed value is a reread.
+   */
+  readonly version: string
   /** The stream, which is where what the session changed in this file is read from (RG246). */
   readonly acts: readonly Act[]
   /** Show one act in the stream, by its seq. */
@@ -179,13 +184,9 @@ export function FileSheet({
   const say = useWording()
   const [viewing, setViewing] = useState<Viewing>(READING)
   const [reloads, setReloads] = useState(0)
-  // Every reason to read again, as one value: which file, the last call on it and whether that
-  // call has answered, and how many times the reader asked.
-  const { path, last, answered } = file
-  const request = useMemo(
-    () => ({ path, last, answered, reloads }),
-    [path, last, answered, reloads],
-  )
+  // Every reason to read again, as one value: which file, what makes it worth rereading, and
+  // how many times the reader asked for it.
+  const request = useMemo(() => ({ path, version, reloads }), [path, version, reloads])
 
   useEffect(() => {
     const bridge = getBridge()

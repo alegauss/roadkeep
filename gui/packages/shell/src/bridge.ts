@@ -266,6 +266,9 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
         agent.command,
         root,
       ),
+    // Which folders are not a session's work, read per call like everything else off the
+    // settings (RG247): a name added by hand reaches the next session started.
+    skip: () => loadSettings(app.getPath('userData')).settings.skip,
     publish: (event) => {
       subscriptions.publish('session', event.session, event)
     },

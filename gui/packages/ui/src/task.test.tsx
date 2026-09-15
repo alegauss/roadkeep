@@ -254,6 +254,8 @@ function sessionOn(id: string, outcome: SessionOutcome | null): SessionRecord {
     handed: read.value,
     agent: { command: ['claude'], version: '2.0.0', said: 'claude 2.0.0' },
     lines: [],
+    moved: [],
+    movedBeyond: 0,
     outcome,
   }
 }

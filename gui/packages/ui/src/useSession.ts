@@ -9,6 +9,7 @@ import {
   type OpenProject,
   type Reading,
   type SessionOutcome,
+  type MovedPath,
   type SessionRecord,
 } from '@rk/core'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -38,15 +39,22 @@ export type SessionView =
       readonly files: readonly GovernedFile[]
       /** The claim registry, or null where it has not answered. Held elsewhere is a filter. */
       readonly claims: ClaimsPayload | null
+      /** What moved on disk under the root while it ran (RG247), as last told. */
+      readonly moved: readonly MovedPath[]
+      /** How many moved paths the far side left out at its ceiling. */
+      readonly movedBeyond: number
     }
 
 /** What was heard on the session's topic, kept apart from the record until both are here. */
 interface Heard {
   readonly lines: readonly string[]
   readonly outcome: SessionOutcome | null
+  /** The whole folded list each time it is told, or null while nothing has been (RG247). */
+  readonly moved: readonly MovedPath[] | null
+  readonly movedBeyond: number
 }
 
-const NOTHING_HEARD: Heard = { lines: [], outcome: null }
+const NOTHING_HEARD: Heard = { lines: [], outcome: null, moved: null, movedBeyond: 0 }
 
 /** Built once: a fresh array per render is a new dependency for everything below it. */
 const NO_FILES: readonly GovernedFile[] = []
@@ -107,6 +115,10 @@ export function useSession(root: string, id: string, key: string): SessionView {
     const stop = bridge.subscribe('session', key, (event) => {
       if ('outcome' in event) {
         setHeard((was) => ({ ...was, outcome: event.outcome }))
+      } else if ('moved' in event) {
+        // The whole folded list each time (RG247), so a screen that missed one event is not
+        // behind: what arrives replaces what was held.
+        setHeard((was) => ({ ...was, moved: event.moved, movedBeyond: event.beyond }))
       } else {
         setHeard((was) => ({ ...was, lines: placed(was.lines, event.index, event.line) }))
       }
@@ -186,5 +198,8 @@ export function useSession(root: string, id: string, key: string): SessionView {
     now,
     files,
     claims,
+    // What was heard stands over what the record carried, being the later answer.
+    moved: heard.moved ?? record.moved,
+    movedBeyond: heard.moved === null ? record.movedBeyond : heard.movedBeyond,
   }
 }

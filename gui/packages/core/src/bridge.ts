@@ -25,6 +25,7 @@ import type { KnownRoot, ScanRoot } from './roots'
 import type { SessionOutcome } from './session'
 import type { PreferenceKey } from './preferences'
 import type { Settings, SettingsRead } from './settings'
+import type { MovedPath } from './watching'
 import type { EngineFailure, EngineRequest, EngineResult } from './transport'
 
 /** The single property the preload adds to `window`. */
@@ -325,6 +326,16 @@ export interface SessionRecord {
   readonly agent: Agent
   /** Every line of its stream so far, raw and in order. */
   readonly lines: readonly string[]
+  /**
+   * Every path under the root that moved on disk while it ran (RG247), folded per path.
+   *
+   * What the stream cannot name: a formatter or a generator run through Bash moves files no
+   * edit call mentions. Unattributed on purpose — anything else writing under the project in
+   * that time is in here too.
+   */
+  readonly moved: readonly MovedPath[]
+  /** How many paths were left out at the ceiling. */
+  readonly movedBeyond: number
   /** How it ended, or null while it runs. */
   readonly outcome: SessionOutcome | null
 }
@@ -366,6 +377,18 @@ export interface TopicEvents {
   readonly session:
     | { readonly session: string; readonly index: number; readonly line: string }
     | { readonly session: string; readonly outcome: SessionOutcome }
+    /**
+     * What has moved on disk under the session's root so far (RG247), the whole list each time.
+     *
+     * The list and not the difference, because it is folded per path and a screen that missed
+     * one event would otherwise be wrong until the session ended. Held for a quiet moment on
+     * the far side, so a formatter touching two hundred files is one event and not two hundred.
+     */
+    | {
+        readonly session: string
+        readonly moved: readonly MovedPath[]
+        readonly beyond: number
+      }
   /**
    * The walk behind the remembered record landed, and it changed something (RG180).
    *

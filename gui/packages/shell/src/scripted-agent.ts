@@ -126,9 +126,21 @@ export function scriptedLines(captured: string, tail: number): string[] {
   return [...kept, ...added.slice(0, tail)]
 }
 
+/**
+ * The file the replay writes into the project it runs in (RG247).
+ *
+ * A real session's Bash calls write files no edit call names — a formatter, a generator, an
+ * install — and that is the whole of what the watch is for. The replay does the smallest
+ * honest version of it: one file, in its own working directory, which is the project's root.
+ *
+ * Under `src` and not `dist`, because the settings' skip list is what the watch leaves out and
+ * a build directory is on it.
+ */
+const SCRIPTED_WRITE = 'src/scripted-generated.txt'
+
 function script(linesFile: string, intervalMs: number): string {
   return [
-    "import { readFileSync } from 'node:fs'",
+    "import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'",
     'const argv = process.argv.slice(2)',
     "if (argv.includes('--version')) { process.stdout.write('2.1.263 (Claude Code, scripted)\\n'); process.exit(0) }",
     "if (argv[0] === 'auth' && argv[1] === 'status') {",
@@ -136,6 +148,12 @@ function script(linesFile: string, intervalMs: number): string {
     '  process.exit(0)',
     '}',
     "if (!argv.includes('-p')) { process.stderr.write('the scripted agent takes -p\\n'); process.exit(2) }",
+    // Written as the run starts, the way a command a session runs writes one: no edit call
+    // names it, so only a watch on the root can report it.
+    'try {',
+    "  mkdirSync('src', { recursive: true })",
+    `  writeFileSync(${JSON.stringify(SCRIPTED_WRITE)}, 'built by the scripted run\\n')`,
+    '} catch {}',
     `const lines = JSON.parse(readFileSync(${JSON.stringify(linesFile)}, 'utf8'))`,
     'let at = 0',
     'const next = () => {',

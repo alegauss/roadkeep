@@ -12,8 +12,11 @@ import {
   type ClaimsPayload,
   type DiskStanding,
   type Follow,
+  type Edited,
+  type EditedFile,
   type GovernedFile,
   type MessageKey,
+  type MovedPath,
   type Reading,
   type SessionOutcome,
   type SessionRecord,
@@ -312,35 +315,18 @@ function DiskSaid({
  * has not changed since the session started is drawn as the disagreement it is. Each row opens
  * the file as the disk holds it now (RG245).
  */
-function Edited({
-  acts,
-  record,
-  ended,
+function EditedFiles({
+  edited,
+  disk,
+  started,
+  onOpen,
 }: {
-  readonly acts: readonly Act[]
-  readonly record: SessionRecord
-  readonly ended: boolean
+  readonly edited: readonly Edited[]
+  readonly disk: ReadonlyMap<string, EditedFile>
+  readonly started: string
+  readonly onOpen: (event: MouseEvent<HTMLButtonElement>) => void
 }) {
   const say = useWording()
-  const edited = useMemo(() => editedIn(acts), [acts])
-  const disk = useEditedAt(record.key, edited, ended)
-  // Which file is open in the viewer, by the path its call spelled, and nothing else (RG245).
-  const [open, setOpen] = useState<string | null>(null)
-  const opening = useCallback((event: MouseEvent<HTMLButtonElement>) => {
-    setOpen(event.currentTarget.dataset['path'] ?? null)
-  }, [])
-  const closing = useCallback(() => {
-    setOpen(null)
-  }, [])
-  // An edit's seq leads back to the act that made it (RG246): the viewer closes, since the
-  // stream is under it, and the act is brought into view in its own region.
-  const showing = useCallback((seq: number) => {
-    setOpen(null)
-    requestAnimationFrame(() => {
-      document.getElementById(`act-${String(seq)}`)?.scrollIntoView({ block: 'center' })
-    })
-  }, [])
-  const viewed = open === null ? undefined : edited.find((file) => file.path === open)
 
   return (
     <section className="mt-4" data-testid="edited">
@@ -353,7 +339,7 @@ function Edited({
           <ul className="flex flex-col gap-1.5 text-xs">
             {edited.map((file) => {
               const at = disk.get(file.path)
-              const read = onDisk(file, at, record.started)
+              const read = onDisk(file, at, started)
               return (
                 <li
                   key={file.path}
@@ -367,7 +353,7 @@ function Edited({
                     className="text-left font-mono wrap-anywhere hover:underline"
                     data-path={file.path}
                     aria-label={say('session.edited.open', { path: at?.shown ?? file.path })}
-                    onClick={opening}
+                    onClick={onOpen}
                   >
                     {at?.shown ?? file.path}
                   </button>
@@ -394,14 +380,73 @@ function Edited({
           </ul>
         </>
       )}
-      {viewed === undefined ? null : (
-        <FileSheet
-          sessionKey={record.key}
-          file={viewed}
-          acts={acts}
-          onAct={showing}
-          onClose={closing}
-        />
+    </section>
+  )
+}
+
+/**
+ * What moved on disk under the project while the session ran, that no edit call named (RG247).
+ *
+ * **Unattributed, and said so.** A formatter or a generator run through Bash writes files the
+ * stream never mentions, and git is not this app's to ask — so the shell watches the root and
+ * this lists what moved. Anything else writing under the project in that time is in here too,
+ * which the caption does not pretend otherwise about.
+ */
+function MovedOnDisk({
+  moved,
+  beyond,
+  edited,
+  onOpen,
+}: {
+  readonly moved: readonly MovedPath[]
+  readonly beyond: number
+  /** The paths the edited list already names, which this one does not repeat. */
+  readonly edited: readonly string[]
+  readonly onOpen: (event: MouseEvent<HTMLButtonElement>) => void
+}) {
+  const say = useWording()
+  const when = useWhen()
+  // What the edited list already named is not news: a path it holds is drawn there, with its
+  // calls beside it. Compared on the spelling the shell answers with, which is what both carry.
+  const rest = moved.filter((one) => !edited.includes(one.path))
+
+  return (
+    <section className="mt-4" data-testid="moved-disk">
+      <PanelTitle>{say('session.disk')}</PanelTitle>
+      {rest.length === 0 ? (
+        <p className="text-muted-foreground text-xs">{say('session.disk.none')}</p>
+      ) : (
+        <>
+          <p className="text-muted-foreground mb-1.5 text-xs">{say('session.disk.about')}</p>
+          <ul className="flex flex-col gap-1.5 text-xs">
+            {rest.map((one) => (
+              <li
+                key={one.path}
+                className="flex flex-col gap-0.5"
+                data-testid="moved-file"
+                data-path={one.path}
+              >
+                <button
+                  type="button"
+                  className="text-left font-mono wrap-anywhere hover:underline"
+                  data-path={one.path}
+                  aria-label={say('session.edited.open', { path: one.path })}
+                  onClick={onOpen}
+                >
+                  {one.path}
+                </button>
+                <span className="text-muted-foreground">
+                  {say('session.disk.moves', { count: one.moves })} · {when(one.last)}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {beyond === 0 ? null : (
+            <p className="text-muted-foreground mt-1.5 text-xs">
+              {say('session.disk.beyond', { count: beyond })}
+            </p>
+          )}
+        </>
       )}
     </section>
   )
@@ -444,6 +489,8 @@ function Moved({
   acts,
   files,
   claims,
+  moved,
+  movedBeyond,
 }: {
   readonly record: SessionRecord
   readonly now: Reading | null
@@ -451,10 +498,45 @@ function Moved({
   readonly acts: readonly Act[]
   readonly files: readonly GovernedFile[]
   readonly claims: ClaimsPayload | null
+  /** What moved on disk while it ran, as last told (RG247). */
+  readonly moved: readonly MovedPath[]
+  readonly movedBeyond: number
 }) {
   const say = useWording()
   const landing =
     now === null ? null : landingBetween({ kind: 'read', payload: record.handed }, now)
+  const ended = outcome !== null
+  const edited = useMemo(() => editedIn(acts), [acts])
+  const disk = useEditedAt(record.key, edited, ended)
+  // Which file is open in the viewer, and what makes it worth rereading (RG245, RG247). One
+  // state for both lists, since a file opens the same way whichever named it.
+  const [open, setOpen] = useState<string | null>(null)
+  const opening = useCallback((event: MouseEvent<HTMLButtonElement>) => {
+    setOpen(event.currentTarget.dataset['path'] ?? null)
+  }, [])
+  const closing = useCallback(() => {
+    setOpen(null)
+  }, [])
+  // An edit's seq leads back to the act that made it (RG246): the viewer closes, since the
+  // stream is under it, and the act is brought into view in its own region.
+  const showing = useCallback((seq: number) => {
+    setOpen(null)
+    requestAnimationFrame(() => {
+      document.getElementById(`act-${String(seq)}`)?.scrollIntoView({ block: 'center' })
+    })
+  }, [])
+  // Built once per read: the paths the edited list draws, which the moved list does not repeat.
+  const drawn = useMemo(
+    () => edited.map((file) => disk.get(file.path)?.shown ?? file.path),
+    [edited, disk],
+  )
+  const viewedEdit = edited.find((file) => file.path === open)
+  const viewedMove = moved.find((one) => one.path === open)
+  // An edited file is read again as its last call answers; a moved one, each time it moves.
+  const version =
+    viewedEdit === undefined
+      ? (viewedMove?.last ?? '')
+      : `${String(viewedEdit.last)}:${String(viewedEdit.answered)}`
 
   return (
     <BentoPanel contentClassName="p-5">
@@ -480,9 +562,20 @@ function Moved({
           {outcome.said}
         </pre>
       )}
-      <Edited acts={acts} record={record} ended={outcome !== null} />
+      <EditedFiles edited={edited} disk={disk} started={record.started} onOpen={opening} />
+      <MovedOnDisk moved={moved} beyond={movedBeyond} edited={drawn} onOpen={opening} />
       <Files files={files} />
       <Elsewhere claims={claims} id={record.id} />
+      {open === null ? null : (
+        <FileSheet
+          sessionKey={record.key}
+          path={open}
+          version={version}
+          acts={acts}
+          onAct={showing}
+          onClose={closing}
+        />
+      )}
     </BentoPanel>
   )
 }
@@ -694,6 +787,8 @@ export function Session() {
               acts={acts}
               files={session.files}
               claims={session.claims}
+              moved={session.moved}
+              movedBeyond={session.movedBeyond}
             />
           </div>
         </div>

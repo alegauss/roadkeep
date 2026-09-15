@@ -41,8 +41,101 @@ export function watchedFiles(governed: readonly string[]): string[] {
 /** Told when a project's governed files move. */
 export type OnChanged = (root: string) => void
 
+/** One path that moved on disk while a session ran (RG247). */
+export interface MovedPath {
+  /**
+   * Relative to the session's root, spelled the way a screen reads one. How a path is spelled
+   * is the shell's (RG65, RG98): this keeps what it was handed and never folds a separator.
+   */
+  readonly path: string
+  /** When it first moved, and the last time it did, as ISO times. */
+  readonly first: string
+  readonly last: string
+  /** How many events were folded into it. */
+  readonly moves: number
+}
+
+/**
+ * Folders never counted as a session's work, whatever the settings say (RG247).
+ *
+ * `.git` writes on every command git runs, including the ones a person runs in another window,
+ * and a list that reported it would be a list nobody reads.
+ */
+export const NEVER_MOVED: readonly string[] = ['.git']
+
+/**
+ * How many moved paths one session keeps.
+ *
+ * A generator or an install can touch thousands, and a list that long is neither read nor
+ * carried across the bridge cheaply. Past it the count stands in for the rest, which is the
+ * fact a reader needs: something wrote a great deal more.
+ */
+export const MOVED_CEILING = 500
+
+export interface SessionMoves {
+  /** Take one move, at one time. A path under a skipped folder is not a move. */
+  moved(path: string, at: string): void
+  /** The paths so far, in the order each first moved. */
+  readonly paths: readonly MovedPath[]
+  /** How many paths were left out at the ceiling. */
+  readonly beyond: number
+}
+
+/**
+ * What moved on disk while one session ran, folded by path (RG247).
+ *
+ * **The policy, not the handle.** Which moves count — the skip list the walk already uses,
+ * `.git` always — how they fold, and the ceiling past which a count stands in for the rest.
+ * The recursive watch itself is the shell's, so this is driven by a fake in a test.
+ *
+ * Paths and times only, never contents: what a session's run did, gone with the process.
+ *
+ * @param skip folder names to leave out, as the settings spell them for the walk
+ */
+export function sessionMoves(skip: readonly string[] = []): SessionMoves {
+  const left = new Set([...NEVER_MOVED, ...skip].filter((name) => name !== ''))
+  const byPath = new Map<string, MovedPath>()
+  let beyond = 0
+
+  return {
+    moved(spelled, at) {
+      // Segments as the side with the filesystem spelled them: which folder a path is under is
+      // a question about names, and how a path is written is not this package's (RG65, RG98).
+      if (spelled === '' || spelled.split('/').some((segment) => left.has(segment))) return
+      const was = byPath.get(spelled)
+      if (was === undefined && byPath.size >= MOVED_CEILING) {
+        beyond += 1
+        return
+      }
+      byPath.set(spelled, {
+        path: spelled,
+        first: was?.first ?? at,
+        last: at,
+        moves: (was?.moves ?? 0) + 1,
+      })
+    },
+
+    get paths() {
+      return [...byPath.values()]
+    },
+
+    get beyond() {
+      return beyond
+    },
+  }
+}
+
 /** How long to hold a burst before fanning out, in milliseconds. */
 export const QUIET_MS = 120
+
+/**
+ * How long a session's moved paths are held before they are told, in milliseconds (RG247).
+ *
+ * Longer than the governed set's: `npm run format` writes hundreds of files over a second or
+ * two, and every event carries the whole folded list, so holding longer costs a reader nothing
+ * and saves a window a redraw per file.
+ */
+export const MOVES_QUIET_MS = 400
 
 export interface Interest {
   /** Give it up. Safe to call twice; the handles close when the last one goes. */

@@ -13,6 +13,7 @@ import {
 import { describe, expect, it } from 'vitest'
 
 import type { RunningSession, SessionWatcher } from './session-process'
+import type { OnMoved, SessionWatch } from './session-watch'
 import { createSessions, type SessionsOptions } from './sessions'
 
 /**
@@ -164,6 +165,46 @@ const SPAWNED = new Date('2026-09-15T10:00:00.000Z')
 /** The environment the fake decision hands back, so a test can find it at the process. */
 const DECIDED: NodeJS.ProcessEnv = { PATH: '/bin', DECIDED: 'yes' }
 
+/** A recursive watch the test drives, and a clock it ticks: nothing here waits on either. */
+function fakeWatch() {
+  const roots: string[] = []
+  const stopped: string[] = []
+  let told: OnMoved | null = null
+  let queued: (() => void)[] = []
+  return {
+    roots,
+    stopped,
+    watch: (root: string, moved: OnMoved): SessionWatch => {
+      roots.push(root)
+      told = moved
+      return {
+        stop() {
+          stopped.push(root)
+        },
+      }
+    },
+    clock: {
+      after(_ms: number, run: () => void) {
+        queued.push(run)
+        return () => {
+          queued = queued.filter((one) => one !== run)
+        }
+      },
+    },
+    move(path: string, at: string) {
+      told?.(path, at)
+    },
+    tick() {
+      const running = queued
+      queued = []
+      for (const run of running) run()
+    },
+    get pending() {
+      return queued.length
+    },
+  }
+}
+
 async function sessions(agent: AgentResolution = FOUND) {
   const { transport, asked } = engine()
   const opened: OpenedProject = openedFrom(
@@ -174,6 +215,7 @@ async function sessions(agent: AgentResolution = FOUND) {
   let asksForAgent = 0
   const environmentsAsked: { agent: string; root: string; claimsBefore: number }[] = []
   const claims = () => asked.filter((argv) => argv[2] === 'brief' && argv.includes('--claim'))
+  const watch = fakeWatch()
   const made = createSessions({
     carrier: {
       open: () => Promise.resolve(opened),
@@ -195,10 +237,14 @@ async function sessions(agent: AgentResolution = FOUND) {
     start,
     key: () => 'session-1',
     now: () => SPAWNED,
+    skip: () => ['node_modules'],
+    watch: watch.watch,
+    clock: watch.clock,
   })
   return {
     made,
     fake,
+    watch,
     published,
     claims,
     asksForAgent: () => asksForAgent,
@@ -370,6 +416,45 @@ describe('RG153: what a running session says', () => {
 
     expect(made.rootOf('session-1')).toBe(ROOT)
     expect(made.rootOf('nobody')).toBeNull()
+  })
+
+  it('keeps what moved on disk while it ran, folded, and tells it in bursts (RG247)', async () => {
+    const { made, watch, published } = await sessions()
+    await made.handOver(ROOT, 'FX1')
+
+    // The root is watched from the spawn, and one burst is one event whatever it touched.
+    expect(watch.roots).toEqual([ROOT])
+    watch.move('src/a.ts', SPAWNED.toISOString())
+    watch.move('src/b.ts', SPAWNED.toISOString())
+    watch.move('node_modules/pkg/index.js', SPAWNED.toISOString())
+    expect(published.filter((one) => 'moved' in one)).toEqual([])
+
+    watch.tick()
+
+    const told = published.find((one) => 'moved' in one)
+    expect(told && 'moved' in told ? told.moved.map((one) => one.path) : []).toEqual([
+      'src/a.ts',
+      'src/b.ts',
+    ])
+    expect(made.list()[0]?.moved.map((one) => one.path)).toEqual(['src/a.ts', 'src/b.ts'])
+    expect(made.list()[0]?.movedBeyond).toBe(0)
+  })
+
+  it('gives the watch back when the session ends, and tells what it saw once more', async () => {
+    const { made, fake, watch, published } = await sessions()
+    await made.handOver(ROOT, 'FX1')
+    watch.move('src/a.ts', SPAWNED.toISOString())
+
+    fake.end(DONE)
+    await Promise.resolve()
+
+    expect(watch.stopped).toEqual([ROOT])
+    // The held burst was not left pending: the list is told before the ending is.
+    expect(watch.pending).toBe(0)
+    const kinds = published.map((one) =>
+      'moved' in one ? 'moved' : 'outcome' in one ? 'end' : 'line',
+    )
+    expect(kinds).toEqual(['moved', 'end'])
   })
 
   it('hands back copies, so nothing outside can edit what it holds', async () => {
