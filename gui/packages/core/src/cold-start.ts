@@ -1,4 +1,5 @@
 import type { RecordedProject } from './catalogue'
+import { createLimiter } from './limiting'
 import type { Unreadable } from './limits'
 import { EngineCallFailed } from './transport'
 import { fillRow, pendingRow, unreadableRow, type ProjectRow, type RowReads } from './portfolio'
@@ -33,6 +34,23 @@ export interface ColdStartStage {
   readonly name: string
   /** Read one project's part of a row. Rejecting is how a project becomes unreadable. */
   read(project: RecordedProject): Promise<RowReads>
+}
+
+export interface ColdStartOptions {
+  /**
+   * The rows already on screen, by path (RG248). A project among them begins from what it was
+   * drawn as rather than from pending, and each read that lands fills that row — so a rescan
+   * never takes a filled row back to a skeleton. Empty on a real cold start.
+   */
+  readonly start?: readonly ProjectRow[]
+  /**
+   * How many projects may be read at once (RG250).
+   *
+   * Every project where this is missing or not a positive number: the bound is a fact about a
+   * machine — its core count, or a number somebody wrote in the settings — and a caller that
+   * has not been told one is not a caller that should invent it.
+   */
+  readonly projectsAtOnce?: number
 }
 
 export interface ColdStartProgress {
@@ -97,17 +115,19 @@ function asUnreadable(cause: unknown, stage: string): Unreadable {
  *
  * @param onProgress called once per project per stage, with every row as it stands. A
  *   screen redraws from this; nothing here decides how often that is worth doing.
- * @param start the rows already on screen, by path (RG248). A project among them begins from
- *   what it was drawn as rather than from pending, and each read that lands fills that row —
- *   so a rescan never takes a filled row back to a skeleton. Empty on a real cold start.
  */
 export async function coldStart(
   projects: readonly RecordedProject[],
   stages: readonly ColdStartStage[],
   onProgress: (progress: ColdStartProgress) => void = () => undefined,
-  start: readonly ProjectRow[] = [],
+  options: ColdStartOptions = {},
 ): Promise<ProjectRow[]> {
-  const drawn = new Map(start.map((row) => [row.path, row]))
+  const drawn = new Map((options.start ?? []).map((row) => [row.path, row]))
+  // One ceiling across projects (RG250), beside each project's own pool: without it a launch
+  // resolves an engine, holds a server and spawns two reads for every project at once, and
+  // the machine has nothing left for the window that is drawing them.
+  const asked = options.projectsAtOnce ?? 0
+  const atOnce = createLimiter(asked > 0 ? asked : Math.max(projects.length, 1))
   const rows = projects.map((project) => drawn.get(project.path) ?? pendingRow(project))
   const reads = projects.map((): RowReads => ({}))
   const broken = new Set<number>()
@@ -119,19 +139,22 @@ export async function coldStart(
 
     let done = 0
     await Promise.all(
-      live.map(async ({ project, index }) => {
-        try {
-          const part = await stage.read(project)
-          reads[index] = { ...reads[index], ...part }
-          // Filled in place, so a stage that answers nothing leaves what the row already had.
-          rows[index] = fillRow(rows[index] ?? pendingRow(project), reads[index] ?? {})
-        } catch (cause) {
-          broken.add(index)
-          rows[index] = unreadableRow(project, asUnreadable(cause, stage.name))
-        }
-        done += 1
-        onProgress({ stage: stage.name, done, total: live.length, rows: [...rows] })
-      }),
+      live.map(async ({ project, index }) =>
+        // Held in the order the screen draws them, so the rows a person sees first fill first.
+        atOnce.hold(async () => {
+          try {
+            const part = await stage.read(project)
+            reads[index] = { ...reads[index], ...part }
+            // Filled in place, so a stage that answers nothing leaves what the row already had.
+            rows[index] = fillRow(rows[index] ?? pendingRow(project), reads[index] ?? {})
+          } catch (cause) {
+            broken.add(index)
+            rows[index] = unreadableRow(project, asUnreadable(cause, stage.name))
+          }
+          done += 1
+          onProgress({ stage: stage.name, done, total: live.length, rows: [...rows] })
+        }),
+      ),
     )
   }
 

@@ -27,7 +27,8 @@ const BUILT = identityFrom({
 function bridge(over: Partial<RendererBridge> = {}): RendererBridge {
   return stubBridge({
     identify: () => Promise.resolve({ transport: 'ipc' as const, build: BUILT }),
-    settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: 'en' }),
+    settings: () =>
+      Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: 'en', projectsAtOnce: 0 }),
     savePreference: () => Promise.resolve(),
     ...over,
   })

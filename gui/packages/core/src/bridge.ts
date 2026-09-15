@@ -61,6 +61,14 @@ export interface LaunchSettings extends SettingsRead {
    * answer, so the renderer never has two ideas of what language it is in.
    */
   readonly locale: string
+  /**
+   * How many projects a cold start may read at once (RG250), already decided.
+   *
+   * `locale`'s arrangement and for its reason: the settings may say nothing, and what stands
+   * in for nothing is one project per four cores — a count only a process can take. What
+   * crosses is the number, so the renderer never works one out from a machine it cannot see.
+   */
+  readonly projectsAtOnce: number
 }
 
 export interface RendererBridge {

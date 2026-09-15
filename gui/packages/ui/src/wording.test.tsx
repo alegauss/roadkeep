@@ -56,7 +56,13 @@ const BUILT = identityFrom({ version: '0.0.0', commit: 'abc1234', signed: 'unsig
 function withBridge(parts: Partial<RendererBridge>): void {
   const bridge: RendererBridge = stubBridge({
     identify: () => Promise.resolve({ transport: 'ipc', build: BUILT }),
-    settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: BASE_LOCALE }),
+    settings: () =>
+      Promise.resolve({
+        settings: DEFAULT_SETTINGS,
+        reset: [],
+        locale: BASE_LOCALE,
+        projectsAtOnce: 0,
+      }),
     savePreference: () => Promise.resolve(),
     // A machine with no project under its roots (RG145): the portfolio settles on a sentence
     // of its own, and no payload's prose reaches a screen this run reads.
@@ -80,6 +86,7 @@ async function launchedWithALoss(): Promise<void> {
       Promise.resolve({
         settings: DEFAULT_SETTINGS,
         reset: [{ lost: 'width', fields: { width: DEFAULT_SETTINGS.width } }],
+        projectsAtOnce: 0,
         locale: BASE_LOCALE,
       }),
   })

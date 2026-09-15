@@ -438,6 +438,8 @@ export const PT_BR: Wording = {
   'settings.lost.dropped.one': '{count} raiz não pôde ser lida e foi descartada',
   'settings.lost.skip': 'a lista de nomes a ignorar não era uma lista, então vale a lista padrão',
   'settings.lost.width': 'a largura do pool não era um número inteiro, então voltou para {width}',
+  'settings.lost.projectsAtOnce':
+    'quantos projetos ler de uma vez não era um número inteiro, então a máquina decide',
   'settings.lost.theme': 'o fundo não é um que esta build conhece, então voltou para {theme}',
   'settings.lost.locale': 'o idioma não era um texto, então o sistema decide',
   'settings.lost.sessionNotes':

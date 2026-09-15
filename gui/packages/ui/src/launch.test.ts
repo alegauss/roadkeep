@@ -19,7 +19,12 @@ import { stubBridge } from './stub-bridge'
 function answering(locale: string, theme: Theme = DEFAULT_SETTINGS.theme): RendererBridge {
   return stubBridge({
     settings: () =>
-      Promise.resolve({ settings: { ...DEFAULT_SETTINGS, theme }, reset: [], locale }),
+      Promise.resolve({
+        settings: { ...DEFAULT_SETTINGS, theme },
+        reset: [],
+        locale,
+        projectsAtOnce: 2,
+      }),
   })
 }
 
@@ -58,6 +63,7 @@ describe('RG87: the ground the window opens in', () => {
           settings: { ...DEFAULT_SETTINGS, theme: 'light' },
           reset: [],
           locale: 'pt-BR',
+          projectsAtOnce: 2,
         })
       },
       savePreference: () => Promise.resolve(),
@@ -71,6 +77,8 @@ describe('RG87: the ground the window opens in', () => {
       portfolioOrder: 'record',
       // The deadline a read runs under rides in the same answer (RG249).
       timeoutMs: DEFAULT_LIMITS.timeoutMs,
+      // How many projects a cold start may read at once rides in the same answer (RG250).
+      projectsAtOnce: 2,
     })
     expect(asked).toBe(1)
   })
@@ -105,6 +113,8 @@ describe('RG106: an answer that never comes', () => {
       sessionNotes: 'shown',
       portfolioOrder: 'record',
       timeoutMs: DEFAULT_LIMITS.timeoutMs,
+      // Nothing answered, so no bound this side invented.
+      projectsAtOnce: 0,
     })
   })
 
@@ -125,6 +135,7 @@ describe('RG106: an answer that never comes', () => {
                 },
                 reset: [],
                 locale: 'pt-BR',
+                projectsAtOnce: 2,
               }),
             5,
           ),
@@ -141,6 +152,7 @@ describe('RG106: an answer that never comes', () => {
       sessionNotes: 'hidden',
       portfolioOrder: 'open-descending',
       timeoutMs: DEFAULT_LIMITS.timeoutMs,
+      projectsAtOnce: 2,
     })
   })
 

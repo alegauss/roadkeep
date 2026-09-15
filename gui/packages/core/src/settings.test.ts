@@ -20,6 +20,8 @@ const WRITTEN = {
   roots: [{ path: 'D:/Git', depth: 2 }],
   skip: ['node_modules', 'dist'],
   width: 8,
+  // Zero is the unset state: the machine's own number stands in for it (RG250).
+  projectsAtOnce: 0,
   theme: 'dark',
   locale: 'pt-BR',
   sessionNotes: 'hidden',
@@ -49,6 +51,7 @@ describe('RG47: the one thing this app owns', () => {
     expect(Object.keys(DEFAULT_SETTINGS).sort()).toEqual([
       'locale',
       'portfolioOrder',
+      'projectsAtOnce',
       'roots',
       'sessionNotes',
       'skip',

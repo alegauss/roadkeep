@@ -21,12 +21,15 @@ const PROJECTS = ['/code/a', '/code/b', '/code/c'].map(project)
 const TUESDAY = '2026-09-01T10:00:00.000Z'
 
 /**
- * Let every settled promise run. Ten microtask turns rather than a timer: everything
- * under test is promise-based with no I/O, so this is deterministic where a delay would
- * be a race, and `core` has no `setTimeout` in scope to race with anyway.
+ * Let every settled promise run. Microtask turns rather than a timer: everything under test
+ * is promise-based with no I/O, so this is deterministic where a delay would be a race, and
+ * `core` has no `setTimeout` in scope to race with anyway.
+ *
+ * Twenty rather than ten since RG250: each project's stage now goes through a limiter, which
+ * is two more turns per project between a read landing and the next one starting.
  */
 async function flush(): Promise<void> {
-  for (let turn = 0; turn < 10; turn += 1) await Promise.resolve()
+  for (let turn = 0; turn < 20; turn += 1) await Promise.resolve()
 }
 
 const statsFor = (total: number): StatsPayload => ({
@@ -291,6 +294,9 @@ describe('RG249: one project that runs out of time', () => {
     const counting = controlled('counting')
     const next = controlled('next')
     const run = coldStart(PROJECTS, [counting.stage, next.stage])
+    // Every project is in the stage before any of them answers: a read starts behind the
+    // limiter now (RG250), which is a turn later than the call that made it.
+    await flush()
 
     counting.finish('/code/a')
     counting.finish('/code/c')
@@ -306,5 +312,40 @@ describe('RG249: one project that runs out of time', () => {
     const [, timedOut] = rows
     expect(timedOut?.unreadable?.reason).toBe('timeout')
     expect(timedOut?.unreadable?.elapsedMs).toBe(15000)
+  })
+})
+
+describe('RG250: one ceiling across projects', () => {
+  it('never has more projects in flight than it was given, and keeps the record order', async () => {
+    // A launch resolves an engine and holds a server per project, so the bound is on projects
+    // and not on calls: each project's own pool still decides how many calls it makes.
+    const counting = controlled('counting')
+    const run = coldStart(PROJECTS, [counting.stage], () => undefined, { projectsAtOnce: 2 })
+
+    await flush()
+    expect(counting.inFlight()).toBe(2)
+    expect(counting.entered()).toEqual(['/code/a', '/code/b'])
+
+    counting.finish('/code/a')
+    await flush()
+
+    // One left, one admitted: never three, and the third is the third the screen draws.
+    expect(counting.inFlight()).toBe(2)
+    expect(counting.entered()).toEqual(['/code/a', '/code/b', '/code/c'])
+    counting.finishAll()
+    const rows = await run
+
+    expect(rows.map((row) => row.path)).toEqual(PROJECTS.map((one) => one.path))
+  })
+
+  it('reads every project at once where nothing said how many, which is a test with fakes', async () => {
+    const counting = controlled('counting')
+    const run = coldStart(PROJECTS, [counting.stage])
+
+    await flush()
+
+    expect(counting.inFlight()).toBe(PROJECTS.length)
+    counting.finishAll()
+    await run
   })
 })

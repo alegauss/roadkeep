@@ -103,6 +103,7 @@
 - ✅ **RG241** **the order a person picks for the portfolio is gone at the next launch, so the table opens in the record's order again** — The portfolio opens in the order last chosen: settings keep it as portfolioOrder, and an unknown value resets with a notice (design recorded in `packages/core/src/settings.ts`).
 - ✅ **RG248** **a walk that lands after the list is drawn sets every row back to pending, so the portfolio loads twice** — A walk landing after the list is drawn keeps every row it filled, adds what it found and drops what it lost, not loading the list twice (design recorded in `packages/core/src/portfolio.ts`).
 - ✅ **RG249** **a portfolio read has no deadline, so one project whose engine hangs keeps every row's next line pending** — Every read on the launch path runs under the declared deadline, so a hung engine becomes an unreadable row and the next stage goes on without it (design recorded in `packages/core/src/limits.ts`).
+- ✅ **RG250** **a launch starts every project's engine at the same moment, so twenty projects pin the machine together** — A cold start reads one project per four cores at a time, or the number the settings name, so twenty projects no longer start every engine at once (design recorded in `packages/core/src/limits.ts`).
 
 ## Block D — The project surface (one backlog, read)
 

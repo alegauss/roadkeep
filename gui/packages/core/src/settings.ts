@@ -47,6 +47,14 @@ export interface Settings {
   readonly skip: readonly string[]
   /** How many engine calls may be in flight at once. */
   readonly width: number
+  /**
+   * How many projects a cold start reads at once (RG250), or zero for the machine's own
+   * number — one per four cores, which only a process can count.
+   *
+   * Zero is a choice and not an absence, the way an empty `locale` is: a file that names no
+   * number follows the machine it is on, and one that names a number means it.
+   */
+  readonly projectsAtOnce: number
   readonly theme: Theme
   /** A BCP-47 tag, or the empty string for whatever the desktop says. */
   readonly locale: string
@@ -65,6 +73,7 @@ export const DEFAULT_SETTINGS: Settings = {
   roots: NO_DEFAULT_ROOTS,
   skip: DEFAULT_POLICY.ignore,
   width: DEFAULT_LIMITS.width,
+  projectsAtOnce: 0,
   theme: 'system',
   locale: '',
   // Every note drawn, as before there was a choice: an upgrade changes nothing on screen.
@@ -95,6 +104,7 @@ export type Lost =
   | 'dropped'
   | 'skip'
   | 'width'
+  | 'projectsAtOnce'
   | 'theme'
   | 'locale'
   | 'sessionNotes'
@@ -238,6 +248,12 @@ export function readSettings(source: unknown): SettingsRead {
     DEFAULT_SETTINGS.width,
     { lost: 'width', fields: { width: DEFAULT_SETTINGS.width } },
   )
+  const [projectsAtOnce, saidOfProjects] = field(
+    file['projectsAtOnce'],
+    (value) => typeof value === 'number' && Number.isInteger(value) && value >= 0,
+    DEFAULT_SETTINGS.projectsAtOnce,
+    { lost: 'projectsAtOnce', fields: { projects: DEFAULT_SETTINGS.projectsAtOnce } },
+  )
   const [theme, saidOfTheme] = field<Theme>(file['theme'], isTheme, DEFAULT_SETTINGS.theme, {
     lost: 'theme',
     fields: { theme: DEFAULT_SETTINGS.theme },
@@ -267,6 +283,7 @@ export function readSettings(source: unknown): SettingsRead {
       roots,
       skip,
       width,
+      projectsAtOnce,
       theme,
       locale,
       sessionNotes,
@@ -277,6 +294,7 @@ export function readSettings(source: unknown): SettingsRead {
       saidOfRoots,
       saidOfSkip,
       saidOfWidth,
+      saidOfProjects,
       saidOfTheme,
       saidOfLocale,
       saidOfNotes,

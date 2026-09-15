@@ -18,7 +18,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { getBridge } from './bridge'
-import { readDeadline } from './launch'
+import { readDeadline, readProjectsAtOnce } from './launch'
 
 /** The stage still running, and how far through it the rows are. */
 export interface ReadingProgress {
@@ -252,7 +252,7 @@ export function usePortfolio(): { readonly view: PortfolioView; readonly rescan:
             tried: { ...tried },
           })
         },
-        kept,
+        { start: kept, projectsAtOnce: readProjectsAtOnce() },
       )
       if (stillHere()) {
         follow(rows)

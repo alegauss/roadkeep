@@ -25,7 +25,8 @@ import { stubBridge } from './stub-bridge'
  */
 function bridge(over: Partial<RendererBridge> = {}): RendererBridge {
   return stubBridge({
-    settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: 'en' }),
+    settings: () =>
+      Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: 'en', projectsAtOnce: 0 }),
     savePreference: () => Promise.resolve(),
     ...over,
   })

@@ -75,6 +75,8 @@ export interface LaunchChoices {
    * row that says so rather than one every other row waits on.
    */
   readonly timeoutMs: number
+  /** How many projects a cold start may read at once (RG250), as the shell decided it. */
+  readonly projectsAtOnce: number
 }
 
 const AT_WORST: LaunchChoices = {
@@ -84,6 +86,10 @@ const AT_WORST: LaunchChoices = {
   sessionNotes: DEFAULT_SETTINGS.sessionNotes,
   portfolioOrder: DEFAULT_SETTINGS.portfolioOrder,
   timeoutMs: DEFAULT_LIMITS.timeoutMs,
+  // No bound where nothing answered: the ceiling is a fact about the machine, which only the
+  // shell can take — and a window that invented one would be slower than it has any reason to
+  // be on a machine it cannot see.
+  projectsAtOnce: 0,
 }
 
 /**
@@ -123,6 +129,7 @@ export async function choicesFromBridge(
         // Clamped here as everywhere: a number a person edited into the file is theirs, and
         // a sane range is what `withLimits` is for.
         timeoutMs: withLimits(answer.settings).timeoutMs,
+        projectsAtOnce: answer.projectsAtOnce,
       })),
       deadline,
     ])
@@ -163,6 +170,17 @@ export function readDeadline(): number {
   return deadlineMs
 }
 
+/** How many projects a cold start may read at once (RG250), as the shell decided it. */
+let atOnce = 0
+
+function holdProjectsAtOnce(projects: number): void {
+  atOnce = projects
+}
+
+export function readProjectsAtOnce(): number {
+  return atOnce
+}
+
 /** The same question, of whatever bridge this page was given. */
 export async function choicesAtLaunch(): Promise<LaunchChoices> {
   const choices = await choicesFromBridge(getBridge())
@@ -170,5 +188,6 @@ export async function choicesAtLaunch(): Promise<LaunchChoices> {
   holdSessionNotes(choices.sessionNotes)
   holdPortfolioOrder(choices.portfolioOrder)
   holdDeadline(choices.timeoutMs)
+  holdProjectsAtOnce(choices.projectsAtOnce)
   return choices
 }

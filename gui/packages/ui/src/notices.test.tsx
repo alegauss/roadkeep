@@ -20,7 +20,8 @@ import { stubBridge } from './stub-bridge'
  */
 function bridge(over: Partial<RendererBridge> = {}): RendererBridge {
   return stubBridge({
-    settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: 'en' }),
+    settings: () =>
+      Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: 'en', projectsAtOnce: 0 }),
     savePreference: () => Promise.resolve(),
     ...over,
   })
@@ -34,7 +35,8 @@ function withBridge(one: RendererBridge): void {
 async function launched(reset: readonly Reset[]): Promise<void> {
   withBridge(
     bridge({
-      settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset, locale: 'en' }),
+      settings: () =>
+        Promise.resolve({ settings: DEFAULT_SETTINGS, reset, locale: 'en', projectsAtOnce: 0 }),
     }),
   )
   await choicesAtLaunch()

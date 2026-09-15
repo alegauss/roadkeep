@@ -605,6 +605,7 @@ describe('RG241: keeping the portfolio’s order across launches', () => {
           settings: { ...DEFAULT_SETTINGS, portfolioOrder: order },
           reset: [],
           locale: 'en',
+          projectsAtOnce: 0,
         }),
       savePreference: (key, value) => {
         kept.push([key, value])

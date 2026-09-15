@@ -111,7 +111,13 @@ function recordingBridge(refusing = 0): { kept: Theme[]; refused: Theme[] } {
         transport: 'ipc',
         build: identityFrom({ version: '0.0.0', commit: 'abc1234', signed: 'unsigned' }),
       }),
-    settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: BASE_LOCALE }),
+    settings: () =>
+      Promise.resolve({
+        settings: DEFAULT_SETTINGS,
+        reset: [],
+        locale: BASE_LOCALE,
+        projectsAtOnce: 0,
+      }),
     savePreference: (key, value) => {
       if (key !== 'theme' || !isTheme(value)) return Promise.resolve()
       if (refused.length < refusing) {

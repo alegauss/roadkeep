@@ -43,9 +43,36 @@ export const DEFAULT_LIMITS: ReadLimits = { timeoutMs: 15000, width: 4 }
  */
 export const FILE_TEXT_CEILING = 1024 * 1024
 
+/**
+ * How many cores one project in flight is given (RG250).
+ *
+ * A launch opens every project at once: each resolves an engine — an interpreter per
+ * candidate — holds a `roadkeep mcp` and spawns the reads that surface does not publish, so
+ * twenty projects is a machine with nothing left for the window. Four is RG130's own rule for
+ * the live suite, measured on the machine this is developed on.
+ */
+export const CORES_PER_PROJECT = 4
+
+/** How many projects a cold start may read at once on a machine with this many cores. */
+export function projectsForCores(cores: number): number {
+  return Math.max(1, Math.floor((Number.isFinite(cores) ? cores : 0) / CORES_PER_PROJECT))
+}
+
+/**
+ * The person's own number where the file names one, and the machine's where it does not.
+ *
+ * Zero is the unset state and not a width of nothing, the way an empty `locale` is *whatever
+ * the desktop says*: a settings file that has never been edited should follow the machine it
+ * is on rather than a number written here.
+ */
+export function projectsAtOnce(declared: number, cores: number): number {
+  return declared > 0 ? clamp(Math.floor(declared), 1, PROJECTS_CEILING) : projectsForCores(cores)
+}
+
 const TIMEOUT_FLOOR = 1000
 const TIMEOUT_CEILING = 600000
 const WIDTH_CEILING = 32
+const PROJECTS_CEILING = 64
 
 /** Take a person's settings and make them usable, without pretending they were not given. */
 export function withLimits(given: Partial<ReadLimits> = {}): ReadLimits {

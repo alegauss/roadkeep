@@ -453,6 +453,8 @@ export const EN = {
   'settings.lost.dropped.one': '{count} root could not be read and was dropped',
   'settings.lost.skip': 'the skip list was not a list of names, so the default one is used',
   'settings.lost.width': 'the pool width was not a whole number, so it is back to {width}',
+  'settings.lost.projectsAtOnce':
+    'how many projects to read at once was not a whole number, so the machine decides',
   'settings.lost.theme': 'the theme was not one this build knows, so it is back to {theme}',
   'settings.lost.locale': 'the locale was not a string, so the desktop decides',
   'settings.lost.sessionNotes':
@@ -509,6 +511,7 @@ export const RESET_TEXT: Readonly<Record<Lost, MessageKey>> = {
   dropped: 'settings.lost.dropped',
   skip: 'settings.lost.skip',
   width: 'settings.lost.width',
+  projectsAtOnce: 'settings.lost.projectsAtOnce',
   theme: 'settings.lost.theme',
   locale: 'settings.lost.locale',
   sessionNotes: 'settings.lost.sessionNotes',

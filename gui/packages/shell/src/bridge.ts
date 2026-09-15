@@ -4,6 +4,7 @@ import {
   BRIDGE_UNSUBSCRIBE,
   EVERY_SOURCE,
   isTopic,
+  projectsAtOnce,
   requestFrom,
   resolveAgent,
   translator,
@@ -22,6 +23,8 @@ import {
   type OpenedProject,
   type ProjectGate,
 } from '@rk/core'
+import { cpus } from 'node:os'
+
 import { app, BrowserWindow, dialog, ipcMain, type WebContents } from 'electron'
 
 import { AGENT_VAR, agentCandidates, agentOverride } from './agent-candidates'
@@ -68,7 +71,13 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
   // is what keeps a handler that touches the filesystem off the list of powers it gains.
   ipcMain.handle(BRIDGE_CHANNELS.settings, (): LaunchSettings => {
     const read = loadSettings(app.getPath('userData'))
-    return { ...read, locale: localeChoice(read.settings.locale, app.getLocale()) }
+    return {
+      ...read,
+      locale: localeChoice(read.settings.locale, app.getLocale()),
+      // Decided here for the same reason the locale is (RG250): the file may name no number,
+      // and what stands in for none is this machine's core count.
+      projectsAtOnce: projectsAtOnce(read.settings.projectsAtOnce, cpus().length),
+    }
   })
 
   // The one write of a preference the renderer can ask for (RG207), and it reaches exactly

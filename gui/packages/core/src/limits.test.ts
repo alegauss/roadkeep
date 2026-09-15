@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { attemptRead, DEFAULT_LIMITS, explainUnreadable, withLimits } from './limits'
+import {
+  attemptRead,
+  DEFAULT_LIMITS,
+  explainUnreadable,
+  projectsAtOnce,
+  projectsForCores,
+  withLimits,
+} from './limits'
 import { readListPayload } from './payloads'
 import { aString, record } from './reading'
 import { EngineCallFailed, type EngineResult, type Transport } from './transport'
@@ -35,6 +42,28 @@ describe('RG8: the two numbers a person may change', () => {
 
   it('takes a whole number of calls', () => {
     expect(withLimits({ width: 3.7 }).width).toBe(3)
+  })
+})
+
+describe('RG250: how many projects a launch reads at once', () => {
+  it('gives one project every four cores, and never fewer than one', () => {
+    expect(projectsForCores(16)).toBe(4)
+    expect(projectsForCores(8)).toBe(2)
+    // A machine that says two, or says nothing readable, still reads one project at a time.
+    expect(projectsForCores(2)).toBe(1)
+    expect(projectsForCores(0)).toBe(1)
+    expect(projectsForCores(Number.NaN)).toBe(1)
+  })
+
+  it('takes the number somebody wrote over the machine’s, clamped', () => {
+    expect(projectsAtOnce(3, 16)).toBe(3)
+    expect(projectsAtOnce(9999, 16)).toBe(64)
+    expect(projectsAtOnce(2.7, 16)).toBe(2)
+  })
+
+  it('reads zero as the machine deciding, which is what a file that says nothing means', () => {
+    expect(projectsAtOnce(0, 16)).toBe(4)
+    expect(projectsAtOnce(-1, 16)).toBe(4)
   })
 })
 

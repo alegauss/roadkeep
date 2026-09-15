@@ -6,31 +6,6 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-### §RG250 One ceiling across projects
-
-**What a launch spends, off the code.** Opening one project resolves its engine (an
-interpreter per candidate, 2.3 s for a second one by `engine-candidates.ts`), holds a
-`roadkeep mcp`, and spawns `commands` and `stats`, which the held surface does not
-publish. `coldStart` hands every project to a stage with `Promise.all`; the only ceiling
-is each project's own pool of `width`, so twenty projects are eighty slots. Only the
-gate is bounded across projects (RG187).
-
-**A limiter over projects, not calls.** `coldStart` takes an optional `projectsAtOnce`
-and runs each stage's projects through `createLimiter`, the one RG187 uses, so the bound
-is on projects in flight and a project's pool still decides its calls. Projects start in
-the order the screen draws them, so the rows a person sees first fill first.
-
-**The number is the machine's.** The default is one project per four cores, never fewer
-than one, which is RG130's rule for the live suite; the shell has the core count, so it
-crosses to the renderer with the settings, and a `projectsAtOnce` setting overrides it,
-clamped in `limits.ts` beside `width`.
-
-Criterion "A cold start over twenty projects is bounded and says what it is doing" is
-what this finishes: the progress line keeps counting stages, never slots.
-
-Tests: `cold-start.test.ts` with a fake stage recording how many projects are in flight,
-never above the limit, rows still in record order; `limits.test.ts` for the clamp.
-
 ### §RG251 Remembered readings, drawn at launch
 
 **What is kept is what a verb printed, never a row.** A `readings.json` beside

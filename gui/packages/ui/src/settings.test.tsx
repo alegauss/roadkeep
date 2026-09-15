@@ -28,7 +28,8 @@ function recording(over: Partial<RendererBridge> = {}): [PreferenceKey, unknown]
   const kept: [PreferenceKey, unknown][] = []
   Object.defineProperty(window, 'roadkeep', {
     value: stubBridge({
-      settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: 'en' }),
+      settings: () =>
+        Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: 'en', projectsAtOnce: 0 }),
       savePreference: (key, value) => {
         kept.push([key, value])
         return Promise.resolve()

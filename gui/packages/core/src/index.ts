@@ -132,7 +132,7 @@ export {
 export type { Follow, Scrolled, Space } from './follow'
 export { blanksIn, doorsIn, filledArgv, isBlank } from './doors'
 export { coldStart } from './cold-start'
-export type { ColdStartProgress, ColdStartStage } from './cold-start'
+export type { ColdStartOptions, ColdStartProgress, ColdStartStage } from './cold-start'
 export { allLines, backlogFrom, narrowedBy } from './backlog'
 export type { Backlog, BacklogBlock, Narrowed, NarrowedCase } from './backlog'
 export {
@@ -192,7 +192,10 @@ export {
   attemptRead,
   DEFAULT_LIMITS,
   explainUnreadable,
+  CORES_PER_PROJECT,
   FILE_TEXT_CEILING,
+  projectsAtOnce,
+  projectsForCores,
   saidBy,
   withLimits,
 } from './limits'
