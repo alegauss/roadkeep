@@ -17,8 +17,12 @@
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
+- 📋 **RG236** (deps: —) **npm run dev and npm start open a window wearing Electron's atom, though build/icon.svg is the app's mark** — RG138 wrote the mark into the packaged executable only, and an unpackaged window names no icon of its own. → §RG236
 
 ## Block H — The look (a design system for governed prose)
+
+- 📋 **RG235** (deps: —) **on a task, Copy the brief sits higher than Hand to Claude Code beside it, so the hero's two actions share no line** — The hero centres each action's column, and only one column reserves the note under its button. → §RG235
+- 📋 **RG237** (deps: —) **the session is held to the reading column, so its stream between two side columns is left about 360 pixels** — A session is a workspace read for minutes, and the width every page shares leaves its tool calls wrapped. → §RG237
 
 ## Done when — Block A
 
