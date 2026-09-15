@@ -17,9 +17,12 @@ import {
   filterCounts,
   folderName,
   matchesFilter,
+  nextOrder,
+  orderRows,
   pendingRow,
   readRow,
   ROW_FILTERS,
+  sortOf,
   tally,
   unreadableRow,
   fillRow,
@@ -332,6 +335,95 @@ describe('RG145: the chips a portfolio narrows by', () => {
     expect(
       ROW_FILTERS.filter((filter) => filter !== 'all' && matchesFilter(pending, filter)),
     ).toEqual([])
+  })
+})
+
+describe('RG239: the order a portfolio is read in', () => {
+  /** A read row under a declared name, at a path of its own. */
+  const named = (name: string, path = `/code/${name}`) =>
+    readRow({ ...project, path }, { declares: { ...DECLARES_NOTHING, name } })
+  const namesOf = (rows: readonly { readonly name: string }[]) => rows.map((row) => row.name)
+
+  it("hands the record's order back as it came", () => {
+    const rows = [named('charlie'), named('alpha'), named('bravo')]
+
+    expect(orderRows(rows, 'record', 'en')).toBe(rows)
+  })
+
+  it('orders by name both ways, leaving the list it was given alone', () => {
+    const rows = [named('charlie'), named('alpha'), named('bravo')]
+
+    expect(namesOf(orderRows(rows, 'name-ascending', 'en'))).toEqual(['alpha', 'bravo', 'charlie'])
+    expect(namesOf(orderRows(rows, 'name-descending', 'en'))).toEqual(['charlie', 'bravo', 'alpha'])
+    expect(namesOf(rows)).toEqual(['charlie', 'alpha', 'bravo'])
+  })
+
+  it('reads numbers as numbers and does not split a name by its case', () => {
+    // Plain string order puts `2026.10` before `2026.2`, and every capital before every
+    // lower case, so `Beta` would lead a list it belongs in the middle of.
+    const rows = [
+      named('2026.10'),
+      named('charlie'),
+      named('Beta'),
+      named('2026.2'),
+      named('alpha'),
+    ]
+
+    expect(namesOf(orderRows(rows, 'name-ascending', 'en'))).toEqual([
+      '2026.2',
+      '2026.10',
+      'alpha',
+      'Beta',
+      'charlie',
+    ])
+  })
+
+  it("keeps the record's order between rows sharing a name, whichever way", () => {
+    // One family's worktrees, current version first. Reversing the list would put the
+    // older version first under Z to A, which is the order this refuses.
+    const current = named('turing', '/code/turing/2026.3')
+    const older = named('turing', '/code/turing/2026.2')
+    const rows = [current, older, named('shio')]
+    const pathsOf = (ordered: readonly { readonly path: string }[]) =>
+      ordered.map((row) => row.path)
+
+    expect(pathsOf(orderRows(rows, 'name-ascending', 'en'))).toEqual([
+      '/code/shio',
+      current.path,
+      older.path,
+    ])
+    expect(pathsOf(orderRows(rows, 'name-descending', 'en'))).toEqual([
+      current.path,
+      older.path,
+      '/code/shio',
+    ])
+  })
+
+  it('orders a row not yet read by the name it already has on the record', () => {
+    const rows = [named('bravo'), pendingRow({ ...project, path: '/code/alpha' })]
+
+    expect(namesOf(orderRows(rows, 'name-ascending', 'en'))).toEqual(['alpha', 'bravo'])
+  })
+
+  it.each(['', 'not a tag!!'])(
+    'orders under the desktop’s own rules where the tag is %j',
+    (tag) => {
+      const rows = [named('bravo'), named('alpha')]
+
+      expect(namesOf(orderRows(rows, 'name-ascending', tag))).toEqual(['alpha', 'bravo'])
+    },
+  )
+
+  it("moves a click on the name head from A to Z, to Z to A, and back to the record's", () => {
+    expect(nextOrder('record', 'name')).toBe('name-ascending')
+    expect(nextOrder('name-ascending', 'name')).toBe('name-descending')
+    expect(nextOrder('name-descending', 'name')).toBe('record')
+  })
+
+  it('says which way a column head is ordered, and none where no order is on it', () => {
+    expect(sortOf('record', 'name')).toBe('none')
+    expect(sortOf('name-ascending', 'name')).toBe('ascending')
+    expect(sortOf('name-descending', 'name')).toBe('descending')
   })
 })
 

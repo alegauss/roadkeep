@@ -189,15 +189,20 @@ export {
   folderName,
   nameOf,
   matchesFilter,
+  nextOrder,
+  orderRows,
   pendingRow,
   readRow,
   ROW_FILTERS,
+  sortOf,
   tally,
   unreadableRow,
 } from './portfolio'
 export { glanceRow, openingUnreadable, rowStages, withNext } from './rows'
 export type { RowStage } from './rows'
 export type {
+  OrderColumn,
+  OrderDirection,
   PortfolioTally,
   ProjectRow,
   RowCounts,
@@ -205,6 +210,7 @@ export type {
   RowFilter,
   RowGate,
   RowNext,
+  RowOrder,
   RowReads,
   RowState,
 } from './portfolio'

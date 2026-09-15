@@ -98,6 +98,7 @@
 - ✅ **RG199** **nothing on a row says which branch a worktree is on, so a declared name renders a family as identical rows** — A worktree's row says which branch it is on, read off git's own HEAD, and a short sha where detached (design recorded in `packages/shell/src/git-worktree.ts`).
 - ✅ **RG203** **a declared name is read from the checkout, so a project reverts to its folder name as it goes missing** — The record keeps the name a project last declared, so a row that goes grey keeps its identity (design recorded in `packages/core/src/catalogue.ts`).
 - ✅ **RG204** **an emoji is the only icon a row can draw, so a project with a logo file cannot show it** — A declared logo is resolved and read where the disk is, and the renderer gets a picture or nothing (design recorded in `packages/shell/src/project-logo.ts`).
+- ✅ **RG239** **the portfolio lists projects only in the record's order, so finding one by name means reading every row** — The Project head orders the portfolio by name, A to Z, Z to A, then the record's; numbers read as numbers and ties keep the record's order (design recorded in `packages/core/src/portfolio.ts`).
 
 ## Block D — The project surface (one backlog, read)
 

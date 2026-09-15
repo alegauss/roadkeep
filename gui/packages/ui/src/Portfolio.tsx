@@ -5,16 +5,30 @@ import {
   reasonOf,
   type KnownRoot,
   matchesFilter,
+  nextOrder,
+  orderRows,
   ROW_FILTERS,
+  sortOf,
   tally,
   UNKNOWN_GATE,
   type GateVerdict,
   type MessageKey,
+  type OrderColumn,
   type ProjectRow,
   type RowFilter,
+  type RowOrder,
   type RowStage,
 } from '@rk/core'
-import { IconFolder, IconInfoCircle, IconMinus, IconPlus, IconX } from '@tabler/icons-react'
+import {
+  IconArrowDown,
+  IconArrowUp,
+  IconArrowsSort,
+  IconFolder,
+  IconInfoCircle,
+  IconMinus,
+  IconPlus,
+  IconX,
+} from '@tabler/icons-react'
 import { Button } from '@viglet/viglet-design-system'
 import {
   BENTO_TONES,
@@ -28,6 +42,7 @@ import { Link } from 'react-router-dom'
 
 import { projectPath } from './areas'
 import { HeroActions } from './hero'
+import { useSpokenLocale } from './speaking'
 import { usePortfolio, type ReadingProgress, type Tried } from './usePortfolio'
 import { useRoots, type RootsView } from './useRoots'
 import { Bar, Glyph, Pill, type Intent } from './marks'
@@ -43,6 +58,8 @@ import { useWording } from './wording'
  *
  * **Rows and not tiles** (§RG63): a symptom is up to 120 characters and fits in no tile, so
  * the list is a table in a `BentoPanel`, in the record's order and never completion order.
+ * A person can order it by name from the Project head (RG239), and the caption beside the
+ * chips says which order is in force. The chosen order lasts as long as the window does.
  *
  * **A row still answering is pending, never zero** — block C's second criterion, drawn as
  * bars where the numbers will be. An unreadable row spans the counts and says why, with what
@@ -63,6 +80,18 @@ const FILTER_TEXT: Readonly<Record<RowFilter, MessageKey>> = {
   disagrees: 'portfolio.filter.disagrees',
   unreadable: 'portfolio.filter.unreadable',
 }
+
+const ORDER_TEXT: Readonly<Record<RowOrder, MessageKey>> = {
+  record: 'portfolio.order.record',
+  'name-ascending': 'portfolio.order.name-ascending',
+  'name-descending': 'portfolio.order.name-descending',
+}
+
+const ORDER_ICON = {
+  none: IconArrowsSort,
+  ascending: IconArrowUp,
+  descending: IconArrowDown,
+} as const
 
 const STAGE_TEXT: Readonly<Record<RowStage, MessageKey>> = {
   counting: 'portfolio.stage.counting',
@@ -118,6 +147,52 @@ function Chip({
     >
       {say(FILTER_TEXT[filter], { count })}
     </Button>
+  )
+}
+
+/**
+ * A column head a person can order the list by (RG239).
+ *
+ * The design system's `Table` has no sorting, so the control is this app's: a button inside
+ * the `th`, with the `th` carrying `aria-sort` so a reader by ear hears the order where the
+ * column is announced. Each click moves one step through `nextOrder`, back to the record's.
+ */
+function OrderedHead({
+  column,
+  order,
+  onOrder,
+  className,
+  children,
+}: {
+  readonly column: OrderColumn
+  readonly order: RowOrder
+  readonly onOrder: (column: OrderColumn) => void
+  readonly className: string
+  readonly children: ReactNode
+}) {
+  const direction = sortOf(order, column)
+  const Icon = ORDER_ICON[direction]
+  const choose = useCallback(() => {
+    onOrder(column)
+  }, [column, onOrder])
+
+  return (
+    <th scope="col" aria-sort={direction} className={className}>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="-mx-2 h-6 gap-1 px-2 text-[11px] font-semibold tracking-wide uppercase"
+        onClick={choose}
+        data-testid={`order-${column}`}
+      >
+        {children}
+        <Icon
+          aria-hidden="true"
+          size={12}
+          className={direction === 'none' ? 'opacity-50' : undefined}
+        />
+      </Button>
+    </th>
   )
 }
 
@@ -570,6 +645,11 @@ export function Portfolio() {
   const pick = useCallback((next: RowFilter) => {
     setFilter(next)
   }, [])
+  const [order, setOrder] = useState<RowOrder>('record')
+  const reorder = useCallback((column: OrderColumn) => {
+    setOrder((current) => nextOrder(current, column))
+  }, [])
+  const locale = useSpokenLocale()
 
   const rows = view.kind === 'listed' ? view.rows : null
   const counts = useMemo(() => (rows === null ? null : filterCounts(rows)), [rows])
@@ -580,9 +660,18 @@ export function Portfolio() {
     }
     return sizes
   }, [rows])
+  // Narrowed first and ordered after, so a chip and an order compose without either knowing
+  // the other.
   const shown = useMemo(
-    () => (rows === null ? [] : rows.filter((row) => matchesFilter(row, filter))),
-    [rows, filter],
+    () =>
+      rows === null
+        ? []
+        : orderRows(
+            rows.filter((row) => matchesFilter(row, filter)),
+            order,
+            locale,
+          ),
+    [rows, filter, order, locale],
   )
 
   // Built once per change and not in the attribute: the hero is handed an element, and one
@@ -649,16 +738,23 @@ export function Portfolio() {
                 />
               ))}
             </fieldset>
-            <span className="text-muted-foreground ml-auto text-xs">{say('portfolio.order')}</span>
+            <span className="text-muted-foreground ml-auto text-xs" data-testid="portfolio-order">
+              {say(ORDER_TEXT[order])}
+            </span>
           </div>
 
           <BentoPanel className="overflow-hidden" contentClassName="p-0 overflow-x-auto">
             <table className="w-full min-w-[56rem] table-fixed border-collapse text-left text-sm">
               <thead>
                 <tr className="text-muted-foreground text-[11px] font-semibold tracking-wide uppercase">
-                  <th scope="col" className="w-[26%] px-5 py-3 font-semibold">
+                  <OrderedHead
+                    column="name"
+                    order={order}
+                    onOrder={reorder}
+                    className="w-[26%] px-5 py-3 font-semibold"
+                  >
                     {say('portfolio.column.project')}
-                  </th>
+                  </OrderedHead>
                   <th scope="col" className="w-[16%] px-5 py-3 font-semibold">
                     {say('portfolio.column.backlog')}
                   </th>

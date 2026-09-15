@@ -20,8 +20,8 @@ import type { Declared, PickPayload, StatsPayload } from './payloads'
  * not-yet-known look identical on a screen and mean opposite things, and the one that gets
  * believed is the wrong one. So every payload field is null until it arrives.
  *
- * Sorting and grouping are the view's, and are the only things here derived rather than
- * read. The name is the folder's own, which is a fact about a path and not a field this
+ * Ordering and grouping are the only things here derived rather than read, and an order
+ * compares rows without adding anything up across them (RG239). The name is the folder's own, which is a fact about a path and not a field this
  * app composed.
  */
 
@@ -315,4 +315,80 @@ export function filterCounts(rows: readonly ProjectRow[]): Readonly<Record<RowFi
     disagrees: count('disagrees'),
     unreadable: count('unreadable'),
   }
+}
+
+/**
+ * The orders the portfolio offers (RG239). Each value names its direction as well as its
+ * column, so a choice is one word from one closed set and never a pair to keep in step.
+ *
+ * `record` is the order the roots were added in, which is what a cold start draws and what
+ * every other order falls back to.
+ */
+export type RowOrder = 'record' | 'name-ascending' | 'name-descending'
+
+/** A column head an order is chosen from. */
+export type OrderColumn = 'name'
+
+/** What `aria-sort` says of a column head, spelled as the attribute spells it. */
+export type OrderDirection = 'ascending' | 'descending'
+
+const ORDERED_BY: Readonly<
+  Record<RowOrder, { readonly column: OrderColumn; readonly direction: OrderDirection } | null>
+> = {
+  record: null,
+  'name-ascending': { column: 'name', direction: 'ascending' },
+  'name-descending': { column: 'name', direction: 'descending' },
+}
+
+/** What one click on a column head moves through, before it hands back the record's order. */
+const CYCLES: Readonly<Record<OrderColumn, readonly RowOrder[]>> = {
+  name: ['name-ascending', 'name-descending'],
+}
+
+/** The order a click on `column` chooses, from the one in force. */
+export function nextOrder(current: RowOrder, column: OrderColumn): RowOrder {
+  const cycle = CYCLES[column]
+  const at = cycle.indexOf(current)
+  return (at === -1 ? cycle[0] : cycle[at + 1]) ?? 'record'
+}
+
+/** Which way `column` is ordered under `order`, or `none` where another column decides. */
+export function sortOf(order: RowOrder, column: OrderColumn): OrderDirection | 'none' {
+  const by = ORDERED_BY[order]
+  return by?.column === column ? by.direction : 'none'
+}
+
+function collatorFor(locale: string): Intl.Collator {
+  const options: Intl.CollatorOptions = { numeric: true, sensitivity: 'base' }
+  // A tag the runtime will not take is not worth failing a list over, as `timeIn` reasons.
+  try {
+    return new Intl.Collator(locale === '' ? undefined : locale, options)
+  } catch {
+    return new Intl.Collator(undefined, options)
+  }
+}
+
+/**
+ * The rows in `order`, as a person reads them in `locale`.
+ *
+ * **Names compared as a person reads them**: numbers as numbers, as `orderMembers` chose, so
+ * `2026.10` follows `2026.2`; and case and accents do not split one name in two.
+ *
+ * **Ties keep the record's order, whichever way.** Rows sharing a declared name are one
+ * family's worktrees, current version first, and that order is worth keeping. So the sort
+ * is stable and a descending order negates the comparison rather than reversing the list.
+ *
+ * `record` hands the rows back as they came. Nothing here filters: a chip narrows first, and
+ * the two compose because neither rule knows the other.
+ */
+export function orderRows(
+  rows: readonly ProjectRow[],
+  order: RowOrder,
+  locale: string,
+): readonly ProjectRow[] {
+  const by = ORDERED_BY[order]
+  if (by === null) return rows
+  const names = collatorFor(locale)
+  const sign = by.direction === 'ascending' ? 1 : -1
+  return rows.toSorted((left, right) => sign * names.compare(left.name, right.name))
 }

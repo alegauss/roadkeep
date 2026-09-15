@@ -331,6 +331,92 @@ describe('RG145: the portfolio at the root route', () => {
   })
 })
 
+describe('RG239: ordering the portfolio by name', () => {
+  const CHARLIE = '/code/charlie'
+  const ALPHA = '/code/alpha'
+  const BRAVO = '/code/bravo'
+
+  /** Three projects the record holds out of name order; `refused` names the ones that do not open. */
+  async function outOfOrder(refused: readonly string[] = []): Promise<void> {
+    const paths = [CHARLIE, ALPHA, BRAVO]
+    const answers = new Map(
+      await Promise.all(
+        paths.map(
+          async (path) =>
+            [
+              path,
+              refused.includes(path) ? { ...REFUSAL, root: path } : await opened(path),
+            ] as const,
+        ),
+      ),
+    )
+    Object.defineProperty(window, 'roadkeep', {
+      value: stubBridge({
+        projects: () =>
+          Promise.resolve({
+            version: 1,
+            roots: [{ path: '/code', depth: 1 }],
+            projects: paths.map(recorded),
+          }),
+        subscribe: () => () => undefined,
+        open: (root) => Promise.resolve(answers.get(root) ?? REFUSAL),
+        run: (root, request) => bridgedRun(() => machine.run({ ...request, root })),
+      }),
+      configurable: true,
+    })
+  }
+
+  const drawnPaths = () =>
+    screen.getAllByTestId('portfolio-row').map((row) => row.dataset['path'] ?? '')
+
+  it("orders from the Project head: A to Z, Z to A, then the record's again", async () => {
+    await outOfOrder()
+    drawWindow()
+    await waitFor(() => {
+      expect(drawnPaths()).toEqual([CHARLIE, ALPHA, BRAVO])
+    })
+    const head = screen.getByTestId('order-name')
+    const th = head.closest('th')
+    const caption = screen.getByTestId('portfolio-order')
+    expect(th?.getAttribute('aria-sort')).toBe('none')
+    expect(caption.textContent).toBe(BASE['portfolio.order.record'])
+
+    fireEvent.click(head)
+    expect(drawnPaths()).toEqual([ALPHA, BRAVO, CHARLIE])
+    expect(th?.getAttribute('aria-sort')).toBe('ascending')
+    expect(caption.textContent).toBe(BASE['portfolio.order.name-ascending'])
+
+    fireEvent.click(head)
+    expect(drawnPaths()).toEqual([CHARLIE, BRAVO, ALPHA])
+    expect(th?.getAttribute('aria-sort')).toBe('descending')
+    expect(caption.textContent).toBe(BASE['portfolio.order.name-descending'])
+
+    fireEvent.click(head)
+    expect(drawnPaths()).toEqual([CHARLIE, ALPHA, BRAVO])
+    expect(th?.getAttribute('aria-sort')).toBe('none')
+    expect(caption.textContent).toBe(BASE['portfolio.order.record'])
+  })
+
+  it('orders what a chip left, so a narrowing and an order compose (RG145)', async () => {
+    await outOfOrder([CHARLIE, BRAVO])
+    drawWindow()
+    await waitFor(() => {
+      expect(screen.getByTestId('filter-unreadable').textContent).toBe(
+        fill(BASE['portfolio.filter.unreadable'], { count: 2 }),
+      )
+    })
+
+    fireEvent.click(screen.getByTestId('filter-unreadable'))
+    expect(drawnPaths()).toEqual([CHARLIE, BRAVO])
+
+    fireEvent.click(screen.getByTestId('order-name'))
+    expect(drawnPaths()).toEqual([BRAVO, CHARLIE])
+
+    fireEvent.click(screen.getByTestId('filter-all'))
+    expect(drawnPaths()).toEqual([ALPHA, BRAVO, CHARLIE])
+  })
+})
+
 describe('RG145: the three ways there is no list', () => {
   it('says there is no bridge, which is what a plain browser tab has', () => {
     drawWindow()

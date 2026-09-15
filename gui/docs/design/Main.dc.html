@@ -100,7 +100,8 @@
     <div style="background:rgba(255,255,255,0.72);backdrop-filter:blur(18px) saturate(180%);-webkit-backdrop-filter:blur(18px) saturate(180%);border:1px solid rgba(229,229,229,0.7);border-radius:24px;overflow:hidden;box-shadow:0 18px 40px -30px rgba(0,0,0,0.25)">
 
       <div style="display:grid;grid-template-columns:290px 176px 1fr 148px 156px;gap:16px;padding:11px 22px;border-bottom:1px solid #ededed;font-size:10.5px;font-weight:600;letter-spacing:0.07em;color:#737373">
-        <div>PROJECT</div><div>BACKLOG</div><div>NEXT READY LINE</div><div>GATE</div><div>ENGINE</div>
+        <!-- the Project head orders the list by name, A to Z, Z to A, then the record's; the caption above names the order in force (RG239) -->
+        <div data-control="order-name" style="display:inline-flex;align-items:center;gap:4px">PROJECT<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.5"><path d="M3 9l4 -4l4 4m-4 -4v14"></path><path d="M21 15l-4 4l-4 -4m4 4v-14"></path></svg></div><div>BACKLOG</div><div>NEXT READY LINE</div><div>GATE</div><div>ENGINE</div>
       </div>
 
       <!-- row: read -->
