@@ -15,7 +15,7 @@ import {
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { SESSIONS_ROUTE, sessionPath, taskPath } from './areas'
+import { projectPath, SESSIONS_ROUTE, sessionPath, taskPath } from './areas'
 import i18next, { changeLanguage } from 'i18next'
 
 import { drawWindow } from './harness'
@@ -417,5 +417,25 @@ describe('RG190: the screen a handover moves after it is gone', () => {
     // nothing moved the window to it.
     expect(screen.queryByText(BASE['session.handed'])).toBeNull()
     expect(screen.getByText(BASE['project.blocks'])).toBeTruthy()
+  })
+})
+
+describe('RG242: which project a session is in', () => {
+  it('names the project and the line above the session, each a link to its own screen', async () => {
+    await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
+    await screen.findByText(BASE['session.handed'])
+
+    const trail = screen.getByTestId('trail')
+    // The task was the only crumb, so a session opened from the list never said its project.
+    expect(
+      within(trail)
+        .getByRole('link', { name: folderName(ROOT) })
+        .getAttribute('href'),
+    ).toBe(projectPath(ROOT))
+    expect(within(trail).getByRole('link', { name: 'AL1' }).getAttribute('href')).toBe(
+      taskPath(ROOT, 'AL1'),
+    )
+    const chip = await within(trail).findByTestId('project-chip')
+    expect(chip.getAttribute('aria-hidden')).toBe('true')
   })
 })

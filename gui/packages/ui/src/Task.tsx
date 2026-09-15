@@ -1,6 +1,5 @@
 import {
   briefToCopy,
-  folderName,
   alreadyRunning,
   handoverOf,
   mayHandOver,
@@ -24,11 +23,12 @@ import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-sy
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
-import { projectPath, sessionPath, taskPath } from './areas'
+import { sessionPath, taskPath } from './areas'
 import { getBridge } from './bridge'
 import { PanelTitle } from './forms'
 import { HeroActions } from './hero'
 import { Glyph, Pill, type Intent } from './marks'
+import { ProjectTrail } from './trail'
 import { useTask, type OpenedTask } from './useTask'
 import { useWording } from './wording'
 
@@ -578,12 +578,15 @@ export function Task() {
       ),
     [root, task],
   )
+  // Which project this line is in, with the chip the portfolio draws it by (RG242). The folder
+  // stands in until the project opened, without a chip whose tone would change as the name lands.
+  const face = task === null ? null : task.face
+  const trail = useMemo(() => <ProjectTrail root={root} face={face} />, [root, face])
 
   return (
     <>
       <BentoHero
-        backTo={projectPath(root)}
-        backLabel={view.kind === 'open' ? view.name : folderName(root)}
+        eyebrow={trail}
         leading={leading}
         title={id}
         subtitle={subtitle}

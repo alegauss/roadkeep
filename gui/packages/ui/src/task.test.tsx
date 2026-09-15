@@ -460,3 +460,20 @@ describe('RG175: the line a session already has', () => {
     expect(await screen.findByRole('button', { name: BASE['task.handOver'] })).toBeTruthy()
   })
 })
+
+describe('RG242: which project a line is in', () => {
+  it('names its project above the id, as a link back to it, with the portfolio’s chip', async () => {
+    await at(taskPath(ROOT, 'AL1'))
+    expect(await screen.findByRole('heading', { name: 'AL1' })).toBeTruthy()
+
+    const trail = screen.getByTestId('trail')
+    // The name nothing declared is the folder's, the one `nameOf` answers for every screen.
+    const project = within(trail).getByRole('link', { name: 'alpha' })
+    expect(project.getAttribute('href')).toBe(projectPath(ROOT))
+    // Drawn once the project opened, and hidden: the name beside it already says which one.
+    const chip = await within(trail).findByTestId('project-chip')
+    expect(chip.getAttribute('aria-hidden')).toBe('true')
+    // A line is under its project and nothing else, so the trail has one crumb.
+    expect(within(trail).queryByTestId('trail-task')).toBeNull()
+  })
+})

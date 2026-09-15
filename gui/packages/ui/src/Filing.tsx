@@ -2,7 +2,6 @@ import {
   anyOver,
   counterFor,
   fieldsRefused,
-  nameOf,
   refusalOf,
   sectionCounter,
   type Bounds,
@@ -16,11 +15,12 @@ import { BentoHero, BentoPanel } from '@viglet/viglet-design-system/bento'
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
-import { projectPath, taskPath } from './areas'
+import { taskPath } from './areas'
 import { DoorRow } from './Doors'
 import { BOX, Caption } from './forms'
 import { HeroActions } from './hero'
 import { Pill } from './marks'
+import { faceOf, ProjectTrail } from './trail'
 import { EMPTY_DRAFT, useFiling, type Draft } from './useFiling'
 import { useWording } from './wording'
 
@@ -433,6 +433,12 @@ export function Filing() {
     [named, say],
   )
 
+  // The project this files into, with the chip every screen under it draws (RG242).
+  const trail = useMemo(
+    () => <ProjectTrail root={root} face={faceOf(filing.project, root)} />,
+    [root, filing.project],
+  )
+
   const refused = new Set(fieldsRefused(filed.kind === 'refused' ? filed.refusal : NOTHING))
   const over = budget !== null && anyOver(budget)
   const trailing = useMemo(
@@ -448,13 +454,7 @@ export function Filing() {
 
   return (
     <>
-      <BentoHero
-        backTo={projectPath(root)}
-        backLabel={nameOf(filing.project?.declares, root)}
-        title={say('filing.title')}
-        subtitle={about}
-        trailing={trailing}
-      />
+      <BentoHero eyebrow={trail} title={say('filing.title')} subtitle={about} trailing={trailing} />
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <BentoPanel className="min-w-0" contentClassName="p-6">
           <div className="flex flex-col gap-5">

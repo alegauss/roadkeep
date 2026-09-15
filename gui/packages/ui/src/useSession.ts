@@ -11,10 +11,11 @@ import {
   type SessionOutcome,
   type SessionRecord,
 } from '@rk/core'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { getBridge } from './bridge'
 import { useGovernedMoves } from './following'
+import { faceOf, type ProjectFace } from './trail'
 
 export type SessionView =
   | { readonly kind: 'absent' }
@@ -29,6 +30,8 @@ export type SessionView =
       readonly outcome: SessionOutcome | null
       /** What the project counts as its own, once it opened: nothing marked until then. */
       readonly marks: Marks
+      /** The project's name, emoji and logo once it opened, or null until then (RG242). */
+      readonly face: ProjectFace | null
       /** The line as the engine answers it now, or null before the first reread lands. */
       readonly now: Reading | null
       /** The project's governed files with when each last changed, as the disk says. */
@@ -167,6 +170,9 @@ export function useSession(root: string, id: string, key: string): SessionView {
     }
   }, [project, root, id])
 
+  // Built once per opening, so the trail drawn from it is not a new element every render.
+  const face = useMemo(() => faceOf(project, root), [project, root])
+
   if (getBridge() === undefined) return { kind: 'absent' }
   if (record === undefined) return { kind: 'opening' }
   if (record === null) return { kind: 'missing' }
@@ -176,6 +182,7 @@ export function useSession(root: string, id: string, key: string): SessionView {
     lines: together(record.lines, heard.lines),
     outcome: heard.outcome ?? record.outcome,
     marks: project === null ? NOTHING_MARKED : marksOf(project.governed, project.engine.engine),
+    face,
     now,
     files,
     claims,

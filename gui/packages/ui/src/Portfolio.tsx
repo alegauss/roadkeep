@@ -26,20 +26,13 @@ import {
   IconArrowDown,
   IconArrowUp,
   IconArrowsSort,
-  IconFolder,
   IconInfoCircle,
   IconMinus,
   IconPlus,
   IconX,
 } from '@tabler/icons-react'
 import { Button } from '@viglet/viglet-design-system'
-import {
-  BENTO_TONES,
-  BentoEmptyState,
-  BentoHero,
-  BentoPanel,
-  bentoChipClass,
-} from '@viglet/viglet-design-system/bento'
+import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-system/bento'
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -47,6 +40,7 @@ import { projectPath } from './areas'
 import { HeroActions } from './hero'
 import { choosePortfolioOrder, usePortfolioOrder } from './preferring'
 import { useSpokenLocale } from './speaking'
+import { ProjectChip } from './trail'
 import { usePortfolio, type ReadingProgress, type Tried } from './usePortfolio'
 import { useRoots, type RootsView } from './useRoots'
 import { Bar, Glyph, Pill, type Intent } from './marks'
@@ -117,16 +111,6 @@ const GATE_INTENT: Readonly<Record<GateVerdict, Intent>> = {
   unknown: null,
   clean: 'on',
   drifted: 'error',
-}
-
-/**
- * A tone for a project's chip, the same one every time for the same name. Decorative — the
- * chip is hidden from a screen reader and the name beside it says which project it is.
- */
-function toneOf(name: string): (typeof BENTO_TONES)[number] {
-  let sum = 0
-  for (const character of name) sum = (sum * 31 + (character.codePointAt(0) ?? 0)) % 9973
-  return BENTO_TONES[sum % BENTO_TONES.length] ?? 'slate'
 }
 
 function Chip({
@@ -208,30 +192,13 @@ function OrderedHead({
 function ProjectCell({ row, shared }: { readonly row: ProjectRow; readonly shared: boolean }) {
   const say = useWording()
   const unreadable = row.state === 'unreadable'
-  const chip = unreadable
-    ? 'text-muted-foreground border border-dashed'
-    : `${bentoChipClass(toneOf(row.name))} text-white`
 
   return (
     <div className="flex min-w-0 items-center gap-3">
-      <span
-        aria-hidden="true"
-        className={`flex size-8 shrink-0 items-center justify-center rounded-[10px] ${chip}`}
-      >
-        {/* The declared emoji in the slot the glyph was in, and nothing else about the cell
-            moves: the tinted square is what gives it an edge and a consistent footprint
-            against both themes. Rendered as text and never parsed (RG200). */}
-        {/* A picture where one resolved, the declared emoji next, the folder glyph last
-            (RG204). The chain is why the emoji stays worth declaring beside a logo: every
-            way of not having a picture is cosmetic rather than an empty cell. */}
-        {row.mark !== '' ? (
-          <img src={row.mark} alt="" data-testid="project-mark" className="size-5 object-contain" />
-        ) : row.icon === '' ? (
-          <IconFolder size={17} />
-        ) : (
-          <span className="text-lg">{row.icon}</span>
-        )}
-      </span>
+      {/* The tinted square is what gives the mark an edge and a consistent footprint against
+          both themes (RG200), and the same one stands beside the name on every screen under
+          the project (RG242). */}
+      <ProjectChip face={row} size="row" unreadable={unreadable} />
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           {row.state === 'read' ? (

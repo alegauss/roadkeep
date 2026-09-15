@@ -30,16 +30,17 @@ import { useEffect, useState } from 'react'
 
 import { getBridge } from './bridge'
 import { useGovernedMoves } from './following'
+import type { ProjectFace } from './trail'
 
 /** A line that opened: the one brief, laid out by `core` and nothing added. */
 export interface OpenedTask {
   readonly kind: 'open'
   /**
-   * What the project calls itself, or its folder (RG202). Carried here because the back
-   * label on this screen is navigation: recomputing it from the path is how five screens
-   * came to agree with each other and with nothing else.
+   * What the project calls itself, or its folder (RG202), with the emoji and logo it declared
+   * (RG242). Carried here because the trail on this screen is navigation: recomputing the name
+   * from the path is how five screens came to agree with each other and with nothing else.
    */
-  readonly name: string
+  readonly face: ProjectFace
   readonly detail: TaskDetail
   readonly design: Design
   readonly graph: Graph
@@ -63,14 +64,21 @@ const ABSENT: TaskView = { kind: 'absent' }
 const OPENING: TaskView = { kind: 'opening' }
 
 /** The brief, laid out by `core`, with what the project's config says about its marker. */
-function openedTask(line: BriefPayload, config: ConfigPayload | null, root: string): OpenedTask {
+function openedTask(
+  line: BriefPayload,
+  config: ConfigPayload | null,
+  project: OpenProject,
+  root: string,
+): OpenedTask {
   const detail = detailFrom(line)
   const working = config === null ? '' : workingMarker(config)
+  const declares = config === null ? null : projectDeclares(config)
   return {
     kind: 'open',
     // The same config this already reads for the working marker, which is why naming the
-    // project here costs nothing extra (RG202).
-    name: nameOf(config === null ? null : projectDeclares(config), root),
+    // project here costs nothing extra (RG202). The logo is the opening's: a picture the
+    // shell resolved, never a path (RG204).
+    face: { name: nameOf(declares, root), icon: declares?.icon ?? '', mark: project.mark },
     detail,
     design: designFrom(line),
     graph: graphOfBrief(line),
@@ -156,7 +164,7 @@ export function useTask(root: string, id: string): TaskView {
 
       const line = brief.kind === 'read' ? lineOf(brief.value) : null
       if (line !== null) {
-        setView(openedTask(line, config.kind === 'read' ? config.value : null, root))
+        setView(openedTask(line, config.kind === 'read' ? config.value : null, project, root))
         return
       }
       if (brief.kind === 'unreadable') {

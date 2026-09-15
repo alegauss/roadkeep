@@ -22,12 +22,12 @@ import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-sy
 import { useCallback, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useParams } from 'react-router-dom'
 
-import { taskPath } from './areas'
 import { getBridge } from './bridge'
 import { PanelTitle } from './forms'
 import { HeroActions } from './hero'
 import { Glyph, Pill, type Intent } from './marks'
 import { useSessionNotes } from './preferring'
+import { ProjectTrail } from './trail'
 import { useRegionHeight } from './useRegionHeight'
 import { useSession } from './useSession'
 import { useWhen, useWording } from './wording'
@@ -499,15 +499,14 @@ export function Session() {
     [running, stop, say],
   )
 
+  // Which project and which line this session is on (RG242): the task was the only crumb, so a
+  // session reached from the sessions list or a handover never said which project it was in.
+  const face = session === null ? null : session.face
+  const trail = useMemo(() => <ProjectTrail root={root} face={face} task={id} />, [root, face, id])
+
   return (
     <>
-      <BentoHero
-        backTo={taskPath(root, id)}
-        backLabel={id}
-        title={id}
-        subtitle={subtitle}
-        trailing={trailing}
-      />
+      <BentoHero eyebrow={trail} title={id} subtitle={subtitle} trailing={trailing} />
       {session === null ? null : (
         // The stream is written first and placed in the middle (RG225). Stacked below `lg`,
         // the columns fall in the order they are written, and what was handed over and what

@@ -1,14 +1,14 @@
-import { counted, nameOf, refusalOf, type GateHealth, type Gated, type LintPayload } from '@rk/core'
+import { counted, refusalOf, type GateHealth, type Gated, type LintPayload } from '@rk/core'
 import { Button } from '@viglet/viglet-design-system'
 import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-system/bento'
 import { useEffect, useMemo, type ReactNode } from 'react'
 import { useParams } from 'react-router-dom'
 
-import { projectPath } from './areas'
 import { DoorRow } from './Doors'
 import { Caption } from './forms'
 import { HeroActions } from './hero'
 import { Pill } from './marks'
+import { faceOf, ProjectTrail } from './trail'
 import { useGate } from './useGate'
 import { useWhen, useWording } from './wording'
 
@@ -203,12 +203,16 @@ export function Gate() {
     ),
     [run, gate.kind, say],
   )
+  // The project this gate is over, with the chip every screen under it draws (RG242).
+  const trail = useMemo(
+    () => <ProjectTrail root={root} face={faceOf(project, root)} />,
+    [root, project],
+  )
 
   return (
     <>
       <BentoHero
-        backTo={projectPath(root)}
-        backLabel={nameOf(project?.declares, root)}
+        eyebrow={trail}
         title={say('gate.title')}
         subtitle={say('gate.about')}
         trailing={trailing}
