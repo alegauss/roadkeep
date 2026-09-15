@@ -8,8 +8,6 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-- 📋 **RG257** (deps: —) **the Portuguese verdict divergente names no check, so a reader takes six findings for six items that diverged** — It is the one word between the row and its findings that no other screen uses, and beside worktree and branch badges it reads as git. → §RG257
-
 ## Block D — The project surface (one backlog, read)
 
 ## Block E — The write path (the app composes an argv; the command writes)

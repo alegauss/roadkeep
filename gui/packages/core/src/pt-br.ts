@@ -60,7 +60,7 @@ export const PT_BR: Wording = {
   'portfolio.none.hint':
     'Uma pasta com um roadkeep.toml sob uma dessas raízes aparece aqui na próxima vez que a janela perguntar.',
   'portfolio.filter.all': 'Todos {count}',
-  'portfolio.filter.drifted': 'Verificação divergente {count}',
+  'portfolio.filter.drifted': 'Verificação reprovada {count}',
   'portfolio.filter.disagrees': 'Motor em desacordo {count}',
   'portfolio.filter.unreadable': 'Ilegíveis {count}',
   'portfolio.filter.label': 'Estreitar a lista',
@@ -83,7 +83,7 @@ export const PT_BR: Wording = {
   'portfolio.next.missing': 'a próxima linha não chegou',
   'portfolio.gate.unknown': 'desconhecido',
   'portfolio.gate.clean': 'limpo',
-  'portfolio.gate.drifted': 'divergente',
+  'portfolio.gate.drifted': 'reprovada',
   'portfolio.gate.never': 'nunca rodou aqui',
   'portfolio.gate.findings': '{count} achados',
   'portfolio.gate.findings.one': '{count} achado',

@@ -108,6 +108,7 @@
 - ✅ **RG252** **a remembered row is still read in full behind the screen, so a launch spends every interpreter a cold start did** — A remembered row is kept by resolving the engine and stamping the files, and the project is opened only when something needs it (design recorded in `packages/core/src/readings.ts`).
 - ✅ **RG253** **gate verdicts are forgotten at quit, so every launch runs lint once per project before a row has a verdict** — A verdict comes back where the files and the engine are the ones it was taken with, so a launch runs no lint for a project nobody touched (design recorded in `packages/core/src/gate.ts`).
 - ✅ **RG256** **a row's gate verdict is plain text, so the findings it counts are reached only by guessing Run the gate holds them** — A read row's verdict and count link to that project's gate, named by the project, and a row with nothing to open keeps its text (design recorded in `packages/ui/src/Portfolio.tsx`).
+- ✅ **RG257** **the Portuguese verdict divergente names no check, so a reader takes six findings for six items that diverged** — The Portuguese verdict is reprovada, the word this catalogue already uses for what the gate does, so the pill, the chip and the gate screen share one family.
 
 ## Block D — The project surface (one backlog, read)
 

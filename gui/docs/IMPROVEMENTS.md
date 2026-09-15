@@ -6,29 +6,6 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-### §RG257 A verdict word the window uses elsewhere
-
-**`divergente` is `portfolio.gate.drifted` in `pt-br.ts`**, and the filter chip reads
-"Verificação divergente {count}". Nothing past the row uses the word: the column is
-"Verificação", the count is "achados", the gate screen is "A verificação" and its rows
-are "achados". In a window whose rows carry worktree and branch badges (RG199), a thing
-that diverged reads as a branch, and the reader who reported this took six findings for
-six items that had diverged.
-
-**The Portuguese verdict becomes `reprovada`**, and the chip "Verificação reprovada
-{count}". `reprovar` is already this catalogue's verb for what the gate does, since
-`gate.notes` is "Dito sem reprovar por isso", so the pill, the chip and the gate screen
-share one family of words, and "reprovada · 6 achados" says a check failed and how much
-it found.
-
-**English keeps `drifted`**, the word `docs/design/Main.dc.html` draws and `gate.ts` is
-written around. There the column and the screen already share "gate", so the pill sits
-under the name of the check it reports.
-
-Tests: none new. `wording.test.ts` and `locales.test.ts` hold both catalogues' keys, and
-`portfolio.test.tsx` reads the base language. The check is `npm run shots` in pt-BR,
-reading the portfolio row and the chip.
-
 ## Block D — The project surface (one backlog, read)
 
 ## Block E — The write path (the app composes an argv; the command writes)
