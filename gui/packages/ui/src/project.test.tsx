@@ -429,14 +429,14 @@ describe('RG148: one backlog, as rows', () => {
 describe('RG149: the other governed files, as tabs', () => {
   async function onTab(role: string): Promise<void> {
     await atProject()
-    const tabs = within(await screen.findByRole('tablist', { name: BASE['project.roles'] }))
+    const tabs = within(await screen.findByRole('tablist', { name: BASE['project.tabs'] }))
     fireEvent.click(tabs.getByRole('tab', { name: role }))
   }
 
   it('opens on the roadmap, the one tab selected', async () => {
     await atProject()
 
-    const tabs = within(await screen.findByRole('tablist', { name: BASE['project.roles'] }))
+    const tabs = within(await screen.findByRole('tablist', { name: BASE['project.tabs'] }))
     expect(tabs.getByRole('tab', { name: 'roadmap' }).getAttribute('aria-selected')).toBe('true')
     expect(tabs.getByRole('tab', { name: 'changelog' }).getAttribute('aria-selected')).toBe('false')
   })

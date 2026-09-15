@@ -15,9 +15,11 @@ import {
 import { Button } from '@viglet/viglet-design-system'
 import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-system/bento'
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 
-import { filePath, gatePath, HOME_ROUTE, taskPath } from './areas'
+import { filePath, gatePath, HOME_ROUTE, projectPath, taskPath } from './areas'
+import { GateTab } from './Gate'
+import { useGateHealth } from './useGateHealth'
 import { HeroActions } from './hero'
 import { Glyph, Pill } from './marks'
 import { ChangelogTab, DecisionsTab, DeferredTab, ImprovementsTab } from './ProjectTabs'
@@ -381,28 +383,83 @@ function RoleTab({
   )
 }
 
+/**
+ * The gate's own tab, labelled as the portfolio's column is and counted off the ledger
+ * (RG255).
+ *
+ * Heard rather than polled, the way a row hears one (RG166): the carrier runs the gate for a
+ * project whose files moved, and the count beside this tab follows without the tab being open.
+ */
+function GateTabButton({
+  root,
+  active,
+  onPick,
+}: {
+  readonly root: string
+  readonly active: boolean
+  readonly onPick: (role: string) => void
+}) {
+  const say = useWording()
+  const health = useGateHealth(root)
+  const choose = useCallback(() => {
+    onPick(GATE_TAB)
+  }, [onPick])
+
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active ? 'true' : 'false'}
+      onClick={choose}
+      data-testid="gate-tab"
+      className={`-mb-px flex items-center gap-1.5 px-3 py-2 text-sm ${
+        active ? 'border-primary border-b-2 font-semibold' : 'text-muted-foreground'
+      }`}
+    >
+      {say('portfolio.column.gate')}
+      {health === null || health.verdict === 'unknown' ? null : (
+        <span
+          className={
+            health.verdict === 'drifted'
+              ? 'bento-status bento-status-error rounded-full border px-1.5 text-[10.5px] font-semibold'
+              : 'text-muted-foreground text-[10.5px]'
+          }
+          data-testid="gate-tab-count"
+        >
+          {health.verdict === 'drifted'
+            ? say('portfolio.gate.findings', { count: health.problems })
+            : say('portfolio.gate.clean')}
+        </span>
+      )}
+    </button>
+  )
+}
+
+/** The name the gate's tab is addressed by, which is no governed role. */
+const GATE_TAB = 'gate'
+
 /** The surface once the project opened: a tab per governed file, the roadmap first. */
 function Opened({
   surface,
   filter,
   onFilter,
+  role,
+  onRole,
 }: {
   readonly surface: OpenedSurface
   readonly filter: BacklogFilter
   readonly onFilter: (next: BacklogFilter) => void
+  readonly role: string
+  readonly onRole: (role: string) => void
 }) {
   const say = useWording()
-  const [role, setRole] = useState('roadmap')
-  const pick = useCallback((next: string) => {
-    setRole(next)
-  }, [])
   const Tab = TABS[role]
 
   return (
     <>
       <div
         role="tablist"
-        aria-label={say('project.roles')}
+        aria-label={say('project.tabs')}
         className="flex flex-wrap gap-1 border-b"
       >
         {tabsOf(surface.choices.roles).map((one) => (
@@ -411,11 +468,15 @@ function Opened({
             role={one}
             active={one === role}
             readable={one === 'roadmap' || Object.hasOwn(TABS, one)}
-            onPick={pick}
+            onPick={onRole}
           />
         ))}
+        {/* Last, and not one of the governed files: the gate is what those files say about
+            themselves (RG255). */}
+        <GateTabButton root={surface.project.root} active={role === GATE_TAB} onPick={onRole} />
       </div>
-      {role === 'roadmap' || Tab === undefined ? (
+      {role === GATE_TAB ? <GateTab root={surface.project.root} /> : null}
+      {role === GATE_TAB ? null : role === 'roadmap' || Tab === undefined ? (
         <Roadmap surface={surface} filter={filter} onFilter={onFilter} />
       ) : (
         <Tab project={surface.project} />
@@ -427,9 +488,26 @@ function Opened({
 export function Project() {
   const say = useWording()
   const params = useParams()
+  const location = useLocation()
+  const navigate = useNavigate()
   const root = decodeURIComponent(params['root'] ?? '')
   const [filter, setFilter] = useState<BacklogFilter>(NO_FILTER)
   const view = useProject(root, filter)
+
+  // `GATE_ROUTE` stays the gate's address and opens this screen on that tab (RG255), so a
+  // link from a portfolio row and the screenshot run keep one path.
+  const atGate = location.pathname === gatePath(root)
+  const [chosen, setChosen] = useState('roadmap')
+  const role = atGate ? GATE_TAB : chosen
+  const pickRole = useCallback(
+    (next: string) => {
+      setChosen(next === GATE_TAB ? 'roadmap' : next)
+      // Replaced and never pushed: stepping through tabs is not somewhere a reader went, and
+      // Back should leave the project rather than walk back along them.
+      void navigate(next === GATE_TAB ? gatePath(root) : projectPath(root), { replace: true })
+    },
+    [navigate, root],
+  )
 
   let subtitle: ReactNode = say('project.opening')
   if (view.kind === 'absent') subtitle = say('transport.absent')
@@ -462,9 +540,6 @@ export function Project() {
     () =>
       opened ? (
         <HeroActions>
-          <Button asChild size="sm" variant="outline">
-            <Link to={gatePath(root)}>{say('gate.run')}</Link>
-          </Button>
           <Button asChild size="sm">
             <Link to={filePath(root)}>{say('filing.title')}</Link>
           </Button>
@@ -482,7 +557,9 @@ export function Project() {
         subtitle={subtitle}
         trailing={filing}
       />
-      {view.kind === 'open' ? <Opened surface={view} filter={filter} onFilter={setFilter} /> : null}
+      {view.kind === 'open' ? (
+        <Opened surface={view} filter={filter} onFilter={setFilter} role={role} onRole={pickRole} />
+      ) : null}
     </>
   )
 }

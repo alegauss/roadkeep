@@ -12,7 +12,6 @@ import {
   TASK_ROUTE,
 } from './areas'
 import { Filing } from './Filing'
-import { Gate } from './Gate'
 import { Portfolio } from './Portfolio'
 import { Project } from './Project'
 import { Session } from './Session'
@@ -62,7 +61,9 @@ export const SURFACES: readonly Surface[] = [
   { path: SESSION_ROUTE, element: <Session /> },
   { path: SESSIONS_ROUTE, element: <Sessions /> },
   { path: FILE_ROUTE, element: <Filing /> },
-  { path: GATE_ROUTE, element: <Gate /> },
+  // The gate's address opens the project on its own tab (RG255): one path from a portfolio
+  // row, from a link and from the screenshot run.
+  { path: GATE_ROUTE, element: <Project /> },
   { path: SETTINGS_ROUTE, element: <Settings /> },
 ]
 

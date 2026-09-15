@@ -13,8 +13,6 @@
 
 ## Block D — The project surface (one backlog, read)
 
-- 📋 **RG255** (deps: —) **the project screen says nothing of its gate, so findings counted on its portfolio row vanish one click later** — Its tabs are where a reader looks for what a project holds, and a verb button reads as a run to start rather than a place the findings already are. → §RG255
-
 ## Block E — The write path (the app composes an argv; the command writes)
 
 - 📋 **RG258** (deps: —) **a finding's code is a bare token, so what a class like ref.unresolved means is still looked up in a terminal** — The explain read is typed and contract-tested in core and drawn nowhere, and a message says what is wrong with one line, never why its code exists. → §RG258

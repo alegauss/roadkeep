@@ -282,11 +282,30 @@ describe('RG152: the gate as a surface', () => {
     expect(wired.gates).toHaveLength(2)
   })
 
-  it('is offered from the project surface, once the project opened', async () => {
-    await at(`/project/${encodeURIComponent(ROOT)}`)
+  it('is a tab of the project, counted off the ledger and opened by a click (RG255)', async () => {
+    const wired = await at(`/project/${encodeURIComponent(ROOT)}`, [
+      {
+        root: ROOT,
+        health: {
+          verdict: 'drifted',
+          problems: 3,
+          taken: '2026-09-11T12:00:00.000Z',
+          stale: false,
+        },
+      },
+    ])
 
-    const offered = await screen.findByRole('link', { name: BASE['gate.run'] })
-    expect(offered.getAttribute('href')).toBe(gatePath(ROOT))
+    // The count a reader saw on the portfolio row is on the tab, before it is opened.
+    const tab = await screen.findByTestId('gate-tab')
+    expect(within(tab).getByText(fill(BASE['portfolio.gate.findings'], { count: 3 }))).toBeTruthy()
+    expect(wired.gates).toEqual([])
+
+    fireEvent.click(tab)
+
+    // And opening it is what runs the gate, drawing the rows the count never held (RG254).
+    await screen.findByTestId('counted')
+    expect(wired.gates).toHaveLength(1)
+    expect(screen.getByTestId('gate-tab').getAttribute('aria-selected')).toBe('true')
   })
 })
 

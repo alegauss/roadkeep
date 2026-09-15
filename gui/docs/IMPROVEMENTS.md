@@ -55,33 +55,6 @@ reading the portfolio row and the chip.
 
 ## Block D — The project surface (one backlog, read)
 
-### §RG255 The gate as a tab of the project
-
-**The project screen reaches the gate through a button and says nothing of it.**
-`Project.tsx` offers Run the gate in the hero and draws a tab per governed file (RG149).
-`docs/design/Projeto.dc.html` draws the verdict beside that button, "gate clean · 4 min
-ago", and the build dropped it. A reader who saw six findings on the row looks along the
-tabs, and a verb reads as a run to start rather than as the place the findings are.
-
-**The gate becomes the last tab**, labelled with the portfolio column's word and the
-count the ledger holds, heard on the gate topic the way a row hears it (RG166), in the
-error intent while drifted. Its panel is what `Gate.tsx` draws today: the held verdict,
-the counted read, findings and notes apart. Run the gate moves from the hero to above
-the report.
-
-**`GATE_ROUTE` stays the gate's address** and renders the project with that tab chosen,
-so a link from a portfolio row and the screenshot run keep one path. Entering or leaving
-the gate tab replaces the address rather than pushing one, so Back leaves the project
-instead of stepping through tabs.
-
-**The tablist's name widens** from the governed files to the project: the gate is what
-those files say of themselves, not one of them.
-
-Tests: `project.test.tsx` for the tab's count off `gates` and the route opening on it;
-`gate.test.tsx` re-pointed at the tab.
-
-On ship: --recorded-in packages/ui/src/Project.tsx
-
 ## Block E — The write path (the app composes an argv; the command writes)
 
 ### §RG258 What a finding's code means, asked of explain

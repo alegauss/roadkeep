@@ -118,7 +118,7 @@ export const EN = {
   'project.back': 'Portfolio',
   'project.opening': 'Opening the project.',
   'project.refused': 'This project did not open: {reason}',
-  'project.roles': 'Governed files',
+  'project.tabs': 'This project',
   'palette.lines': 'Lines',
   'palette.lines.partial': 'Lines — {searched} of {total} backlogs searched',
   'project.blocks': 'Blocks',

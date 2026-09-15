@@ -129,6 +129,7 @@
 - ✅ **RG173** **a dep or a chain hop on the task screen is text, so reaching the line it names means going back through the project** — A dep or a hop the brief calls a task here opens its own line, and one this window cannot reach stays text (design recorded in `packages/core/src/graph.ts`).
 - ✅ **RG174** **a line's own criteria never reach its task screen, so what the ship must check reads as the block's finish line alone** — A line's own criteria reach its screen as their own group, each folded lead naming where it came from (design recorded in `packages/core/src/payloads.ts`).
 - ✅ **RG170** **list prints no readiness per line, so every row costs a deps read and startable only cannot be offered** — A row reads readiness off the listing, and startable only is the flag list takes (design recorded in `packages/core/src/payloads.ts`).
+- ✅ **RG255** **the project screen says nothing of its gate, so findings counted on its portfolio row vanish one click later** — The gate is the project's last tab, labelled with the ledger's count, and its own address opens the project on it (design recorded in `packages/ui/src/Project.tsx`).
 
 ## Block E — The write path (the app composes an argv; the command writes)
 

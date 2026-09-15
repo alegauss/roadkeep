@@ -1,14 +1,11 @@
 import { counted, refusalOf, type GateHealth, type Gated, type LintPayload } from '@rk/core'
 import { Button } from '@viglet/viglet-design-system'
-import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-system/bento'
-import { useEffect, useMemo, type ReactNode } from 'react'
-import { useParams } from 'react-router-dom'
+import { BentoEmptyState, BentoPanel } from '@viglet/viglet-design-system/bento'
+import { useEffect, type ReactNode } from 'react'
 
 import { DoorRow } from './Doors'
 import { Caption } from './forms'
-import { HeroActions } from './hero'
 import { Pill } from './marks'
-import { faceOf, ProjectTrail } from './trail'
 import { useGate, worthRunning } from './useGate'
 import { useWhen, useWording } from './wording'
 
@@ -175,10 +172,18 @@ function Counted({ payload }: { readonly payload: LintPayload }) {
   )
 }
 
-export function Gate() {
+/**
+ * The gate, as a tab of the project it is about (RG255).
+ *
+ * **What those files say about themselves is part of the project**, not a screen beside it: a
+ * reader who saw six findings on a portfolio row looks along the tabs for them, and a verb in
+ * the hero read as a run to start rather than as the place the findings already are.
+ *
+ * The button moves in here, above the report, for the same reason: it belongs to what it
+ * runs. Everything below it is what this screen has always drawn.
+ */
+export function GateTab({ root }: { readonly root: string }) {
   const say = useWording()
-  const params = useParams()
-  const root = decodeURIComponent(params['root'] ?? '')
   const gating = useGate(root)
   const { gate, project, run, takeDoor } = gating
 
@@ -191,60 +196,37 @@ export function Gate() {
     if (opened && running) run()
   }, [opened, running, run])
 
-  const trailing = useMemo(
-    () => (
-      <HeroActions>
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <Button size="sm" onClick={run} disabled={gate.kind === 'running'}>
           {say('gate.run')}
         </Button>
-      </HeroActions>
-    ),
-    [run, gate.kind, say],
-  )
-  // The project this gate is over, with the chip every screen under it draws (RG242).
-  const trail = useMemo(
-    () => <ProjectTrail root={root} face={faceOf(project, root)} />,
-    [root, project],
-  )
-
-  return (
-    <>
-      <BentoHero
-        eyebrow={trail}
-        title={say('gate.title')}
-        subtitle={say('gate.about')}
-        trailing={trailing}
-      />
-      <div className="flex flex-col gap-3">
-        {gate.kind === 'running' ? (
-          <p className="text-muted-foreground text-xs" data-testid="running">
-            {say('gate.running')}
-          </p>
-        ) : null}
-        {gate.kind === 'failed' ? (
-          <BentoPanel contentClassName="p-6">
-            <BentoEmptyState title={say('gate.failed', { reason: refusalOf(gate.reason, say) })} />
-          </BentoPanel>
-        ) : null}
-        {gate.kind === 'unreadable' ? (
-          <BentoPanel contentClassName="p-6">
-            <BentoEmptyState title={say('gate.unreadable', { reason: gate.reason })} />
-          </BentoPanel>
-        ) : null}
-        {gate.kind === 'held' ? <Held health={gate.health} /> : null}
-        {gate.kind === 'read' ? (
-          <>
-            <Counted payload={gate.payload} />
-            <Report
-              title={say('gate.title')}
-              rows={gate.findings}
-              onTake={takeDoor}
-              mark="finding"
-            />
-            <Report title={say('gate.notes')} rows={gate.notes} onTake={takeDoor} mark="note" />
-          </>
-        ) : null}
+        <span className="text-muted-foreground text-xs">{say('gate.about')}</span>
       </div>
-    </>
+      {gate.kind === 'running' ? (
+        <p className="text-muted-foreground text-xs" data-testid="running">
+          {say('gate.running')}
+        </p>
+      ) : null}
+      {gate.kind === 'failed' ? (
+        <BentoPanel contentClassName="p-6">
+          <BentoEmptyState title={say('gate.failed', { reason: refusalOf(gate.reason, say) })} />
+        </BentoPanel>
+      ) : null}
+      {gate.kind === 'unreadable' ? (
+        <BentoPanel contentClassName="p-6">
+          <BentoEmptyState title={say('gate.unreadable', { reason: gate.reason })} />
+        </BentoPanel>
+      ) : null}
+      {gate.kind === 'held' ? <Held health={gate.health} /> : null}
+      {gate.kind === 'read' ? (
+        <>
+          <Counted payload={gate.payload} />
+          <Report title={say('gate.title')} rows={gate.findings} onTake={takeDoor} mark="finding" />
+          <Report title={say('gate.notes')} rows={gate.notes} onTake={takeDoor} mark="note" />
+        </>
+      ) : null}
+    </div>
   )
 }

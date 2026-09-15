@@ -98,7 +98,7 @@ export const PT_BR: Wording = {
   'project.back': 'Portfólio',
   'project.opening': 'Abrindo o projeto.',
   'project.refused': 'Este projeto não abriu: {reason}',
-  'project.roles': 'Arquivos governados',
+  'project.tabs': 'Este projeto',
   'palette.lines': 'Linhas',
   'palette.lines.partial': 'Linhas — {searched} de {total} backlogs pesquisados',
   'project.blocks': 'Blocos',
