@@ -650,6 +650,7 @@ describe('RG251: what a verb printed, kept for the next launch', () => {
             pick: null,
             engines: null,
             declares: null,
+            gate: null,
           },
         ],
       }),
@@ -706,6 +707,7 @@ describe('RG252: checking a remembered row instead of reading it', () => {
             pick: null,
             engines: ENGINES_PAYLOAD,
             declares: null,
+            gate: null,
             ...reading,
           },
         ],
@@ -751,6 +753,112 @@ describe('RG252: checking a remembered row instead of reading it', () => {
     // Lazy and not never: a check keeps the launch cheap, and the screen that wants the
     // project opens it.
     expect(opened).toEqual([A])
+  })
+})
+
+describe('RG253: a verdict that survived the quit', () => {
+  const ENGINES_PAYLOAD = JSON.parse(ENGINES) as never
+  const VERDICT = {
+    verdict: 'clean' as const,
+    problems: 0,
+    taken: '2026-09-14T09:00:00.000Z',
+    stamp: '',
+  }
+
+  /** A carrier holding one remembered verdict, counting the lints it runs. */
+  function seeded(over: { stamp: string; engines: unknown }) {
+    const lints: string[][] = []
+    const machine: Transport = {
+      run(request) {
+        const verb = request.argv[2] ?? ''
+        if (verb === 'lint') {
+          lints.push([...request.argv])
+          return Promise.resolve({
+            code: 0,
+            stdout: JSON.stringify({
+              root: A,
+              clean: true,
+              checked: ['docs/ROADMAP.md'],
+              lines: 4,
+              sections: 2,
+              problems: 0,
+              codes: {},
+              findings: [],
+              notes: [],
+            }),
+            stderr: '',
+            durationMs: 1,
+          })
+        }
+        const said = SAID[verb]
+        if (said === undefined) return Promise.reject(new EngineCallFailed('unspawnable', 'no', 1))
+        return Promise.resolve({ code: 0, stdout: said, stderr: '', durationMs: 1 })
+      },
+    }
+    const carrier = createCarrier({
+      looking: () => ({ roots: FOUND.roots, skip: [], width: 2 }),
+      rescan: () => Promise.resolve({ catalogue: FOUND, changes: [] }),
+      open: (root) => openProject(root, [['python', '/x/launch.py']], () => machine),
+      readings: () => ({
+        version: 1,
+        projects: [
+          {
+            root: A,
+            stamp: over.stamp,
+            read: '2026-09-14T09:00:00.000Z',
+            governed: ['docs/ROADMAP.md'],
+            stats: null,
+            pick: null,
+            engines: over.engines as never,
+            declares: null,
+            gate: { ...VERDICT, stamp: over.stamp },
+          },
+        ],
+      }),
+    })
+    return { carrier, lints }
+  }
+
+  it('runs no lint at all for a project whose files and engine are the ones it was taken on', async () => {
+    const stamped = await stampGoverned(A, ['docs/ROADMAP.md'])
+    const { carrier, lints } = seeded({ stamp: stamped, engines: ENGINES_PAYLOAD })
+
+    await carrier.open(A)
+    await carrier.gatesSettled()
+
+    // The most expensive read there is, not run: the verdict on record is about this tree.
+    expect(lints).toEqual([])
+    const [told] = await carrier.gates()
+    expect(told?.health.verdict).toBe('clean')
+    expect(told?.health.stale).toBe(false)
+  })
+
+  it('runs it where the files moved under the verdict', async () => {
+    const { carrier, lints } = seeded({
+      stamp: 'a stamp nothing matches',
+      engines: ENGINES_PAYLOAD,
+    })
+
+    await carrier.open(A)
+    await carrier.gatesSettled()
+
+    expect(lints).toHaveLength(1)
+  })
+
+  it('runs it where another copy of roadkeep would answer now', async () => {
+    const stamped = await stampGoverned(A, ['docs/ROADMAP.md'])
+    const upgraded = {
+      ...(JSON.parse(ENGINES) as { writing: Record<string, string> }),
+      writing: { ...(JSON.parse(ENGINES) as { writing: Record<string, string> }).writing },
+    }
+    upgraded.writing['version'] = '0.1.0'
+    const { carrier, lints } = seeded({ stamp: stamped, engines: upgraded })
+
+    await carrier.open(A)
+    await carrier.gatesSettled()
+
+    // A stamp cannot see an upgrade, and an upgrade changes what `lint` finds.
+    expect(lints).toHaveLength(1)
   })
 })
 

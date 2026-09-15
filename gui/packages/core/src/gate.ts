@@ -1,4 +1,5 @@
 import type { LintPayload } from './payloads'
+import { aNumber, aString, record, type Reader } from './reading'
 import type { KeyOf } from './roots'
 
 /**
@@ -35,6 +36,23 @@ export interface GateRecord {
   /** The governed-file stamp it was run against. */
   readonly stamp: string
 }
+
+/**
+ * A verdict read back from the file it was kept in (RG253).
+ *
+ * `unknown` is not among the verdicts a record can carry — it is what a project with no
+ * record is — so a file claiming it is a file this reader refuses, and the launch runs the
+ * gate as it always did.
+ */
+export const readGateRecord: Reader<GateRecord> = record<GateRecord>({
+  verdict: (value, path) =>
+    value === 'clean' || value === 'drifted'
+      ? { ok: true, value }
+      : { ok: false, failure: { path, expected: 'clean or drifted', got: String(value) } },
+  problems: aNumber,
+  taken: aString,
+  stamp: aString,
+})
 
 export interface GateHealth {
   readonly verdict: GateVerdict
@@ -85,11 +103,18 @@ export function needsGate(held: GateRecord | undefined, stamp: string): boolean 
 }
 
 /**
- * The verdicts held for every project, in memory only.
+ * The verdicts held for every project, in memory — and seeded at launch from what was kept.
  *
- * Nothing here persists. A verdict is about a moment in a working tree and the files can
- * change while the app is closed, so a saved one would be stale in the one way this design
- * cannot detect — the stamp it was taken against would still match nothing it could check.
+ * This said nothing may persist, on the argument that a verdict saved across a quit would be
+ * stale in a way the stamp could not detect. That argument was wrong about its own stamp: it
+ * is `mtimeMs:size` over `roadkeep.toml` and the governed files, and retaking it after a
+ * restart costs six `stat` calls. What it genuinely cannot see is which copy of roadkeep ran
+ * the gate, and RG252 asks that separately — so a verdict comes back only where both the
+ * files and the engine are the ones it was taken against (RG253).
+ *
+ * Nothing about the ledger itself changed: `note` is how a verdict arrives, whether from a
+ * `lint` this session ran or from one an earlier launch did, and `needsGate` still decides by
+ * comparing stamps. Where it is kept is `readings.ts`, beside the payloads.
  */
 export interface GateLedger {
   note(project: string, record: GateRecord): void

@@ -30,7 +30,9 @@ import {
   type OpenedProject,
   type ProjectCatalogue,
   type ProjectGate,
+  type EnginesPayload,
   type EngineResolution,
+  type GateRecord,
   type ProjectReading,
   type ReadingStands,
   type ReadLimits,
@@ -263,8 +265,10 @@ export function createCarrier(options: CarrierOptions): Carrier {
   // it came off before it is offered.
   let readings: RememberedReadings = options.readings?.() ?? NOTHING_REMEMBERED
 
-  // What the gate last said, per project (RG152). In memory, because a verdict is about a
-  // working tree at a moment and the tree can change while this app is not running.
+  // What the gate last said, per project (RG152). In memory, and seeded from what was kept
+  // (RG253): a verdict is about a working tree at a moment, so it comes back only where the
+  // stamp over that tree and the copy of roadkeep that took it are both the ones it was taken
+  // with — `seedGate` below, at the opening, where the engine is finally known.
   const gate: GateLedger = options.gate ?? createGateLedger(rootKey)
   // Which roots it holds one for: the ledger answers about a root it is asked about, and
   // `gates` has to know which to ask about without walking every project on the machine.
@@ -287,7 +291,58 @@ export function createCarrier(options: CarrierOptions): Carrier {
     const read = readLintPayload(parsed, '')
     if (!read.ok) return
     const stamp = await stampOf(root)
-    gate.note(root, recordGate(read.value, stamp, now()))
+    const record = recordGate(read.value, stamp, now())
+    gate.note(root, record)
+    gated.set(rootKey(root), root)
+    const answer = await opening(root).catch(() => null)
+    keepGate(root, record, stamp, answer?.kind === 'open' ? answer.project.engine.payload : null)
+  }
+
+  /**
+   * Keep a verdict for the next launch, beside what the verbs printed (RG253).
+   *
+   * With the engine that ran it, because a stamp cannot see which copy of roadkeep answered
+   * and an upgrade changes what `lint` finds without moving a file.
+   */
+  const keepGate = (
+    root: string,
+    record: GateRecord,
+    stamp: string,
+    engines: EnginesPayload | null,
+  ): void => {
+    const was = readingOf(readings, root, rootKey)
+    readings = remembering(
+      readings,
+      {
+        root,
+        stamp,
+        read: was?.read ?? now(),
+        governed: was?.governed ?? [],
+        stats: null,
+        pick: null,
+        // The copy that ran it, so the next launch can ask whether the same one would answer
+        // — a stamp cannot see an upgrade.
+        engines: engines ?? was?.engines ?? null,
+        declares: null,
+        gate: record,
+      },
+      rootKey,
+    )
+    options.rememberReadings?.(readings)
+  }
+
+  /**
+   * Put a remembered verdict back on the ledger, where it is about these files and this copy
+   * of roadkeep (RG253).
+   *
+   * Never as stale: a verdict taken against another tree, or by another engine, is not an old
+   * verdict about this one — it is dropped, and the gate runs as it would have.
+   */
+  const seedGate = (root: string, stamp: string, engines: EnginesPayload | null): void => {
+    const reading = readingOf(readings, root, rootKey)
+    if (reading?.gate == null) return
+    if (readingStands(reading, engines, stamp) !== 'stands') return
+    gate.note(root, reading.gate)
     gated.set(rootKey(root), root)
   }
 
@@ -326,6 +381,9 @@ export function createCarrier(options: CarrierOptions): Carrier {
         pick: pick?.ok === true ? pick.value : null,
         engines: answer.project.engine.payload,
         declares: answer.project.declares,
+        // Whatever verdict this project already has, carried rather than dropped: this write
+        // is about `stats` and `pick`, and folding it must not forget the gate (RG253).
+        gate: readingOf(readings, root, rootKey)?.gate ?? null,
       },
       rootKey,
     )
@@ -505,7 +563,12 @@ export function createCarrier(options: CarrierOptions): Carrier {
     const key = rootKey(root)
     // One at a time per project: two runs against one tree answer the same thing twice.
     if (gating.has(key)) return
-    if (!gate.stale(root, await stampOf(root))) return
+    const stamped = await stampOf(root)
+    // What an earlier launch found, where it is about these files and this engine (RG253):
+    // the opening is the moment the copy that would answer is known, so it is the moment a
+    // kept verdict can be trusted — and a project nobody has touched runs no `lint` at all.
+    seedGate(root, stamped, project.engine.payload)
+    if (!gate.stale(root, stamped)) return
 
     gating.add(key)
     try {
@@ -521,8 +584,10 @@ export function createCarrier(options: CarrierOptions): Carrier {
       // Stamped after the run, like every other verdict: a file written while the gate ran
       // makes it stale at once, and the row says so rather than claiming the tree is clean.
       const stamp = await stampOf(root)
-      gate.note(root, recordGate(read.value, stamp, now()))
+      const record = recordGate(read.value, stamp, now())
+      gate.note(root, record)
       gated.set(key, root)
+      keepGate(root, record, stamp, project.engine.payload)
       options.onGate?.({ root, health: gate.healthOf(root, stamp) })
     } catch {
       // A gate that would not run says nothing. The project keeps whatever it had, which
@@ -697,11 +762,12 @@ export function createCarrier(options: CarrierOptions): Carrier {
       if (stamp !== reading.stamp) return 'files-moved'
 
       const resolved = await resolve(root, limits()).catch(() => null)
-      return readingStands(
-        reading,
-        resolved?.kind === 'resolved' ? resolved.engine.payload : null,
-        stamp,
-      )
+      const engines = resolved?.kind === 'resolved' ? resolved.engine.payload : null
+      const stands = readingStands(reading, engines, stamp)
+      // A row that stands brings its verdict back with it (RG253), so the launch runs no
+      // `lint` for a project nobody has touched.
+      if (stands === 'stands') seedGate(root, stamp, engines)
+      return stands
     },
 
     async follow(root, moved) {

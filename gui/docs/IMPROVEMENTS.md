@@ -6,32 +6,6 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-### §RG253 Gate verdicts that survive a restart
-
-**`gate.ts` refuses this for a reason that no longer holds.** Its ledger comment says a
-saved verdict "would still match nothing it could check", but the stamp is
-`mtimeMs:size` of `roadkeep.toml` and the governed files, retaken after a restart in six
-stats. What a stamp cannot see is the engine, and RG252 already asks that.
-
-**Kept in the readings file, beside the payloads**: the `GateRecord` as `recordGate`
-wrote it (verdict, problems, taken, stamp) and the `engines` payload of the engine that
-ran `lint`. At launch the carrier seeds its ledger from entries whose stamp still
-matches, and RG252's check drops a seeded verdict whose engine differs, so `gateIfStale`
-finds nothing stale and runs no `lint` for a project nobody touched. An entry that does
-not match is dropped, never seeded as stale: a verdict about another tree or another
-engine is not an old verdict about this one.
-
-**The row stays honest as `gate.ts` makes it**: `taken` dates the verdict, and a file
-that moves makes it stale and reruns the gate (RG166).
-
-Held on RG251's terms: invalidated by the files and the engine, and never a source for a
-write.
-
-Rewritten in this commit: the "in memory only" comments of `gate.ts` and `carrier.ts`.
-
-Tests: `gate.test.ts` seeding a ledger; `carrier.test.ts` asserting no `lint` at open
-for a seeded root whose stamp and engine match, and one for a root whose stamp moved.
-
 ### §RG256 The verdict on a row opens the gate
 
 **The gate cell is the one cell on a row that counts something and leads nowhere.**

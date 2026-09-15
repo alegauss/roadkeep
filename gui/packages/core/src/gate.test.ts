@@ -4,6 +4,7 @@ import {
   createGateLedger,
   gateHealth,
   needsGate,
+  readGateRecord,
   recordGate,
   UNKNOWN_GATE,
   type GateRecord,
@@ -160,16 +161,23 @@ describe('RG18: the verdicts held for a portfolio', () => {
   })
 })
 
-describe('RG18: nothing is kept between launches', () => {
-  it('starts empty, because a saved verdict is stale in the one way this cannot detect', () => {
-    // The stamp a saved verdict was taken against would still match itself, so a file
-    // changed while the app was closed would read as fresh. Better to be unknown.
+describe('RG18: a ledger holds nothing of its own between launches', () => {
+  it('starts empty, and what an earlier launch kept comes back through `note` (RG253)', () => {
+    // This once said a saved verdict could not be checked. It can: the stamp is `mtimeMs:size`
+    // over the governed files and retaking it costs six `stat` calls, and which copy of
+    // roadkeep ran the gate is what RG252 asks. So the ledger still starts empty — it keeps
+    // nothing itself — and the carrier seeds it where both still hold.
     const first = createGateLedger(keyOf)
-    first.note('/code/a', recordGate(lint(true), 'a1', TUESDAY))
+    const kept = recordGate(lint(true), 'a1', TUESDAY)
+    first.note('/code/a', kept)
 
     const afterRestart = createGateLedger(keyOf)
     expect(afterRestart.size).toBe(0)
     expect(afterRestart.healthOf('/code/a', 'a1').verdict).toBe('unknown')
+
+    afterRestart.note('/code/a', kept)
+    expect(afterRestart.stale('/code/a', 'a1')).toBe(false)
+    expect(afterRestart.healthOf('/code/a', 'a1').taken).toBe(TUESDAY)
   })
 })
 
@@ -180,5 +188,27 @@ describe('RG18: what a record refuses to be', () => {
     // A type-level guarantee worth an assertion: `unknown` is not a verdict a run can
     // produce, so it can only ever mean "nothing ran".
     expect(['clean', 'drifted']).toContain(held.verdict)
+  })
+})
+
+describe('RG253: a verdict read back out of a file', () => {
+  it('reads a record whole, and refuses one no run could have left', () => {
+    const kept = recordGate(lint(false, 3), 'stamp-a', TUESDAY)
+
+    expect(readGateRecord(JSON.parse(JSON.stringify(kept)) as unknown, '')).toEqual({
+      ok: true,
+      value: kept,
+    })
+    // `unknown` is what a project with no record is, never what one carries.
+    expect(readGateRecord({ ...kept, verdict: 'unknown' }, '').ok).toBe(false)
+    expect(readGateRecord({ ...kept, taken: 7 }, '').ok).toBe(false)
+  })
+
+  it('is stale against files that moved since it was taken, whoever wrote it', () => {
+    const ledger = createGateLedger(keyOf)
+    ledger.note('/code/a', recordGate(lint(true), 'a1', TUESDAY))
+
+    expect(ledger.stale('/code/a', 'a2')).toBe(true)
+    expect(ledger.healthOf('/code/a', 'a2').stale).toBe(true)
   })
 })

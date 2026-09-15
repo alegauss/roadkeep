@@ -1252,6 +1252,7 @@ describe('RG251: what the last launch was told, drawn while this one reads', () 
     pick: JSON.parse(SAID['pick'] ?? '{}') as never,
     engines: null,
     declares: null,
+    gate: null,
   }
 
   it('draws the counts a verb printed last time, marked, before any engine answers', async () => {
@@ -1328,6 +1329,7 @@ describe('RG252: a remembered row checked instead of read', () => {
     pick: JSON.parse(SAID['pick'] ?? '{}') as never,
     engines: null,
     declares: null,
+    gate: null,
   }
 
   /** A window over one remembered project, counting what the engine was asked. */

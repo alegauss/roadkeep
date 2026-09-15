@@ -1,5 +1,6 @@
 import type { RecordedProject } from './catalogue'
 import { readEnginesPayload, type EnginesPayload } from './engines'
+import { readGateRecord, type GateRecord } from './gate'
 import {
   DECLARES_NOTHING,
   readPickPayload,
@@ -51,6 +52,15 @@ export interface ProjectReading {
   readonly pick: PickPayload | null
   readonly engines: EnginesPayload | null
   readonly declares: Declared | null
+  /**
+   * What the gate last said about this project, as `recordGate` wrote it (RG253).
+   *
+   * Kept because `lint` is the most expensive read there is and a verdict taken against these
+   * files, by this copy of roadkeep, is still the verdict. It comes back only where both
+   * still hold — `readingStands` — and is never seeded as stale: a verdict about another tree
+   * is not an old verdict about this one.
+   */
+  readonly gate: GateRecord | null
 }
 
 export interface RememberedReadings {
@@ -71,6 +81,7 @@ export const readProjectReading: Reader<ProjectReading> = record<ProjectReading>
   stats: orMissing(orNull(readStatsPayload), null),
   pick: orMissing(orNull(readPickPayload), null),
   engines: orMissing(orNull(readEnginesPayload), null),
+  gate: orMissing(orNull(readGateRecord), null),
   declares: orMissing(
     orNull(
       record<Declared>({
@@ -143,6 +154,7 @@ export function remembering(
     pick: reading.pick ?? kept?.pick ?? null,
     engines: reading.engines ?? kept?.engines ?? null,
     declares: reading.declares ?? kept?.declares ?? null,
+    gate: reading.gate ?? kept?.gate ?? null,
   }
   return {
     version: READINGS_VERSION,

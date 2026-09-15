@@ -62,6 +62,7 @@ const reading = (over: Partial<ProjectReading> = {}): ProjectReading => ({
   pick: PICK,
   engines: null,
   declares: null,
+  gate: null,
   ...over,
 })
 

@@ -106,6 +106,7 @@
 - ✅ **RG250** **a launch starts every project's engine at the same moment, so twenty projects pin the machine together** — A cold start reads one project per four cores at a time, or the number the settings name, so twenty projects no longer start every engine at once (design recorded in `packages/core/src/limits.ts`).
 - ✅ **RG251** **every launch reads every backlog again, so the portfolio shows skeletons until the slowest engine answers** — A launch draws the counts and next line each verb printed last time, marked and checked against the files, while the reads behind them run (design recorded in `packages/core/src/readings.ts`).
 - ✅ **RG252** **a remembered row is still read in full behind the screen, so a launch spends every interpreter a cold start did** — A remembered row is kept by resolving the engine and stamping the files, and the project is opened only when something needs it (design recorded in `packages/core/src/readings.ts`).
+- ✅ **RG253** **gate verdicts are forgotten at quit, so every launch runs lint once per project before a row has a verdict** — A verdict comes back where the files and the engine are the ones it was taken with, so a launch runs no lint for a project nobody touched (design recorded in `packages/core/src/gate.ts`).
 
 ## Block D — The project surface (one backlog, read)
 

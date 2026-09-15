@@ -37,6 +37,7 @@ const READING: ProjectReading = {
   pick: null,
   engines: null,
   declares: null,
+  gate: null,
 }
 
 describe('RG251: the readings file', () => {

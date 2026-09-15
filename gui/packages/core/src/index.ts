@@ -179,7 +179,14 @@ export type { Chain, DepStanding, Edge, Graph } from './graph'
 export { alreadyRunning, claimingBrief, handoverOf, heldBy, mayHandOver } from './handover'
 export type { Handover } from './handover'
 export { groupProjects, isFamily, orderMembers } from './families'
-export { createGateLedger, gateHealth, needsGate, recordGate, UNKNOWN_GATE } from './gate'
+export {
+  createGateLedger,
+  gateHealth,
+  needsGate,
+  readGateRecord,
+  recordGate,
+  UNKNOWN_GATE,
+} from './gate'
 export type { GateHealth, GateLedger, GateRecord, GateVerdict } from './gate'
 export type { ProjectFamily, ProjectMember, ProjectSite } from './families'
 export { changeLine, landingBetween, saidButNotDone } from './landing'
