@@ -1,7 +1,7 @@
 import type { RecordedProject } from './catalogue'
 import type { Unreadable } from './limits'
 import { EngineCallFailed } from './transport'
-import { pendingRow, readRow, unreadableRow, type ProjectRow, type RowReads } from './portfolio'
+import { fillRow, pendingRow, unreadableRow, type ProjectRow, type RowReads } from './portfolio'
 
 /**
  * The first screen, and what it costs.
@@ -97,13 +97,18 @@ function asUnreadable(cause: unknown, stage: string): Unreadable {
  *
  * @param onProgress called once per project per stage, with every row as it stands. A
  *   screen redraws from this; nothing here decides how often that is worth doing.
+ * @param start the rows already on screen, by path (RG248). A project among them begins from
+ *   what it was drawn as rather than from pending, and each read that lands fills that row —
+ *   so a rescan never takes a filled row back to a skeleton. Empty on a real cold start.
  */
 export async function coldStart(
   projects: readonly RecordedProject[],
   stages: readonly ColdStartStage[],
   onProgress: (progress: ColdStartProgress) => void = () => undefined,
+  start: readonly ProjectRow[] = [],
 ): Promise<ProjectRow[]> {
-  const rows = projects.map(pendingRow)
+  const drawn = new Map(start.map((row) => [row.path, row]))
+  const rows = projects.map((project) => drawn.get(project.path) ?? pendingRow(project))
   const reads = projects.map((): RowReads => ({}))
   const broken = new Set<number>()
 
@@ -118,7 +123,8 @@ export async function coldStart(
         try {
           const part = await stage.read(project)
           reads[index] = { ...reads[index], ...part }
-          rows[index] = readRow(project, reads[index] ?? {})
+          // Filled in place, so a stage that answers nothing leaves what the row already had.
+          rows[index] = fillRow(rows[index] ?? pendingRow(project), reads[index] ?? {})
         } catch (cause) {
           broken.add(index)
           rows[index] = unreadableRow(project, asUnreadable(cause, stage.name))

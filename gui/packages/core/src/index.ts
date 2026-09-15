@@ -217,6 +217,7 @@ export {
   nextOrder,
   orderRows,
   pendingRow,
+  keepRows,
   placeRows,
   readRow,
   ROW_FILTERS,

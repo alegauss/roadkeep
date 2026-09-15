@@ -6,28 +6,6 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-### §RG248 Rows kept across a catalogue change
-
-**The rows on screen survive a fold.** `usePortfolio` answers a `catalogue` event by
-bumping `generation`, and the rerun's `read()` sets `projects.map(pendingRow)` over what
-was drawn, though the comment above the rescan branch says the rows stay. A launch that
-remembers its list and whose walk moved anything, one project cloned since, watches
-every row go back to a skeleton and fill again.
-
-**Merged by path, in the new list's order.** A pure `keepRows(previous, projects)` in
-`portfolio.ts`: a project already on screen keeps its payload fields, with its recorded
-ones (branch, declared, presence) taken from the new `RecordedProject`; a new project is
-pending; one no longer listed is dropped. `coldStart` takes those rows as an optional
-start instead of always beginning from `pendingRow`, and each read that lands replaces
-in place through `fillRow`, so one that fails leaves the row as RG167 already does.
-
-**Progress still says the reads are under way**, so a kept row is not claimed to be
-current while the rerun is in flight.
-
-Tests: `portfolio.test.ts` over `keepRows` (kept, added, dropped, order);
-`portfolio.test.tsx` firing a catalogue event after a read and asserting no row returns
-to pending.
-
 ### §RG249 A deadline on the launch path
 
 **The limit is written and never applied.** `limits.ts` declares

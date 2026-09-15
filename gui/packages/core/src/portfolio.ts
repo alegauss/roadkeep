@@ -155,6 +155,40 @@ export function pendingRow(project: RecordedProject): ProjectRow {
   return { ...shell(project), state: 'pending' }
 }
 
+/**
+ * The rows to draw over again when the catalogue's own walk lands (RG248).
+ *
+ * **What is on screen survives a fold.** The walk behind the remembered record finishes after
+ * the first screen is drawn, and answering it by rebuilding every row from `pendingRow` sends
+ * a list that is about to come back mostly the same through its skeleton twice.
+ *
+ * So a project already drawn keeps what a read filled — its counts, its next line, its gate,
+ * its engine, its logo — and takes what the record owns from the new record: the branch, the
+ * aliases, the worktree, and whatever it declares. A project the walk added is pending, one it
+ * dropped is gone, and the order is the new list's.
+ */
+export function keepRows(
+  previous: readonly ProjectRow[],
+  projects: readonly RecordedProject[],
+): ProjectRow[] {
+  const drawn = new Map(previous.map((row) => [row.path, row]))
+  return projects.map((project) => {
+    const kept = drawn.get(project.path)
+    if (kept === undefined) return pendingRow(project)
+    return {
+      ...kept,
+      aliases: project.aliases,
+      commonDir: project.commonDir,
+      branch: project.branch,
+      // Declared where the record declares it, and what was drawn where it does not: the
+      // record's blank is "nothing was read", not "this project declares nothing".
+      name: project.declared.name || kept.name,
+      icon: project.declared.icon || kept.icon,
+      description: project.declared.description || kept.description,
+    }
+  })
+}
+
 export function unreadableRow(project: RecordedProject, unreadable: Unreadable): ProjectRow {
   return { ...shell(project), state: 'unreadable', unreadable }
 }

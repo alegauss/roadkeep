@@ -1,11 +1,11 @@
 import {
   coldStart,
+  keepRows,
   EVERY_SOURCE,
   fillRow,
   gatedRows,
   openingUnreadable,
   openOver,
-  pendingRow,
   present,
   rowStages,
   type OpenProject,
@@ -15,7 +15,7 @@ import {
   type RowReads,
   type RowStage,
 } from '@rk/core'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { getBridge } from './bridge'
 
@@ -65,11 +65,21 @@ const ASKING: PortfolioView = { kind: 'asking' }
  * so a root just added is walked and one just removed is not. The rows on screen stay until
  * the new list arrives, which is the list the reader was looking at, not an empty one.
  */
+/** Built once: a fresh array per render is a new dependency for everything below it. */
+const NOTHING_DRAWN: readonly ProjectRow[] = []
+
 export function usePortfolio(): { readonly view: PortfolioView; readonly rescan: () => void } {
   const [view, setView] = useState<PortfolioView>(() =>
     getBridge() === undefined ? ABSENT : ASKING,
   )
   const [generation, setGeneration] = useState(0)
+  // What is on screen, for the run that keeps it (RG248). A ref and not the state itself: the
+  // rerun needs the rows before it draws anything, and a state updater is not where a value is
+  // read out of — React may run one twice.
+  const drawn = useRef<readonly ProjectRow[]>(NOTHING_DRAWN)
+  useEffect(() => {
+    drawn.current = view.kind === 'listed' ? view.rows : NOTHING_DRAWN
+  }, [view])
   const rescan = useCallback(() => {
     setGeneration((one) => one + 1)
   }, [])
@@ -191,9 +201,13 @@ export function usePortfolio(): { readonly view: PortfolioView; readonly rescan:
     const read = async (): Promise<void> => {
       const projects = present(await bridge.projects())
       if (!stillHere()) return
+      // What the reader is already looking at, merged into the new list (RG248): a walk that
+      // lands after the first screen is drawn moved one project, and rebuilding every row from
+      // pending would send the whole list through its skeleton a second time.
+      const kept = keepRows(drawn.current, projects)
       setView({
         kind: 'listed',
-        rows: projects.map(pendingRow),
+        rows: kept,
         progress:
           projects.length === 0 ? null : { stage: 'counting', done: 0, total: projects.length },
         tried: {},
@@ -218,16 +232,25 @@ export function usePortfolio(): { readonly view: PortfolioView; readonly rescan:
         () => undefined,
       )
 
-      const rows = await coldStart(projects, stages, (progress) => {
-        if (!stillHere()) return
-        follow(progress.rows)
-        setView({
-          kind: 'listed',
-          rows: dressed(progress.rows),
-          progress: { stage: stageOf(progress.stage), done: progress.done, total: progress.total },
-          tried: { ...tried },
-        })
-      })
+      const rows = await coldStart(
+        projects,
+        stages,
+        (progress) => {
+          if (!stillHere()) return
+          follow(progress.rows)
+          setView({
+            kind: 'listed',
+            rows: dressed(progress.rows),
+            progress: {
+              stage: stageOf(progress.stage),
+              done: progress.done,
+              total: progress.total,
+            },
+            tried: { ...tried },
+          })
+        },
+        kept,
+      )
       if (stillHere()) {
         follow(rows)
         setView({ kind: 'listed', rows: dressed(rows), progress: null, tried: { ...tried } })

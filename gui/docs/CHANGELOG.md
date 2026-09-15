@@ -101,6 +101,7 @@
 - ✅ **RG239** **the portfolio lists projects only in the record's order, so finding one by name means reading every row** — The Project head orders the portfolio by name, A to Z, Z to A, then the record's; numbers read as numbers and ties keep the record's order (design recorded in `packages/core/src/portfolio.ts`).
 - ✅ **RG240** **the portfolio cannot rank projects by how many lines they have open, so the heaviest backlog is found by reading** — The Backlog head ranks the portfolio by open lines, most first, then fewest; uncounted rows follow, and places hold while reads land (design recorded in `packages/core/src/portfolio.ts`).
 - ✅ **RG241** **the order a person picks for the portfolio is gone at the next launch, so the table opens in the record's order again** — The portfolio opens in the order last chosen: settings keep it as portfolioOrder, and an unknown value resets with a notice (design recorded in `packages/core/src/settings.ts`).
+- ✅ **RG248** **a walk that lands after the list is drawn sets every row back to pending, so the portfolio loads twice** — A walk landing after the list is drawn keeps every row it filled, adds what it found and drops what it lost, not loading the list twice (design recorded in `packages/core/src/portfolio.ts`).
 
 ## Block D — The project surface (one backlog, read)
 

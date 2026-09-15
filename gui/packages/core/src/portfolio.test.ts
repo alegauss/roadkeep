@@ -28,6 +28,7 @@ import {
   tally,
   unreadableRow,
   fillRow,
+  keepRows,
   nameOf,
 } from './portfolio'
 
@@ -713,5 +714,57 @@ describe('RG200: the emoji a project declares', () => {
     const marked = readRow(project, { declares: { ...DECLARES_NOTHING, icon: '🔎' } })
 
     expect(fillRow(marked, {}).icon).toBe('🔎')
+  })
+})
+
+describe('RG248: the rows kept when the catalogue folds', () => {
+  const at = (path: string, over: Partial<RecordedProject> = {}): RecordedProject => ({
+    ...project,
+    path,
+    ...over,
+  })
+  const read = (path: string) =>
+    readRow(at(path), { stats: STATS, engines: ENGINES, declares: DECLARES_NOTHING })
+
+  it('keeps what a read filled on a project the walk still lists', () => {
+    const before = [read('/code/one'), read('/code/two')]
+
+    const kept = keepRows(before, [at('/code/one'), at('/code/two')])
+
+    expect(kept.map((row) => row.state)).toEqual(['read', 'read'])
+    expect(kept[0]?.counts).toEqual(before[0]?.counts)
+    expect(kept[0]?.engine).toEqual(before[0]?.engine)
+  })
+
+  it('takes the record’s own fields from the new record, not from the row', () => {
+    const before = [read('/code/one')]
+
+    const [kept] = keepRows(before, [
+      at('/code/one', {
+        branch: 'main',
+        aliases: ['/code/latest'],
+        declared: { ...DECLARES_NOTHING, name: 'Turing', icon: '🗺️' },
+      }),
+    ])
+
+    expect(kept?.branch).toBe('main')
+    expect(kept?.aliases).toEqual(['/code/latest'])
+    expect(kept?.name).toBe('Turing')
+    expect(kept?.icon).toBe('🗺️')
+    // And what the record declares nothing about is what was drawn.
+    expect(kept?.counts).toEqual(before[0]?.counts)
+  })
+
+  it('draws a project the walk added as pending, drops one it lost, and takes the new order', () => {
+    const before = [read('/code/one'), read('/code/two')]
+
+    const kept = keepRows(before, [at('/code/two'), at('/code/three')])
+
+    expect(kept.map((row) => row.path)).toEqual(['/code/two', '/code/three'])
+    expect(kept.map((row) => row.state)).toEqual(['read', 'pending'])
+  })
+
+  it('draws every row as pending where nothing was on screen, which is a cold start', () => {
+    expect(keepRows([], [at('/code/one')]).map((row) => row.state)).toEqual(['pending'])
   })
 })

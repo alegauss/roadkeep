@@ -1282,6 +1282,65 @@ describe('RG180: hearing the walk behind the record land', () => {
     expect(walks).toBeGreaterThan(asked)
   })
 
+  it('keeps the rows on screen through the fold, so the list does not load twice (RG248)', async () => {
+    const alpha = await opened(READ)
+    let tell: (() => void) | null = null
+    let listed: ProjectCatalogue = { version: 1, roots: [], projects: [recorded(READ)] }
+    // The counting read, held: a rerun's reads are in flight while a reader looks at the rows,
+    // and this is that moment made a place a test can stand in.
+    let holding: Promise<void> = Promise.resolve()
+    let release: () => void = () => undefined
+    const hold = () => {
+      holding = new Promise<void>((answer) => {
+        release = answer
+      })
+    }
+    Object.defineProperty(window, 'roadkeep', {
+      value: stubBridge({
+        projects: () => Promise.resolve(listed),
+        open: () => Promise.resolve(alpha),
+        run: async (root, request) => {
+          if (request.argv[2] === 'stats') await holding
+          return bridgedRun(() => machine.run({ ...request, root }))
+        },
+        gates: () => Promise.resolve([]),
+        subscribe: (topic, key, listener) => {
+          if (topic === 'catalogue' && key === EVERY_SOURCE) tell = listener as () => void
+          return () => undefined
+        },
+      }),
+      configurable: true,
+    })
+    drawWindow()
+
+    await waitFor(() => {
+      expect(rowOf('alpha').dataset['state']).toBe('read')
+    })
+    const drawn = rowOf('alpha').textContent
+
+    // The walk found a project the record did not hold, and main says so — with the reads it
+    // starts held open, so what is on screen is what the rerun drew and nothing since.
+    hold()
+    listed = { ...listed, projects: [recorded(READ), recorded(PENDING)] }
+    act(() => {
+      tell?.()
+    })
+    await waitFor(() => {
+      expect(screen.getAllByTestId('portfolio-row')).toHaveLength(2)
+    })
+
+    expect(rowOf('alpha').dataset['state']).toBe('read')
+    expect(rowOf('alpha').textContent).toBe(drawn)
+    // And the read that was held lands on the row it was always about.
+    await act(async () => {
+      release()
+      await Promise.resolve()
+    })
+    await waitFor(() => {
+      expect(rowOf('beta').dataset['state']).toBe('read')
+    })
+  })
+
   it('subscribes once, to the one key a catalogue has', async () => {
     const alpha = await opened(READ)
     const asked: { topic: string; key: string }[] = []
