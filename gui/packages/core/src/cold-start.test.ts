@@ -48,13 +48,17 @@ const statsFor = (total: number): StatsPayload => ({
  */
 function controlled(name = 'counts') {
   const waiting = new Map<string, (reads: object) => void>()
+  const failing = new Map<string, (cause: unknown) => void>()
   const entered: string[] = []
 
   const stage: ColdStartStage = {
     name,
     read: (project_) => {
       entered.push(project_.path)
-      return new Promise((resolve) => waiting.set(project_.path, resolve))
+      return new Promise((resolve, reject) => {
+        waiting.set(project_.path, resolve)
+        failing.set(project_.path, reject)
+      })
     },
   }
 
@@ -69,6 +73,13 @@ function controlled(name = 'counts') {
     },
     finishAll() {
       for (const path of [...waiting.keys()]) this.finish(path)
+    },
+    /** End one project's read the way a deadline does: by throwing (RG249). */
+    fail(path: string, cause: unknown) {
+      const settle = failing.get(path)
+      waiting.delete(path)
+      failing.delete(path)
+      settle?.(cause)
     },
   }
 }
@@ -270,5 +281,30 @@ describe('RG17: nothing to read', () => {
   it('leaves every row pending when there are no stages', async () => {
     const rows = await coldStart(PROJECTS, [])
     expect(rows.every((row) => row.state === 'pending')).toBe(true)
+  })
+})
+
+describe('RG249: one project that runs out of time', () => {
+  it('becomes a row that says so, and the stage after it runs for every other project', async () => {
+    // The deadline is the transport's, so what reaches here is the refusal it throws. What is
+    // held is the rest of the run: the next stage is not waiting on the project that hung.
+    const counting = controlled('counting')
+    const next = controlled('next')
+    const run = coldStart(PROJECTS, [counting.stage, next.stage])
+
+    counting.finish('/code/a')
+    counting.finish('/code/c')
+    counting.fail('/code/b', new EngineCallFailed('timeout', 'ran past 15000ms', 15000))
+    await flush()
+
+    // The two that answered are in the second stage; the one that ran out is not asked again.
+    expect(next.entered()).toEqual(['/code/a', '/code/c'])
+    next.finishAll()
+    const rows = await run
+
+    expect(rows.map((row) => row.state)).toEqual(['read', 'unreadable', 'read'])
+    const [, timedOut] = rows
+    expect(timedOut?.unreadable?.reason).toBe('timeout')
+    expect(timedOut?.unreadable?.elapsedMs).toBe(15000)
   })
 })

@@ -1,8 +1,13 @@
+import { mkdtempSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import path from 'node:path'
+
 import { loggedIn, resolveAgent, sessionCall, type SessionEvent } from '@rk/core'
 import { afterAll, describe, expect, it } from 'vitest'
 
 import { REPO } from './live'
 import { createProcessTransport } from './process-transport'
+import { removeTree } from './scratch'
 import { scriptedAgent } from './scripted-agent'
 import { startSession } from './session-process'
 
@@ -16,8 +21,18 @@ import { startSession } from './session-process'
 
 const agent = scriptedAgent({ tail: 8, intervalMs: 5 })
 
+/**
+ * Where the replayed session runs.
+ *
+ * A directory of its own and not this repository: a session runs in the project it was
+ * handed a line from, and the replay writes a file there the way a command a session runs
+ * writes one (RG247). Pointed at the checkout, that file would land in the checkout.
+ */
+const root = mkdtempSync(path.join(tmpdir(), 'rk-scripted-run-'))
+
 afterAll(() => {
   agent.dispose()
+  removeTree(root)
 })
 
 const transportFor = (command: readonly string[]) =>
@@ -46,7 +61,7 @@ describe('RG210: a scripted agent resolves like Claude Code', () => {
 describe('RG210: a scripted run', () => {
   it('writes every line it replays, then stays running until it is stopped', async () => {
     const [command = '', ...prefix] = agent.command
-    const call = sessionCall(command, REPO, 'a prompt nobody reads')
+    const call = sessionCall(command, root, 'a prompt nobody reads')
     const events: SessionEvent[] = []
     const session = startSession(
       { ...call, argv: [...prefix, ...call.argv] },

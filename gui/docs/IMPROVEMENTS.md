@@ -6,30 +6,6 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-### §RG249 A deadline on the launch path
-
-**The limit is written and never applied.** `limits.ts` declares
-`DEFAULT_LIMITS.timeoutMs` at fifteen seconds and `withLimits` clamps a person's
-setting, but `createCarrier` opens with `openHere(root, { width })` and `usePortfolio`
-calls `rowStages(reach)` with no `CallOptions`. Resolution, `commands`, `stats` and the
-gate's `lint` spawn with no ceiling; only the held `mcp` calls stop, at sixty. A
-launcher waiting on a network drive or a lock keeps its row pending for as long as it
-waits.
-
-**The stages turn one hang into every row's.** `coldStart` awaits every project's
-`counting` before any `next` starts, which is its staging rule and stays: the shape of
-the screen before its detail. So the deadline is the fix, not a reorder.
-
-**Two applications.** The carrier passes `withLimits(settings).timeoutMs` to `openHere`,
-which already hands it to the held transport, and to the gate's run; `usePortfolio`
-passes the same number to `rowStages`, crossing with the settings `launch.ts` already
-reads. A read that runs out becomes `unreadable` with reason `timeout`, the state
-`limits.ts` describes, and the next stage goes on without it.
-
-Tests: `cold-start.test.ts` with one project whose stage never resolves under a fake
-deadline, asserting every other row reaches `next`; `carrier.test.ts` asserting the
-deadline reaches `open` and the gate.
-
 ### §RG250 One ceiling across projects
 
 **What a launch spends, off the code.** Opening one project resolves its engine (an

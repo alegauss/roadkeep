@@ -7,12 +7,14 @@ import {
   buildArgv,
   buildCall,
   createWatching,
+  DEFAULT_LIMITS,
   EngineCallFailed,
   EMPTY_CATALOGUE,
   openProject,
   type Opening,
   type ProjectCatalogue,
   type ProjectGate,
+  type ReadLimits,
   type Reconciled,
   type RecordedProject,
   type Transport,
@@ -113,6 +115,28 @@ function world(over: Partial<CarrierOptions> = {}) {
   })
 
   return { carrier, walked, opened, closed, ran }
+}
+
+/** What the carrier opened a project under, for the deadline it is meant to carry (RG249). */
+function openedUnder(over: Partial<CarrierOptions> = {}) {
+  const limits: ReadLimits[] = []
+  const machine: Transport = {
+    run(request) {
+      const answer = SAID[request.argv[2] ?? '']
+      if (answer === undefined) return Promise.reject(new EngineCallFailed('unspawnable', 'no', 1))
+      return Promise.resolve({ code: 0, stdout: answer, stderr: '', durationMs: 1 })
+    },
+  }
+  const carrier = createCarrier({
+    looking: () => ({ roots: FOUND.roots, skip: [], width: 3 }),
+    rescan: () => Promise.resolve({ catalogue: FOUND, changes: [] }),
+    open: (root, under) => {
+      limits.push(under)
+      return openProject(root, [['python', '/x/launch.py']], () => machine)
+    },
+    ...over,
+  })
+  return { carrier, limits }
 }
 
 function listing(root: string) {
@@ -573,6 +597,17 @@ describe('RG152: what the gate last said', () => {
   })
 })
 
+describe('RG249: the deadline a read runs under', () => {
+  it('opens every project under the limits the settings give, clamped', async () => {
+    const { carrier, limits } = openedUnder()
+
+    await carrier.open(A)
+
+    // The width is the person's; the deadline is the declared one until a file names another.
+    expect(limits).toEqual([{ timeoutMs: DEFAULT_LIMITS.timeoutMs, width: 3 }])
+  })
+})
+
 describe('RG166: the gate the carrier runs itself', () => {
   const report = (clean: boolean, problems = 0) =>
     JSON.stringify({
@@ -612,6 +647,31 @@ describe('RG166: the gate the carrier runs itself', () => {
     })
     return { carrier, lints, told }
   }
+
+  it('runs the gate under the deadline the settings give (RG249)', async () => {
+    const deadlines: (number | undefined)[] = []
+    const machine: Transport = {
+      run(request) {
+        const verb = request.argv[2] ?? ''
+        if (verb === 'lint') {
+          deadlines.push(request.timeoutMs)
+          return Promise.resolve({ code: 0, stdout: report(true), stderr: '', durationMs: 1 })
+        }
+        const said = SAID[verb]
+        if (said === undefined) return Promise.reject(new EngineCallFailed('unspawnable', 'no', 1))
+        return Promise.resolve({ code: 0, stdout: said, stderr: '', durationMs: 1 })
+      },
+    }
+    const { carrier } = watching({
+      open: (root) => openProject(root, [['python', '/x/launch.py']], () => machine),
+    })
+
+    await carrier.open(A)
+    await carrier.gatesSettled()
+
+    // `lint` is the most expensive read there is, and the one nothing else was bounding.
+    expect(deadlines).toEqual([DEFAULT_LIMITS.timeoutMs])
+  })
 
   it('gates a project it just opened, without the opening waiting for it', async () => {
     const { carrier, lints, told } = watching()

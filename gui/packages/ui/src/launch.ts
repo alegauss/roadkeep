@@ -1,6 +1,8 @@
 import {
   BASE_LOCALE,
+  DEFAULT_LIMITS,
   DEFAULT_SETTINGS,
+  withLimits,
   type RendererBridge,
   type Reset,
   type RowOrder,
@@ -65,6 +67,14 @@ export interface LaunchChoices {
   readonly sessionNotes: SessionNotes
   /** The order the portfolio opens in (RG241), or the record's where nothing answered. */
   readonly portfolioOrder: RowOrder
+  /**
+   * How long one engine call may take before it is abandoned (RG249), clamped by `withLimits`.
+   *
+   * The limit `limits.ts` declares, crossing where the settings already do: the reads a
+   * portfolio makes are the renderer's to bound, and a project whose engine hangs becomes a
+   * row that says so rather than one every other row waits on.
+   */
+  readonly timeoutMs: number
 }
 
 const AT_WORST: LaunchChoices = {
@@ -73,6 +83,7 @@ const AT_WORST: LaunchChoices = {
   reset: [],
   sessionNotes: DEFAULT_SETTINGS.sessionNotes,
   portfolioOrder: DEFAULT_SETTINGS.portfolioOrder,
+  timeoutMs: DEFAULT_LIMITS.timeoutMs,
 }
 
 /**
@@ -109,6 +120,9 @@ export async function choicesFromBridge(
         reset: answer.reset,
         sessionNotes: answer.settings.sessionNotes,
         portfolioOrder: answer.settings.portfolioOrder,
+        // Clamped here as everywhere: a number a person edited into the file is theirs, and
+        // a sane range is what `withLimits` is for.
+        timeoutMs: withLimits(answer.settings).timeoutMs,
       })),
       deadline,
     ])
@@ -132,11 +146,29 @@ export function noticesAtLaunch(): readonly Reset[] {
   return lost
 }
 
+/**
+ * How long a read this window makes may take (RG249).
+ *
+ * Held like the notices above and for the same reason: one launch per window, and a number
+ * every screen that reads a project needs. Until the launch answers it is the declared
+ * default, which is the same number a settings file that says nothing gives.
+ */
+let deadlineMs: number = DEFAULT_LIMITS.timeoutMs
+
+function holdDeadline(ms: number): void {
+  deadlineMs = ms
+}
+
+export function readDeadline(): number {
+  return deadlineMs
+}
+
 /** The same question, of whatever bridge this page was given. */
 export async function choicesAtLaunch(): Promise<LaunchChoices> {
   const choices = await choicesFromBridge(getBridge())
   lost = choices.reset
   holdSessionNotes(choices.sessionNotes)
   holdPortfolioOrder(choices.portfolioOrder)
+  holdDeadline(choices.timeoutMs)
   return choices
 }

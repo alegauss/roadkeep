@@ -10,6 +10,7 @@ import {
   readLintPayload,
   recordGate,
   watchedFiles,
+  withLimits,
   composeDoor,
   filledArgv,
   withheldBecause,
@@ -22,6 +23,7 @@ import {
   type OpenedProject,
   type ProjectCatalogue,
   type ProjectGate,
+  type ReadLimits,
   type Reconciled,
   type SamePart,
   type ScanRoot,
@@ -67,8 +69,11 @@ export interface Looking {
 export interface CarrierOptions {
   /** Read per call: the settings file is the person's to edit while the app runs. */
   readonly looking: () => Looking
-  /** Open one project. `openHere` unless a test says otherwise. */
-  readonly open?: (root: string, width: number) => Promise<Opening>
+  /**
+   * Open one project, under the limits the settings give (RG249). `openHere` unless a test
+   * says otherwise.
+   */
+  readonly open?: (root: string, limits: ReadLimits) => Promise<Opening>
   /** Walk and fold. `rescan` unless a test says otherwise. */
   readonly rescan?: (
     previous: ProjectCatalogue,
@@ -183,7 +188,12 @@ function whyNotOpen(opening: Exclude<Opening, { readonly kind: 'open' }>): strin
 }
 
 export function createCarrier(options: CarrierOptions): Carrier {
-  const open = options.open ?? ((root, width) => openHere(root, { width }))
+  // The deadline `limits.ts` declares, applied (RG249): resolution, the reads behind an
+  // opening and the gate all spawn a process, and one that never answers held every row's
+  // next line pending for as long as it hung. A read that runs out is a state on that
+  // project, which is what the limit was written for.
+  const limits = (): ReadLimits => withLimits(options.looking())
+  const open = options.open ?? ((root, under) => openHere(root, under))
   const fold = options.rescan ?? rescan
   const now = options.now ?? (() => new Date().toISOString())
   const watching = options.watching ?? createWatching(createGovernedWatcher(), REAL_CLOCK)
@@ -318,7 +328,7 @@ export function createCarrier(options: CarrierOptions): Carrier {
     const kept = held.get(key)
     if (kept !== undefined) return kept
 
-    const started = open(root, options.looking().width).then(
+    const started = open(root, limits()).then(
       (answer) => {
         if (answer.kind !== 'open') held.delete(key)
         return answer
@@ -381,7 +391,11 @@ export function createCarrier(options: CarrierOptions): Carrier {
     gating.add(key)
     try {
       const ran = await gateLimit.hold(() =>
-        project.transport.run({ root, argv: buildArgv(root, 'lint', {}) }),
+        project.transport.run({
+          root,
+          argv: buildArgv(root, 'lint', {}),
+          timeoutMs: limits().timeoutMs,
+        }),
       )
       const read = readLintPayload(JSON.parse(ran.stdout), '')
       if (!read.ok) return

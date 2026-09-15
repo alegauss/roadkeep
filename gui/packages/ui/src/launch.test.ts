@@ -1,4 +1,10 @@
-import { BASE_LOCALE, DEFAULT_SETTINGS, type RendererBridge, type Theme } from '@rk/core'
+import {
+  BASE_LOCALE,
+  DEFAULT_LIMITS,
+  DEFAULT_SETTINGS,
+  type RendererBridge,
+  type Theme,
+} from '@rk/core'
 import { describe, expect, it } from 'vitest'
 
 import { choicesFromBridge, LAUNCH_CEILING_MS } from './launch'
@@ -63,6 +69,8 @@ describe('RG87: the ground the window opens in', () => {
       reset: [],
       sessionNotes: 'shown',
       portfolioOrder: 'record',
+      // The deadline a read runs under rides in the same answer (RG249).
+      timeoutMs: DEFAULT_LIMITS.timeoutMs,
     })
     expect(asked).toBe(1)
   })
@@ -96,6 +104,7 @@ describe('RG106: an answer that never comes', () => {
       reset: [],
       sessionNotes: 'shown',
       portfolioOrder: 'record',
+      timeoutMs: DEFAULT_LIMITS.timeoutMs,
     })
   })
 
@@ -131,6 +140,7 @@ describe('RG106: an answer that never comes', () => {
       reset: [],
       sessionNotes: 'hidden',
       portfolioOrder: 'open-descending',
+      timeoutMs: DEFAULT_LIMITS.timeoutMs,
     })
   })
 

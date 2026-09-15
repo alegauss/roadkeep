@@ -18,6 +18,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { getBridge } from './bridge'
+import { readDeadline } from './launch'
 
 /** The stage still running, and how far through it the rows are. */
 export interface ReadingProgress {
@@ -108,7 +109,9 @@ export function usePortfolio(): { readonly view: PortfolioView; readonly rescan:
       opened.set(recorded.path, reaching)
       return reaching
     }
-    const stages = rowStages(reach)
+    // Bounded by the number the settings gave this window (RG249): a project whose engine
+    // never answers becomes an unreadable row, and the stage after it runs for the rest.
+    const stages = rowStages(reach, { timeoutMs: readDeadline() })
     const stageOf = (name: string): RowStage =>
       stages.find((stage) => stage.name === name)?.name ?? 'counting'
 

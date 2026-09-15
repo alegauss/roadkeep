@@ -8,7 +8,6 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-- 📋 **RG249** (deps: —) **a portfolio read has no deadline, so one project whose engine hangs keeps every row's next line pending** — A fifteen-second limit is declared in limits.ts and no call on the launch path passes it, and the next stage waits for every project. → §RG249
 - 📋 **RG250** (deps: —) **a launch starts every project's engine at the same moment, so twenty projects pin the machine together** — Each project's pool bounds its own calls, and nothing bounds how many projects resolve and hold an engine at once. → §RG250
 - 📋 **RG251** (deps: RG248 ✅) **every launch reads every backlog again, so the portfolio shows skeletons until the slowest engine answers** — The project list is remembered since RG164 and the answers drawn on it are not, so a row whose files did not move pays a full read to show yesterday's counts. → §RG251
 - 📋 **RG252** (deps: RG250, RG251) **a remembered row is still read in full behind the screen, so a launch spends every interpreter a cold start did** — Where the files and the engine are the ones the reading came from, the answer is already on screen and the held engine, stats and pick are work for nothing. → §RG252
