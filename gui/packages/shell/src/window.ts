@@ -1,9 +1,10 @@
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-import { BrowserWindow } from 'electron'
+import { app, BrowserWindow } from 'electron'
 
 import { RENDERER_POSTURE } from './posture'
+import { windowIcon } from './window-icon'
 
 /**
  * Where the renderer comes from, and it is one of exactly two places. In development
@@ -28,7 +29,10 @@ export function appUrl(): string {
 }
 
 export function createWindow(): BrowserWindow {
+  // Unpackaged only: the executable carries its own, and `windowIcon` says why (RG236).
+  const icon = windowIcon(import.meta.dirname, app.isPackaged)
   const window = new BrowserWindow({
+    ...(icon === undefined ? {} : { icon }),
     width: 1280,
     height: 820,
     minWidth: 900,

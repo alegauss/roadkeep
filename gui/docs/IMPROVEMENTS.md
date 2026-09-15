@@ -23,28 +23,6 @@ ready task forever. What can be built without it is the pipeline that would use 
 the about surface saying plainly that this build is unsigned — which is the honest half
 and is worth having on its own.
 
-### §RG236 The unpackaged window names its icon
-
-RG138 put roadkeep's mark into the executable: `build/icon.png`, rendered from
-`build/icon.svg`, reaches the .exe through `buildResources` and the resource edit. An
-unpackaged window never sees either. `npm run dev` and `npm start` run `electron.exe`,
-whose own resources are the atom, and `createWindow` names no icon, so the title bar and
-the taskbar button wear Electron's mark on exactly the runs a developer looks at most.
-
-The window names the PNG, and only unpackaged. The SVG is the source and not what the
-window can take: Electron's native image reads PNG and ICO, never SVG, and the PNG is
-the committed render of it, which is the file `npm run icon` exists to keep in step.
-Packaged, the option is left out: `buildResources` is not copied into the app, so the
-path would name a file that is not there, and the executable already carries the icon
-Windows draws.
-
-Where the path is decided is a function of the directory the compiled main process lives
-in and whether the app is packaged, the shape `readStamp` and `agentOverride` already
-have, so a test in `shell` asserts both halves without starting Electron: unpackaged, a
-path that exists and is the 1024 PNG RG138 holds; packaged, nothing.
-
-Checked by eye on `npm run dev`, where the taskbar button is the thing that was wrong.
-
 ## Block H — The look (a design system for governed prose)
 
 ### §RG62 Joining the checks the other consoles already answer to

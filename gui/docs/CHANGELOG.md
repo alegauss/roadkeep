@@ -222,6 +222,7 @@
 - ✅ **RG218** **the release tag test runs whichever bash is first on PATH, and on Windows that can be WSL's, which has no node** — On Windows the release tag test runs Git's bash, found beside git.exe, so WSL's launcher first on PATH no longer fails it (design recorded in `packages/shell/src/git-bash.ts`).
 - ✅ **RG212** **an agent checking a screen improvises its own harness, and nothing says what to look for once it has the pictures** — A screens skill says how to look and what to check, CLAUDE.md gates on npm run shots, and Playwright MCP attaches to dev:inspect (design recorded in `.claude/skills/screens/SKILL.md`).
 - ✅ **RG220** **a screenshot launch that fails before the window draws leaves its Electron process running** — A screenshot launch that fails before drawing ends its whole Electron tree, and close does the same past its ceiling (design recorded in `packages/shell/src/shots-app.ts`).
+- ✅ **RG236** **npm run dev and npm start open a window wearing Electron's atom, though build/icon.svg is the app's mark** — An unpackaged window names build/icon.png, the render of build/icon.svg, so npm run dev and npm start wear roadkeep's mark (design recorded in `packages/shell/src/window-icon.ts`).
 
 ## Block H — The look (a design system for governed prose)
 
