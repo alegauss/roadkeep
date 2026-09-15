@@ -25,6 +25,7 @@ import type { KnownRoot, ScanRoot } from './roots'
 import type { SessionOutcome } from './session'
 import type { PreferenceKey } from './preferences'
 import type { Settings, SettingsRead } from './settings'
+import type { RememberedReadings } from './readings'
 import type { MovedPath } from './watching'
 import type { EngineFailure, EngineRequest, EngineResult } from './transport'
 
@@ -204,6 +205,16 @@ export interface RendererBridge {
    * difference between `unknown` and clean.
    */
   gates(): Promise<readonly ProjectGate[]>
+  /**
+   * What a verb printed at some earlier launch, for the projects whose files have not moved
+   * since (RG251).
+   *
+   * A read of a file this app owns and never of a backlog: the repository is the store, and
+   * what crosses here is an answer somebody already paid a process start for. Every entry is
+   * checked against the files it came off before it crosses, so a screen draws a remembered
+   * row only where nothing it was read from has changed.
+   */
+  readings(): Promise<RememberedReadings>
   /** Every session this process started, each with what it has written so far (RG153). */
   sessions(): Promise<readonly SessionRecord[]>
   /**
@@ -576,6 +587,7 @@ export const BRIDGE_CHANNELS = {
   editedAt: 'roadkeep:edited-at',
   fileText: 'roadkeep:file-text',
   gates: 'roadkeep:gates',
+  readings: 'roadkeep:readings',
   sessions: 'roadkeep:sessions',
   stopSession: 'roadkeep:stop-session',
   door: 'roadkeep:door',

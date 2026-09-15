@@ -8,8 +8,7 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-- 📋 **RG251** (deps: RG248 ✅) **every launch reads every backlog again, so the portfolio shows skeletons until the slowest engine answers** — The project list is remembered since RG164 and the answers drawn on it are not, so a row whose files did not move pays a full read to show yesterday's counts. → §RG251
-- 📋 **RG252** (deps: RG250 ✅, RG251) **a remembered row is still read in full behind the screen, so a launch spends every interpreter a cold start did** — Where the files and the engine are the ones the reading came from, the answer is on screen and the held engine, stats and pick are work for nothing. → §RG252
+- 📋 **RG252** (deps: RG250 ✅, RG251 ✅) **a remembered row is still read in full behind the screen, so a launch spends every interpreter a cold start did** — Where the files and the engine are the ones the reading came from, the answer is on screen and the held engine, stats and pick are work for nothing. → §RG252
 - 📋 **RG253** (deps: RG252) **gate verdicts are forgotten at quit, so every launch runs lint once per project before a row has a verdict** — Lint is the most expensive read there is, and a verdict taken against files and an engine that have not changed since is still the verdict. → §RG253
 - 📋 **RG256** (deps: —) **a row's gate verdict is plain text, so the findings it counts are reached only by guessing Run the gate holds them** — The project name is the row's only link and the screen it opens draws no verdict, so a count on the row has no path that names it. → §RG256
 - 📋 **RG257** (deps: —) **the Portuguese verdict divergente names no check, so a reader takes six findings for six items that diverged** — It is the one word between the row and its findings that no other screen uses, and beside worktree and branch badges it reads as git. → §RG257

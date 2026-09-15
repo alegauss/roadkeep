@@ -201,7 +201,7 @@ function ProjectCell({ row, shared }: { readonly row: ProjectRow; readonly share
       <ProjectChip face={row} size="row" unreadable={unreadable} />
       <div className="min-w-0">
         <div className="flex items-center gap-2">
-          {row.state === 'read' ? (
+          {row.state === 'read' || row.state === 'remembered' ? (
             <Link
               to={projectPath(row.path)}
               className="truncate font-semibold hover:underline"
@@ -220,6 +220,17 @@ function ProjectCell({ row, shared }: { readonly row: ProjectRow; readonly share
           {shared ? (
             <span className="bg-muted text-muted-foreground rounded px-1.5 text-[10.5px] font-semibold">
               {row.branch === '' ? say('portfolio.worktree') : row.branch}
+            </span>
+          ) : null}
+          {/* What a verb printed at an earlier launch, drawn while this one reads again
+              (RG251). A quiet mark and not a skeleton: every number beside it is true of
+              the last time anybody asked, and saying when is what makes that readable. */}
+          {row.state === 'remembered' ? (
+            <span
+              className="text-muted-foreground rounded border px-1.5 text-[10.5px]"
+              data-testid="row-remembered"
+            >
+              {say('portfolio.remembered')}
             </span>
           ) : null}
         </div>
@@ -499,6 +510,11 @@ function Subtitle({
         {counted(say, [
           ['counts.read', tallied.read],
           ['counts.pending', tallied.pending],
+          // Only where there are any: a launch with nothing remembered should not say so
+          // (RG251), and every other fragment on this line is one a count earned.
+          ...(tallied.remembered === 0
+            ? []
+            : ([['counts.remembered', tallied.remembered]] as const)),
           ['counts.unreadable', tallied.unreadable],
         ])}
       </span>

@@ -228,6 +228,17 @@ export {
   tally,
   unreadableRow,
 } from './portfolio'
+export {
+  NOTHING_REMEMBERED,
+  READINGS_VERSION,
+  readingOf,
+  readingsFrom,
+  readProjectReading,
+  readReadings,
+  rememberedRow,
+  remembering,
+} from './readings'
+export type { ProjectReading, RememberedReadings } from './readings'
 export { glanceRow, openingUnreadable, rowStages, withNext } from './rows'
 export type { RowStage } from './rows'
 export type {

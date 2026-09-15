@@ -1,6 +1,9 @@
 import {
   coldStart,
   keepRows,
+  NOTHING_REMEMBERED,
+  readingOf,
+  rememberedRow,
   EVERY_SOURCE,
   fillRow,
   gatedRows,
@@ -202,12 +205,27 @@ export function usePortfolio(): { readonly view: PortfolioView; readonly rescan:
     }
 
     const read = async (): Promise<void> => {
-      const projects = present(await bridge.projects())
+      // What a verb printed at some earlier launch, beside the list itself (RG251): the far
+      // side has checked each entry against the files it came off, so what comes back is what
+      // may still be drawn. Asked with the list rather than after it, since a launch that
+      // waited for one to draw the other would be the wait this exists to remove.
+      const [catalogued, remembered] = await Promise.all([
+        bridge.projects(),
+        bridge.readings().catch(() => NOTHING_REMEMBERED),
+      ])
+      const projects = present(catalogued)
       if (!stillHere()) return
       // What the reader is already looking at, merged into the new list (RG248): a walk that
       // lands after the first screen is drawn moved one project, and rebuilding every row from
       // pending would send the whole list through its skeleton a second time.
-      const kept = keepRows(drawn.current, projects)
+      const kept = keepRows(drawn.current, projects).map((row, at) => {
+        // A row nothing has drawn yet starts from what the last launch was told, where that
+        // still matches the files. The cold start runs behind it and fills it in place.
+        const project = projects[at]
+        if (row.state !== 'pending' || project === undefined) return row
+        const reading = readingOf(remembered, project.path)
+        return reading === null ? row : rememberedRow(project, reading)
+      })
       setView({
         kind: 'listed',
         rows: kept,

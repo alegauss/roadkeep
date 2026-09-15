@@ -174,6 +174,12 @@ describe('RG16: rows over more than one project', () => {
   it('counts rows and nothing else', async () => {
     const rows = [await rowFor(REPO), pendingRow(recorded('/not/read/yet'))]
 
-    expect(tally(rows)).toEqual({ projects: 2, read: 1, pending: 1, unreadable: 0 })
+    expect(tally(rows)).toEqual({
+      projects: 2,
+      read: 1,
+      pending: 1,
+      remembered: 0,
+      unreadable: 0,
+    })
   })
 })

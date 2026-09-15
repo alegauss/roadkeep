@@ -45,6 +45,8 @@ export const PT_BR: Wording = {
   'counts.sections': '{count} seções',
   'counts.sections.one': '{count} seção',
 
+  'counts.remembered.one': '{count} do último início',
+
   'portfolio.kicker': 'Portfólio',
   'portfolio.title': '{count} projetos nesta máquina',
   'portfolio.title.one': '{count} projeto nesta máquina',
@@ -73,6 +75,8 @@ export const PT_BR: Wording = {
   'portfolio.column.gate': 'Verificação',
   'portfolio.column.engine': 'Motor',
   'portfolio.worktree': 'worktree do git',
+  'portfolio.remembered': 'do último início',
+  'counts.remembered': '{count} do último início',
   'portfolio.pending': 'ainda lendo',
   'portfolio.tier': 'nível: {tier}',
   'portfolio.next.none': 'nada pronto',

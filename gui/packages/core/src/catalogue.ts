@@ -21,6 +21,11 @@ import type { KeyOf, ScanRoot } from './roots'
  * drawn immediately and the rescan happens behind it — which makes a rescan a diff rather
  * than a rebuild, and makes the diff the thing worth getting right.
  *
+ * **What a verb printed about each of them is kept beside it** (RG251), in its own file and
+ * under its own rule: this record says which folders hold a governed checkout, and that one
+ * says what the last launch was told about them. Two files because they go stale for
+ * different reasons — a project moves on the disk, an answer moves in the repository.
+ *
  * **A project the rescan no longer finds is marked missing and kept.** Deleted and
  * not-mounted look identical from here and only one of them is a removal, so this app does
  * not get to decide which happened. `confirmed` stops moving for a missing project, which

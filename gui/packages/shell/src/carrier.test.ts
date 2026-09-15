@@ -16,6 +16,7 @@ import {
   type ProjectGate,
   type ReadLimits,
   type Reconciled,
+  type RememberedReadings,
   type RecordedProject,
   type Transport,
   type Watcher,
@@ -76,6 +77,15 @@ const SAID: Record<string, string> = {
   }),
   commands: JSON.stringify({ version: '0.2.400', source: null, commands: [] }),
   list: JSON.stringify({ file: 'docs/ROADMAP.md', total: 0, uncounted: [], tasks: [] }),
+  // What a launch reads to fill a row, and what RG251 keeps for the next one.
+  stats: JSON.stringify({
+    file: 'docs/ROADMAP.md',
+    total: 60,
+    uncounted: 0,
+    markers: { '📋': 11 },
+    startable: { open: 60, startable: 58, waiting: 2, absent: [] },
+    blocks: [],
+  }),
 }
 
 /** Everything the carrier was made to do, counted. */
@@ -605,6 +615,48 @@ describe('RG249: the deadline a read runs under', () => {
 
     // The width is the person's; the deadline is the declared one until a file names another.
     expect(limits).toEqual([{ timeoutMs: DEFAULT_LIMITS.timeoutMs, width: 3 }])
+  })
+})
+
+describe('RG251: what a verb printed, kept for the next launch', () => {
+  it('keeps what stats printed as it passes through, with the files it was read off', async () => {
+    const kept: RememberedReadings[] = []
+    const { carrier } = world({ rememberReadings: (readings) => kept.push(readings) })
+
+    await carrier.run(A, { argv: buildArgv(A, 'stats', {}), call: buildCall('stats', {}) })
+
+    const [written] = kept
+    const one = written?.projects[0]
+    expect(one?.root).toBe(A)
+    // The payload and never a row: a row is rebuilt from this by the same function a fresh
+    // read goes through.
+    expect(one?.stats?.total).toBe(60)
+    expect(one?.governed).toContain('docs/ROADMAP.md')
+    expect(one?.stamp).not.toBe('')
+  })
+
+  it('answers only for the projects whose files have not moved since', async () => {
+    const { carrier } = world({
+      readings: () => ({
+        version: 1,
+        projects: [
+          {
+            root: A,
+            stamp: 'a stamp nothing on this disk matches',
+            read: '2026-09-14T09:00:00.000Z',
+            governed: ['docs/ROADMAP.md'],
+            stats: null,
+            pick: null,
+            engines: null,
+            declares: null,
+          },
+        ],
+      }),
+    })
+
+    // The stamp is retaken here rather than trusted, so an entry read off files that have
+    // changed — or off files nothing can stamp — is not offered.
+    expect((await carrier.readings()).projects).toEqual([])
   })
 })
 

@@ -6,34 +6,6 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-### §RG251 Remembered readings, drawn at launch
-
-**What is kept is what a verb printed, never a row.** A `readings.json` beside
-`catalogue.json` holds, per root key, the `stats` and `pick` payloads, the `engines`
-payload the opening resolved, the governed files `config` named, and the stamp
-`stampGoverned` took when they were read. Rows are rebuilt by `readRow`, so every number
-is still one a verb printed. A versioned `readingsFrom` in `core` refuses a shape this
-build does not know, as `catalogueFrom` does; `readings-file.ts` in `shell` writes by
-rename. The carrier fills it off the `stats` and `pick` answers passing through `run`,
-as `noting` dates the gate (RG152).
-
-**A cache and never the truth about a backlog**: the repository stays the store, and an
-entry is invalidated by the files it came off. At launch the carrier retakes each stamp,
-six stats and no interpreter, and a `readings()` bridge call answers only entries whose
-stamp still matches. Nothing writes, claims or offers a door off an entry; those need an
-opening.
-
-**A remembered row says so.** A `RowState` `remembered` draws counts and next line with
-the engine that printed them, which criterion "Which copy of roadkeep answered is on
-screen" asks, and a quiet mark instead of a skeleton. The cold start runs behind it and
-replaces it in place, which RG248 makes possible.
-
-Rewritten in this commit: the "nothing persists" paragraphs of `cache.ts` and
-`catalogue.ts`.
-
-Tests: `readings.test.ts`, `readings-file.test.ts`, `portfolio.test.tsx` drawing
-remembered rows.
-
 ### §RG252 Checking a remembered row instead of reading it
 
 **Checked behind the screen, under RG250's ceiling.** Once RG251's rows draw, a

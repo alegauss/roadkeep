@@ -30,6 +30,13 @@ export type RowState =
   | 'pending'
   /** Read. What arrived is on the row; what was not asked for is still null. */
   | 'read'
+  /**
+   * What a verb printed at some earlier launch, drawn while this one reads again (RG251).
+   *
+   * Every field on it is still a payload's, which is what separates it from `pending`: the
+   * row says something true about the last time anybody asked, and `read` says when.
+   */
+  | 'remembered'
   /** The read did not come back, and the row says why. */
   | 'unreadable'
 
@@ -105,6 +112,14 @@ export interface ProjectRow {
   readonly gate: RowGate | null
   readonly engine: RowEngine | null
   readonly unreadable: Unreadable | null
+  /**
+   * When these answers were read, as an ISO time, or empty where they were read just now
+   * (RG251).
+   *
+   * Only a `remembered` row carries one: a row this launch read is current by construction,
+   * and a time on it would be a clock where a fact belongs.
+   */
+  readonly read: string
 }
 
 /** The last segment of a path, whichever separator it uses. */
@@ -147,6 +162,7 @@ function shell(project: RecordedProject): Omit<ProjectRow, 'state'> {
     gate: null,
     engine: null,
     unreadable: null,
+    read: '',
   }
 }
 
@@ -309,6 +325,8 @@ export interface PortfolioTally {
   readonly projects: number
   readonly read: number
   readonly pending: number
+  /** Drawn from what a verb printed at an earlier launch, and being read again (RG251). */
+  readonly remembered: number
   readonly unreadable: number
 }
 
@@ -317,6 +335,7 @@ export function tally(rows: readonly ProjectRow[]): PortfolioTally {
     projects: rows.length,
     read: rows.filter((row) => row.state === 'read').length,
     pending: rows.filter((row) => row.state === 'pending').length,
+    remembered: rows.filter((row) => row.state === 'remembered').length,
     unreadable: rows.filter((row) => row.state === 'unreadable').length,
   }
 }

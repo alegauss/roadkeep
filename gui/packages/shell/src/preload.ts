@@ -54,6 +54,7 @@ const bridge: RendererBridge = {
   editedAt: (key, paths) => ipcRenderer.invoke(BRIDGE_CHANNELS.editedAt, key, paths),
   fileText: (key, path) => ipcRenderer.invoke(BRIDGE_CHANNELS.fileText, key, path),
   gates: () => ipcRenderer.invoke(BRIDGE_CHANNELS.gates),
+  readings: () => ipcRenderer.invoke(BRIDGE_CHANNELS.readings),
   sessions: () => ipcRenderer.invoke(BRIDGE_CHANNELS.sessions),
   stopSession: (key) => ipcRenderer.invoke(BRIDGE_CHANNELS.stopSession, key),
   door: (root, offered, which, words) =>

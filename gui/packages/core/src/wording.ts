@@ -65,6 +65,8 @@ export const EN = {
   'counts.sections': '{count} sections',
   'counts.sections.one': '{count} section',
 
+  'counts.remembered.one': '{count} from the last launch',
+
   'portfolio.kicker': 'Portfolio',
   'portfolio.title': '{count} projects on this machine',
   'portfolio.title.one': '{count} project on this machine',
@@ -93,6 +95,8 @@ export const EN = {
   'portfolio.column.gate': 'Gate',
   'portfolio.column.engine': 'Engine',
   'portfolio.worktree': 'worktree',
+  'portfolio.remembered': 'last launch',
+  'counts.remembered': '{count} from the last launch',
   'portfolio.pending': 'still reading',
   'portfolio.tier': 'tier: {tier}',
   'portfolio.next.none': 'nothing ready',

@@ -5,6 +5,11 @@ import {
   type Declared,
   createWatching,
   EMPTY_CATALOGUE,
+  NOTHING_REMEMBERED,
+  READINGS_VERSION,
+  readPickPayload,
+  readStatsPayload,
+  remembering,
   buildArgv,
   openedFrom,
   readLintPayload,
@@ -23,7 +28,9 @@ import {
   type OpenedProject,
   type ProjectCatalogue,
   type ProjectGate,
+  type ProjectReading,
   type ReadLimits,
+  type RememberedReadings,
   type Reconciled,
   type SamePart,
   type ScanRoot,
@@ -89,6 +96,10 @@ export interface CarrierOptions {
    * the carrier starts from nothing and the first walk is what a screen waits on.
    */
   readonly remembered?: () => ProjectCatalogue
+  /** What a verb printed at some earlier launch (RG251). Nothing unless a caller keeps it. */
+  readonly readings?: () => RememberedReadings
+  /** Keep what a verb printed for the next launch (RG251). */
+  readonly rememberReadings?: (readings: RememberedReadings) => void
   /** Keep the folded record. Called after every walk; a write that fails costs the next one. */
   readonly remember?: (catalogue: ProjectCatalogue) => void
   /** Where the doors an answer carried are kept (RG165). Its own unless a test says otherwise. */
@@ -149,6 +160,16 @@ export interface Carrier {
    * inventing a clean row is the one thing `gate.ts` refuses to do.
    */
   gates(): Promise<readonly ProjectGate[]>
+  /**
+   * What a verb printed at some earlier launch, for the projects whose files have not moved
+   * since (RG251).
+   *
+   * Every entry is checked here rather than trusted: the stamp is retaken over the governed
+   * files the entry names, which is a few `stat` calls and no interpreter, and one that no
+   * longer matches is left out. So a caller cannot draw an answer read off files that have
+   * changed, and never has to know how that is decided.
+   */
+  readings(): Promise<RememberedReadings>
   /**
    * Resolve once every gate this carrier started has finished, including one started while
    * waiting (RG226).
@@ -216,6 +237,11 @@ export function createCarrier(options: CarrierOptions): Carrier {
   // What the engine offered, kept here rather than crossing (RG165).
   const doors = options.doors ?? createDoorKeep({ stampOf })
 
+  // What a verb printed at some earlier launch (RG251), held here as the record is: a launch
+  // draws these while the reads behind them run, and every entry is checked against the files
+  // it came off before it is offered.
+  let readings: RememberedReadings = options.readings?.() ?? NOTHING_REMEMBERED
+
   // What the gate last said, per project (RG152). In memory, because a verdict is about a
   // working tree at a moment and the tree can change while this app is not running.
   const gate: GateLedger = options.gate ?? createGateLedger(rootKey)
@@ -245,6 +271,47 @@ export function createCarrier(options: CarrierOptions): Carrier {
   }
 
   /**
+   * Keep what `stats` and `pick` printed, for the launch after this one (RG251).
+   *
+   * `noting`'s arrangement and its reason: the answer a screen asked for is the one kept, so
+   * nothing is read twice to fill a cache. What is kept is the payload — a row is rebuilt
+   * from it by `readRow` — with the stamp over the files it came off and the governed set it
+   * was stamped on, which is what lets the next launch check it without an interpreter.
+   */
+  const rememberingRead = async (
+    root: string,
+    argv: readonly string[],
+    parsed: unknown,
+  ): Promise<void> => {
+    const wanted = argv.includes('stats') ? 'stats' : argv.includes('pick') ? 'pick' : ''
+    if (wanted === '') return
+    const stats = wanted === 'stats' ? readStatsPayload(parsed, '') : null
+    const pick = wanted === 'pick' ? readPickPayload(parsed, '') : null
+    if (stats !== null && !stats.ok) return
+    if (pick !== null && !pick.ok) return
+
+    const answer = await opening(root).catch(() => null)
+    if (answer?.kind !== 'open') return
+    const governed = Object.values(answer.project.governed)
+    const stamp = await stampGoverned(root, governed)
+    readings = remembering(
+      readings,
+      {
+        root,
+        stamp,
+        read: now(),
+        governed,
+        stats: stats?.ok === true ? stats.value : null,
+        pick: pick?.ok === true ? pick.value : null,
+        engines: answer.project.engine.payload,
+        declares: answer.project.declares,
+      },
+      rootKey,
+    )
+    options.rememberReadings?.(readings)
+  }
+
+  /**
    * Keep whatever doors an answer carried, and name them on the way back (RG165).
    *
    * Every read goes through here, because a door arrives on a refusal as readily as on a
@@ -265,6 +332,7 @@ export function createCarrier(options: CarrierOptions): Carrier {
       return answered
     }
     await noting(root, argv, parsed)
+    await rememberingRead(root, argv, parsed)
     const offered = await doors.keep(root, parsed)
     return offered === null ? answered : { ...answered, offered }
   }
@@ -548,6 +616,23 @@ export function createCarrier(options: CarrierOptions): Carrier {
           health: gate.healthOf(root, await stampOf(root)),
         })),
       )
+    },
+
+    async readings() {
+      // The stamp is retaken over the files each entry names — a few `stat` calls, no
+      // interpreter — so an entry read off files that have since moved is left out rather
+      // than drawn. An entry nothing stamped is one nothing can check, and goes the same way.
+      const checked = await Promise.all(
+        readings.projects.map(async (one) => {
+          if (one.stamp === '' || one.governed.length === 0) return null
+          const now_ = await stampGoverned(one.root, one.governed)
+          return now_ === one.stamp ? one : null
+        }),
+      )
+      return {
+        version: READINGS_VERSION,
+        projects: checked.filter((one): one is ProjectReading => one !== null),
+      }
     },
 
     async follow(root, moved) {

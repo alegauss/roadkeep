@@ -286,7 +286,15 @@ describe('RG16: how the screen stands', () => {
   ]
 
   it('counts the rows', () => {
-    expect(tally(rows)).toEqual({ projects: 3, read: 1, pending: 1, unreadable: 1 })
+    // Remembered rows are their own state (RG251): what an earlier launch was told, being
+    // read again, which is neither read now nor still a skeleton.
+    expect(tally(rows)).toEqual({
+      projects: 3,
+      read: 1,
+      pending: 1,
+      remembered: 0,
+      unreadable: 1,
+    })
   })
 
   it('adds nothing up across projects', () => {
@@ -294,7 +302,13 @@ describe('RG16: how the screen stands', () => {
     // seventeen backlogs is the one number on the screen no `roadkeep` command could
     // print, which makes it the one somebody would quote and nobody could check. If a
     // field is ever added here, this fails.
-    expect(Object.keys(tally(rows)).sort()).toEqual(['pending', 'projects', 'read', 'unreadable'])
+    expect(Object.keys(tally(rows)).sort()).toEqual([
+      'pending',
+      'projects',
+      'read',
+      'remembered',
+      'unreadable',
+    ])
   })
 })
 

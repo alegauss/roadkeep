@@ -29,6 +29,7 @@ import { app, BrowserWindow, dialog, ipcMain, type WebContents } from 'electron'
 
 import { AGENT_VAR, agentCandidates, agentOverride } from './agent-candidates'
 import { loadCatalogue, saveCatalogue } from './catalogue-file'
+import { loadReadings, saveReadings } from './readings-file'
 import { createCarrier, type Carrier } from './carrier'
 import { editedAt } from './edited-at'
 import { fileText } from './file-text'
@@ -120,6 +121,12 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
     remembered: () => loadCatalogue(app.getPath('userData')),
     remember: (catalogue) => {
       saveCatalogue(app.getPath('userData'), catalogue)
+    },
+    // And what its verbs printed (RG251), beside the record and written the same way: the
+    // next launch draws these while it reads again.
+    readings: () => loadReadings(app.getPath('userData')),
+    rememberReadings: (readings) => {
+      saveReadings(app.getPath('userData'), readings)
     },
   })
 
@@ -329,6 +336,9 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
 
   // The gate verdicts on record (RG152): a read of the ledger the carrier dates, never a run.
   ipcMain.handle(BRIDGE_CHANNELS.gates, () => carrier.gates())
+  // What a verb printed at some earlier launch (RG251), checked against the files it came
+  // off by the carrier before it crosses.
+  ipcMain.handle(BRIDGE_CHANNELS.readings, () => carrier.readings())
   ipcMain.handle(BRIDGE_CHANNELS.sessions, () => sessions.list())
   ipcMain.handle(BRIDGE_CHANNELS.stopSession, (_event, key: unknown): void => {
     if (typeof key === 'string') sessions.stop(key)

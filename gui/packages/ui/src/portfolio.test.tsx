@@ -1242,6 +1242,82 @@ describe('RG169: moving a root’s depth from the window', () => {
   })
 })
 
+describe('RG251: what the last launch was told, drawn while this one reads', () => {
+  const READING = {
+    root: READ,
+    stamp: 'stamp-a',
+    read: '2026-09-14T09:00:00.000Z',
+    governed: ['docs/ROADMAP.md'],
+    stats: JSON.parse(SAID['stats'] ?? '{}') as never,
+    pick: JSON.parse(SAID['pick'] ?? '{}') as never,
+    engines: null,
+    declares: null,
+  }
+
+  it('draws the counts a verb printed last time, marked, before any engine answers', async () => {
+    const alpha = await opened(READ)
+    // The engine answers nothing until the test says so, which is the whole window this is
+    // about: a launch that has asked and is waiting.
+    let letItAnswer: () => void = () => undefined
+    const holding = new Promise<void>((answer) => {
+      letItAnswer = answer
+    })
+    Object.defineProperty(window, 'roadkeep', {
+      value: stubBridge({
+        projects: () => Promise.resolve(ONE),
+        open: () => Promise.resolve(alpha),
+        run: async (root, request) => {
+          await holding
+          return bridgedRun(() => machine.run({ ...request, root }))
+        },
+        gates: () => Promise.resolve([]),
+        subscribe: () => () => undefined,
+        readings: () => Promise.resolve({ version: 1, projects: [READING] }),
+      }),
+      configurable: true,
+    })
+    drawWindow()
+
+    // The row is drawn from what was remembered: the numbers are the ones `stats` printed
+    // last launch, and the mark says so rather than a skeleton saying nothing.
+    const row = await waitFor(() => rowOf('alpha'))
+    expect(row.dataset['state']).toBe('remembered')
+    expect(within(row).getByTestId('row-remembered')).toBeTruthy()
+    expect(within(row).getByText(fill(BASE['counts.open'], { count: 60 }))).toBeTruthy()
+    expect(
+      screen.getByText(counted(say, [['counts.remembered', 1]]), { exact: false }),
+    ).toBeTruthy()
+
+    letItAnswer()
+
+    // And the read behind it replaces the row in place, which RG248 made possible.
+    await waitFor(() => {
+      expect(rowOf('alpha').dataset['state']).toBe('read')
+    })
+    expect(screen.queryByTestId('row-remembered')).toBeNull()
+  })
+
+  it('draws a skeleton where nothing is remembered about a project', async () => {
+    const alpha = await opened(READ)
+    Object.defineProperty(window, 'roadkeep', {
+      value: stubBridge({
+        projects: () => Promise.resolve(ONE),
+        open: () => Promise.resolve(alpha),
+        run: () => new Promise(() => undefined),
+        gates: () => Promise.resolve([]),
+        subscribe: () => () => undefined,
+        readings: () => Promise.resolve({ version: 1, projects: [] }),
+      }),
+      configurable: true,
+    })
+    drawWindow()
+
+    await waitFor(() => {
+      expect(rowOf('alpha').dataset['state']).toBe('pending')
+    })
+  })
+})
+
 describe('RG180: hearing the walk behind the record land', () => {
   it('asks for the list again when the fold changed something, and not otherwise', async () => {
     const alpha = await opened(READ)
