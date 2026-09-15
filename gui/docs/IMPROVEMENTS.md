@@ -6,30 +6,6 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-### §RG256 The verdict on a row opens the gate
-
-**The gate cell is the one cell on a row that counts something and leads nowhere.**
-`GateCell` in `Portfolio.tsx` draws the verdict pill and "6 findings" as text. The row's
-only link is the project name (RG148), and the screen it opens draws no verdict (RG255),
-so a reader holding a count has no path that names it.
-
-**The pill and the count become one link to `gatePath(row.path)`**, which stays the
-gate's address whether it remains a screen or becomes RG255's tab. Its accessible name
-carries the project, since every drifted row reads the same words: a
-`portfolio.gate.open` key, "Open the gate for {name}: {count} findings", with its `.one`
-form. It is offered on a read row whatever the verdict, since an unknown one opens on a
-run, which is what the gate does with nothing held. A pending or unreadable row has
-nothing to open into and keeps text, by the rule its name already follows.
-
-**The filter chip is not the door.** "Gate drifted 3" narrows the list, which is what a
-chip in that strip does, and making it lead to several gates would give one control two
-meanings.
-
-Tests: `portfolio.test.tsx`, under RG152's gate column: a read row's verdict links to
-its gate, and pending and unreadable rows draw no link.
-
-On ship: --recorded-in packages/ui/src/Portfolio.tsx
-
 ### §RG257 A verdict word the window uses elsewhere
 
 **`divergente` is `portfolio.gate.drifted` in `pt-br.ts`**, and the filter chip reads

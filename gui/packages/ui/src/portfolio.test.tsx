@@ -28,6 +28,7 @@ import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { toast } from '@viglet/viglet-design-system'
 import { afterEach, describe, expect, it } from 'vitest'
 
+import { gatePath } from './areas'
 import { drawWindow } from './harness'
 import { choicesAtLaunch } from './launch'
 import { holdPortfolioOrder } from './preferring'
@@ -854,6 +855,45 @@ describe('RG152: the gate column, off the ledger the carrier keeps', () => {
       configurable: true,
     })
   }
+
+  it('opens the gate from the verdict it counted, named by the project (RG256)', async () => {
+    await withGate({
+      verdict: 'drifted',
+      problems: 3,
+      taken: '2026-09-11T12:00:00.000Z',
+      stale: false,
+    })
+    drawWindow()
+
+    const row = await waitFor(() => rowOf('alpha'))
+    const open = within(row).getByTestId('open-gate')
+
+    // The one cell that counted something and led nowhere now leads where the count is.
+    expect(open.getAttribute('href')).toBe(gatePath(READ))
+    expect(open.getAttribute('aria-label')).toBe(
+      fill(BASE['portfolio.gate.open'], {
+        name: 'alpha',
+        counted: fill(BASE['portfolio.gate.findings'], { count: 3 }),
+      }),
+    )
+  })
+
+  it('draws no link on a row still being read or one that could not be', async () => {
+    await withGate({
+      verdict: 'clean',
+      problems: 0,
+      taken: '2026-09-11T12:00:00.000Z',
+      stale: false,
+    })
+    drawWindow()
+
+    await waitFor(() => {
+      expect(rowOf('alpha').dataset['state']).toBe('read')
+    })
+    // A row with nothing to open into keeps its text, the rule its own name already follows.
+    expect(within(rowOf('gamma')).queryByTestId('open-gate')).toBeNull()
+    expect(within(rowOf('alpha')).getByTestId('open-gate')).toBeTruthy()
+  })
 
   it('draws the verdict on record, with the count a drifted report gave', async () => {
     await withGate({

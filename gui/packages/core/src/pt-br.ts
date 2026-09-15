@@ -87,6 +87,7 @@ export const PT_BR: Wording = {
   'portfolio.gate.never': 'nunca rodou aqui',
   'portfolio.gate.findings': '{count} achados',
   'portfolio.gate.findings.one': '{count} achado',
+  'portfolio.gate.open': 'Abrir a verificação de {name}: {counted}',
   'portfolio.gate.stale': 'desatualizado',
   'portfolio.engine.modified': 'árvore de trabalho',
   'portfolio.unreadable': 'ilegível',

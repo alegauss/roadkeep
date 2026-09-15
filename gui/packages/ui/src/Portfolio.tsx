@@ -36,7 +36,7 @@ import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-sy
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
-import { projectPath } from './areas'
+import { gatePath, projectPath } from './areas'
 import { HeroActions } from './hero'
 import { choosePortfolioOrder, usePortfolioOrder } from './preferring'
 import { useSpokenLocale } from './speaking'
@@ -329,21 +329,48 @@ function NextCell({ row, settled }: { readonly row: ProjectRow; readonly settled
   )
 }
 
+/**
+ * The verdict, and the way to what it counted (RG256).
+ *
+ * **The one cell that counted something and led nowhere.** A reader holding *6 findings* had
+ * no path that names them: the row's only link is the project's name (RG148), and the screen
+ * it opens draws the gate as one tab among several (RG255). So the pill and the count are one
+ * link to that tab, and the name carries the project — every drifted row reads the same three
+ * words otherwise.
+ *
+ * **Offered wherever a gate can be opened at all**, whatever the verdict: an unknown one opens
+ * on a run, which is what the gate does with nothing held. A row still being read, or one that
+ * could not be, has nothing to open into and keeps its text — the rule its own name follows.
+ */
 function GateCell({ row }: { readonly row: ProjectRow }) {
   const say = useWording()
   const gate = row.gate ?? UNKNOWN_GATE
   const known = gate.verdict !== 'unknown'
+  const counted_ = known
+    ? say('portfolio.gate.findings', { count: gate.problems })
+    : say('portfolio.gate.never')
+
+  const said = (
+    <>
+      <Pill intent={GATE_INTENT[gate.verdict]}>{say(GATE_TEXT[gate.verdict])}</Pill>
+      <span className="text-muted-foreground mt-1 block text-xs">
+        {counted_}
+        {known && gate.stale ? ` · ${say('portfolio.gate.stale')}` : null}
+      </span>
+    </>
+  )
+
+  if (row.state === 'pending' || row.state === 'unreadable') return <div>{said}</div>
 
   return (
-    <div>
-      <Pill intent={GATE_INTENT[gate.verdict]}>{say(GATE_TEXT[gate.verdict])}</Pill>
-      <div className="text-muted-foreground mt-1 text-xs">
-        {known
-          ? say('portfolio.gate.findings', { count: gate.problems })
-          : say('portfolio.gate.never')}
-        {known && gate.stale ? ` · ${say('portfolio.gate.stale')}` : null}
-      </div>
-    </div>
+    <Link
+      to={gatePath(row.path)}
+      data-testid="open-gate"
+      aria-label={say('portfolio.gate.open', { name: row.name, counted: counted_ })}
+      className="block rounded hover:underline"
+    >
+      {said}
+    </Link>
   )
 }
 

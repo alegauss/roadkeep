@@ -107,6 +107,7 @@ export const EN = {
   'portfolio.gate.never': 'never run here',
   'portfolio.gate.findings': '{count} findings',
   'portfolio.gate.findings.one': '{count} finding',
+  'portfolio.gate.open': 'Open the gate for {name}: {counted}',
   'portfolio.gate.stale': 'stale',
   'portfolio.engine.modified': 'working tree',
   'portfolio.unreadable': 'unreadable',
