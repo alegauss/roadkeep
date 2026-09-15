@@ -7,6 +7,7 @@ import {
   translator,
   openedFrom,
   openProject,
+  type BridgedRequest,
   type BridgedResult,
   type Transport,
   BASE_LOCALE,
@@ -22,6 +23,7 @@ const say = translator()
 
 import { gatePath } from './areas'
 import { drawWindow } from './harness'
+import { readDeadline } from './launch'
 import { stubBridge } from './stub-bridge'
 
 /**
@@ -113,12 +115,15 @@ const CLEAN = {
 }
 
 interface Wired {
-  readonly gates: number[]
+  /** Every gate run this window asked for, as it asked for it — the deadline included (RG260). */
+  readonly gates: BridgedRequest[]
   readonly doors: { which: number; words: readonly string[] }[]
   /** Each code `explain` was asked about, in order (RG258). */
   readonly explained: string[]
   /** What the next gate answers: the first run drifts, and a door closes it. */
   clean: boolean
+  /** What the door answers, so a door that would not run can be drawn (RG260). */
+  doorFails: string | null
 }
 
 /** What `explain` answers about a code, which is the class and not the line (RG258). */
@@ -194,7 +199,7 @@ async function at(
   const explained: string[] = []
   const transport = engine(explains, explained)
   const opened = openedFrom(await openProject(ROOT, [['python', 'launch.py']], () => transport))
-  const wired: Wired = { gates: [], doors: [], clean: false, explained }
+  const wired: Wired = { gates: [], doors: [], clean: false, doorFails: null, explained }
 
   Object.defineProperty(window, 'roadkeep', {
     value: stubBridge({
@@ -207,7 +212,7 @@ async function at(
         if (!request.argv.includes('lint')) {
           return bridgedRun(() => transport.run({ ...request, root }))
         }
-        wired.gates.push(wired.gates.length)
+        wired.gates.push(request)
         const answer = wired.clean ? CLEAN : DRIFTED
         return Promise.resolve({
           kind: 'ran',
@@ -223,6 +228,7 @@ async function at(
       },
       door: (_root, _offered, which, words) => {
         wired.doors.push({ which, words })
+        if (wired.doorFails !== null) return Promise.resolve(withheldResult(wired.doorFails))
         // The door wrote the section, so the gate that follows finds nothing.
         wired.clean = true
         return Promise.resolve({
@@ -319,6 +325,72 @@ describe('RG152: the gate as a surface', () => {
     ).toBeTruthy()
     expect(screen.queryAllByTestId('finding')).toHaveLength(0)
     expect(wired.gates).toHaveLength(2)
+  })
+
+  it('bounds its own run by the declared deadline, so running has a floor (RG260)', async () => {
+    const wired = await at(gatePath(ROOT))
+    await screen.findByTestId('counted')
+
+    // The request names no tool, so it is spawned — and a spawn with no `timeoutMs` has no
+    // ceiling at all, which is what left this screen saying `Running the gate.` for good.
+    expect(wired.gates[0]?.timeoutMs).toBe(readDeadline())
+  })
+
+  it('bounds the run a door starts too, since that is the one somebody pressed (RG260)', async () => {
+    const wired = await at(gatePath(ROOT))
+
+    const finding = await screen.findByTestId('finding')
+    const door = within(finding).getByTestId('door')
+    fireEvent.change(within(door).getByLabelText(BASE['door.blank']), {
+      target: { value: 'A design' },
+    })
+    fireEvent.click(within(door).getByRole('button', { name: BASE['door.take'] }))
+
+    await waitFor(() => {
+      expect(wired.gates).toHaveLength(2)
+    })
+    expect(wired.gates[1]?.timeoutMs).toBe(readDeadline())
+  })
+
+  it('says a door that would not run, above the report it left unchanged (RG260)', async () => {
+    const wired = await at(gatePath(ROOT))
+    wired.doorFails = 'the engine ran past 15000ms'
+
+    const finding = await screen.findByTestId('finding')
+    const door = within(finding).getByTestId('door')
+    fireEvent.change(within(door).getByLabelText(BASE['door.blank']), {
+      target: { value: 'A design' },
+    })
+    fireEvent.click(within(door).getByRole('button', { name: BASE['door.take'] }))
+
+    // The gate ran again and found the finding still there, which is what a door that did
+    // nothing and a door that never ran both look like. The refusal is what tells them apart.
+    expect(
+      await screen.findByText(fill(BASE['door.failed'], { reason: 'the engine ran past 15000ms' })),
+    ).toBeTruthy()
+    expect(screen.getAllByTestId('finding')).toHaveLength(1)
+  })
+
+  it('drops that refusal when the reader runs the gate themselves (RG260)', async () => {
+    const wired = await at(gatePath(ROOT))
+    wired.doorFails = 'the engine ran past 15000ms'
+
+    const finding = await screen.findByTestId('finding')
+    const door = within(finding).getByTestId('door')
+    fireEvent.change(within(door).getByLabelText(BASE['door.blank']), {
+      target: { value: 'A design' },
+    })
+    fireEvent.click(within(door).getByRole('button', { name: BASE['door.take'] }))
+    await screen.findByTestId('door-failed')
+
+    fireEvent.click(screen.getByRole('button', { name: BASE['gate.run'] }))
+
+    // A run the reader asked for answers for itself, and the door before it is over. The
+    // click also passes an event as the handler's first argument, which a `run` taking the
+    // refusal directly would have drawn back over this screen.
+    await waitFor(() => {
+      expect(screen.queryByTestId('door-failed')).toBeNull()
+    })
   })
 
   it('is a tab of the project, counted off the ledger and opened by a click (RG255)', async () => {

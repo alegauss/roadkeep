@@ -152,6 +152,7 @@
 - ✅ **RG254** **the gate opens on a count when its verdict is fresh, so the findings it counts appear only after a second run** — A drifted verdict opens on its rows: the gate runs as the screen opens, with the held count still drawn, and a clean one still runs nothing (design recorded in `packages/ui/src/useGate.ts`).
 - ✅ **RG258** **a finding's code is a bare token, so what a class like ref.unresolved means is still looked up in a terminal** — A finding's code opens on what explain says the class is, read once per code and only where this build answers it (design recorded in `packages/ui/src/Gate.tsx`).
 - ✅ **RG259** **a door's button says Take it, so the control that runs a command line reads as accepting the finding** — The button says Run the fix, Executar conserto in Portuguese, so a control that spawns the engine's own command line no longer reads as accepting the finding.
+- ✅ **RG260** **the window's gate run and a door's carry no deadline, so a call that hangs leaves the screen running for good** — The window's lint and a door's command line take the declared deadline, and a door that did not answer is said above the report (design recorded in `packages/ui/src/useGate.ts`).
 
 ## Block F — The agent surface (handing one task to Claude Code)
 

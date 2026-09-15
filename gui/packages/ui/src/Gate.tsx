@@ -244,7 +244,7 @@ function Counted({ payload }: { readonly payload: LintPayload }) {
 export function GateTab({ root }: { readonly root: string }) {
   const say = useWording()
   const gating = useGate(root)
-  const { gate, project, run, takeDoor } = gating
+  const { gate, project, refused, run, takeDoor } = gating
   // What a code means is offered only where this build answers `explain` (RG258): a
   // disclosure that opens on a refusal is a control that lies.
   const explaining = useExplained(root, project)
@@ -285,6 +285,16 @@ export function GateTab({ root }: { readonly root: string }) {
           <BentoEmptyState title={say('gate.unreadable', { reason: gate.reason })} />
         </BentoPanel>
       ) : null}
+      {/*
+        Above the report and not inside it (RG260): the door that failed belongs to a finding
+        the run below may or may not still hold, and what a reader needs first is that the
+        report they are about to read is unchanged because nothing ran.
+      */}
+      {refused === null ? null : (
+        <p className="text-sm font-medium" data-testid="door-failed">
+          {say('door.failed', { reason: refusalOf(refused, say) })}
+        </p>
+      )}
       {gate.kind === 'held' ? <Held health={gate.health} /> : null}
       {gate.kind === 'read' ? (
         <>

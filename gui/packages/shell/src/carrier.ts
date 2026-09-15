@@ -710,7 +710,16 @@ export function createCarrier(options: CarrierOptions): Carrier {
         return keeping(
           root,
           composed.argv,
-          await bridgedRun(() => answer.project.transport.run({ root, argv: composed.argv })),
+          // Bounded like every other call (RG260). Having no tool call is what sends this to
+          // the spawning fallback, where an absent deadline is no ceiling at all — and this
+          // is a call a person pressed a button for and is watching a screen wait on.
+          await bridgedRun(() =>
+            answer.project.transport.run({
+              root,
+              argv: composed.argv,
+              timeoutMs: limits().timeoutMs,
+            }),
+          ),
         )
       } catch (cause) {
         return bridgedRun(() => Promise.reject(cause))

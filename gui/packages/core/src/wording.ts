@@ -353,6 +353,7 @@ export const EN = {
   'door.writes': 'writes a governed file',
   'door.take': 'Run the fix',
   'door.blank': 'what goes where the engine left a blank',
+  'door.failed': 'The fix did not run: {reason}',
 
   'gate.title': 'The gate',
   'gate.about': 'What the governed files say about themselves, and what closes each finding.',

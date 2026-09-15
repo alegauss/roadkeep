@@ -19,6 +19,7 @@ import {
 import { useCallback, useEffect, useState } from 'react'
 
 import { getBridge } from './bridge'
+import { readDeadline } from './launch'
 
 /**
  * Running the gate from the window (RG152).
@@ -84,6 +85,14 @@ export function worthRunning(gate: Gate): boolean {
 export interface Gating {
   readonly project: OpenProject | null
   readonly gate: Gate
+  /**
+   * Why the last door taken did not run, where one did not (RG260).
+   *
+   * Apart from the gate, because a door and the run that follows it are two answers: the gate
+   * is run again whatever the door said — what it wrote is not for this screen to guess — and
+   * a report that came back unchanged is exactly what a failed door looks like otherwise.
+   */
+  readonly refused: Withholding | null
   // Properties and not methods, for the reason `useFiling`'s are: a screen passes them on
   // as callbacks, and a method type says they carry a `this` this hook never gives them.
   readonly run: () => void
@@ -94,6 +103,7 @@ export function useGate(root: string): Gating {
   const [project, setProject] = useState<OpenProject | null>(null)
   const [gate, setGate] = useState<Gate>({ kind: 'idle' })
   const [held, setHeld] = useState<GateHealth | null>(null)
+  const [refused, setRefused] = useState<Withholding | null>(null)
 
   useEffect(() => {
     const bridge = getBridge()
@@ -184,11 +194,28 @@ export function useGate(root: string): Gating {
     setGate((was) => (was.kind === 'idle' ? { kind: 'held', health: held } : was))
   }, [held])
 
+  /**
+   * Run the gate, carrying what the door before it refused (RG260).
+   *
+   * **Bounded by the declared deadline**, like every other read this window waits on. The
+   * request names no tool, so it takes the held engine's fallback and is spawned — where an
+   * absent `timeoutMs` is no ceiling at all, and `running` has nothing under it.
+   */
+  const rerun = useCallback(
+    (after: Withholding | null) => {
+      const bridge = getBridge()
+      if (bridge === undefined) return
+      setRefused(after)
+      ran(bridge.run(root, { argv: buildArgv(root, 'lint', {}), timeoutMs: readDeadline() }))
+    },
+    [root, ran],
+  )
+
+  // Taking no argument on purpose: a screen hands this to `onClick`, which would call it with
+  // the event, and a refusal the reader never saw would be drawn over the run they asked for.
   const run = useCallback(() => {
-    const bridge = getBridge()
-    if (bridge === undefined) return
-    ran(bridge.run(root, { argv: buildArgv(root, 'lint', {}) }))
-  }, [root, ran])
+    rerun(null)
+  }, [rerun])
 
   const takeDoor = useCallback(
     (which: number, words: readonly string[]) => {
@@ -196,19 +223,21 @@ export function useGate(root: string): Gating {
       const offered = gate.kind === 'read' ? gate.offered : null
       if (bridge === undefined || offered === null) return
       // What a door answers is not a report, so the gate is what this waits for: the row
-      // goes when the finding does, and nothing here decides that it did.
+      // goes when the finding does, and nothing here decides that it did. The door's own
+      // refusal is carried into that run, since a fix that never ran and a fix that found
+      // nothing to do leave the same report behind.
       void bridge.door(root, offered, which, words).then(
-        () => {
-          run()
+        (answered) => {
+          rerun(answered.kind === 'failed' ? answered : null)
         },
-        () => {
-          run()
+        (cause: unknown) => {
+          rerun(saidPlainly(cause instanceof Error ? cause.message : ''))
         },
       )
       setGate({ kind: 'running' })
     },
-    [root, gate, run],
+    [root, gate, rerun],
   )
 
-  return { project, gate, run, takeDoor }
+  return { project, gate, refused, run, takeDoor }
 }

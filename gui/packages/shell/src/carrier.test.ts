@@ -199,12 +199,18 @@ describe('RG165: a door the engine offered', () => {
     ],
   })
 
+  /** A deadline no default could be mistaken for, so a door carrying one carries this one. */
+  const DEADLINE = 4321
+
   /** A carrier whose machine answers that for one verb, so `run` has doors to keep. */
   function offering() {
     const ran: string[][] = []
+    /** What each of those calls was given to run in, which for a door is the whole of RG260. */
+    const bounds: (number | undefined)[] = []
     const machine: Transport = {
       run(request) {
         ran.push([...request.argv])
+        bounds.push(request.timeoutMs)
         const verb = request.argv[2] ?? ''
         // Anything else answers a document with no doors in it, since what this fixture is
         // about is the door being run at all.
@@ -213,9 +219,10 @@ describe('RG165: a door the engine offered', () => {
       },
     }
     const { carrier } = world({
+      looking: () => ({ roots: FOUND.roots, skip: [], width: 2, timeoutMs: DEADLINE }),
       open: (root) => openProject(root, [['python', '/x/launch.py']], () => machine),
     })
-    return { carrier, ran }
+    return { carrier, ran, bounds }
   }
 
   /** The `lint` read, which is the one this fixture answers with doors. */
@@ -245,6 +252,19 @@ describe('RG165: a door the engine offered', () => {
     // The engine's own command line, filled: this is the verb the guard in front of `run`
     // refuses, which is the whole of why the door is taken by name.
     expect(ran.at(-1)).toEqual(['-C', A, 'section', 'add', 'RG9', '--title', 'A design', '--json'])
+  })
+
+  it('runs it under the declared deadline, since nothing else bounds it (RG260)', async () => {
+    const { carrier, bounds } = offering()
+    const answered = await carrier.run(A, linting(A))
+    if (answered.kind !== 'ran' || answered.offered === undefined) throw new Error('no doors')
+
+    await carrier.door(A, answered.offered, 0, ['A design'])
+
+    // A door is the engine's own command line and nobody composed a tool for it, so it takes
+    // the spawning fallback — where an absent deadline is no ceiling at all, and the window
+    // that pressed the button waits on it with nothing to end the wait.
+    expect(bounds.at(-1)).toBe(DEADLINE)
   })
 
   it('refuses a name nobody offered, and one from another project', async () => {

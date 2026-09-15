@@ -336,6 +336,7 @@ export const PT_BR: Wording = {
   'door.writes': 'escreve um arquivo governado',
   'door.take': 'Executar conserto',
   'door.blank': 'o que vai onde o engine deixou em branco',
+  'door.failed': 'O conserto não rodou: {reason}',
 
   'gate.title': 'A verificação',
   'gate.about': 'O que os arquivos governados dizem de si, e o que encerra cada achado.',
