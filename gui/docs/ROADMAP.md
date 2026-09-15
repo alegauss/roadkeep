@@ -14,6 +14,12 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
+- 📋 **RG243** (deps: —) **the session screen does not list the files the agent edited, so what it changed is found by reading the stream** — Every edit call names its file, but only governed files are marked, so the code a session changed is scattered through a stream of reads and notes. → §RG243
+- 📋 **RG244** (deps: RG243) **an edited file is listed on the session's word, so a call that reported success and changed nothing looks the same** — What moved is read off the files and not the stream, and a file outside the project must be named without the shell touching it. → §RG244
+- 📋 **RG245** (deps: RG243, RG244) **a file the session edited cannot be opened from the window, so reading it means leaving for an editor** — A person reviewing a run wants the file as it is now beside the stream that changed it, and the renderer has no disk to read it from. → §RG245
+- 📋 **RG246** (deps: RG245) **the file viewer shows a file as it is now and not what the session changed in it** — Reviewing a run is reading its edits, and neither git nor a copy taken at handover is this app's to hold, so the edit calls themselves are the before. → §RG246
+- 📋 **RG247** (deps: RG244, RG245) **files a session changed through a command and not an edit call appear nowhere on the session screen** — A formatter or a generator run through Bash moves files no edit call names, and git is not this app's to ask. → §RG247
+
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
