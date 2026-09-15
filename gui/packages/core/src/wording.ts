@@ -369,6 +369,8 @@ export const EN = {
   'gate.clean': 'Clean: {counted}, and nothing to answer for.',
   'gate.problems': '{count} findings over {counted}',
   'gate.problems.one': '{count} finding over {counted}',
+  'gate.explain.asking': 'Asking what this code means.',
+  'gate.explain.failed': 'This build did not say what this code means.',
   'gate.notes': 'Said without failing for it',
   'gate.doors': 'What closes it',
   'gate.doors.none': 'Nothing here closes this one on its own.',

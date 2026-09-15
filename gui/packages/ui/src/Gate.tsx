@@ -1,11 +1,12 @@
 import { counted, refusalOf, type GateHealth, type Gated, type LintPayload } from '@rk/core'
 import { Button } from '@viglet/viglet-design-system'
 import { BentoEmptyState, BentoPanel } from '@viglet/viglet-design-system/bento'
-import { useEffect, type ReactNode } from 'react'
+import { useCallback, useEffect, type ReactNode } from 'react'
 
 import { DoorRow } from './Doors'
 import { Caption } from './forms'
 import { Pill } from './marks'
+import { useExplained, type Explained, type Explaining } from './useExplained'
 import { useGate, worthRunning } from './useGate'
 import { useWhen, useWording } from './wording'
 
@@ -24,25 +25,80 @@ import { useWhen, useWording } from './wording'
  * screen that mixed the two would report a clean project as having eleven problems.
  */
 
+/**
+ * What a code means, in the engine's own words, under the finding that carries it (RG258).
+ *
+ * The message on a row is about one line; the code is a class, and what `ref.unresolved` is —
+ * whether it means different things in different places, what it waits on — is what `explain`
+ * answers. Its doors are not drawn: the finding's own remedy already offers them filled in
+ * for this line, while a class's carry a blank wherever this finding has a value.
+ */
+function Explains({ explained }: { readonly explained: Explained | undefined }) {
+  const say = useWording()
+  if (explained === undefined) return null
+  if (explained.kind === 'asking') {
+    return <span className="text-muted-foreground text-xs">{say('gate.explain.asking')}</span>
+  }
+  if (explained.kind === 'failed') {
+    return <span className="text-muted-foreground text-xs">{say('gate.explain.failed')}</span>
+  }
+
+  const { explanation } = explained
+  return (
+    <span className="flex flex-col gap-1 text-xs" data-testid="explained">
+      {explanation.cause === '' ? null : <span className="wrap-anywhere">{explanation.cause}</span>}
+      {explanation.varies === null || explanation.varies === '' ? null : (
+        <span className="text-muted-foreground wrap-anywhere">{explanation.varies}</span>
+      )}
+      {explanation.awaits === '' ? null : (
+        <span className="text-muted-foreground wrap-anywhere">
+          {say('gate.awaits', { awaits: explanation.awaits })}
+        </span>
+      )}
+    </span>
+  )
+}
+
 /** One finding, with what closes it under it. */
 function Finding({
   gated,
   onTake,
   mark,
+  explaining,
 }: {
   readonly gated: Gated
   readonly onTake: Taking
   /** Which report this row is in: a note is not a finding, and neither is drawn as one. */
   readonly mark: string
+  /**
+   * What a code means, where this build can answer it (RG258). Null where `explain` is not
+   * callable: a disclosure that opens on a refusal is a control that lies.
+   */
+  readonly explaining: Explaining | null
 }) {
   const say = useWording()
   const { finding } = gated
+  const code = finding.code
+  const asking = useCallback(() => {
+    explaining?.explain(code)
+  }, [explaining, code])
 
   return (
     <li className="border-t first:border-t-0" data-testid={mark}>
       <div className="flex flex-col gap-1 px-4 py-3">
         <span className="flex flex-wrap items-center gap-2">
-          <Pill intent="error">{finding.code}</Pill>
+          {explaining === null ? (
+            <Pill intent="error">{finding.code}</Pill>
+          ) : (
+            <details className="text-xs" data-testid="explain" onToggle={asking}>
+              <summary className="cursor-pointer list-none">
+                <Pill intent="error">{finding.code}</Pill>
+              </summary>
+              <span className="mt-1 block">
+                <Explains explained={explaining.explained.get(finding.code)} />
+              </span>
+            </details>
+          )}
           {finding.where === '' ? null : (
             <span className="text-muted-foreground font-mono text-xs">{finding.where}</span>
           )}
@@ -88,11 +144,13 @@ function Report({
   rows,
   onTake,
   mark,
+  explaining,
 }: {
   readonly title: ReactNode
   readonly rows: readonly Gated[]
   readonly onTake: Taking
   readonly mark: string
+  readonly explaining: Explaining | null
 }) {
   if (rows.length === 0) return null
   return (
@@ -107,6 +165,7 @@ function Report({
             gated={gated}
             onTake={onTake}
             mark={mark}
+            explaining={explaining}
           />
         ))}
       </ul>
@@ -186,6 +245,13 @@ export function GateTab({ root }: { readonly root: string }) {
   const say = useWording()
   const gating = useGate(root)
   const { gate, project, run, takeDoor } = gating
+  // What a code means is offered only where this build answers `explain` (RG258): a
+  // disclosure that opens on a refusal is a control that lies.
+  const explaining = useExplained(root, project)
+  const callable =
+    project !== null &&
+    project.capabilities.kind === 'known' &&
+    project.capabilities.byVerb.explain.callable
 
   // Run as the screen opens only where a run would say something new (RG185, RG254), which
   // `worthRunning` decides. A person pressing Run the gate is a person saying they want it
@@ -223,8 +289,20 @@ export function GateTab({ root }: { readonly root: string }) {
       {gate.kind === 'read' ? (
         <>
           <Counted payload={gate.payload} />
-          <Report title={say('gate.title')} rows={gate.findings} onTake={takeDoor} mark="finding" />
-          <Report title={say('gate.notes')} rows={gate.notes} onTake={takeDoor} mark="note" />
+          <Report
+            title={say('gate.title')}
+            rows={gate.findings}
+            onTake={takeDoor}
+            mark="finding"
+            explaining={callable ? explaining : null}
+          />
+          <Report
+            title={say('gate.notes')}
+            rows={gate.notes}
+            onTake={takeDoor}
+            mark="note"
+            explaining={callable ? explaining : null}
+          />
         </>
       ) : null}
     </div>

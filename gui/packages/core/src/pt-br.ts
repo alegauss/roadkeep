@@ -352,6 +352,8 @@ export const PT_BR: Wording = {
   'gate.clean': 'Limpo: {counted}, e nada a responder.',
   'gate.problems': '{count} achados em {counted}',
   'gate.problems.one': '{count} achado em {counted}',
+  'gate.explain.asking': 'Perguntando o que este código significa.',
+  'gate.explain.failed': 'Este build não disse o que este código significa.',
   'gate.notes': 'Dito sem reprovar por isso',
   'gate.doors': 'O que encerra isto',
   'gate.doors.none': 'Nada aqui encerra este achado sozinho.',

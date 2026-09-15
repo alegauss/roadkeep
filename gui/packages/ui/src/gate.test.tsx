@@ -115,11 +115,42 @@ const CLEAN = {
 interface Wired {
   readonly gates: number[]
   readonly doors: { which: number; words: readonly string[] }[]
+  /** Each code `explain` was asked about, in order (RG258). */
+  readonly explained: string[]
   /** What the next gate answers: the first run drifts, and a door closes it. */
   clean: boolean
 }
 
-function engine(): Transport {
+/** What `explain` answers about a code, which is the class and not the line (RG258). */
+const EXPLAINED = {
+  code: 'ref.unresolved',
+  kind: 'reference',
+  cause: 'a line points at a section no prose file declares',
+  varies: 'in the decisions role it means the same about that file',
+  sequence: false,
+  awaits: '',
+  doors: [
+    { argv: ['section', 'add', '…'], what: 'writes the section', complete: false, writes: true },
+  ],
+}
+
+/** The published commands: `explain` among them unless a test says this build lacks it. */
+const PUBLISHED = (explains: boolean) =>
+  explains
+    ? [
+        {
+          command: 'explain',
+          family: 'reading',
+          help: 'what a code means',
+          writes: false,
+          runs: true,
+          tool: false,
+          arguments: [],
+        },
+      ]
+    : []
+
+function engine(explains = true, asked: string[] = []): Transport {
   return {
     run(request) {
       const verb = request.argv[2] ?? ''
@@ -144,7 +175,10 @@ function engine(): Transport {
             keys: [key('files', 'roadmap', '"docs/ROADMAP.md"')],
           })
         case 'commands':
-          return said({ version: '0.2.400', source: null, commands: [] })
+          return said({ version: '0.2.400', source: null, commands: PUBLISHED(explains) })
+        case 'explain':
+          asked.push(request.argv[3] ?? '')
+          return said({ ...EXPLAINED, code: request.argv[3] ?? '' })
         default:
           return Promise.reject(new EngineCallFailed('unspawnable', 'no', 1))
       }
@@ -152,10 +186,15 @@ function engine(): Transport {
   }
 }
 
-async function at(path: string, held: readonly ProjectGate[] = []): Promise<Wired> {
-  const transport = engine()
+async function at(
+  path: string,
+  held: readonly ProjectGate[] = [],
+  explains = true,
+): Promise<Wired> {
+  const explained: string[] = []
+  const transport = engine(explains, explained)
   const opened = openedFrom(await openProject(ROOT, [['python', 'launch.py']], () => transport))
-  const wired: Wired = { gates: [], doors: [], clean: false }
+  const wired: Wired = { gates: [], doors: [], clean: false, explained }
 
   Object.defineProperty(window, 'roadkeep', {
     value: stubBridge({
@@ -306,6 +345,55 @@ describe('RG152: the gate as a surface', () => {
     await screen.findByTestId('counted')
     expect(wired.gates).toHaveLength(1)
     expect(screen.getByTestId('gate-tab').getAttribute('aria-selected')).toBe('true')
+  })
+})
+
+describe('RG258: what a finding’s code means', () => {
+  it('asks explain once per code, and draws what it answered in the engine’s words', async () => {
+    const wired = await at(gatePath(ROOT))
+    await screen.findByTestId('counted')
+
+    // Two rows, two codes: the note carries `install.stale` and the finding `ref.unresolved`.
+    const [first] = screen.getAllByTestId('explain')
+    if (first === undefined) throw new Error('no disclosure')
+    fireEvent.click(within(first).getByText('ref.unresolved'))
+
+    expect(await within(first).findByTestId('explained')).toBeTruthy()
+    expect(
+      within(first).getByText('a line points at a section no prose file declares'),
+    ).toBeTruthy()
+    // What the class means where it means something else, which is what `varies` is for.
+    expect(
+      within(first).getByText('in the decisions role it means the same about that file'),
+    ).toBeTruthy()
+    expect(wired.explained).toEqual(['ref.unresolved'])
+  })
+
+  it('reads nothing a second time for a code it has already asked about', async () => {
+    const wired = await at(gatePath(ROOT))
+    await screen.findByTestId('counted')
+    const [first] = screen.getAllByTestId('explain')
+    if (first === undefined) throw new Error('no disclosure')
+
+    fireEvent.click(within(first).getByText('ref.unresolved'))
+    await within(first).findByTestId('explained')
+    // Closed and opened again: a code is a class, and its explanation does not change while
+    // a screen is up.
+    fireEvent.click(within(first).getByText('ref.unresolved'))
+    fireEvent.click(within(first).getByText('ref.unresolved'))
+    await within(first).findByTestId('explained')
+
+    expect(wired.explained).toEqual(['ref.unresolved'])
+  })
+
+  it('draws no disclosure at all where this build does not answer explain', async () => {
+    const wired = await at(gatePath(ROOT), [], false)
+    await screen.findByTestId('counted')
+
+    // A control that opens on a refusal is a control that lies: the code stays a pill.
+    expect(screen.queryAllByTestId('explain')).toEqual([])
+    expect(screen.getAllByText('ref.unresolved').length).toBeGreaterThan(0)
+    expect(wired.explained).toEqual([])
   })
 })
 
