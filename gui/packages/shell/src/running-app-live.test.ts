@@ -42,10 +42,12 @@ describe('RG60: what the renderer was given', () => {
     // RG153 the four that start a session, say what is running, stop one, and say when each
     // governed file last changed. RG165 added the one that takes a door the engine offered, and
     // RG152 the one that reads the gate verdicts the carrier holds. RG207 folded the ground's
-    // and the language's writes into the one that writes a preference.
+    // and the language's writes into the one that writes a preference. RG244 added the one that
+    // says when the disk last changed each file a session edited.
     expect(methods).toEqual([
       'chooseRoot',
       'door',
+      'editedAt',
       'gates',
       'governedAt',
       'handOver',
@@ -202,8 +204,9 @@ describe('RG60: what the renderer was not given', () => {
       `Object.values(window['${BRIDGE_KEY}']).map((one) => typeof one)`,
     )
 
-    // Sixteen since RG207 folded the ground's and the language's writes into one.
-    expect(reachable).toHaveLength(16)
+    // Sixteen since RG207 folded the ground's and the language's writes into one, and seventeen
+    // since RG244 added the one that asks the disk about a session's edited files.
+    expect(reachable).toHaveLength(17)
     expect(reachable.every((one) => one === 'function')).toBe(true)
   })
 })

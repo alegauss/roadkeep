@@ -27,6 +27,22 @@ export function rootKey(candidate: string): string {
 }
 
 /**
+ * A path resolved against a root, or null where it lands outside it (RG153, RG244).
+ *
+ * The one inside test the side with the disk keeps: a governed file's path comes from the
+ * project's config and an edited file's from a session's call, and neither is statted where it
+ * leads out of the project. Compared as `rootKey` compares, so `d:\git\x\a.ts` is under
+ * `D:\Git\x` on the platforms where it is the same file.
+ */
+export function withinRoot(root: string, spelled: string): string | null {
+  const inside = path.resolve(root)
+  const full = path.resolve(inside, spelled)
+  const key = (one: string): string => (CASE_INSENSITIVE ? one.toLowerCase() : one)
+  const prefix = inside.endsWith(path.sep) ? inside : `${inside}${path.sep}`
+  return key(full) === key(inside) || key(full).startsWith(key(prefix)) ? full : null
+}
+
+/**
  * Whether the folder is there now. Anything that is not a directory is not a root.
  *
  * Asynchronous and bounded since RG102: this is asked once per declared root, in the

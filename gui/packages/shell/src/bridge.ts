@@ -13,6 +13,7 @@ import {
   wordingFor,
   type BridgedResult,
   type BridgeIdentity,
+  type EditedFile,
   type GovernedFile,
   type HandedOver,
   type KnownRoot,
@@ -25,6 +26,7 @@ import { app, BrowserWindow, dialog, ipcMain, type WebContents } from 'electron'
 import { AGENT_VAR, agentCandidates, agentOverride } from './agent-candidates'
 import { loadCatalogue, saveCatalogue } from './catalogue-file'
 import { createCarrier, type Carrier } from './carrier'
+import { editedAt } from './edited-at'
 import { governedAt } from './governed-at'
 import { createSubscriptions, type Subscriber } from './subscriptions'
 import { localeChoice } from './locale'
@@ -287,6 +289,15 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
       return opened.kind === 'open' ? governedAt(root, opened.governed) : []
     },
   )
+  // What the disk says about the files a session's calls edited (RG244). The page names the
+  // session and the paths; the root is the one this process started that session in, so a key
+  // it never issued is answered with nothing, and a path outside that root is never statted.
+  ipcMain.handle(BRIDGE_CHANNELS.editedAt, (_event, key: unknown, paths: unknown): EditedFile[] => {
+    if (typeof key !== 'string' || !Array.isArray(paths)) return []
+    const spelled = paths.filter((one): one is string => typeof one === 'string')
+    const root = sessions.rootOf(key)
+    return root === null ? [] : editedAt(root, spelled)
+  })
 
   // The gate verdicts on record (RG152): a read of the ledger the carrier dates, never a run.
   ipcMain.handle(BRIDGE_CHANNELS.gates, () => carrier.gates())

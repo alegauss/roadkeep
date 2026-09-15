@@ -158,6 +158,9 @@ function process(): { fake: Fake; start: NonNullable<SessionsOptions['start']> }
   return { fake, start }
 }
 
+/** The clock's answer as a session is spawned. */
+const SPAWNED = new Date('2026-09-15T10:00:00.000Z')
+
 /** The environment the fake decision hands back, so a test can find it at the process. */
 const DECIDED: NodeJS.ProcessEnv = { PATH: '/bin', DECIDED: 'yes' }
 
@@ -191,6 +194,7 @@ async function sessions(agent: AgentResolution = FOUND) {
     publish: (event) => published.push(event),
     start,
     key: () => 'session-1',
+    now: () => SPAWNED,
   })
   return {
     made,
@@ -348,6 +352,24 @@ describe('RG153: what a running session says', () => {
 
     expect(fake.cancelled).toBe(1)
     expect(made.list()[0]?.outcome?.state).toBe('cancelled')
+  })
+
+  it('says when the process was spawned, which an edited file is read against (RG244)', async () => {
+    const { made } = await sessions()
+
+    const handed = await made.handOver(ROOT, 'FX1')
+
+    expect(handed.kind === 'started' && handed.session.started).toBe(SPAWNED.toISOString())
+    expect(made.list()[0]?.started).toBe(SPAWNED.toISOString())
+  })
+
+  it('answers the root a session runs in by its key, and nothing for a key it never issued', async () => {
+    // The root a question about its files is asked under is this, never a page's (RG244).
+    const { made } = await sessions()
+    await made.handOver(ROOT, 'FX1')
+
+    expect(made.rootOf('session-1')).toBe(ROOT)
+    expect(made.rootOf('nobody')).toBeNull()
   })
 
   it('hands back copies, so nothing outside can edit what it holds', async () => {

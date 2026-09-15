@@ -10,10 +10,13 @@ import {
   isRoadkeep,
   marksOf,
   NOTHING_MARKED,
+  onDisk,
   subjectOf,
   touched,
+  type Edited,
   type Marks,
 } from './acts'
+import type { EditedFile } from './bridge'
 
 /** What this project's `config` and engine resolution would supply. */
 const MARKS: Marks = {
@@ -388,6 +391,83 @@ describe('RG243: the files a session edited', () => {
       ['docs/ROADMAP.md', true],
       ['README.md', false],
     ])
+  })
+})
+
+describe('RG244: an edited file against the disk', () => {
+  const STARTED = '2026-09-15T10:00:00.000Z'
+  const EDITED: Edited = {
+    path: 'src/a.ts',
+    calls: 1,
+    last: 3,
+    answered: true,
+    failed: false,
+    governed: false,
+  }
+  const at = (over: Partial<EditedFile> = {}): EditedFile => ({
+    path: 'src/a.ts',
+    shown: 'src/a.ts',
+    inside: true,
+    present: true,
+    changed: '2026-09-15T10:05:00.000Z',
+    ...over,
+  })
+
+  it('says whether the last call has been answered, apart from whether it failed', () => {
+    const acts = actsIn(
+      [
+        JSON.stringify({
+          type: 'assistant',
+          message: {
+            content: [
+              { type: 'tool_use', id: 'e1', name: 'Edit', input: { file_path: 'src/a.ts' } },
+              { type: 'tool_use', id: 'e2', name: 'Edit', input: { file_path: 'src/b.ts' } },
+            ],
+          },
+        }),
+        JSON.stringify({
+          type: 'user',
+          message: { content: [{ tool_use_id: 'e1', type: 'tool_result', content: 'ok' }] },
+        }),
+      ],
+      MARKS,
+    )
+
+    expect(editedIn(acts).map((one) => [one.path, one.answered, one.failed])).toEqual([
+      ['src/a.ts', true, false],
+      ['src/b.ts', false, false],
+    ])
+  })
+
+  it('reads a file the disk changed after the session started as changed', () => {
+    expect(onDisk(EDITED, at(), STARTED)).toEqual({ standing: 'changed', disagrees: false })
+  })
+
+  it('finds the disagreement: a call reported success and the disk has not changed the file', () => {
+    const before = at({ changed: '2026-09-15T09:00:00.000Z' })
+
+    expect(onDisk(EDITED, before, STARTED)).toEqual({ standing: 'unchanged', disagrees: true })
+    expect(onDisk(EDITED, at({ present: false, changed: '' }), STARTED)).toEqual({
+      standing: 'missing',
+      disagrees: true,
+    })
+    // A call that failed, or has not answered, reported nothing to disagree with.
+    expect(onDisk({ ...EDITED, failed: true }, before, STARTED).disagrees).toBe(false)
+    expect(onDisk({ ...EDITED, answered: false }, before, STARTED).disagrees).toBe(false)
+  })
+
+  it('names a path outside the root, and one the disk has not answered for, without a verdict', () => {
+    expect(onDisk(EDITED, at({ inside: false, present: false, changed: '' }), STARTED)).toEqual({
+      standing: 'outside',
+      disagrees: false,
+    })
+    expect(onDisk(EDITED, undefined, STARTED)).toEqual({ standing: 'unasked', disagrees: false })
+  })
+
+  it('never calls a file unchanged against a start it cannot read', () => {
+    const before = at({ changed: '2026-09-15T09:00:00.000Z' })
+
+    expect(onDisk(EDITED, before, '').standing).toBe('changed')
   })
 })
 

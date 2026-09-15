@@ -20,6 +20,7 @@
  * to work around.
  */
 
+import type { EditedFile } from './bridge'
 import { asRecord } from './reading'
 
 /**
@@ -298,6 +299,8 @@ export interface Edited {
   readonly calls: number
   /** The seq of the last of them. */
   readonly last: number
+  /** True where the result answering that last call has arrived (RG244). */
+  readonly answered: boolean
   /** True where the result answering that last call failed. A result not yet in is not failed. */
   readonly failed: boolean
   /** True where the path is one of the files the project governs. */
@@ -319,19 +322,64 @@ export function editedIn(acts: readonly Act[]): Edited[] {
   const byPath = new Map<string, Edited>()
   for (const act of acts) {
     if (act.kind !== 'used' || act.on === '' || !EDITING_TOOLS.has(act.tool)) continue
-    const failed = answered.get(act.id) === false
+    const answer = answered.get(act.id)
     const was = byPath.get(act.on)
     byPath.set(act.on, {
       path: act.on,
       calls: (was?.calls ?? 0) + 1,
       last: act.seq,
-      failed,
+      answered: answer !== undefined,
+      failed: answer === false,
       // Named by the path and not by the input, whose content may mention a governed file.
       governed:
         was?.governed ?? governedIn(act.on, { governed: act.governed, engine: [] }).length > 0,
     })
   }
   return [...byPath.values()]
+}
+
+/**
+ * Where an edited file stands on disk (RG244): not answered for yet, outside the session's
+ * root, not there, or there and changed or not since the session started.
+ */
+export type DiskStanding = 'unasked' | 'outside' | 'missing' | 'changed' | 'unchanged'
+
+export interface OnDisk {
+  readonly standing: DiskStanding
+  /**
+   * True where the session's last call on the file reported success and the disk does not
+   * hold it: the file is not there, or has not changed since the session started. The
+   * disagreement a reader opens the list to find.
+   */
+  readonly disagrees: boolean
+}
+
+/**
+ * What the disk says about one file the session edited, read against when it started (RG244).
+ *
+ * **Unchanged is proved, never assumed.** A file reads as unchanged only where its time is
+ * earlier than a start that parses; anything else that is there reads as changed, which says
+ * when the disk changed it and nothing about the session.
+ *
+ * @param at the side with the disk's answer for this path, or undefined before it answered
+ * @param started the session's `started`, an ISO time
+ */
+export function onDisk(edited: Edited, at: EditedFile | undefined, started: string): OnDisk {
+  const standing = standingOf(at, started)
+  const reported = edited.answered && !edited.failed
+  return {
+    standing,
+    disagrees: reported && (standing === 'missing' || standing === 'unchanged'),
+  }
+}
+
+function standingOf(at: EditedFile | undefined, started: string): DiskStanding {
+  if (at === undefined) return 'unasked'
+  if (!at.inside) return 'outside'
+  if (!at.present) return 'missing'
+  const since = Date.parse(started)
+  const changed = Date.parse(at.changed)
+  return !Number.isNaN(since) && !Number.isNaN(changed) && changed < since ? 'unchanged' : 'changed'
 }
 
 /**

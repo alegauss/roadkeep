@@ -65,12 +65,19 @@ export interface SessionsOptions {
   ) => RunningSession
   /** Name a new session. A random UUID unless a test says otherwise. */
   readonly key?: () => string
+  /** The time a session is spawned at (RG244). The clock unless a test says otherwise. */
+  readonly now?: () => Date
 }
 
 export interface Sessions {
   handOver(root: string, id: string): Promise<HandedOver>
   /** Every session started, each with its lines so far. Copies, so nothing outside edits one. */
   list(): SessionRecord[]
+  /**
+   * The root a session was started in, or null for a key that names none (RG244): what a
+   * question about its files is answered under, so the root is never a page's word.
+   */
+  rootOf(key: string): string | null
   /** Stop one. Nothing happens for a key that names no running session. */
   stop(key: string): void
   /** Stop every session still running, awaited to the last exit. What quitting waits on. */
@@ -81,6 +88,7 @@ interface Held {
   readonly key: string
   readonly root: string
   readonly id: string
+  readonly started: string
   readonly handed: BriefPayload
   readonly agent: Agent
   readonly lines: string[]
@@ -107,6 +115,7 @@ function recordOf(held: Held): SessionRecord {
     key: held.key,
     root: held.root,
     id: held.id,
+    started: held.started,
     handed: held.handed,
     agent: held.agent,
     lines: [...held.lines],
@@ -118,6 +127,7 @@ export function createSessions(options: SessionsOptions): Sessions {
   const start = options.start ?? startSession
   const environment = options.environment ?? (() => Promise.resolve(process.env))
   const named = options.key ?? randomUUID
+  const now = options.now ?? (() => new Date())
   const held = new Map<string, Held>()
   // Kept once found: which Claude Code a machine has does not change under a running app. A
   // machine that had none is asked again, since installing one is what somebody does next.
@@ -146,6 +156,8 @@ export function createSessions(options: SessionsOptions): Sessions {
       key: named(),
       root,
       id,
+      // Taken as the process is started, so a file the disk changed before it reads as unchanged.
+      started: now().toISOString(),
       handed,
       agent: found,
       lines: [],
@@ -205,6 +217,10 @@ export function createSessions(options: SessionsOptions): Sessions {
 
     list() {
       return [...held.values()].map(recordOf)
+    },
+
+    rootOf(key) {
+      return held.get(key)?.root ?? null
     },
 
     stop(key) {

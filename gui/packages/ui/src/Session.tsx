@@ -5,10 +5,12 @@ import {
   foldedNotes,
   FOLLOWING,
   landingBetween,
+  onDisk,
   scrolledTo,
   type Act,
   type Change,
   type ClaimsPayload,
+  type DiskStanding,
   type Follow,
   type GovernedFile,
   type MessageKey,
@@ -28,6 +30,7 @@ import { HeroActions } from './hero'
 import { Glyph, Pill, type Intent } from './marks'
 import { useSessionNotes } from './preferring'
 import { ProjectTrail } from './trail'
+import { useEditedAt } from './useEditedAt'
 import { useRegionHeight } from './useRegionHeight'
 import { useSession } from './useSession'
 import { useWhen, useWording } from './wording'
@@ -45,8 +48,8 @@ import { useWhen, useWording } from './wording'
  * **What moved is read off the files, not off the stream.** A session can report shipping a
  * line it did not ship, so the line is briefed again on every move and `landingBetween`
  * compares that with what the session was handed. Where the two disagree, this column is the
- * one that is true. The files it edited are the one list here off the stream (RG243), and
- * captioned as the session's own account.
+ * one that is true. The files it edited are listed off the stream (RG243) and each is then
+ * asked of the disk (RG244), so that list is held to the same rule.
  *
  * Stopping kills the process and leaves the claim to the registry's expiry — the session may
  * have moved the line, and releasing it here would undo a state nobody reviewed.
@@ -266,16 +269,48 @@ function Files({ files }: { readonly files: readonly GovernedFile[] }) {
   )
 }
 
+/** What the disk says about an edited file, for each place it can stand (RG244). */
+const STANDING_TEXT: Readonly<Record<Exclude<DiskStanding, 'unasked' | 'changed'>, MessageKey>> = {
+  outside: 'session.edited.outside',
+  missing: 'session.edited.missing',
+  unchanged: 'session.edited.unchanged',
+}
+
+/** One edited file's standing on disk, or nothing before the disk has answered for it. */
+function DiskSaid({
+  standing,
+  changed,
+}: {
+  readonly standing: DiskStanding
+  readonly changed: string
+}) {
+  const say = useWording()
+  const when = useWhen()
+  if (standing === 'unasked') return null
+  if (standing === 'changed') return <>{say('session.edited.changed', { when: when(changed) })}</>
+  return <>{say(STANDING_TEXT[standing])}</>
+}
+
 /**
- * The files the session edited, off its own calls (RG243).
+ * The files the session edited, off its own calls and then asked of the disk (RG243, RG244).
  *
- * The one list in this column the stream answers and not the files: every edit call names its
- * path, so the code a session changed is listed rather than found by reading the stream. The
- * caption says whose account it is, since whether the disk agrees is another read.
+ * Every edit call names its path, so the code a session changed is listed rather than found by
+ * reading the stream. **The list is the session's word and each row's standing is the disk's**,
+ * the rule this column keeps for the backlog: a call that reported success on a file the disk
+ * has not changed since the session started is drawn as the disagreement it is.
  */
-function Edited({ acts }: { readonly acts: readonly Act[] }) {
+function Edited({
+  acts,
+  record,
+  ended,
+}: {
+  readonly acts: readonly Act[]
+  readonly record: SessionRecord
+  readonly ended: boolean
+}) {
   const say = useWording()
   const edited = useMemo(() => editedIn(acts), [acts])
+  const disk = useEditedAt(record.key, edited, ended)
 
   return (
     <section className="mt-4" data-testid="edited">
@@ -286,21 +321,38 @@ function Edited({ acts }: { readonly acts: readonly Act[] }) {
         <>
           <p className="text-muted-foreground mb-1.5 text-xs">{say('session.edited.about')}</p>
           <ul className="flex flex-col gap-1.5 text-xs">
-            {edited.map((file) => (
-              <li
-                key={file.path}
-                className="flex flex-col gap-0.5"
-                data-testid="edited-file"
-                data-path={file.path}
-              >
-                <span className="font-mono wrap-anywhere">{file.path}</span>
-                <span className="text-muted-foreground flex flex-wrap items-center gap-1.5">
-                  {say('session.edited.calls', { count: file.calls })}
-                  {file.governed ? <Pill intent="on">{say('session.edited.governed')}</Pill> : null}
-                  {file.failed ? <Pill intent="error">{say('session.edited.failed')}</Pill> : null}
-                </span>
-              </li>
-            ))}
+            {edited.map((file) => {
+              const at = disk.get(file.path)
+              const read = onDisk(file, at, record.started)
+              return (
+                <li
+                  key={file.path}
+                  className="flex flex-col gap-0.5"
+                  data-testid="edited-file"
+                  data-path={file.path}
+                  data-standing={read.standing}
+                >
+                  <span className="font-mono wrap-anywhere">{at?.shown ?? file.path}</span>
+                  <span className="text-muted-foreground flex flex-wrap items-center gap-1.5">
+                    {say('session.edited.calls', { count: file.calls })}
+                    {file.governed ? (
+                      <Pill intent="on">{say('session.edited.governed')}</Pill>
+                    ) : null}
+                    {file.failed ? (
+                      <Pill intent="error">{say('session.edited.failed')}</Pill>
+                    ) : null}
+                  </span>
+                  {read.standing === 'unasked' ? null : (
+                    <span className="text-muted-foreground flex flex-wrap items-center gap-1.5">
+                      <DiskSaid standing={read.standing} changed={at?.changed ?? ''} />
+                      {read.disagrees ? (
+                        <Pill intent="warn">{say('session.edited.disagrees')}</Pill>
+                      ) : null}
+                    </span>
+                  )}
+                </li>
+              )
+            })}
           </ul>
         </>
       )}
@@ -381,7 +433,7 @@ function Moved({
           {outcome.said}
         </pre>
       )}
-      <Edited acts={acts} />
+      <Edited acts={acts} record={record} ended={outcome !== null} />
       <Files files={files} />
       <Elsewhere claims={claims} id={record.id} />
     </BentoPanel>

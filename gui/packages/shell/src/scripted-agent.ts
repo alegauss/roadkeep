@@ -55,13 +55,17 @@ export interface ScriptedAgent {
  * One cycle of the tail: something said, a call, its answer, and a note between turns.
  *
  * Every other call is an edit, spread over three files, so the files a session edited have rows
- * to draw with more than one call among them (RG243).
+ * to draw with more than one call among them (RG243). One of the three is outside the project,
+ * so that row's standing is drawn too (RG244); the other two are never written, which is what a
+ * replay that only reports its edits looks like against the disk.
  */
 function tailCycle(at: number): string[] {
   const id = `scripted-${String(at)}`
+  const edited =
+    at % 3 === 0 ? '../elsewhere/scripted-notes.md' : `src/scripted-${String(at % 3)}.ts`
   const call =
     at % 2 === 0
-      ? { name: 'Edit', input: { file_path: `src/scripted-${String(at % 3)}.ts` } }
+      ? { name: 'Edit', input: { file_path: edited } }
       : { name: 'Read', input: { file_path: 'docs/ROADMAP.md' } }
   return [
     {

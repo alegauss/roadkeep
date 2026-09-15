@@ -1,7 +1,8 @@
 import { statSync } from 'node:fs'
-import path from 'node:path'
 
 import type { GovernedFile } from '@rk/core'
+
+import { withinRoot } from './root-paths'
 
 /**
  * When each governed file last changed, as the disk says (RG153).
@@ -33,12 +34,9 @@ export function governedAt(
   governed: Readonly<Record<string, string>>,
   stat: StatAt = REAL_STAT,
 ): GovernedFile[] {
-  const inside = path.resolve(root)
-
   return Object.entries(governed).map(([role, spelled]) => {
-    const full = path.resolve(inside, spelled)
-    const within = full === inside || full.startsWith(`${inside}${path.sep}`)
-    const found = within ? stat(full) : null
+    const full = withinRoot(root, spelled)
+    const found = full === null ? null : stat(full)
     return {
       role,
       path: spelled,

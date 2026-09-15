@@ -14,6 +14,7 @@ import {
   PT_BR,
   PT_BR_LOCALE,
   translator,
+  type EditedFile,
 } from '@rk/core'
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -496,6 +497,122 @@ describe('RG243: the files a session edited', () => {
       'src/alpha.ts',
     )
     expect(screen.getByText(say('session.edited.about'))).toBeTruthy()
+  })
+})
+
+describe('RG244: the edited files against the disk', () => {
+  const ALPHA = 'D:\\code\\alpha\\src\\alpha.ts'
+  const OUTSIDE = 'C:\\Users\\a\\.claude\\memory\\notes.md'
+  const EDITS = JSON.stringify({
+    type: 'assistant',
+    message: {
+      content: [
+        { type: 'tool_use', id: 'd1', name: 'Edit', input: { file_path: ALPHA } },
+        { type: 'tool_use', id: 'd2', name: 'Edit', input: { file_path: 'src/beta.ts' } },
+        { type: 'tool_use', id: 'd3', name: 'Write', input: { file_path: OUTSIDE } },
+        { type: 'tool_use', id: 'd4', name: 'Edit', input: { file_path: 'src/gone.ts' } },
+      ],
+    },
+  })
+  const ANSWERS = JSON.stringify({
+    type: 'user',
+    message: {
+      content: ['d1', 'd2', 'd3', 'd4'].map((id) => ({
+        tool_use_id: id,
+        type: 'tool_result',
+        content: 'updated',
+      })),
+    },
+  })
+  /** Changed after the session started, before it, outside the root, and not there. */
+  const DISK: EditedFile[] = [
+    { path: ALPHA, shown: 'src/alpha.ts', inside: true, present: true, changed: CHANGED },
+    {
+      path: 'src/beta.ts',
+      shown: 'src/beta.ts',
+      inside: true,
+      present: true,
+      changed: '2026-09-10T08:00:00.000Z',
+    },
+    { path: OUTSIDE, shown: OUTSIDE, inside: false, present: false, changed: '' },
+    { path: 'src/gone.ts', shown: 'src/gone.ts', inside: true, present: false, changed: '' },
+  ]
+
+  const row = (path: string) => {
+    const found = screen.getAllByTestId('edited-file').find((one) => one.dataset['path'] === path)
+    if (found === undefined) throw new Error(`no row for ${path}`)
+    return found
+  }
+
+  it('says where each edited file stands on disk, and where the disk disagrees', async () => {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD], edited: DISK })
+    await screen.findByTestId('edited')
+
+    hear(wired, 'session', { session: KEY, index: 1, line: EDITS })
+    hear(wired, 'session', { session: KEY, index: 2, line: ANSWERS })
+
+    await waitFor(() => {
+      expect(row('src/gone.ts').dataset['standing']).toBe('missing')
+    })
+    // Changed since the session started: the time, in the window's language, and no dispute.
+    const alpha = within(row(ALPHA))
+    expect(row(ALPHA).dataset['standing']).toBe('changed')
+    // Drawn as the shell shortened it, and matched on the path the call spelled.
+    expect(alpha.getByText('src/alpha.ts')).toBeTruthy()
+    expect(
+      alpha.getByText(fill(BASE['session.edited.changed'], { when: timeIn(CHANGED, BASE_LOCALE) })),
+    ).toBeTruthy()
+    expect(alpha.queryByText(BASE['session.edited.disagrees'])).toBeNull()
+    // A call reported success and the disk has not changed the file since: the disagreement.
+    const beta = within(row('src/beta.ts'))
+    expect(beta.getByText(BASE['session.edited.unchanged'])).toBeTruthy()
+    expect(beta.getByText(BASE['session.edited.disagrees'])).toBeTruthy()
+    // Outside the project: named, never checked, and nothing to disagree with.
+    const outside = within(row(OUTSIDE))
+    expect(outside.getByText(BASE['session.edited.outside'])).toBeTruthy()
+    expect(outside.queryByText(BASE['session.edited.disagrees'])).toBeNull()
+    const gone = within(row('src/gone.ts'))
+    expect(gone.getByText(BASE['session.edited.missing'])).toBeTruthy()
+    expect(gone.getByText(BASE['session.edited.disagrees'])).toBeTruthy()
+  })
+
+  it('asks by the session and the paths its calls named, once calls land and when it ends', async () => {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD], edited: DISK })
+    await screen.findByTestId('edited')
+
+    // Calls still running have not moved the disk, so nothing is asked until one answers.
+    hear(wired, 'session', { session: KEY, index: 1, line: EDITS })
+    await screen.findAllByTestId('edited-file')
+    expect(wired.editedAsked).toEqual([])
+
+    hear(wired, 'session', { session: KEY, index: 2, line: ANSWERS })
+    await waitFor(() => {
+      expect(wired.editedAsked).toHaveLength(1)
+    })
+    expect(wired.editedAsked[0]).toEqual({
+      key: KEY,
+      paths: [ALPHA, 'src/beta.ts', OUTSIDE, 'src/gone.ts'],
+    })
+
+    hear(wired, 'session', {
+      session: KEY,
+      outcome: { state: 'done', sessionId: 'fake', code: 0, said: '', result: 'done' },
+    })
+    await waitFor(() => {
+      expect(wired.editedAsked).toHaveLength(2)
+    })
+  })
+
+  it('draws a row before the disk answers, with no standing claimed for it', async () => {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
+    await screen.findByTestId('edited')
+
+    hear(wired, 'session', { session: KEY, index: 1, line: EDITS })
+
+    await waitFor(() => {
+      expect(row('src/beta.ts').dataset['standing']).toBe('unasked')
+    })
+    expect(within(row('src/beta.ts')).queryByText(BASE['session.edited.disagrees'])).toBeNull()
   })
 })
 

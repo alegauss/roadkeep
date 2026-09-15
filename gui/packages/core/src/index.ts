@@ -11,6 +11,7 @@ export type {
   BridgedRequest,
   BridgedResult,
   BridgeIdentity,
+  EditedFile,
   GovernedFile,
   HandedOver,
   LaunchSettings,
@@ -79,10 +80,11 @@ export {
   isRoadkeep,
   marksOf,
   NOTHING_MARKED,
+  onDisk,
   subjectOf,
   touched,
 } from './acts'
-export type { Act, Edited, Marks, StreamRow } from './acts'
+export type { Act, DiskStanding, Edited, Marks, OnDisk, StreamRow } from './acts'
 export { loggedIn, resolveAgent, saidOfAgent, versionIn } from './agent'
 export type {
   Agent,

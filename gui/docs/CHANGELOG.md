@@ -160,6 +160,7 @@
 - ✅ **RG225** **at 400 wide the session opens on two panels, so the stream a reader came for starts below the fold** — The session writes its stream first and places each column at lg, so at 400 wide the newest act is inside the window and 1280 is unchanged.
 - ✅ **RG228** **at 400 wide the sessions list draws its headings over each other and cuts each project name to a letter** — Below sm the sessions list hides its headings and stacks each row, so at 400 wide a project's name is whole and nothing is drawn over it.
 - ✅ **RG243** **the session screen does not list the files the agent edited, so what it changed is found by reading the stream** — What moved lists each file the session's edit calls named, counted, marked governed and failed, as the session's own account (design recorded in `packages/core/src/acts.ts`).
+- ✅ **RG244** **an edited file is listed on the session's word, so a call that reported success and changed nothing looks the same** — Each edited file is asked of the disk under the session's root, and a call that reported success on an unchanged file is flagged (design recorded in `packages/shell/src/edited-at.ts`).
 
 ## Block G — The shell (an executable now, a service later)
 

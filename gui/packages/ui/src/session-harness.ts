@@ -4,6 +4,7 @@ import {
   openedFrom,
   openProject,
   readBriefPayload,
+  type EditedFile,
   type HandedOver,
   type SessionRecord,
   type Topic,
@@ -82,10 +83,14 @@ function handed() {
   return parsed.value
 }
 
+/** When the fixture session was spawned: what an edited file's time is read against (RG244). */
+export const STARTED = '2026-09-11T09:00:00.000Z'
+
 export const RECORD: SessionRecord = {
   key: KEY,
   root: ROOT,
   id: 'AL1',
+  started: STARTED,
   handed: handed(),
   agent: { command: ['claude'], version: '2.1.263', said: '2.1.263 (Claude Code)' },
   lines: [JSON.stringify({ type: 'system', subtype: 'init', session_id: 'fake' })],
@@ -185,6 +190,8 @@ export interface Wired {
   readonly listeners: Listening[]
   readonly stopped: string[]
   readonly handedOver: string[]
+  /** Each `editedAt` ask, as the session's key and the paths it named (RG244). */
+  readonly editedAsked: { readonly key: string; readonly paths: readonly string[] }[]
   /** What `sessions` answers next, which main moves under a standing list (RG178). */
   holds: SessionRecord[]
 }
@@ -195,12 +202,14 @@ export async function at(
     readonly sessions?: readonly SessionRecord[]
     readonly handOver?: HandedOver
     readonly shipped?: boolean
+    /** What the disk says about the edited files, by the path a call spelled (RG244). */
+    readonly edited?: readonly EditedFile[]
   } = {},
 ): Promise<Wired> {
   const moved = { shipped: over.shipped ?? false }
   const transport = engine(moved)
   const opened = openedFrom(await openProject(ROOT, [['roadkeep']], () => transport))
-  const wired: Wired = { listeners: [], stopped: [], handedOver: [], holds: [] }
+  const wired: Wired = { listeners: [], stopped: [], handedOver: [], editedAsked: [], holds: [] }
   // What this window holds, which a handover adds to — the state RG175 reads to decide
   // whether the line is offered again, and which a test can move under a standing list
   // the way main does (RG178).
@@ -221,6 +230,11 @@ export async function at(
       },
       sessions: () => Promise.resolve([...held]),
       governedAt: () => Promise.resolve(FILES),
+      editedAt: (one, paths) => {
+        wired.editedAsked.push({ key: one, paths })
+        const known = over.edited ?? []
+        return Promise.resolve(known.filter((file) => paths.includes(file.path)))
+      },
       handOver: (_root, id) => {
         wired.handedOver.push(id)
         const answer = over.handOver ?? { kind: 'withheld' as const, reason: 'nothing asked' }

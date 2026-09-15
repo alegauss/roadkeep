@@ -165,6 +165,17 @@ export interface RendererBridge {
    */
   governedAt(root: string): Promise<readonly GovernedFile[]>
   /**
+   * The files a session's calls say it edited, each as the disk has it now (RG244).
+   *
+   * **Named by the session and not by a root**, so the far side takes the root from its own
+   * record of what it started and a page cannot aim a stat at a folder it chose. A path that
+   * resolves outside that root is answered as outside and never asked of the disk: an agent
+   * may write a memory file or a sibling checkout, and naming it is all this owes a reader.
+   *
+   * @param paths as the session's own calls spelled them, which is what each answer carries back
+   */
+  editedAt(key: string, paths: readonly string[]): Promise<readonly EditedFile[]>
+  /**
    * The gate verdicts this carrier holds, dated against the files they were taken on (RG152).
    *
    * A read of a ledger and never a run: `lint` is the most expensive read there is, so it
@@ -228,6 +239,23 @@ export interface GovernedFile {
   readonly present: boolean
 }
 
+/** One file a session edited, as the disk has it now (RG244). */
+export interface EditedFile {
+  /** The path as the session's call spelled it, which is what a row is matched on. */
+  readonly path: string
+  /**
+   * The path to draw: relative to the session's root with forward slashes where it is under
+   * that root, and as spelled where it is not. Shortened by the side with the platform, since
+   * which two spellings are one folder is a platform's question.
+   */
+  readonly shown: string
+  /** False where the path resolves outside the session's root, which is never asked of the disk. */
+  readonly inside: boolean
+  readonly present: boolean
+  /** When the disk last changed it, or empty where it is not there or was not asked. */
+  readonly changed: string
+}
+
 /**
  * One session, as the process holding it knows it (RG153). Plain data, so it crosses as it is.
  */
@@ -237,6 +265,11 @@ export interface SessionRecord {
   readonly root: string
   /** The line it was handed. */
   readonly id: string
+  /**
+   * When the process was spawned, as an ISO time (RG244): what an edited file's time is read
+   * against, so a file the disk has not changed since is told from one it has.
+   */
+  readonly started: string
   /** The brief it was started from, as the claiming read answered it: what it was told. */
   readonly handed: BriefPayload
   /** Which Claude Code runs it, as resolution found it. */
@@ -460,6 +493,7 @@ export const BRIDGE_CHANNELS = {
   saveRoots: 'roadkeep:save-roots',
   handOver: 'roadkeep:hand-over',
   governedAt: 'roadkeep:governed-at',
+  editedAt: 'roadkeep:edited-at',
   gates: 'roadkeep:gates',
   sessions: 'roadkeep:sessions',
   stopSession: 'roadkeep:stop-session',

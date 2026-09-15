@@ -162,33 +162,6 @@ for a seeded root whose stamp and engine match, and one for a root whose stamp m
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-### §RG244 Checking the edited files against the disk
-
-**What moved is read off the files**, the rule `Session.tsx` already keeps for the
-backlog, so each edited path is asked of the disk. A bridge method `editedAt(key,
-paths)` answers per path: whether it resolves inside the session's root, whether it is
-there, and when the disk last changed it. Named by the session's key and not by a root,
-so main takes the root from its own record and a page cannot aim a stat at a folder it
-chose.
-
-**A path outside the root is named and never touched.** An agent can write a memory file
-or a sibling checkout; its row says it is outside this project, and the shell stats
-nothing there. Resolution is `governedAt`'s, the one inside test this shell already has.
-
-**When the session started.** `SessionRecord` gains `started`, the ISO time main spawned
-the process. A row then says when the disk changed the file, or that the disk has not
-changed it since the session started although a call reported success, which is the
-disagreement a reader opened the section to find. Times go through `useWhen` (RG177).
-
-**Asked again as the list grows and when the session ends**, and never on a timer:
-nothing is watched that the stream did not name.
-
-**The shell shortens a path under the root** to the root-relative form with forward
-slashes, and the screen draws what it answered.
-
-Tests: `edited-at.test.ts` with a stat stub (inside, outside, missing),
-`sessions.test.ts` for `started`, and the section's three states in `session.test.tsx`.
-
 ### §RG245 Viewing an edited file
 
 **A row opens the file as the disk holds it now**, in the design system's `Sheet`, over
