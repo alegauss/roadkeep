@@ -10,6 +10,7 @@
 
 - 📋 **RG239** (deps: —) **the portfolio lists projects only in the record's order, so finding one by name means reading every row** — The record's order is when each root was added, which is not how a person looks for a project among twenty. → §RG239
 - 📋 **RG240** (deps: RG239) **the portfolio cannot rank projects by how many lines they have open, so the heaviest backlog is found by reading** — Each count is stats' own number for its row, so ranking by it sums nothing across backlogs; which project carries most is where a day over twenty starts. → §RG240
+- 📋 **RG241** (deps: RG240) **the order a person picks for the portfolio is gone at the next launch, so the table opens in the record's order again** — Somebody who ranks by open lines does it every morning, and a choice the window forgets is one made again at each launch. → §RG241
 
 ## Block D — The project surface (one backlog, read)
 
