@@ -1,4 +1,5 @@
-import { screen } from '@testing-library/react'
+import { BASE } from '@rk/core'
+import { screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { drawWindow, FOCUSABLE } from './harness'
@@ -138,14 +139,19 @@ describe('RG54: what is announced', () => {
     expect(container.querySelectorAll('img').length).toBe(0)
   })
 
-  it('names the ground control by what it does, not by what it currently says', () => {
-    // The label changes as it cycles; the accessible name must not, or a person listening
-    // hears the state where they expected the action.
-    drawScreen()
-    const control = screen.getByTestId('ground')
+  it('names the ground menu by what it does, not by the ground in force', () => {
+    // The icon changes with the ground; the accessible name must not, or a person listening
+    // hears the state where they expected the action. Since RG238 the menu is the package's,
+    // and the name is this app's sentence, in whichever ground.
+    const light = drawScreen()
+    const inLight = nameOf(within(screen.getByTestId('ground')).getByRole('button'))
+    light.unmount()
 
-    expect(control.getAttribute('aria-label')).not.toBe('')
-    expect(control.getAttribute('aria-label')).not.toBe(control.textContent)
+    drawWindow({ initial: 'dark' })
+    const inDark = nameOf(within(screen.getByTestId('ground')).getByRole('button'))
+
+    expect(inLight).toBe(BASE['ground.action'])
+    expect(inDark).toBe(inLight)
   })
 
   it('gives the heading a level rather than a size', () => {

@@ -80,10 +80,11 @@ describe('RG207: the settings screen', () => {
     // Marked, and only there: the package's accent alone is a shade the dark ground hides.
     const marked = grounds.getAllByRole('radio').filter((one) => one.querySelector('svg') !== null)
     expect(marked.map((one) => one.textContent)).toEqual([BASE['settings.ground.dark']])
-    // One state and not two: the header's control says the same ground.
-    expect(
-      screen.getByTestId('ground').querySelector('[data-region="ground-said"]')?.textContent,
-    ).toBe(BASE['ground.dark'])
+    // One state and not two: the window is painted the ground chosen here, which is what the
+    // header's menu draws its icon from (RG238).
+    await waitFor(() => {
+      expect(document.documentElement.classList.contains('dark')).toBe(true)
+    })
   })
 
   it('writes nothing for a click on the ground already chosen', async () => {

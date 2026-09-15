@@ -1,15 +1,13 @@
-import {
-  coversEverything,
-  PRODUCT,
-  RESET_TEXT,
-  saidOfVersion,
-  search,
-  THEME_SHORT,
-  THEME_TEXT,
-  type Hit,
-} from '@rk/core'
+import { coversEverything, PRODUCT, RESET_TEXT, saidOfVersion, search, type Hit } from '@rk/core'
 import { IconSearch } from '@tabler/icons-react'
-import { AppFooter, Button, LanguageSwitcher, Toaster, toast } from '@viglet/viglet-design-system'
+import {
+  AppFooter,
+  Button,
+  LanguageSwitcher,
+  ModeToggle,
+  Toaster,
+  toast,
+} from '@viglet/viglet-design-system'
 import {
   BentoBackToTop,
   BentoCommandPalette,
@@ -22,7 +20,6 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { AREAS, HOME_ROUTE, surfacesIn, taskPath } from './areas'
 import { BrandMark } from './BrandMark'
 import { columnAt, COLUMN_CLASS } from './column'
-import { useGround } from './ground'
 import { noticesAtLaunch } from './launch'
 import { SPOKEN_LOCALES } from './speaking'
 import { useIdentity } from './useTransport'
@@ -109,7 +106,6 @@ const LOCALE_ROWS = [...SPOKEN_LOCALES]
 
 export function AppShell() {
   const say = useWording()
-  const { theme, cycle } = useGround()
   const identified = useIdentity()
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [query, setQuery] = useState('')
@@ -277,37 +273,29 @@ export function AppShell() {
          * repositories, on a screen that works offline by design.
          *
          * The span is a handle and not a box: `contents` takes it out of the header's flex
-         * layout, and it gives the one control the package renders a `data-testid` like the
-         * other three — which is what `artboards.test.tsx` holds the drawings against (RG127).
+         * layout, and it gives a control the package renders a `data-testid` like the ones this
+         * app renders — which is what `artboards.test.tsx` holds the drawings against (RG127).
          */}
         <span className="contents" data-testid="language">
           <LanguageSwitcher languages={LOCALE_ROWS} />
         </span>
 
         {/*
-         * The ground says which of the three it is set to and not which of the two it
-         * resolved to - `system` and `light` look identical on a machine set to light, and
-         * the setting is what the person chose. Words rather than an icon, because nothing
-         * on this screen is told by colour or shape alone.
+         * The ground is the design system's own menu (RG238), the one Turing's console wears:
+         * a sun or a moon for the ground being painted, opening on the three settings by name.
+         * It was a sentence saying which setting was in force, which cost the header most of
+         * its width at 400 (RG215) and told a person nothing the window's own colours did not.
+         * What the icon gives up is `system`, which looks like whichever ground it resolved
+         * to; the menu names it, and the settings screen marks it.
          *
-         * Below `sm` the same three lose the `ground:` prefix and keep the word (RG215):
-         * `fundo: seguindo o sistema` is most of a phone-width header on its own. Still
-         * words, never a glyph, and the label the control carries does not change.
+         * Its words are this app's, through `AREA_WORDING`: the button is named for what it
+         * does and the rows say what the settings screen says. It calls the package's
+         * `setTheme` itself, which is why the write back to the file watches the state in
+         * `ground` and not a handler here. The span is the same handle the language has.
          */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={cycle}
-          aria-label={say('ground.action')}
-          data-testid="ground"
-        >
-          <span className="max-sm:hidden" data-region="ground-said">
-            {say(THEME_TEXT[theme])}
-          </span>
-          <span className="sm:hidden" data-region="ground-said-short">
-            {say(THEME_SHORT[theme])}
-          </span>
-        </Button>
+        <span className="contents" data-testid="ground">
+          <ModeToggle />
+        </span>
       </header>
 
       <div className="bento-rail-gutter">

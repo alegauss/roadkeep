@@ -24,8 +24,6 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- 📋 **RG238** (deps: —) **the ground control in the header is a sentence, where Turing wears the design system's icon toggle** — The sentence spends header width RG215 had to win back below sm, and the package's ModeToggle already draws the three choices as an icon and a worded menu. → §RG238
-
 ## Done when — Block A
 
 - **The client runs with no Electron and no React** The transport is one interface, so

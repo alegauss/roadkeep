@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { followsSystem, GROUNDS, groundFor, nextTheme, THEME_ORDER } from './ground'
+import { followsSystem, GROUNDS, groundFor, THEME_ORDER } from './ground'
 import { DEFAULT_SETTINGS, type Theme } from './settings'
 
 describe('RG52: which ground is in force', () => {
@@ -30,28 +30,16 @@ describe('RG52: which ground is in force', () => {
   })
 })
 
-describe('RG52: walking the choice', () => {
-  it('comes back to where it started', () => {
-    let theme: Theme = 'system'
-    for (let step = 0; step < THEME_ORDER.length; step += 1) theme = nextTheme(theme)
-
-    expect(theme).toBe('system')
+describe('RG52: the choice', () => {
+  it('offers a way back to the desktop, which a two-state switch would not (RG238)', () => {
+    expect(THEME_ORDER[0]).toBe('system')
   })
 
-  it('offers a way back to the desktop, which a two-state switch would not', () => {
-    expect(THEME_ORDER).toContain('system')
-    expect(nextTheme('dark')).toBe('system')
-  })
+  it('lists every setting once', () => {
+    const every: readonly Theme[] = ['system', 'light', 'dark']
 
-  it('visits every setting on the way round', () => {
-    const walked: Theme[] = []
-    let theme: Theme = 'system'
-    for (let step = 0; step < THEME_ORDER.length; step += 1) {
-      walked.push(theme)
-      theme = nextTheme(theme)
-    }
-
-    expect([...walked].sort()).toEqual([...THEME_ORDER].sort())
+    expect([...THEME_ORDER].sort()).toEqual([...every].sort())
+    expect(new Set(THEME_ORDER).size).toBe(THEME_ORDER.length)
   })
 
   it('says when the desktop is the one deciding', () => {

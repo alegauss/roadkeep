@@ -238,7 +238,7 @@ export { commandLine, createTranscript, entryLine, quoteFor } from './transcript
 export type { Entry as TranscriptEntry, Ran, Shell, Transcript } from './transcript'
 export { outcomeOf, promptFor, readSessionLine, sessionCall } from './session'
 export type { SessionCall, SessionEvent, SessionOutcome, SessionState } from './session'
-export { DARK_QUERY, followsSystem, GROUNDS, groundFor, nextTheme, THEME_ORDER } from './ground'
+export { DARK_QUERY, followsSystem, GROUNDS, groundFor, THEME_ORDER } from './ground'
 export type { Ground } from './ground'
 export {
   allowsEval,
@@ -281,8 +281,6 @@ export {
   NARROWED_TEXT,
   RESET_TEXT,
   UNREADABLE_TEXT,
-  THEME_SHORT,
-  THEME_TEXT,
   PSEUDO_CLOSE,
   PSEUDO_LOCALE,
   PSEUDO_OPEN,

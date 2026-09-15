@@ -1,6 +1,6 @@
-import { BASE, DARK_QUERY, groundFor, nextTheme, type Ground, type Theme } from '@rk/core'
+import { BASE, DARK_QUERY, groundFor, type Ground, type Theme } from '@rk/core'
 import { ThemeProvider, toast, useTheme } from '@viglet/viglet-design-system'
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 import { getBridge } from './bridge'
 
@@ -22,8 +22,8 @@ import { getBridge } from './bridge'
  * `localStorage` and reads it back before React runs, which is what stops the first frame
  * being the wrong colour — but a stored value wins over `defaultTheme`, so handing the
  * settings file's answer in as a default would lose to whatever this window remembered
- * last. The cache is written from the setting at mount and written again through the
- * bridge when somebody chooses, so the two cannot drift apart in either direction.
+ * last. The cache is written from the setting at mount, and the file is written again
+ * whenever the ground in force moves, so the two cannot drift apart in either direction.
  *
  * What is left here is the join: the desktop's answer, the setting, and the resolved
  * ground a screen can read.
@@ -54,23 +54,49 @@ function seedGroundCache(theme: Theme): null {
 }
 
 /**
- * Send the choice back to the file, which is the half browser storage cannot do.
+ * Send whatever ground is now chosen back to the file, which is the half browser storage
+ * cannot do.
  *
- * **Nothing waits on it and a failure is said out loud** (RG115). The ground has already
- * changed on screen, so there is nothing to undo and nothing to retry — but a choice that
- * was not kept looks kept until the next launch, which is the one state worth a sentence.
- * It was swallowed until the chrome had somewhere to put it.
+ * **Hung on `next-themes` and not on a control** (RG238), as the language is hung on
+ * i18next (RG116). The header's menu is the design system's `ModeToggle`, which calls the
+ * package's `setTheme` itself: a write wired into this app's own setter is a write that menu
+ * skips, so the choice would reach the browser cache alone and the next launch, seeding that
+ * cache from the file, would put the old ground back. Watching the state is what catches
+ * every door into it — that menu, the settings screen, and whatever replaces either.
  *
- * The base wording rather than the provider's, because this is not a component: a rule that
- * needed a hook to say what went wrong would be a rule that could only run inside a render.
- * One string, and the locale it loses is the price of that.
+ * **A ground the file already holds is not written**, and that is the guard rather than an
+ * optimisation: the launch hands `next-themes` a ground too, and a keeper that wrote every
+ * value it saw would write the file back to itself on every start. Where no file answered,
+ * the first ground seen is the baseline and is not written either — a settings read that
+ * timed out is not a person choosing whatever this browser remembered.
+ *
+ * **Nothing waits on the write and a failure is said out loud** (RG115). The ground has
+ * already changed on screen, so there is nothing to undo — but a choice that was not kept
+ * looks kept until the next launch, which is the one state worth a sentence. A refusal left
+ * the file where it was, so the baseline goes back to what it held.
+ *
+ * The base wording rather than the provider's, because this sits above the wording provider
+ * in the stack. One string, and the locale it loses is the price of that.
  */
-function keepGround(theme: Theme): void {
-  void getBridge()
-    ?.savePreference('theme', theme)
-    .catch(() => {
-      toast.warning(BASE['settings.unsaved'])
-    })
+function KeepGround({ initial }: { readonly initial: Theme | undefined }): null {
+  const { theme } = useTheme()
+  const onFile = useRef(initial)
+
+  useEffect(() => {
+    const before = onFile.current
+    if (theme === before) return
+    onFile.current = theme
+    if (before === undefined) return
+
+    void getBridge()
+      ?.savePreference('theme', theme)
+      .catch(() => {
+        if (onFile.current === theme) onFile.current = before
+        toast.warning(BASE['settings.unsaved'])
+      })
+  }, [theme])
+
+  return null
 }
 
 /**
@@ -109,33 +135,20 @@ export interface GroundState {
   /** What was chosen, which is not the same thing — `system` is not a ground. */
   readonly theme: Theme
   readonly setTheme: (theme: Theme) => void
-  /** Walk to the next setting, `system` included. */
-  readonly cycle: () => void
 }
 
 /**
  * What is being painted, what was chosen, and how to change it.
  *
- * Every way of changing it goes through one function, so the write back to the file cannot
- * be the thing a second call site forgets.
+ * The setter is the package's own. The write back to the file is `KeepGround`'s, which
+ * watches the state rather than any call site (RG238), so there is nothing here for a second
+ * control to forget.
  */
 export function useGround(): GroundState {
   const { theme, setTheme } = useTheme()
   const systemIsDark = useSystemIsDark()
 
-  const choose = useCallback(
-    (next: Theme) => {
-      setTheme(next)
-      keepGround(next)
-    },
-    [setTheme],
-  )
-
-  const cycle = useCallback(() => {
-    choose(nextTheme(theme))
-  }, [theme, choose])
-
-  return { ground: groundFor(theme, systemIsDark), theme, setTheme: choose, cycle }
+  return { ground: groundFor(theme, systemIsDark), theme, setTheme }
 }
 
 /**
@@ -171,6 +184,7 @@ export function GroundProvider({
       enableSystem
       attribute="class"
     >
+      <KeepGround initial={initial} />
       {children}
     </ThemeProvider>
   )

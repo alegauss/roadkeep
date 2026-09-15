@@ -415,11 +415,5 @@ export const PT_BR: Wording = {
   'update.open': 'Abrir a página da versão',
   'update.close': 'Fechar',
 
-  'ground.system': 'fundo: seguindo o sistema',
-  'ground.light': 'fundo: claro',
-  'ground.dark': 'fundo: escuro',
-  'ground.system.short': 'sistema',
-  'ground.light.short': 'claro',
-  'ground.dark.short': 'escuro',
   'ground.action': 'Mudar o fundo',
 }

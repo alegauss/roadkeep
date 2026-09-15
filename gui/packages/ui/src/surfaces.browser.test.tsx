@@ -412,8 +412,9 @@ describe('RG231: the header at each width', () => {
   /** Each part, and whether it is drawn at 400 and at 1280. */
   const PARTS: readonly (readonly [string, string, boolean, boolean])[] = [
     ['the shortcuts button', '[data-testid="shortcuts"]', false, true],
-    ["the ground's name", '[data-region="ground-said"]', false, true],
-    ["the ground's short name", '[data-region="ground-said-short"]', true, false],
+    // One icon at both widths since RG238, where it was a sentence wide and a word narrow.
+    // The button and not the handle: the handle is `contents`, which has no box to be seen.
+    ['the ground menu', '[data-testid="ground"] button', true, true],
   ]
 
   it.each(PARTS)('draws %s only where it belongs', async (_, selector, narrow, wide) => {

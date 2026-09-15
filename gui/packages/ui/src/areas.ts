@@ -1,4 +1,13 @@
-import { HOME_ROUTE, SESSIONS_ROUTE, SETTINGS_ROUTE, type Bundle } from '@rk/core'
+import {
+  HOME_ROUTE,
+  PT_BR,
+  PT_BR_LOCALE,
+  SESSIONS_ROUTE,
+  SETTINGS_ROUTE,
+  translator,
+  type Bundle,
+  type Translate,
+} from '@rk/core'
 import { IconLayoutGrid, IconSettings, IconTerminal2 } from '@tabler/icons-react'
 import type { BentoNavGroup, BentoNavItem } from '@viglet/viglet-design-system/bento'
 
@@ -147,6 +156,16 @@ export function surfacesIn(groups: readonly BentoNavGroup[]): BentoNavItem[] {
   return groups.flatMap((group) => group.items)
 }
 
+/** The four `theme` keys the package's `ModeToggle` reads, in one locale's catalogue words. */
+function groundMenu(say: Translate): Bundle {
+  return {
+    toggle: say('ground.action'),
+    light: say('settings.ground.light'),
+    dark: say('settings.ground.dark'),
+    system: say('settings.ground.system'),
+  }
+}
+
 /**
  * The nav labels, per language the design system's i18next knows.
  *
@@ -159,6 +178,13 @@ export function surfacesIn(groups: readonly BentoNavGroup[]): BentoNavItem[] {
  * English default, in every language. The merge is shallow per top-level key and there is
  * nothing there to overwrite.
  *
+ * `theme` is the other way round (RG238): the header's ground menu is the package's
+ * `ModeToggle`, and the package does ship a `theme` namespace, in words that are not this
+ * app's — *Toggle theme* on a control this app calls the ground, and *System* beside a
+ * settings screen that says *Follow the desktop*. The merge is deep and the product's leaf
+ * wins, so these four replace exactly the four the menu reads. They are read out of the
+ * catalogue rather than typed again, so the menu and the settings screen cannot drift apart.
+ *
  * **`en` is the base here, as it is in the catalogue** (RG125). Nothing compared these two
  * objects until then: a key added to `en` and missed in `pt` drew English inside a
  * Portuguese window, and the pseudo-locale run could not see it. `areas.test.ts` walks them
@@ -168,6 +194,7 @@ export function surfacesIn(groups: readonly BentoNavGroup[]): BentoNavItem[] {
 export const AREA_WORDING: Readonly<Record<'en' | 'pt', Bundle>> = {
   en: {
     language: { toggle: 'Change the language' },
+    theme: groundMenu(translator()),
     // `areas` and not `nav`: the package ships a `nav` namespace, and a shallow merge would
     // replace its keys with these.
     areas: {
@@ -184,6 +211,7 @@ export const AREA_WORDING: Readonly<Record<'en' | 'pt', Bundle>> = {
   },
   pt: {
     language: { toggle: 'Mudar o idioma' },
+    theme: groundMenu(translator(PT_BR, PT_BR_LOCALE)),
     areas: {
       backlogs: 'Pendências',
       portfolio: 'Portfólio',

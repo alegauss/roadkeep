@@ -34,15 +34,13 @@ export function groundFor(theme: Theme, systemIsDark: boolean): Ground {
 }
 
 /**
- * The order a toggle walks. `system` is in it and is first: a person who set a ground
+ * The order a choice lists them in. `system` is in it and is first: a person who set a ground
  * explicitly needs a way back to following the desktop, and a two-state switch has none.
+ *
+ * There was a walk over it too, for a header button that cycled the three; the header offers
+ * them as the design system's menu since RG238, so nothing walks it any more.
  */
 export const THEME_ORDER: readonly Theme[] = ['system', 'light', 'dark']
-
-export function nextTheme(theme: Theme): Theme {
-  const at = THEME_ORDER.indexOf(theme)
-  return THEME_ORDER[(at + 1) % THEME_ORDER.length] ?? 'system'
-}
 
 /**
  * Whether the desktop is what decides right now — which is what a label has to say, since

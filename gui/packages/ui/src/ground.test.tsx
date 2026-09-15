@@ -5,11 +5,14 @@ import {
   DEFAULT_SETTINGS,
   identityFrom,
   isTheme,
-  THEME_ORDER,
+  PT_BR,
+  PT_BR_LOCALE,
+  translator,
   type RendererBridge,
   type Theme,
 } from '@rk/core'
-import { act, fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import i18next, { changeLanguage } from 'i18next'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { GROUND_CACHE_KEY } from './ground'
@@ -20,9 +23,9 @@ import { stubBridge } from './stub-bridge'
  * RG52: the ground, from the outside.
  *
  * What is asserted is what a person would see: which ground the document is in, that the
- * control says which of the three settings is in force, and that the words on screen do
- * not change with the ground. The switch itself is the design system's, so what is held
- * here is this app's use of it and not the library.
+ * header's menu offers all three settings, and that the words on screen do not change with
+ * the ground. The switch and the menu are both the design system's (RG238), so what is held
+ * here is this app's use of them and not the library.
  */
 
 /** jsdom has no `matchMedia`, so the desktop is something a test says rather than has. */
@@ -76,21 +79,32 @@ function visibleText(root: HTMLElement): string[] {
   return seen.toSorted()
 }
 
-/**
- * What the control says, in the wide window's words.
- *
- * The button carries both since RG215 — the sentence, and the same setting without its
- * prefix for a header at 400 — and which one shows is a media query jsdom does not run. So
- * the wide one is read by name rather than the button's whole text.
- */
-function labelOfControl(): string {
-  const said = screen.getByTestId('ground').querySelector('[data-region="ground-said"]')
-  return said === null ? '' : said.textContent.trim()
+/** The header's ground menu, which is the package's `ModeToggle` inside this app's handle. */
+function groundMenu(): HTMLElement {
+  return within(screen.getByTestId('ground')).getByRole('button')
 }
 
-/** A bridge that records what the ground control sent back to the file. */
-function recordingBridge(): { kept: Theme[] } {
+/**
+ * Choose a ground from the header's menu (RG238).
+ *
+ * By a key and not a click: the package's menu is Radix, which opens on a pointer down or a
+ * keystroke, and a keystroke is both what jsdom delivers faithfully and the door a keyboard
+ * has. The row is found by its words, which are the settings screen's.
+ */
+async function chooseInHeader(label: string): Promise<void> {
+  fireEvent.keyDown(groundMenu(), { key: 'Enter' })
+  const row = await screen.findByRole('menuitem', { name: label })
+
+  await act(async () => {
+    fireEvent.click(row)
+    await Promise.resolve()
+  })
+}
+
+/** A bridge that records what reached the file, refusing the first `refusing` writes. */
+function recordingBridge(refusing = 0): { kept: Theme[]; refused: Theme[] } {
   const kept: Theme[] = []
+  const refused: Theme[] = []
   const bridge: RendererBridge = stubBridge({
     identify: () =>
       Promise.resolve({
@@ -99,12 +113,24 @@ function recordingBridge(): { kept: Theme[] } {
       }),
     settings: () => Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: BASE_LOCALE }),
     savePreference: (key, value) => {
-      if (key === 'theme' && isTheme(value)) kept.push(value)
+      if (key !== 'theme' || !isTheme(value)) return Promise.resolve()
+      if (refused.length < refusing) {
+        refused.push(value)
+        return Promise.reject(new Error('the disk is full'))
+      }
+      kept.push(value)
       return Promise.resolve()
     },
   })
   Object.defineProperty(window, 'roadkeep', { value: bridge, configurable: true })
-  return { kept }
+  return { kept, refused }
+}
+
+/** Let a write that was fired and not awaited land, or be refused. */
+async function settle(): Promise<void> {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0))
+  })
 }
 
 beforeEach(() => {
@@ -112,11 +138,13 @@ beforeEach(() => {
   localStorage.clear()
 })
 
-afterEach(() => {
+afterEach(async () => {
   document.documentElement.className = ''
   document.documentElement.removeAttribute('style')
   localStorage.clear()
   Reflect.deleteProperty(window, 'roadkeep')
+  // i18next is a singleton, so a language one test moved to is the next test's start.
+  if (i18next.language !== BASE_LOCALE) await changeLanguage(BASE_LOCALE)
 })
 
 describe('RG52: which ground the window is in', () => {
@@ -147,43 +175,65 @@ describe('RG52: which ground the window is in', () => {
   })
 })
 
-describe('RG52: the control', () => {
-  it('says which of the three is set, not which of the two it resolved to', async () => {
-    // `system` and `light` paint the same thing on a machine set to light, and the whole
-    // reason `system` is a setting is that they are not the same choice.
-    drawIn('system')
+describe('RG238: the header`s menu', () => {
+  it('offers all three in the settings screen`s words, so there is a way back to the desktop', async () => {
+    // `system` and `light` paint the same thing on a machine set to light, and the icon
+    // shows the ground being painted — so the menu is where `system` is said, and a menu
+    // without it would leave a person who chose a ground no way back to the desktop.
+    drawIn('dark')
+    await painted('dark')
 
-    await painted('light')
-    expect(labelOfControl()).toBe(BASE['ground.system'])
-  })
+    fireEvent.keyDown(groundMenu(), { key: 'Enter' })
+    const rows = await screen.findAllByRole('menuitem')
 
-  it('walks the settings and comes back, so there is a way to the desktop', async () => {
-    drawIn('system')
-    await painted('light')
-
-    const said: string[] = []
-    for (let step = 0; step < THEME_ORDER.length; step += 1) {
-      said.push(labelOfControl())
-      await act(async () => {
-        fireEvent.click(screen.getByTestId('ground'))
-        await Promise.resolve()
-      })
-    }
-
-    expect(said).toEqual([BASE['ground.system'], BASE['ground.light'], BASE['ground.dark']])
-    expect(labelOfControl()).toBe(BASE['ground.system'])
+    expect(rows.map((row) => row.textContent).toSorted()).toEqual(
+      [
+        BASE['settings.ground.system'],
+        BASE['settings.ground.light'],
+        BASE['settings.ground.dark'],
+      ].toSorted(),
+    )
   })
 
   it('actually repaints when it is used', async () => {
     drawIn('light')
     await painted('light')
 
-    await act(async () => {
-      fireEvent.click(screen.getByTestId('ground'))
-      await Promise.resolve()
-    })
+    await chooseInHeader(BASE['settings.ground.dark'])
 
     await painted('dark')
+  })
+
+  it('goes back to following the desktop', async () => {
+    drawIn('dark')
+    await painted('dark')
+
+    await chooseInHeader(BASE['settings.ground.system'])
+
+    await painted('light')
+  })
+
+  it('says this app`s words in the window`s language, not the package`s', async () => {
+    // The package ships its own `theme` words — *Alternar tema*, *Sistema* — and a window in
+    // Portuguese would wear them beside a settings screen saying *Seguir o sistema*.
+    const say = translator(PT_BR, PT_BR_LOCALE)
+    await act(async () => {
+      await changeLanguage(PT_BR_LOCALE)
+    })
+    drawIn('light')
+    await painted('light')
+
+    expect(groundMenu().textContent).toBe(say('ground.action'))
+    fireEvent.keyDown(groundMenu(), { key: 'Enter' })
+    const rows = await screen.findAllByRole('menuitem')
+
+    expect(rows.map((row) => row.textContent).toSorted()).toEqual(
+      [
+        say('settings.ground.system'),
+        say('settings.ground.light'),
+        say('settings.ground.dark'),
+      ].toSorted(),
+    )
   })
 })
 
@@ -207,16 +257,17 @@ describe('RG87: which copy of the setting wins', () => {
   })
 
   it('sends a change back to the file and not only to browser storage', async () => {
+    // The package's menu calls the package's `setTheme` and nothing of this app's, which is
+    // the whole reason the write watches the state (RG238): wired to a handler, this was [].
     const bridge = recordingBridge()
     drawIn('light')
     await painted('light')
 
-    await act(async () => {
-      fireEvent.click(screen.getByTestId('ground'))
-      await Promise.resolve()
-    })
+    await chooseInHeader(BASE['settings.ground.dark'])
 
-    expect(bridge.kept).toEqual(['dark'])
+    await waitFor(() => {
+      expect(bridge.kept).toEqual(['dark'])
+    })
   })
 
   it('leaves the cache alone when no file answered, which is a browser tab', async () => {
@@ -236,12 +287,64 @@ describe('RG87: which copy of the setting wins', () => {
     drawIn('light')
     await painted('light')
 
-    await act(async () => {
-      fireEvent.click(screen.getByTestId('ground'))
-      await Promise.resolve()
-    })
+    await chooseInHeader(BASE['settings.ground.dark'])
 
     await painted('dark')
+  })
+})
+
+describe('RG238: what the file is sent, watched on the state and not on a control', () => {
+  it('writes nothing at launch, which hands over the ground the file already holds', async () => {
+    // A keeper that wrote every ground it saw would write the file back to itself on every
+    // start, and the launch is the first ground it sees.
+    const bridge = recordingBridge()
+    localStorage.setItem(GROUND_CACHE_KEY, 'dark')
+    drawIn('light')
+
+    await painted('light')
+    await settle()
+    expect(bridge.kept).toEqual([])
+  })
+
+  it('takes the first ground as what the file holds when no file answered', async () => {
+    // A settings read that timed out hands the provider nothing, and the browser's copy is
+    // what paints. Writing it would be a person "choosing" whatever this window remembered.
+    const bridge = recordingBridge()
+    localStorage.setItem(GROUND_CACHE_KEY, 'dark')
+    drawWindow()
+    await painted('dark')
+    await settle()
+    expect(bridge.kept).toEqual([])
+
+    await chooseInHeader(BASE['settings.ground.light'])
+
+    await waitFor(() => {
+      expect(bridge.kept).toEqual(['light'])
+    })
+  })
+
+  it('after a refusal, knows the file still holds what it held', async () => {
+    // Light on file, dark refused: the file is still light, so choosing light is no write
+    // and choosing dark again is one — not a shrug because dark was the last thing sent.
+    const bridge = recordingBridge(1)
+    drawIn('light')
+    await painted('light')
+
+    await chooseInHeader(BASE['settings.ground.dark'])
+    await waitFor(() => {
+      expect(bridge.refused).toEqual(['dark'])
+    })
+    await settle()
+
+    await chooseInHeader(BASE['settings.ground.light'])
+    await painted('light')
+    await settle()
+    expect(bridge.kept).toEqual([])
+
+    await chooseInHeader(BASE['settings.ground.dark'])
+    await waitFor(() => {
+      expect(bridge.kept).toEqual(['dark'])
+    })
   })
 })
 

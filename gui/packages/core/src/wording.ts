@@ -22,7 +22,7 @@
 import type { NarrowedCase } from './backlog'
 import type { WithheldCode } from './bridge'
 import type { Unreadable, UnreadableCode } from './limits'
-import type { Lost, Theme } from './settings'
+import type { Lost } from './settings'
 import { keysOf } from './reading'
 
 /** Named holes, filled by name. Positional would be a promise about word order. */
@@ -431,45 +431,13 @@ export const EN = {
   'update.open': 'Open the release page',
   'update.close': 'Close',
 
-  'ground.system': 'ground: following the desktop',
-  'ground.light': 'ground: light',
-  'ground.dark': 'ground: dark',
-  // The same three where the header has no room for the prefix (RG215). Still words: what
-  // the control is for is its label, which does not narrow.
-  'ground.system.short': 'desktop',
-  'ground.light.short': 'light',
-  'ground.dark.short': 'dark',
+  // The header's ground menu is the design system's `ModeToggle` since RG238, and it names
+  // itself with this through `AREA_WORDING`: the action, never the ground in force.
   'ground.action': 'Change the ground',
 } as const
 
 /** What a screen may ask for. Anything else is a string somebody typed into a component. */
 export type MessageKey = keyof typeof EN
-
-/**
- * What the ground control says it is set to.
- *
- * `system` has wording of its own rather than borrowing whichever ground it resolved to:
- * *following the desktop* and *light* look identical on a machine set to light, and the
- * difference is the whole reason `system` is a setting.
- */
-export const THEME_TEXT: Readonly<Record<Theme, MessageKey>> = {
-  system: 'ground.system',
-  light: 'ground.light',
-  dark: 'ground.dark',
-}
-
-/**
- * The same three, said in the room a phone-width header has (RG215).
- *
- * The prefix is what goes, not the distinction: *desktop* is still the setting and not the
- * ground it resolved to. The control's label is `ground.action` either way, so what a
- * screen reader says does not narrow with the window.
- */
-export const THEME_SHORT: Readonly<Record<Theme, MessageKey>> = {
-  system: 'ground.system.short',
-  light: 'ground.light.short',
-  dark: 'ground.dark.short',
-}
 
 /**
  * What a settings file lost, said in this app's own voice (RG123).

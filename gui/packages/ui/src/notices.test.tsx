@@ -1,6 +1,6 @@
 import { BASE, DEFAULT_SETTINGS, fill, type RendererBridge, type Reset } from '@rk/core'
 import { toast } from '@viglet/viglet-design-system'
-import { act, fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { drawWindow } from './harness'
@@ -91,28 +91,45 @@ describe('RG115: a settings file that lost a field', () => {
   })
 })
 
+/** Choose dark from the header's menu, which opens on a key (RG238). */
+async function chooseDark(): Promise<void> {
+  fireEvent.keyDown(within(screen.getByTestId('ground')).getByRole('button'), { key: 'Enter' })
+  const dark = await screen.findByRole('menuitem', { name: BASE['settings.ground.dark'] })
+
+  await act(async () => {
+    fireEvent.click(dark)
+    await Promise.resolve()
+  })
+}
+
 describe('RG115: a choice that could not be saved', () => {
   it('says so rather than letting it look kept until the next launch', async () => {
     withBridge(bridge({ savePreference: () => Promise.reject(new Error('the disk is full')) }))
     drawWindow({ initial: 'light' })
 
-    await act(async () => {
-      fireEvent.click(screen.getByTestId('ground'))
-      await Promise.resolve()
-    })
+    await chooseDark()
 
     expect(await screen.findByText(BASE['settings.unsaved'])).toBeTruthy()
   })
 
   it('says nothing when the write lands, which is every ordinary click', async () => {
-    withBridge(bridge())
+    const saved: unknown[] = []
+    withBridge(
+      bridge({
+        savePreference: (_, value) => {
+          saved.push(value)
+          return Promise.resolve()
+        },
+      }),
+    )
     drawWindow({ initial: 'light' })
 
-    await act(async () => {
-      fireEvent.click(screen.getByTestId('ground'))
-      await Promise.resolve()
-    })
+    await chooseDark()
 
+    // The write is what this is about, so it is waited for rather than assumed.
+    await waitFor(() => {
+      expect(saved).toEqual(['dark'])
+    })
     expect(screen.queryByText(BASE['settings.unsaved'])).toBeNull()
   })
 })
