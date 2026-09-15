@@ -6,6 +6,56 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
+### §RG239 Ordering the portfolio by name
+
+**One order rule in core, one control on the table.** `portfolio.ts` gains `RowOrder`,
+`'record' | 'name'` here and the count order after it, and `orderRows(rows, order,
+locale)`: pure, a new list, the record's order handed back untouched. `Portfolio.tsx`
+filters and then orders inside the one `shown` memo, so a chip and an order compose. The
+design system's `Table` has no sorting, so the control is this app's: a button inside
+the Project `th`, which carries `aria-sort`, cycling A to Z, Z to A and back to the
+record's. `portfolio.order` stops being a fixed caption and names the order in force, in
+both catalogues (RG125); `Main.dc.html` draws that caption and is redrawn with it.
+
+**Names compared as a person reads them.** `Intl.Collator` over the window's locale,
+with `numeric` and `sensitivity: 'base'`, as `orderMembers` chose: `2026.10` follows
+`2026.2` and case does not split one name in two.
+
+**Ties keep the record's order, both ways.** Rows sharing a declared name are one
+family's worktrees, current version first. The sort is stable and Z to A negates the
+comparison rather than reversing the list, so that order survives.
+
+**A name is on the record before any read** (RG203), so this order holds through a cold
+start. A name declared since the last scan moves its row once, as it lands.
+
+**Not remembered across launches.** That is a row in RG207's preference table, and a
+line of its own when somebody asks.
+
+### §RG240 Ranking the portfolio by open lines
+
+**The key is `counts.total`**, the number `stats` printed for that row and the Backlog
+column already draws as open. Ranking by it compares rows and adds nothing up, which
+keeps block C's first criterion.
+
+**Most open first, then fewest, then the record's**: RG239's three-state `th` control,
+now on Backlog, with `'open'` added to `RowOrder`. Ties keep the record's order.
+
+**A row with no count sorts after every row with one**, in the record's order, whichever
+way the ranking runs. A pending row placed as zero breaks block C's second criterion as
+an order, and an unreadable row has no count to rank.
+
+**Rows do not move under a read.** `coldStart` refuses completion order because the row
+about to be clicked moves, and a count landing would move it the same way. So the
+ranking is a list of paths, taken when the order is chosen and again when
+`view.progress` goes null. While a read is in flight each row keeps the place that list
+gives it, and a row it does not name follows in the record's order. A cold start draws
+the record's order and re-ranks once, as the progress line leaves; a rescan keeps the
+last ranking until it settles. The test keeping a row where the record put it gains a
+twin under this order.
+
+**Filters compose.** `drifted` ranked by open lines says which broken backlog to repair
+first, and neither rule knows the other.
+
 ## Block D — The project surface (one backlog, read)
 
 ## Block E — The write path (the app composes an argv; the command writes)

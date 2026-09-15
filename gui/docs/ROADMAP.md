@@ -8,6 +8,9 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
+- 📋 **RG239** (deps: —) **the portfolio lists projects only in the record's order, so finding one by name means reading every row** — The record's order is when each root was added, which is not how a person looks for a project among twenty. → §RG239
+- 📋 **RG240** (deps: RG239) **the portfolio cannot rank projects by how many lines they have open, so the heaviest backlog is found by reading** — Each count is stats' own number for its row, so ranking by it sums nothing across backlogs; which project carries most is where a day over twenty starts. → §RG240
+
 ## Block D — The project surface (one backlog, read)
 
 ## Block E — The write path (the app composes an argv; the command writes)
