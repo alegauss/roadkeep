@@ -5,6 +5,8 @@ import {
   actsIn,
   actsOf,
   editedIn,
+  editsOf,
+  editStanding,
   foldedNotes,
   governedIn,
   isRoadkeep,
@@ -468,6 +470,94 @@ describe('RG244: an edited file against the disk', () => {
     const before = at({ changed: '2026-09-15T09:00:00.000Z' })
 
     expect(onDisk(EDITED, before, '').standing).toBe('changed')
+  })
+})
+
+describe('RG246: what the session changed inside a file', () => {
+  const call = (id: string, name: string, input: Record<string, unknown>) =>
+    JSON.stringify({
+      type: 'assistant',
+      message: { content: [{ type: 'tool_use', id, name, input }] },
+    })
+  const failed = (id: string) =>
+    JSON.stringify({
+      type: 'user',
+      message: {
+        content: [{ tool_use_id: id, type: 'tool_result', content: 'no match', is_error: true }],
+      },
+    })
+
+  it('reads each tool’s own shape: a pair, a list of pairs, and a whole content', () => {
+    const acts = actsIn(
+      [
+        call('e1', 'Edit', { file_path: 'src/a.ts', old_string: 'one', new_string: 'two' }),
+        call('e2', 'MultiEdit', {
+          file_path: 'src/a.ts',
+          edits: [
+            { old_string: 'three', new_string: 'four' },
+            { old_string: 'five', new_string: 'six' },
+          ],
+        }),
+        call('w1', 'Write', { file_path: 'src/a.ts', content: 'the whole file' }),
+      ],
+      MARKS,
+    )
+
+    expect(editsOf(acts, 'src/a.ts').map((one) => [one.tool, one.before, one.after])).toEqual([
+      ['Edit', 'one', 'two'],
+      ['MultiEdit', 'three', 'four'],
+      ['MultiEdit', 'five', 'six'],
+      // A write replaces whatever was there, so it has no before of its own.
+      ['Write', '', 'the whole file'],
+    ])
+  })
+
+  it('answers about one file, in the order the stream made the calls', () => {
+    const acts = actsIn(
+      [
+        call('e1', 'Edit', { file_path: 'src/b.ts', old_string: 'x', new_string: 'y' }),
+        call('e2', 'Edit', { file_path: 'src/a.ts', old_string: 'a', new_string: 'b' }),
+        call('r1', 'Read', { file_path: 'src/a.ts' }),
+      ],
+      MARKS,
+    )
+
+    expect(editsOf(acts, 'src/a.ts').map((one) => one.seq)).toEqual([2])
+  })
+
+  it('says which edits failed, and draws no block for an input it does not know', () => {
+    const acts = actsIn(
+      [
+        call('e1', 'Edit', { file_path: 'src/a.ts', old_string: 'one', new_string: 'two' }),
+        failed('e1'),
+        call('n1', 'NotebookEdit', { notebook_path: 'src/a.ts', cell_id: '1' }),
+      ],
+      MARKS,
+    )
+
+    const edits = editsOf(acts, 'src/a.ts')
+    expect(edits).toHaveLength(1)
+    expect(edits[0]?.failed).toBe(true)
+    expect(edits[0]?.answered).toBe(true)
+    // The call is still an act with its raw line, which is the fallback and not a loss.
+    expect(acts.filter((act) => act.kind === 'used')).toHaveLength(2)
+  })
+
+  it('looks for what an edit put there in the text that was read', () => {
+    const edit = {
+      seq: 1,
+      tool: 'Edit',
+      before: 'one',
+      after: 'two',
+      answered: true,
+      failed: false,
+    }
+
+    expect(editStanding(edit, 'const two = 2\n')).toBe('in-the-file')
+    expect(editStanding(edit, 'const one = 1\n')).toBe('not-in-the-file')
+    // Nothing to look in, and nothing to look for: neither is a verdict.
+    expect(editStanding(edit, null)).toBe('unchecked')
+    expect(editStanding({ ...edit, after: '' }, 'anything')).toBe('unchecked')
   })
 })
 

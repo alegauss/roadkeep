@@ -143,6 +143,9 @@ function ActRow({ act }: { readonly act: Act }) {
   const touched = act.kind === 'used' && act.governed.length > 0
   return (
     <li
+      // Named by its seq, so an edit in the file viewer leads back to the act that made it
+      // (RG246).
+      id={`act-${String(act.seq)}`}
       className={`border-t px-4 py-2.5 first:border-t-0 ${touched ? 'border-l-primary border-l-2' : ''}`}
       data-testid="act"
       data-kind={act.kind}
@@ -329,6 +332,14 @@ function Edited({
   const closing = useCallback(() => {
     setOpen(null)
   }, [])
+  // An edit's seq leads back to the act that made it (RG246): the viewer closes, since the
+  // stream is under it, and the act is brought into view in its own region.
+  const showing = useCallback((seq: number) => {
+    setOpen(null)
+    requestAnimationFrame(() => {
+      document.getElementById(`act-${String(seq)}`)?.scrollIntoView({ block: 'center' })
+    })
+  }, [])
   const viewed = open === null ? undefined : edited.find((file) => file.path === open)
 
   return (
@@ -384,7 +395,13 @@ function Edited({
         </>
       )}
       {viewed === undefined ? null : (
-        <FileSheet sessionKey={record.key} file={viewed} onClose={closing} />
+        <FileSheet
+          sessionKey={record.key}
+          file={viewed}
+          acts={acts}
+          onAct={showing}
+          onClose={closing}
+        />
       )}
     </section>
   )

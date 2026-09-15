@@ -338,6 +338,118 @@ export function editedIn(acts: readonly Act[]): Edited[] {
   return [...byPath.values()]
 }
 
+/** One edit a session made to a file, as its own call carried it (RG246). */
+export interface FileEdit {
+  /** The seq of the call that made it, which is where it stands in the stream. */
+  readonly seq: number
+  readonly tool: string
+  /** What it replaced. Empty for a `Write`, which replaces whatever was there. */
+  readonly before: string
+  /** What it put there; for a `Write`, the content it wrote. */
+  readonly after: string
+  /** True where the call has been answered at all. */
+  readonly answered: boolean
+  /** True where the answer failed. */
+  readonly failed: boolean
+}
+
+/** One tool call's input, out of the raw line the act kept. */
+function inputOf(act: Act): Record<string, unknown> | null {
+  if (act.kind !== 'used') return null
+  let source: unknown
+  try {
+    source = JSON.parse(act.line)
+  } catch {
+    return null
+  }
+  const object = asRecord(source)
+  if (object === null) return null
+  for (const part of contentOf(object)) {
+    const item = asRecord(part)
+    if (item?.['type'] === 'tool_use' && item['id'] === act.id) return asRecord(item['input'])
+  }
+  return null
+}
+
+function said(input: Record<string, unknown>, key: string): string {
+  const value = input[key]
+  return typeof value === 'string' ? value : ''
+}
+
+/**
+ * What the session changed inside one file, in stream order (RG246).
+ *
+ * **The before comes from the session and never from git**, which `No git command run by this
+ * app` refuses: an `Edit` carries what it replaced and what it put there, a `MultiEdit` a list
+ * of those pairs, and a `Write` the whole content. Read back out of the raw line every act
+ * keeps, so nothing had to be stored for this.
+ *
+ * **The input is Claude Code's schema**, so a call whose input carries none of those keys draws
+ * no block and keeps its raw line — the fallback `subjectOf` already takes.
+ */
+export function editsOf(acts: readonly Act[], path: string): FileEdit[] {
+  const answered = new Map<string, boolean>()
+  for (const act of acts) if (act.kind === 'returned' && act.id !== '') answered.set(act.id, act.ok)
+
+  const edits: FileEdit[] = []
+  for (const act of acts) {
+    if (act.kind !== 'used' || act.on !== path || !EDITING_TOOLS.has(act.tool)) continue
+    const input = inputOf(act)
+    if (input === null) continue
+    const answer = answered.get(act.id)
+    edits.push(
+      ...carriedBy(input).map((carried) => ({
+        seq: act.seq,
+        tool: act.tool,
+        answered: answer !== undefined,
+        failed: answer === false,
+        ...carried,
+      })),
+    )
+  }
+  return edits
+}
+
+/** The pairs one call's input carries: a list for a `MultiEdit`, one for the rest, none for a
+ * call whose input names neither what it replaced nor what it put there. */
+function carriedBy(
+  input: Record<string, unknown>,
+): { readonly before: string; readonly after: string }[] {
+  const pairs = input['edits']
+  if (Array.isArray(pairs)) {
+    return pairs.flatMap((pair) => {
+      const one = asRecord(pair)
+      return one === null
+        ? []
+        : [{ before: said(one, 'old_string'), after: said(one, 'new_string') }]
+    })
+  }
+  const before = said(input, 'old_string')
+  const after =
+    said(input, 'new_string') === '' ? said(input, 'content') : said(input, 'new_string')
+  return before === '' && after === '' ? [] : [{ before, after }]
+}
+
+/**
+ * Whether an edit is in the file as it was read (RG246): found, gone, or not checkable.
+ *
+ * Gone says only that the text is not there now — a later edit may have overwritten it,
+ * something may have reverted it, or it may never have applied.
+ */
+export type EditStanding = 'in-the-file' | 'not-in-the-file' | 'unchecked'
+
+/**
+ * Look for what an edit put there in the text the viewer read (RG246).
+ *
+ * A plain substring test over two strings the screen already holds: nothing is parsed and
+ * nothing is diffed. An edit that put nothing there — a deletion — has nothing to look for,
+ * and a file that was not read has nothing to look in.
+ */
+export function editStanding(edit: FileEdit, text: string | null): EditStanding {
+  if (text === null || edit.after === '') return 'unchecked'
+  return text.includes(edit.after) ? 'in-the-file' : 'not-in-the-file'
+}
+
 /**
  * Where an edited file stands on disk (RG244): not answered for yet, outside the session's
  * root, not there, or there and changed or not since the session started.

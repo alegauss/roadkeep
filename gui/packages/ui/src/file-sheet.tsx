@@ -1,4 +1,12 @@
-import { FILE_REFUSAL_TEXT, type Edited, type FileText } from '@rk/core'
+import {
+  editsOf,
+  editStanding,
+  FILE_REFUSAL_TEXT,
+  type Act,
+  type Edited,
+  type FileEdit,
+  type FileText,
+} from '@rk/core'
 import {
   Button,
   Sheet,
@@ -7,9 +15,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@viglet/viglet-design-system'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react'
 
 import { getBridge } from './bridge'
+import { Pill } from './marks'
 import { useWording } from './wording'
 
 /**
@@ -27,6 +36,9 @@ import { useWording } from './wording'
  * **Current, never remembered.** Read as it opens, again from its own button, and again when
  * the stream edits the same path while it is open — as the call is made and as its answer
  * lands, since the second is when the disk has moved.
+ *
+ * **What the session changed is above the file** (RG246), read off its own calls and checked
+ * against the text below it rather than believed.
  */
 
 type Viewing =
@@ -40,14 +52,128 @@ export function linesIn(text: string): number {
   return text.split('\n').length - (text.endsWith('\n') ? 1 : 0)
 }
 
+/** Past this many lines a block folds, and opens where it stands (RG246). */
+const FOLD_OVER = 12
+
+/** One side of an edit: what it replaced, or what it put there. Folded where it is long. */
+function Block({ label, text }: { readonly label: string; readonly text: string }) {
+  const say = useWording()
+  const body = (
+    <pre className="bg-muted mt-1 max-h-80 overflow-auto rounded p-2 text-[11px] whitespace-pre-wrap">
+      {text}
+    </pre>
+  )
+  const count = linesIn(text)
+  if (count <= FOLD_OVER) {
+    return (
+      <div className="mt-2">
+        <span className="text-muted-foreground text-[11px]">{label}</span>
+        {body}
+      </div>
+    )
+  }
+  return (
+    <details className="mt-2">
+      <summary className="text-muted-foreground cursor-pointer text-[11px]">
+        {label} · {say('session.file.edit.folded', { count })}
+      </summary>
+      {body}
+    </details>
+  )
+}
+
+/**
+ * What the session changed in this file, above the file itself (RG246).
+ *
+ * Each call's own two halves, in stream order, with its seq leading back to the act in the
+ * stream. Checked against the text that was read rather than believed: found means what the
+ * edit put there is in the file now, and gone means it is not — whether a later edit overwrote
+ * it, something reverted it, or it never applied.
+ */
+function Edits({
+  edits,
+  text,
+  onAct,
+}: {
+  readonly edits: readonly FileEdit[]
+  /** The file as it was read, or null while nothing has been read. */
+  readonly text: string | null
+  readonly onAct: (seq: number) => void
+}) {
+  const say = useWording()
+  const acted = useCallback(
+    (event: MouseEvent<HTMLButtonElement>) => {
+      onAct(Number(event.currentTarget.dataset['seq'] ?? '0'))
+    },
+    [onAct],
+  )
+  if (edits.length === 0) return null
+
+  return (
+    <section className="border-b" data-testid="file-edits">
+      <h3 className="text-muted-foreground px-4 pt-3 text-[11px] font-semibold tracking-wide uppercase">
+        {say('session.file.edits')}
+      </h3>
+      <ul>
+        {edits.map((edit, at) => {
+          const standing = editStanding(edit, text)
+          return (
+            <li
+              key={`${String(edit.seq)}-${String(at)}`}
+              className="px-4 py-3"
+              data-testid="file-edit"
+              data-seq={edit.seq}
+              data-standing={standing}
+            >
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <button
+                  type="button"
+                  className="font-mono font-semibold hover:underline"
+                  data-seq={edit.seq}
+                  onClick={acted}
+                >
+                  {say('session.file.edit.act', { seq: edit.seq })}
+                </button>
+                <span className="text-muted-foreground font-mono">{edit.tool}</span>
+                {edit.failed ? <Pill intent="error">{say('session.act.failed')}</Pill> : null}
+                {standing === 'in-the-file' ? (
+                  <Pill intent="on">{say('session.file.edit.found')}</Pill>
+                ) : null}
+                {standing === 'not-in-the-file' ? (
+                  <Pill intent="warn">{say('session.file.edit.gone')}</Pill>
+                ) : null}
+              </div>
+              {edit.before === '' ? null : (
+                <Block label={say('session.file.edit.replaced')} text={edit.before} />
+              )}
+              <Block
+                label={
+                  edit.before === '' ? say('session.file.edit.wrote') : say('session.file.edit.put')
+                }
+                text={edit.after}
+              />
+            </li>
+          )
+        })}
+      </ul>
+    </section>
+  )
+}
+
 export function FileSheet({
   sessionKey,
   file,
+  acts,
+  onAct,
   onClose,
 }: {
   readonly sessionKey: string
   /** The edited file this opened on, as the stream has it now. */
   readonly file: Edited
+  /** The stream, which is where what the session changed in this file is read from (RG246). */
+  readonly acts: readonly Act[]
+  /** Show one act in the stream, by its seq. */
+  readonly onAct: (seq: number) => void
   readonly onClose: () => void
 }) {
   const say = useWording()
@@ -93,6 +219,7 @@ export function FileSheet({
     () => Array.from({ length: Math.max(lines, 1) }, (_, at) => String(at + 1)).join('\n'),
     [lines],
   )
+  const edits = useMemo(() => editsOf(acts, path), [acts, path])
   // What the file is, in one sentence: still being read, how long it is, or why it was not read.
   let described = say('session.file.reading')
   if (read !== null) described = say('session.file.lines', { count: lines })
@@ -124,6 +251,7 @@ export function FileSheet({
           tabIndex={0}
           aria-label={read?.shown ?? path}
         >
+          <Edits edits={edits} text={read?.text ?? null} onAct={onAct} />
           {read === null ? null : (
             <div className="flex font-mono text-xs leading-5">
               <pre

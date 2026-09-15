@@ -737,6 +737,103 @@ describe('RG245: an edited file opened from the window', () => {
   })
 })
 
+describe('RG246: what the session changed inside the file', () => {
+  const EDITS = JSON.stringify({
+    type: 'assistant',
+    message: {
+      content: [
+        {
+          type: 'tool_use',
+          id: 'k1',
+          name: 'Edit',
+          input: {
+            file_path: 'src/alpha.ts',
+            old_string: 'const a = 0',
+            new_string: 'const a = 1',
+          },
+        },
+        {
+          type: 'tool_use',
+          id: 'k2',
+          name: 'Edit',
+          input: {
+            file_path: 'src/alpha.ts',
+            old_string: 'const b = 0',
+            new_string: 'const b = 2',
+          },
+        },
+      ],
+    },
+  })
+  const ANSWERS = JSON.stringify({
+    type: 'user',
+    message: {
+      content: [
+        { tool_use_id: 'k1', type: 'tool_result', content: 'updated' },
+        { tool_use_id: 'k2', type: 'tool_result', content: 'no match', is_error: true },
+      ],
+    },
+  })
+  /** The file as the disk holds it: the first edit landed, the second did not. */
+  const TEXT: FileText = {
+    kind: 'read',
+    path: 'src/alpha.ts',
+    shown: 'src/alpha.ts',
+    text: 'const a = 1\nconst b = 0\n',
+    bytes: 24,
+  }
+
+  const openAlpha = async () => {
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: fill(BASE['session.edited.open'], { path: 'src/alpha.ts' }),
+      }),
+    )
+    return screen.findByTestId('file-sheet')
+  }
+
+  it('draws each edit above the file, checked against the text that was read', async () => {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD], texts: [TEXT] })
+    hear(wired, 'session', { session: KEY, index: 1, line: EDITS })
+    hear(wired, 'session', { session: KEY, index: 2, line: ANSWERS })
+
+    const sheet = within(await openAlpha())
+    await waitFor(() => {
+      expect(sheet.getAllByTestId('file-edit')).toHaveLength(2)
+    })
+
+    const [landed, missing] = sheet.getAllByTestId('file-edit')
+    if (landed === undefined || missing === undefined) throw new Error('no edits')
+    // What it put there is in the file, so it is there; the other's is not.
+    expect(landed.dataset['standing']).toBe('in-the-file')
+    expect(within(landed).getByText(BASE['session.file.edit.found'])).toBeTruthy()
+    expect(within(landed).getByText('const a = 0')).toBeTruthy()
+    expect(within(landed).getByText('const a = 1')).toBeTruthy()
+    expect(missing.dataset['standing']).toBe('not-in-the-file')
+    expect(within(missing).getByText(BASE['session.file.edit.gone'])).toBeTruthy()
+    // And the call that failed says so beside its own blocks.
+    expect(within(missing).getByText(BASE['session.act.failed'])).toBeTruthy()
+  })
+
+  it('leads from an edit back to the act that made it, in the stream', async () => {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD], texts: [TEXT] })
+    hear(wired, 'session', { session: KEY, index: 1, line: EDITS })
+    const sheet = within(await openAlpha())
+    const [first] = await sheet.findAllByTestId('file-edit')
+    const seq = first?.dataset['seq'] ?? ''
+
+    fireEvent.click(
+      within(first ?? document.body).getByText(fill(BASE['session.file.edit.act'], { seq })),
+    )
+
+    // The viewer closes, since the stream is under it, and the act it named is on the screen.
+    await waitFor(() => {
+      expect(screen.queryByTestId('file-sheet')).toBeNull()
+    })
+    expect(document.getElementById(`act-${seq}`)).not.toBeNull()
+  })
+})
+
 describe('RG242: which project a session is in', () => {
   it('names the project and the line above the session, each a link to its own screen', async () => {
     await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })

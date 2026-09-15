@@ -58,6 +58,10 @@ export interface ScriptedAgent {
  * to draw with more than one call among them (RG243). Each stands differently on disk (RG244):
  * one is outside the project, one is not there, and the first is the fixture's roadmap, which
  * is there to be opened in the viewer (RG245). Nothing is written: a replay only reports edits.
+ *
+ * Each edit carries both its halves, so the viewer has what the session changed to draw (RG246)
+ * — the first one puts back a heading the fixture's roadmap really holds, and the rest put text
+ * it does not, which are the two answers checking an edit against the file can give.
  */
 function tailCycle(at: number): string[] {
   const id = `scripted-${String(at)}`
@@ -65,7 +69,14 @@ function tailCycle(at: number): string[] {
     ['../elsewhere/scripted-notes.md', 'src/scripted.ts', 'docs/ROADMAP.md'][at % 3] ?? ''
   const call =
     at % 2 === 0
-      ? { name: 'Edit', input: { file_path: edited } }
+      ? {
+          name: 'Edit',
+          input: {
+            file_path: edited,
+            old_string: `the line step ${String(at)} replaced`,
+            new_string: at === 2 ? '## Block A — The model' : `what step ${String(at)} put there`,
+          },
+        }
       : { name: 'Read', input: { file_path: 'docs/ROADMAP.md' } }
   return [
     {

@@ -287,30 +287,6 @@ On ship: --recorded-in packages/ui/src/Gate.tsx
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-### §RG246 What the session changed inside a file
-
-**The before comes from the session, never from git.** `No git command run by this app`
-refuses `git diff`, and a copy taken at handover is a store nobody keeps current. What
-is left is enough: an `Edit` carries `old_string` and `new_string`, a `MultiEdit` a list
-of those pairs, and a `Write` the whole content. A reader in `acts.ts`, `editsOf(acts,
-path)`, returns them in stream order, each with the result that answered it.
-
-**Drawn in the viewer, above the file.** Each edit is two blocks in the text face, what
-it replaced and what it put there, with its seq leading to the act in the stream and a
-failed pill where its result failed. A `Write` is one block, the text it wrote. A block
-past a line count folds and opens where it stands.
-
-**Checked against the file, not believed.** Each `new_string` is looked for in the text
-RG245 read. Found, the edit is in the file; absent, it is not in the file now, whether a
-later edit overwrote it, something reverted it or it never applied. A plain substring
-test over two strings the screen already holds: nothing is parsed and nothing is diffed.
-
-**The input is Claude Code's schema.** A call whose input lacks those keys draws no
-block and keeps its raw line, the fallback `subjectOf` already takes.
-
-Tests: `acts.test.ts` for each tool's shape and a malformed input; `session.test.tsx`
-for an edit found, one gone, and one whose call failed.
-
 ### §RG247 Files changed on disk while a session ran
 
 **What the stream cannot name.** A session that runs `sed`, a formatter, a generator or
