@@ -513,16 +513,28 @@ export function Session() {
         // the columns fall in the order they are written, and what was handed over and what
         // moved used to come first — so at 400 wide the session's own words, which a reader
         // opened this screen for, started below the fold whatever the region's height did.
-        // First in the document is also first for a screen reader, at every width. Above
-        // `lg` each column is placed where the drawing has it, so nothing moves there.
-        <div className="grid items-start gap-5 lg:grid-cols-[18rem_minmax(0,1fr)_18rem]">
-          <div className="min-w-0 lg:col-start-2 lg:row-start-1" data-region="session-stream">
+        // First in the document is also first for a screen reader, at every width.
+        //
+        // Laid out as an editor is, across the window's whole width (RG237): from `xl` what was
+        // handed over is a side bar on the left, what moved one on the right, and the stream
+        // takes the middle. Between `lg` and `xl` the two side panels share the left column —
+        // what moved under what was handed, the stream spanning both rows — since three columns
+        // at 1024 would leave the stream where the reading column had it. The second row is
+        // `1fr` so a stream taller than the two panels grows that row and not the gap between them.
+        <div className="grid items-start gap-5 lg:grid-cols-[18rem_minmax(0,1fr)] lg:grid-rows-[auto_1fr] xl:grid-cols-[18rem_minmax(0,1fr)_18rem] xl:grid-rows-none">
+          <div
+            className="min-w-0 lg:col-start-2 lg:row-span-2 lg:row-start-1 xl:row-span-1"
+            data-region="session-stream"
+          >
             <Stream lines={session.lines} marks={session.marks} />
           </div>
           <div className="min-w-0 lg:col-start-1 lg:row-start-1" data-region="session-handed">
             <Handed record={session.record} />
           </div>
-          <div className="min-w-0 lg:col-start-3 lg:row-start-1" data-region="session-moved">
+          <div
+            className="min-w-0 lg:col-start-1 lg:row-start-2 xl:col-start-3 xl:row-start-1"
+            data-region="session-moved"
+          >
             <Moved
               record={session.record}
               now={session.now}

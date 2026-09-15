@@ -20,8 +20,6 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- 📋 **RG237** (deps: —) **the session is held to the reading column, so its stream between two side columns is left about 360 pixels** — A session is a workspace read for minutes, and the width every page shares leaves its tool calls wrapped. → §RG237
-
 ## Done when — Block A
 
 - **The client runs with no Electron and no React** The transport is one interface, so

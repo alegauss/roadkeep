@@ -339,6 +339,67 @@ describe('RG235: the task hero`s actions share a line', () => {
 })
 
 /**
+ * RG237: the session takes the window's width, and its regions sit as an editor's do — measured.
+ *
+ * The shell held every page to a 64rem column, and the session drew three columns inside it,
+ * so at 1280 its stream had about 360 pixels. Whether a route takes the full width is a class
+ * on `main`, and whether a grid puts a region beside another is the cascade, so both are read
+ * off the laid-out page.
+ */
+describe('RG237: the session is a workspace the width of the window', () => {
+  const SESSION = everyRoute().find((route) => route.includes('/session/'))
+
+  /** Where each of the session's three regions landed. */
+  async function regions(): Promise<{ handed: DOMRect; stream: DOMRect; moved: DOMRect }> {
+    if (SESSION === undefined) throw new Error('the router serves no session surface')
+    await atSurface(SESSION)
+    const at = async (name: string): Promise<DOMRect> => {
+      const element = await waitFor(() => {
+        const found = document.querySelector(`[data-region="session-${name}"]`)
+        if (found === null) throw new Error(`the session drew no ${name} region`)
+        return found
+      })
+      return element.getBoundingClientRect()
+    }
+    return { handed: await at('handed'), stream: await at('stream'), moved: await at('moved') }
+  }
+
+  it('runs the page to the window`s edge, handed, stream and moved left to right, at 1280', async () => {
+    const { handed, stream, moved } = await regions()
+
+    expect(thePage().getBoundingClientRect().right).toBeGreaterThanOrEqual(
+      document.documentElement.clientWidth - SLACK,
+    )
+    expect(stream.left).toBeGreaterThanOrEqual(handed.right)
+    expect(moved.left).toBeGreaterThanOrEqual(stream.right)
+    expect(Math.abs(moved.top - handed.top)).toBeLessThanOrEqual(SLACK)
+  })
+
+  it('puts what moved under what was handed, the stream beside both, at 1100', async () => {
+    await page.viewport(1100, DESKTOP.height)
+    const { handed, stream, moved } = await regions()
+
+    expect(Math.abs(moved.left - handed.left)).toBeLessThanOrEqual(SLACK)
+    expect(moved.top).toBeGreaterThanOrEqual(handed.bottom)
+    expect(stream.left).toBeGreaterThanOrEqual(handed.right)
+    expect(Math.abs(stream.top - handed.top)).toBeLessThanOrEqual(SLACK)
+  })
+
+  it('keeps the reading column on every other surface', async () => {
+    const other = everyRoute().find(
+      (route) => route.includes('/task/') && !route.includes('/session/'),
+    )
+    if (other === undefined) throw new Error('the router serves no task surface')
+    await atSurface(other)
+    await settled()
+
+    expect(thePage().getBoundingClientRect().right).toBeLessThan(
+      document.documentElement.clientWidth - SLACK,
+    )
+  })
+})
+
+/**
  * RG231: the header's width-dependent parts, each where RG215 put it.
  *
  * RG215 hid the shortcuts button below `sm` on the design system's `Button`, whose own

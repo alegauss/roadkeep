@@ -17,10 +17,11 @@ import {
   BentoShortcutsDialog,
 } from '@viglet/viglet-design-system/bento'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 
 import { AREAS, HOME_ROUTE, surfacesIn, taskPath } from './areas'
 import { BrandMark } from './BrandMark'
+import { columnAt, COLUMN_CLASS } from './column'
 import { useGround } from './ground'
 import { noticesAtLaunch } from './launch'
 import { SPOKEN_LOCALES } from './speaking'
@@ -44,7 +45,8 @@ import { useWording } from './wording'
  * **The shell owns the reading column.** The max width, the gutters and the vertical rhythm
  * are set here once, so every page begins and ends on the same line. A page that sets its
  * own is the defect that exists only *between* screens, which is why nobody reviewing one of
- * them ever sees it.
+ * them ever sees it. A route that takes the whole width says so in `column`'s table, which is
+ * this shell's to read and never a page's (RG237).
  *
  * **`BentoUserMenu` is absent rather than passed empty strings.** Its props are
  * `accountRoute` and `logoutUrl` and it exists to sign somebody out, which *no account, no
@@ -113,6 +115,7 @@ export function AppShell() {
   const [query, setQuery] = useState('')
   const searchable = useSearchable()
   const navigate = useNavigate()
+  const column = columnAt(useLocation().pathname)
   // RG20's search, over the lines this app holds. Nothing is matched here: the palette does
   // not re-rank what it is given, and a line `search` did not return is not offered — block
   // C's first criterion applied to a list (RG147).
@@ -308,7 +311,12 @@ export function AppShell() {
       </header>
 
       <div className="bento-rail-gutter">
-        <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-10">
+        {/* The column is the route's, from the shell's one table (RG237): a session takes the
+            window's width, and every other page is read in the column. */}
+        <main
+          className={`mx-auto flex w-full ${COLUMN_CLASS[column]} flex-col gap-8 px-6 py-10`}
+          data-column={column}
+        >
           <Outlet />
         </main>
       </div>

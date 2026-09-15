@@ -53,27 +53,3 @@ digest is then required to carry that set.
 
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
-
-### §RG237 A session takes the window's width
-
-The shell's reading column is `max-w-5xl` on every page, and the session draws three
-columns inside it, two of them 18rem. At 1280 wide that leaves the stream about 360
-pixels, and the stream is where tool calls, their arguments and their output are read.
-
-A session is a workspace, not a page read top to bottom, and the arrangement a reader
-already knows for one is an editor's: a side bar on each edge at a fixed width, the
-middle taking the rest. So the session takes the window's full width. From `xl` its
-columns are what was handed over on the left, the stream in the middle and what moved on
-the right. Between `lg` and `xl` the two side panels share one column on the left, since
-three at 1024 would squeeze the stream back to where it was. Below `lg` nothing changes:
-the stream first, as RG225 placed it.
-
-The page does not set the width. `authoring.md` makes a variant of the column the
-shell's to offer by name, never a class a page repeats, so the shell keeps a table of
-the routes that take the full width, and the session's route is its one entry.
-
-The side bars neither collapse nor remember a width, which the same contract names as
-the console-era sidebar it refuses.
-
-Held by a test on the class `main` carries per route, and by `npm run shots` on the
-session at 1280 and 400.
