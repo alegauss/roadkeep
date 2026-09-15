@@ -53,3 +53,26 @@ digest is then required to carry that set.
 
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
+
+### §RG238 The ground as the design system's ModeToggle
+
+**The package already ships it.** `ModeToggle`, exported by the installed 2026.3.10, is
+a sun and moon trigger opening a menu of light, dark and system, worded from the
+package's own `theme.*` catalogue in both locales. Turing's console re-exports it
+(`turing-app/src/components/mode-toggle.tsx`) and keeps no copy, so nothing moves into
+the package and nothing is bumped. It replaces the outline button in `Shell.tsx`, inside
+a `contents` span carrying `data-testid="ground"`, the way the language control is held.
+
+**The write moves off the control.** `ModeToggle` calls the package's `setTheme` itself,
+so `keepGround` never runs: the choice reaches the browser cache alone, and the next
+launch seeds that cache from the file and loses it. RG116 met the same gap for the
+language by hanging the write on i18next's own event. The ground gets that keeper on
+`next-themes` changing `theme` inside `GroundProvider`, compared against what the file
+holds so the launch is not a write. `cycle`, `THEME_TEXT`, `THEME_SHORT` and
+`ground.action` go where nothing else reads them.
+
+**What is traded.** The trigger shows the painted ground, so `system` stops reading off
+the header; the menu names all three. That reverses the header comment RG215 left,
+"never a glyph", and block H's colour criterion still holds: the icon is a shape and the
+menu is words. `Main.dc.html` and `Shell.dc.html` draw `ground: light` and are redrawn
+with the icon.
