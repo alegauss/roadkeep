@@ -14,10 +14,17 @@
 - 📋 **RG251** (deps: RG248) **every launch reads every backlog again, so the portfolio shows skeletons until the slowest engine answers** — The project list is remembered since RG164 and the answers drawn on it are not, so a row whose files did not move pays a full read to show yesterday's counts. → §RG251
 - 📋 **RG252** (deps: RG250, RG251) **a remembered row is still read in full behind the screen, so a launch spends every interpreter a cold start did** — Where the files and the engine are the ones the reading came from, the answer is already on screen and the held engine, stats and pick are work for nothing. → §RG252
 - 📋 **RG253** (deps: RG252) **gate verdicts are forgotten at quit, so every launch runs lint once per project before a row has a verdict** — Lint is the most expensive read there is, and a verdict taken against files and an engine that have not changed since is still the verdict. → §RG253
+- 📋 **RG256** (deps: —) **a row's gate verdict is plain text, so the findings it counts are reached only by guessing Run the gate holds them** — The project name is the row's only link and the screen it opens draws no verdict, so a count on the row has no path that names it. → §RG256
+- 📋 **RG257** (deps: —) **the Portuguese verdict divergente names no check, so a reader takes six findings for six items that diverged** — It is the one word between the row and its findings that no other screen uses, and beside worktree and branch badges it reads as git. → §RG257
 
 ## Block D — The project surface (one backlog, read)
 
+- 📋 **RG255** (deps: —) **the project screen says nothing of its gate, so findings counted on its portfolio row vanish one click later** — Its tabs are where a reader looks for what a project holds, and a verb button reads as a run to start rather than a place the findings already are. → §RG255
+
 ## Block E — The write path (the app composes an argv; the command writes)
+
+- 📋 **RG254** (deps: —) **the gate opens on a count when its verdict is fresh, so the findings it counts appear only after a second run** — The ledger holds how many findings and never which, so a drifted verdict's rows are what a run would say that nothing on screen does. → §RG254
+- 📋 **RG258** (deps: —) **a finding's code is a bare token, so what a class like ref.unresolved means is still looked up in a terminal** — The explain read is typed and contract-tested in core and drawn nowhere, and a message says what is wrong with one line, never why its code exists. → §RG258
 
 ## Block F — The agent surface (handing one task to Claude Code)
 

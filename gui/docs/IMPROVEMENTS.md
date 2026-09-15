@@ -156,9 +156,134 @@ Rewritten in this commit: the "in memory only" comments of `gate.ts` and `carrie
 Tests: `gate.test.ts` seeding a ledger; `carrier.test.ts` asserting no `lint` at open
 for a seeded root whose stamp and engine match, and one for a root whose stamp moved.
 
+### §RG256 The verdict on a row opens the gate
+
+**The gate cell is the one cell on a row that counts something and leads nowhere.**
+`GateCell` in `Portfolio.tsx` draws the verdict pill and "6 findings" as text. The row's
+only link is the project name (RG148), and the screen it opens draws no verdict (RG255),
+so a reader holding a count has no path that names it.
+
+**The pill and the count become one link to `gatePath(row.path)`**, which stays the
+gate's address whether it remains a screen or becomes RG255's tab. Its accessible name
+carries the project, since every drifted row reads the same words: a
+`portfolio.gate.open` key, "Open the gate for {name}: {count} findings", with its `.one`
+form. It is offered on a read row whatever the verdict, since an unknown one opens on a
+run, which is what the gate does with nothing held. A pending or unreadable row has
+nothing to open into and keeps text, by the rule its name already follows.
+
+**The filter chip is not the door.** "Gate drifted 3" narrows the list, which is what a
+chip in that strip does, and making it lead to several gates would give one control two
+meanings.
+
+Tests: `portfolio.test.tsx`, under RG152's gate column: a read row's verdict links to
+its gate, and pending and unreadable rows draw no link.
+
+On ship: --recorded-in packages/ui/src/Portfolio.tsx
+
+### §RG257 A verdict word the window uses elsewhere
+
+**`divergente` is `portfolio.gate.drifted` in `pt-br.ts`**, and the filter chip reads
+"Verificação divergente {count}". Nothing past the row uses the word: the column is
+"Verificação", the count is "achados", the gate screen is "A verificação" and its rows
+are "achados". In a window whose rows carry worktree and branch badges (RG199), a thing
+that diverged reads as a branch, and the reader who reported this took six findings for
+six items that had diverged.
+
+**The Portuguese verdict becomes `reprovada`**, and the chip "Verificação reprovada
+{count}". `reprovar` is already this catalogue's verb for what the gate does, since
+`gate.notes` is "Dito sem reprovar por isso", so the pill, the chip and the gate screen
+share one family of words, and "reprovada · 6 achados" says a check failed and how much
+it found.
+
+**English keeps `drifted`**, the word `docs/design/Main.dc.html` draws and `gate.ts` is
+written around. There the column and the screen already share "gate", so the pill sits
+under the name of the check it reports.
+
+Tests: none new. `wording.test.ts` and `locales.test.ts` hold both catalogues' keys, and
+`portfolio.test.tsx` reads the base language. The check is `npm run shots` in pt-BR,
+reading the portfolio row and the chip.
+
 ## Block D — The project surface (one backlog, read)
 
+### §RG255 The gate as a tab of the project
+
+**The project screen reaches the gate through a button and says nothing of it.**
+`Project.tsx` offers Run the gate in the hero and draws a tab per governed file (RG149).
+`docs/design/Projeto.dc.html` draws the verdict beside that button, "gate clean · 4 min
+ago", and the build dropped it. A reader who saw six findings on the row looks along the
+tabs, and a verb reads as a run to start rather than as the place the findings are.
+
+**The gate becomes the last tab**, labelled with the portfolio column's word and the
+count the ledger holds, heard on the gate topic the way a row hears it (RG166), in the
+error intent while drifted. Its panel is what `Gate.tsx` draws today: the held verdict,
+the counted read, findings and notes apart. Run the gate moves from the hero to above
+the report.
+
+**`GATE_ROUTE` stays the gate's address** and renders the project with that tab chosen,
+so a link from a portfolio row and the screenshot run keep one path. Entering or leaving
+the gate tab replaces the address rather than pushing one, so Back leaves the project
+instead of stepping through tabs.
+
+**The tablist's name widens** from the governed files to the project: the gate is what
+those files say of themselves, not one of them.
+
+Tests: `project.test.tsx` for the tab's count off `gates` and the route opening on it;
+`gate.test.tsx` re-pointed at the tab.
+
+On ship: --recorded-in packages/ui/src/Project.tsx
+
 ## Block E — The write path (the app composes an argv; the command writes)
+
+### §RG254 A drifted verdict opens on its rows
+
+**RG185 opens the gate on the verdict the ledger holds**, and runs only where that
+verdict is unknown or stale (`worthRunning` in `Gate.tsx`). For a clean verdict that is
+the whole answer. For a drifted one it is a count and a date, "6 findings when it last
+ran", with no row, no code and no door: the rows arrive only when a person presses Run
+the gate again.
+
+**A drifted verdict runs as the screen opens.** RG185's own rule is to run where a run
+says something new, and the rows are exactly what the ledger never held. A clean, fresh
+verdict still opens without a run. The held sentence stays drawn while `lint` runs, so
+the count does not vanish for the seconds the rows take.
+
+**Holding the report in the carrier was weighed and refused.** Its doors are one batch
+per root (RG181), so any later read that carries doors replaces them, and a held row
+would offer doors that name nothing. RG253 also plans to write the ledger to disk, and a
+held report would grow what `No store of its own` bounds from a count to every message
+the gate wrote.
+
+Tests: `gate.test.tsx`, where RG185's opening case splits in two: a held clean verdict
+runs nothing, and a held drifted one runs once and draws its rows.
+
+On ship: --recorded-in packages/ui/src/useGate.ts
+
+### §RG258 What a finding's code means, asked of explain
+
+**A finding row draws its code as a pill and the gate's message beside it** (`Finding`
+in `Gate.tsx`). The message is about one line. What the class is, why `ref.unresolved`
+exists and whether it means different things in different places, is what `explain
+<code>` answers. `readExplanation` in `refusals.ts` reads that into `cause` and
+`varies`, a live contract test holds it, and nothing draws it.
+
+**The code becomes a disclosure.** Opening it runs `explain` through the read table for
+that code, once per code per screen, so a report of six findings over three codes costs
+at most three reads, and only for the codes a person opened. What comes back is drawn in
+the engine's words, untranslated, as every payload's prose is.
+
+**Its doors are not drawn.** The finding's own remedy already draws them, filled in for
+this line, while `explain`'s doors are the class's, with `…` wherever the finding has a
+value.
+
+**A build that cannot run it offers nothing.** `capabilities.ts` answers
+`byVerb.explain.callable`, and where that is false the code stays a pill: a disclosure
+that opens on a refusal is a control that lies.
+
+Tests: `gate.test.tsx`: opening a code reads `explain` once and draws its cause, a
+second finding with the same code reads nothing, and no disclosure is drawn where the
+capability is off.
+
+On ship: --recorded-in packages/ui/src/Gate.tsx
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
