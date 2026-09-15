@@ -43,11 +43,13 @@ describe('RG60: what the renderer was given', () => {
     // governed file last changed. RG165 added the one that takes a door the engine offered, and
     // RG152 the one that reads the gate verdicts the carrier holds. RG207 folded the ground's
     // and the language's writes into the one that writes a preference. RG244 added the one that
-    // says when the disk last changed each file a session edited.
+    // says when the disk last changed each file a session edited, and RG245 the one that reads
+    // one of those files.
     expect(methods).toEqual([
       'chooseRoot',
       'door',
       'editedAt',
+      'fileText',
       'gates',
       'governedAt',
       'handOver',
@@ -205,8 +207,9 @@ describe('RG60: what the renderer was not given', () => {
     )
 
     // Sixteen since RG207 folded the ground's and the language's writes into one, and seventeen
-    // since RG244 added the one that asks the disk about a session's edited files.
-    expect(reachable).toHaveLength(17)
+    // since RG244 added the one that asks the disk about a session's edited files. Eighteen since
+    // RG245 added the one that reads one of them.
+    expect(reachable).toHaveLength(18)
     expect(reachable.every((one) => one === 'function')).toBe(true)
   })
 })

@@ -287,30 +287,6 @@ On ship: --recorded-in packages/ui/src/Gate.tsx
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-### §RG245 Viewing an edited file
-
-**A row opens the file as the disk holds it now**, in the design system's `Sheet`, over
-the session so the stream keeps running beside it. Nothing routes, and closing it
-forgets the text.
-
-**Read by the side with the disk.** A bridge method `fileText(key, path)` resolves under
-the session's root as RG244 does, and refuses a path outside it, a file that is not
-there, one above a byte ceiling named in `limits.ts` and stated in the refusal, and one
-that is not text, judged by a NUL in its first block. Each refusal is a code with a
-sentence in both catalogues, never an error's English (RG168).
-
-**Drawn as the file stores it**: the text face, line numbers, the file's own wrapping
-kept, nothing interpreted. A Markdown file is its characters, which is `No Markdown
-parsed in this app`. No highlighting either: a grammar per language is a second parser,
-and the question here is what changed, not how the code reads.
-
-**Current, never remembered.** Read when the sheet opens, again from a reload button,
-and again on each new act that edits the same path while it is open. Kept nowhere after
-it closes: the file's text lives on the disk.
-
-Tests: `file-text.test.ts` over each refusal with a fake disk; `session.test.tsx`
-opening a row, a refusal's sentence, and a reread when the stream edits the open file.
-
 ### §RG246 What the session changed inside a file
 
 **The before comes from the session, never from git.** `No git command run by this app`

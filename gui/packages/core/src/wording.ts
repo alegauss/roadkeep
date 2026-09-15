@@ -20,7 +20,7 @@
  */
 
 import type { NarrowedCase } from './backlog'
-import type { WithheldCode } from './bridge'
+import type { FileRefusal, WithheldCode } from './bridge'
 import type { Unreadable, UnreadableCode } from './limits'
 import type { Lost } from './settings'
 import { keysOf } from './reading'
@@ -253,6 +253,20 @@ export const EN = {
   'session.edited.missing': 'not on disk',
   'session.edited.outside': 'outside this project, not checked',
   'session.edited.disagrees': 'the disk disagrees',
+  'session.edited.open': 'Open {path}',
+  'session.file.reading': 'Reading the file.',
+  'session.file.reload': 'Read it again',
+  'session.file.lines': '{count} lines, as the disk holds it now',
+  'session.file.lines.one': '{count} line, as the disk holds it now',
+  'file.refused.no-session':
+    'This window started no session by that name, so there is no project to read the file in.',
+  'file.refused.outside': 'The file is outside this project, so the window does not read it.',
+  'file.refused.missing': 'There is no file at that path now.',
+  'file.refused.unreadable':
+    'Something is at that path, and it is not a file this window can read.',
+  'file.refused.too-large':
+    'The file is {bytes} bytes, past the {ceiling} this window reads. Open it in an editor.',
+  'file.refused.not-text': 'The file is not text, so the window does not draw it.',
   'session.files': 'The governed files',
   'session.file.never': 'not written yet',
   'session.claims': 'Claims held elsewhere',
@@ -543,6 +557,21 @@ export const WITHHELD_TEXT: Readonly<Record<Exclude<WithheldCode, ''>, MessageKe
   'not-the-words': 'withheld.not-the-words',
   'not-catalogued': 'withheld.not-catalogued',
   'not-open': 'withheld.not-open',
+}
+
+/**
+ * The sentence for each way a file a session edited was not read (RG245).
+ *
+ * `WITHHELD_TEXT`'s arrangement, so a refusal added without a sentence fails to compile. There
+ * is no empty code: every refusal here is this app's own, so every one is translated.
+ */
+export const FILE_REFUSAL_TEXT: Readonly<Record<FileRefusal, MessageKey>> = {
+  'no-session': 'file.refused.no-session',
+  outside: 'file.refused.outside',
+  missing: 'file.refused.missing',
+  unreadable: 'file.refused.unreadable',
+  'too-large': 'file.refused.too-large',
+  'not-text': 'file.refused.not-text',
 }
 
 /** What a refusal carries: the sentence for a log, and the code a screen says instead. */

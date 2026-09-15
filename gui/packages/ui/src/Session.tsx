@@ -21,10 +21,19 @@ import {
 } from '@rk/core'
 import { Button } from '@viglet/viglet-design-system'
 import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-system/bento'
-import { useCallback, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import {
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from 'react'
 import { useParams } from 'react-router-dom'
 
 import { getBridge } from './bridge'
+import { FileSheet } from './file-sheet'
 import { PanelTitle } from './forms'
 import { HeroActions } from './hero'
 import { Glyph, Pill, type Intent } from './marks'
@@ -297,7 +306,8 @@ function DiskSaid({
  * Every edit call names its path, so the code a session changed is listed rather than found by
  * reading the stream. **The list is the session's word and each row's standing is the disk's**,
  * the rule this column keeps for the backlog: a call that reported success on a file the disk
- * has not changed since the session started is drawn as the disagreement it is.
+ * has not changed since the session started is drawn as the disagreement it is. Each row opens
+ * the file as the disk holds it now (RG245).
  */
 function Edited({
   acts,
@@ -311,6 +321,15 @@ function Edited({
   const say = useWording()
   const edited = useMemo(() => editedIn(acts), [acts])
   const disk = useEditedAt(record.key, edited, ended)
+  // Which file is open in the viewer, by the path its call spelled, and nothing else (RG245).
+  const [open, setOpen] = useState<string | null>(null)
+  const opening = useCallback((event: MouseEvent<HTMLButtonElement>) => {
+    setOpen(event.currentTarget.dataset['path'] ?? null)
+  }, [])
+  const closing = useCallback(() => {
+    setOpen(null)
+  }, [])
+  const viewed = open === null ? undefined : edited.find((file) => file.path === open)
 
   return (
     <section className="mt-4" data-testid="edited">
@@ -332,7 +351,15 @@ function Edited({
                   data-path={file.path}
                   data-standing={read.standing}
                 >
-                  <span className="font-mono wrap-anywhere">{at?.shown ?? file.path}</span>
+                  <button
+                    type="button"
+                    className="text-left font-mono wrap-anywhere hover:underline"
+                    data-path={file.path}
+                    aria-label={say('session.edited.open', { path: at?.shown ?? file.path })}
+                    onClick={opening}
+                  >
+                    {at?.shown ?? file.path}
+                  </button>
                   <span className="text-muted-foreground flex flex-wrap items-center gap-1.5">
                     {say('session.edited.calls', { count: file.calls })}
                     {file.governed ? (
@@ -355,6 +382,9 @@ function Edited({
             })}
           </ul>
         </>
+      )}
+      {viewed === undefined ? null : (
+        <FileSheet sessionKey={record.key} file={viewed} onClose={closing} />
       )}
     </section>
   )

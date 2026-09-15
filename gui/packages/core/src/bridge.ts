@@ -176,6 +176,17 @@ export interface RendererBridge {
    */
   editedAt(key: string, paths: readonly string[]): Promise<readonly EditedFile[]>
   /**
+   * One file a session edited, as the disk holds it now, or why it will not be read (RG245).
+   *
+   * `editedAt`'s arrangement: named by the session, resolved under the root the far side started
+   * it in, and refused outside it. Refused as well past `FILE_TEXT_CEILING` and where it is not
+   * text, each as a code a screen says in its own language. Nothing is kept on either side: a
+   * screen asks again for the file as it is.
+   *
+   * @param path as the session's own call spelled it
+   */
+  fileText(key: string, path: string): Promise<FileText>
+  /**
    * The gate verdicts this carrier holds, dated against the files they were taken on (RG152).
    *
    * A read of a ledger and never a run: `lint` is the most expensive read there is, so it
@@ -255,6 +266,44 @@ export interface EditedFile {
   /** When the disk last changed it, or empty where it is not there or was not asked. */
   readonly changed: string
 }
+
+/**
+ * Why a file a session edited was not read (RG245). A code and not a sentence, as `WithheldCode`
+ * is one: the catalogue says each in every language this build ships.
+ */
+export type FileRefusal =
+  /** No session this process started goes by that key. */
+  | 'no-session'
+  /** The path resolves outside the session's root, so the disk was not asked. */
+  | 'outside'
+  /** Nothing is there. */
+  | 'missing'
+  /** There, and something other than a file: a folder, or what this process may not read. */
+  | 'unreadable'
+  /** Larger than `FILE_TEXT_CEILING`; the fields carry its size and the ceiling. */
+  | 'too-large'
+  /** A NUL in its first block, which is what a file that is not text has. */
+  | 'not-text'
+
+/** One edited file as the disk holds it now, or the refusal (RG245). */
+export type FileText =
+  | {
+      readonly kind: 'read'
+      /** As the call spelled it. */
+      readonly path: string
+      /** Under the root with forward slashes, as `EditedFile.shown` is. */
+      readonly shown: string
+      /** The file's characters, decoded as UTF-8 and nothing more. */
+      readonly text: string
+      readonly bytes: number
+    }
+  | {
+      readonly kind: 'refused'
+      readonly path: string
+      readonly code: FileRefusal
+      /** What the sentence's holes are filled with: `bytes` and `ceiling` for `too-large`. */
+      readonly fields: Readonly<Record<string, string>>
+    }
 
 /**
  * One session, as the process holding it knows it (RG153). Plain data, so it crosses as it is.
@@ -494,6 +543,7 @@ export const BRIDGE_CHANNELS = {
   handOver: 'roadkeep:hand-over',
   governedAt: 'roadkeep:governed-at',
   editedAt: 'roadkeep:edited-at',
+  fileText: 'roadkeep:file-text',
   gates: 'roadkeep:gates',
   sessions: 'roadkeep:sessions',
   stopSession: 'roadkeep:stop-session',

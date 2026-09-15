@@ -39,9 +39,10 @@ export interface ShotValues {
 
 /**
  * The states the session surface is photographed in (RG210): following its end as a run writes,
- * scrolled up with the way back showing, and with its notes folded (RG208).
+ * scrolled up with the way back showing, with its notes folded (RG208), and with the first file
+ * it edited open in the viewer (RG245).
  */
-export const SESSION_SHOTS = ['following', 'scrolled', 'folded'] as const
+export const SESSION_SHOTS = ['following', 'scrolled', 'folded', 'file'] as const
 export type SessionShot = (typeof SESSION_SHOTS)[number]
 
 export const SHOT_GROUNDS: readonly Exclude<Theme, 'system'>[] = ['light', 'dark']

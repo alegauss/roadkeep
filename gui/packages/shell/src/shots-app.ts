@@ -321,6 +321,13 @@ async function prefer(shot: ShotApp, key: string, value: string): Promise<void> 
 const SCROLL_STREAM_UP =
   '(() => { const region = document.querySelector(\'[data-testid="stream"]\'); if (region) region.scrollTop = 0 })()'
 
+/** Open the first file the session edited in the viewer, which is a reader clicking its row (RG245). */
+const OPEN_EDITED_FILE =
+  '(() => { const row = document.querySelector(\'[data-testid="edited-file"] button\'); if (row) row.click() })()'
+
+/** How long the viewer takes to slide in, which a quiet document does not wait for: CSS moves it. */
+const SHEET_OPENS_MS = 600
+
 async function settle(page: Page): Promise<boolean> {
   await page.evaluate(TWO_FRAMES)
   return (await page.evaluate(settleScript(QUIET_MS, SETTLE_CEILING_MS))) === true
@@ -395,6 +402,12 @@ export async function takeCapture(
       await page.evaluate(SCROLL_STREAM_UP)
       settled = await settle(page)
     }
+    if (capture.state === 'file') {
+      await page.evaluate(OPEN_EDITED_FILE)
+      await page.waitForSelector('[data-testid="file-sheet"]', { timeout: SETTLE_CEILING_MS })
+      await page.waitForTimeout(SHEET_OPENS_MS)
+      settled = await settle(page)
+    }
 
     if (taking.picture) {
       const file = path.join(directory, capture.file)
@@ -410,6 +423,9 @@ export async function takeCapture(
     return { settled, scan: taking.scan ? await scanPage(page, capture) : null }
   } finally {
     if (capture.state === 'folded') await prefer(shot, 'sessionNotes', 'shown')
+    // The viewer is the screen's own state and survives a hash set to the same route, so it is
+    // closed as a reader closes it before the next capture draws the session without it.
+    if (capture.state === 'file') await page.keyboard.press('Escape')
   }
 }
 

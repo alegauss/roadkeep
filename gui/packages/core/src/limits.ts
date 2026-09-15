@@ -34,6 +34,15 @@ export interface ReadLimits {
  */
 export const DEFAULT_LIMITS: ReadLimits = { timeoutMs: 15000, width: 4 }
 
+/**
+ * The largest file a session edited that the window will read into a viewer, in bytes (RG245).
+ *
+ * A mebibyte is far past any source file a person reads in a panel and small enough that one
+ * crossing the bridge, and drawn in two `pre` blocks, is not a pause. A file past it is refused
+ * with both numbers, and an editor is the place to read it.
+ */
+export const FILE_TEXT_CEILING = 1024 * 1024
+
 const TIMEOUT_FLOOR = 1000
 const TIMEOUT_CEILING = 600000
 const WIDTH_CEILING = 32

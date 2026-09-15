@@ -460,11 +460,14 @@ const TEXT: readonly string[] = ['block', 'by', 'file', 'found', 'id', 'path', '
  * Numbers no word agrees with.
  *
  * Mostly the `{x} of {y}` shape, where the noun belongs to the total and the figure before it
- * is just a figure — `3 of 40 backlogs searched`, `12 of 250 words`. `characters` is the one
+ * is just a figure — `3 of 40 backlogs searched`, `12 of 250 words`. `characters` is one
  * judgement rather than a shape: its sentence already agrees with the count of lines it could
- * not list, and a read one character long is not a state this app has.
+ * not list, and a read one character long is not a state this app has. `bytes` and `ceiling`
+ * are the other (RG245): both are said only of a file past a mebibyte, so neither is ever one.
  */
 const FIGURES: readonly string[] = [
+  'bytes',
+  'ceiling',
   'characters',
   'done',
   'left',

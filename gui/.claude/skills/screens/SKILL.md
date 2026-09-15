@@ -22,7 +22,7 @@ Needs python and the wired launcher, like `npm run test:live`. It builds a fixtu
 a session on a scripted agent (RG210), and writes to `.shots/`:
 
 - `<surface>[.<state>].<ground>.<locale>.<width>.png` — surfaces are `home`, `project`,
-  `project-task`, `project-task-session` (states `following`, `scrolled`, `folded`), `sessions`,
+  `project-task`, `project-task-session` (states `following`, `scrolled`, `folded`, `file`), `sessions`,
   `project-file`, `project-gate`, `settings`; grounds `light` and `dark`; `en` and `pt-BR`; 1280
   and 400 wide.
 - `index.json` — which captures settled.

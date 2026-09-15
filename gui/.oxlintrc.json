@@ -122,7 +122,18 @@
     "react/set-state-in-effect": "off",
     // `{ path, ...gitSite(project) }` builds an object out of a call's result. The rule is
     // about accumulating a spread, not composing one.
-    "oxc/no-map-spread": "off"
+    "oxc/no-map-spread": "off",
+
+    // A `section` that scrolls takes a tab stop, which this rule reads as a tab stop on
+    // something that does nothing (RG245). It is the opposite: axe fails a scrollable region
+    // with no focusable content in it — `scrollable-region-focusable`, serious — because a
+    // reader on a keyboard cannot reach it, and the file viewer's text is exactly that. The
+    // narrowing is to `section`, which is a labelled region and not a `div`, so the rule
+    // still reports a tab stop put on a wrapper.
+    "jsx-a11y/no-noninteractive-tabindex": [
+      "error",
+      { "tags": ["section"], "roles": ["region"], "allowExpressionValues": true }
+    ]
   },
   "overrides": [
     {

@@ -240,4 +240,17 @@ describe('RG210: a session photographed mid-run, against a scripted agent', () =
     ).toBe('shown')
     expect(sizeOf(path.join(out, capture.file))).toEqual({ png: true, width: 1280, height: 800 })
   })
+
+  it('opens the first edited file for its picture, and closes it after (RG245)', async () => {
+    const capture = sessionCapture('file')
+    await takeCapture(running, capture, out)
+
+    // Closed again, so the next capture draws the session without it.
+    expect(
+      await running.page.evaluate(
+        'document.querySelector(\'[data-testid="file-sheet"]\') === null',
+      ),
+    ).toBe(true)
+    expect(sizeOf(path.join(out, capture.file))).toEqual({ png: true, width: 1280, height: 800 })
+  })
 })

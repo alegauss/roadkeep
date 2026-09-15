@@ -12,6 +12,8 @@ export type {
   BridgedResult,
   BridgeIdentity,
   EditedFile,
+  FileRefusal,
+  FileText,
   GovernedFile,
   HandedOver,
   LaunchSettings,
@@ -175,7 +177,14 @@ export { accountOf, deferred, leftPointing, resumed, retired, shipped } from './
 export type { Departure, Edit, Leaving } from './leaving'
 export { aboutNoInput, movedFrom, openMarkers, saidOfMove, workingMarker } from './marking'
 export type { ClaimEffect, Moved } from './marking'
-export { attemptRead, DEFAULT_LIMITS, explainUnreadable, saidBy, withLimits } from './limits'
+export {
+  attemptRead,
+  DEFAULT_LIMITS,
+  explainUnreadable,
+  FILE_TEXT_CEILING,
+  saidBy,
+  withLimits,
+} from './limits'
 export type { ProjectRead, ReadLimits, Unreadable } from './limits'
 export { howListed, ledgerFrom, reversedFrom, undoneBy } from './memory'
 export type { Delivery, Ledger, Reversed } from './memory'
@@ -300,6 +309,7 @@ export {
   pseudo,
   reasonOf,
   refusalOf,
+  FILE_REFUSAL_TEXT,
   saidPlainly,
   stale,
   timeIn,

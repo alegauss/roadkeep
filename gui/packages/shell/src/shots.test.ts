@@ -63,13 +63,15 @@ describe('RG209: every surface the router serves', () => {
 })
 
 describe('RG210: the session, photographed in the states a reader puts it in', () => {
-  it('takes it following, scrolled up and with its notes folded, each under a name of its own', () => {
+  it('takes it following, scrolled up, folded and with a file open, each under a name of its own', () => {
     const session = capturesFor(VALUES, ['project-task-session'])
 
     expect(new Set(session.map((one) => one.state))).toEqual(new Set(SESSION_SHOTS))
     expect(session.map((one) => one.file)).toContain(
       'project-task-session.scrolled.dark.pt-BR.400.png',
     )
+    // The viewer over the session (RG245).
+    expect(session.map((one) => one.file)).toContain('project-task-session.file.light.en.1280.png')
     // Every other surface has no state to be put in.
     expect(capturesFor(VALUES, ['settings']).every((one) => one.state === null)).toBe(true)
   })

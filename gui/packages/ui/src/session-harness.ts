@@ -5,6 +5,7 @@ import {
   openProject,
   readBriefPayload,
   type EditedFile,
+  type FileText,
   type HandedOver,
   type SessionRecord,
   type Topic,
@@ -192,6 +193,10 @@ export interface Wired {
   readonly handedOver: string[]
   /** Each `editedAt` ask, as the session's key and the paths it named (RG244). */
   readonly editedAsked: { readonly key: string; readonly paths: readonly string[] }[]
+  /** Each `fileText` ask, as the session's key and the path (RG245). */
+  readonly fileAsked: { readonly key: string; readonly path: string }[]
+  /** What `fileText` answers next for a path, which a test moves between reads (RG245). */
+  readonly texts: Map<string, FileText>
   /** What `sessions` answers next, which main moves under a standing list (RG178). */
   holds: SessionRecord[]
 }
@@ -204,12 +209,22 @@ export async function at(
     readonly shipped?: boolean
     /** What the disk says about the edited files, by the path a call spelled (RG244). */
     readonly edited?: readonly EditedFile[]
+    /** What each file reads as, by the path a call spelled (RG245). */
+    readonly texts?: readonly FileText[]
   } = {},
 ): Promise<Wired> {
   const moved = { shipped: over.shipped ?? false }
   const transport = engine(moved)
   const opened = openedFrom(await openProject(ROOT, [['roadkeep']], () => transport))
-  const wired: Wired = { listeners: [], stopped: [], handedOver: [], editedAsked: [], holds: [] }
+  const wired: Wired = {
+    listeners: [],
+    stopped: [],
+    handedOver: [],
+    editedAsked: [],
+    fileAsked: [],
+    texts: new Map((over.texts ?? []).map((text) => [text.path, text])),
+    holds: [],
+  }
   // What this window holds, which a handover adds to — the state RG175 reads to decide
   // whether the line is offered again, and which a test can move under a standing list
   // the way main does (RG178).
@@ -234,6 +249,17 @@ export async function at(
         wired.editedAsked.push({ key: one, paths })
         const known = over.edited ?? []
         return Promise.resolve(known.filter((file) => paths.includes(file.path)))
+      },
+      fileText: (one, spelled) => {
+        wired.fileAsked.push({ key: one, path: spelled })
+        return Promise.resolve(
+          wired.texts.get(spelled) ?? {
+            kind: 'refused',
+            path: spelled,
+            code: 'missing',
+            fields: {},
+          },
+        )
       },
       handOver: (_root, id) => {
         wired.handedOver.push(id)

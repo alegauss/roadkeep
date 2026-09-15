@@ -14,6 +14,7 @@ import {
   type BridgedResult,
   type BridgeIdentity,
   type EditedFile,
+  type FileText,
   type GovernedFile,
   type HandedOver,
   type KnownRoot,
@@ -27,6 +28,7 @@ import { AGENT_VAR, agentCandidates, agentOverride } from './agent-candidates'
 import { loadCatalogue, saveCatalogue } from './catalogue-file'
 import { createCarrier, type Carrier } from './carrier'
 import { editedAt } from './edited-at'
+import { fileText } from './file-text'
 import { governedAt } from './governed-at'
 import { createSubscriptions, type Subscriber } from './subscriptions'
 import { localeChoice } from './locale'
@@ -298,6 +300,20 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
     const root = sessions.rootOf(key)
     return root === null ? [] : editedAt(root, spelled)
   })
+  // One of those files as the disk holds it now (RG245), on the same terms: the root is the
+  // session's, a path outside it is refused before anything is asked, and so is a key this
+  // process never issued. What crosses is the text or a code, never an error's English.
+  ipcMain.handle(
+    BRIDGE_CHANNELS.fileText,
+    (_event, key: unknown, path: unknown): Promise<FileText> => {
+      const spelled = typeof path === 'string' ? path : ''
+      const root = typeof key === 'string' ? sessions.rootOf(key) : null
+      if (root === null) {
+        return Promise.resolve({ kind: 'refused', path: spelled, code: 'no-session', fields: {} })
+      }
+      return fileText(root, spelled)
+    },
+  )
 
   // The gate verdicts on record (RG152): a read of the ledger the carrier dates, never a run.
   ipcMain.handle(BRIDGE_CHANNELS.gates, () => carrier.gates())

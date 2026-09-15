@@ -52,6 +52,7 @@ const bridge: RendererBridge = {
   handOver: (root, id) => ipcRenderer.invoke(BRIDGE_CHANNELS.handOver, root, id),
   governedAt: (root) => ipcRenderer.invoke(BRIDGE_CHANNELS.governedAt, root),
   editedAt: (key, paths) => ipcRenderer.invoke(BRIDGE_CHANNELS.editedAt, key, paths),
+  fileText: (key, path) => ipcRenderer.invoke(BRIDGE_CHANNELS.fileText, key, path),
   gates: () => ipcRenderer.invoke(BRIDGE_CHANNELS.gates),
   sessions: () => ipcRenderer.invoke(BRIDGE_CHANNELS.sessions),
   stopSession: (key) => ipcRenderer.invoke(BRIDGE_CHANNELS.stopSession, key),

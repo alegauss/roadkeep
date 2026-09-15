@@ -29,7 +29,7 @@ import { withinRoot } from './root-paths'
 export const EDITED_CEILING = 1000
 
 /** The path under the root, as a screen draws one: relative, with forward slashes. */
-function shownUnder(root: string, full: string): string {
+export function shownUnder(root: string, full: string): string {
   const inside = path.resolve(root)
   return full
     .slice(inside.length)

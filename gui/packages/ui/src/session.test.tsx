@@ -15,6 +15,7 @@ import {
   PT_BR_LOCALE,
   translator,
   type EditedFile,
+  type FileText,
 } from '@rk/core'
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -22,6 +23,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { projectPath, SESSIONS_ROUTE, sessionPath, taskPath } from './areas'
 import i18next, { changeLanguage } from 'i18next'
 
+import { linesIn } from './file-sheet'
 import { drawWindow } from './harness'
 import { holdSessionNotes } from './preferring'
 import { at, CHANGED, engine, FILES, hear, KEY, RECORD, ROOT, SAID, USED } from './session-harness'
@@ -613,6 +615,125 @@ describe('RG244: the edited files against the disk', () => {
       expect(row('src/beta.ts').dataset['standing']).toBe('unasked')
     })
     expect(within(row('src/beta.ts')).queryByText(BASE['session.edited.disagrees'])).toBeNull()
+  })
+})
+
+describe('RG245: counting a file’s lines', () => {
+  it('counts the lines a file has, and not the empty one after its last break', () => {
+    expect(linesIn('')).toBe(0)
+    expect(linesIn('one')).toBe(1)
+    expect(linesIn('one\n')).toBe(1)
+    expect(linesIn('one\ntwo')).toBe(2)
+    expect(linesIn('one\n\n')).toBe(2)
+  })
+})
+
+describe('RG245: an edited file opened from the window', () => {
+  const EDIT = (id: string) =>
+    JSON.stringify({
+      type: 'assistant',
+      message: {
+        content: [{ type: 'tool_use', id, name: 'Edit', input: { file_path: 'src/alpha.ts' } }],
+      },
+    })
+  const ANSWER = (id: string) =>
+    JSON.stringify({
+      type: 'user',
+      message: { content: [{ tool_use_id: id, type: 'tool_result', content: 'updated' }] },
+    })
+  const LOG = JSON.stringify({
+    type: 'assistant',
+    message: {
+      content: [{ type: 'tool_use', id: 'w1', name: 'Write', input: { file_path: 'big.log' } }],
+    },
+  })
+  const read = (text: string): FileText => ({
+    kind: 'read',
+    path: 'src/alpha.ts',
+    shown: 'src/alpha.ts',
+    text,
+    bytes: text.length,
+  })
+
+  const openRow = async (path: string) => {
+    fireEvent.click(
+      await screen.findByRole('button', { name: fill(BASE['session.edited.open'], { path }) }),
+    )
+    return screen.findByTestId('file-sheet')
+  }
+
+  it('opens a row as the disk holds the file now, numbered, and forgets it when closed', async () => {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), {
+      sessions: [RECORD],
+      texts: [read('const a = 1\nconst b = 2\n')],
+    })
+    hear(wired, 'session', { session: KEY, index: 1, line: EDIT('e1') })
+
+    const sheet = within(await openRow('src/alpha.ts'))
+
+    await waitFor(() => {
+      expect(sheet.getByTestId('file-text').textContent).toBe('const a = 1\nconst b = 2\n')
+    })
+    expect(sheet.getByText(fill(BASE['session.file.lines'], { count: 2 }))).toBeTruthy()
+    expect(wired.fileAsked).toEqual([{ key: KEY, path: 'src/alpha.ts' }])
+
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' })
+    await waitFor(() => {
+      expect(screen.queryByTestId('file-sheet')).toBeNull()
+    })
+  })
+
+  it('says why a file was not read, in this app words with the numbers it carried', async () => {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), {
+      sessions: [RECORD],
+      texts: [
+        {
+          kind: 'refused',
+          path: 'big.log',
+          code: 'too-large',
+          fields: { bytes: '2000000', ceiling: '1048576' },
+        },
+      ],
+    })
+    hear(wired, 'session', { session: KEY, index: 1, line: LOG })
+
+    const sheet = within(await openRow('big.log'))
+
+    expect(
+      await sheet.findByText(
+        fill(BASE['file.refused.too-large'], { bytes: '2000000', ceiling: '1048576' }),
+      ),
+    ).toBeTruthy()
+    expect(sheet.queryByTestId('file-text')).toBeNull()
+  })
+
+  it('reads again when the stream edits the open file, and when asked to', async () => {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), {
+      sessions: [RECORD],
+      texts: [read('before\n')],
+    })
+    hear(wired, 'session', { session: KEY, index: 1, line: EDIT('e1') })
+    hear(wired, 'session', { session: KEY, index: 2, line: ANSWER('e1') })
+    const sheet = within(await openRow('src/alpha.ts'))
+    await waitFor(() => {
+      expect(sheet.getByTestId('file-text').textContent).toBe('before\n')
+    })
+    const asked = wired.fileAsked.length
+
+    // The session edits the same file while it is open: read as the answer lands.
+    wired.texts.set('src/alpha.ts', read('after\n'))
+    hear(wired, 'session', { session: KEY, index: 3, line: EDIT('e2') })
+    hear(wired, 'session', { session: KEY, index: 4, line: ANSWER('e2') })
+    await waitFor(() => {
+      expect(sheet.getByTestId('file-text').textContent).toBe('after\n')
+    })
+    expect(wired.fileAsked.length).toBeGreaterThan(asked)
+
+    const before = wired.fileAsked.length
+    fireEvent.click(sheet.getByRole('button', { name: BASE['session.file.reload'] }))
+    await waitFor(() => {
+      expect(wired.fileAsked).toHaveLength(before + 1)
+    })
   })
 })
 

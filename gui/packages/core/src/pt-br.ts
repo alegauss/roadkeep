@@ -236,6 +236,20 @@ export const PT_BR: Wording = {
   'session.edited.missing': 'não está no disco',
   'session.edited.outside': 'fora deste projeto, não conferido',
   'session.edited.disagrees': 'o disco discorda',
+  'session.edited.open': 'Abrir {path}',
+  'session.file.reading': 'Lendo o arquivo.',
+  'session.file.reload': 'Ler de novo',
+  'session.file.lines': '{count} linhas, como o disco o guarda agora',
+  'session.file.lines.one': '{count} linha, como o disco o guarda agora',
+  'file.refused.no-session':
+    'Esta janela não iniciou nenhuma sessão com esse nome, então não há projeto onde ler o arquivo.',
+  'file.refused.outside': 'O arquivo está fora deste projeto, então a janela não o lê.',
+  'file.refused.missing': 'Não há arquivo nesse caminho agora.',
+  'file.refused.unreadable':
+    'Há algo nesse caminho, e não é um arquivo que esta janela consiga ler.',
+  'file.refused.too-large':
+    'O arquivo tem {bytes} bytes, além dos {ceiling} que esta janela lê. Abra-o em um editor.',
+  'file.refused.not-text': 'O arquivo não é texto, então a janela não o desenha.',
   'session.files': 'Os arquivos governados',
   'session.file.never': 'ainda não escrito',
   'session.claims': 'Claims tomados em outras linhas',
