@@ -1,4 +1,4 @@
-import { LOCALE_TAGS, type Theme } from '@rk/core'
+import { BASE, LOCALE_TAGS, type Theme } from '@rk/core'
 import { screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
@@ -304,6 +304,37 @@ describe('RG229: a project line is gridded wide and stacked narrow', () => {
     const [id, symptom] = await cells()
 
     expect(symptom.top).toBeGreaterThanOrEqual(id.bottom)
+  })
+})
+
+/**
+ * RG235: a hero's actions meet at their tops — measured.
+ *
+ * Each action is a column, its button and then the note under it, and the notes differ: Copy
+ * the brief reserves its line and the column beside it does not. Centred on the row, the
+ * shorter column's button sat eight pixels below its neighbour, which no class string shows —
+ * so the tops are read off the laid-out page, on the one hero that carries two actions.
+ */
+describe('RG235: the task hero`s actions share a line', () => {
+  const TASK = everyRoute().find(
+    (route) => route.includes('/task/') && !route.includes('/session/'),
+  )
+
+  it('puts the first control of every action at one top, at 1280', async () => {
+    if (TASK === undefined) throw new Error('the router serves no task surface')
+    await atSurface(TASK)
+    await screen.findByRole('button', { name: BASE['task.copy'] })
+    const row = document.querySelector('[data-region="hero-actions"]')
+    if (row === null) throw new Error('the task drew no hero actions')
+
+    const tops = [...row.children].map((action) => {
+      const control = action.querySelector('button, a')
+      if (control === null) throw new Error('an action drew no control')
+      return control.getBoundingClientRect().top
+    })
+
+    expect(tops.length).toBeGreaterThan(1)
+    expect(Math.max(...tops) - Math.min(...tops)).toBeLessThanOrEqual(SLACK)
   })
 })
 

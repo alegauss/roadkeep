@@ -21,7 +21,6 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- 📋 **RG235** (deps: —) **on a task, Copy the brief sits higher than Hand to Claude Code beside it, so the hero's two actions share no line** — The hero centres each action's column, and only one column reserves the note under its button. → §RG235
 - 📋 **RG237** (deps: —) **the session is held to the reading column, so its stream between two side columns is left about 360 pixels** — A session is a workspace read for minutes, and the width every page shares leaves its tool calls wrapped. → §RG237
 
 ## Done when — Block A

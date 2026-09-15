@@ -76,28 +76,6 @@ digest is then required to carry that set.
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
 
-### §RG235 A hero's actions meet at their tops
-
-Each action on the task's hero is a column: the button, and under it the line that says
-what happened when it was pressed. Copy the brief reserves that line's height with
-`min-h-4`, so "copied" arriving does not move the button. Hand to Claude Code writes its
-line with no floor, and an empty `output` in a flex column is zero high. The columns
-differ by that line, and `HeroActions` centres them on the row's middle, so the shorter
-column's button sits eight pixels lower than its neighbour.
-
-The fix belongs to `HeroActions` and not to either page: the columns meet at their tops.
-A button is the first thing in every column a hero carries and the notes under it are
-what differ, so the top is the one edge two columns always share. Centring was right
-while every hero held a lone button, which is what RG215 wrote it for.
-
-A floor on every note was weighed instead: it aligns these two, and the next action
-written without one misaligns again, a defect that exists only between two components.
-The row's own rule holds wherever an action is added.
-
-Held by a test that reads the class the row is drawn with, since jsdom measures nothing,
-and by `npm run shots` on the task at 1280, where the two buttons are read against one
-line.
-
 ### §RG237 A session takes the window's width
 
 The shell's reading column is `max-w-5xl` on every page, and the session draws three
