@@ -1,6 +1,7 @@
 import {
   actsIn,
   arrivedSince,
+  editedIn,
   foldedNotes,
   FOLLOWING,
   landingBetween,
@@ -10,7 +11,6 @@ import {
   type ClaimsPayload,
   type Follow,
   type GovernedFile,
-  type Marks,
   type MessageKey,
   type Reading,
   type SessionOutcome,
@@ -45,7 +45,8 @@ import { useWhen, useWording } from './wording'
  * **What moved is read off the files, not off the stream.** A session can report shipping a
  * line it did not ship, so the line is briefed again on every move and `landingBetween`
  * compares that with what the session was handed. Where the two disagree, this column is the
- * one that is true.
+ * one that is true. The files it edited are the one list here off the stream (RG243), and
+ * captioned as the session's own account.
  *
  * Stopping kills the process and leaves the claim to the registry's expiry — the session may
  * have moved the line, and releasing it here would undo a state nobody reviewed.
@@ -265,6 +266,48 @@ function Files({ files }: { readonly files: readonly GovernedFile[] }) {
   )
 }
 
+/**
+ * The files the session edited, off its own calls (RG243).
+ *
+ * The one list in this column the stream answers and not the files: every edit call names its
+ * path, so the code a session changed is listed rather than found by reading the stream. The
+ * caption says whose account it is, since whether the disk agrees is another read.
+ */
+function Edited({ acts }: { readonly acts: readonly Act[] }) {
+  const say = useWording()
+  const edited = useMemo(() => editedIn(acts), [acts])
+
+  return (
+    <section className="mt-4" data-testid="edited">
+      <PanelTitle>{say('session.edited')}</PanelTitle>
+      {edited.length === 0 ? (
+        <p className="text-muted-foreground text-xs">{say('session.edited.none')}</p>
+      ) : (
+        <>
+          <p className="text-muted-foreground mb-1.5 text-xs">{say('session.edited.about')}</p>
+          <ul className="flex flex-col gap-1.5 text-xs">
+            {edited.map((file) => (
+              <li
+                key={file.path}
+                className="flex flex-col gap-0.5"
+                data-testid="edited-file"
+                data-path={file.path}
+              >
+                <span className="font-mono wrap-anywhere">{file.path}</span>
+                <span className="text-muted-foreground flex flex-wrap items-center gap-1.5">
+                  {say('session.edited.calls', { count: file.calls })}
+                  {file.governed ? <Pill intent="on">{say('session.edited.governed')}</Pill> : null}
+                  {file.failed ? <Pill intent="error">{say('session.edited.failed')}</Pill> : null}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </section>
+  )
+}
+
 /** Who else is on a line of this project, off the engine's own registry. */
 function Elsewhere({ claims, id }: { readonly claims: ClaimsPayload | null; readonly id: string }) {
   const say = useWording()
@@ -299,12 +342,14 @@ function Moved({
   record,
   now,
   outcome,
+  acts,
   files,
   claims,
 }: {
   readonly record: SessionRecord
   readonly now: Reading | null
   readonly outcome: SessionOutcome | null
+  readonly acts: readonly Act[]
   readonly files: readonly GovernedFile[]
   readonly claims: ClaimsPayload | null
 }) {
@@ -336,6 +381,7 @@ function Moved({
           {outcome.said}
         </pre>
       )}
+      <Edited acts={acts} />
       <Files files={files} />
       <Elsewhere claims={claims} id={record.id} />
     </BentoPanel>
@@ -359,9 +405,8 @@ function Moved({
  * back with what arrived since, and at the end it follows again. The jump is instant, because
  * a smooth scroll chasing several lines a second never arrives.
  */
-function Stream({ lines, marks }: { readonly lines: readonly string[]; readonly marks: Marks }) {
+function Stream({ acts }: { readonly acts: readonly Act[] }) {
   const say = useWording()
-  const acts = useMemo(() => actsIn(lines, marks), [lines, marks])
   // Folded where the reader chose it, and applied here rather than in `actsIn`: the acts stay
   // whole, and following still counts every one of them (RG208).
   const notes = useSessionNotes()
@@ -504,6 +549,15 @@ export function Session() {
   const face = session === null ? null : session.face
   const trail = useMemo(() => <ProjectTrail root={root} face={face} task={id} />, [root, face, id])
 
+  // Read once for both columns that need them: the stream draws the acts, and what moved lists
+  // the files they edited (RG243).
+  const lines = session?.lines
+  const marks = session?.marks
+  const acts = useMemo(
+    () => (lines === undefined || marks === undefined ? [] : actsIn(lines, marks)),
+    [lines, marks],
+  )
+
   return (
     <>
       <BentoHero eyebrow={trail} title={id} subtitle={subtitle} trailing={trailing} />
@@ -525,7 +579,7 @@ export function Session() {
             className="min-w-0 lg:col-start-2 lg:row-span-2 lg:row-start-1 xl:row-span-1"
             data-region="session-stream"
           >
-            <Stream lines={session.lines} marks={session.marks} />
+            <Stream acts={acts} />
           </div>
           <div className="min-w-0 lg:col-start-1 lg:row-start-1" data-region="session-handed">
             <Handed record={session.record} />
@@ -538,6 +592,7 @@ export function Session() {
               record={session.record}
               now={session.now}
               outcome={session.outcome}
+              acts={acts}
               files={session.files}
               claims={session.claims}
             />

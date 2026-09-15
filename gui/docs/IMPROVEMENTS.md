@@ -12,29 +12,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-### §RG243 Listing the files a session edited
-
-**Read off the stream, and said to be.** Each `used` act already carries its tool and
-the path it was called on, and `touched` keeps only the governed ones. A reader beside
-it in `acts.ts`, `editedIn(acts)`, keeps every call whose tool edits a file, grouped by
-path in the order each was first edited: how many calls, the last one's seq, and whether
-the `returned` act answering it by `id` failed.
-
-**Which tools edit is Claude Code's schema**, not roadkeep's: `Edit`, `MultiEdit`,
-`Write` and `NotebookEdit`, a short list kept the way `SUBJECT_KEYS` is. A tool it does
-not know loses a row and never a fact, since the raw line stays in the stream.
-
-**A section under What moved.** `session-moved` gains the files the session edited: the
-path as the tool spelled it, the count, a failed pill where the last call failed, and
-the governed mark where `governed` names the file. Its caption says the list is the
-session's own account, because checking it against the disk is RG244's.
-
-**No path rule in core** (§RG65). Paths are grouped as spelled; shortening one under the
-root is a rule about paths, and it lands in the shell with RG244.
-
-Tests: `acts.test.ts` for the grouping, a failed result and an unknown tool;
-`session.test.tsx` for the section drawn off the harness stream, in both locales' keys.
-
 ### §RG244 Checking the edited files against the disk
 
 **What moved is read off the files**, the rule `Session.tsx` already keeps for the

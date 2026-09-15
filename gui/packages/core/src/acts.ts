@@ -70,7 +70,25 @@ export function marksOf(
  * Claude Code's schema and not roadkeep's, so this is a convenience with a fallback rather
  * than a contract. A tool whose subject is under none of these draws without one.
  */
-const SUBJECT_KEYS = ['command', 'file_path', 'path', 'pattern', 'url', 'query', 'prompt']
+const SUBJECT_KEYS = [
+  'command',
+  'file_path',
+  'notebook_path',
+  'path',
+  'pattern',
+  'url',
+  'query',
+  'prompt',
+]
+
+/**
+ * The tools that edit a file, by name (RG243).
+ *
+ * Claude Code's schema and not roadkeep's, kept the way `SUBJECT_KEYS` is: a tool this does not
+ * know loses a row in the list of edited files and never a fact, since its call is still in the
+ * stream with its raw line.
+ */
+const EDITING_TOOLS: ReadonlySet<string> = new Set(['Edit', 'MultiEdit', 'Write', 'NotebookEdit'])
 
 export type Act =
   /** Text the session produced for a person to read. */
@@ -270,6 +288,50 @@ export function touched(acts: readonly Act[]): string[] {
     if (act.kind === 'used') for (const file of act.governed) seen.add(file)
   }
   return [...seen]
+}
+
+/** One file a session edited, as its own calls account for it (RG243). */
+export interface Edited {
+  /** The path as the tool was called with it, never shortened or resolved here (§RG65). */
+  readonly path: string
+  /** How many editing calls named it. */
+  readonly calls: number
+  /** The seq of the last of them. */
+  readonly last: number
+  /** True where the result answering that last call failed. A result not yet in is not failed. */
+  readonly failed: boolean
+  /** True where the path is one of the files the project governs. */
+  readonly governed: boolean
+}
+
+/**
+ * The files a session edited, grouped by path in the order each was first edited (RG243).
+ *
+ * `touched` keeps the governed files a call names, which is the backlog; this keeps every file
+ * an editing call was made on, which is the code. It is the session's own account — whether
+ * the disk agrees is a different read — so a call is counted as made, and a failure is the one
+ * its answer reported.
+ */
+export function editedIn(acts: readonly Act[]): Edited[] {
+  const answered = new Map<string, boolean>()
+  for (const act of acts) if (act.kind === 'returned' && act.id !== '') answered.set(act.id, act.ok)
+
+  const byPath = new Map<string, Edited>()
+  for (const act of acts) {
+    if (act.kind !== 'used' || act.on === '' || !EDITING_TOOLS.has(act.tool)) continue
+    const failed = answered.get(act.id) === false
+    const was = byPath.get(act.on)
+    byPath.set(act.on, {
+      path: act.on,
+      calls: (was?.calls ?? 0) + 1,
+      last: act.seq,
+      failed,
+      // Named by the path and not by the input, whose content may mention a governed file.
+      governed:
+        was?.governed ?? governedIn(act.on, { governed: act.governed, engine: [] }).length > 0,
+    })
+  }
+  return [...byPath.values()]
 }
 
 /**

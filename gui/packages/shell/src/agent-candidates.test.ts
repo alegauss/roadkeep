@@ -66,4 +66,11 @@ describe('RG210: the run a scripted agent replays', () => {
     expect(tail.some((line) => line.includes('rate_limit_event'))).toBe(true)
     expect(tail.some((line) => line.includes('tool_use'))).toBe(true)
   })
+
+  it('edits files in its tail, so the files a session edited have rows to draw (RG243)', () => {
+    const edits = scriptedLines(captured, 40).filter((line) => line.includes('"name":"Edit"'))
+
+    expect(edits.length).toBeGreaterThan(3)
+    expect(new Set(edits.map((line) => /"file_path":"([^"]+)"/.exec(line)?.[1])).size).toBe(3)
+  })
 })

@@ -51,9 +51,18 @@ export interface ScriptedAgent {
   dispose(): void
 }
 
-/** One cycle of the tail: something said, a call, its answer, and a note between turns. */
+/**
+ * One cycle of the tail: something said, a call, its answer, and a note between turns.
+ *
+ * Every other call is an edit, spread over three files, so the files a session edited have rows
+ * to draw with more than one call among them (RG243).
+ */
 function tailCycle(at: number): string[] {
   const id = `scripted-${String(at)}`
+  const call =
+    at % 2 === 0
+      ? { name: 'Edit', input: { file_path: `src/scripted-${String(at % 3)}.ts` } }
+      : { name: 'Read', input: { file_path: 'docs/ROADMAP.md' } }
   return [
     {
       type: 'assistant',
@@ -61,9 +70,7 @@ function tailCycle(at: number): string[] {
     },
     {
       type: 'assistant',
-      message: {
-        content: [{ type: 'tool_use', id, name: 'Read', input: { file_path: 'docs/ROADMAP.md' } }],
-      },
+      message: { content: [{ type: 'tool_use', id, ...call }] },
     },
     {
       type: 'user',

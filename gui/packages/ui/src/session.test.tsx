@@ -11,6 +11,9 @@ import {
   EVERY_SOURCE,
   type SessionOutcome,
   folderName,
+  PT_BR,
+  PT_BR_LOCALE,
+  translator,
 } from '@rk/core'
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -417,6 +420,82 @@ describe('RG190: the screen a handover moves after it is gone', () => {
     // nothing moved the window to it.
     expect(screen.queryByText(BASE['session.handed'])).toBeNull()
     expect(screen.getByText(BASE['project.blocks'])).toBeTruthy()
+  })
+})
+
+describe('RG243: the files a session edited', () => {
+  /** Two edits of one file, a write to a governed one that failed, and a read that is no edit. */
+  const EDITS = JSON.stringify({
+    type: 'assistant',
+    message: {
+      content: [
+        { type: 'tool_use', id: 'e1', name: 'Edit', input: { file_path: 'src/alpha.ts' } },
+        { type: 'tool_use', id: 'e2', name: 'Write', input: { file_path: 'docs/ROADMAP.md' } },
+        { type: 'tool_use', id: 'e3', name: 'Read', input: { file_path: 'src/beta.ts' } },
+        { type: 'tool_use', id: 'e4', name: 'Edit', input: { file_path: 'src/alpha.ts' } },
+      ],
+    },
+  })
+  const ANSWERS = JSON.stringify({
+    type: 'user',
+    message: {
+      content: [
+        { tool_use_id: 'e1', type: 'tool_result', content: 'updated', is_error: false },
+        { tool_use_id: 'e2', type: 'tool_result', content: 'denied by a hook', is_error: true },
+        { tool_use_id: 'e4', type: 'tool_result', content: 'updated', is_error: false },
+      ],
+    },
+  })
+
+  afterEach(async () => {
+    if (i18next.isInitialized) await changeLanguage(BASE_LOCALE)
+  })
+
+  it('lists each file the stream edited under what moved, counted, marked and failed', async () => {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
+    const edited = await screen.findByTestId('edited')
+    // Nothing edited is a state of its own, drawn before the first call.
+    expect(within(edited).getByText(BASE['session.edited.none'])).toBeTruthy()
+
+    hear(wired, 'session', { session: KEY, index: 1, line: EDITS })
+    hear(wired, 'session', { session: KEY, index: 2, line: ANSWERS })
+
+    await waitFor(() => {
+      expect(screen.getAllByTestId('edited-file').map((row) => row.dataset['path'])).toEqual([
+        'src/alpha.ts',
+        'docs/ROADMAP.md',
+      ])
+    })
+    const [alpha, roadmap] = screen.getAllByTestId('edited-file')
+    if (alpha === undefined || roadmap === undefined) throw new Error('no rows')
+    expect(within(alpha).getByText(fill(BASE['session.edited.calls'], { count: 2 }))).toBeTruthy()
+    expect(within(alpha).queryByText(BASE['session.edited.failed'])).toBeNull()
+    expect(within(alpha).queryByText(BASE['session.edited.governed'])).toBeNull()
+    expect(
+      within(roadmap).getByText(fill(BASE['session.edited.calls.one'], { count: 1 })),
+    ).toBeTruthy()
+    expect(within(roadmap).getByText(BASE['session.edited.governed'])).toBeTruthy()
+    expect(within(roadmap).getByText(BASE['session.edited.failed'])).toBeTruthy()
+    // Whose account this is, since the disk has not been asked.
+    expect(
+      within(screen.getByTestId('edited')).getByText(BASE['session.edited.about']),
+    ).toBeTruthy()
+    expect(screen.getByTestId('edited').closest('[data-region="session-moved"]')).not.toBeNull()
+  })
+
+  it('says it in the language the window speaks', async () => {
+    await startSpeaking('pt-BR')
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
+    await screen.findByTestId('edited')
+
+    hear(wired, 'session', { session: KEY, index: 1, line: EDITS })
+
+    const say = translator(PT_BR, PT_BR_LOCALE)
+    const alpha = await screen.findByText(say('session.edited.calls', { count: 2 }))
+    expect(alpha.closest('[data-testid="edited-file"]')?.getAttribute('data-path')).toBe(
+      'src/alpha.ts',
+    )
+    expect(screen.getByText(say('session.edited.about'))).toBeTruthy()
   })
 })
 

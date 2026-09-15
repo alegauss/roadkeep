@@ -159,6 +159,7 @@
 - ✅ **RG217** **the stream region is taller than the space under the hero, so its end and the jump control sit below the fold** — The stream takes the room measured under its own top, so at 1280 by 800 its newest act and the way back are inside the window (design recorded in `packages/core/src/follow.ts`).
 - ✅ **RG225** **at 400 wide the session opens on two panels, so the stream a reader came for starts below the fold** — The session writes its stream first and places each column at lg, so at 400 wide the newest act is inside the window and 1280 is unchanged.
 - ✅ **RG228** **at 400 wide the sessions list draws its headings over each other and cuts each project name to a letter** — Below sm the sessions list hides its headings and stacks each row, so at 400 wide a project's name is whole and nothing is drawn over it.
+- ✅ **RG243** **the session screen does not list the files the agent edited, so what it changed is found by reading the stream** — What moved lists each file the session's edit calls named, counted, marked governed and failed, as the session's own account (design recorded in `packages/core/src/acts.ts`).
 
 ## Block G — The shell (an executable now, a service later)
 

@@ -4,6 +4,7 @@ import {
   actLine,
   actsIn,
   actsOf,
+  editedIn,
   foldedNotes,
   governedIn,
   isRoadkeep,
@@ -307,6 +308,86 @@ describe('RG153: the marks of one open project', () => {
 
   it('marks nothing as roadkeep where no engine was resolved', () => {
     expect(marksOf({}, []).engine).toEqual([])
+  })
+})
+
+describe('RG243: the files a session edited', () => {
+  /** One assistant line holding these calls, each `[id, tool, input]`. */
+  const calls = (...made: [string, string, Record<string, unknown>][]) =>
+    JSON.stringify({
+      type: 'assistant',
+      message: {
+        content: made.map(([id, name, input]) => ({ type: 'tool_use', id, name, input })),
+      },
+    })
+  const answer = (id: string, failed: boolean) =>
+    JSON.stringify({
+      type: 'user',
+      message: {
+        content: [{ tool_use_id: id, type: 'tool_result', content: 'ok', is_error: failed }],
+      },
+    })
+
+  it('groups the editing calls by path, in the order each file was first edited', () => {
+    const acts = actsIn(
+      [
+        calls(
+          ['e1', 'Edit', { file_path: 'src/a.ts', old_string: 'x', new_string: 'y' }],
+          ['r1', 'Read', { file_path: 'src/b.ts' }],
+          ['w1', 'Write', { file_path: 'src/b.ts', content: 'b' }],
+        ),
+        answer('e1', false),
+        calls(['e2', 'MultiEdit', { file_path: 'src/a.ts', edits: [] }]),
+        calls(['n1', 'NotebookEdit', { notebook_path: 'notes.ipynb', new_source: '' }]),
+      ],
+      MARKS,
+    )
+
+    const edited = editedIn(acts)
+    // A read is not an edit, and a file edited twice is one row counting both.
+    expect(edited.map((one) => [one.path, one.calls])).toEqual([
+      ['src/a.ts', 2],
+      ['src/b.ts', 1],
+      ['notes.ipynb', 1],
+    ])
+    expect(edited[0]?.last).toBe(acts.find((act) => act.kind === 'used' && act.id === 'e2')?.seq)
+  })
+
+  it('says a file failed where the answer to its last call did, and not before one arrives', () => {
+    const first = [
+      calls(['e1', 'Edit', { file_path: 'src/a.ts' }]),
+      answer('e1', true),
+      calls(['e2', 'Edit', { file_path: 'src/a.ts' }]),
+    ]
+
+    // The last call has no answer yet, so the earlier failure is not what this file is at.
+    expect(editedIn(actsIn(first, MARKS))[0]?.failed).toBe(false)
+    expect(editedIn(actsIn([...first, answer('e2', true)], MARKS))[0]?.failed).toBe(true)
+    expect(editedIn(actsIn([...first, answer('e2', false)], MARKS))[0]?.failed).toBe(false)
+  })
+
+  it('lists no file for a tool it does not know, which is still drawn in the stream', () => {
+    const acts = actsIn([calls(['x1', 'Rewrite', { file_path: 'src/a.ts' }])], MARKS)
+
+    expect(editedIn(acts)).toEqual([])
+    expect(acts.map((act) => act.kind)).toEqual(['used'])
+  })
+
+  it('marks a governed file by its path, not by what the edit wrote into another', () => {
+    const acts = actsIn(
+      [
+        calls(
+          ['w1', 'Write', { file_path: 'docs/ROADMAP.md', content: 'a line' }],
+          ['w2', 'Write', { file_path: 'README.md', content: 'see docs/ROADMAP.md' }],
+        ),
+      ],
+      MARKS,
+    )
+
+    expect(editedIn(acts).map((one) => [one.path, one.governed])).toEqual([
+      ['docs/ROADMAP.md', true],
+      ['README.md', false],
+    ])
   })
 })
 

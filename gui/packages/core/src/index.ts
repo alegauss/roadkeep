@@ -73,6 +73,7 @@ export {
   actLine,
   actsIn,
   actsOf,
+  editedIn,
   foldedNotes,
   governedIn,
   isRoadkeep,
@@ -81,7 +82,7 @@ export {
   subjectOf,
   touched,
 } from './acts'
-export type { Act, Marks, StreamRow } from './acts'
+export type { Act, Edited, Marks, StreamRow } from './acts'
 export { loggedIn, resolveAgent, saidOfAgent, versionIn } from './agent'
 export type {
   Agent,
