@@ -351,7 +351,7 @@ export const EN = {
   'filing.doors': 'What the engine offers instead',
 
   'door.writes': 'writes a governed file',
-  'door.take': 'Take it',
+  'door.take': 'Run the fix',
   'door.blank': 'what goes where the engine left a blank',
 
   'gate.title': 'The gate',

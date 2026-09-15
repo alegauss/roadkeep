@@ -334,7 +334,7 @@ export const PT_BR: Wording = {
   'filing.doors': 'O que o engine oferece no lugar',
 
   'door.writes': 'escreve um arquivo governado',
-  'door.take': 'Aceitar',
+  'door.take': 'Executar conserto',
   'door.blank': 'o que vai onde o engine deixou em branco',
 
   'gate.title': 'A verificação',
