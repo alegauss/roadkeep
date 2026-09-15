@@ -166,3 +166,38 @@ export function rememberedRow(project: RecordedProject, reading: ProjectReading)
   })
   return { ...row, state: 'remembered', read: reading.read }
 }
+
+/**
+ * Whether a remembered reading still answers for this project (RG252): what it was read off,
+ * and which copy of roadkeep read it.
+ *
+ * **Both, because either can move alone.** A file edited while the app was closed changes what
+ * a verb would print, and an upgrade changes it without moving a file at all — which is what
+ * `No engine the reader cannot name` is about. So a row stands only where the stamp over its
+ * governed files and the copy that would answer are both the ones it came from.
+ *
+ * **The copy and not the whole payload.** Which version is running, where it lives, the
+ * revision it was built from and the command line that reaches it: those decide what an answer
+ * would say. `verdict`, `agree` and the rest are that build's reading of the machine, which can
+ * differ between two runs of one copy without any answer changing.
+ */
+export type ReadingStands = 'stands' | 'files-moved' | 'engine-moved' | 'nothing-remembered'
+
+export function readingStands(
+  reading: ProjectReading | null,
+  engines: EnginesPayload | null,
+  stamp: string,
+): ReadingStands {
+  if (reading === null || reading.stamp === '' || reading.engines === null) {
+    return 'nothing-remembered'
+  }
+  if (stamp === '' || stamp !== reading.stamp) return 'files-moved'
+  if (engines === null) return 'engine-moved'
+  const was = reading.engines
+  const same =
+    engines.writing.version === was.writing.version &&
+    engines.writing.home === was.writing.home &&
+    engines.writing.revision === was.writing.revision &&
+    engines.invoke === was.invoke
+  return same ? 'stands' : 'engine-moved'
+}

@@ -1,4 +1,11 @@
-import { openProject, type Opening, type OpenOptions, type Transport } from '@rk/core'
+import {
+  openProject,
+  resolveEngine,
+  type EngineResolution,
+  type Opening,
+  type OpenOptions,
+  type Transport,
+} from '@rk/core'
 
 import { engineCandidates, samePathPart, type CandidateOptions } from './engine-candidates'
 import { stampGoverned } from './governed-stamp'
@@ -67,6 +74,31 @@ export function unheldAmong(
     if (why !== undefined) return why
   }
   return null
+}
+
+/**
+ * Resolve this project's engine and ask nothing else (RG252).
+ *
+ * The one read that says which copy of roadkeep would answer here, without the rest of an
+ * opening: no `roadkeep mcp` is held, no `config` or `commands` runs, and nothing is cached.
+ * It is what checking a remembered row costs — one process, against the four an opening spends
+ * — and the answer is the `engines` payload a reading was kept with.
+ *
+ * The transport spawns rather than holds, for the same reason resolution itself does: a call
+ * with no tool call reaches the fallback anyway, and a server started to ask one question is a
+ * process somebody has to close.
+ */
+export function resolveHere(
+  root: string,
+  options: { readonly timeoutMs?: number; readonly candidates?: CandidateOptions } = {},
+): Promise<EngineResolution> {
+  const transportFor = (engine: readonly string[]): Transport =>
+    createProcessTransport({ command: engine[0] ?? '', prefixArgs: engine.slice(1) })
+
+  return resolveEngine(transportFor, root, engineCandidates(root, options.candidates ?? {}), {
+    samePart: samePathPart,
+    ...(options.timeoutMs === undefined ? {} : { timeoutMs: options.timeoutMs }),
+  })
 }
 
 export function openHere(root: string, options: OpenHereOptions = {}): Promise<Opening> {

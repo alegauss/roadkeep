@@ -1318,6 +1318,88 @@ describe('RG251: what the last launch was told, drawn while this one reads', () 
   })
 })
 
+describe('RG252: a remembered row checked instead of read', () => {
+  const READING = {
+    root: READ,
+    stamp: 'stamp-a',
+    read: '2026-09-14T09:00:00.000Z',
+    governed: ['docs/ROADMAP.md'],
+    stats: JSON.parse(SAID['stats'] ?? '{}') as never,
+    pick: JSON.parse(SAID['pick'] ?? '{}') as never,
+    engines: null,
+    declares: null,
+  }
+
+  /** A window over one remembered project, counting what the engine was asked. */
+  async function launched(stands: boolean) {
+    const alpha = await opened(READ)
+    const asked: string[][] = []
+    const checked: string[] = []
+    Object.defineProperty(window, 'roadkeep', {
+      value: stubBridge({
+        projects: () => Promise.resolve(ONE),
+        open: () => Promise.resolve(alpha),
+        run: (root, request) => {
+          asked.push([...request.argv])
+          return bridgedRun(() => machine.run({ ...request, root }))
+        },
+        gates: () => Promise.resolve([]),
+        subscribe: () => () => undefined,
+        readings: () => Promise.resolve({ version: 1, projects: [READING] }),
+        check: (root) => {
+          checked.push(root)
+          return Promise.resolve(stands ? 'stands' : 'files-moved')
+        },
+      }),
+      configurable: true,
+    })
+    drawWindow()
+    return { asked, checked }
+  }
+
+  it('keeps the row and reads nothing where the check says it stands', async () => {
+    const { asked, checked } = await launched(true)
+
+    await waitFor(() => {
+      expect(rowOf('alpha').dataset['state']).toBe('read')
+    })
+
+    expect(checked).toEqual([READ])
+    // The whole saving: no stats, no pick, and the counts on screen are the remembered ones.
+    expect(asked.filter((argv) => argv.includes('stats'))).toEqual([])
+    expect(within(rowOf('alpha')).getByText(fill(BASE['counts.open'], { count: 60 }))).toBeTruthy()
+    expect(screen.queryByTestId('row-remembered')).toBeNull()
+  })
+
+  it('reads the project in full where the check says anything else', async () => {
+    const { asked, checked } = await launched(false)
+
+    await waitFor(() => {
+      expect(asked.some((argv) => argv.includes('stats'))).toBe(true)
+    })
+    expect(checked).toEqual([READ])
+    await waitFor(() => {
+      expect(rowOf('alpha').dataset['state']).toBe('read')
+    })
+  })
+
+  it('reads everything when somebody rescans, which is them distrusting the record', async () => {
+    const { asked, checked } = await launched(true)
+    await waitFor(() => {
+      expect(rowOf('alpha').dataset['state']).toBe('read')
+    })
+    expect(asked.filter((argv) => argv.includes('stats'))).toEqual([])
+
+    fireEvent.click(screen.getByTestId('rescan'))
+
+    await waitFor(() => {
+      expect(asked.some((argv) => argv.includes('stats'))).toBe(true)
+    })
+    // The check is skipped on that path: a button somebody pressed is not a walk landing.
+    expect(checked).toEqual([READ])
+  })
+})
+
 describe('RG180: hearing the walk behind the record land', () => {
   it('asks for the list again when the fold changed something, and not otherwise', async () => {
     const alpha = await opened(READ)

@@ -233,12 +233,13 @@ export {
   READINGS_VERSION,
   readingOf,
   readingsFrom,
+  readingStands,
   readProjectReading,
   readReadings,
   rememberedRow,
   remembering,
 } from './readings'
-export type { ProjectReading, RememberedReadings } from './readings'
+export type { ProjectReading, ReadingStands, RememberedReadings } from './readings'
 export { glanceRow, openingUnreadable, rowStages, withNext } from './rows'
 export type { RowStage } from './rows'
 export type {

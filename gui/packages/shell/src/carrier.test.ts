@@ -24,6 +24,7 @@ import {
 import { describe, expect, it } from 'vitest'
 
 import { createCarrier, type CarrierOptions } from './carrier'
+import { stampGoverned } from './governed-stamp'
 import { removeTree } from './scratch'
 
 /**
@@ -657,6 +658,99 @@ describe('RG251: what a verb printed, kept for the next launch', () => {
     // The stamp is retaken here rather than trusted, so an entry read off files that have
     // changed — or off files nothing can stamp — is not offered.
     expect((await carrier.readings()).projects).toEqual([])
+  })
+})
+
+describe('RG252: checking a remembered row instead of reading it', () => {
+  const ENGINES_PAYLOAD = JSON.parse(ENGINES) as never
+
+  /** A carrier holding one reading, with resolution and opening both counted. */
+  function checking(reading: Partial<Record<string, unknown>> = {}) {
+    const opened: string[] = []
+    const resolved: string[] = []
+    const machine: Transport = {
+      run(request) {
+        const answer = SAID[request.argv[2] ?? '']
+        if (answer === undefined)
+          return Promise.reject(new EngineCallFailed('unspawnable', 'no', 1))
+        return Promise.resolve({ code: 0, stdout: answer, stderr: '', durationMs: 1 })
+      },
+    }
+    const carrier = createCarrier({
+      looking: () => ({ roots: FOUND.roots, skip: [], width: 2 }),
+      rescan: () => Promise.resolve({ catalogue: FOUND, changes: [] }),
+      open: (root) => {
+        opened.push(root)
+        return openProject(root, [['python', '/x/launch.py']], () => machine)
+      },
+      resolve: (root) => {
+        resolved.push(root)
+        return Promise.resolve({
+          kind: 'resolved' as const,
+          engine: {
+            engine: ['python', '/x/launch.py'],
+            payload: ENGINES_PAYLOAD,
+            reachedDeclared: true,
+          },
+        })
+      },
+      readings: () => ({
+        version: 1,
+        projects: [
+          {
+            root: A,
+            stamp: '',
+            read: '2026-09-14T09:00:00.000Z',
+            governed: ['docs/ROADMAP.md'],
+            stats: null,
+            pick: null,
+            engines: ENGINES_PAYLOAD,
+            declares: null,
+            ...reading,
+          },
+        ],
+      }),
+    })
+    return { carrier, opened, resolved }
+  }
+
+  it('resolves the engine and opens nothing, where the files and the copy still agree', async () => {
+    // The stamp of a root that is not on this disk is a real stamp — every file `absent` —
+    // so the entry is written with the one the carrier will retake.
+    const stamped = await stampGoverned(A, ['docs/ROADMAP.md'])
+    const { carrier, opened, resolved } = checking({ stamp: stamped })
+
+    expect(await carrier.check(A)).toBe('stands')
+    expect(resolved).toEqual([A])
+    // The whole point: no `roadkeep mcp`, no `config`, no `commands`, no `stats`.
+    expect(opened).toEqual([])
+  })
+
+  it('says the files moved, without asking any engine at all', async () => {
+    const { carrier, opened, resolved } = checking({ stamp: 'a stamp nothing matches' })
+
+    expect(await carrier.check(A)).toBe('files-moved')
+    expect(resolved).toEqual([])
+    expect(opened).toEqual([])
+  })
+
+  it('says nothing is remembered about a project it holds no entry for', async () => {
+    const { carrier, opened } = checking()
+
+    expect(await carrier.check(B)).toBe('nothing-remembered')
+    expect(opened).toEqual([])
+  })
+
+  it('opens the project when something finally needs one', async () => {
+    const stamped = await stampGoverned(A, ['docs/ROADMAP.md'])
+    const { carrier, opened } = checking({ stamp: stamped })
+    await carrier.check(A)
+
+    await carrier.open(A)
+
+    // Lazy and not never: a check keeps the launch cheap, and the screen that wants the
+    // project opens it.
+    expect(opened).toEqual([A])
   })
 })
 

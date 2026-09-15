@@ -7,6 +7,8 @@ import {
   EMPTY_CATALOGUE,
   NOTHING_REMEMBERED,
   READINGS_VERSION,
+  readingOf,
+  readingStands,
   readPickPayload,
   readStatsPayload,
   remembering,
@@ -28,7 +30,9 @@ import {
   type OpenedProject,
   type ProjectCatalogue,
   type ProjectGate,
+  type EngineResolution,
   type ProjectReading,
+  type ReadingStands,
   type ReadLimits,
   type RememberedReadings,
   type Reconciled,
@@ -40,7 +44,7 @@ import {
 import { createDoorKeep, type DoorKeep } from './door-keep'
 import { createGovernedWatcher, REAL_CLOCK } from './governed-watch'
 import { stampGoverned } from './governed-stamp'
-import { openHere } from './open-here'
+import { openHere, resolveHere } from './open-here'
 import { rescan } from './rescan'
 import { rootKey } from './root-paths'
 import { logoOf } from './project-logo'
@@ -81,6 +85,11 @@ export interface CarrierOptions {
    * says otherwise.
    */
   readonly open?: (root: string, limits: ReadLimits) => Promise<Opening>
+  /**
+   * Resolve one project's engine and nothing else (RG252). `resolveHere` unless a test says
+   * otherwise: checking a remembered row is one process, and an opening is four.
+   */
+  readonly resolve?: (root: string, limits: ReadLimits) => Promise<EngineResolution>
   /** Walk and fold. `rescan` unless a test says otherwise. */
   readonly rescan?: (
     previous: ProjectCatalogue,
@@ -171,6 +180,16 @@ export interface Carrier {
    */
   readings(): Promise<RememberedReadings>
   /**
+   * Whether what was remembered about a project still answers for it (RG252), without
+   * opening it.
+   *
+   * One process: the engine is resolved, which is the read that says which copy would answer,
+   * and the stamp is retaken over the files the entry names. A project that stands has cost
+   * nothing else — no held server, no `config`, no `stats` — and a caller that hears anything
+   * else reads it in full.
+   */
+  check(root: string): Promise<ReadingStands>
+  /**
    * Resolve once every gate this carrier started has finished, including one started while
    * waiting (RG226).
    *
@@ -215,6 +234,8 @@ export function createCarrier(options: CarrierOptions): Carrier {
   // project, which is what the limit was written for.
   const limits = (): ReadLimits => withLimits(options.looking())
   const open = options.open ?? ((root, under) => openHere(root, under))
+  const resolve =
+    options.resolve ?? ((root, under) => resolveHere(root, { timeoutMs: under.timeoutMs }))
   const fold = options.rescan ?? rescan
   const now = options.now ?? (() => new Date().toISOString())
   const watching = options.watching ?? createWatching(createGovernedWatcher(), REAL_CLOCK)
@@ -389,6 +410,36 @@ export function createCarrier(options: CarrierOptions): Carrier {
     return known.projects.some(
       (project) => project.presence === 'present' && rootKey(project.path) === key,
     )
+  }
+
+  /**
+   * Watch a project's files without holding its engine (RG252).
+   *
+   * What a stood row needs: the files an entry names are watched, and a change is told to
+   * whoever is following. Nothing is invalidated, because nothing is held — the read that
+   * answers the change is what opens the project, which is the cost that change is worth.
+   */
+  const watchingAlone = (
+    root: string,
+    governed: readonly string[],
+    moved: () => void,
+  ): (() => void) => {
+    const interest = watching.hold(root, watchedFiles([...governed]))
+    const key = rootKey(root)
+    const stopHearing = watching.onChanged((changed) => {
+      if (rootKey(changed) === key) moved()
+    })
+
+    let stopped = false
+    const stop = (): void => {
+      if (stopped) return
+      stopped = true
+      following.delete(stop)
+      stopHearing()
+      interest.release()
+    }
+    following.add(stop)
+    return stop
   }
 
   const opening = (root: string): Promise<Opening> => {
@@ -635,8 +686,36 @@ export function createCarrier(options: CarrierOptions): Carrier {
       }
     },
 
+    async check(root) {
+      if (!(await catalogued(root))) return 'nothing-remembered'
+      const reading = readingOf(readings, root, rootKey)
+      if (reading === null || reading.governed.length === 0) return 'nothing-remembered'
+
+      // The files first, because it needs no process at all: an entry read off a tree that
+      // has moved is out whatever the engine says.
+      const stamp = await stampGoverned(root, reading.governed)
+      if (stamp !== reading.stamp) return 'files-moved'
+
+      const resolved = await resolve(root, limits()).catch(() => null)
+      return readingStands(
+        reading,
+        resolved?.kind === 'resolved' ? resolved.engine.payload : null,
+        stamp,
+      )
+    },
+
     async follow(root, moved) {
       if (!(await catalogued(root))) return null
+
+      // A project whose remembered row stood is not open, and opening it to learn which files
+      // to watch would spend exactly the interpreters the check saved (RG252). The entry names
+      // them, so the watch is taken on those and the project stays closed until something
+      // needs it. What a change costs then is the read that change is about.
+      const reading = held.has(rootKey(root)) ? null : readingOf(readings, root, rootKey)
+      if (reading !== null && reading.governed.length > 0) {
+        return watchingAlone(root, reading.governed, moved)
+      }
+
       const answer = await opening(root).catch(() => null)
       if (answer?.kind !== 'open') return null
 

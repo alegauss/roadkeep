@@ -7,6 +7,7 @@ import {
   READINGS_VERSION,
   readingOf,
   readingsFrom,
+  readingStands,
   rememberedRow,
   remembering,
   type ProjectReading,
@@ -153,5 +154,54 @@ describe('RG251: reading a file back', () => {
   it('refuses a shape it cannot read, and text that is not JSON at all', () => {
     expect(readingsFrom('{"version":1,"projects":[{"stamp":"a"}]}')).toBeNull()
     expect(readingsFrom('not json')).toBeNull()
+  })
+})
+
+describe('RG252: whether a remembered reading still answers', () => {
+  const ENGINES = {
+    writing: { version: '0.2.473', home: '/engines/one', revision: 'abc1234', onDisk: '0.2.473' },
+    invoke: 'python /code/launch.py',
+    declaration: '',
+    verdict: 'agreed',
+    agree: true,
+    readable: true,
+    split: false,
+    swapped: false,
+  }
+  const kept = reading({ engines: ENGINES })
+
+  it('stands where the files and the copy that would answer are both the ones it came from', () => {
+    expect(readingStands(kept, ENGINES, 'stamp-a')).toBe('stands')
+    // What that build read about the machine is not what it would answer about this project.
+    expect(readingStands(kept, { ...ENGINES, verdict: 'split', agree: false }, 'stamp-a')).toBe(
+      'stands',
+    )
+  })
+
+  it('says the files moved where the stamp is not the one it was read off', () => {
+    expect(readingStands(kept, ENGINES, 'stamp-b')).toBe('files-moved')
+    // Nothing stamped it, so nothing can check it.
+    expect(readingStands(kept, ENGINES, '')).toBe('files-moved')
+  })
+
+  it('says the engine moved where another copy would answer now', () => {
+    // An upgrade while the app was closed changes answers without moving a file, which is
+    // what `No engine the reader cannot name` is about.
+    const upgraded = { ...ENGINES, writing: { ...ENGINES.writing, version: '0.2.480' } }
+    expect(readingStands(kept, upgraded, 'stamp-a')).toBe('engine-moved')
+
+    const elsewhere = { ...ENGINES, invoke: 'roadkeep' }
+    expect(readingStands(kept, elsewhere, 'stamp-a')).toBe('engine-moved')
+
+    // And where nothing resolved at all, there is no copy to agree with.
+    expect(readingStands(kept, null, 'stamp-a')).toBe('engine-moved')
+  })
+
+  it('says nothing is remembered where there is no entry, no stamp or no engine', () => {
+    expect(readingStands(null, ENGINES, 'stamp-a')).toBe('nothing-remembered')
+    expect(readingStands(reading({ stamp: '', engines: ENGINES }), ENGINES, 'x')).toBe(
+      'nothing-remembered',
+    )
+    expect(readingStands(reading({ engines: null }), ENGINES, 'stamp-a')).toBe('nothing-remembered')
   })
 })

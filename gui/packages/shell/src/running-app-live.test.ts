@@ -44,8 +44,10 @@ describe('RG60: what the renderer was given', () => {
     // RG152 the one that reads the gate verdicts the carrier holds. RG207 folded the ground's
     // and the language's writes into the one that writes a preference. RG244 added the one that
     // says when the disk last changed each file a session edited, RG245 the one that reads one
-    // of those files, and RG251 the one that answers what a verb printed at an earlier launch.
+    // of those files, RG251 the one that answers what a verb printed at an earlier launch, and
+    // RG252 the one that says whether that answer still stands.
     expect(methods).toEqual([
+      'check',
       'chooseRoot',
       'door',
       'editedAt',
@@ -209,9 +211,10 @@ describe('RG60: what the renderer was not given', () => {
 
     // Sixteen since RG207 folded the ground's and the language's writes into one, and seventeen
     // since RG244 added the one that asks the disk about a session's edited files. Eighteen since
-    // RG245 added the one that reads one of them, and nineteen since RG251 added the one that
-    // answers what a verb printed at an earlier launch.
-    expect(reachable).toHaveLength(19)
+    // RG245 added the one that reads one of them, nineteen since RG251 added the one that
+    // answers what a verb printed at an earlier launch, and twenty since RG252 added the one
+    // that says whether it still stands.
+    expect(reachable).toHaveLength(20)
     expect(reachable.every((one) => one === 'function')).toBe(true)
   })
 })

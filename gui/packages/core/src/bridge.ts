@@ -25,7 +25,7 @@ import type { KnownRoot, ScanRoot } from './roots'
 import type { SessionOutcome } from './session'
 import type { PreferenceKey } from './preferences'
 import type { Settings, SettingsRead } from './settings'
-import type { RememberedReadings } from './readings'
+import type { ReadingStands, RememberedReadings } from './readings'
 import type { MovedPath } from './watching'
 import type { EngineFailure, EngineRequest, EngineResult } from './transport'
 
@@ -215,6 +215,14 @@ export interface RendererBridge {
    * row only where nothing it was read from has changed.
    */
   readings(): Promise<RememberedReadings>
+  /**
+   * Whether what was remembered about one project still answers for it (RG252).
+   *
+   * One process on the far side — the engine resolved, the files stamped — against the four
+   * an opening spends. A screen that hears `stands` keeps the row it drew and stops; anything
+   * else is a project to read in full.
+   */
+  check(root: string): Promise<ReadingStands>
   /** Every session this process started, each with what it has written so far (RG153). */
   sessions(): Promise<readonly SessionRecord[]>
   /**
@@ -588,6 +596,7 @@ export const BRIDGE_CHANNELS = {
   fileText: 'roadkeep:file-text',
   gates: 'roadkeep:gates',
   readings: 'roadkeep:readings',
+  check: 'roadkeep:check',
   sessions: 'roadkeep:sessions',
   stopSession: 'roadkeep:stop-session',
   door: 'roadkeep:door',

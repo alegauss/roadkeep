@@ -22,6 +22,7 @@ import {
   type LaunchSettings,
   type OpenedProject,
   type ProjectGate,
+  type ReadingStands,
 } from '@rk/core'
 import { cpus } from 'node:os'
 
@@ -339,6 +340,12 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
   // What a verb printed at some earlier launch (RG251), checked against the files it came
   // off by the carrier before it crosses.
   ipcMain.handle(BRIDGE_CHANNELS.readings, () => carrier.readings())
+  // Whether a remembered row still answers (RG252): one process on this side, and the row a
+  // window already drew stands or is read again.
+  ipcMain.handle(BRIDGE_CHANNELS.check, (_event, root: unknown): Promise<ReadingStands> => {
+    if (typeof root !== 'string') return Promise.resolve('nothing-remembered')
+    return carrier.check(root)
+  })
   ipcMain.handle(BRIDGE_CHANNELS.sessions, () => sessions.list())
   ipcMain.handle(BRIDGE_CHANNELS.stopSession, (_event, key: unknown): void => {
     if (typeof key === 'string') sessions.stop(key)

@@ -1,5 +1,6 @@
 import {
   coldStart,
+  createLimiter,
   keepRows,
   NOTHING_REMEMBERED,
   readingOf,
@@ -84,7 +85,12 @@ export function usePortfolio(): { readonly view: PortfolioView; readonly rescan:
   useEffect(() => {
     drawn.current = view.kind === 'listed' ? view.rows : NOTHING_DRAWN
   }, [view])
+  // Whether the next run may keep a remembered row (RG252). A rescan is somebody saying they
+  // do not trust what is on screen, so it reads everything; a walk landing behind the screen
+  // is not, and checking is what makes that cheap.
+  const trusting = useRef(true)
   const rescan = useCallback(() => {
+    trusting.current = false
     setGeneration((one) => one + 1)
   }, [])
 
@@ -197,12 +203,65 @@ export function usePortfolio(): { readonly view: PortfolioView; readonly rescan:
       }
     }
 
+    /**
+     * Put these rows back where they are, leaving every other row alone.
+     *
+     * A cold start is given only the projects that have to be read (RG252), so what comes
+     * back is a part of the list and not the whole of it — and the rows it does not name are
+     * the ones a check kept, which must not be replaced by anything.
+     */
+    const replace = (rows: readonly ProjectRow[], progress: ReadingProgress | null): void => {
+      const by = new Map(rows.map((row) => [row.path, row]))
+      setView((was) =>
+        was.kind === 'listed'
+          ? {
+              ...was,
+              rows: dressed(was.rows.map((row) => by.get(row.path) ?? row)),
+              progress,
+              tried: { ...tried },
+            }
+          : was,
+      )
+    }
+
+    /**
+     * Ask the far side whether each remembered row still answers (RG252), and keep the ones
+     * that do.
+     *
+     * In the order the screen draws them and under the same ceiling a cold start reads by: a
+     * check is a process too, and twenty at once is the launch this avoids. A row that stands
+     * turns `read` as its answer lands, so the list settles from the top rather than at the end.
+     */
+    const standing = async (rows: readonly ProjectRow[]): Promise<Set<string>> => {
+      const stood = new Set<string>()
+      const remembered = rows.filter((row) => row.state === 'remembered')
+      if (!checking || remembered.length === 0) return stood
+
+      const atOnce = createLimiter(readProjectsAtOnce() || remembered.length)
+      await Promise.all(
+        remembered.map(async (row) =>
+          atOnce.hold(async () => {
+            const answer = await bridge.check(row.path).catch(() => 'nothing-remembered' as const)
+            if (!stillHere() || answer !== 'stands') return
+            stood.add(row.path)
+            const read = { ...row, state: 'read' as const, read: '' }
+            follow([read])
+            replace([read], null)
+          }),
+        ),
+      )
+      return stood
+    }
+
     /** A verdict that landed after the list did, put on its own row and kept for the rest. */
     const heard = (gate: ProjectGate): void => {
       if (!stillHere()) return
       verdicts.set(gate.root, gate)
       redraw()
     }
+
+    const checking = trusting.current
+    trusting.current = true
 
     const read = async (): Promise<void> => {
       // What a verb printed at some earlier launch, beside the list itself (RG251): the far
@@ -253,28 +312,31 @@ export function usePortfolio(): { readonly view: PortfolioView; readonly rescan:
         () => undefined,
       )
 
+      // What a remembered row costs to keep (RG252): one process per project, against the
+      // four an opening spends. A row whose files and engine are both the ones it was read
+      // from stands and turns `read`; anything else is read in full below.
+      const stood = await standing(kept)
+      const reading = projects.filter((project) => !stood.has(project.path))
       const rows = await coldStart(
-        projects,
+        reading,
         stages,
         (progress) => {
           if (!stillHere()) return
           follow(progress.rows)
-          setView({
-            kind: 'listed',
-            rows: dressed(progress.rows),
-            progress: {
-              stage: stageOf(progress.stage),
-              done: progress.done,
-              total: progress.total,
-            },
-            tried: { ...tried },
+          replace(progress.rows, {
+            stage: stageOf(progress.stage),
+            done: progress.done,
+            total: progress.total,
           })
         },
-        { start: kept, projectsAtOnce: readProjectsAtOnce() },
+        {
+          start: kept.filter((row) => !stood.has(row.path)),
+          projectsAtOnce: readProjectsAtOnce(),
+        },
       )
       if (stillHere()) {
         follow(rows)
-        setView({ kind: 'listed', rows: dressed(rows), progress: null, tried: { ...tried } })
+        replace(rows, null)
       }
     }
 

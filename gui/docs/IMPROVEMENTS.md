@@ -6,31 +6,6 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-### §RG252 Checking a remembered row instead of reading it
-
-**Checked behind the screen, under RG250's ceiling.** Once RG251's rows draw, a
-background pass takes each remembered project in the order the screen draws them and
-asks a carrier `check(root)` over the bridge. The carrier runs `resolveEngine` alone,
-the one read that names which copy would answer, and compares its `engines` payload
-(version, home, revision, invoke) and a fresh stamp with the entry's.
-
-**Both equal: the row stands** and turns `read`. No `roadkeep mcp` starts, and no
-`config`, `commands`, `stats` or `pick` runs. **Either differs: the row is read in
-full** through the opening as today, replaced in place by `fillRow`, and the entry
-rewritten. `No engine the reader cannot name` is why the engine is asked and not
-assumed: an upgrade while the app was closed changes answers without moving a file.
-
-**The opening becomes lazy** for a row that stood. The carrier opens it on the first
-thing that needs one: the project screen, a write, a door, the palette's `list`, a
-watched change. `follow` watches the governed files the entry names, so a checkout
-edited later still rereads (RG167) with no engine held since launch.
-
-**Rescan reads everything.** The button skips the check, so a person who distrusts the
-record has one action that ignores it.
-
-Tests: a core `check` over stands, stamp moved and engine moved with a fake resolver;
-`carrier.test.ts` asserting no opening for a row that stood until `open` is called.
-
 ### §RG253 Gate verdicts that survive a restart
 
 **`gate.ts` refuses this for a reason that no longer holds.** Its ledger comment says a

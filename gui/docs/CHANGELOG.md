@@ -105,6 +105,7 @@
 - ✅ **RG249** **a portfolio read has no deadline, so one project whose engine hangs keeps every row's next line pending** — Every read on the launch path runs under the declared deadline, so a hung engine becomes an unreadable row and the next stage goes on without it (design recorded in `packages/core/src/limits.ts`).
 - ✅ **RG250** **a launch starts every project's engine at the same moment, so twenty projects pin the machine together** — A cold start reads one project per four cores at a time, or the number the settings name, so twenty projects no longer start every engine at once (design recorded in `packages/core/src/limits.ts`).
 - ✅ **RG251** **every launch reads every backlog again, so the portfolio shows skeletons until the slowest engine answers** — A launch draws the counts and next line each verb printed last time, marked and checked against the files, while the reads behind them run (design recorded in `packages/core/src/readings.ts`).
+- ✅ **RG252** **a remembered row is still read in full behind the screen, so a launch spends every interpreter a cold start did** — A remembered row is kept by resolving the engine and stamping the files, and the project is opened only when something needs it (design recorded in `packages/core/src/readings.ts`).
 
 ## Block D — The project surface (one backlog, read)
 
