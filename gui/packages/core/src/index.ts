@@ -189,6 +189,7 @@ export {
   folderName,
   nameOf,
   matchesFilter,
+  isRowOrder,
   keptRanking,
   nextOrder,
   orderRows,

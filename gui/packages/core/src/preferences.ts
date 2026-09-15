@@ -1,4 +1,5 @@
 import { LOCALE_TAGS } from './locales'
+import { isRowOrder } from './portfolio'
 import { isSessionNotes, isTheme, type Settings } from './settings'
 
 /**
@@ -35,6 +36,7 @@ export const PREFERENCES = {
   theme: isTheme satisfies Check<'theme'>,
   locale: isShippedLocale satisfies Check<'locale'>,
   sessionNotes: isSessionNotes satisfies Check<'sessionNotes'>,
+  portfolioOrder: isRowOrder satisfies Check<'portfolioOrder'>,
 } as const
 
 /** Whether a key the renderer named is one it may write. The renderer's word, so unknown. */

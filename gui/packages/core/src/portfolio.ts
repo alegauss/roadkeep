@@ -345,6 +345,17 @@ const ORDERED_BY: Readonly<
 }
 
 /**
+ * Whether a value is an order this build offers (RG241).
+ *
+ * The one spelling of the set, since two callers have to agree on it: the settings reader,
+ * and the preference table a page writes through. A second copy would be a build that saves
+ * an order its own reader resets at the next launch.
+ */
+export function isRowOrder(value: unknown): value is RowOrder {
+  return typeof value === 'string' && Object.hasOwn(ORDERED_BY, value)
+}
+
+/**
  * What one click on a column head moves through, before it hands back the record's order.
  * Names start at A; counts start at the most open, which is the backlog a day starts from.
  */

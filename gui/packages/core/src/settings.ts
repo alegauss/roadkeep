@@ -1,4 +1,5 @@
 import { DEFAULT_LIMITS } from './limits'
+import { isRowOrder, type RowOrder } from './portfolio'
 import { DEFAULT_DEPTH, DEPTH_CEILING, NO_DEFAULT_ROOTS, type ScanRoot } from './roots'
 import { DEFAULT_POLICY } from './scanning'
 import { asRecord } from './reading'
@@ -7,8 +8,8 @@ import { asRecord } from './reading'
  * The one thing this app owns.
  *
  * Everything on screen is read from a repository except this: the roots, their depths, the
- * ignore set, the pool width, the theme, the locale and how a session draws its notes.
- * Small, versioned, validated on read.
+ * ignore set, the pool width, the theme, the locale, how a session draws its notes and the
+ * order the portfolio opens in. Small, versioned, validated on read.
  *
  * **A bad file resets and says so, rather than taking the window down** — and field by
  * field: a pool width typed as a word should not cost somebody the roots they spent a
@@ -51,6 +52,12 @@ export interface Settings {
   readonly locale: string
   /** How a session's stream draws its system notes (RG208). */
   readonly sessionNotes: SessionNotes
+  /**
+   * The order the portfolio opens in (RG241): the choice alone, never the ranking it produced.
+   * A list of paths ranked by open lines would be a copy of what `stats` printed, which is
+   * `No store of its own` broken in this file.
+   */
+  readonly portfolioOrder: RowOrder
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -62,6 +69,8 @@ export const DEFAULT_SETTINGS: Settings = {
   locale: '',
   // Every note drawn, as before there was a choice: an upgrade changes nothing on screen.
   sessionNotes: 'shown',
+  // The record's order, as before there was a choice.
+  portfolioOrder: 'record',
 }
 
 /**
@@ -89,6 +98,7 @@ export type Lost =
   | 'theme'
   | 'locale'
   | 'sessionNotes'
+  | 'portfolioOrder'
 
 export interface Reset {
   readonly lost: Lost
@@ -244,9 +254,24 @@ export function readSettings(source: unknown): SettingsRead {
     DEFAULT_SETTINGS.sessionNotes,
     { lost: 'sessionNotes' },
   )
+  const [portfolioOrder, saidOfOrder] = field<RowOrder>(
+    file['portfolioOrder'],
+    isRowOrder,
+    DEFAULT_SETTINGS.portfolioOrder,
+    { lost: 'portfolioOrder' },
+  )
 
   return {
-    settings: { version: SETTINGS_VERSION, roots, skip, width, theme, locale, sessionNotes },
+    settings: {
+      version: SETTINGS_VERSION,
+      roots,
+      skip,
+      width,
+      theme,
+      locale,
+      sessionNotes,
+      portfolioOrder,
+    },
     reset: [
       version.said,
       saidOfRoots,
@@ -255,6 +280,7 @@ export function readSettings(source: unknown): SettingsRead {
       saidOfTheme,
       saidOfLocale,
       saidOfNotes,
+      saidOfOrder,
     ].filter((said): said is Reset => said !== null),
   }
 }

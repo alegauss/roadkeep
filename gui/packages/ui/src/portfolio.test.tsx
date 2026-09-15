@@ -5,6 +5,7 @@ import {
   counted,
   translator,
   DEFAULT_DEPTH,
+  DEFAULT_SETTINGS,
   DEPTH_CEILING,
   EMPTY_CATALOGUE,
   EngineCallFailed,
@@ -14,17 +15,22 @@ import {
   openProject,
   type KnownRoot,
   type OpenedProject,
+  type PreferenceKey,
   type ProjectCatalogue,
   type ProjectGate,
   type RecordedProject,
   type RendererBridge,
+  type RowOrder,
   type ScanRoot,
   type Transport,
 } from '@rk/core'
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { toast } from '@viglet/viglet-design-system'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { drawWindow } from './harness'
+import { choicesAtLaunch } from './launch'
+import { holdPortfolioOrder } from './preferring'
 import { stubBridge } from './stub-bridge'
 
 /**
@@ -182,6 +188,9 @@ function rowOf(name: string): HTMLElement {
 
 afterEach(() => {
   Reflect.deleteProperty(window, 'roadkeep')
+  // One value for the window's life (RG241), so an order one test chose is the next one's start.
+  holdPortfolioOrder('record')
+  toast.dismiss()
 })
 
 describe('RG145: the portfolio at the root route', () => {
@@ -339,37 +348,41 @@ const BRAVO = '/code/bravo'
 const drawnPaths = () =>
   screen.getAllByTestId('portfolio-row').map((row) => row.dataset['path'] ?? '')
 
-describe('RG239: ordering the portfolio by name', () => {
-  /** Three projects the record holds out of name order; `refused` names the ones that do not open. */
-  async function outOfOrder(refused: readonly string[] = []): Promise<void> {
-    const paths = [CHARLIE, ALPHA, BRAVO]
-    const answers = new Map(
-      await Promise.all(
-        paths.map(
-          async (path) =>
-            [
-              path,
-              refused.includes(path) ? { ...REFUSAL, root: path } : await opened(path),
-            ] as const,
-        ),
+/**
+ * A bridge over the three; `refused` names the ones that do not open, and `over` replaces
+ * any other method — the settings read and the preference write, where a test is about those.
+ */
+async function outOfOrder(
+  refused: readonly string[] = [],
+  over: Partial<RendererBridge> = {},
+): Promise<void> {
+  const paths = [CHARLIE, ALPHA, BRAVO]
+  const answers = new Map(
+    await Promise.all(
+      paths.map(
+        async (path) =>
+          [path, refused.includes(path) ? { ...REFUSAL, root: path } : await opened(path)] as const,
       ),
-    )
-    Object.defineProperty(window, 'roadkeep', {
-      value: stubBridge({
-        projects: () =>
-          Promise.resolve({
-            version: 1,
-            roots: [{ path: '/code', depth: 1 }],
-            projects: paths.map(recorded),
-          }),
-        subscribe: () => () => undefined,
-        open: (root) => Promise.resolve(answers.get(root) ?? REFUSAL),
-        run: (root, request) => bridgedRun(() => machine.run({ ...request, root })),
-      }),
-      configurable: true,
-    })
-  }
+    ),
+  )
+  Object.defineProperty(window, 'roadkeep', {
+    value: stubBridge({
+      projects: () =>
+        Promise.resolve({
+          version: 1,
+          roots: [{ path: '/code', depth: 1 }],
+          projects: paths.map(recorded),
+        }),
+      subscribe: () => () => undefined,
+      open: (root) => Promise.resolve(answers.get(root) ?? REFUSAL),
+      run: (root, request) => bridgedRun(() => machine.run({ ...request, root })),
+      ...over,
+    }),
+    configurable: true,
+  })
+}
 
+describe('RG239: ordering the portfolio by name', () => {
   it("orders from the Project head: A to Z, Z to A, then the record's again", async () => {
     await outOfOrder()
     drawWindow()
@@ -576,6 +589,85 @@ describe('RG240: ranking the portfolio by open lines', () => {
     fireEvent.click(screen.getByTestId('rescan'))
     expect(drawnPaths()).toEqual([ALPHA, BRAVO, CHARLIE])
     await settledOn([BRAVO, CHARLIE, ALPHA])
+  })
+})
+
+describe('RG241: keeping the portfolio’s order across launches', () => {
+  /** A launch whose settings file holds `order`, recording each preference written after. */
+  async function launchedWith(
+    order: RowOrder,
+    over: Partial<RendererBridge> = {},
+  ): Promise<[PreferenceKey, unknown][]> {
+    const kept: [PreferenceKey, unknown][] = []
+    await outOfOrder([], {
+      settings: () =>
+        Promise.resolve({
+          settings: { ...DEFAULT_SETTINGS, portfolioOrder: order },
+          reset: [],
+          locale: 'en',
+        }),
+      savePreference: (key, value) => {
+        kept.push([key, value])
+        return Promise.resolve()
+      },
+      ...over,
+    })
+    await choicesAtLaunch()
+    drawWindow()
+    return kept
+  }
+
+  it('opens in the order the settings file holds', async () => {
+    const kept = await launchedWith('name-descending')
+
+    await waitFor(() => {
+      expect(drawnPaths()).toEqual([CHARLIE, BRAVO, ALPHA])
+    })
+    expect(screen.getByTestId('portfolio-order').textContent).toBe(
+      BASE['portfolio.order.name-descending'],
+    )
+    expect(screen.getByTestId('order-name').closest('th')?.getAttribute('aria-sort')).toBe(
+      'descending',
+    )
+    // Opening is not choosing: the file already says it.
+    expect(kept).toEqual([])
+  })
+
+  it('redraws a click first and then writes it as the portfolioOrder row', async () => {
+    const kept = await launchedWith('record')
+    await waitFor(() => {
+      expect(drawnPaths()).toEqual([CHARLIE, ALPHA, BRAVO])
+    })
+
+    fireEvent.click(screen.getByTestId('order-name'))
+
+    // Drawn in the same turn as the click, before the write has settled.
+    expect(drawnPaths()).toEqual([ALPHA, BRAVO, CHARLIE])
+    await waitFor(() => {
+      expect(kept).toEqual([['portfolioOrder', 'name-ascending']])
+    })
+
+    fireEvent.click(screen.getByTestId('order-open'))
+    await waitFor(() => {
+      expect(kept).toEqual([
+        ['portfolioOrder', 'name-ascending'],
+        ['portfolioOrder', 'open-descending'],
+      ])
+    })
+  })
+
+  it('says a refused write was not kept, and leaves the order drawn', async () => {
+    await launchedWith('record', {
+      savePreference: () => Promise.reject(new Error('the file is read-only')),
+    })
+    await waitFor(() => {
+      expect(drawnPaths()).toEqual([CHARLIE, ALPHA, BRAVO])
+    })
+
+    fireEvent.click(screen.getByTestId('order-name'))
+
+    expect(await screen.findByText(BASE['settings.unsaved'])).toBeTruthy()
+    expect(drawnPaths()).toEqual([ALPHA, BRAVO, CHARLIE])
   })
 })
 

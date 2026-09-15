@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { DEFAULT_LIMITS } from './limits'
+import { isRowOrder } from './portfolio'
 import { DEPTH_CEILING } from './roots'
 import { DEFAULT_POLICY } from './scanning'
 import {
@@ -22,6 +23,7 @@ const WRITTEN = {
   theme: 'dark',
   locale: 'pt-BR',
   sessionNotes: 'hidden',
+  portfolioOrder: 'open-descending',
 }
 
 describe('RG47: the one thing this app owns', () => {
@@ -43,8 +45,10 @@ describe('RG47: the one thing this app owns', () => {
   it('holds no project data and no cached answer', () => {
     // `No store of its own`, restated as a file format. The project list is the
     // catalogue's, and this is only what somebody chose.
+    // The portfolio's order is a choice too, and not the ranking it produced (RG241).
     expect(Object.keys(DEFAULT_SETTINGS).sort()).toEqual([
       'locale',
+      'portfolioOrder',
       'roots',
       'sessionNotes',
       'skip',
@@ -110,6 +114,7 @@ describe('RG47: a bad file resets field by field, and says so', () => {
       theme: 'neon',
       locale: 42,
       sessionNotes: 'whispered',
+      portfolioOrder: 'by mood',
     })
 
     // One code per field, in the order the fields are read.
@@ -120,6 +125,7 @@ describe('RG47: a bad file resets field by field, and says so', () => {
       'theme',
       'locale',
       'sessionNotes',
+      'portfolioOrder',
     ])
     expect(read.settings).toEqual(DEFAULT_SETTINGS)
   })
@@ -186,6 +192,34 @@ describe('RG208: how a session draws its notes', () => {
     expect(['shown', 'hidden'].every(isSessionNotes)).toBe(true)
     for (const junk of ['', 'Hidden', 'folded', true, 0, null, undefined]) {
       expect(isSessionNotes(junk)).toBe(false)
+    }
+  })
+})
+
+describe('RG241: the order the portfolio opens in', () => {
+  it("opens in the record's order where the file says nothing, which is what every earlier build did", () => {
+    const read = readSettings({ version: SETTINGS_VERSION, theme: 'dark' })
+
+    expect(read.settings.portfolioOrder).toBe('record')
+    expect(read.reset).toEqual([])
+  })
+
+  it('resets an order this build does not know, says so, and keeps every other field', () => {
+    const read = readSettings({ ...WRITTEN, portfolioOrder: 'open' })
+
+    expect(read.settings).toEqual({ ...WRITTEN, portfolioOrder: 'record' })
+    expect(read.reset).toEqual([{ lost: 'portfolioOrder' }])
+  })
+
+  it('knows the five orders and refuses anything else', () => {
+    expect(
+      ['record', 'name-ascending', 'name-descending', 'open-descending', 'open-ascending'].every(
+        isRowOrder,
+      ),
+    ).toBe(true)
+    // `toString` is inherited by every object, and not an order.
+    for (const junk of ['', 'open', 'name', 'Record', 'toString', 0, null, undefined, ['record']]) {
+      expect(isRowOrder(junk)).toBe(false)
     }
   })
 })

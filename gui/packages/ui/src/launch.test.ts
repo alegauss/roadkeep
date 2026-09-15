@@ -62,6 +62,7 @@ describe('RG87: the ground the window opens in', () => {
       theme: 'light',
       reset: [],
       sessionNotes: 'shown',
+      portfolioOrder: 'record',
     })
     expect(asked).toBe(1)
   })
@@ -89,7 +90,13 @@ describe('RG106: an answer that never comes', () => {
 
     const opened = await choicesFromBridge(silent, 20)
 
-    expect(opened).toEqual({ locale: BASE_LOCALE, theme: null, reset: [], sessionNotes: 'shown' })
+    expect(opened).toEqual({
+      locale: BASE_LOCALE,
+      theme: null,
+      reset: [],
+      sessionNotes: 'shown',
+      portfolioOrder: 'record',
+    })
   })
 
   it('takes the answer when it arrives inside the deadline', async () => {
@@ -101,7 +108,12 @@ describe('RG106: an answer that never comes', () => {
           setTimeout(
             () =>
               answer({
-                settings: { ...DEFAULT_SETTINGS, theme: 'dark', sessionNotes: 'hidden' },
+                settings: {
+                  ...DEFAULT_SETTINGS,
+                  theme: 'dark',
+                  sessionNotes: 'hidden',
+                  portfolioOrder: 'open-descending',
+                },
                 reset: [],
                 locale: 'pt-BR',
               }),
@@ -111,12 +123,14 @@ describe('RG106: an answer that never comes', () => {
       savePreference: () => Promise.resolve(),
     })
 
-    // And how a session draws its notes rides in the same answer (RG208).
+    // And how a session draws its notes rides in the same answer (RG208), as does the order
+    // the portfolio opens in (RG241).
     expect(await choicesFromBridge(slow, 500)).toEqual({
       locale: 'pt-BR',
       theme: 'dark',
       reset: [],
       sessionNotes: 'hidden',
+      portfolioOrder: 'open-descending',
     })
   })
 

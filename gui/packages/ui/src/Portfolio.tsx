@@ -45,6 +45,7 @@ import { Link } from 'react-router-dom'
 
 import { projectPath } from './areas'
 import { HeroActions } from './hero'
+import { choosePortfolioOrder, usePortfolioOrder } from './preferring'
 import { useSpokenLocale } from './speaking'
 import { usePortfolio, type ReadingProgress, type Tried } from './usePortfolio'
 import { useRoots, type RootsView } from './useRoots'
@@ -63,8 +64,9 @@ import { useWording } from './wording'
  * the list is a table in a `BentoPanel`, in the record's order and never completion order.
  * A person can order it by name from the Project head (RG239) or rank it by open lines from
  * the Backlog head (RG240), and the caption beside the chips says which order is in force. A
- * ranking holds each row's place while reads land — see `keptRanking`. The chosen order lasts
- * as long as the window does.
+ * ranking holds each row's place while reads land — see `keptRanking`. The chosen order is
+ * kept in the settings file (RG241); the filter chip is not, since a narrowing left on would
+ * hide rows at the next launch with nothing on screen saying why, and an order hides none.
  *
  * **A row still answering is pending, never zero** — block C's second criterion, drawn as
  * bars where the numbers will be. An unreadable row spans the counts and says why, with what
@@ -652,10 +654,14 @@ export function Portfolio() {
   const pick = useCallback((next: RowFilter) => {
     setFilter(next)
   }, [])
-  const [order, setOrder] = useState<RowOrder>('record')
-  const reorder = useCallback((column: OrderColumn) => {
-    setOrder((current) => nextOrder(current, column))
-  }, [])
+  // Kept across launches (RG241): the choice alone, and the next launch ranks afresh.
+  const order = usePortfolioOrder()
+  const reorder = useCallback(
+    (column: OrderColumn) => {
+      choosePortfolioOrder(nextOrder(order, column))
+    },
+    [order],
+  )
   const locale = useSpokenLocale()
 
   const rows = view.kind === 'listed' ? view.rows : null

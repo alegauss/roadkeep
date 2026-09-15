@@ -8,8 +8,6 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-- 📋 **RG241** (deps: RG240 ✅) **the order a person picks for the portfolio is gone at the next launch, so the table opens in the record's order again** — Somebody who ranks by open lines does it every morning, and a choice the window forgets is one made again at each launch. → §RG241
-
 ## Block D — The project surface (one backlog, read)
 
 ## Block E — The write path (the app composes an argv; the command writes)

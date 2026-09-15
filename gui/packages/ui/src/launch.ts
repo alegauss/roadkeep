@@ -3,12 +3,13 @@ import {
   DEFAULT_SETTINGS,
   type RendererBridge,
   type Reset,
+  type RowOrder,
   type SessionNotes,
   type Theme,
 } from '@rk/core'
 
 import { getBridge } from './bridge'
-import { holdSessionNotes } from './preferring'
+import { holdPortfolioOrder, holdSessionNotes } from './preferring'
 
 /**
  * What this window opens as, asked once before anything is drawn.
@@ -62,6 +63,8 @@ export interface LaunchChoices {
   readonly reset: readonly Reset[]
   /** How a session draws its system notes (RG208), or every note where nothing answered. */
   readonly sessionNotes: SessionNotes
+  /** The order the portfolio opens in (RG241), or the record's where nothing answered. */
+  readonly portfolioOrder: RowOrder
 }
 
 const AT_WORST: LaunchChoices = {
@@ -69,6 +72,7 @@ const AT_WORST: LaunchChoices = {
   theme: null,
   reset: [],
   sessionNotes: DEFAULT_SETTINGS.sessionNotes,
+  portfolioOrder: DEFAULT_SETTINGS.portfolioOrder,
 }
 
 /**
@@ -104,6 +108,7 @@ export async function choicesFromBridge(
         theme: answer.settings.theme,
         reset: answer.reset,
         sessionNotes: answer.settings.sessionNotes,
+        portfolioOrder: answer.settings.portfolioOrder,
       })),
       deadline,
     ])
@@ -132,5 +137,6 @@ export async function choicesAtLaunch(): Promise<LaunchChoices> {
   const choices = await choicesFromBridge(getBridge())
   lost = choices.reset
   holdSessionNotes(choices.sessionNotes)
+  holdPortfolioOrder(choices.portfolioOrder)
   return choices
 }

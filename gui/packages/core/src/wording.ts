@@ -414,6 +414,8 @@ export const EN = {
   'settings.lost.locale': 'the locale was not a string, so the desktop decides',
   'settings.lost.sessionNotes':
     'how a session draws its system notes was not a choice this build knows, so every note is drawn',
+  'settings.lost.portfolioOrder':
+    "the portfolio's order was not one this build knows, so it opens in the record's order",
 
   'shell.home': 'Home',
   'shell.palette': 'Find a line in every backlog',
@@ -467,6 +469,7 @@ export const RESET_TEXT: Readonly<Record<Lost, MessageKey>> = {
   theme: 'settings.lost.theme',
   locale: 'settings.lost.locale',
   sessionNotes: 'settings.lost.sessionNotes',
+  portfolioOrder: 'settings.lost.portfolioOrder',
 }
 
 /**

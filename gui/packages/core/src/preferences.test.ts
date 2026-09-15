@@ -20,8 +20,14 @@ const HELD: Settings = {
 
 describe('RG207: the table', () => {
   it('names the preferences a page chooses, and nothing that decides a scan', () => {
-    // The ground and the language (RG207), and how a session draws its notes (RG208).
-    expect(Object.keys(PREFERENCES).sort()).toEqual(['locale', 'sessionNotes', 'theme'])
+    // The ground and the language (RG207), how a session draws its notes (RG208), and the
+    // order the portfolio opens in (RG241).
+    expect(Object.keys(PREFERENCES).sort()).toEqual([
+      'locale',
+      'portfolioOrder',
+      'sessionNotes',
+      'theme',
+    ])
     for (const reaching of ['roots', 'skip', 'width', 'version']) {
       expect(isPreferenceKey(reaching)).toBe(false)
     }
@@ -53,7 +59,15 @@ describe('RG207: writing one', () => {
     })
   })
 
+  it('writes the order the portfolio opens in (RG241)', () => {
+    expect(withPreference(HELD, 'portfolioOrder', 'open-descending')).toEqual({
+      ...HELD,
+      portfolioOrder: 'open-descending',
+    })
+  })
+
   it('refuses a value the reader would reset, so the file never holds one', () => {
+    expect(withPreference(HELD, 'portfolioOrder', 'open')).toBeNull()
     expect(withPreference(HELD, 'sessionNotes', 'folded')).toBeNull()
     expect(withPreference(HELD, 'theme', 'midnight')).toBeNull()
     expect(withPreference(HELD, 'locale', 'ja')).toBeNull()
@@ -72,5 +86,10 @@ describe('RG207: writing one', () => {
     if (written === null) throw new Error('refused a ground the reader accepts')
 
     expect(readSettings(written)).toEqual({ settings: written, reset: [] })
+
+    const ordered = withPreference(HELD, 'portfolioOrder', 'name-descending')
+    if (ordered === null) throw new Error('refused an order the reader accepts')
+
+    expect(readSettings(ordered)).toEqual({ settings: ordered, reset: [] })
   })
 })

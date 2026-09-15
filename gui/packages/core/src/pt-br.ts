@@ -398,6 +398,8 @@ export const PT_BR: Wording = {
   'settings.lost.locale': 'o idioma não era um texto, então o sistema decide',
   'settings.lost.sessionNotes':
     'o modo de desenhar as notas de sistema de uma sessão não é um que esta build conhece, então toda nota é desenhada',
+  'settings.lost.portfolioOrder':
+    'a ordem do portfólio não é uma que esta build conhece, então ele abre na ordem do registro',
 
   'shell.home': 'Início',
   'shell.palette': 'Encontre uma linha em qualquer backlog',

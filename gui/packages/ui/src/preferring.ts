@@ -1,43 +1,50 @@
-import { BASE, DEFAULT_SETTINGS, type SessionNotes } from '@rk/core'
+import { BASE, DEFAULT_SETTINGS, type RowOrder, type SessionNotes, type Settings } from '@rk/core'
 import { toast } from '@viglet/viglet-design-system'
 import { useSyncExternalStore } from 'react'
 
 import { getBridge } from './bridge'
 
 /**
- * How a session draws its system notes, as this window holds it (RG208).
+ * The preferences with no library behind them, as this window holds them: how a session draws
+ * its system notes (RG208), and the order the portfolio opens in (RG241).
  *
  * **Held once for the window, like the language.** The ground has `next-themes` and the
- * language has i18next; this preference has no library behind it, so it is the smallest store
- * that does the same job — one value for the window's life, set from the launch read, moved by
- * the settings screen, and read by every session screen through a subscription so a choice
- * made in one place redraws the other.
+ * language has i18next; these have neither, so this is the smallest store that does the same
+ * job — one value each for the window's life, set from the launch read, moved by a screen, and
+ * read through a subscription so a choice made in one place redraws the other. One store for
+ * both, rather than a second one growing beside it.
  *
  * **Changed on screen first, then kept.** As with the ground, nothing waits on the write: the
- * stream already redraws, so a write that fails leaves nothing to undo and one thing worth
+ * screen already redraws, so a write that fails leaves nothing to undo and one thing worth
  * saying — that the next launch will not have it.
  */
 
-let held: SessionNotes = DEFAULT_SETTINGS.sessionNotes
+/** The settings rows held here, typed as the file's own fields so a write takes them as they are. */
+type Held = Pick<Settings, 'sessionNotes' | 'portfolioOrder'>
+
+let held: Held = {
+  sessionNotes: DEFAULT_SETTINGS.sessionNotes,
+  portfolioOrder: DEFAULT_SETTINGS.portfolioOrder,
+}
 const listeners = new Set<() => void>()
 
 function told(): void {
   for (const listen of listeners) listen()
 }
 
-/** Take what the settings file holds, at launch. Not a write: the file already says it. */
-export function holdSessionNotes(notes: SessionNotes): void {
-  if (notes === held) return
-  held = notes
+/** Take a value the settings file holds. Not a write: the file already says it. */
+function hold<K extends keyof Held>(key: K, value: Settings[K]): void {
+  if (held[key] === value) return
+  held = { ...held, [key]: value }
   told()
 }
 
 /** Choose, redraw every screen that reads it, and keep it in the file. */
-export function chooseSessionNotes(notes: SessionNotes): void {
-  if (notes === held) return
-  holdSessionNotes(notes)
+function choose<K extends keyof Held>(key: K, value: Settings[K]): void {
+  if (held[key] === value) return
+  hold(key, value)
   void getBridge()
-    ?.savePreference('sessionNotes', notes)
+    ?.savePreference(key, value)
     .catch(() => {
       toast.warning(BASE['settings.unsaved'])
     })
@@ -50,11 +57,39 @@ function subscribe(listen: () => void): () => void {
   }
 }
 
-function current(): SessionNotes {
-  return held
+/** Take what the settings file holds, at launch. */
+export function holdSessionNotes(notes: SessionNotes): void {
+  hold('sessionNotes', notes)
+}
+
+export function chooseSessionNotes(notes: SessionNotes): void {
+  choose('sessionNotes', notes)
+}
+
+function currentNotes(): SessionNotes {
+  return held.sessionNotes
 }
 
 /** The choice in force, as a screen reads it. */
 export function useSessionNotes(): SessionNotes {
-  return useSyncExternalStore(subscribe, current, current)
+  return useSyncExternalStore(subscribe, currentNotes, currentNotes)
+}
+
+/** Take what the settings file holds, at launch (RG241). */
+export function holdPortfolioOrder(order: RowOrder): void {
+  hold('portfolioOrder', order)
+}
+
+/** Choose from a column head: the table redraws first and the file is written after. */
+export function choosePortfolioOrder(order: RowOrder): void {
+  choose('portfolioOrder', order)
+}
+
+function currentOrder(): RowOrder {
+  return held.portfolioOrder
+}
+
+/** The order in force, as the portfolio reads it. */
+export function usePortfolioOrder(): RowOrder {
+  return useSyncExternalStore(subscribe, currentOrder, currentOrder)
 }

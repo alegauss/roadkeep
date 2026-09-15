@@ -6,32 +6,6 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-### §RG241 Keeping the portfolio's order across launches
-
-**One preference row, the way RG208 added one.** `Settings` gains `portfolioOrder`, a
-value naming both the order and its direction, so the reader checks one closed set. An
-`isRowOrder` beside `isSessionNotes` is that set, used by `readSettings` and by the
-`PREFERENCES` table alike. A value this build does not know resets with a `Lost` code of
-its own and a sentence in both catalogues through `RESET_TEXT`, never silently.
-
-**Default: the record's order**, so an upgrade changes nothing on screen.
-
-**Held for the window like the session notes.** `LaunchChoices` carries the value
-across, and `preferring.ts` holds it beside `sessionNotes` rather than growing a second
-store. `Portfolio.tsx` reads it through a subscription; a click on a column head redraws
-first and then calls `savePreference`, and a write that fails raises the toast that says
-the next launch will not have it.
-
-**Only the choice is kept, never the ranking.** RG240 holds a list of paths while a read
-is in flight; written to disk, that list would be a copy of what `stats` printed, which
-`No store of its own` refuses. The next launch ranks afresh when its first read settles.
-
-**The filter chip stays per window.** A narrowing left on hides rows at the next launch
-with nothing on screen saying why, and an order hides none.
-
-Tests: the settings round trip and the reset in `settings.test.ts`, the new row in
-`preferences.test.ts`, and a portfolio opening in the order the file holds.
-
 ## Block D — The project surface (one backlog, read)
 
 ## Block E — The write path (the app composes an argv; the command writes)
