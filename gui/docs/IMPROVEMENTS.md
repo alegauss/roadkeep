@@ -88,9 +88,9 @@ build does not know, as `catalogueFrom` does; `readings-file.ts` in `shell` writ
 rename. The carrier fills it off the `stats` and `pick` answers passing through `run`,
 as `noting` dates the gate (RG152).
 
-**`No store of its own` bounds this and does not forbid it**: its reason says a cache
-mirrors files and is invalidated by them. At launch the carrier retakes each stamp, six
-stats and no interpreter, and a `readings()` bridge call answers only entries whose
+**A cache and never the truth about a backlog**: the repository stays the store, and an
+entry is invalidated by the files it came off. At launch the carrier retakes each stamp,
+six stats and no interpreter, and a `readings()` bridge call answers only entries whose
 stamp still matches. Nothing writes, claims or offers a door off an entry; those need an
 opening.
 
@@ -148,8 +148,8 @@ engine is not an old verdict about this one.
 **The row stays honest as `gate.ts` makes it**: `taken` dates the verdict, and a file
 that moves makes it stale and reruns the gate (RG166).
 
-`No store of its own` bounds this on RG251's terms: invalidated by the files and the
-engine, and never a source for a write.
+Held on RG251's terms: invalidated by the files and the engine, and never a source for a
+write.
 
 Rewritten in this commit: the "in memory only" comments of `gate.ts` and `carrier.ts`.
 
@@ -250,8 +250,8 @@ the count does not vanish for the seconds the rows take.
 **Holding the report in the carrier was weighed and refused.** Its doors are one batch
 per root (RG181), so any later read that carries doors replaces them, and a held row
 would offer doors that name nothing. RG253 also plans to write the ledger to disk, and a
-held report would grow what `No store of its own` bounds from a count to every message
-the gate wrote.
+held report would grow what that file carries from a count to every message the gate
+wrote.
 
 Tests: `gate.test.tsx`, where RG185's opening case splits in two: a held clean verdict
 runs nothing, and a held drifted one runs once and draws its rows.
@@ -306,7 +306,7 @@ and the question here is what changed, not how the code reads.
 
 **Current, never remembered.** Read when the sheet opens, again from a reload button,
 and again on each new act that edits the same path while it is open. Kept nowhere after
-it closes, which is `No store of its own`.
+it closes: the file's text lives on the disk.
 
 Tests: `file-text.test.ts` over each refusal with a fake disk; `session.test.tsx`
 opening a row, a refusal's sentence, and a reread when the stream edits the open file.
@@ -314,11 +314,10 @@ opening a row, a refusal's sentence, and a reread when the stream edits the open
 ### §RG246 What the session changed inside a file
 
 **The before comes from the session, never from git.** `No git command run by this app`
-refuses `git diff`, and `No store of its own` refuses a copy of the file taken at
-handover. What is left is enough: an `Edit` carries `old_string` and `new_string`, a
-`MultiEdit` a list of those pairs, and a `Write` the whole content. A reader in
-`acts.ts`, `editsOf(acts, path)`, returns them in stream order, each with the result
-that answered it.
+refuses `git diff`, and a copy taken at handover is a store nobody keeps current. What
+is left is enough: an `Edit` carries `old_string` and `new_string`, a `MultiEdit` a list
+of those pairs, and a `Write` the whole content. A reader in `acts.ts`, `editsOf(acts,
+path)`, returns them in stream order, each with the result that answered it.
 
 **Drawn in the viewer, above the file.** Each edit is two blocks in the text face, what
 it replaced and what it put there, with its seq leading to the act in the stream and a

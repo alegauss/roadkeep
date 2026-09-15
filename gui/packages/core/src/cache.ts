@@ -12,10 +12,11 @@ import type { EngineRequest, EngineResult, Transport } from './transport'
  * still good and keeps one that is not, and a count of writes this app made misses every
  * write a terminal or an agent made beside it.
  *
- * **Nothing persists across launches.** The non-goals refuse a store, and a cache that
- * survived a restart would be one that can be wrong about a repository somebody edited
- * while the app was closed. That is structural here rather than a promise: this package
- * has no filesystem in scope at all, which its own boundary test enforces.
+ * **Nothing persists across launches here.** An answer that outlived a restart can be wrong
+ * about a repository somebody edited while the app was closed, so remembering one costs a
+ * stamp retaken at launch and the engine that answered asked again — which is RG251's and
+ * RG252's, not this transport's. Structural rather than a promise: this package has no
+ * filesystem in scope at all, which its own boundary test enforces.
  *
  * It is a transport and not a layer above one, so nothing that reads knows it exists — the
  * same reason the transport is one interface with one method.

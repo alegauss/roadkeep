@@ -12,10 +12,9 @@ import { composeWrite, type Composed } from './writing'
  *
  * **The sentence is shown as the store spells it.** `defer` writes the pause's reason
  * wrapped around the design's own why, and splitting the wrapper back out here would be a
- * rule about a format that is roadkeep's. `No store of its own` and `No account, no auth
- * and no remote store in the desktop build` both bound this without forbidding it: the
- * deferred store is one of the roles the config declares, and this app reads it exactly as
- * it reads the roadmap.
+ * rule about a format that is roadkeep's. `No account, no auth and no remote store in the
+ * desktop build` bounds this without forbidding it: the deferred store is one of the roles
+ * the config declares, and this app reads it exactly as it reads the roadmap.
  *
  * **The age is the engine's count and the order is its word** (RG28). `--stale` answers a
  * `since` per pause — commits over the governed files — the `reason` it was set aside with,

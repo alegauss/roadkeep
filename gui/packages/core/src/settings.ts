@@ -20,9 +20,9 @@ import { asRecord } from './reading'
  * might mean something else, so it is kept, defaults are used, and the version found is
  * named.
  *
- * **It holds no project data and no cached answer**, which is `No store of its own`
- * restated as a file format. The project list is the catalogue's, and the line between them
- * is that one can be rebuilt by looking and the other cannot be rebuilt at all.
+ * **It holds no project data and no cached answer.** The project list is the catalogue's and
+ * a remembered reading is its own record (RG251); the line between them and this file is
+ * that those can be rebuilt by looking or by asking, and a choice cannot be rebuilt at all.
  *
  * Where the file lives needs an operating system, so that half is `shell`'s.
  */
@@ -54,8 +54,8 @@ export interface Settings {
   readonly sessionNotes: SessionNotes
   /**
    * The order the portfolio opens in (RG241): the choice alone, never the ranking it produced.
-   * A list of paths ranked by open lines would be a copy of what `stats` printed, which is
-   * `No store of its own` broken in this file.
+   * A list of paths ranked by open lines would be a copy of what `stats` printed, stale the
+   * moment a line ships, in a file that holds only what somebody chose.
    */
   readonly portfolioOrder: RowOrder
 }

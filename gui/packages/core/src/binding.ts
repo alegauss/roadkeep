@@ -10,10 +10,11 @@ import type { Door } from './refusals'
  * open: the non-goals beside the add form, a block's criteria at the head of its list,
  * where the question of whether the block is finished is actually asked.
  *
- * **The reason is the half that decides anything.** `No store of its own` is a phrase, and
- * the sentence arguing it is what settles whether a proposal is forbidden. Both lists now
- * carry it, and both from the payload: lifting the bullet out of `docs/ROADMAP.md` would be
- * the second implementation of a grammar `No Markdown parsed in this app` refuses (RG77).
+ * **The reason is the half that decides anything.** `No git command run by this app` is a
+ * phrase, and the sentence arguing it is what settles whether a proposal is forbidden.
+ * Both lists now carry it, and both from the payload: lifting the bullet out of
+ * `docs/ROADMAP.md` would be the second implementation of a grammar `No Markdown parsed in
+ * this app` refuses (RG77).
  * An engine from before `non_goals_why` publishes leads alone, and a non-goal read from one
  * says so with a null `why` rather than a blank reason.
  *

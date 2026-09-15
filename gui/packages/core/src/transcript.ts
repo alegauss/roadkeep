@@ -16,8 +16,8 @@ import type { Composed, WriteOutcome } from './writing'
  * for, and it keeps `No dates, estimates, velocity or burndown` without an argument about
  * whether a timestamp is a schedule.
  *
- * **Memory, not a store.** Nothing here writes the transcript down, exactly as the cache
- * does not, so `No store of its own` holds: a session is as long as it lasts.
+ * **Memory, not a store.** Nothing here writes the transcript down: a session is as long as
+ * it lasts, and what the window shows of it goes with the window.
  */
 
 /**

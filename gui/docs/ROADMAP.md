@@ -135,8 +135,8 @@
 ## Done when — Block H
 
 - **Long prose is legible at the length the format allows** A 320-character line, a
-  250-word section and a ten-item non-goal list are the real shapes, so the type scale
-  and the measure are chosen against those and not against a mockup.
+  250-word section and the non-goal list at whatever length it has are the real shapes,
+  so the type scale and the measure are chosen against those and not against a mockup.
 - **Every string a person reads is in a catalogue** English is the base and a second
   locale is a file, so a screen written today does not have to be reopened to be
   translated.
@@ -176,9 +176,6 @@
 - **No engine the reader cannot name** Which copy of roadkeep answered is part of every
   answer; nothing is bundled and nothing is chosen silently, because three copies may
   differ and only naming which one wrote survives that.
-- **No store of its own** A cache mirrors files and is invalidated by them, so nothing
-  this app holds is ever the truth about a backlog: the repository is the store, and a
-  second one is a state that can disagree.
 - **No field this app composes** A person types and an agent may author through the
   command; the app measures a draft against the budget and never writes a symptom, a why
   or a rationale, which is L4 held one surface out.

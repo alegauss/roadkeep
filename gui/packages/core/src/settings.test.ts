@@ -43,8 +43,8 @@ describe('RG47: the one thing this app owns', () => {
   })
 
   it('holds no project data and no cached answer', () => {
-    // `No store of its own`, restated as a file format. The project list is the
-    // catalogue's, and this is only what somebody chose.
+    // The project list is the catalogue's and a remembered reading is its own record
+    // (RG251); this file is only what somebody chose.
     // The portfolio's order is a choice too, and not the ranking it produced (RG241).
     expect(Object.keys(DEFAULT_SETTINGS).sort()).toEqual([
       'locale',

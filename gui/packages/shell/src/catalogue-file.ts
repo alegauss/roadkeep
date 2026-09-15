@@ -11,10 +11,10 @@ import { catalogueFrom, EMPTY_CATALOGUE, type ProjectCatalogue } from '@rk/core'
  * reads one back and refuses a shape this build does not know — and this puts it somewhere
  * and gets it back.
  *
- * **`No store of its own` bounds this and does not forbid it.** What this app holds about a
- * backlog is never the truth about it: the repository is. Which folders on this machine hold
- * a governed checkout is not roadkeep's fact at all, and it is the same kind of thing as the
- * roots — a statement about this machine, which this app already owns a file for.
+ * **What this app holds about a backlog is never the truth about it: the repository is.**
+ * Which folders on this machine hold a governed checkout is not roadkeep's fact at all, and
+ * it is the same kind of thing as the roots — a statement about this machine, which this app
+ * already owns a file for.
  *
  * **A record that does not read is the empty one, never an error.** A missing file is the
  * first launch; an unreadable one is a list the walk behind it rebuilds. Neither is worth a

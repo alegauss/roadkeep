@@ -30,11 +30,11 @@ import type { KeyOf, ScanRoot } from './roots'
  * on every launch would be worse than a slow one: the thing somebody clicked yesterday
  * would be somewhere else today, for no reason they could see.
  *
- * "No store of its own" bounds this and does not forbid it. What that refuses is a second
- * copy of roadkeep's data — a backlog cached here would be one, and this app reads those
- * files every time instead. Which folders on this machine hold a governed checkout is not
- * roadkeep's fact and no repository could hold it; it is the same kind of thing as the
- * roots, which this app owns rather than reads.
+ * **A fact about this machine, and not a copy of roadkeep's data.** Which folders on this
+ * machine hold a governed checkout is not roadkeep's fact and no repository could hold it;
+ * it is the same kind of thing as the roots, which this app owns rather than reads. What a
+ * backlog says is a different record with a different rule — invalidated by the files it
+ * came off, never the truth about them (RG251).
  */
 
 export interface RecordedProject {
