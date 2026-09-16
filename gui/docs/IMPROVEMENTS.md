@@ -19,21 +19,21 @@ files under four folders draws twenty full paths, each repeating its prefix, and
 reader asking what changed under `commitclerk/` reads every row to find out — in a
 column already three answers deep before the files start.
 
-The files get a card of their own, and the paths become a tree: one node per segment,
-the way an editor's explorer draws a working tree. What a row says today — the call
-count, `governed`, `failed`, the disk's standing, the disagreement — stays on the leaf,
-being a fact about a file and not a folder. Opening a leaf still opens the file as the
-disk holds it (RG245).
+The files get a card of their own, and the paths become a tree. **The branching is not
+this app's**: the design system owns `Tree` and `treeFromPaths` since VDS167, because a
+folder hierarchy is what a CMS and a console draw too and three hand-rolled trees get
+the roles, the levels and the arrow keys wrong three ways. This app supplies the paths
+and what a row says.
 
-A folder with one child folder under it is drawn as one row, `a/b/c`, the way an
-explorer collapses a run nobody branches at. Otherwise a project whose files sit four
-folders deep is four rows of indentation before the first name.
+So what stays here is the meaning. The call count, `governed`, `failed`, what the disk
+says and the disagreement go on the leaf through `renderAfter`, being facts about a file
+and not a folder. Opening a leaf still opens the file as the disk holds it (RG245).
 
-**Splitting is not this app folding a path.** RG65 and RG98 keep that with the side that
-has the platform, and both lists arrive spelled: `MovedPath.path` and `EditedFile.shown`
-are relative to the root with forward slashes, said so in their types. The tree groups
-on the separator it was handed and asks no platform question — and a path the shell
-calls outside the root stays a row of its own.
+**Splitting is not this app folding a path** either. `treeFromPaths` takes the separator
+as an argument, and both lists already arrive spelled: `MovedPath.path` and
+`EditedFile.shown` are relative to the root with forward slashes, said so in their
+types. A path the shell calls outside the root has no root to sit under, so it stays a
+row of its own.
 
 Both lists take the same tree: two accounts of the same folders.
 
