@@ -239,7 +239,11 @@ held, expired or stale, oldest first, where each id went and where the registry 
 sidecar — which governed files a verb wrote and which nothing did, moving no baseline
 where the `Stop` hook states it once and consumes it; `show <id>` joins one line, its
 section and its paths, and on a ledger entry whose bullet **wraps** it prints every line
-that entry owns — which is the count `record amend --lines` asks you to have read;
+that entry owns — which is the count `record amend --lines` asks you to have read; a quoted
+token is a path where the tree has it, where its directory is one the repository knows, or —
+for a name with no directory at all, which is how an asset is written — where exactly one
+tracked file carries it, so a section naming five sprites names five artefacts and a
+`Config.load` in prose still names none;
 `show <id> <id> …` is that join over **several ids in one read**, which is what a task
 fanning out over related lines wants — the design is where each awaited artefact is named,
 and one call per design costs more than reading the prose file, which is the read this tool

@@ -536,6 +536,59 @@ def test_what_counts_as_a_path(text, expected):
     assert [p.path for p in paths_in(text, HERE)] == expected
 
 
+# -- a token with no directory at all (RK1688) --------------------------------
+
+
+def _named(counts: dict[str, int]):
+    """The basename listing, as a caller supplies it."""
+    return lambda: counts
+
+
+@pytest.mark.parametrize(
+    "token, counts, expected",
+    [
+        # The case: an asset named the way its generator names it, held once.
+        ("combo.png", {"combo.png": 1}, ["combo.png"]),
+        # Several files carry it, so the repository cannot settle which — a word in prose.
+        ("__init__.py", {"__init__.py": 7}, []),
+        # Nothing carries it. `Config.load` and `roadkeep.cli` are this case, which is what
+        # keeps a dotted name in prose from reading as a broken file.
+        ("Config.load", {"combo.png": 1}, []),
+        # No extension is not a filename, which is half of `_claims_a_file`'s own test.
+        ("served", {"served": 1}, []),
+        # A token with a directory is the other rule's, answered there and not twice here.
+        ("art/combo.png", {"combo.png": 1}, []),
+    ],
+)
+def test_a_bare_filename_is_a_claim_only_where_the_repository_holds_one(
+    token, counts, expected
+):
+    """RK1688. `paths_in` kept a token that resolves on disk or whose directory the
+    repository knows, and a bare `combo.png` is neither — so a task whose files are all art
+    named none of them, measured on Cottony where two lines name five artefacts between them
+    and `show --json` reported an empty list for both.
+
+    What keeps the door narrow is the count, which is RK217's reason carried over: one
+    tracked file is a claim the repository can settle, none or several is prose."""
+    found = paths_in(f"a `{token}` b", HERE, named=_named(counts))
+    assert [one.path for one in found] == expected
+
+
+def test_a_bare_filename_the_listing_holds_is_present_and_not_missing():
+    """The half that would have made this a worse defect than the one it closes. The token
+    resolves from neither the section's directory nor the root — that is why it was dropped —
+    so admitting it while reading `exists` off the disk would report a file the repository
+    has as missing, which is the false finding RK46 and RK217 each narrowed this to avoid."""
+    (found,) = paths_in("a `combo.png` b", HERE, named=_named({"combo.png": 1}))
+    assert found.exists
+
+
+def test_without_the_listing_a_bare_filename_is_dropped_exactly_as_before():
+    """Opt-in on the caller passing it, so every reader that has not been given the listing
+    answers what it always did."""
+    assert paths_in("a `combo.png` b", HERE) == ()
+
+
 # -- this repository ---------------------------------------------------------
 
 

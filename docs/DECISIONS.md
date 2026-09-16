@@ -97,6 +97,7 @@ line already there. Its refusal names `section add` against that line's own anch
 - ✅ **RK1685** **show returns one section, so reading the designs behind a set of related lines is one call each** — [reads] show bounds a join of several ids and never a call naming one, so a ceiling written for a fan-out cannot refuse the read show has always given.
 - ✅ **RK1686** **`weight` reads a commit whole, so a task that regenerated 37 sprites prices at 770 lines against 78 authored** — [history] incidental may name a directory with a trailing slash and still no glob, because a generator names its own outputs where a hook's three files are a list a project keeps.
 - ✅ **RK1687** **`evidence` matches a regex over text, so a task whose proof is a number out of a PNG or a WAV declares none** — A declared reading is a comparison against a number the project itself wrote, never a command this tool runs or a file it opens: the arithmetic is all it contributes.
+- ✅ **RK1688** **`show` drops a path written as a bare filename, so a section naming five sprites reports none of them** — A bare filename is admitted on the repository holding exactly one of that name: none is prose and several is a name this cannot resolve for the reader.
 
 ### §RK1362 Why a projection and not a wider read
 
@@ -339,6 +340,21 @@ approached: the comparison relates two numbers, one from a file and one from the
 and nothing forms an opinion about an image. Accepted with it: a proof nobody has
 written down is still unrunnable — the sentence exists, and somebody has to produce the
 figure.
+
+### §RK1688 One tracked file, or the first that matches
+
+The alternative was to resolve a bare name by searching the tree and taking any hit. It
+was rejected on the count: a name two directories carry is one this cannot resolve *for
+the reader*, and picking one puts a path in an answer the section never claimed.
+
+Weighed against RK55 and RK217, which each narrowed this read after false findings — 60
+of Shio's 61 were a MIME type or two method names sharing a slash. A bare word is a
+wider door, so it was measured first: over both pins the ledgers admit 42 tokens and
+114, none missing.
+
+Accepted with it: `exists` for such a token is the listing's answer, not the disk's. It
+resolves from neither the section's directory nor the root — that is why it was dropped
+— so reading the disk would report a file the repository has as missing.
 
 ## Block D — The gate
 

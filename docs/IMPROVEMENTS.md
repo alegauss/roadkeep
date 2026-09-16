@@ -79,31 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1688 An artefact is named the way its generator names it
-
-`paths_in` keeps a quoted token that resolves on disk, or one whose directory the
-repository knows (RK55, RK217). A bare `combo.png` is neither: it has no directory to be
-known by, and it sits under `docs/design/art/` while the section naming it sits in
-`docs/`.
-
-On Cottony, RK99 and RK100 name five artefacts between them — `combo.png`,
-`friend_cloud.png`, `friend_pink.png`, `cottony-board-screen.png`, `meshy.py` — and
-`show --json` reports an empty path list for both. All five basenames are unique in that
-repository's own listing, so every one of them was decidable.
-
-They are written that way because it is how the work refers to them: a generator's
-output table names a sprite `friend_cloud.png`, and so does the person looking at it. A
-code file gets a path because a path is how it is imported; an asset gets a name.
-
-The stakes are wider than this read — the same list is joined onto other answers, so a
-task whose files are all art names none of them anywhere.
-
-RK217's reason still holds and bounds this: 60 of Shio's 61 findings were a MIME type,
-an i18n key or two method names sharing a slash. A basename with no separator is a wider
-door than that one, and what would keep it narrow is the listing this already consults —
-a token matching exactly one tracked file is a different claim from one matching none or
-several.
-
 ## Block D — The gate
 
 ## Block E — Adoption

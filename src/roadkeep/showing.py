@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import os
 import re
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -446,6 +446,9 @@ def show(config: Config, task_id: str, *, walked: Landings | None = None) -> Vie
             config.root,
             near=config.path(role).parent,
             known=lambda: known_directories(config),
+            # The other half of the same listing (RK1688): a task whose files are all art
+            # names them by basename, and without this the join reports none of them.
+            named=lambda: tracked_names(config),
         ),
         # Only for a line that is still open (RK1628): a shipped entry's design is gone, so
         # there is nothing left to re-read and the distance answers about nobody's next task.
@@ -698,6 +701,7 @@ def paths_in(
     near: Path | None = None,
     known: Callable[[], frozenset[str] | None] | None = None,
     has: Callable[[str], bool] | None = None,
+    named: Callable[[], Mapping[str, int] | None] | None = None,
 ) -> tuple[Referenced, ...]:
     """Quoted paths, deduplicated, in order of appearance.
 
@@ -718,6 +722,12 @@ def paths_in(
     read that starts every task. Called at most once per run of this function, and never
     where every path resolves. Omitted, or answering None, keeps the filesystem answer.
 
+    `named` answers *how many tracked files carry each basename*, which is what decides a
+    token with no directory at all (RK1688, and see :func:`tracked_names`). A **callable**
+    for `known`'s reason and asked on the same occasion, so the two listings cost one git
+    call between them and neither is built for a sentence whose paths all resolve. Omitted,
+    or answering None, a bare filename is dropped exactly as it was.
+
     `has` answers *does the tree being judged hold this artefact*, and the disk is only its
     default (RK225). A run naming a revision may not consult the disk (RK218) and used to
     consult it anyway — 34070 `stat` calls at Turing's pin, every one discarded — and worse,
@@ -726,6 +736,7 @@ def paths_in(
     """
     out: dict[str, Referenced] = {}
     directories: frozenset[str] | None = None
+    basenames: Mapping[str, int] | None = None
     asked = False
     for match in _QUOTED.finditer(text):
         token = (match.group(1) or match.group(2)).rstrip(".,;:")
@@ -753,11 +764,36 @@ def paths_in(
         # should: a filename whose directory the repository knows (RK55, RK217). A slash
         # alone is not — 60 of Shio's 61 findings were a MIME type, an i18n key or two
         # method names sharing one.
-        if not exists and known is not None and not asked:
-            directories, asked = known(), True
+        if not exists and (known is not None or named is not None) and not asked:
+            directories = None if known is None else known()
+            basenames = None if named is None else named()
+            asked = True
+        if not exists and _one_tracked(token, basenames):
+            # A bare basename the repository holds exactly once (RK1688). **Present and not
+            # missing**: the token names an artefact this tree has, and where it sits is the
+            # listing's answer rather than the section's to spell. Reporting it as missing
+            # would be the false finding RK46 and RK217 each narrowed this read to avoid,
+            # arriving through the door that was opened to stop dropping it.
+            out.setdefault(token, Referenced(path=token, exists=True))
+            continue
         if exists or _claims_a_file(token, root, near, directories):
             out.setdefault(token, Referenced(path=token, exists=exists))
     return tuple(out.values())
+
+
+def _one_tracked(token: str, basenames: Mapping[str, int] | None) -> bool:
+    """Whether this token is a bare filename the repository holds exactly once (RK1688).
+
+    Three conditions and each is load-bearing. **No directory**, because a token with one is
+    already :func:`_claims_a_file`'s and answering it twice would be two rules on one string.
+    **An extension**, which is what tells `combo.png` from a word somebody italicised — the
+    same test that half of `_claims_a_file` rests on. **Exactly one**, which is the whole of
+    what keeps a bare word from reading as a path: none is prose, several is a name the
+    repository cannot resolve for the reader, and one is a claim it can settle.
+    """
+    if basenames is None or "/" in token:
+        return False
+    return "." in token and basenames.get(token, 0) == 1
 
 
 def _claims_a_file(
@@ -791,6 +827,49 @@ def _claims_a_file(
     if known is None:
         return any((base / head).is_dir() for base in bases)
     return any(_within(base / head, root) in known for base in bases)
+
+
+def tracked_names(
+    config: Config, names: frozenset[str] | None = None
+) -> Mapping[str, int] | None:
+    """How many tracked files carry each basename (RK1688).
+
+    The listing :func:`_claims_a_file` asks about a token with **no directory at all**.
+    `combo.png` is neither on disk from where the section sits nor a path whose head the
+    repository knows, so it was dropped — and on a project whose deliverables are art, that
+    is every artefact a task names: measured on Cottony, where RK99 and RK100 name five
+    between them and `show --json` reported an empty list for both.
+
+    An asset is named by its basename because that is what its generator calls it. A code
+    file gets a path because a path is how it is imported; a sprite gets a name, in the
+    generator's output table and in the sentence of the person looking at it.
+
+    **Exactly one, which is what keeps this narrow.** RK217's reason still holds — 60 of
+    Shio's 61 findings were a MIME type, an i18n key or two method names sharing a slash —
+    and a bare word is a wider door than a slash was. What closes it is the count: a token
+    matching one tracked file is a claim the repository can settle, and one matching none or
+    several is a word in prose. All five of Cottony's were unique in its own listing.
+
+    Measured over both pins before it was opened, on the ledgers whole: Shio admits 42 tokens
+    it dropped and Turing 114, and **none of either is missing** — every one is a file the
+    repository holds. So what this door adds is artefacts, not findings, which is the property
+    RK55 and RK217 were each narrowed to protect. `Config.load` and `roadkeep.cli` stay out by
+    the same count, no tracked file carrying those names, and `__init__.py` stays out because
+    many do.
+
+    Built from the same listing as :func:`known_directories` and cached by the caller the
+    same way, so a sentence whose every path resolves asks git nothing (RK222). `None` where
+    git cannot answer, which the caller reads as *no opinion* rather than as *no*.
+    """
+    if names is None:
+        names = indexed(config)
+    if not names:
+        return None
+    counted: dict[str, int] = {}
+    for name in names:
+        base = name.rpartition("/")[2]
+        counted[base] = counted.get(base, 0) + 1
+    return counted
 
 
 def known_directories(

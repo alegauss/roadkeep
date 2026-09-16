@@ -118,18 +118,14 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 234 | 2 |
-| C — Query (consult without reading the file) | 1 | 201 | 7 |
+| C — Query (consult without reading the file) | 0 | 202 | 7 |
 | D — The gate | 0 | 318 | 7 |
 | E — Adoption | 0 | 122 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 163 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 1 | 1161 | 24 |
-
-**Next ready:**
-
-- 📋 **RK1688** (deps: —) **`show` drops a path written as a bare filename, so a section naming five sprites reports none of them** — An asset is named by its basename because that is what its generator calls it, so a task whose files are all art names none it can be held to. → §RK1688
+| **Total** | 0 | 1162 | 24 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

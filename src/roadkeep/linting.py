@@ -148,7 +148,7 @@ from roadkeep.kernel.schema import (
 )
 from roadkeep.sections import Section, anchored, find, references
 from roadkeep.sections import owners as section_owners
-from roadkeep.showing import known_directories, on_disk, paths_in
+from roadkeep.showing import known_directories, on_disk, paths_in, tracked_names
 from roadkeep.provenance import invocation
 
 #: The governed files whose unit is a task line. The prose files are paragraphs, so
@@ -320,6 +320,8 @@ class Tree:
     #: The directories a path claim is decided against (RK217), or None where git could not
     #: say — a sentinel rather than None-means-unasked, because None is itself the answer.
     _directories: frozenset[str] | None | object = field(default=_UNASKED, repr=False)
+    #: The same listing by basename (RK1688), cached on the same terms as the one above.
+    _basenames: Mapping[str, int] | None | object = field(default=_UNASKED, repr=False)
     #: The root as a normalised string, so the constant half of a spelling is built once.
     _root: str | None = field(default=None, repr=False)
 
@@ -479,6 +481,20 @@ class Tree:
                 self.config, None if self.rev is None else self.listing()
             )
         return self._directories
+
+    def basenames(self) -> Mapping[str, int] | None:
+        """How many tracked files carry each basename, for a token with no directory (RK1688).
+
+        :meth:`directories`' sibling and cached the same way, off the same listing and under
+        the same revision rule: the two questions are *is this head one the repository knows*
+        and *is this name one it holds exactly once*, and a reader answering only the first
+        drops every artefact named the way its generator names it.
+        """
+        if self._basenames is _UNASKED:
+            self._basenames = tracked_names(
+                self.config, None if self.rev is None else self.listing()
+            )
+        return self._basenames
 
     def anywhere(self, token: str) -> bool:
         """Does this tree hold the artefact this token names, under **any** prefix? (RK173)
@@ -2026,6 +2042,9 @@ def _worked(
                 if config.has("improvements")
                 else None,
                 known=lambda: known_directories(config),
+                # The same listing's other half (RK1688), so this reader and `show` agree
+                # about what a bare filename is — two rules would be two answers.
+                named=lambda: tracked_names(config),
             )
         }
         touched_by_id[entry.task.id] = sorted(named_by_id[entry.task.id] & moved)
@@ -4661,6 +4680,9 @@ def _candidates(tree: Tree, text: str, near: Path) -> tuple[str, ...]:
             near=near,
             known=tree.directories,
             has=lambda token: tree.holds(token, near),
+            # Bound the same way and for the same reason (RK1688, RK222): it caches, so the
+            # two listings cost one git call and a sentence whose paths resolve asks none.
+            named=tree.basenames,
         )
         if not referenced.exists and not tree.anywhere(referenced.path)
     )
