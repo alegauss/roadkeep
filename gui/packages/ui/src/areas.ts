@@ -44,6 +44,7 @@ import type { BentoNavGroup, BentoNavItem } from '@viglet/viglet-design-system/b
 export {
   FILE_ROUTE,
   GATE_ROUTE,
+  GATE_SESSION_ROUTE,
   HOME_ROUTE,
   PROJECT_ROUTE,
   SESSION_ROUTE,
@@ -72,6 +73,11 @@ export function taskPath(root: string, id: string): string {
 
 export function sessionPath(root: string, id: string, key: string): string {
   return `${taskPath(root, id)}/session/${encodeURIComponent(key)}`
+}
+
+/** The route for a session handed a gate finding, which has no line to sit under (RG263). */
+export function gateSessionPath(root: string, key: string): string {
+  return `${gatePath(root)}/session/${encodeURIComponent(key)}`
 }
 
 /**

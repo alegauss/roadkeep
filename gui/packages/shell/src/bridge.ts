@@ -300,6 +300,18 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
       return sessions.handOver(root, id)
     },
   )
+  // A session about a gate finding (RG263), named by the door that closes it — the same two
+  // arguments `door` takes, checked the same way, since a name the renderer made up names
+  // nothing in the keep either.
+  ipcMain.handle(
+    BRIDGE_CHANNELS.handOverDoor,
+    (_event, root: unknown, offered: unknown, which: unknown): Promise<HandedOver> => {
+      if (typeof root !== 'string' || typeof offered !== 'string' || typeof which !== 'number') {
+        return Promise.resolve({ kind: 'withheld', reason: 'no door was named' })
+      }
+      return sessions.handOverDoor(root, offered, which)
+    },
+  )
   // When each governed file last changed (RG153), which is the disk's answer and not the
   // engine's. Which files those are is the project's own config, read off the opening, so a
   // root this carrier will not open is answered with nothing rather than with a stat.

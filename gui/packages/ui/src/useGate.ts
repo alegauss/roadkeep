@@ -12,6 +12,7 @@ import {
   type BridgedResult,
   type GateHealth,
   type Gated,
+  type HandedOver,
   type LintPayload,
   type OpenProject,
   type Withholding,
@@ -104,13 +105,31 @@ export interface Gating {
   // as callbacks, and a method type says they carry a `this` this hook never gives them.
   readonly run: () => void
   readonly takeDoor: (which: number, words: readonly string[]) => void
+  /** Hand a door to a Claude Code session (RG263), named by its place in the batch. */
+  readonly handDoor: (which: number) => void
+  /** Where that went: a session to open, or why none started. */
+  readonly handing: Handing
 }
+
+/**
+ * Handing a door over, as the screen has to draw it (RG263).
+ *
+ * A key and not a route, because where a session is shown is the screen's question and not
+ * this hook's. `said` carries the answer whole rather than a sentence, so the screen words it
+ * the way the task screen already words the same six outcomes.
+ */
+export type Handing =
+  | { readonly kind: 'idle' }
+  | { readonly kind: 'handing' }
+  | { readonly kind: 'started'; readonly key: string }
+  | { readonly kind: 'said'; readonly said: Exclude<HandedOver, { readonly kind: 'started' }> }
 
 export function useGate(root: string): Gating {
   const [project, setProject] = useState<OpenProject | null>(null)
   const [gate, setGate] = useState<Gate>({ kind: 'idle' })
   const [held, setHeld] = useState<GateHealth | null>(null)
   const [refused, setRefused] = useState<Withholding | null>(null)
+  const [handing, setHanding] = useState<Handing>({ kind: 'idle' })
 
   useEffect(() => {
     const bridge = getBridge()
@@ -246,5 +265,32 @@ export function useGate(root: string): Gating {
     [root, gate, rerun],
   )
 
-  return { project, gate, refused, run, takeDoor }
+  const handDoor = useCallback(
+    (which: number) => {
+      const bridge = getBridge()
+      const offered = gate.kind === 'read' ? gate.offered : null
+      if (bridge === undefined || offered === null) return
+      setHanding({ kind: 'handing' })
+      // The gate is not run again here, and the finding stays where it is: whether a session
+      // closed it is a question only a run answers, and this one has not started yet.
+      void bridge.handOverDoor(root, offered, which).then(
+        (handed) => {
+          setHanding(
+            handed.kind === 'started'
+              ? { kind: 'started', key: handed.session.key }
+              : { kind: 'said', said: handed },
+          )
+        },
+        (cause: unknown) => {
+          setHanding({
+            kind: 'said',
+            said: { kind: 'withheld', reason: cause instanceof Error ? cause.message : '' },
+          })
+        },
+      )
+    },
+    [root, gate],
+  )
+
+  return { project, gate, refused, run, takeDoor, handDoor, handing }
 }

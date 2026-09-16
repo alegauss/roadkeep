@@ -121,7 +121,12 @@ export function ProjectTrail({
           {face === null ? folderName(root) : face.name}
         </span>
       </BentoBackLink>
-      {task === undefined ? null : (
+      {/*
+        Empty as well as absent (RG263): a session handed a gate finding carries no line id,
+        and a crumb drawn from one is a link with no text in it — which is what the
+        accessibility scan called this before the empty case was here.
+      */}
+      {task === undefined || task === '' ? null : (
         <>
           <IconChevronRight aria-hidden="true" size={12} />
           <Link

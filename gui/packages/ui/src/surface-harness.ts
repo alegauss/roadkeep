@@ -276,7 +276,7 @@ export function surfaceSession(): SessionRecord {
     root: SURFACE_ROOT,
     id: SURFACE_ID,
     started: '2026-09-15T10:00:00.000Z',
-    handed: read.value,
+    handed: { kind: 'line', brief: read.value },
     agent: { command: ['claude'], version: '2.0.0', said: 'claude 2.0.0' },
     lines: [],
     moved: [],

@@ -15,6 +15,7 @@ export type {
   FileRefusal,
   FileText,
   GovernedFile,
+  Handed,
   HandedOver,
   LaunchSettings,
   OpenedProject,
@@ -112,6 +113,7 @@ export {
   HOME_ROUTE,
   PROJECT_ROUTE,
   routeParams,
+  GATE_SESSION_ROUTE,
   SESSION_ROUTE,
   SESSIONS_ROUTE,
   SETTINGS_ROUTE,
@@ -131,6 +133,7 @@ export {
 } from './follow'
 export type { Follow, Scrolled, Space } from './follow'
 export { blanksIn, doorsIn, filledArgv, isBlank, isBody, type Filled } from './doors'
+export { findingAt } from './repairing'
 export { coldStart } from './cold-start'
 export type { ColdStartOptions, ColdStartProgress, ColdStartStage } from './cold-start'
 export { allLines, backlogFrom, narrowedBy } from './backlog'
@@ -292,7 +295,7 @@ export { saidOfWrite, wasCreated, whereWritten, writtenFrom } from './sections'
 export type { Written } from './sections'
 export { commandLine, createTranscript, entryLine, quoteFor } from './transcript'
 export type { Entry as TranscriptEntry, Ran, Shell, Transcript } from './transcript'
-export { outcomeOf, promptFor, readSessionLine, sessionCall } from './session'
+export { outcomeOf, promptFor, promptForDoor, readSessionLine, sessionCall } from './session'
 export type { SessionCall, SessionEvent, SessionOutcome, SessionState } from './session'
 export { DARK_QUERY, followsSystem, GROUNDS, groundFor, THEME_ORDER } from './ground'
 export type { Ground } from './ground'

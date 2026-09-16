@@ -161,6 +161,27 @@ export function gatedReport(report: readonly Actionable[], batch: readonly Door[
 }
 
 /**
+ * Which finding a door's place in the batch belongs to (RG263).
+ *
+ * `gatedReport` read the other way round. A caller holding only a number — which is all a door
+ * is named by, and all the renderer ever sends — asks this for the finding that offered it, so
+ * a session can be started about something more than a command line.
+ *
+ * Numbered against the same batch by the same rule, so what this answers is the finding in
+ * whose row the button was drawn. Null where the batch has no such place, or where the door
+ * there came from a note or an `explain` this report does not cover: a caller that cannot name
+ * what it is fixing should say so rather than start on a guess.
+ */
+export function findingAt(
+  report: readonly Actionable[],
+  batch: readonly Door[],
+  which: number,
+): Actionable | null {
+  const gated = gatedReport(report, batch)
+  return gated.find((one) => one.doors.some((door) => door.which === which))?.finding ?? null
+}
+
+/**
  * Whether anything in a report can be closed without somebody typing first.
  *
  * What a screen needs before offering a repair pass at all: a report whose every finding

@@ -46,6 +46,15 @@ export interface DoorKeep {
   keep(root: string, answer: unknown): Promise<string | null>
   /** The door a caller named, or null where nothing here holds it any more. */
   taken(root: string, offered: string, which: number): Promise<Door | null>
+  /**
+   * The answer this batch came out of, kept whole (RG263).
+   *
+   * A command line is a poor brief, and the side that starts an agent has to build the prompt
+   * itself — so what the engine printed is held beside the doors rather than reconstructed
+   * from them. Unread and untouched here: whoever asks reads it with the reader for the verb
+   * it answered. Staleness is `taken`'s, so a caller asks for the door first and this second.
+   */
+  answered(root: string, offered: string): unknown
   /** How many batches are held, which is what a test counts to find one nothing drops. */
   readonly held: number
 }
@@ -54,6 +63,7 @@ interface Offered {
   readonly root: string
   readonly stamp: string
   readonly doors: readonly Door[]
+  readonly answer: unknown
 }
 
 export function createDoorKeep(options: DoorKeepOptions): DoorKeep {
@@ -73,7 +83,7 @@ export function createDoorKeep(options: DoorKeepOptions): DoorKeep {
       const before = latest.get(root)
       if (before !== undefined) offered.delete(before)
       latest.set(root, token)
-      offered.set(token, { root, stamp, doors })
+      offered.set(token, { root, stamp, doors, answer })
       return token
     },
 
@@ -92,6 +102,12 @@ export function createDoorKeep(options: DoorKeepOptions): DoorKeep {
         return null
       }
       return kept.doors[which] ?? null
+    },
+
+    answered(root, token) {
+      const kept = offered.get(token)
+      // The root is part of the name here too, for `taken`'s reason.
+      return kept?.root === root ? kept.answer : null
     },
 
     get held() {

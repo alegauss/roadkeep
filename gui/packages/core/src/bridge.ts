@@ -21,6 +21,7 @@ import type { ResolvedEngine } from './engine-resolution'
 import type { GateHealth } from './gate'
 import type { Opening } from './opening'
 import type { BriefPayload, Declared, HeldClaim } from './payloads'
+import type { Actionable } from './repairing'
 import type { KnownRoot, ScanRoot } from './roots'
 import type { SessionOutcome } from './session'
 import type { PreferenceKey } from './preferences'
@@ -166,6 +167,19 @@ export interface RendererBridge {
    * is taken, and a line the engine does not call ready is not taken either.
    */
   handOver(root: string, id: string): Promise<HandedOver>
+  /**
+   * Hand one gate finding to a Claude Code session (RG263): the door that closes it, and the
+   * finding it was offered under, as the prompt.
+   *
+   * **The renderer names a door and nothing else** — `offered` and `which`, the addressing
+   * `door` already uses — for `handOver`'s reason: the prompt is built on the far side out of
+   * the answer the far side kept, so a page cannot start an agent with words of its own.
+   *
+   * No claim is taken, because a finding is not a line: there is no marker to move and nothing
+   * to hold. A batch the files have moved under names nothing, which is the door keep's rule
+   * and the only staleness there is to report here.
+   */
+  handOverDoor(root: string, offered: string, which: number): Promise<HandedOver>
   /**
    * The project's governed files, each with when the disk last changed it (RG153).
    *
@@ -334,21 +348,38 @@ export type FileText =
     }
 
 /**
+ * What a session was started about (RG263).
+ *
+ * Two shapes because there are two, and a screen that had only the first drew a session about
+ * a gate finding as a line with no symptom, no design and no deps. A union rather than a brief
+ * with everything optional: the landing compares a line's brief before and after, which is a
+ * question a finding cannot be asked, and `kind` is what stops that being asked of it.
+ */
+export type Handed =
+  | { readonly kind: 'line'; readonly brief: BriefPayload }
+  | {
+      readonly kind: 'finding'
+      readonly finding: Actionable
+      /** The door's own argv, blanks and all — what the agent was told to run. */
+      readonly argv: readonly string[]
+    }
+
+/**
  * One session, as the process holding it knows it (RG153). Plain data, so it crosses as it is.
  */
 export interface SessionRecord {
   /** This process's name for it, which is what its events are keyed on. */
   readonly key: string
   readonly root: string
-  /** The line it was handed. */
+  /** The line it was handed, or empty where it was handed a finding instead (RG263). */
   readonly id: string
   /**
    * When the process was spawned, as an ISO time (RG244): what an edited file's time is read
    * against, so a file the disk has not changed since is told from one it has.
    */
   readonly started: string
-  /** The brief it was started from, as the claiming read answered it: what it was told. */
-  readonly handed: BriefPayload
+  /** What it was started from, unrewritten: a line's claiming brief, or a gate finding. */
+  readonly handed: Handed
   /** Which Claude Code runs it, as resolution found it. */
   readonly agent: Agent
   /** Every line of its stream so far, raw and in order. */
@@ -591,6 +622,7 @@ export const BRIDGE_CHANNELS = {
   chooseRoot: 'roadkeep:choose-root',
   saveRoots: 'roadkeep:save-roots',
   handOver: 'roadkeep:hand-over',
+  handOverDoor: 'roadkeep:hand-over-door',
   governedAt: 'roadkeep:governed-at',
   editedAt: 'roadkeep:edited-at',
   fileText: 'roadkeep:file-text',

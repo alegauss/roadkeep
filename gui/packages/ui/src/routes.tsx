@@ -4,6 +4,7 @@ import { Route, Routes } from 'react-router-dom'
 import {
   FILE_ROUTE,
   GATE_ROUTE,
+  GATE_SESSION_ROUTE,
   HOME_ROUTE,
   PROJECT_ROUTE,
   SESSION_ROUTE,
@@ -59,6 +60,9 @@ export const SURFACES: readonly Surface[] = [
   { path: PROJECT_ROUTE, element: <Project /> },
   { path: TASK_ROUTE, element: <Task /> },
   { path: SESSION_ROUTE, element: <Session /> },
+  // The same screen for a session handed a gate finding (RG263): it sits under the gate for
+  // the reason the other sits under its task — beside what it was handed.
+  { path: GATE_SESSION_ROUTE, element: <Session /> },
   { path: SESSIONS_ROUTE, element: <Sessions /> },
   { path: FILE_ROUTE, element: <Filing /> },
   // The gate's address opens the project on its own tab (RG255): one path from a portfolio

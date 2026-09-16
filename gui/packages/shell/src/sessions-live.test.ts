@@ -11,6 +11,7 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { createDoorKeep } from './door-keep'
 import { fakeClaude, type FakeClaude } from './fake-claude'
 import { buildFixture, type Fixture } from './fixture'
 import { liveEngine, read, CEILING, LAUNCHER } from './live'
@@ -57,6 +58,7 @@ beforeAll(async () => {
       open: () => Promise.resolve(opened),
       run: (root, request) =>
         bridgedRun(() => liveEngine.run({ ...request, root, timeoutMs: CEILING })),
+      doors: createDoorKeep({ stampOf: () => Promise.resolve('one') }),
     },
     agent: () => Promise.resolve(agent),
     publish: (event) => published.push(event),
@@ -77,8 +79,10 @@ describe('RG153: a line handed over for real', () => {
     expect(handed.kind).toBe('started')
     if (handed.kind !== 'started') throw new Error('unreachable')
     // The claim is a write the engine accepted: the marker moved in the same call.
-    expect(handed.session.handed.claimed?.taken).toBe(true)
-    expect(handed.session.handed.id).toBe(first)
+    const told = handed.session.handed
+    if (told.kind !== 'line') throw new Error('a line was handed over, not a finding')
+    expect(told.brief.claimed?.taken).toBe(true)
+    expect(told.brief.id).toBe(first)
 
     const outcome = await new Promise<TopicEvents['session']>((resolve) => {
       const wait = setInterval(() => {

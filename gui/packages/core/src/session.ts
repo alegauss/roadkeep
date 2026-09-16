@@ -47,6 +47,37 @@ export function promptFor(payload: BriefPayload): string {
   ].join('\n')
 }
 
+/**
+ * The frame around one gate finding and the door that closes it (RG263).
+ *
+ * Short for `promptFor`'s reason, and the finding goes in as `lint` reported it. What this adds
+ * over a line's brief is the one instruction a finding needs and a brief does not: the command
+ * line is the engine's own, and the agent runs *that* rather than a remedy of its own devising
+ * — a door is what the tool said closes this, and a session editing the file directly would
+ * leave a governed file written by something other than roadkeep.
+ *
+ * The blanks are named rather than filled. `-` means the value is read on standard input, and
+ * saying so is what stops an agent putting a paragraph on a command line.
+ */
+export function promptForDoor(finding: unknown, argv: readonly string[]): string {
+  return [
+    'Close this roadkeep gate finding in this project, start to finish.',
+    '',
+    'Below is the finding as `lint` reported it, verbatim. Nothing in it was rewritten.',
+    '',
+    JSON.stringify(finding, null, 2),
+    '',
+    'The command roadkeep offers as what closes it:',
+    '',
+    `    roadkeep ${argv.join(' ')}`,
+    '',
+    'Run that command, with the prose written where it leaves a blank: `…` and `<name>` are',
+    'filled on the command line, and `-` means that value is read on standard input. Writing',
+    'the prose is the work. Do not edit a governed file directly, and do not substitute a',
+    'different remedy — if that command is wrong for this finding, say so and stop.',
+  ].join('\n')
+}
+
 export interface SessionCall {
   /** The command to run. Named by the caller: which `claude` answers is RG43's question. */
   readonly command: string

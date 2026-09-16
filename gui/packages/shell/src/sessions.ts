@@ -1,13 +1,18 @@
 import { randomUUID } from 'node:crypto'
 
 import {
+  actionableReport,
   claimingBrief,
+  doorsIn,
+  findingAt,
   handoverOf,
   lineOf,
   mayHandOver,
   openingUnreadable,
   openOver,
   promptFor,
+  promptForDoor,
+  readLintPayload,
   sessionCall,
   MOVES_QUIET_MS,
   sessionMoves,
@@ -15,6 +20,7 @@ import {
   type AgentResolution,
   type BriefAnswer,
   type BriefPayload,
+  type Handed,
   type HandedOver,
   type ReadOutcome,
   type Clock,
@@ -53,7 +59,8 @@ import { watchSessionRoot, type OnMoved, type SessionWatch } from './session-wat
 
 export interface SessionsOptions {
   /** How lines are read: through the carrier, as a window reads them. */
-  readonly carrier: Pick<Carrier, 'open' | 'run'>
+  /** `doors` among them since RG263: a session about a finding reads the batch a door names. */
+  readonly carrier: Pick<Carrier, 'open' | 'run' | 'doors'>
   /** Which Claude Code answers here, asked from a project's root. */
   readonly agent: (root: string) => Promise<AgentResolution>
   /**
@@ -86,6 +93,8 @@ export interface SessionsOptions {
 
 export interface Sessions {
   handOver(root: string, id: string): Promise<HandedOver>
+  /** Start one on a gate finding rather than a line (RG263), named by the door that closes it. */
+  handOverDoor(root: string, offered: string, which: number): Promise<HandedOver>
   /** Every session started, each with its lines so far. Copies, so nothing outside edits one. */
   list(): SessionRecord[]
   /**
@@ -104,7 +113,7 @@ interface Held {
   readonly root: string
   readonly id: string
   readonly started: string
-  readonly handed: BriefPayload
+  readonly handed: Handed
   readonly agent: Agent
   readonly lines: string[]
   /** What has moved on disk under the root since it was spawned (RG247). */
@@ -116,6 +125,10 @@ interface Held {
   outcome: SessionOutcome | null
   running: RunningSession | null
 }
+
+/** Why a door names no session: the batch is gone, or nothing in the report offered it. */
+const NO_SUCH_DOOR = 'that door is no longer on offer: the governed files have moved since'
+const NO_FINDING = 'that door belongs to no finding this report names'
 
 /** The line a brief answered for this id, or the sentence the engine said instead. */
 function briefed(
@@ -172,12 +185,15 @@ export function createSessions(options: SessionsOptions): Sessions {
   const begin = (
     root: string,
     id: string,
-    handed: BriefPayload,
+    handed: Handed,
     found: Agent,
     inherits: NodeJS.ProcessEnv,
   ): Held => {
     const [command = '', ...prefix] = found.command
-    const call = sessionCall(command, root, promptFor(handed))
+    // Each shape frames its own payload (RG263), and neither is rewritten on the way in.
+    const prompt =
+      handed.kind === 'line' ? promptFor(handed.brief) : promptForDoor(handed.finding, handed.argv)
+    const call = sessionCall(command, root, prompt)
     const session: Held = {
       key: named(),
       root,
@@ -262,7 +278,39 @@ export function createSessions(options: SessionsOptions): Sessions {
       if ('said' in took) return { kind: 'refused', said: took.said }
       return {
         kind: 'started',
-        session: recordOf(begin(root, id, took.payload, found.agent, inherits)),
+        session: recordOf(
+          begin(root, id, { kind: 'line', brief: took.payload }, found.agent, inherits),
+        ),
+      }
+    },
+
+    async handOverDoor(root, offered, which) {
+      // The door first, because `taken` is what checks the batch against the files: a finding
+      // read out of an answer the tree has moved under is one nobody should be started on.
+      const door = await options.carrier.doors.taken(root, offered, which)
+      if (door === null) return { kind: 'withheld', reason: NO_SUCH_DOOR }
+
+      const answer = options.carrier.doors.answered(root, offered)
+      const read = readLintPayload(answer, '')
+      // The batch is every door the answer carried; this report covers the findings' own. A
+      // door from a note or an `explain` names no finding, and a session started on a command
+      // line with nothing to say about it is worse than no session.
+      const finding = read.ok
+        ? findingAt(actionableReport(read.value), doorsIn(answer), which)
+        : null
+      if (finding === null) return { kind: 'withheld', reason: NO_FINDING }
+
+      const found = await resolved(root)
+      if (found.kind !== 'resolved') return { kind: 'unavailable', tried: found.tried }
+      env ??= environment(found.agent, root)
+      const inherits = await env
+
+      return {
+        kind: 'started',
+        // No id: a finding is not a line, and an empty one is what says so to a screen.
+        session: recordOf(
+          begin(root, '', { kind: 'finding', finding, argv: door.argv }, found.agent, inherits),
+        ),
       }
     },
 

@@ -150,13 +150,19 @@ export function useSession(root: string, id: string, key: string): SessionView {
     let live = true
     const stillHere = (): boolean => live
     const read = (): void => {
-      void project.client.call(root, 'brief', { id }).then((outcome) => {
-        if (!stillHere()) return
-        if (outcome.kind === 'refused') setNow({ kind: 'gone', refusal: outcome.refusal })
-        if (outcome.kind !== 'read') return
-        const line = lineOf(outcome.value)
-        if (line !== null) setNow({ kind: 'read', payload: line })
-      })
+      // A session handed a gate finding names no line (RG263), so there is none to re-read:
+      // `brief` with an empty id is a process spent on a refusal, and the landing it feeds is
+      // already drawn as nothing. The claims and the files below are about the project and
+      // are still worth asking.
+      if (id !== '') {
+        void project.client.call(root, 'brief', { id }).then((outcome) => {
+          if (!stillHere()) return
+          if (outcome.kind === 'refused') setNow({ kind: 'gone', refusal: outcome.refusal })
+          if (outcome.kind !== 'read') return
+          const line = lineOf(outcome.value)
+          if (line !== null) setNow({ kind: 'read', payload: line })
+        })
+      }
       // Who else is on a line of this project, which is the engine's registry and not a
       // state this app keeps.
       void project.client.call(root, 'claims', {}).then((outcome) => {

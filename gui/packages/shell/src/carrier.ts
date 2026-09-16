@@ -138,6 +138,14 @@ export interface CarrierOptions {
 }
 
 export interface Carrier {
+  /**
+   * The doors this carrier has on offer (RG263).
+   *
+   * Exposed because starting a session about a finding needs the same batch running a door
+   * does — the same name, the same staleness — and a second keep beside this one would be two
+   * tables disagreeing about what is still offered. Read by the sessions and by nothing else.
+   */
+  readonly doors: DoorKeep
   projects(): Promise<ProjectCatalogue>
   open(root: string): Promise<OpenedProject>
   run(root: string, request: BridgedRequest): Promise<BridgedResult>
@@ -608,6 +616,7 @@ export function createCarrier(options: CarrierOptions): Carrier {
   }
 
   return {
+    doors,
     projects,
 
     async open(root) {

@@ -3,10 +3,10 @@ import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-sy
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { sessionPath } from './areas'
+import { gateSessionPath, sessionPath } from './areas'
 import { getBridge } from './bridge'
 import { Pill } from './marks'
-import { STATE_INTENT, STATE_TEXT } from './Session'
+import { saidOf, STATE_INTENT, STATE_TEXT } from './Session'
 import { useWording } from './wording'
 
 /**
@@ -104,6 +104,14 @@ export function Sessions() {
           <ul>
             {held.map((record) => {
               const state = stateOf(record)
+              // A session about a gate finding has no line to be named or addressed by
+              // (RG263), so the column carries its code and the link goes to the gate's own
+              // session route. Both are the record's own fact, not a guess from an empty id.
+              const line = record.handed.kind === 'line'
+              const named = line ? record.id : record.handed.finding.code
+              const to = line
+                ? sessionPath(record.root, record.id, record.key)
+                : gateSessionPath(record.root, record.key)
               return (
                 <li
                   key={record.key}
@@ -113,19 +121,19 @@ export function Sessions() {
                   // the desktop grid with `max-sm:` over it, the form RG229 found that wins.
                   className="grid grid-cols-[8rem_minmax(0,1fr)_8rem] items-center gap-x-4 gap-y-1.5 border-t px-5 py-3 first:border-t-0 max-sm:grid-cols-1 max-sm:justify-items-start"
                   data-testid="session"
-                  data-id={record.id}
+                  data-id={named}
                 >
                   <Link
-                    to={sessionPath(record.root, record.id, record.key)}
+                    to={to}
                     className="font-mono text-sm font-semibold hover:underline"
-                    aria-label={say('sessions.open', { id: record.id })}
+                    aria-label={say('sessions.open', { id: named })}
                   >
-                    {record.id}
+                    {named}
                   </Link>
                   <div className="w-full min-w-0" data-testid="session-project">
                     <div className="truncate text-sm font-medium">{folderName(record.root)}</div>
                     <div className="text-muted-foreground truncate text-xs">
-                      {record.handed.symptom}
+                      {saidOf(record.handed)}
                     </div>
                   </div>
                   <Pill intent={STATE_INTENT[state]}>{say(STATE_TEXT[state])}</Pill>

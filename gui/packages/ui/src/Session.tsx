@@ -8,9 +8,12 @@ import {
   onDisk,
   scrolledTo,
   type Act,
+  type Actionable,
+  type BriefPayload,
   type Change,
   type ClaimsPayload,
   type DiskStanding,
+  type Handed,
   type Follow,
   type Edited,
   type EditedFile,
@@ -188,31 +191,86 @@ function FoldedRow({ notes }: { readonly notes: readonly Act[] }) {
   )
 }
 
-/** What was handed over: the brief the session was started from, counted and not rewritten. */
+/**
+ * The one sentence a session is known by, whichever it was handed (RG263).
+ *
+ * A line's symptom and a finding's message are the same thing at two moments: what is wrong,
+ * in the engine's own words. Drawn where a reader looks for the name of what is running.
+ */
+export function saidOf(handed: Handed): string {
+  return handed.kind === 'line' ? handed.brief.symptom : handed.finding.message
+}
+
+/** A line's brief, counted: what the session was told, and none of it rewritten. */
+function HandedLine({ brief }: { readonly brief: BriefPayload }) {
+  const say = useWording()
+  const claimed = brief.claimed
+
+  return (
+    <ul className="flex flex-col gap-1.5 text-[13px]">
+      {claimed === null ? null : (
+        <li className="flex items-center gap-1.5">
+          <Glyph>{claimed.from}</Glyph>
+          <span>{say('session.claim', { from: claimed.from, to: claimed.to })}</span>
+        </li>
+      )}
+      <li>
+        {brief.section === null
+          ? say('session.handed.nodesign')
+          : say('session.handed.design', { count: brief.section.words })}
+      </li>
+      <li>{say('session.handed.deps', { count: brief.deps.length })}</li>
+      <li>{say('session.handed.criteria', { count: brief.doneWhen.length })}</li>
+      <li>{say('session.handed.bounds', { count: brief.nonGoals.length })}</li>
+    </ul>
+  )
+}
+
+/**
+ * A gate finding and the command it was told to run (RG263).
+ *
+ * The counts above are a line's facts and a finding has none of them, so this says what it
+ * does have: the code, where it is, and the door — the argv as the engine wrote it, blanks
+ * and all, which is what makes it readable as a command somebody could have run by hand.
+ */
+function HandedFinding({
+  finding,
+  argv,
+}: {
+  readonly finding: Actionable
+  readonly argv: readonly string[]
+}) {
+  return (
+    <ul className="flex flex-col gap-1.5 text-[13px]">
+      <li className="flex flex-wrap items-center gap-1.5">
+        <Pill intent="warn">{finding.code}</Pill>
+        {finding.where === '' ? null : (
+          <span className="text-muted-foreground font-mono text-xs">{finding.where}</span>
+        )}
+      </li>
+      <li className="wrap-anywhere">{finding.message}</li>
+      {/* The engine's own command line, drawn as the door row draws it: a payload's words,
+          untranslated, with no sentence of this app's around them. */}
+      <li className="text-muted-foreground font-mono text-xs wrap-anywhere">{argv.join(' ')}</li>
+    </ul>
+  )
+}
+
+/** What was handed over: a line's brief or a gate finding, counted and not rewritten. */
 function Handed({ record }: { readonly record: SessionRecord }) {
   const say = useWording()
   const handed = record.handed
-  const claimed = handed.claimed
 
   return (
     <BentoPanel contentClassName="p-5">
-      <PanelTitle>{say('session.handed')}</PanelTitle>
-      <ul className="flex flex-col gap-1.5 text-[13px]">
-        {claimed === null ? null : (
-          <li className="flex items-center gap-1.5">
-            <Glyph>{claimed.from}</Glyph>
-            <span>{say('session.claim', { from: claimed.from, to: claimed.to })}</span>
-          </li>
-        )}
-        <li>
-          {handed.section === null
-            ? say('session.handed.nodesign')
-            : say('session.handed.design', { count: handed.section.words })}
-        </li>
-        <li>{say('session.handed.deps', { count: handed.deps.length })}</li>
-        <li>{say('session.handed.criteria', { count: handed.doneWhen.length })}</li>
-        <li>{say('session.handed.bounds', { count: handed.nonGoals.length })}</li>
-      </ul>
+      <PanelTitle>
+        {say(handed.kind === 'line' ? 'session.handed' : 'session.handed.finding')}
+      </PanelTitle>
+      {handed.kind === 'line' ? (
+        <HandedLine brief={handed.brief} />
+      ) : (
+        <HandedFinding finding={handed.finding} argv={handed.argv} />
+      )}
       <p className="text-muted-foreground mt-3 text-xs wrap-anywhere">
         {say('session.handed.agent', {
           command: record.agent.command.join(' '),
@@ -503,8 +561,13 @@ function Moved({
   readonly movedBeyond: number
 }) {
   const say = useWording()
+  // A landing is a line's brief before against after (RG263). A session handed a finding has
+  // no before, so there is nothing to compare and nothing honest to draw — what it did is in
+  // its stream and in the files that moved, both of which are beside this.
   const landing =
-    now === null ? null : landingBetween({ kind: 'read', payload: record.handed }, now)
+    now === null || record.handed.kind !== 'line'
+      ? null
+      : landingBetween({ kind: 'read', payload: record.handed.brief }, now)
   const ended = outcome !== null
   const edited = useMemo(() => editedIn(acts), [acts])
   const disk = useEditedAt(record.key, edited, ended)
@@ -717,7 +780,7 @@ export function Session() {
   if (session !== null) {
     subtitle = (
       <span className="flex flex-col gap-1">
-        <span className="wrap-anywhere">{session.record.handed.symptom}</span>
+        <span className="wrap-anywhere">{saidOf(session.record.handed)}</span>
         <span>
           <Pill intent={STATE_INTENT[state]}>{say(STATE_TEXT[state])}</Pill>
         </span>

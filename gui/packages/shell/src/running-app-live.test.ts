@@ -55,6 +55,7 @@ describe('RG60: what the renderer was given', () => {
       'gates',
       'governedAt',
       'handOver',
+      'handOverDoor',
       'identify',
       'open',
       'projects',
@@ -214,7 +215,7 @@ describe('RG60: what the renderer was not given', () => {
     // RG245 added the one that reads one of them, nineteen since RG251 added the one that
     // answers what a verb printed at an earlier launch, and twenty since RG252 added the one
     // that says whether it still stands.
-    expect(reachable).toHaveLength(20)
+    expect(reachable).toHaveLength(21)
     expect(reachable.every((one) => one === 'function')).toBe(true)
   })
 })

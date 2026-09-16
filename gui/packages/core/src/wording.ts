@@ -213,6 +213,7 @@ export const EN = {
   'session.state.unavailable': 'no Claude Code',
   'session.claim': 'claim taken: {from} → {to}',
   'session.handed': 'Handed over',
+  'session.handed.finding': 'The finding handed over',
   'session.handed.design': 'the design, {count} words',
   'session.handed.design.one': 'the design, {count} word',
   'session.handed.nodesign': 'no design written',
@@ -354,6 +355,9 @@ export const EN = {
   'door.take': 'Run the fix',
   'door.blank': 'what goes where the engine left a blank',
   'door.body': 'the prose this door writes, which the engine reads on its standard input',
+  'door.handOver': 'Hand to Claude Code',
+  'door.handing': 'Starting a session.',
+  'door.handed': 'Open the session that was started.',
   'door.failed': 'The fix did not run: {reason}',
 
   'gate.title': 'The gate',

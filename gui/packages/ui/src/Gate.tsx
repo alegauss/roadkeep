@@ -2,11 +2,14 @@ import { counted, refusalOf, type GateHealth, type Gated, type LintPayload } fro
 import { Button, Progress } from '@viglet/viglet-design-system'
 import { BentoEmptyState, BentoPanel } from '@viglet/viglet-design-system/bento'
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 
+import { gateSessionPath } from './areas'
 import { DoorRow } from './Doors'
 import { Caption } from './forms'
 import { readDeadline } from './launch'
 import { Pill } from './marks'
+import { saidOfHanded } from './Task'
 import { useExplained, type Explained, type Explaining } from './useExplained'
 import { useGate, worthRunning } from './useGate'
 import { useWhen, useWording } from './wording'
@@ -64,11 +67,13 @@ function Explains({ explained }: { readonly explained: Explained | undefined }) 
 function Finding({
   gated,
   onTake,
+  onHandOver,
   mark,
   explaining,
 }: {
   readonly gated: Gated
   readonly onTake: Taking
+  readonly onHandOver: Handing
   /** Which report this row is in: a note is not a finding, and neither is drawn as one. */
   readonly mark: string
   /**
@@ -129,7 +134,13 @@ function Finding({
           </span>
           <ul>
             {gated.doors.map(({ offer, which }) => (
-              <DoorRow key={which} door={offer.door} which={which} onTake={onTake} />
+              <DoorRow
+                key={which}
+                door={offer.door}
+                which={which}
+                onTake={onTake}
+                onHandOver={onHandOver}
+              />
             ))}
           </ul>
         </div>
@@ -139,17 +150,20 @@ function Finding({
 }
 
 type Taking = (which: number, words: readonly string[]) => void
+type Handing = (which: number) => void
 
 function Report({
   title,
   rows,
   onTake,
+  onHandOver,
   mark,
   explaining,
 }: {
   readonly title: ReactNode
   readonly rows: readonly Gated[]
   readonly onTake: Taking
+  readonly onHandOver: Handing
   readonly mark: string
   readonly explaining: Explaining | null
 }) {
@@ -165,6 +179,7 @@ function Report({
             key={`${gated.finding.code}:${gated.finding.where}`}
             gated={gated}
             onTake={onTake}
+            onHandOver={onHandOver}
             mark={mark}
             explaining={explaining}
           />
@@ -297,7 +312,7 @@ function Counted({ payload }: { readonly payload: LintPayload }) {
 export function GateTab({ root }: { readonly root: string }) {
   const say = useWording()
   const gating = useGate(root)
-  const { gate, project, refused, run, takeDoor } = gating
+  const { gate, project, refused, run, takeDoor, handDoor, handing } = gating
   // What a code means is offered only where this build answers `explain` (RG258): a
   // disclosure that opens on a refusal is a control that lies.
   const explaining = useExplained(root, project)
@@ -344,6 +359,28 @@ export function GateTab({ root }: { readonly root: string }) {
           {say('door.failed', { reason: refusalOf(refused, say) })}
         </p>
       )}
+      {/*
+        Where a handed door went (RG263). A link and not a redirect: the reader pressed a
+        button on a report they may still be reading, and taking the screen away from them
+        would lose the other findings they had open.
+      */}
+      {handing.kind === 'handing' ? (
+        <p className="text-muted-foreground text-xs" data-testid="handing">
+          {say('door.handing')}
+        </p>
+      ) : null}
+      {handing.kind === 'started' ? (
+        <p data-testid="handed">
+          <Link className="text-sm font-medium underline" to={gateSessionPath(root, handing.key)}>
+            {say('door.handed')}
+          </Link>
+        </p>
+      ) : null}
+      {handing.kind === 'said' ? (
+        <p className="text-sm font-medium" data-testid="hand-failed">
+          {saidOfHanded(handing.said, say)}
+        </p>
+      ) : null}
       {gate.kind === 'held' ? <Held health={gate.health} /> : null}
       {gate.kind === 'read' ? (
         <>
@@ -352,6 +389,7 @@ export function GateTab({ root }: { readonly root: string }) {
             title={say('gate.title')}
             rows={gate.findings}
             onTake={takeDoor}
+            onHandOver={handDoor}
             mark="finding"
             explaining={callable ? explaining : null}
           />
@@ -359,6 +397,7 @@ export function GateTab({ root }: { readonly root: string }) {
             title={say('gate.notes')}
             rows={gate.notes}
             onTake={takeDoor}
+            onHandOver={handDoor}
             mark="note"
             explaining={callable ? explaining : null}
           />

@@ -22,6 +22,14 @@ export const GATE_ROUTE = '/project/:root/gate'
 export const TASK_ROUTE = '/project/:root/task/:id'
 /** One session this window started, beside the line it was handed (RG153). */
 export const SESSION_ROUTE = '/project/:root/task/:id/session/:key'
+/**
+ * A session handed a gate finding rather than a line (RG263).
+ *
+ * Under the gate for the reason the other is under its task: a session is shown beside what it
+ * was handed, and a finding has no id to address it by. Same screen, reached from where the
+ * button was pressed.
+ */
+export const GATE_SESSION_ROUTE = '/project/:root/gate/session/:key'
 /** Every session this window started (RG153). */
 export const SESSIONS_ROUTE = '/sessions'
 /** The preferences a person chooses (RG207). */
@@ -33,6 +41,7 @@ export const SURFACE_ROUTES: readonly string[] = [
   PROJECT_ROUTE,
   TASK_ROUTE,
   SESSION_ROUTE,
+  GATE_SESSION_ROUTE,
   SESSIONS_ROUTE,
   FILE_ROUTE,
   GATE_ROUTE,

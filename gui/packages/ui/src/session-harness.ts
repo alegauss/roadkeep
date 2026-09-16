@@ -92,7 +92,7 @@ export const RECORD: SessionRecord = {
   root: ROOT,
   id: 'AL1',
   started: STARTED,
-  handed: handed(),
+  handed: { kind: 'line', brief: handed() },
   agent: { command: ['claude'], version: '2.1.263', said: '2.1.263 (Claude Code)' },
   lines: [JSON.stringify({ type: 'system', subtype: 'init', session_id: 'fake' })],
   moved: [],

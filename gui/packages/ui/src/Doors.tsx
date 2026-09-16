@@ -69,11 +69,20 @@ export function DoorRow({
   door,
   which,
   onTake,
+  onHandOver,
 }: {
   readonly door: Door
   /** Its place in the batch the carrier kept, which is the only name it has. */
   readonly which: number
   readonly onTake: (which: number, words: readonly string[]) => void
+  /**
+   * Hand this door to a Claude Code session instead (RG263), where the screen offers it.
+   *
+   * Absent on the filing screen, which is about a line being written now: its refusal's doors
+   * are about the draft in the form, and an agent started on one would be working from a
+   * command line whose blanks the person in front of it is still filling.
+   */
+  readonly onHandOver?: (which: number) => void
 }) {
   const say = useWording()
   const blanks = blanksIn(door.argv)
@@ -88,6 +97,9 @@ export function DoorRow({
   const word = useCallback((index: number, said: string) => {
     setWords((was) => was.map((one, at) => (at === index ? said : one)))
   }, [])
+  const hand = useCallback(() => {
+    onHandOver?.(which)
+  }, [onHandOver, which])
 
   return (
     <li className="border-t px-4 py-3 first:border-t-0" data-testid="door">
@@ -107,9 +119,21 @@ export function DoorRow({
           onWord={word}
         />
       ))}
-      <Button size="sm" className="mt-2" disabled={!ready} onClick={take}>
-        {say('door.take')}
-      </Button>
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <Button size="sm" disabled={!ready} onClick={take}>
+          {say('door.take')}
+        </Button>
+        {/*
+          Never disabled by the blanks (RG263): writing them is the work being handed over,
+          and a control that waited for the prose would be waiting for the thing it exists to
+          spare the reader.
+        */}
+        {onHandOver === undefined ? null : (
+          <Button size="sm" variant="outline" onClick={hand}>
+            {say('door.handOver')}
+          </Button>
+        )}
+      </div>
     </li>
   )
 }

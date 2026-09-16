@@ -179,6 +179,7 @@
 - ✅ **RG245** **a file the session edited cannot be opened from the window, so reading it means leaving for an editor** — A row opens the file as the disk holds it now, numbered and uninterpreted, and says in this app's words why a file was not read (design recorded in `packages/ui/src/file-sheet.tsx`).
 - ✅ **RG246** **the file viewer shows a file as it is now and not what the session changed in it** — The viewer draws what each edit call replaced and put there, in stream order, and says whether it is in the file now (design recorded in `packages/core/src/acts.ts`).
 - ✅ **RG247** **files a session changed through a command and not an edit call appear nowhere on the session screen** — The root is watched while the session runs, and what moved that no edit call named is listed, counted and dated, each opening in the viewer (design recorded in `packages/core/src/watching.ts`).
+- ✅ **RG263** **a door that reads prose has only a box, so the reader who cannot write it has no way to hand it over** — A finding and the door that closes it start a Claude Code session, which writes the prose and runs that command itself (design recorded in `packages/core/src/session.ts`).
 
 ## Block G — The shell (an executable now, a service later)
 

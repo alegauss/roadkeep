@@ -50,6 +50,8 @@ const bridge: RendererBridge = {
   chooseRoot: () => ipcRenderer.invoke(BRIDGE_CHANNELS.chooseRoot),
   saveRoots: (roots) => ipcRenderer.invoke(BRIDGE_CHANNELS.saveRoots, roots),
   handOver: (root, id) => ipcRenderer.invoke(BRIDGE_CHANNELS.handOver, root, id),
+  handOverDoor: (root, offered, which) =>
+    ipcRenderer.invoke(BRIDGE_CHANNELS.handOverDoor, root, offered, which),
   governedAt: (root) => ipcRenderer.invoke(BRIDGE_CHANNELS.governedAt, root),
   editedAt: (key, paths) => ipcRenderer.invoke(BRIDGE_CHANNELS.editedAt, key, paths),
   fileText: (key, path) => ipcRenderer.invoke(BRIDGE_CHANNELS.fileText, key, path),

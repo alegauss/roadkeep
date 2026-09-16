@@ -195,6 +195,7 @@ export const PT_BR: Wording = {
   'session.state.unavailable': 'sem Claude Code',
   'session.claim': 'claim tomado: {from} → {to}',
   'session.handed': 'O que foi entregue',
+  'session.handed.finding': 'O achado entregue',
   'session.handed.design': 'o design, {count} palavras',
   'session.handed.design.one': 'o design, {count} palavra',
   'session.handed.nodesign': 'nenhum design escrito',
@@ -337,6 +338,9 @@ export const PT_BR: Wording = {
   'door.take': 'Executar conserto',
   'door.blank': 'o que vai onde o engine deixou em branco',
   'door.body': 'o texto que esta porta escreve, que o engine lê da entrada padrão',
+  'door.handOver': 'Entregar ao Claude Code',
+  'door.handing': 'Iniciando uma sessão.',
+  'door.handed': 'Abrir a sessão que foi iniciada.',
   'door.failed': 'O conserto não rodou: {reason}',
 
   'gate.title': 'A verificação',

@@ -99,7 +99,17 @@ function CopyBrief({ detail }: { readonly detail: TaskDetail }) {
 }
 
 /** Why a line was not handed over, in this app's words for what the far side answered. */
-function saidOfHanded(handed: Exclude<HandedOver, { readonly kind: 'started' }>, say: Translate) {
+/**
+ * Why a handover did not start one, in the reader's language (RG263 shares it with the gate).
+ *
+ * Six outcomes and one sentence each. Exported because the gate hands a door over to the same
+ * `sessions` and gets the same answers back, and two wordings for one refusal would be this
+ * app saying different things about the same fact.
+ */
+export function saidOfHanded(
+  handed: Exclude<HandedOver, { readonly kind: 'started' }>,
+  say: Translate,
+) {
   if (handed.kind === 'held') {
     const holder = handed.held[0]
     return say('task.held.named', { by: holder?.by ?? '', since: holder?.since ?? '' })

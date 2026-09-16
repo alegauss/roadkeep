@@ -134,6 +134,36 @@ interface Wired {
   doorFails: string | null
   /** Hold the gate out, so the running state is what the screen is drawing (RG262). */
   gateWaits: boolean
+  /** Each door handed to a session, and what that answered (RG263). */
+  readonly handed: number[]
+  handOverFails: boolean
+}
+
+/** The session a handed door starts (RG263). Only its key is read by the gate screen. */
+const HANDED_SESSION = {
+  key: 'session-1',
+  root: ROOT,
+  id: '',
+  started: '2026-09-16T10:00:00.000Z',
+  handed: {
+    kind: 'finding' as const,
+    finding: {
+      code: 'ref.unresolved',
+      where: 'docs/ROADMAP.md:5',
+      message: 'points at §AL7, which is not in docs/IMPROVEMENTS.md',
+      id: 'AL7',
+      decision: '',
+      awaits: '',
+      sequence: false,
+      offers: [],
+    },
+    argv: ['section', 'amend', 'AL7', '--body', '-', '--role', 'improvements'],
+  },
+  agent: { command: ['claude'], version: '2.0.0', said: 'claude 2.0.0' },
+  lines: [],
+  moved: [],
+  movedBeyond: 0,
+  outcome: null,
 }
 
 /** What `explain` answers about a code, which is the class and not the line (RG258). */
@@ -215,6 +245,8 @@ async function at(
     clean: false,
     doorFails: null,
     gateWaits: false,
+    handed: [],
+    handOverFails: false,
     explained,
   }
 
@@ -244,6 +276,16 @@ async function at(
             durationMs: 1,
           },
           offered: 'batch-1',
+        })
+      },
+      handOverDoor: (_root, _offered, which) => {
+        wired.handed.push(which)
+        if (wired.handOverFails) {
+          return Promise.resolve({ kind: 'withheld', reason: 'that door is no longer on offer' })
+        }
+        return Promise.resolve({
+          kind: 'started',
+          session: { ...HANDED_SESSION, key: `session-${String(which)}` },
         })
       },
       door: (_root, _offered, which, words) => {
@@ -691,5 +733,72 @@ describe('RG192: a refusal drawn in the window’s language', () => {
     await refusing(withheldResult(said))
 
     expect(await screen.findByText(fill(BASE['gate.failed'], { reason: said }))).toBeTruthy()
+  })
+})
+
+describe('RG263: a door handed to Claude Code', () => {
+  it('offers it beside the box, and never waits on the prose to do it', async () => {
+    const wired = await at(gatePath(ROOT))
+
+    const finding = await screen.findByTestId('finding')
+    const reads = within(finding).getAllByTestId('door')[1]
+    if (reads === undefined) throw new Error('no second door')
+
+    // Running it yourself waits for the body; handing it over is what spares you writing one,
+    // so a control disabled by the same blank would be disabled by the work it takes away.
+    expect(
+      within(reads).getByRole('button', { name: BASE['door.take'] }).hasAttribute('disabled'),
+    ).toBe(true)
+    const hand = within(reads).getByRole('button', { name: BASE['door.handOver'] })
+    expect(hand.hasAttribute('disabled')).toBe(false)
+
+    fireEvent.click(hand)
+
+    await waitFor(() => {
+      expect(wired.handed).toEqual([2])
+    })
+  })
+
+  it('leads to the session it started, without taking the report away', async () => {
+    await at(gatePath(ROOT))
+
+    const finding = await screen.findByTestId('finding')
+    const reads = within(finding).getAllByTestId('door')[1]
+    if (reads === undefined) throw new Error('no second door')
+    fireEvent.click(within(reads).getByRole('button', { name: BASE['door.handOver'] }))
+
+    const link = await screen.findByRole('link', { name: BASE['door.handed'] })
+    expect(link.getAttribute('href')).toBe(
+      `/project/${encodeURIComponent(ROOT)}/gate/session/session-2`,
+    )
+    // The reader was reading a report when they pressed it, and it is still there.
+    expect(screen.getAllByTestId('finding')).toHaveLength(1)
+  })
+
+  it('says why none started, rather than leaving the press unanswered', async () => {
+    const wired = await at(gatePath(ROOT))
+    wired.handOverFails = true
+
+    const finding = await screen.findByTestId('finding')
+    const reads = within(finding).getAllByTestId('door')[1]
+    if (reads === undefined) throw new Error('no second door')
+    fireEvent.click(within(reads).getByRole('button', { name: BASE['door.handOver'] }))
+
+    expect(await screen.findByTestId('hand-failed')).toBeTruthy()
+    expect(screen.queryByRole('link', { name: BASE['door.handed'] })).toBeNull()
+  })
+
+  it('does not run the gate again: whether it closed is what a run answers (RG263)', async () => {
+    const wired = await at(gatePath(ROOT))
+    await screen.findByTestId('counted')
+    const before = wired.gates.length
+
+    const finding = await screen.findByTestId('finding')
+    const reads = within(finding).getAllByTestId('door')[1]
+    if (reads === undefined) throw new Error('no second door')
+    fireEvent.click(within(reads).getByRole('button', { name: BASE['door.handOver'] }))
+
+    await screen.findByTestId('handed')
+    expect(wired.gates).toHaveLength(before)
   })
 })

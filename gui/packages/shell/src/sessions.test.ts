@@ -12,6 +12,7 @@ import {
 } from '@rk/core'
 import { describe, expect, it } from 'vitest'
 
+import { createDoorKeep } from './door-keep'
 import type { RunningSession, SessionWatcher } from './session-process'
 import type { OnMoved, SessionWatch } from './session-watch'
 import { createSessions, type SessionsOptions } from './sessions'
@@ -216,10 +217,14 @@ async function sessions(agent: AgentResolution = FOUND) {
   const environmentsAsked: { agent: string; root: string; claimsBefore: number }[] = []
   const claims = () => asked.filter((argv) => argv[2] === 'brief' && argv.includes('--claim'))
   const watch = fakeWatch()
+  // The batch a gate answer left, which is what a door is named against (RG263). Held by the
+  // test so it can keep one and then hand it over, the way a window does.
+  const doors = createDoorKeep({ stampOf: () => Promise.resolve('one') })
   const made = createSessions({
     carrier: {
       open: () => Promise.resolve(opened),
       run: (root, request) => bridgedRun(() => transport.run({ ...request, root })),
+      doors,
     },
     agent: () => {
       asksForAgent += 1
@@ -245,11 +250,70 @@ async function sessions(agent: AgentResolution = FOUND) {
     made,
     fake,
     watch,
+    doors,
     published,
     claims,
     asksForAgent: () => asksForAgent,
     environmentsAsked,
   }
+}
+
+/**
+ * A gate answer with one finding that offers a door, and a note that offers another (RG263).
+ *
+ * The note's door is first in the document, so its place in the batch is 0 and the finding's
+ * is 1 — the ordering `doorsIn` flattens and the case a session started on the wrong number
+ * would be about something nobody chose.
+ */
+const GATED = {
+  root: ROOT,
+  clean: false,
+  lines: 4,
+  sections: 1,
+  problems: 1,
+  checked: ['docs/IMPROVEMENTS.md'],
+  codes: { 'ref.dangling': 1 },
+  notes: [
+    {
+      code: 'install.stale',
+      file: '.claude/hooks/roadkeep-launch.py',
+      line: null,
+      column: null,
+      id: null,
+      message: 'this surface is behind the roadkeep answering here',
+      remedy: {
+        kind: 'run',
+        decision: '',
+        sequence: false,
+        awaits: '',
+        doors: [{ argv: ['install'], what: 'rewrites the launcher', complete: true, writes: true }],
+      },
+    },
+  ],
+  findings: [
+    {
+      code: 'ref.dangling',
+      file: 'docs/IMPROVEMENTS.md',
+      line: 392,
+      column: null,
+      id: 'T50',
+      message: '§T50 cites §T21, which is not in docs/IMPROVEMENTS.md',
+      remedy: {
+        kind: 'compose',
+        decision: '',
+        sequence: false,
+        awaits: '',
+        doors: [
+          {
+            argv: ['section', 'amend', 'T50', '--body', '-', '--role', 'improvements'],
+            what: 'the rewrite arrives on stdin',
+            complete: true,
+            writes: true,
+          },
+        ],
+      },
+    },
+  ],
 }
 
 const DONE: SessionOutcome = { state: 'done', sessionId: 's', code: 0, said: '', result: 'done' }
@@ -264,8 +328,10 @@ describe('RG153: a line handed to a session', () => {
     if (handed.kind !== 'started') return
     expect(claims()).toHaveLength(1)
     // What it was told is the claiming read's answer, marker moved and all.
-    expect(handed.session.handed.status).toBe('🛠')
-    expect(handed.session.handed.claimed?.taken).toBe(true)
+    const told = handed.session.handed
+    if (told.kind !== 'line') throw new Error('a line was handed over, not a finding')
+    expect(told.brief.status).toBe('🛠')
+    expect(told.brief.claimed?.taken).toBe(true)
     // The agent's own command first, then the call: the prompt is the brief, never a page's.
     const [call] = fake.calls
     expect(call?.command).toBe('node')
@@ -466,5 +532,55 @@ describe('RG153: what a running session says', () => {
     fake.write('{"type":"assistant"}')
 
     expect(first?.lines).toHaveLength(1)
+  })
+})
+
+describe('RG263: a gate finding handed to a session', () => {
+  it('starts one from the finding the door belongs to, and runs no claim', async () => {
+    const { made, fake, doors, claims } = await sessions()
+    const offered = await doors.keep(ROOT, GATED)
+    if (offered === null) throw new Error('the answer carried no doors')
+
+    // Place 1: the note's door is first in the document, the finding's second.
+    const handed = await made.handOverDoor(ROOT, offered, 1)
+
+    expect(handed.kind).toBe('started')
+    if (handed.kind !== 'started') return
+    const told = handed.session.handed
+    if (told.kind !== 'finding') throw new Error('a finding was handed over, not a line')
+    expect(told.finding.code).toBe('ref.dangling')
+    expect(told.finding.where).toBe('docs/IMPROVEMENTS.md:392')
+    expect(told.argv).toEqual(['section', 'amend', 'T50', '--body', '-', '--role', 'improvements'])
+    // A finding is not a line: nothing was claimed and no id names it.
+    expect(claims()).toEqual([])
+    expect(handed.session.id).toBe('')
+
+    // The prompt carries the finding and the command, and the agent is told to run that one.
+    const prompt = fake.calls[0]?.argv.find((part) => part.includes('ref.dangling'))
+    expect(prompt).toBeDefined()
+    expect(prompt).toContain('section amend T50 --body - --role improvements')
+    expect(prompt).toContain('standard input')
+  })
+
+  it('refuses a batch the keep no longer holds, and starts nothing', async () => {
+    const { made, fake } = await sessions()
+
+    const handed = await made.handOverDoor(ROOT, 'never-offered', 0)
+
+    expect(handed.kind).toBe('withheld')
+    expect(fake.calls).toEqual([])
+  })
+
+  it('refuses a door no finding offered, rather than starting on a bare command line', async () => {
+    const { made, fake, doors } = await sessions()
+    const offered = await doors.keep(ROOT, GATED)
+    if (offered === null) throw new Error('the answer carried no doors')
+
+    // Place 0 is the note's. A note is not a finding, and a session handed only `install`
+    // would be an agent told to run something with nothing said about why.
+    const handed = await made.handOverDoor(ROOT, offered, 0)
+
+    expect(handed.kind).toBe('withheld')
+    expect(fake.calls).toEqual([])
   })
 })
