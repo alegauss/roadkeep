@@ -130,7 +130,7 @@ export {
   scrolledTo,
 } from './follow'
 export type { Follow, Scrolled, Space } from './follow'
-export { blanksIn, doorsIn, filledArgv, isBlank } from './doors'
+export { blanksIn, doorsIn, filledArgv, isBlank, isBody, type Filled } from './doors'
 export { coldStart } from './cold-start'
 export type { ColdStartOptions, ColdStartProgress, ColdStartStage } from './cold-start'
 export { allLines, backlogFrom, narrowedBy } from './backlog'

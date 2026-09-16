@@ -96,6 +96,14 @@ const DRIFTED = {
             complete: false,
             writes: true,
           },
+          // A door whose prose the engine reads on standard input (RG261). `complete`, which
+          // the engine means about the argv — there is nothing in it left to fill.
+          {
+            argv: ['section', 'amend', 'AL7', '--body', '-', '--role', 'improvements'],
+            what: 'the sentence is this section’s, so the rewrite arrives on stdin',
+            complete: true,
+            writes: true,
+          },
         ],
       },
     },
@@ -291,7 +299,9 @@ describe('RG152: the gate as a surface', () => {
     const wired = await at(gatePath(ROOT))
 
     const finding = await screen.findByTestId('finding')
-    const door = within(finding).getByTestId('door')
+    // The first of the finding's two: the one whose blank is a word (RG261).
+    const door = within(finding).getAllByTestId('door')[0]
+    if (door === undefined) throw new Error('no door')
     fireEvent.change(within(door).getByLabelText(BASE['door.blank']), {
       target: { value: 'A design' },
     })
@@ -307,7 +317,9 @@ describe('RG152: the gate as a surface', () => {
     const wired = await at(gatePath(ROOT))
 
     const finding = await screen.findByTestId('finding')
-    const door = within(finding).getByTestId('door')
+    // The first of the finding's two: the one whose blank is a word (RG261).
+    const door = within(finding).getAllByTestId('door')[0]
+    if (door === undefined) throw new Error('no door')
     fireEvent.change(within(door).getByLabelText(BASE['door.blank']), {
       target: { value: 'A design' },
     })
@@ -327,6 +339,43 @@ describe('RG152: the gate as a surface', () => {
     expect(wired.gates).toHaveLength(2)
   })
 
+  it('asks for the prose a dash door reads, instead of offering it as one click (RG261)', async () => {
+    const wired = await at(gatePath(ROOT))
+
+    const finding = await screen.findByTestId('finding')
+    const reads = within(finding).getAllByTestId('door')[1]
+    if (reads === undefined) throw new Error('no second door')
+
+    // It was offered as a fix to press, and the engine then waited on prose nobody wrote.
+    const take = within(reads).getByRole('button', { name: BASE['door.take'] })
+    expect(take.hasAttribute('disabled')).toBe(true)
+
+    fireEvent.change(within(reads).getByLabelText(BASE['door.body']), {
+      target: { value: 'The sentence, repointed.\n\nA second paragraph.' },
+    })
+    fireEvent.click(within(reads).getByRole('button', { name: BASE['door.take'] }))
+
+    // The finding's doors are second and third in the batch, the note's being first.
+    await waitFor(() => {
+      expect(wired.doors).toEqual([
+        { which: 2, words: ['The sentence, repointed.\n\nA second paragraph.'] },
+      ])
+    })
+  })
+
+  it('draws that field as prose, since a body runs to paragraphs (RG261)', async () => {
+    await at(gatePath(ROOT))
+
+    const finding = await screen.findByTestId('finding')
+    const reads = within(finding).getAllByTestId('door')[1]
+    if (reads === undefined) throw new Error('no second door')
+
+    expect(within(reads).getByLabelText(BASE['door.body']).tagName).toBe('TEXTAREA')
+    // And the one-word blank on the door above it is still a one-line box.
+    const fills = within(finding).getAllByTestId('door')[0]
+    expect(within(fills ?? reads).getByLabelText(BASE['door.blank']).tagName).toBe('INPUT')
+  })
+
   it('bounds its own run by the declared deadline, so running has a floor (RG260)', async () => {
     const wired = await at(gatePath(ROOT))
     await screen.findByTestId('counted')
@@ -340,7 +389,9 @@ describe('RG152: the gate as a surface', () => {
     const wired = await at(gatePath(ROOT))
 
     const finding = await screen.findByTestId('finding')
-    const door = within(finding).getByTestId('door')
+    // The first of the finding's two: the one whose blank is a word (RG261).
+    const door = within(finding).getAllByTestId('door')[0]
+    if (door === undefined) throw new Error('no door')
     fireEvent.change(within(door).getByLabelText(BASE['door.blank']), {
       target: { value: 'A design' },
     })
@@ -357,7 +408,9 @@ describe('RG152: the gate as a surface', () => {
     wired.doorFails = 'the engine ran past 15000ms'
 
     const finding = await screen.findByTestId('finding')
-    const door = within(finding).getByTestId('door')
+    // The first of the finding's two: the one whose blank is a word (RG261).
+    const door = within(finding).getAllByTestId('door')[0]
+    if (door === undefined) throw new Error('no door')
     fireEvent.change(within(door).getByLabelText(BASE['door.blank']), {
       target: { value: 'A design' },
     })
@@ -376,7 +429,9 @@ describe('RG152: the gate as a surface', () => {
     wired.doorFails = 'the engine ran past 15000ms'
 
     const finding = await screen.findByTestId('finding')
-    const door = within(finding).getByTestId('door')
+    // The first of the finding's two: the one whose blank is a word (RG261).
+    const door = within(finding).getAllByTestId('door')[0]
+    if (door === undefined) throw new Error('no door')
     fireEvent.change(within(door).getByLabelText(BASE['door.blank']), {
       target: { value: 'A design' },
     })
@@ -406,9 +461,13 @@ describe('RG152: the gate as a surface', () => {
       },
     ])
 
-    // The count a reader saw on the portfolio row is on the tab, before it is opened.
+    // The count a reader saw on the portfolio row is on the tab, before it is opened. Awaited,
+    // because the ledger is a read: the tab is drawn as soon as the project is, and the count
+    // lands when `gates` answers.
     const tab = await screen.findByTestId('gate-tab')
-    expect(within(tab).getByText(fill(BASE['portfolio.gate.findings'], { count: 3 }))).toBeTruthy()
+    expect(
+      await within(tab).findByText(fill(BASE['portfolio.gate.findings'], { count: 3 })),
+    ).toBeTruthy()
     expect(wired.gates).toEqual([])
 
     fireEvent.click(tab)

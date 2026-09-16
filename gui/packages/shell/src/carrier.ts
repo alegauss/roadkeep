@@ -691,9 +691,10 @@ export function createCarrier(options: CarrierOptions): Carrier {
 
         // The engine's own argv, with the person's prose where the engine left a blank and
         // nowhere else. A caller who sent more words than the door has blanks, or fewer, is
-        // refused rather than helped: what runs is what came back.
-        const argv = filledArgv(kept.argv, words)
-        if (argv === null) return withheldResult(NOT_THE_WORDS, 'not-the-words')
+        // refused rather than helped: what runs is what came back. A `-` among those blanks
+        // takes its word on standard input instead of into the argv (RG261).
+        const filled = filledArgv(kept.argv, words)
+        if (filled === null) return withheldResult(NOT_THE_WORDS, 'not-the-words')
 
         const answer = await opening(root)
         if (answer.kind !== 'open') {
@@ -706,7 +707,7 @@ export function createCarrier(options: CarrierOptions): Carrier {
         // Wrapped by `composeDoor`, which adds where to run it and the request for a
         // machine-readable answer and nothing else — and with no tool call beside it, since
         // the held surface answers only the tools its own schema publishes.
-        const composed = composeDoor(root, { argv })
+        const composed = composeDoor(root, { argv: filled.argv })
         return keeping(
           root,
           composed.argv,
@@ -717,6 +718,7 @@ export function createCarrier(options: CarrierOptions): Carrier {
             answer.project.transport.run({
               root,
               argv: composed.argv,
+              stdin: filled.stdin,
               timeoutMs: limits().timeoutMs,
             }),
           ),

@@ -193,7 +193,11 @@ describe('RG165: a door the engine offered', () => {
       {
         code: 'ref.unresolved',
         remedy: {
-          doors: [{ argv: ['section', 'add', 'RG9', '--title', '…'], complete: false }],
+          doors: [
+            { argv: ['section', 'add', 'RG9', '--title', '…'], complete: false },
+            // The shape RG261 is about: the prose arrives on standard input, not in the argv.
+            { argv: ['section', 'amend', 'RG9', '--body', '-'], complete: true },
+          ],
         },
       },
     ],
@@ -207,10 +211,13 @@ describe('RG165: a door the engine offered', () => {
     const ran: string[][] = []
     /** What each of those calls was given to run in, which for a door is the whole of RG260. */
     const bounds: (number | undefined)[] = []
+    /** And what each was given to say on standard input, which is RG261's (undefined: none). */
+    const said: (string | undefined)[] = []
     const machine: Transport = {
       run(request) {
         ran.push([...request.argv])
         bounds.push(request.timeoutMs)
+        said.push(request.stdin)
         const verb = request.argv[2] ?? ''
         // Anything else answers a document with no doors in it, since what this fixture is
         // about is the door being run at all.
@@ -222,7 +229,7 @@ describe('RG165: a door the engine offered', () => {
       looking: () => ({ roots: FOUND.roots, skip: [], width: 2, timeoutMs: DEADLINE }),
       open: (root) => openProject(root, [['python', '/x/launch.py']], () => machine),
     })
-    return { carrier, ran, bounds }
+    return { carrier, ran, bounds, said }
   }
 
   /** The `lint` read, which is the one this fixture answers with doors. */
@@ -265,6 +272,32 @@ describe('RG165: a door the engine offered', () => {
     // the spawning fallback — where an absent deadline is no ceiling at all, and the window
     // that pressed the button waits on it with nothing to end the wait.
     expect(bounds.at(-1)).toBe(DEADLINE)
+  })
+
+  it('sends a dash door its prose on standard input, and keeps the dash (RG261)', async () => {
+    const { carrier, ran, said } = offering()
+    const answered = await carrier.run(A, linting(A))
+    if (answered.kind !== 'ran' || answered.offered === undefined) throw new Error('no doors')
+
+    const taken = await carrier.door(A, answered.offered, 1, ['The sentence, repointed.'])
+
+    expect(taken.kind).toBe('ran')
+    // The `-` is where the engine said to read, so it stays: substituting the prose there
+    // would be this app rewriting a command line it only ever fills in.
+    expect(ran.at(-1)).toEqual(['-C', A, 'section', 'amend', 'RG9', '--body', '-', '--json'])
+    expect(said.at(-1)).toBe('The sentence, repointed.')
+  })
+
+  it('refuses that door with no prose, rather than running it empty (RG261)', async () => {
+    const { carrier, ran } = offering()
+    const answered = await carrier.run(A, linting(A))
+    if (answered.kind !== 'ran' || answered.offered === undefined) throw new Error('no doors')
+    const before = ran.length
+
+    // It was `complete`, which the engine means about the argv — and taking it with nothing
+    // is what ran an amend against a body nobody had written.
+    expect((await carrier.door(A, answered.offered, 1, [])).kind).toBe('failed')
+    expect(ran).toHaveLength(before)
   })
 
   it('refuses a name nobody offered, and one from another project', async () => {

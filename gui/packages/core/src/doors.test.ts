@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { blanksIn, doorsIn, filledArgv, isBlank } from './doors'
+import { blanksIn, doorsIn, filledArgv, isBlank, isBody } from './doors'
 
 /**
  * RG165: the doors an answer carried, and the words that go in one.
@@ -63,15 +63,10 @@ describe('RG165: filling a door', () => {
   const DOOR = ['section', 'add', 'RG9', '--title', '…', '--body', '…']
 
   it('puts each word where the engine left a blank, and nowhere else', () => {
-    expect(filledArgv(DOOR, ['A design', 'The prose.'])).toEqual([
-      'section',
-      'add',
-      'RG9',
-      '--title',
-      'A design',
-      '--body',
-      'The prose.',
-    ])
+    expect(filledArgv(DOOR, ['A design', 'The prose.'])).toEqual({
+      argv: ['section', 'add', 'RG9', '--title', 'A design', '--body', 'The prose.'],
+      stdin: '',
+    })
   })
 
   it('refuses the wrong number of words rather than running a placeholder', () => {
@@ -87,7 +82,7 @@ describe('RG165: filling a door', () => {
   })
 
   it('takes a door that needs nothing, and refuses words for it', () => {
-    expect(filledArgv(['engines'], [])).toEqual(['engines'])
+    expect(filledArgv(['engines'], [])).toEqual({ argv: ['engines'], stdin: '' })
     expect(filledArgv(['engines'], ['--json'])).toBeNull()
   })
 
@@ -95,7 +90,7 @@ describe('RG165: filling a door', () => {
     // The whole of the refusal §RG85 made: a caller supplies prose and never a command line.
     const filled = filledArgv(DOOR, ['--publish', '; rm -rf /'])
 
-    expect(filled).toEqual([
+    expect(filled?.argv).toEqual([
       'section',
       'add',
       'RG9',
@@ -105,7 +100,43 @@ describe('RG165: filling a door', () => {
       '; rm -rf /',
     ])
     // Both landed in the slots the engine left, and the verb and its flags are untouched.
-    expect(filled?.slice(0, 4)).toEqual(['section', 'add', 'RG9', '--title'])
+    expect(filled?.argv.slice(0, 4)).toEqual(['section', 'add', 'RG9', '--title'])
+  })
+})
+
+describe('RG261: a door that reads standard input', () => {
+  /** The door a reader pressed on `commitclerk`, which ran with nothing on stdin and hung. */
+  const READS = ['section', 'amend', 'T50', '--body', '-', '--role', 'improvements']
+
+  it('counts the dash among the blanks, so a screen asks for what it needs', () => {
+    // It was not one before, so the button was drawn as a one-click fix over a command line
+    // that then waited on prose nobody was writing.
+    expect(isBody('-')).toBe(true)
+    expect(isBody('--body')).toBe(false)
+    expect(isBlank('-')).toBe(false)
+    expect(blanksIn(READS)).toEqual([4])
+  })
+
+  it('sends its word on standard input and leaves the dash where the engine wrote it', () => {
+    expect(filledArgv(READS, ['The sentence, repointed.'])).toEqual({
+      argv: READS,
+      stdin: 'The sentence, repointed.',
+    })
+  })
+
+  it('still refuses the wrong number of words, and an empty one', () => {
+    expect(filledArgv(READS, [])).toBeNull()
+    expect(filledArgv(READS, ['one', 'two'])).toBeNull()
+    expect(filledArgv(READS, [''])).toBeNull()
+  })
+
+  it('fills a dash and a placeholder in the order the argv puts them', () => {
+    const both = ['section', 'amend', '…', '--body', '-']
+
+    expect(filledArgv(both, ['RG9', 'The prose.'])).toEqual({
+      argv: ['section', 'amend', 'RG9', '--body', '-'],
+      stdin: 'The prose.',
+    })
   })
 })
 

@@ -23,6 +23,10 @@ import { EngineCallFailed, type EngineRequest, type EngineResult, type Transport
  * **Every call is cancellable and bounded.** A screen redraws while reads are in flight,
  * and a portfolio fans out far enough that one engine eventually hangs.
  *
+ * **Standard input is always ended.** A door's `-` says the value arrives there and every
+ * other call says nothing, but both end it: a pipe left open is an engine waiting on prose
+ * nobody is writing, for as long as its deadline allows (RG261).
+ *
  * **The two streams stay apart.** They are collected into separate buffers and never
  * interleaved, because the engine reports a line it could not accept on stderr with the
  * count — merged, a client cannot tell an answer from a warning about that answer.
@@ -56,6 +60,13 @@ export function createProcessTransport(options: ProcessTransportOptions): Transp
           windowsHide: true,
           env: options.env ?? process.env,
         })
+
+        // Said and ended, always (RG261). A door's `-` puts prose here; every other call has
+        // nothing to say and still ends the stream, since an engine that reads an input nobody
+        // closes blocks for its whole deadline. The error is ignored on purpose: a child that
+        // exited without reading makes this a broken pipe, and the answer is its exit code.
+        child.stdin.on('error', () => undefined)
+        child.stdin.end(request.stdin ?? '')
 
         const out: Buffer[] = []
         const err: Buffer[] = []

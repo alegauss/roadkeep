@@ -1,5 +1,5 @@
-import { blanksIn, type Door } from '@rk/core'
-import { Button } from '@viglet/viglet-design-system'
+import { blanksIn, isBody, type Door } from '@rk/core'
+import { Button, Textarea } from '@viglet/viglet-design-system'
 import { useCallback, useState, type ChangeEvent } from 'react'
 
 import { BOX } from './forms'
@@ -20,23 +20,41 @@ import { useWording } from './wording'
  * a command, and a door whose blanks are not all filled cannot be taken at all.
  */
 
-/** One blank of a door, which says which of them it is when a word goes in it. */
+/**
+ * One blank of a door, which says which of them it is when a word goes in it.
+ *
+ * **A `-` is drawn as prose** (RG261). It is the same blank filled in the same order, but what
+ * the engine reads there is a body — paragraphs, where a one-line box would say a word will do.
+ */
 function Blank({
   index,
   word,
+  body,
   onWord,
 }: {
   readonly index: number
   readonly word: string
+  readonly body: boolean
   readonly onWord: (index: number, word: string) => void
 }) {
   const say = useWording()
   const typed = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
+    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       onWord(index, event.target.value)
     },
     [index, onWord],
   )
+  if (body) {
+    return (
+      <Textarea
+        className="mt-2 w-full"
+        rows={5}
+        aria-label={say('door.body')}
+        value={word}
+        onChange={typed}
+      />
+    )
+  }
   return (
     <input
       className={`${BOX} mt-2 w-full`}
@@ -81,7 +99,13 @@ export function DoorRow({
         </p>
       ) : null}
       {blanks.map((at, index) => (
-        <Blank key={at} index={index} word={words[index] ?? ''} onWord={word} />
+        <Blank
+          key={at}
+          index={index}
+          word={words[index] ?? ''}
+          body={isBody(door.argv[at] ?? '')}
+          onWord={word}
+        />
       ))}
       <Button size="sm" className="mt-2" disabled={!ready} onClick={take}>
         {say('door.take')}

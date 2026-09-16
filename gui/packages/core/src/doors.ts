@@ -27,9 +27,28 @@ export function isBlank(word: string): boolean {
   return word === '…' || (word.startsWith('<') && word.endsWith('>') && word.length > 2)
 }
 
-/** Where the blanks are, in the order a caller fills them. */
+/**
+ * The engine's third spelling: a value it reads on standard input rather than off the argv
+ * (RG261).
+ *
+ * `section amend T50 --body - --role improvements` is one — the prose is the thing a person
+ * writes, and a body runs to paragraphs, which is what stdin is for. A blank all the same, and
+ * filled in the same order: what differs is only where the word ends up.
+ */
+export function isBody(word: string): boolean {
+  return word === '-'
+}
+
+/** Where the blanks are, in the order a caller fills them — a `-` among them (RG261). */
 export function blanksIn(argv: readonly string[]): number[] {
-  return argv.flatMap((word, at) => (isBlank(word) ? [at] : []))
+  return argv.flatMap((word, at) => (isBlank(word) || isBody(word) ? [at] : []))
+}
+
+/** A door's argv with its blanks filled, and what it was given to say on standard input. */
+export interface Filled {
+  readonly argv: readonly string[]
+  /** Empty where the door asked for nothing, which is still written and still ended. */
+  readonly stdin: string
 }
 
 /**
@@ -39,20 +58,22 @@ export function blanksIn(argv: readonly string[]): number[] {
  * would then run with `<lead>` as a lead, and too many is a caller trying to say something
  * the door did not ask for. Both are refusals, and neither is a thing to guess about.
  */
-export function filledArgv(
-  argv: readonly string[],
-  words: readonly string[],
-): readonly string[] | null {
+export function filledArgv(argv: readonly string[], words: readonly string[]): Filled | null {
   const blanks = blanksIn(argv)
   if (blanks.length !== words.length) return null
   // A word that is empty would leave the engine an argument it never offered to take.
   if (words.some((word) => word === '')) return null
 
   const filled = [...argv]
+  let stdin = ''
   blanks.forEach((at, which) => {
-    filled[at] = words[which] ?? ''
+    const word = words[which] ?? ''
+    // The `-` stays exactly where the engine wrote it: this app fills a door's blanks and
+    // never rewrites its command line, and `-` is the argument that says where to read.
+    if (isBody(argv[at] ?? '')) stdin = word
+    else filled[at] = word
   })
-  return filled
+  return { argv: filled, stdin }
 }
 
 /**

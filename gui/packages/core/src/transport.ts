@@ -39,6 +39,14 @@ export interface EngineRequest {
    * door's own command line is, and nothing composed a tool call for it.
    */
   readonly call?: EngineCall
+  /**
+   * What this call says on the engine's standard input, where it has anything to say (RG261).
+   *
+   * A door's `-` is the only thing that fills it today. Absent is not "leave it open": a
+   * transport ends the stream either way, because an engine reading input that is never coming
+   * waits for its whole deadline and answers nothing.
+   */
+  readonly stdin?: string
   /** Milliseconds after which the call is abandoned. Absent means no ceiling. */
   readonly timeoutMs?: number
   /** Cancellation from the caller — a screen redrawing while reads are still in flight. */

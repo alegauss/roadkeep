@@ -149,3 +149,43 @@ describe('RG1: an engine that is not there', () => {
     await expect(call).rejects.toMatchObject({ reason: 'unspawnable' })
   })
 })
+
+describe('RG261: standard input', () => {
+  /** A child that answers with everything it read on stdin, and nothing until that ends. */
+  const READS = script(
+    'let s="";process.stdin.on("data",c=>{s+=c});process.stdin.on("end",()=>process.stdout.write(s))',
+  )
+
+  it('gives an engine the prose the call carried', async () => {
+    const result = await node.run({
+      root: tmpdir(),
+      argv: READS,
+      stdin: 'The sentence, repointed.\n\nA second paragraph.',
+      timeoutMs: 30000,
+    })
+
+    expect(result.stdout).toBe('The sentence, repointed.\n\nA second paragraph.')
+  })
+
+  it('ends it even with nothing to say, so a reading engine is not left waiting', async () => {
+    // The whole of RG261: a door's `--body -` blocked here until the deadline killed it,
+    // because nothing wrote and nothing closed the pipe. A ceiling far past the call, so a
+    // transport that left it open fails this by timing out rather than by the assertion.
+    const result = await node.run({ root: tmpdir(), argv: READS, timeoutMs: 30000 })
+
+    expect(result.stdout).toBe('')
+    expect(result.code).toBe(0)
+  })
+
+  it('answers a child that exited without reading, rather than the broken pipe', async () => {
+    const result = await node.run({
+      root: tmpdir(),
+      argv: script('process.stdout.write("gone")'),
+      stdin: 'x'.repeat(200000),
+      timeoutMs: 30000,
+    })
+
+    expect(result.stdout).toBe('gone')
+    expect(result.code).toBe(0)
+  })
+})
