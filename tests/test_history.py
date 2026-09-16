@@ -2410,6 +2410,31 @@ def test_a_file_the_project_declares_incidental_does_not_keep_a_commit_alive(tmp
     assert row.commits == ()
 
 
+def test_a_declared_directory_reaches_every_file_under_it(tmp_path):
+    """RK1686. The trailing slash is one key meaning one thing to both its readers: `weight`
+    grew it for a generator's output, and set membership here would have answered *no* to
+    every file under a declared directory — the same key filtering in one reader and not the
+    other, which is two meanings wearing one name."""
+    from roadkeep.history import pending, swept
+
+    config = repo(tmp_path)
+    append(config.root / "roadkeep.toml", '\n[history]\nincidental = ["art/"]\n')
+    propose(config, "RK1", "docs: file RK1")
+    art = tmp_path / "art"
+    art.mkdir()
+    for n in range(3):
+        (art / f"sprite_{n}.png").write_text(f"generated {n}\n", encoding="utf-8")
+    git_commit(config.root, "chore(RK1): regenerate the sprites")
+
+    (row,) = [one for one in pending(Config.discover(tmp_path)) if one.id == "RK1"]
+    assert row.commits == ()
+
+    # And the entry is counted once for the commit it set aside, never once per file under
+    # it: a reader asking what one declaration was the reason for wants commits.
+    sweep = swept(Config.discover(tmp_path))
+    assert sweep.sifted.aside == {"art/": 1}, sweep.sifted
+
+
 def test_a_declared_incidental_file_does_not_excuse_a_commit_that_touched_code(tmp_path):
     # The filter still only removes what it is about: a commit carrying the stamp *and* a
     # source file is the session this verb was written for, and stays reported.

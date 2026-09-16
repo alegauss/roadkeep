@@ -89,6 +89,11 @@ class Weight:
     #: `history.ordering` states: what is asked is which came first, and days invite an
     #: arithmetic a rebase makes wrong. `0` where nothing was filed.
     over: int = 0
+    #: How many files this commit carried that `[history] incidental` accounts for (RK1686),
+    #: left out of `lines` and `files` above. Carried so the answer can be checked against
+    #: `git show`, which is the one property a derived number has: a size smaller than the
+    #: commit's own, with nothing saying why, is a figure a reader has to take on trust.
+    carried: int = 0
 
     @property
     def alone(self) -> bool:
@@ -171,6 +176,16 @@ class Weights:
     #: and never divided into it: five filings over one commit is a task that decomposed and
     #: five over forty is a subject somebody kept returning to, and a rate hides which.
     spans: Spread = Spread()
+
+    @property
+    def carried(self) -> int:
+        """Files the weighed commits carried that are not the work (RK1686).
+
+        Over the entries the axes are computed on and not over every row: what this explains
+        is the gap between the figures above and `git show`, so counting a batch nobody was
+        charged for would make it explain the wrong number.
+        """
+        return sum(one.carried for one in self.weighed if one.alone)
 
     @property
     def recent(self) -> tuple[Weight, ...]:
@@ -284,6 +299,7 @@ def _weight(
         shared=entries_per_commit.get(sha, 1),
         filed=filed,
         over=over,
+        carried=cost.carried,
     )
 
 
@@ -414,6 +430,15 @@ class Weighed:
                 f"  missing  {len(self.weights.unresolved)} entr(ies) no commit accounts for: "
                 f"{', '.join(self.weights.unresolved)}"
             )
+        if carried := self.weights.carried:
+            # Stated whenever anything was subtracted (RK1686), because every figure above is
+            # then smaller than what `git show` prints for the same commits — and a derived
+            # number a reader cannot reconcile is one they stop trusting, which is the whole
+            # claim this module rests on.
+            rows.append(
+                f"  carried  {carried} file(s) left out of the axes above, which "
+                f"`[history] incidental` accounts for — `git show` counts them"
+            )
         if self.records:
             rows += [
                 f"  record   {one.task_id:<6} {one.lines:>5} lines  {one.files:>3} files  "
@@ -470,6 +495,9 @@ class Weighed:
                     # lines a ship turned up is the half a number cannot be checked by.
                     "filed": list(one.filed),
                     "over": one.over,
+                    # What this row's commit carried that is not the work (RK1686), so a
+                    # client reconciling `lines` against `git show` has the difference.
+                    "carried": one.carried,
                 }
                 for one in self.weights.weighed
             ]
@@ -480,6 +508,10 @@ class Weighed:
             "weighed_elided": 0 if self.records else len(self.weights.weighed),
             "unresolved": list(self.weights.unresolved),
             "co_shipped": list(self.weights.co_shipped),
+            # Over the entries the axes were computed on (RK1686), which is what it explains:
+            # the gap between every figure here and what `git show` counts for the same
+            # commits. `0` on every project declaring no incidental path.
+            "carried": self.weights.carried,
         }
 
 

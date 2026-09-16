@@ -2325,9 +2325,17 @@ def _incidental(raw: object, problems: list[str]) -> tuple[str, ...]:
     """`[history] incidental` — paths a commit touches that are not the work (RK1496).
 
     Refused the way every other path key here is: relative, posix-separated, and named rather
-    than matched. No globs, deliberately — a pattern is a rule about files nobody has listed,
-    and the whole argument for declaring this is that a project states the three files its own
-    hook writes rather than a reader guessing at a shape.
+    than matched. **Still no globs** — a pattern is a rule about files nobody has listed, and
+    the argument for declaring this is that a project states what its own hook writes rather
+    than a reader guessing at a shape.
+
+    **A directory is named with a trailing slash** (RK1686), and that is not the rule above
+    loosening but the same rule about a different population. RK1496 was written for a hook
+    stamping a version into three files: enumerable, stable, and a project can name them. A
+    project that commits its generated art has 37 sprites and the `.import` sidecar its engine
+    writes beside each — 74 paths the *generator* names, and a new one every time it runs. So
+    `docs/design/art/` is still the project stating what it owns; what stays refused is `*`
+    and `?`, which are a shape guessed at rather than a place named.
     """
     if raw is None:
         return ()
@@ -2344,10 +2352,36 @@ def _incidental(raw: object, problems: list[str]) -> tuple[str, ...]:
         if Path(one).is_absolute():
             problems.append(f"history.incidental '{one}' must be relative to the project root")
             continue
+        if "*" in one or "?" in one:
+            problems.append(
+                f"history.incidental '{one}' is a pattern: name the file, or the directory "
+                f"with a trailing '/' — a glob is a rule about files nobody has listed"
+            )
+            continue
         # As git spells one, which is what the reader compares against: a backslash here is a
         # path that silently matches nothing, and matching nothing is this filter doing less.
         out.append(one.replace("\\", "/"))
     return tuple(out)
+
+
+def incidental_for(declared: Sequence[str], path: str) -> str:
+    """Which declared entry accounts for this path, or `""` where none does (RK1686).
+
+    One matcher, because the key means one thing: `unclosed` asks whether a commit carried
+    only what is not the work, and `weight` asks how much of a commit was. Two readers
+    spelling the membership test differently is one key with two meanings, which is what a
+    trailing slash would otherwise have quietly produced — a prefix matching in the reader
+    that grew it and nowhere else.
+
+    The **entry** and not a boolean, because a reader counting what each declaration was the
+    reason for needs the declaration and has only the path.
+    """
+    for one in declared:
+        if one.endswith("/") and path.startswith(one):
+            return one
+        if path == one:
+            return one
+    return ""
 
 
 def _budgets(raw: object, base: Path, problems: list[str]) -> tuple[Budget, ...]:

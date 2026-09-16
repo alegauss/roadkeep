@@ -26,6 +26,10 @@ upstream = "alegauss/roadkeep"
 # files alone — and `unclosed`'s filter, which drops a commit that did, was inert on the one
 # repository that is this format's conformance fixture. Declared and never inferred: the files
 # a project's own hook writes are that project's fact to state.
+# Read by `weight` too since RK1686, which is the same fact about the same commit: these three
+# come out of both axes there, so a task here is not priced for the version bump it carried.
+# An entry may name a directory with a trailing slash, for a project whose generator names the
+# paths — 37 sprites and the sidecar an engine writes beside each is not a list anybody keeps.
 [history]
 incidental = [
   "src/roadkeep/__init__.py",

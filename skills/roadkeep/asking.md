@@ -170,7 +170,11 @@ limit on the line `--decides` files, which is not that sentence at all. **`weigh
 derived from the commits that shipped them, so whether the line being written is one task
 or two is a question with an answer. An entry whose commit wrote several is named under
 `batched` and left out of the percentiles, so a squashed adoption import skews nothing.
-What comes back is the distribution and what was elided from it, the sample those
+What a commit carried that is **not** the work comes out of both axes and is reported as
+`carried`: `[history] incidental` names it, a directory with a trailing slash where the
+paths are a generator's to name, so a project committing its generated art is not sized by
+its generator. `git show` still counts them, which is what the row says so the figure stays
+checkable. What comes back is the distribution and what was elided from it, the sample those
 percentiles summarise being `weight --block <x> --records` and 95% of the payload. It ranks
 nothing and lands
 on no line — the size field is a non-goal. **`remaining <id>` is that read's mirror**: what

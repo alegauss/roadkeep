@@ -95,6 +95,7 @@ line already there. Its refusal names `section add` against that line's own anch
 - ✅ **RK1677** **list --role deferred --json carries no age for a pause, which --stale computes and prints only for a terminal** — A listing carries the age keys only where --stale asked: the age is a git call, and a key the caller requested by flag is one it knows to read.
 - ✅ **RK1680** **list prints no readiness per line, so a consumer resolves deps once per row to draw a column it already counted** — Startable means both halves at once: an unsatisfied dep and an absent requirement each disqualify a line, so a narrowed listing never says waiting above zero.
 - ✅ **RK1685** **show returns one section, so reading the designs behind a set of related lines is one call each** — [reads] show bounds a join of several ids and never a call naming one, so a ceiling written for a fan-out cannot refuse the read show has always given.
+- ✅ **RK1686** **`weight` reads a commit whole, so a task that regenerated 37 sprites prices at 770 lines against 78 authored** — [history] incidental may name a directory with a trailing slash and still no glob, because a generator names its own outputs where a hook's three files are a list a project keeps.
 
 ### §RK1362 Why a projection and not a wider read
 
@@ -305,6 +306,21 @@ single join rather than a total: a number under that reading is one that breaks 
 Accepted with it: a caller can still compose a join no transport carries, by naming
 enough ids. What comes back then is the count and the leading run that fits, which is a
 shorter call they can make — not a payload that quietly vanished.
+
+### §RK1686 One key, or one per reader
+
+The alternative was a sibling key read only by `weight`. It was rejected because the
+classification is one fact — what a commit carried that is not the work — and two keys
+would let `unclosed` and `weight` disagree about the same commit.
+
+Weighed against RK1496, which set the no-pattern rule for a hook stamping a version into
+three files: a list a project keeps. A generator's output is not — 37 sprites with the
+sidecar an engine writes beside each is 74 paths it names, a new one every run. Naming
+the directory states what the project owns, and `*` stays refused.
+
+Accepted with it: a directory named here also drops such a commit from `unclosed`, the
+same claim about the same commit rather than a second rule — and one matcher serves
+both, so a prefix cannot match in the reader that grew it and nowhere else.
 
 ## Block D — The gate
 

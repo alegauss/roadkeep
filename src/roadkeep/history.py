@@ -29,7 +29,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 
-from roadkeep.config import PROSE_ROLES, ROLES, Config
+from roadkeep.config import PROSE_ROLES, ROLES, Config, incidental_for
 from roadkeep.kernel.document import Document
 from roadkeep.kernel.schema import ARROW, REF_SEPARATOR, Schema, split_ref
 from roadkeep.sections import Section, anchored, find, owners
@@ -672,6 +672,11 @@ class Cost:
     short: str
     lines: int
     files: int
+    #: How many files this commit carried that `[history] incidental` accounts for (RK1686),
+    #: left out of both axes above. Reported rather than silently dropped: a size that came
+    #: back smaller than `git show` says is one a reader cannot check, and the whole property
+    #: of a derived answer is that they can (RK71). Zero on every project declaring none.
+    carried: int = 0
 
 
 def added_ids(config: Config, role: str) -> dict[str, str]:
@@ -916,20 +921,42 @@ def costs_of(config: Config, shas: tuple[str, ...]) -> dict[str, Cost]:
         "--stdin",
         fed=shas,
     )
+    declared = tuple(config.incidental)
     out: dict[str, Cost] = {}
     for head, rows in _records(output):
         sha, _, short = head.partition(_UNIT)
-        counted = [
-            changed for changed in (_numstat(row) for row in rows) if changed is not None
-        ]
+        counted: list[int] = []
+        carried = 0
+        for row in rows:
+            changed = _numstat(row)
+            if changed is None:
+                continue
+            # What the commit carried that is not the work (RK1686), left out of both axes
+            # rather than divided across them. A project that commits its generated art is
+            # otherwise sized by its generator: one change to a script, and the commit `weight`
+            # reads carries 37 sprites with the sidecar an engine writes beside each — both
+            # axes wrong by roughly six, and wrong in the direction that prices the blocks
+            # generating most as the most expensive. The docstring calls files *what an agent
+            # holds in context*, and an agent holds none of those.
+            if incidental_for(declared, changed[0]):
+                carried += 1
+                continue
+            counted.append(changed[1])
         out[sha] = Cost(
-            sha=sha, short=short or sha[:7], lines=sum(counted), files=len(counted)
+            sha=sha,
+            short=short or sha[:7],
+            lines=sum(counted),
+            files=len(counted),
+            carried=carried,
         )
     return out
 
 
-def _numstat(row: str) -> int | None:
-    """One numstat row as the lines it changed, or None when the row is not one.
+def _numstat(row: str) -> tuple[str, int] | None:
+    """One numstat row as the path it touched and the lines it changed, or None (RK1686).
+
+    The path too, because the caller decides per file whether the commit's own generator or
+    hook wrote it — a count with no path is a total nothing can be subtracted from.
 
     A binary file reports `-` for both sides: it is a file that changed and no lines that
     did, which is what the caller counts it as rather than dropping it.
@@ -938,7 +965,7 @@ def _numstat(row: str) -> int | None:
     if len(columns) != 3:
         return None
     added, removed = columns[0], columns[1]
-    return (int(added) if added.isdigit() else 0) + (
+    return columns[2], (int(added) if added.isdigit() else 0) + (
         int(removed) if removed.isdigit() else 0
     )
 
@@ -1267,16 +1294,29 @@ def swept(config: Config) -> Sweep:
     # commit set aside, so the shas are collected and the arithmetic done over the set.
     removed: set[str] = set()
     for rows in naming.values():
-        removed |= {one.sha for one in rows if _only_ours(touched.get(one.sha), ours)}
+        removed |= {
+            one.sha for one in rows if _only_ours(touched.get(one.sha), ours, declared)
+        }
     aside: dict[str, int] = {}
     for sha in removed:
         # Only where nothing this tool writes already accounts for the path: an entry naming
         # a governed file rides along on a commit it did not filter, and calling that a use
         # would report the redundant entry as the working one.
-        for path in (set(touched.get(sha, ())) & set(declared)) - written:
-            aside[path] = aside.get(path, 0) + 1
+        # Counted against the **entry** the path matched (RK1686), which for a directory is
+        # the declaration and not the file: a reader asking what one entry was the reason for
+        # wants the line they wrote, and 37 sprite rows would answer a different question.
+        # Distinct per commit, which is what the set intersection did before a directory could
+        # match many paths at once — this counts commits set aside, never files.
+        for entry in {
+            found
+            for path in touched.get(sha, ())
+            if path not in written and (found := incidental_for(declared, path))
+        }:
+            aside[entry] = aside.get(entry, 0) + 1
     naming = {
-        token: [one for one in rows if not _only_ours(touched.get(one.sha), ours)]
+        token: [
+            one for one in rows if not _only_ours(touched.get(one.sha), ours, declared)
+        ]
         for token, rows in naming.items()
     }
 
@@ -1371,13 +1411,22 @@ def _touched(root: Path, shas: set[str]) -> dict[str, tuple[str, ...]]:
     return out
 
 
-def _only_ours(paths: tuple[str, ...] | None, ours: frozenset[str]) -> bool:
+def _only_ours(
+    paths: tuple[str, ...] | None, ours: frozenset[str], declared: Sequence[str] = ()
+) -> bool:
     """Whether this commit changed governed files and nothing else (RK1473).
 
     False where nothing is known about it, and false for a commit that changed nothing: an
     absent answer is not evidence, and this filter only ever *removes* rows.
+
+    ``declared`` is `[history] incidental` read through its own matcher (RK1686), because an
+    entry may now name a directory: set membership answers about the exact paths and would
+    have said no to every file under one, which is this filter doing less in exactly the
+    population that motivated the trailing slash.
     """
-    return bool(paths) and all(one in ours for one in paths)
+    return bool(paths) and all(
+        one in ours or bool(incidental_for(declared, one)) for one in paths
+    )
 
 
 #: What one `git log` line carries, separated by a NUL. A NUL cannot appear in a subject,
