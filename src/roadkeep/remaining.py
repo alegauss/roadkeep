@@ -34,6 +34,28 @@ site is spelled differently is one this reports clean. That is stated rather tha
 against, for the reason the size field was refused — the alternative is a number the tool
 asserts and nobody can check.
 
+**A clause may end on a comparison, for a deliverable that is not text** (RK1687). The
+grammar asked whether text is *there*, and a project whose proof is a number out of a PNG, a
+WAV, a mesh or a frame time could not write one: measured on Cottony, where the two art lines
+carrying a real acceptance test carry it as prose. RK99's is the 99th percentile of saturation
+inside the board, 0.683 against a reference's 0.881, and its section ends *"re-run the same
+crop and compare the percentile, not the mean"* — an instruction sitting in the one thing
+`ship` deletes.
+
+So a third field, on the same separator: `<pathspec> :: <regex> :: <op> <number>`, where the
+pattern captures the value and the comparison says what it has to be. **The number is the
+project's own**, written by whatever already computes it, and nothing here runs a generator or
+opens a picture — this reads a figure somebody else produced and does the arithmetic, which is
+`evidence`'s existing shape with a relation where the count was. The non-goal binds and is not
+approached: no model, no prompts, no opinion about an image.
+
+It is a **filter on matches** and not a second verdict, which is what keeps every reading
+downstream the one it already was — a site is still a place the author's pattern points at,
+`evidence` still counts the sites that must exist, and `remaining` still counts what is left.
+A match whose capture is not a number is :attr:`Remaining.unparsed` and never a failed
+comparison: an `n/a` is a query that did not run over that line, and merging the two is the
+failure this module was extended out of.
+
 **And a zero that means neither of those is named** (RK1216). The sentence above has one more
 reading it cannot carry: a pathspec that reached **no file at all**, where the pattern was
 never run over anything. Measured in pportal declaring its first two queries — `lib/src ::
@@ -47,10 +69,12 @@ make: a query is a claim in a file, and a claim nothing answers is the gate's ki
 
 from __future__ import annotations
 
+import operator
 import re
-from collections.abc import Iterator, Sequence
+from collections.abc import Callable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
+from types import MappingProxyType
 
 #: The info string a fenced block carries to be read as a query. Hyphenated rather than
 #: `roadkeep:remaining`, because a colon in an info string is how several renderers spell a
@@ -83,6 +107,22 @@ class QueryError(ValueError):
         super().__init__(f"line {line} of the {FENCE} block: {said}")
 
 
+#: The comparisons a clause may end on (RK1687), and deliberately only these six. Each is a
+#: relation between two numbers and composes nothing: what a project declares is where its own
+#: number is written and what it has to be, and the arithmetic here is the whole of what this
+#: tool contributes.
+COMPARISONS: Mapping[str, Callable[[float, float], bool]] = MappingProxyType(
+    {
+        ">=": operator.ge,
+        "<=": operator.le,
+        ">": operator.gt,
+        "<": operator.lt,
+        "==": operator.eq,
+        "!=": operator.ne,
+    }
+)
+
+
 @dataclass(frozen=True, slots=True)
 class Clause:
     """One pathspec and the pattern that marks a site inside it."""
@@ -93,9 +133,40 @@ class Clause:
     #: report can print the query it ran rather than a repr of a compiled object.
     pattern: str
     matcher: re.Pattern[str]
+    #: The comparison this clause ends on, or `""` where it counts matches as it always did
+    #: (RK1687). One of :data:`COMPARISONS`.
+    op: str = ""
+    #: What the captured number is compared against. Meaningless without :attr:`op`.
+    threshold: float = 0.0
+
+    @property
+    def compares(self) -> bool:
+        return bool(self.op)
+
+    def admits(self, captured: str) -> bool | None:
+        """Whether this match is a site, or None where the capture is not a number.
+
+        Named away from `holds`, which is `Document`'s and `Backlog`'s word and whose readers
+        `tests/test_document.py` keeps enumerable: an unrelated method sharing the spelling
+        defeats that scan rather than joining it.
+
+        `None` and not `False`, because they are two different answers: a value that read
+        `n/a` is a query that did not run over that line, and counting it as a failing
+        comparison would be the `in 0 file(s)` defect this module was extended out of.
+        """
+        try:
+            found = float(captured)
+        except (TypeError, ValueError):
+            return None
+        return COMPARISONS[self.op](found, self.threshold)
 
     def __str__(self) -> str:
-        return f"{self.pathspec} {SEPARATOR} {self.pattern}"
+        spelled = f"{self.pathspec} {SEPARATOR} {self.pattern}"
+        if self.compares:
+            # The third field printed as it was written, so the query beside a count is one a
+            # reader can paste back — which is what makes the number checkable.
+            spelled += f" {SEPARATOR} {self.op} {self.threshold:g}"
+        return spelled
 
 
 @dataclass(frozen=True, slots=True)
@@ -130,6 +201,12 @@ class Remaining:
     #: skipped in silence: a count over a set that quietly lost a member is the defect this
     #: whole module is against.
     unread: tuple[str, ...] = ()
+    #: Sites a comparing clause matched whose capture is not a number, as `file:line`
+    #: (RK1687). :attr:`unread`'s rule one field in: the pattern found the place and the
+    #: value there is `n/a`, a blank, or text — which is a query that did not run over that
+    #: line, not a number that failed to clear the bar. Empty for every clause that counts
+    #: matches, which is every clause written before the third field existed.
+    unparsed: tuple[str, ...] = ()
 
     @property
     def total(self) -> int:
@@ -200,6 +277,16 @@ class Remaining:
             lines.append(f"  … and {self.total - SHOWN} more")
         if self.unread:
             lines.append(f"  unread   {', '.join(self.unread)}: not text this could search")
+        if self.unparsed:
+            # Beside `unread` and for its reason (RK1687): the pattern found the place and
+            # what stood there is not a number, which is a query that did not run over that
+            # line rather than a value that failed the comparison.
+            shown = ", ".join(self.unparsed[:SHOWN])
+            more = f" … and {len(self.unparsed) - SHOWN} more" if len(self.unparsed) > SHOWN else ""
+            lines.append(
+                f"  unparsed {shown}{more}: matched, and the capture is not a number — "
+                f"not a value that failed the comparison"
+            )
         return "\n".join(lines)
 
     def payload(self) -> dict[str, object]:
@@ -211,7 +298,15 @@ class Remaining:
             "total": self.total,
             "files": self.files,
             "query": [
-                {"pathspec": one.pathspec, "pattern": one.pattern, "files": read}
+                {
+                    "pathspec": one.pathspec,
+                    "pattern": one.pattern,
+                    "files": read,
+                    # Null where the clause counts matches (RK1687), which distinguishes a
+                    # query with no comparison from one comparing against zero.
+                    "op": one.op or None,
+                    "threshold": one.threshold if one.compares else None,
+                }
                 for one, read in zip(self.clauses, self.scanned, strict=False)
             ],
             # Every site and not the printed ten: a consumer acting per address needs them
@@ -223,6 +318,10 @@ class Remaining:
             # `total` — and the one state where `total` means nothing at all has to be
             # answerable without summing a list to find a zero in it.
             "unmatched": list(self.unmatched),
+            # Sites a comparison matched whose capture is not a number (RK1687), for
+            # `unmatched`'s reason: a consumer reading `total` needs the states where that
+            # number is short by an amount nothing else names.
+            "unparsed": list(self.unparsed),
         }
 
 
@@ -268,17 +367,51 @@ def _fenced(body: str, tag: str = FENCE) -> Iterator[tuple[int, list[str]]]:
 
 
 def _clause(lineno: int, line: str) -> Clause:
-    pathspec, separator, pattern = line.partition(SEPARATOR)
+    pathspec, separator, rest = line.partition(SEPARATOR)
     if not separator:
         raise QueryError(lineno, f"no {SEPARATOR!r}: a clause is `<pathspec> {SEPARATOR} <regex>`")
-    pathspec, pattern = pathspec.strip(), pattern.strip()
+    # The third field, on the same separator as the second (RK1687): a regex that wants a
+    # `::` already spells it `:{2}`, which is what made two colons unambiguous for the first
+    # split and makes them unambiguous for this one.
+    pattern, _, compared = rest.partition(SEPARATOR)
+    pathspec, pattern, compared = pathspec.strip(), pattern.strip(), compared.strip()
     if not pathspec or not pattern:
         raise QueryError(lineno, "both halves are required: a pathspec, and the pattern")
     try:
         matcher = re.compile(pattern)
     except re.error as error:
         raise QueryError(lineno, f"the pattern is not a regex this can compile: {error}") from None
-    return Clause(pathspec=pathspec, pattern=pattern, matcher=matcher)
+    if not compared:
+        return Clause(pathspec=pathspec, pattern=pattern, matcher=matcher)
+    op, _, threshold = compared.partition(" ")
+    if op not in COMPARISONS:
+        raise QueryError(
+            lineno,
+            f"{op!r} is not a comparison: a third field is `<op> <number>`, where the "
+            f"operator is one of {' '.join(COMPARISONS)}",
+        )
+    try:
+        against = float(threshold.strip())
+    except ValueError:
+        raise QueryError(
+            lineno, f"{threshold.strip()!r} is not a number to compare against"
+        ) from None
+    if not matcher.groups:
+        # Refused rather than run, because the alternative counts nothing and says the
+        # evidence is absent: the pattern has to say *which* text is the number, and a
+        # comparison with nothing captured is a query that can only ever answer zero.
+        raise QueryError(
+            lineno,
+            "a comparison needs the pattern to capture the number: put the value in a "
+            "group, as `saturation=([0-9.]+)`",
+        )
+    return Clause(
+        pathspec=pathspec,
+        pattern=pattern,
+        matcher=matcher,
+        op=op,
+        threshold=against,
+    )
 
 
 @dataclass(slots=True)
@@ -288,6 +421,7 @@ class _Read:
     sites: list[Site] = field(default_factory=list)
     scanned: int = 0
     unread: list[str] = field(default_factory=list)
+    unparsed: list[str] = field(default_factory=list)
 
 
 def count(
@@ -301,11 +435,13 @@ def count(
     sites: list[Site] = []
     scanned: list[int] = []
     unread: list[str] = []
+    unparsed: list[str] = []
     for clause in clauses:
         read = _run(root, clause)
         sites += read.sites
         scanned.append(read.scanned)
         unread += read.unread
+        unparsed += read.unparsed
     return Remaining(
         task_id=task_id,
         kind=kind,
@@ -313,6 +449,7 @@ def count(
         sites=tuple(sites),
         scanned=tuple(scanned),
         unread=tuple(dict.fromkeys(unread)),
+        unparsed=tuple(dict.fromkeys(unparsed)),
     )
 
 
@@ -331,6 +468,23 @@ def _run(root: Path, clause: Clause) -> _Read:
             continue
         read.scanned += 1
         for lineno, line in enumerate(text.splitlines(), start=1):
-            if clause.matcher.search(line):
+            found = clause.matcher.search(line)
+            if found is None:
+                continue
+            if not clause.compares:
+                read.sites.append(Site(file=where, lineno=lineno, text=line))
+                continue
+            # The comparison is a **filter on matches** and never a second verdict (RK1687),
+            # which is what keeps every reading downstream the one it already was: a site is
+            # still a place the author's pattern points at, and `evidence` still counts the
+            # sites that must exist. What the third field adds is which matches qualify.
+            admitted = clause.admits(found.group(1))
+            if admitted is None:
+                # Matched, and the capture is not a number — an `n/a`, a blank, a value the
+                # project's own tool wrote as text. Counted and named rather than read as a
+                # failing comparison: those are two answers, and silently merging them is
+                # the failure indistinguishable from success this module exists against.
+                read.unparsed.append(f"{where}:{lineno}")
+            elif admitted:
                 read.sites.append(Site(file=where, lineno=lineno, text=line))
     return read

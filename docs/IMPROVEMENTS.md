@@ -79,30 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1687 A criterion that cannot be a regex
-
-`evidence` and `remaining` share one grammar, `<pathspec> :: <regex>`, and it can only
-ask whether text is there. On Cottony, the two art lines carrying a real acceptance test
-carry it as prose instead.
-
-RK99's proof is a number out of a picture: the 99th percentile of saturation inside the
-board, 0.683 against the reference's 0.881. Its section ends "Re-run the same crop after
-RK95 and compare the percentile, not the mean" — an instruction, not a query, sitting in
-the one thing `ship` deletes. RK100's is "Judge it on `cottony-board-screen.png`,
-against `combo.png`, not on its own". Neither is a regex over any file in that
-repository, and both are the whole of what done means there.
-
-`brief` already asks for this: with no criterion it prints the `criterion add --task`
-that opens one. But a criterion is a sentence a reader checks and `evidence` is the half
-that runs, so a project whose deliverable is a PNG, a WAV, a mesh or a frame time writes
-the sentence and never runs it.
-
-Check the non-goals before this becomes a design. "No model and no prompts" binds hard:
-whatever answers must be the project's own, never this tool judging a picture. That is
-the shape `evidence` already has, where the pattern is the author's claim and the count
-is the answer — so the open question is what a declared reading may be, not whether the
-tool forms an opinion.
-
 ### §RK1688 An artefact is named the way its generator names it
 
 `paths_in` keeps a quoted token that resolves on disk, or one whose directory the

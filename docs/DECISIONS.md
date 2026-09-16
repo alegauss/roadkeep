@@ -96,6 +96,7 @@ line already there. Its refusal names `section add` against that line's own anch
 - ✅ **RK1680** **list prints no readiness per line, so a consumer resolves deps once per row to draw a column it already counted** — Startable means both halves at once: an unsatisfied dep and an absent requirement each disqualify a line, so a narrowed listing never says waiting above zero.
 - ✅ **RK1685** **show returns one section, so reading the designs behind a set of related lines is one call each** — [reads] show bounds a join of several ids and never a call naming one, so a ceiling written for a fan-out cannot refuse the read show has always given.
 - ✅ **RK1686** **`weight` reads a commit whole, so a task that regenerated 37 sprites prices at 770 lines against 78 authored** — [history] incidental may name a directory with a trailing slash and still no glob, because a generator names its own outputs where a hook's three files are a list a project keeps.
+- ✅ **RK1687** **`evidence` matches a regex over text, so a task whose proof is a number out of a PNG or a WAV declares none** — A declared reading is a comparison against a number the project itself wrote, never a command this tool runs or a file it opens: the arithmetic is all it contributes.
 
 ### §RK1362 Why a projection and not a wider read
 
@@ -321,6 +322,23 @@ the directory states what the project owns, and `*` stays refused.
 Accepted with it: a directory named here also drops such a commit from `unclosed`, the
 same claim about the same commit rather than a second rule — and one matcher serves
 both, so a prefix cannot match in the reader that grew it and nowhere else.
+
+### §RK1687 A number to read, or a command to run
+
+The alternative was a declared **command** the project owns — `saturation.py board.png
+:: >= 0.88` — which reads the picture properly and answers anything. It was rejected:
+this tool runs in CI, as a pre-commit hook and as a plugin the agent boundary trusts,
+and a governed Markdown file that executes commands is a different tool. A query would
+also stop being free.
+
+What is left needs no execution: the project's own tooling already computes the number
+and writes it somewhere, and this reads it.
+
+Weighed against "no model and no prompts", which binds hardest here and is not
+approached: the comparison relates two numbers, one from a file and one from the clause,
+and nothing forms an opinion about an image. Accepted with it: a proof nobody has
+written down is still unrunnable — the sentence exists, and somebody has to produce the
+figure.
 
 ## Block D — The gate
 

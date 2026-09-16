@@ -183,6 +183,13 @@ block in the rationale section, one `<pathspec> :: <regex>` per line. **`evidenc
 that same read with the sign flipped**: a `roadkeep-evidence` block names the sites that
 must *exist* for the task to be done, so what `remaining` counts down `evidence` counts
 up — and neither is a verdict, the pattern being your claim and the count the answer.
+A clause may end on a **comparison** — `<pathspec> :: <regex> :: <op> <number>`, the pattern
+capturing the value — for a deliverable that is a number rather than a presence: a
+saturation percentile, a frame time, a file size. The number is your project's own, written
+by whatever already computes it; this reads it and does the arithmetic, and opens nothing.
+It filters matches rather than judging the task, so every count means what it did. A match
+whose capture is not a number is reported as `unparsed` and never as a value that missed the
+bar — an `n/a` is a query that did not run over that line.
 Derived for the same
 reason and stored for none: the first commit that closes a site changes the answer, which a
 number on the line could not, and a `ship` deletes the query with the section that made the

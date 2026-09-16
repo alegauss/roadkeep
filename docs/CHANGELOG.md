@@ -506,6 +506,7 @@
 - ✅ **RK1680** **list prints no readiness per line, so a consumer resolves deps once per row to draw a column it already counted** — Every roadmap row of the list payload carries its readiness, and --startable narrows to the lines no dep and no absent requirement is holding up.
 - ✅ **RK1685** **show returns one section, so reading the designs behind a set of related lines is one call each** — show takes one id or several, so a fan-out joins every design in one read, bounded by [reads] show and with the git walks behind the distance made once (design recorded in `src/roadkeep/showing.py`).
 - ✅ **RK1686** **`weight` reads a commit whole, so a task that regenerated 37 sprites prices at 770 lines against 78 authored** — weight leaves out what [history] incidental accounts for, so a project is sized by what it wrote and not by its generator (design recorded in `src/roadkeep/history.py`).
+- ✅ **RK1687** **`evidence` matches a regex over text, so a task whose proof is a number out of a PNG or a WAV declares none** — an evidence clause may end on a comparison, so a task whose proof is a number the project already writes down declares a criterion that runs (design recorded in `src/roadkeep/remaining.py`).
 
 ## Block D — The gate
 

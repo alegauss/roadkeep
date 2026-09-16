@@ -132,6 +132,102 @@ def test_a_clause_this_grammar_cannot_read_names_the_line(clause, said):
     assert refused.value.line == 2
 
 
+# -- a criterion that is a number and not a presence (RK1687) -----------------
+
+
+def _metered(tmp_path: Path, rows: str) -> Path:
+    """A project whose own tooling wrote a number into a file this can read."""
+    root = project(tmp_path)
+    (root / "metrics.txt").write_text(rows, encoding="utf-8")
+    return root
+
+
+def test_a_clause_may_end_on_a_comparison(tmp_path):
+    """RK1687. The grammar could only ask whether text is *there*, so a project whose proof is
+    a number out of a PNG, a WAV or a frame time wrote the sentence and never ran it — measured
+    on Cottony, where the two art lines with a real acceptance test carry it as prose.
+
+    The number stays the project's own: whatever already computes it writes it down, and this
+    reads a figure and does the arithmetic. No model, no prompts, nothing opened."""
+    found = declared(f"```{FENCE}\nmetrics.txt :: p99=([0-9.]+) :: >= 0.88\n```\n")
+    assert len(found) == 1
+    assert found[0].op == ">=" and found[0].threshold == 0.88
+    assert found[0].compares
+    # Printed back as written, which is what keeps the count checkable by hand.
+    assert str(found[0]) == "metrics.txt :: p99=([0-9.]+) :: >= 0.88"
+
+
+def test_the_comparison_filters_matches_rather_than_judging_the_task(tmp_path):
+    """A site is still a place the author's pattern points at, so `evidence` counts what must
+    exist and `remaining` counts what is left — exactly as before. What the third field decides
+    is which matches qualify, never what the number means."""
+    root = _metered(tmp_path, "p99=0.683\np99=0.912\n")
+    (clause,) = declared(f"```{FENCE}\nmetrics.txt :: p99=([0-9.]+) :: >= 0.88\n```\n")
+    found = count(root, "RK1", [clause])
+    assert found.total == 1
+    assert found.sites[0].lineno == 2
+    # And the reading with the bar moved, over the same file: the filter is the only thing
+    # that changed, so both numbers come out of one query.
+    (lower,) = declared(f"```{FENCE}\nmetrics.txt :: p99=([0-9.]+) :: >= 0.5\n```\n")
+    assert count(root, "RK1", [lower]).total == 2
+
+
+def test_a_capture_that_is_not_a_number_is_named_and_not_a_failed_comparison(tmp_path):
+    """`unread`'s rule one field in. An `n/a` is a query that did not run over that line, and
+    counting it as a value that missed the bar is the failure-indistinguishable-from-success
+    this module exists against."""
+    root = _metered(tmp_path, "p99=0.912\np99=n/a\n")
+    (clause,) = declared(f"```{FENCE}\nmetrics.txt :: p99=([0-9.na/]+) :: >= 0.88\n```\n")
+    found = count(root, "RK1", [clause])
+    assert found.total == 1
+    assert found.unparsed == ("metrics.txt:2",)
+    assert "not a value that failed the comparison" in str(found)
+
+
+@pytest.mark.parametrize(
+    "clause, said",
+    [
+        ("metrics.txt :: p99=([0-9.]+) :: ~= 0.88", "is not a comparison"),
+        ("metrics.txt :: p99=([0-9.]+) :: >= high", "is not a number"),
+        ("metrics.txt :: p99=[0-9.]+ :: >= 0.88", "capture the number"),
+    ],
+)
+def test_a_comparison_this_grammar_cannot_read_names_the_line(clause, said):
+    """A comparison with nothing captured is refused rather than run: it could only ever
+    answer zero, which reads as the evidence being absent."""
+    with pytest.raises(QueryError) as refused:
+        declared(f"```{FENCE}\n{clause}\n```\n")
+    assert said in str(refused.value)
+    assert refused.value.line == 2
+
+
+def test_a_clause_with_no_comparison_is_what_it_always_was(tmp_path):
+    """Every query written before the third field existed keeps its meaning and its count."""
+    root = project(tmp_path)
+    (clause,) = declared(f"```{FENCE}\nsrc/*.py :: served\n```\n")
+    assert not clause.compares
+    assert clause.op == ""
+    found = count(root, "RK1", [clause])
+    assert found.total == 2
+    assert found.unparsed == ()
+
+
+def test_both_halves_of_the_comparison_reach_the_payload(tmp_path, capsys):
+    """The payload says which clause compared and against what, so a consumer reading `total`
+    can tell a presence query from a threshold without parsing the pattern back."""
+    root = _metered(tmp_path, "p99=0.912\np99=n/a\n")
+    prose = (
+        "# Improvements\n\n## Block A — The model\n\n### §RK1 A measured criterion\n\n"
+        f"The paragraph.\n\n```{FENCE}\nmetrics.txt :: p99=([0-9.na/]+) :: >= 0.88\n```\n"
+    )
+    (root / "IMPROVEMENTS.md").write_text(prose, encoding="utf-8")
+    assert main(["-C", str(root), "remaining", "RK1", "--json"]) == EXIT_OK
+    answer = json.loads(capsys.readouterr().out)
+    assert answer["query"][0]["op"] == ">="
+    assert answer["query"][0]["threshold"] == 0.88
+    assert answer["unparsed"] == ["metrics.txt:2"]
+
+
 # -- the count ----------------------------------------------------------------
 
 
@@ -211,7 +307,17 @@ def test_the_json_carries_every_site_and_the_query_that_found_them(tmp_path, cap
     payload = json.loads(capsys.readouterr().out)
     assert payload["id"] == "RK1"
     assert payload["total"] == 2
-    assert payload["query"] == [{"pathspec": "src/*.py", "pattern": "served", "files": 2}]
+    # `op` and `threshold` are null on a clause that counts matches (RK1687), which is what
+    # tells a presence query from one comparing against zero.
+    assert payload["query"] == [
+        {
+            "pathspec": "src/*.py",
+            "pattern": "served",
+            "files": 2,
+            "op": None,
+            "threshold": None,
+        }
+    ]
     # Every site and not the printed ten: a consumer acting per address needs them all.
     assert len(payload["sites"]) == 2
 

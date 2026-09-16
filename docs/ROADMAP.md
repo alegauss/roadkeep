@@ -28,7 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 💭 **RK1687** (deps: —) **`evidence` matches a regex over text, so a task whose proof is a number out of a PNG or a WAV declares none** — The proof then survives only as the last prose line of a design section, which is the one thing `ship` deletes. → §RK1687
 - 📋 **RK1688** (deps: —) **`show` drops a path written as a bare filename, so a section naming five sprites reports none of them** — An asset is named by its basename because that is what its generator calls it, so a task whose files are all art names none it can be held to. → §RK1688
 
 ## Block D — The gate
