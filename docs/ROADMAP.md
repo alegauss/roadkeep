@@ -28,6 +28,11 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1685** (deps: —) **show returns one section, so reading the designs behind a set of related lines is one call each** — A task that fans out over several lines pays a round trip per design, and the cheap alternative is reading the prose file directly, which is the thing roadkeep exists to stop. → §RK1685
+- 📋 **RK1686** (deps: —) **`weight` reads a commit whole, so a task that regenerated 37 sprites prices at 770 lines against 78 authored** — A project that commits its generated art is sized by its generator, so the read that sizes the next line is wrong in the blocks that generate most. → §RK1686
+- 💭 **RK1687** (deps: —) **`evidence` matches a regex over text, so a task whose proof is a number out of a PNG or a WAV declares none** — The proof then survives only as the last prose line of a design section, which is the one thing `ship` deletes. → §RK1687
+- 📋 **RK1688** (deps: —) **`show` drops a path written as a bare filename, so a section naming five sprites reports none of them** — An asset is named by its basename because that is what its generator calls it, so a task whose files are all art names none it can be held to. → §RK1688
+
 ## Block D — The gate
 
 ## Block E — Adoption
