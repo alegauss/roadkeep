@@ -12,6 +12,31 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
+### §RG265 The files as a tree of their own
+
+Two flat lists of paths share one panel with the landing. A session that touched twenty
+files under four folders draws twenty full paths, each repeating its prefix, and a
+reader asking what changed under `commitclerk/` reads every row to find out — in a
+column already three answers deep before the files start.
+
+The files get a card of their own, and the paths become a tree: one node per segment,
+the way an editor's explorer draws a working tree. What a row says today — the call
+count, `governed`, `failed`, the disk's standing, the disagreement — stays on the leaf,
+being a fact about a file and not a folder. Opening a leaf still opens the file as the
+disk holds it (RG245).
+
+A folder with one child folder under it is drawn as one row, `a/b/c`, the way an
+explorer collapses a run nobody branches at. Otherwise a project whose files sit four
+folders deep is four rows of indentation before the first name.
+
+**Splitting is not this app folding a path.** RG65 and RG98 keep that with the side that
+has the platform, and both lists arrive spelled: `MovedPath.path` and `EditedFile.shown`
+are relative to the root with forward slashes, said so in their types. The tree groups
+on the separator it was handed and asks no platform question — and a path the shell
+calls outside the root stays a row of its own.
+
+Both lists take the same tree: two accounts of the same folders.
+
 ## Block G — The shell (an executable now, a service later)
 
 ### §RG49 The signature, and what it needs that code cannot supply
@@ -53,3 +78,26 @@ digest is then required to carry that set.
 
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
+
+### §RG264 A width no route can miss
+
+RG237 gave the session the window's width, because its three regions inside a 64rem
+column left the stream about 360 pixels. RG263 added a second route to the same screen
+and the table did not follow, so a session handed a gate finding is drawn in the reading
+column — the exact defect RG237 named, back on a route nobody listed.
+
+`FULL_WIDTH` names routes one at a time, which is why. That is the right shape for a
+table about layout and the wrong one to leave unguarded: a third session route would be
+narrow the same way and nothing would fail. So the guard is the point. Every route the
+`Session` element answers takes the full width, checked against the router's own table
+rather than a second list beside it — `SURFACES` already pairs each path with its
+element, so a route added without a width is a red run instead of a narrow screen.
+
+The table stays a list and does not become a rule about path shapes. A route is
+full-width because of what it draws, not because its pattern contains a word: matching
+on `session` would make the width depend on a spelling, and a screen renamed would
+silently change column.
+
+Nothing else moves. `reading` is still every other page at 64rem, and the session's own
+grid — two side bars from `xl`, beside the stream below it — is what RG237 settled and
+this does not reopen.

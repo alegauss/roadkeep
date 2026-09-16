@@ -14,11 +14,15 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
+- 📋 **RG265** (deps: —) **the files a session touched are two flat lists of full paths, sharing a panel with what moved in the backlog** — The files take a card of their own, drawn as a folder tree the way an editor's explorer draws a working tree. → §RG265
+
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
 
 ## Block H — The look (a design system for governed prose)
+
+- 📋 **RG264** (deps: —) **a session handed a gate finding is drawn in the reading column, since the width table names one session route** — Every route the session screen answers takes the window's width, and a guard reads that off the router's own table. → §RG264
 
 ## Done when — Block A
 
