@@ -999,6 +999,79 @@ class Landed:
         return bool(self.proposed_in)
 
 
+@dataclass(frozen=True, slots=True)
+class Landings:
+    """The three walks :func:`landed_since` takes, made once for a read that asks about many
+    (RK1685).
+
+    Every input to that reading is a fact about the **repository**, not about the id: which
+    commit first wrote each id into each of two files, and the one ordering that puts those
+    two files on one axis. So a read joining thirteen designs was paying thirty-nine walks for
+    three answers — ~340 ms per id, and the fan-out this exists for is exactly where that is
+    multiplied.
+
+    Held rather than recomputed, and never cached across calls: the walks are a reading of the
+    tree at the moment the command ran, and a process that answered twice from one would be
+    reporting a repository that had moved on. One command, one reading.
+
+    :attr:`ready` is False where any of the three could not answer, and that is a **stated**
+    absence rather than a zero — every id then reads as unknown, which is what a checkout with
+    no git honestly is.
+    """
+
+    proposed: Mapping[str, str]
+    filed: Mapping[str, str]
+    order: Mapping[str, int]
+    #: Whether the walks answered at all. False keeps :meth:`of` returning the unknown reading
+    #: for every id, rather than a zero a caller would print as a quiet block.
+    ready: bool = True
+
+    def of(self, config: Config, task_id: str, block: str) -> Landed:
+        """:class:`Landed` for one id, off walks this record already made."""
+        if not self.ready:
+            return Landed(task_id=task_id, block=block)
+        proposed = self.proposed.get(task_id)
+        if proposed is None:
+            return Landed(task_id=task_id, block=block)
+        at = self.order.get(proposed)
+        if at is None:
+            return Landed(task_id=task_id, block=block)
+        return Landed(
+            task_id=task_id,
+            block=block,
+            entries=sum(
+                1
+                for entry in config.document("changelog").block(block)
+                if (sha := self.filed.get(entry.task.id)) is not None
+                and self.order.get(sha, -1) > at
+            ),
+            proposed_in=proposed[:8],
+        )
+
+
+#: The reading a repository that cannot answer produces: every id unknown, nothing zero.
+_UNWALKED = Landings(proposed={}, filed={}, order={}, ready=False)
+
+
+def landings(config: Config) -> Landings:
+    """The three walks, made once (RK1685).
+
+    Every failure the per-id read had, made once and in the same order: a project with no
+    changelog on disk, and a checkout where the walk itself cannot answer. Both produce the
+    unknown reading rather than a zero, for :class:`Landed`'s reason.
+    """
+    if not config.on_disk("changelog"):
+        return _UNWALKED
+    try:
+        return Landings(
+            proposed=added_ids(config, "roadmap"),
+            filed=added_ids(config, "changelog"),
+            order=ordering(config, ("roadmap", "changelog")),
+        )
+    except (HistoryUnavailable, OSError):
+        return _UNWALKED
+
+
 def landed_since(config: Config, task_id: str, block: str) -> Landed:
     """Read :class:`Landed` for one open line, in the three walks it takes (RK1628).
 
@@ -1014,31 +1087,11 @@ def landed_since(config: Config, task_id: str, block: str) -> Landed:
     Empty where any of the three cannot answer, and empty is a **stated** absence rather than
     a zero: `known` is False, and a caller that printed `0 entries since` about a checkout with
     no git would be reporting a quiet block that is nothing of the kind.
+
+    One id off :func:`landings`, which is where the walks now live (RK1685): a caller asking
+    about several makes them once and this one is what asking about one still reads.
     """
-    if not config.on_disk("changelog"):
-        return Landed(task_id=task_id, block=block)
-    try:
-        proposed = added_ids(config, "roadmap").get(task_id)
-        if proposed is None:
-            return Landed(task_id=task_id, block=block)
-        filed = added_ids(config, "changelog")
-        order = ordering(config, ("roadmap", "changelog"))
-    except (HistoryUnavailable, OSError):
-        return Landed(task_id=task_id, block=block)
-    at = order.get(proposed)
-    if at is None:
-        return Landed(task_id=task_id, block=block)
-    return Landed(
-        task_id=task_id,
-        block=block,
-        entries=sum(
-            1
-            for entry in config.document("changelog").block(block)
-            if (sha := filed.get(entry.task.id)) is not None
-            and order.get(sha, -1) > at
-        ),
-        proposed_in=proposed[:8],
-    )
+    return landings(config).of(config, task_id, block)
 
 
 @dataclass(frozen=True, slots=True)

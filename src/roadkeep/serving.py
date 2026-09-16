@@ -2027,7 +2027,12 @@ def _property(
     described = {"description": _joined(help_, note)}
     if isinstance(action, argparse._StoreTrueAction):  # noqa: SLF001
         return {"type": "boolean", **described}
-    if isinstance(action, argparse._AppendAction):  # noqa: SLF001
+    if isinstance(action, argparse._AppendAction) or action.nargs == "+":
+        # Two spellings of one shape (RK1685). A repeatable flag is `--dep a --dep b` and a
+        # repeatable positional is `show RK1 RK2`, and to a client validating a schema they
+        # are the same array — so the mapping is read off what the action *accepts* rather
+        # than off which class argparse built for it, and a third spelling cannot be the one
+        # that silently published `"type": "string"` for a field taking a list.
         return {"type": "array", "items": {"type": "string", **bounds}, **described}
     return {"type": "string", **bounds, **described}
 
@@ -2468,7 +2473,9 @@ def _bounded(dest: str, value: Any, config: Config) -> None:
 def _rendered(action: argparse.Action, dest: str, value: Any) -> list[str]:
     """One JSON value as the argv fragment its own argparse action reads."""
     if not action.option_strings:
-        return [_one(dest, value)]
+        # A positional taking several is the argv itself and carries no flag to repeat
+        # (RK1685) — `show RK1 RK2`, against `--dep a --dep b` below.
+        return _many(dest, value) if action.nargs == "+" else [_one(dest, value)]
     flag = action.option_strings[0]
     if isinstance(action, argparse._StoreTrueAction):  # noqa: SLF001
         return [flag] if value else []

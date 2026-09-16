@@ -695,7 +695,9 @@ def test_every_subject_this_verb_dispatches_is_declared_with_a_cadence():
 #: through `serving.argv` and never by hand. Only the tools whose parser declares a required
 #: positional appear: everything else takes its flag and nothing more.
 _SUPPLIED: dict[str, dict[str, object]] = {
-    "show": {"id": "RK1"},
+    # An array, because `show` takes one id or several and the positional is repeatable
+    # (RK1685) — the same shape every other list-valued field on this surface publishes.
+    "show": {"id": ["RK1"]},
     "block drop": {"label": "B"},
     "block merge": {"label": "A"},
     "restate": {"id": "RK1", "symptom": "A restated symptom, plainly long enough"},

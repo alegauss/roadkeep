@@ -1616,7 +1616,9 @@ def _mistyped(tmp_path: Path) -> Path:
         (["list", "--nope"], (["list", "--help"],)),
         # A stray positional, which keeps its own sentence: naming the flags of a verb that
         # takes an id would be advice about a mistake nobody made.
-        (["show", "TT1", "TT2"], (["show", "--help"],)),
+        # `deps` and no longer `show`, which takes one id or several since RK1685 — so two
+        # ids there is the call working rather than the mistake this row is about.
+        (["deps", "TT1", "TT2"], (["deps", "--help"],)),
         # A flag before the verb is the top level's, so the door carries no verb at all.
         (["--vers", "list"], (["--help"],)),
     ],

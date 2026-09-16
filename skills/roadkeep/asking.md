@@ -229,6 +229,12 @@ sidecar — which governed files a verb wrote and which nothing did, moving no b
 where the `Stop` hook states it once and consumes it; `show <id>` joins one line, its
 section and its paths, and on a ledger entry whose bullet **wraps** it prints every line
 that entry owns — which is the count `record amend --lines` asks you to have read;
+`show <id> <id> …` is that join over **several ids in one read**, which is what a task
+fanning out over related lines wants — the design is where each awaited artefact is named,
+and one call per design costs more than reading the prose file, which is the read this tool
+replaces. One id answers with the object it always did; several add `asked` and `views`, so
+the shape says which it is. An id in neither file **refuses the whole call**, each absent one
+carrying its own reason: a join that came back short is the failure being replaced.
 `show <id> --no-body` is the same join with the prose left out, keeping the line and where
 the prose is, which is what a caller placing a call wants and not the paragraph; `deps
 <id>` walks the graph both ways; `gaps` resolves an id in neither file against the commit

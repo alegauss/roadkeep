@@ -192,7 +192,17 @@ characters = 2850
 # reading here is 67665. Nothing was trimmed to pay for it: the description had no
 # paragraph nobody had edited, which is the test RK1059 sets before a raise. 67790 leaves
 # 125, the discipline of the 125 above it.
-session = 67790
+# Raised from 67790 for the read this task is about (RK1685): `show` takes one id or
+# several, and the caller that fans out over related lines is the agent on this
+# transport - thirteen designs was thirteen round trips, each carrying a line, its deps
+# and its non-goals the fan-out never wanted. 214 characters, and the reading here is
+# 67982. What the headroom buys is the only caller the defect was measured on: a
+# repeatable positional the CLI alone could reach would leave the agent paying exactly
+# the round trips this closes, which is the withheld-flag mistake RK1369 named. Paid for
+# first out of its own new prose, which is the test RK1059 sets before a raise - the
+# description and the id's help came to 308 and were cut to 214 before this number
+# moved. 68100, headroom 118, which is the discipline of the 125 above it.
+session = 68100
 
 [budgets]
 # Files loaded on every turn, and what each may cost (RK30). This budget lived in prose at

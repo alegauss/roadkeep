@@ -62,7 +62,7 @@ from roadkeep.rendering import (
     answered,
 )
 from roadkeep.serving import Prose, Withheld, detail, surface
-from roadkeep.showing import show
+from roadkeep.showing import show, views
 from roadkeep.verbs.declaring import (
     _DESIGNED_HELP,
     _HAVE_COUNTING_HELP,
@@ -490,18 +490,38 @@ def _brief(config: Config, args: argparse.Namespace) -> Result | int:
 
 
 def _show(config: Config, args: argparse.Namespace) -> Result | int:
-    """One task, whole, from every file that holds a piece of it (RK9).
+    """One task, whole, from every file that holds a piece of it (RK9) — or several (RK1685).
 
     Both registers come off the record (RK1170): `View` is the answer, and its two readings were a
     printer here and a builder in `rendering.py` — one verb spelled in two files, with neither
     holding both. What is left here is the door.
+
+    **One id answers exactly as it always did**, and that is the whole of the compatibility
+    rule here: the payload for a single task is the object it has been, not a list of one. A
+    read whose shape depends on how many arguments it was given is one a client branches on,
+    so the branch is made where a caller can see it — `views` is present when and only when
+    more than one id was asked for, which is the fact RK1476 says a changing payload owes its
+    reader.
     """
     try:
-        view = show(config, args.id)
+        found = views(config, args.id)
     except (KeyError, OSError) as error:
         return _refused(error)
 
-    return Result(view.payload(body=not args.no_body), view.stated(config, body=not args.no_body))
+    body = not args.no_body
+    if len(found) == 1:
+        view = found[0]
+        return Result(view.payload(body=body), view.stated(config, body=body))
+    return Result(
+        {
+            "asked": len(found),
+            "views": [view.payload(body=body) for view in found],
+        },
+        # A blank line between joins, which is what separates them on a terminal: each one is
+        # already several rows, and a reader scanning for the next id needs the gap the rows
+        # inside a join do not have.
+        "\n\n".join(view.stated(config, body=body) for view in found),
+    )
 
 
 def _cost(config: Config, args: argparse.Namespace) -> Result | int:
@@ -2248,14 +2268,20 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
 
     show_parser = subcommands.add_parser(
         "show",
-        help="one task: its line, its rationale section and the paths it names",
+        help="one task or several: the line, the rationale section and the paths named",
         description=(
             "Join what a task is out of the files that hold a piece of it. Nothing is "
             "stored to make this possible: the section is found by the pointer, and a "
-            "pointer that resolves to nothing is reported as the absence it is."
+            "pointer that resolves to nothing is reported as the absence it is. Several "
+            "ids are one read, and one of them in neither file refuses the whole call: a "
+            "join that came back short is the failure this replaces."
         ),
     )
-    show_parser.add_argument("id", help="the task, e.g. RK12")
+    show_parser.add_argument(
+        "id",
+        nargs="+",
+        help="the task, e.g. RK12 — several are one read, not a round trip each",
+    )
     show_parser.add_argument(
         "--no-body",
         dest="no_body",

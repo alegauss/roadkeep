@@ -547,9 +547,13 @@ def test_a_nested_verb_answers_for_itself(tmp_path, capsys):
 
 def test_one_argument_too_many_is_a_different_sentence(tmp_path, capsys):
     """A stray positional is not a flag typo, and naming the flags of a verb that takes an
-    id would be advice about a mistake nobody made."""
+    id would be advice about a mistake nobody made.
+
+    Asked of `deps` and no longer of `show`, which takes one id or several since RK1685 — two
+    ids there is the call working, which is a poor fixture for the argument that is one too
+    many."""
     project(tmp_path)
-    assert main(["-C", str(tmp_path), "show", "RK1", "RK2"]) == EXIT_USAGE
+    assert main(["-C", str(tmp_path), "deps", "RK1", "RK2"]) == EXIT_USAGE
     err = capsys.readouterr().err
     assert "takes no further argument" in err and "'RK2'" in err
     assert "declares no" not in err

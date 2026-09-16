@@ -23,7 +23,7 @@ from conftest import git
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.kernel.schema import DESIGNED, SHIPPED
-from roadkeep.showing import NoSuchTask, paths_in, show
+from roadkeep.showing import NoSuchTask, NoSuchTasks, paths_in, show, views
 
 HERE = Path(__file__).resolve().parents[1]
 
@@ -88,6 +88,89 @@ def test_the_line_and_its_section_arrive_together(tmp_path):
     assert view.task.symptom == "A first symptom"
     assert view.section is not None and view.section.title == "A first design"
     assert view.section_absence == ""
+
+
+# -- several joins in one read (RK1685) ---------------------------------------
+
+
+def test_several_ids_are_one_read_and_each_carries_its_own_join(tmp_path):
+    """RK1685. A task fanning out over related lines needs each one's **design**, and one id
+    per call made the correct consultation cost more than reading the prose file — which is
+    the read this tool exists to replace."""
+    config = project(tmp_path)
+    found = views(config, ["RK1", "RK2", "RK4"])
+    assert [view.task.id for view in found] == ["RK1", "RK2", "RK4"]
+    # Each is the join `show` makes, and not a listing that happens to carry an id: the
+    # section body is what the fan-out came for, and the shipped one's absence carries the
+    # reason a ship deletes it.
+    assert found[0].section is not None and "first.md" in found[0].section.body
+    assert found[1].shipped and "deleted on ship" in found[1].section_absence
+    assert found[2].section_absence.endswith("the pointer resolves to nothing")
+
+
+def test_one_id_is_still_the_answer_it_was(tmp_path, capsys):
+    """The compatibility rule: a single id answers with the object it always did, never a
+    list of one. A payload whose shape depends on how many arguments it was given is one a
+    client branches on, so the branch is where the caller can see it (RK1476's own rule)."""
+    config = project(tmp_path)
+    assert views(config, ["RK1"])[0].payload() == show(config, "RK1").payload()
+
+    root = config.root
+    assert main(["-C", str(root), "show", "RK1", "--json"]) == EXIT_OK
+    alone = json.loads(capsys.readouterr().out)
+    assert alone["id"] == "RK1" and "views" not in alone
+
+    assert main(["-C", str(root), "show", "RK1", "RK4", "--json"]) == EXIT_OK
+    several = json.loads(capsys.readouterr().out)
+    assert several["asked"] == 2
+    assert [one["id"] for one in several["views"]] == ["RK1", "RK4"]
+
+
+def test_an_id_that_is_not_there_refuses_the_whole_join(tmp_path):
+    """The design's own argument. What this replaces is a script matching headings by anchor,
+    whose failure is that *the extract comes back short with nobody the wiser* — so a join
+    that quietly returned twelve of thirteen would be that failure with a command behind it.
+
+    Every absent id carries its own reason, because a caller holding thirteen wants to know
+    which one is a typo and which was retired."""
+    config = project(tmp_path)
+    with pytest.raises(NoSuchTasks) as caught:
+        views(config, ["RK1", "RK99", "RK4", "RK98"])
+    said = caught.value.args[0]
+    assert "RK99, RK98" in said and "nothing was joined" in said
+    # Per id and not once for the call: two rows, each with the reason for that id.
+    assert said.count(NoSuchTask.ABSENT) == 2
+    assert [task_id for task_id, _ in caught.value.missing] == ["RK99", "RK98"]
+
+    # And one id missing is still the refusal it was, which is what keeps `show RK99`
+    # answering in the vocabulary its caller used.
+    with pytest.raises(NoSuchTask):
+        views(config, ["RK99"])
+
+
+def test_an_id_named_twice_is_joined_once(tmp_path):
+    """Duplicates collapse in first-seen order: a caller composing ids out of two earlier
+    answers should not pay for the overlap, and an id is one task however often it is named."""
+    found = views(project(tmp_path), ["RK4", "RK1", "RK4"])
+    assert [view.task.id for view in found] == ["RK4", "RK1"]
+
+
+def test_the_walks_behind_the_distance_are_made_once_for_the_whole_read(tmp_path, monkeypatch):
+    """RK1685. `landed` is three git walks whose every input is a fact about the repository
+    and not about the id, so a per-id read paid thirty-nine of them for three answers — and
+    the multiplication lands exactly on the call this verb adds."""
+    import roadkeep.history as history
+
+    config = project(tmp_path)
+    walks = []
+    real = history.added_ids
+    monkeypatch.setattr(
+        history, "added_ids", lambda cfg, role: walks.append(role) or real(cfg, role)
+    )
+    views(config, ["RK1", "RK4"])
+    # Two open lines, and the walk is not repeated for the second: what varies per id is the
+    # lookup, and nothing that costs git.
+    assert walks.count("roadmap") <= 1
 
 
 def test_the_distance_since_a_line_was_proposed_reaches_both_reads(tmp_path):

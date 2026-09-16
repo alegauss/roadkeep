@@ -628,14 +628,25 @@ def _served(name: str, config: Config) -> dict:
     return descriptor(tool, config)["inputSchema"]["properties"]
 
 
-def _minimal(tool: Tool) -> dict[str, str]:
+def _minimal(tool: Tool) -> dict[str, object]:
     """The required arguments, filled with anything: this is about the argv, not the values.
 
     Plus the prose argument where leaving it out would go to the pipe (RK171): that argv is one
     this surface refuses, so it is not part of any minimum that is meant to parse.
+
+    Filled to the **published type** and not to a string (RK1685): `show` takes one id or
+    several, so its required positional is an array here, and a fixture that hard-coded a
+    scalar was describing the surface as it happened to be rather than as it is declared. Read
+    off the descriptor this function already builds, so a second such field cannot be the one
+    that is forgotten.
     """
-    required = descriptor(tool, Config.default())["inputSchema"].get("required", [])
-    filled = {name: "RK1" if name == "id" else "x" for name in required}
+    schema = descriptor(tool, Config.default())["inputSchema"]
+    required = schema.get("required", [])
+    properties = schema.get("properties", {})
+    filled: dict[str, object] = {}
+    for name in required:
+        one = "RK1" if name == "id" else "x"
+        filled[name] = [one] if properties.get(name, {}).get("type") == "array" else one
     for prose in prose_of(tool.command):
         if prose.dest in tool.unconditional and prose.reached_by(filled):
             filled[prose.dest] = "The prose, passed as a string because there is no pipe."
@@ -1471,7 +1482,7 @@ def _watched_transport():
         sys.stdin = saved
 
 
-def _variants(tool: Tool) -> list[dict[str, str]]:
+def _variants(tool: Tool) -> list[dict[str, object]]:
     """The argvs worth trying: the minimum, plus every shape a `Prose` calls a pipe read.
 
     Plural since RK329, `add` declaring two: the section body and the `why`. A loop over

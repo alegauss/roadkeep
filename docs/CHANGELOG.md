@@ -504,6 +504,7 @@
   checked **Every key the listing already published is unchanged** non_goals stays a list of strings and the elided count and the quoted map keep their types, because a client outside this process reads them today.
 - ✅ **RK1677** **list --role deferred --json carries no age for a pause, which --stale computes and prints only for a terminal** — list --stale --json gives each pause its since and reason, oldest first under an order key, and both registers age one selection (design recorded in `src/roadkeep/counting.py`).
 - ✅ **RK1680** **list prints no readiness per line, so a consumer resolves deps once per row to draw a column it already counted** — Every roadmap row of the list payload carries its readiness, and --startable narrows to the lines no dep and no absent requirement is holding up.
+- ✅ **RK1685 (the multi-id read)** **show returns one section, so reading the designs behind a set of related lines is one call each** — show takes one id or several, so a fan-out over related lines joins every design in one read, with the three git walks behind the distance made once instead of once per id.
 
 ## Block D — The gate
 

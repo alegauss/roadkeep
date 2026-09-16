@@ -28,13 +28,13 @@ from __future__ import annotations
 
 import os
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
 from roadkeep.config import DESIGN_ROLES, PROSE_ROLES, Config
 from roadkeep.kernel.document import Document, Entry
-from roadkeep.history import Landed, indexed, landed_since
+from roadkeep.history import Landed, Landings, indexed, landings
 from roadkeep.provenance import invocation
 from roadkeep.kernel.schema import Task, dismissal_premise
 from roadkeep.sections import Section, addressable, declaring, find, heading_of
@@ -71,6 +71,9 @@ class NoSuchTask(KeyError):
 
     def __init__(self, task_id: str, where: tuple[str, ...], instead: str = "") -> None:
         self.task_id = task_id
+        #: The files that were asked, so a caller joining several ids composes one refusal
+        #: naming them all rather than repeating this sentence per id (RK1685).
+        self.where = where
         #: The verb one word away, where the argument turned out to address a section
         #: (RK1025). Empty on the ordinary case, which is an id nothing carries.
         self.instead = instead
@@ -244,8 +247,87 @@ class View:
         }
 
 
-def show(config: Config, task_id: str) -> View:
-    """Join the line, its section and the paths it names. Reads; never writes."""
+class NoSuchTasks(KeyError):
+    """Several ids asked for and at least one in neither governed file (RK1685).
+
+    :class:`NoSuchTask`'s plural, and a separate type because the **decision** differs: one id
+    missing is the whole of that call, while here twelve of thirteen resolved and the answer
+    could have been returned short. It is not, and that is the design's own argument — the read
+    this verb replaces is a script matching headings by anchor, whose failure is that *the
+    extract comes back short with nobody the wiser*. A join that silently dropped an id would
+    be that failure with a command's authority behind it.
+
+    Every absent id carries its own reason, for :func:`_instead`'s: a caller holding thirteen
+    ids wants to know which one is a typo, which is paused and which was retired, and a
+    refusal naming only the first turns one fix into a conversation.
+    """
+
+    def __init__(self, missing: Sequence[tuple[str, str]], where: tuple[str, ...]) -> None:
+        self.missing = tuple(missing)
+        named = ", ".join(task_id for task_id, _ in missing)
+        rows = "\n".join(
+            f"  {task_id}  {reason or NoSuchTask.ABSENT}" for task_id, reason in missing
+        )
+        super().__init__(
+            f"{named} in neither {' nor '.join(where)}, and nothing was joined: a read "
+            f"that came back short is the failure this one replaces\n{rows}"
+        )
+
+
+def views(config: Config, task_ids: Sequence[str]) -> tuple[View, ...]:
+    """Several tasks in one read, each joined exactly as :func:`show` joins one (RK1685).
+
+    The fan-out is the shape this exists for: an instrument carrying an entry per roadmap line
+    waiting on an external release needed each line's **design**, because the design is where
+    the awaited artefact is named, and thirteen designs was thirteen round trips — each one
+    carrying a line, its deps, its blocker chain and its non-goals that the fan-out never
+    wanted. What the session did instead was read the prose file with a script, matching
+    headings by anchor, which is the read this tool exists to replace.
+
+    **The walks are made once** (:func:`~roadkeep.history.landings`). `landed` is three git
+    walks whose every input is a fact about the repository rather than about the id, so a
+    per-id read was paying thirty-nine of them for three answers — and the multiplication
+    lands exactly on the call this verb adds.
+
+    **This answer is not bounded yet, and that is what is left of RK1685.** The caller names
+    every id, so the width is one its own author chose — but that is not the property `[reads]`
+    holds, which is that an answer this tool composes fits the transport carrying it: forty ids
+    is a payload composed, returned, refused, and exited 0 over, which is RK1476's measured
+    failure reachable through a second verb. Block C's own criterion asks for the bound in so
+    many words. It is a `[reads] show` key with its own argument, hence a second slice rather
+    than a paragraph here.
+
+    Duplicates collapse, in first-seen order: an id named twice is one task, and a caller
+    composing ids out of two earlier answers should not pay for the overlap.
+    """
+    ordered = tuple(dict.fromkeys(task_ids))
+    walked = landings(config)
+    if len(ordered) == 1:
+        # One id is no join, so its refusal is the one it has always been: `NoSuchTask`
+        # carries the redirect to `section show`, the paused store's answer and history's,
+        # each written in the vocabulary the caller was using (RK1025, RK1341, RK1618).
+        # Wrapping that in a plural would restate one answer as a list of one.
+        return (show(config, ordered[0], walked=walked),)
+    found: list[View] = []
+    missing: list[tuple[str, str]] = []
+    asked: tuple[str, ...] = ()
+    for task_id in ordered:
+        try:
+            found.append(show(config, task_id, walked=walked))
+        except NoSuchTask as error:
+            asked = error.where
+            missing.append((task_id, error.instead))
+    if missing:
+        raise NoSuchTasks(missing, asked)
+    return tuple(found)
+
+
+def show(config: Config, task_id: str, *, walked: Landings | None = None) -> View:
+    """Join the line, its section and the paths it names. Reads; never writes.
+
+    ``walked`` is the three git walks a caller asking about several ids already made (RK1685).
+    Absent, they are made here, which is what asking about one has always cost.
+    """
     entry, role, document = _locate(config, task_id)
     section, section_file, section_role, absence = _rationale(
         config, entry, shipped=role == "changelog"
@@ -278,10 +360,15 @@ def show(config: Config, task_id: str) -> View:
         # **Three git walks, ~340 ms**, paid here and not by `pick`, which is 2 ms and runs
         # every loop iteration — RK1547's own call about the deferred count, made again with
         # the same arithmetic. This read and `brief` are the two a picker takes deliberately.
+        # Made once for a caller asking about several (RK1685): every input to them is a fact
+        # about the repository and not about this id, so a fan-out was paying per id for an
+        # answer that does not vary.
         landed=(
             None
             if role == "changelog"
-            else landed_since(config, entry.task.id, entry.task.block)
+            else (walked if walked is not None else landings(config)).of(
+                config, entry.task.id, entry.task.block
+            )
         ),
     )
 
