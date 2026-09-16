@@ -360,6 +360,7 @@ export const EN = {
   'gate.about': 'What the governed files say about themselves, and what closes each finding.',
   'gate.run': 'Run the gate',
   'gate.running': 'Running the gate.',
+  'gate.running.taken': '{taken}s of the {ceiling}s it is given.',
   'gate.failed': 'The gate did not run: {reason}',
   'gate.unreadable': 'The gate answered something this build could not read: {reason}',
   'gate.held.clean': 'Clean when it last ran.',

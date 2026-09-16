@@ -343,6 +343,7 @@ export const PT_BR: Wording = {
   'gate.about': 'O que os arquivos governados dizem de si, e o que encerra cada achado.',
   'gate.run': 'Rodar a verificação',
   'gate.running': 'Rodando a verificação.',
+  'gate.running.taken': '{taken}s dos {ceiling}s que ela tem.',
   'gate.failed': 'A verificação não rodou: {reason}',
   'gate.unreadable': 'A verificação respondeu algo que esta versão não sabe ler: {reason}',
   'gate.held.clean': 'Limpo quando rodou pela última vez.',

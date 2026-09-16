@@ -1,10 +1,11 @@
 import { counted, refusalOf, type GateHealth, type Gated, type LintPayload } from '@rk/core'
-import { Button } from '@viglet/viglet-design-system'
+import { Button, Progress } from '@viglet/viglet-design-system'
 import { BentoEmptyState, BentoPanel } from '@viglet/viglet-design-system/bento'
-import { useCallback, useEffect, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 
 import { DoorRow } from './Doors'
 import { Caption } from './forms'
+import { readDeadline } from './launch'
 import { Pill } from './marks'
 import { useExplained, type Explained, type Explaining } from './useExplained'
 import { useGate, worthRunning } from './useGate'
@@ -206,6 +207,58 @@ function Held({ health }: { readonly health: GateHealth }) {
   )
 }
 
+/**
+ * A call that is out, drawn against the deadline that bounds it (RG262).
+ *
+ * **The seconds are the animation.** A bar that only spins says something is still going; this
+ * one says how much of the deadline has gone, which is the whole of what this screen knows —
+ * and a bar at its end is a call about to be given up, not one about to answer.
+ *
+ * **Said as well as drawn**, because a reader who cannot watch a bar advance is the reader who
+ * most needs to know the window has not stopped. The bar's name is the sentence beside it.
+ *
+ * Mounted per call, keyed on `since`, so a door and the gate that follows it each start at
+ * nought rather than sharing one bar.
+ */
+function Running() {
+  const say = useWording()
+  const ceiling = readDeadline()
+  const [taken, setTaken] = useState(0)
+
+  useEffect(() => {
+    const started = Date.now()
+    // Four times a second: fast enough to read as motion, slow enough that the only thing
+    // redrawing on a timer is this paragraph.
+    const tick = setInterval(() => setTaken(Date.now() - started), 250)
+    return () => {
+      clearInterval(tick)
+    }
+  }, [])
+
+  const asSeconds = (ms: number) => Math.round(ms / 100) / 10
+  const part = Math.min(100, Math.round((taken / ceiling) * 100))
+  return (
+    <div className="flex flex-col gap-2" data-testid="running">
+      <p className="text-muted-foreground text-xs">
+        {say('gate.running')}{' '}
+        {say('gate.running.taken', { taken: asSeconds(taken), ceiling: asSeconds(ceiling) })}
+      </p>
+      {/*
+        `aria-valuenow` is passed as well as `value`: the design system's Progress keeps the
+        value for the indicator's transform and does not hand it to the primitive, so the bar
+        moves and the role would otherwise report nothing. The attribute is the component's
+        own contract, not a second component — and it is what a reader not watching hears.
+      */}
+      <Progress
+        className="h-1"
+        aria-label={say('gate.running')}
+        value={part}
+        aria-valuenow={part}
+      />
+    </div>
+  )
+}
+
 /** What the run counted, which is the engine's sentence about its own read. */
 function Counted({ payload }: { readonly payload: LintPayload }) {
   const say = useWording()
@@ -270,11 +323,7 @@ export function GateTab({ root }: { readonly root: string }) {
         </Button>
         <span className="text-muted-foreground text-xs">{say('gate.about')}</span>
       </div>
-      {gate.kind === 'running' ? (
-        <p className="text-muted-foreground text-xs" data-testid="running">
-          {say('gate.running')}
-        </p>
-      ) : null}
+      {gate.kind === 'running' ? <Running key={gate.since} /> : null}
       {gate.kind === 'failed' ? (
         <BentoPanel contentClassName="p-6">
           <BentoEmptyState title={say('gate.failed', { reason: refusalOf(gate.reason, say) })} />

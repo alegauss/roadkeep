@@ -132,6 +132,8 @@ interface Wired {
   clean: boolean
   /** What the door answers, so a door that would not run can be drawn (RG260). */
   doorFails: string | null
+  /** Hold the gate out, so the running state is what the screen is drawing (RG262). */
+  gateWaits: boolean
 }
 
 /** What `explain` answers about a code, which is the class and not the line (RG258). */
@@ -207,7 +209,14 @@ async function at(
   const explained: string[] = []
   const transport = engine(explains, explained)
   const opened = openedFrom(await openProject(ROOT, [['python', 'launch.py']], () => transport))
-  const wired: Wired = { gates: [], doors: [], clean: false, doorFails: null, explained }
+  const wired: Wired = {
+    gates: [],
+    doors: [],
+    clean: false,
+    doorFails: null,
+    gateWaits: false,
+    explained,
+  }
 
   Object.defineProperty(window, 'roadkeep', {
     value: stubBridge({
@@ -221,6 +230,9 @@ async function at(
           return bridgedRun(() => transport.run({ ...request, root }))
         }
         wired.gates.push(request)
+        // An engine still running, which no deadline ends here: the bridge is a stub and
+        // RG260's ceiling lives in the transport under it.
+        if (wired.gateWaits) return new Promise<BridgedResult>(() => undefined)
         const answer = wired.clean ? CLEAN : DRIFTED
         return Promise.resolve({
           kind: 'ran',
@@ -374,6 +386,48 @@ describe('RG152: the gate as a surface', () => {
     // And the one-word blank on the door above it is still a one-line box.
     const fills = within(finding).getAllByTestId('door')[0]
     expect(within(fills ?? reads).getByLabelText(BASE['door.blank']).tagName).toBe('INPUT')
+  })
+
+  it('draws a run against the deadline, and the bar advances as it goes (RG262)', async () => {
+    // A gate that does not answer, so the running state is the whole of what is on screen —
+    // which is what a reader saw for minutes with nothing on it moving.
+    const wired = await at(gatePath(ROOT))
+    await screen.findByTestId('counted')
+    wired.gateWaits = true
+    fireEvent.click(screen.getByRole('button', { name: BASE['gate.run'] }))
+
+    const bar = await screen.findByRole('progressbar', { name: BASE['gate.running'] })
+    const first = Number(bar.getAttribute('aria-valuenow') ?? '0')
+
+    await waitFor(
+      () => {
+        expect(Number(bar.getAttribute('aria-valuenow') ?? '0')).toBeGreaterThan(first)
+      },
+      { timeout: 3000 },
+    )
+    // And the same answer in words, for a reader who is not watching a bar move.
+    expect(within(screen.getByTestId('running')).getByText(/s of the/)).toBeTruthy()
+  })
+
+  it('starts the gate’s bar afresh after a door, not where the door left it (RG262)', async () => {
+    const wired = await at(gatePath(ROOT))
+
+    const finding = await screen.findByTestId('finding')
+    const door = within(finding).getAllByTestId('door')[0]
+    if (door === undefined) throw new Error('no door')
+    fireEvent.change(within(door).getByLabelText(BASE['door.blank']), {
+      target: { value: 'A design' },
+    })
+    // Taking a door is two calls end to end. Held apart so the second is observable: the
+    // door answers, the gate is asked, and that ask is what must be drawn from nought.
+    wired.gateWaits = true
+    fireEvent.click(within(door).getByRole('button', { name: BASE['door.take'] }))
+
+    await waitFor(() => {
+      expect(wired.gates).toHaveLength(1)
+    })
+    const bar = await screen.findByRole('progressbar', { name: BASE['gate.running'] })
+    expect(Number(bar.getAttribute('aria-valuenow') ?? '100')).toBe(0)
   })
 
   it('bounds its own run by the declared deadline, so running has a floor (RG260)', async () => {

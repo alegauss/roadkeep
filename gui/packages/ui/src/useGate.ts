@@ -46,7 +46,14 @@ export type Gate =
    * and drawn later would be this app answering about files it has not read.
    */
   | { readonly kind: 'held'; readonly health: GateHealth }
-  | { readonly kind: 'running' }
+  /**
+   * A call is out, and when it went (RG262).
+   *
+   * The moment is carried so the screen can draw how much of the deadline has gone. Taking a
+   * door is two calls end to end — the door, then the gate — and each sets its own, so the
+   * second is not drawn against time the first spent.
+   */
+  | { readonly kind: 'running'; readonly since: number }
   | {
       readonly kind: 'read'
       readonly payload: LintPayload
@@ -142,7 +149,7 @@ export function useGate(root: string): Gating {
 
   /** One answer, read into the shapes above. The same path for a run and for a door. */
   const ran = useCallback((answering: Promise<BridgedResult>) => {
-    setGate({ kind: 'running' })
+    setGate({ kind: 'running', since: Date.now() })
     void answering.then(
       (answered) => {
         if (answered.kind === 'failed') {
@@ -234,7 +241,7 @@ export function useGate(root: string): Gating {
           rerun(saidPlainly(cause instanceof Error ? cause.message : ''))
         },
       )
-      setGate({ kind: 'running' })
+      setGate({ kind: 'running', since: Date.now() })
     },
     [root, gate, rerun],
   )
