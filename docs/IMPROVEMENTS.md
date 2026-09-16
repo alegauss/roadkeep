@@ -79,31 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1685 Several designs in one read
-
-Measured in a consuming project, on a task whose whole shape is a fan-out: one
-instrument had to carry an entry per roadmap line waiting on an external release, and
-the roadmap said thirteen lines. Writing an entry needs each line's design, because the
-design is where the awaited artefact is named — a bin, an export, a type that must
-disappear.
-
-`show` answers one id per call and returns the whole record around the prose. `section
-find` reports which anchors hold a string, with counts, and deliberately not the prose.
-So thirteen designs is thirteen round trips, each carrying a line, its deps, its blocker
-chain and its non-goals, none of which the fan-out wanted. The session did what is cheap
-instead: read the prose file with a script, matching headings by anchor. That is the
-read roadkeep exists to replace, and the one that goes wrong quietly — a renumbered
-anchor, a level-2 heading where a level-3 was assumed, and the extract comes back short
-with nobody the wiser.
-
-A read that answers several ids at once, returning each one's section body and the
-pointer it resolved, would make the correct call the cheap one. Shape it as `show`
-accepting repeated ids, or a verb taking a block, since a fan-out is usually a block or
-a filter rather than a typed list.
-
-The argument is roadkeep's own: a consultation that costs more than reading the file is
-a consultation nobody makes twice.
-
 ### §RK1686 The generator diff is not the task cost
 
 Measured on Cottony, a Godot match-3 and the first game this format has governed. Its

@@ -234,7 +234,11 @@ fanning out over related lines wants — the design is where each awaited artefa
 and one call per design costs more than reading the prose file, which is the read this tool
 replaces. One id answers with the object it always did; several add `asked` and `views`, so
 the shape says which it is. An id in neither file **refuses the whole call**, each absent one
-carrying its own reason: a join that came back short is the failure being replaced.
+carrying its own reason: a join that came back short is the failure being replaced. Where the
+project declares `[reads] show`, a join over it comes back with `views` null at exit 1, naming
+the longest leading run of those ids that fits — the bound `list` applies to itself, for the
+same reason: the transport that refuses an answer cannot tell roadkeep it did. One id is never
+refused by it.
 `show <id> --no-body` is the same join with the prose left out, keeping the line and where
 the prose is, which is what a caller placing a call wants and not the paragraph; `deps
 <id>` walks the graph both ways; `gaps` resolves an id in neither file against the commit

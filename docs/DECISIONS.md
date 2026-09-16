@@ -94,6 +94,7 @@ line already there. Its refusal names `section add` against that line's own anch
 - ✅ **RK1663** **the per-block half of a pin's shape counts the roadmap's headings, so a finished block's entries land in no row** — A per-block reading of a corpus is over the union of both files' headings: a finished block keeps its heading in the ledger, and the rows have to sum to the totals.
 - ✅ **RK1677** **list --role deferred --json carries no age for a pause, which --stale computes and prints only for a terminal** — A listing carries the age keys only where --stale asked: the age is a git call, and a key the caller requested by flag is one it knows to read.
 - ✅ **RK1680** **list prints no readiness per line, so a consumer resolves deps once per row to draw a column it already counted** — Startable means both halves at once: an unsatisfied dep and an absent requirement each disqualify a line, so a narrowed listing never says waiting above zero.
+- ✅ **RK1685** **show returns one section, so reading the designs behind a set of related lines is one call each** — [reads] show bounds a join of several ids and never a call naming one, so a ceiling written for a fan-out cannot refuse the read show has always given.
 
 ### §RK1362 Why a projection and not a wider read
 
@@ -288,6 +289,22 @@ in the payload still counts one axis, because it is `stats`' own figure and a co
 reads one file; the filter reads two, being a verb's answer rather than a census's.
 Every roadmap row carries its `readiness` so that difference is legible rather than
 inferred — which is also what a consumer drew by calling `deps` once per row.
+
+### §RK1685 One ceiling, or one per call
+
+The alternative was one ceiling over every call, which is what `list` has: one number
+and no branch. It was rejected because a listing's width is the file's and the caller
+never chose it, while a join's is the argv's — except for the call naming a single id,
+which is the read `show` has always given and which no number written for a fan-out may
+take away.
+
+So the bound applies from the second id on, and `govern reads.show` measures the widest
+single join rather than a total: a number under that reading is one that breaks `show
+<id>`.
+
+Accepted with it: a caller can still compose a join no transport carries, by naming
+enough ids. What comes back then is the count and the leading run that fits, which is a
+shorter call they can make — not a payload that quietly vanished.
 
 ## Block D — The gate
 

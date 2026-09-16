@@ -837,6 +837,10 @@ IMPOSSIBLE: dict[str, str] = {
     "claims.held": "[claims]\nheld = 1\n",
     "reads.brief": "[reads]\nbrief = 1\n",
     "reads.list": "[reads]\nlist = 1\n",
+    # RK1685, and `reads.list`'s own side of this rule: what it bounds is an answer the verb
+    # declines to compose, so no finding reads it and being over is the state it exists to
+    # produce rather than a red to bring a corpus under.
+    "reads.show": "[reads]\nshow = 1\n",
     "budgets.bytes": '[budgets]\n"agents.md" = { bytes = 1 }\n',
     "budgets.lines": '[budgets]\n"agents.md" = { lines = 1 }\n',
     # RK1673. Declaring either key opens its table, which is what governs the list — so the

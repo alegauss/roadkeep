@@ -187,6 +187,7 @@ WHERE: Mapping[tuple[str, str], object] = {
     ("tools", "session"): None,
     ("reads", "brief"): None,
     ("reads", "list"): None,
+    ("reads", "show"): None,
 }
 
 

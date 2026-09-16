@@ -695,6 +695,11 @@ GATE_VERDICTS: Mapping[str, str] = {
         "which is a bound this verb applies to itself because the transport that refuses "
         "one cannot tell it; declared by the parser, this verb reaching the code nowhere else"
     ),
+    "verbs/querying.py:_show": (
+        "the join is past `[reads] show` and what is printed is the count and the run of ids "
+        "that fits, which is `_list`'s bound over the answer whose width the caller chose; "
+        "declared by the parser, this verb reaching the code nowhere else"
+    ),
     "verbs/querying.py:_verdict": (
         "a draft this read was handed does not fit, which is the one bit the caller asked for"
     ),

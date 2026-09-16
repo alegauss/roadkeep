@@ -34,6 +34,7 @@ from roadkeep.budgeting import (
 from roadkeep.config import Config, PROSE_ROLES, declarable, role_door
 from roadkeep.counting import Census
 from roadkeep.kernel.document import StaleFile, write_all
+from roadkeep.kernel.schema import width
 from roadkeep.exporting import DEFAULTS, project, spec, splice_into
 from roadkeep.graph import Dependencies
 from roadkeep.history import (
@@ -62,7 +63,7 @@ from roadkeep.rendering import (
     answered,
 )
 from roadkeep.serving import Prose, Withheld, detail, surface
-from roadkeep.showing import show, views
+from roadkeep.showing import Overrun, fits_under, show, views
 from roadkeep.verbs.declaring import (
     _DESIGNED_HELP,
     _HAVE_COUNTING_HELP,
@@ -512,16 +513,36 @@ def _show(config: Config, args: argparse.Namespace) -> Result | int:
     if len(found) == 1:
         view = found[0]
         return Result(view.payload(body=body), view.stated(config, body=body))
-    return Result(
-        {
-            "asked": len(found),
-            "views": [view.payload(body=body) for view in found],
-        },
-        # A blank line between joins, which is what separates them on a terminal: each one is
-        # already several rows, and a reader scanning for the next id needs the gap the rows
-        # inside a join do not have.
-        "\n\n".join(view.stated(config, body=body) for view in found),
-    )
+    fields: dict[str, object] = {
+        "asked": len(found),
+        "views": [view.payload(body=body) for view in found],
+    }
+    # A blank line between joins, which is what separates them on a terminal: each one is
+    # already several rows, and a reader scanning for the next id needs the gap the rows
+    # inside a join do not have.
+    said = "\n\n".join(view.stated(config, body=body) for view in found)
+    # Composed first and weighed after, which is `list`'s shape and for its reason (RK1476):
+    # this verb already has the whole answer in hand when the transport refuses it, and the
+    # only thing it cannot do is decline to hand it over. Taken over the register that was
+    # asked for, the two being different sizes.
+    over = width(json.dumps(fields, indent=2) if args.json else said)
+    limit = config.show_read
+    if limit is not None and over > limit:
+        bound = Overrun(
+            characters=over,
+            limit=limit,
+            asked=tuple(view.task.id for view in found),
+            fits=fits_under(config, found, limit, body=body),
+        )
+        # `views` withdrawn to `null`, which says *not joined* where `[]` would say *none
+        # selected* — `Bound`'s own distinction, and the reason every other key stays.
+        return Result(
+            {**fields, "views": None, "bound": bound.payload()},
+            "",
+            noted=bound.stated(),
+            code=EXIT_GATE,
+        )
+    return Result(fields, said)
 
 
 def _cost(config: Config, args: argparse.Namespace) -> Result | int:

@@ -918,7 +918,7 @@ def test_a_reads_table_holding_nobody_to_anything_is_refused(tmp_path):
 
     with pytest.raises(ConfigError) as raised:
         project(tmp_path, extra="[reads]\n")
-    assert "no brief and no list" in "\n".join(raised.value.problems)
+    assert "no brief, no list and no show" in "\n".join(raised.value.problems)
 
 
 def test_each_reads_key_stands_without_the_other(tmp_path):

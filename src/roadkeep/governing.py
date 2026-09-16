@@ -480,7 +480,9 @@ def _current(config: Config, table: str, key: str, *, file: str, role: str) -> i
     if table == "tools":
         return config.tool_characters if key == "characters" else config.tool_session
     if table == "reads":
-        return config.list_read if key == "list" else config.brief_read
+        return {"list": config.list_read, "show": config.show_read}.get(
+            key, config.brief_read
+        )
     if table == "claims":
         return config.held
     if table in SCOPED:
@@ -858,6 +860,60 @@ def _scoped(
     )
 
 
+def _joins(config: Config, address: str, declared: int | None) -> Measured:
+    """What the **widest single join** costs now, which is the floor this ceiling clears (RK1685).
+
+    `show` takes one id or several, so the answer's width is the caller's to choose — and the
+    one width that is not is a call naming a single id, which no ceiling may refuse. So the
+    reading is the widest join of one over the open lines: a number under it is a number that
+    breaks `show <id>`, and `govern` refusing that is the whole reason to measure here rather
+    than to pick a figure out of a transport's documentation.
+
+    It says nothing about how many ids fit, and cannot: that is a fact about a call, and the
+    refusal is where it is answered, in the ids it names.
+    """
+    from roadkeep.counting import Census  # noqa: PLC0415 - RK260
+    from roadkeep.kernel.schema import width  # noqa: PLC0415 - RK260
+    from roadkeep.showing import show  # noqa: PLC0415 - RK260
+
+    widest, where, sites = 0, "", 0
+    for entry in Census.read(config, "roadmap").counted:
+        try:
+            joined = width(show(config, entry.task.id).stated(config))
+        except (KeyError, OSError):
+            # A line this read cannot join is `lint`'s to report with a path, exactly as an
+            # unreadable role is one file over: a `govern` that raised here would answer a
+            # question about a number with a question about a line.
+            continue
+        sites += 1
+        if joined > widest:
+            widest, where = joined, entry.task.id
+    if not sites:
+        return Measured(
+            address=address,
+            unit="utf-16 code units, per join",
+            declared=declared,
+            refuses=False,
+            unmeasured=(
+                "no open line to join, so there is nothing to price — a ceiling declared "
+                "now is one the first task filed measures itself against"
+            ),
+        )
+    return Measured(
+        address=address,
+        unit="utf-16 code units, per join",
+        worst=widest,
+        where=where,
+        sites=sites,
+        declared=declared,
+        # A corpus over this number is not a violation, which is `reads.list`'s own side of
+        # that rule (RK1476): what this bounds is an answer the verb declines to compose, and
+        # the widest join being under it is the property — a join *over* it is a call to
+        # shorten, not a file to bring under a limit.
+        refuses=False,
+    )
+
+
 def _reads(config: Config, address: str, declared: int | None, key: str = "brief") -> Measured:
     """What the widest brief costs now — `cost --brief`'s own reading, taken here (RK1286).
 
@@ -868,6 +924,8 @@ def _reads(config: Config, address: str, declared: int | None, key: str = "brief
     """
     if key == "list":
         return _listings(config, address, declared)
+    if key == "show":
+        return _joins(config, address, declared)
     from roadkeep.budgeting import brief_budget  # noqa: PLC0415 - RK260
 
     found = brief_budget(config)

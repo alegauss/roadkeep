@@ -36,7 +36,8 @@ from roadkeep.config import DESIGN_ROLES, PROSE_ROLES, Config
 from roadkeep.kernel.document import Document, Entry
 from roadkeep.history import Landed, Landings, indexed, landings
 from roadkeep.provenance import invocation
-from roadkeep.kernel.schema import Task, dismissal_premise
+from roadkeep.kernel.schema import Task, dismissal_premise, width
+from roadkeep.remedying import Door
 from roadkeep.sections import Section, addressable, declaring, find, heading_of
 
 #: A path as prose spells one: inside backticks, or as a Markdown link target. Both are
@@ -272,6 +273,98 @@ class NoSuchTasks(KeyError):
             f"{named} in neither {' nor '.join(where)}, and nothing was joined: a read "
             f"that came back short is the failure this one replaces\n{rows}"
         )
+
+
+@dataclass(frozen=True, slots=True)
+class Overrun:
+    """A join over `[reads] show`, and the ids that would have fitted (RK1685).
+
+    :class:`~roadkeep.counting.Bound`'s argument one verb over (RK1476). The answer is composed
+    here, returned, and refused by the transport carrying it — and roadkeep exits 0 having
+    answered, so it never learns the answer did not arrive. That the caller named every id
+    narrows who to blame and not the bytes: the only ceiling that can exist is still one this
+    verb applies to itself.
+
+    What replaces the join is the **selection**: which of the asked ids fit, in the order they
+    were asked. A listing narrows by block because nothing smaller describes a whole file;
+    here the caller already named the ids, so what is owed them is not a different query but
+    the count — the door is their own call with the tail cut off.
+    """
+
+    characters: int
+    limit: int
+    asked: tuple[str, ...]
+    #: The leading ids whose joins fit under the ceiling **together**, in the order asked.
+    #: Empty where not even the first one does, which is a ceiling to re-argue rather than a
+    #: call to shorten — and the case `govern`'s reading is measured to make impossible.
+    fits: tuple[str, ...] = ()
+
+    @property
+    def doors(self) -> tuple[Door, ...]:
+        """The shortening, as the one shape every published command in this package has."""
+        if not self.fits:
+            return ()
+        return (
+            Door(
+                ("show", *self.fits),
+                f"the longest leading run of these ids that fits — {len(self.fits)} of "
+                f"{len(self.asked)}",
+            ),
+        )
+
+    def stated(self) -> str:
+        """The count, for **stderr** — stdout carries the join or nothing at all."""
+        rows = [
+            f"roadkeep: the join is {self.characters} characters against `[reads] show` = "
+            f"{self.limit}, over {len(self.asked)} id(s), so none of it was printed"
+        ]
+        if self.doors:
+            rows += [
+                f"roadkeep: `{one.command}` is the longest leading run that fits "
+                f"({len(self.fits)} of {len(self.asked)})"
+                for one in self.doors
+            ]
+        else:
+            rows.append(
+                "roadkeep: not even the first id fits, so there is no shorter call to "
+                "offer — what is left is `[reads] show` re-argued in roadkeep.toml"
+            )
+        return "\n".join(rows)
+
+    def payload(self) -> dict[str, object]:
+        """What rides the answer's payload where `views` came back `null`.
+
+        Beside the keys the answer already had and never instead of them, which is `Bound`'s
+        rule: a payload that changes shape when it is over is one a caller reads as a
+        different answer rather than as the same one declined.
+        """
+        return {
+            "characters": self.characters,
+            "limit": self.limit,
+            "asked": list(self.asked),
+            "fits": list(self.fits),
+            "doors": [{"command": one.command, "what": one.what} for one in self.doors],
+        }
+
+
+def fits_under(config: Config, found: Sequence[View], limit: int, *, body: bool) -> tuple[str, ...]:
+    """The leading ids whose joins fit under `limit` together, in the order asked (RK1685).
+
+    Leading and not the largest subset: the caller's order is the one thing this read knows
+    about their intent, and a door offering ids 1, 4 and 7 would be a different question
+    answered. Measured on the **printed** register, joined the way the handler joins it, so
+    the door's own call is one that comes back under the ceiling.
+    """
+    taken: list[str] = []
+    running = 0
+    for view in found:
+        one = width(view.stated(config, body=body))
+        # The separator the handler puts between joins, which the door's call would pay too.
+        running += one if not taken else one + 2
+        if running > limit:
+            break
+        taken.append(view.task.id)
+    return tuple(taken)
 
 
 def views(config: Config, task_ids: Sequence[str]) -> tuple[View, ...]:

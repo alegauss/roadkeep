@@ -280,6 +280,19 @@ brief = 3300
 # RK1455 measured one at 117,815 refused after roadkeep had composed and returned it.
 # Raise it against a fresh reading of a block, never against a listing that grew.
 list = 40000
+# What one join of several ids may cost (RK1685), which is list's argument for the
+# answer whose width the caller chose: naming forty ids composes a payload the transport
+# refuses while roadkeep exits 0 having answered, and that the caller chose the width
+# narrows who to blame and not the bytes. Measured here: the four open lines join at
+# 7500, mean 1875, and the widest single join is 1921 - so a section at the 250-word
+# ceiling puts a join near 2000. Thirteen of those is 26000, thirteen being the fan-out
+# this was measured on, and 28000 leaves it under with room for the separators and a
+# line more. It sits between the two numbers above it on purpose: brief at 3300 bounds
+# one line and list at 40000 bounds a whole file, and a join of several designs is
+# neither. Raise it against a fresh reading of a fan-out, never against a call that grew
+# - and never below the widest single join, which is the one width no ceiling may refuse
+# and what govern measures here to make that impossible.
+show = 28000
 
 [limits.decisions]
 # A design says how the work was built and a decision's body says what was weighed

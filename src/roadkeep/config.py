@@ -228,7 +228,7 @@ _TOOLS_KEYS = frozenset({"characters", "session"})
 #: **path**, and a brief is composed per call from the line, its design, the deps, the
 #: non-goals and four allowances. Not `[limits]` either — that table is the widths of the
 #: fields a line carries, and this is the size of an answer about one.
-_READS_KEYS = frozenset({"brief", "list"})
+_READS_KEYS = frozenset({"brief", "list", "show"})
 #: `[install]` — whether this project holds its wired launcher, hook and skill at the version
 #: they are, where a version names **the commit that wrote them** and not a release (RK1192,
 #: RK1543). Its own table and not a `[rules]` entry, because every key there is a prose rule
@@ -783,6 +783,14 @@ class Config:
     #: verb applies to itself. `None` where the project declared none, which is every project
     #: whose files are still short enough that nobody has looked.
     list_read: int | None = None
+    #: `[reads] show` — what one join of several ids may cost, in UTF-16 code units (RK1685).
+    #: `list`'s argument for the answer whose width the caller chose: `show` takes one id or
+    #: several, and a call naming forty of them composes a payload the transport refuses while
+    #: roadkeep exits 0 having answered. That the caller named every id narrows the blame and
+    #: not the bytes — the ceiling still has to be one the verb applies to itself, because it
+    #: is the only party that learns the answer did not arrive. `None` where the project
+    #: declared none, which is every project until a fan-out is wide enough to look.
+    show_read: int | None = None
     tool_characters: int | None = None
     #: `[tools] session` — what the whole served surface may cost at the handshake: every
     #: tool plus the instructions, which is the figure `cost --session` prints (RK1097).
@@ -950,7 +958,7 @@ class Config:
         priority = tuple(_string_list(data.get("priority"), "priority", problems))
         budgets = _budgets(data.get("budgets"), base, problems)
         tool_characters, tool_session = _tool_budget(data.get("tools"), problems)
-        brief_read, list_read = _read_budget(data.get("reads"), problems)
+        brief_read, list_read, show_read = _read_budget(data.get("reads"), problems)
         grammars = _grammars(data.get("grammar"), problems)
         non_goals = _scope(data.get("non_goals"), problems)
         criteria = _scope(data.get("criteria"), problems, "criteria")
@@ -1001,6 +1009,7 @@ class Config:
             budgets=budgets,
             brief_read=brief_read,
             list_read=list_read,
+            show_read=show_read,
             tool_characters=tool_characters,
             tool_session=tool_session,
             grammars=grammars,
@@ -2485,35 +2494,38 @@ def _named(
     return tuple(dict.fromkeys(names))
 
 
-def _read_budget(raw: object, problems: list[str]) -> tuple[int | None, int | None]:
-    """`[reads]` — what an answer this tool composes may cost the caller (RK1286, RK1476).
+def _read_budget(
+    raw: object, problems: list[str]
+) -> tuple[int | None, int | None, int | None]:
+    """`[reads]` — what an answer this tool composes may cost the caller (RK1286, RK1476, RK1685).
 
     Opt-in and refused like every other key here rather than defaulted, which is `[tools]`'
     rule and `[criteria]`'s: a ceiling this tool chose for somebody's answer would be a number
     nobody looked at, and a gate that reported on the first run is one that gets bypassed.
 
-    Two keys, and **independent** — unlike `[tools]`, where `session` is a sum over what
+    Three keys, and **independent** — unlike `[tools]`, where `session` is a sum over what
     `characters` governs and is meaningless without it. `brief` bounds the read that replaces
-    reading the roadmap and `list` bounds the listing over a whole file; a project may want
-    either without the other, and the table's own refusal is the one that fires when it
-    declares neither.
+    reading the roadmap, `list` bounds the listing over a whole file and `show` bounds one
+    join of several ids; a project may want any of them without the others, and the table's
+    own refusal is the one that fires when it declares none.
     """
+    keys = ("brief", "list", "show")
     if raw is None:
-        return None, None
+        return None, None, None
     if not isinstance(raw, Mapping):
         problems.append("reads must be a table of brief = <characters>")
-        return None, None
+        return None, None, None
     _reject_unknown(raw, _READS_KEYS, "reads.", problems)
-    if raw.get("brief") is None and raw.get("list") is None:
+    if all(raw.get(key) is None for key in keys):
         # `[tools]`' own refusal: a table that holds nobody to anything reads as a budget and
         # is exactly the arrangement being replaced.
         problems.append(
-            "reads declares no brief and no list: a table that holds nobody to anything "
-            "reads as a budget and is the arrangement being replaced"
+            "reads declares no brief, no list and no show: a table that holds nobody to "
+            "anything reads as a budget and is the arrangement being replaced"
         )
-        return None, None
+        return None, None, None
     found: list[int | None] = []
-    for key in ("brief", "list"):
+    for key in keys:
         value = raw.get(key)
         if value is not None and (
             not isinstance(value, int) or isinstance(value, bool) or value < 1
@@ -2521,7 +2533,7 @@ def _read_budget(raw: object, problems: list[str]) -> tuple[int | None, int | No
             problems.append(f"reads.{key} must be a positive integer")
             value = None
         found.append(value)
-    return found[0], found[1]
+    return found[0], found[1], found[2]
 
 
 def _tool_budget(raw: object, problems: list[str]) -> tuple[int | None, int | None]:

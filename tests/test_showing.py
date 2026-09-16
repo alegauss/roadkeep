@@ -20,7 +20,7 @@ import pytest
 import corpora
 from composing import runs
 from conftest import git
-from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
+from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.kernel.schema import DESIGNED, SHIPPED
 from roadkeep.showing import NoSuchTask, NoSuchTasks, paths_in, show, views
@@ -153,6 +153,88 @@ def test_an_id_named_twice_is_joined_once(tmp_path):
     answers should not pay for the overlap, and an id is one task however often it is named."""
     found = views(project(tmp_path), ["RK4", "RK1", "RK4"])
     assert [view.task.id for view in found] == ["RK4", "RK1"]
+
+
+def _ceilinged(tmp_path, at: int) -> Config:
+    """The fixture project with `[reads] show` declared, which no project has by default."""
+    project(tmp_path)
+    path = tmp_path / "roadkeep.toml"
+    path.write_text(
+        path.read_text(encoding="utf-8") + f"\n[reads]\nshow = {at}\n", encoding="utf-8"
+    )
+    return Config.discover(tmp_path)
+
+
+def test_a_join_over_the_ceiling_is_declined_rather_than_composed(tmp_path, capsys):
+    """RK1685, on RK1476's argument one verb over. The answer is composed here, returned, and
+    refused by the transport carrying it — and roadkeep exits 0 having answered, so it never
+    learns the answer did not arrive. The only ceiling that can exist is the verb's own."""
+    # RK1 joins at 341 and RK4 at 192, so 400 is a ceiling one of them clears and the pair
+    # does not — which is the case the door exists for.
+    root = _ceilinged(tmp_path, 400).root
+    assert main(["-C", str(root), "show", "RK1", "RK4"]) == EXIT_GATE
+    printed = capsys.readouterr()
+    # Nothing on stdout, which is `list`'s rule about that stream: a consumer gets the empty
+    # answer the exit code explains, never a sentence where the join was.
+    assert printed.out == ""
+    assert "`[reads] show` = 400" in printed.err
+
+    # And the door is the caller's own call with the tail cut off — run, not only quoted.
+    ran = runs(root, printed.err)
+    assert ran and ran[0][0] == "show", printed.err
+
+
+def test_the_door_the_ceiling_offers_comes_back_under_it(tmp_path, capsys):
+    """RK1475's rule: a narrowing offered by a refusal is a command that has to work, and one
+    refusing in turn is worse than none. The run named is the longest leading one that fits,
+    so running it is an answer and not a second refusal."""
+    root = _ceilinged(tmp_path, 400).root
+    assert main(["-C", str(root), "show", "RK1", "RK4"]) == EXIT_GATE
+    (door,) = [one for one in runs(root, capsys.readouterr().err) if one[0] == "show"]
+    capsys.readouterr()
+    assert main(["-C", str(root), *door]) == EXIT_OK
+    assert capsys.readouterr().out
+
+
+def test_a_ceiling_under_every_join_offers_no_door_rather_than_one_that_refuses(
+    tmp_path, capsys
+):
+    """The other half of RK1475: where not even the first id fits there is no shorter call, and
+    naming one would be sending a caller to a command that refuses in turn. What is left is the
+    ceiling itself, and the sentence says so."""
+    root = _ceilinged(tmp_path, 200).root
+    assert main(["-C", str(root), "show", "RK1", "RK4"]) == EXIT_GATE
+    said = capsys.readouterr().err
+    assert "not even the first id fits" in said
+    assert [one for one in runs(root, said) if one[0] == "show"] == []
+
+
+def test_one_id_is_never_refused_by_the_ceiling(tmp_path, capsys):
+    """The width a ceiling may not refuse, which is why `govern` measures the widest single
+    join: a caller naming one id asked for the one answer this verb has always given, and a
+    number somebody wrote for a fan-out is not a reason to withhold it."""
+    root = _ceilinged(tmp_path, 1).root
+    assert main(["-C", str(root), "show", "RK1"]) == EXIT_OK
+    assert "A first design" in capsys.readouterr().out
+
+
+def test_a_project_declaring_no_ceiling_is_held_to_none(tmp_path, capsys):
+    """`[reads]`' own rule, which is what lets this be added to a verb everything calls: opt-in,
+    and silent on every project that has not looked."""
+    root = project(tmp_path).root
+    assert main(["-C", str(root), "show", "RK1", "RK4"]) == EXIT_OK
+    assert capsys.readouterr().out
+
+
+def test_the_payload_withdraws_the_join_rather_than_coming_back_shorter(tmp_path, capsys):
+    """`Bound`'s distinction: `null` says *not joined* where `[]` would say *none selected*,
+    and every key the answer had stays — a payload that changes shape when it is over is one a
+    caller reads as a different answer rather than as the same one declined."""
+    root = _ceilinged(tmp_path, 200).root
+    assert main(["-C", str(root), "show", "RK1", "RK4", "--json"]) == EXIT_GATE
+    answer = json.loads(capsys.readouterr().out)
+    assert answer["asked"] == 2 and answer["views"] is None
+    assert answer["bound"]["limit"] == 200 and answer["bound"]["asked"] == ["RK1", "RK4"]
 
 
 def test_the_walks_behind_the_distance_are_made_once_for_the_whole_read(tmp_path, monkeypatch):

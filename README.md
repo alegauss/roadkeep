@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 234 | 2 |
-| C — Query (consult without reading the file) | 4 | 199 | 7 |
+| C — Query (consult without reading the file) | 3 | 199 | 7 |
 | D — The gate | 0 | 318 | 7 |
 | E — Adoption | 0 | 122 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 163 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 4 | 1159 | 24 |
+| **Total** | 3 | 1159 | 24 |
 
 **Next ready:**
 
-- ⏳ **RK1685** (deps: —) **show returns one section, so reading the designs behind a set of related lines is one call each** — The composed answer has no ceiling, so forty ids is a payload the transport refuses while roadkeep exits 0, which is the measured failure [reads] list exists for, one verb over. → §RK1685
+- 📋 **RK1686** (deps: —) **`weight` reads a commit whole, so a task that regenerated 37 sprites prices at 770 lines against 78 authored** — A project that commits its generated art is sized by its generator, so the read that sizes the next line is wrong in the blocks that generate most. → §RK1686
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
