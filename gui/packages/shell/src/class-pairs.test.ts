@@ -22,9 +22,14 @@ import {
  *
  * The rule is the one measured in Chromium against this app's stylesheet: a responsive class
  * loses at every width when a base class beside it sets the same property and the design
- * system ships that base class but not the responsive one. The fourteen pairs measured are
- * `MEASURED` below, each with what the browser did, so the rule is held to the page and not
- * to what somebody expected.
+ * system ships that base class but not the responsive one. The pairs measured are `MEASURED`
+ * below, each with what the browser did, so the rule is held to the page and not to what
+ * somebody expected.
+ *
+ * **A measurement is of a sheet.** Whether a pair applied depends on what the package shipped
+ * when it was taken, so a row the package has since moved under is retired rather than flipped:
+ * writing the rule's answer into a table of the browser's would make the check agree with
+ * itself. Fourteen were measured; one is retired below.
  */
 
 const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
@@ -44,7 +49,10 @@ const MEASURED: readonly (readonly [string, boolean])[] = [
   ['flex max-sm:hidden', false],
   ['block max-sm:hidden', false],
   ['inline max-sm:hidden', false],
-  ['grid-cols-1 sm:grid-cols-2', true],
+  // `grid-cols-1 sm:grid-cols-2` was measured applied, against 2026.3.10 of the package, which
+  // shipped `sm:grid-cols-2` itself. 2026.3.11 stopped shipping it, so that sheet is not the one
+  // installed and the answer is no longer this page's. Retired (RG265, taking 2026.3.12) rather
+  // than re-answered: the shipped responsive half winning is still held by three rows here.
   ['grid-cols-1 sm:grid-cols-[1fr_1fr]', false],
   ['grid-cols-2 max-sm:grid-cols-1', false],
   ['gap-2 sm:gap-4', false],

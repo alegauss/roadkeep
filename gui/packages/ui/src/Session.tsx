@@ -25,7 +25,7 @@ import {
   type SessionRecord,
   type SessionState,
 } from '@rk/core'
-import { Button } from '@viglet/viglet-design-system'
+import { Button, Tree, treeFromPaths, type TreeNode } from '@viglet/viglet-design-system'
 import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-system/bento'
 import {
   useCallback,
@@ -365,6 +365,159 @@ function DiskSaid({
 }
 
 /**
+ * The key `Tree` addresses a path by: its segments, empty ones dropped, joined with `/` (RG265).
+ *
+ * Not a second reading of what a path is. Both lists arrive spelled by the shell with forward
+ * slashes, and this is `treeFromPaths`'s own rule said once more so a leaf can be found again
+ * by the key the tree hands back — a path with a leading slash would otherwise miss its row.
+ */
+function treeKey(path: string): string {
+  return path
+    .split('/')
+    .filter((segment) => segment !== '')
+    .join('/')
+}
+
+/** Every folder in a built tree, by its key: what is held open unless the reader closed it. */
+function foldersIn(nodes: readonly TreeNode[], parent = ''): string[] {
+  return nodes.flatMap((node) => {
+    const key = parent === '' ? node.id : `${parent}/${node.id}`
+    const under = node.children ?? []
+    return under.length === 0 ? [] : [key, ...foldersIn(under, key)]
+  })
+}
+
+/** One file a tree holds: where it sits, what opening it asks for, and what its row says. */
+interface Leaf {
+  /** Where it is drawn, spelled with forward slashes. */
+  readonly at: string
+  /** What the viewer asks the disk for, which is the path as it was first named. */
+  readonly path: string
+  /** Which list it is a row of, so a row is found by what it is and not where it sits. */
+  readonly list: 'edited-file' | 'moved-file'
+  /** Where the disk has it, for an edited file; a moved file has only moved. */
+  readonly standing?: string
+  /** What the row says under its name. */
+  readonly facts: ReactNode
+}
+
+/** A file's row in the tree: its own name, what the list says of it, and what it is. */
+function LeafLabel({ name, leaf }: { readonly name: string; readonly leaf: Leaf }) {
+  return (
+    <span
+      className="flex min-w-0 flex-col gap-0.5 py-0.5 whitespace-normal"
+      data-testid={leaf.list}
+      data-path={leaf.path}
+      data-standing={leaf.standing}
+    >
+      <span className="wrap-anywhere">{name}</span>
+      <span className="flex flex-col gap-0.5 font-sans">{leaf.facts}</span>
+    </span>
+  )
+}
+
+/** The same tree with each file drawn as its list draws it, under the name its segment gives. */
+function labelled(
+  nodes: readonly TreeNode[],
+  leaves: ReadonlyMap<string, Leaf>,
+  parent = '',
+): TreeNode[] {
+  return nodes.map((node) => {
+    const key = parent === '' ? node.id : `${parent}/${node.id}`
+    const under = node.children ?? []
+    if (under.length > 0) return { ...node, children: labelled(under, leaves, key) }
+    const leaf = leaves.get(key)
+    return leaf === undefined ? node : { ...node, label: <LeafLabel name={node.id} leaf={leaf} /> }
+  })
+}
+
+/** Nothing closed, so every folder a session touches turns up open. */
+const NONE_CLOSED: ReadonlySet<string> = new Set()
+
+/**
+ * A list of files as a tree of folders, from the design system (RG265, VDS167).
+ *
+ * **The branching and the keyboard are the package's**: roles, levels, one tab stop and the arrow
+ * keys, owned there once for every product that draws a hierarchy. What stays here is the row.
+ *
+ * **Open unless the reader closed it.** A folder is held by what the reader shut rather than by
+ * what they opened, because files arrive while the session runs — a folder that turned up closed
+ * would hide the file that just moved in it, which is the one somebody is watching for.
+ */
+function FileTree({
+  label,
+  leaves,
+  onOpen,
+}: {
+  readonly label: string
+  readonly leaves: readonly Leaf[]
+  readonly onOpen: (path: string) => void
+}) {
+  const [closed, setClosed] = useState<ReadonlySet<string>>(NONE_CLOSED)
+  const byKey = useMemo(() => new Map(leaves.map((leaf) => [treeKey(leaf.at), leaf])), [leaves])
+  const built = useMemo(() => treeFromPaths(leaves.map((leaf) => leaf.at)), [leaves])
+  const nodes = useMemo(() => labelled(built, byKey), [built, byKey])
+  const folders = useMemo(() => foldersIn(built), [built])
+  const expanded = useMemo(() => folders.filter((key) => !closed.has(key)), [folders, closed])
+  const changed = useCallback(
+    (next: readonly string[]) => {
+      const open = new Set(next)
+      setClosed(new Set(folders.filter((key) => !open.has(key))))
+    },
+    [folders],
+  )
+  // A folder is chosen too, and opens and closes by itself; only a file has anything to show.
+  const chosen = useCallback(
+    (key: string) => {
+      const leaf = byKey.get(key)
+      if (leaf !== undefined) onOpen(leaf.path)
+    },
+    [byKey, onOpen],
+  )
+
+  return (
+    <Tree
+      // Folders and files are both segments of a path, which this app draws monospaced wherever
+      // it draws one; a folder in the package's default face read as a heading over its files.
+      className="-mx-1.5 font-mono text-xs"
+      label={label}
+      nodes={nodes}
+      expanded={expanded}
+      onExpandedChange={changed}
+      onSelect={chosen}
+    />
+  )
+}
+
+/** What a file's row says under its name: the calls, the marks, and where the disk has it. */
+function EditedFacts({
+  file,
+  read,
+  changed,
+}: {
+  readonly file: Edited
+  readonly read: ReturnType<typeof onDisk>
+  readonly changed: string
+}) {
+  const say = useWording()
+  return (
+    <>
+      <span className="text-muted-foreground flex flex-wrap items-center gap-1.5 text-xs">
+        {say('session.edited.calls', { count: file.calls })}
+        {file.governed ? <Pill intent="on">{say('session.edited.governed')}</Pill> : null}
+        {file.failed ? <Pill intent="error">{say('session.edited.failed')}</Pill> : null}
+      </span>
+      {read.standing === 'unasked' ? null : (
+        <span className="text-muted-foreground flex flex-wrap items-center gap-1.5 text-xs">
+          <DiskSaid standing={read.standing} changed={changed} />
+          {read.disagrees ? <Pill intent="warn">{say('session.edited.disagrees')}</Pill> : null}
+        </span>
+      )}
+    </>
+  )
+}
+
+/**
  * The files the session edited, off its own calls and then asked of the disk (RG243, RG244).
  *
  * Every edit call names its path, so the code a session changed is listed rather than found by
@@ -372,6 +525,9 @@ function DiskSaid({
  * the rule this column keeps for the backlog: a call that reported success on a file the disk
  * has not changed since the session started is drawn as the disagreement it is. Each row opens
  * the file as the disk holds it now (RG245).
+ *
+ * Drawn as a tree since RG265, but a file the shell calls outside the project is not in it: it
+ * has no root to sit under, so it stays a row of its own below, spelled the way it was named.
  */
 function EditedFiles({
   edited,
@@ -382,60 +538,79 @@ function EditedFiles({
   readonly edited: readonly Edited[]
   readonly disk: ReadonlyMap<string, EditedFile>
   readonly started: string
-  readonly onOpen: (event: MouseEvent<HTMLButtonElement>) => void
+  readonly onOpen: (path: string) => void
 }) {
   const say = useWording()
+  // Inside unless the shell said otherwise. A file the disk has not answered for is drawn where
+  // its own name puts it, and moves into place when the answer shortens it.
+  const inside = useMemo(
+    () => edited.filter((file) => disk.get(file.path)?.inside !== false),
+    [edited, disk],
+  )
+  const outside = edited.filter((file) => disk.get(file.path)?.inside === false)
+  const leaves = useMemo(
+    () =>
+      inside.map((file): Leaf => {
+        const at = disk.get(file.path)
+        const read = onDisk(file, at, started)
+        return {
+          at: at?.shown ?? file.path,
+          path: file.path,
+          list: 'edited-file',
+          standing: read.standing,
+          facts: <EditedFacts file={file} read={read} changed={at?.changed ?? ''} />,
+        }
+      }),
+    [inside, disk, started],
+  )
+  // One handler for every row outside the project, reading which file off the button pressed.
+  const openOutside = useCallback(
+    (event: MouseEvent<HTMLButtonElement>) => {
+      onOpen(event.currentTarget.dataset['path'] ?? '')
+    },
+    [onOpen],
+  )
 
   return (
-    <section className="mt-4" data-testid="edited">
+    <section data-testid="edited">
       <PanelTitle>{say('session.edited')}</PanelTitle>
       {edited.length === 0 ? (
         <p className="text-muted-foreground text-xs">{say('session.edited.none')}</p>
       ) : (
         <>
           <p className="text-muted-foreground mb-1.5 text-xs">{say('session.edited.about')}</p>
-          <ul className="flex flex-col gap-1.5 text-xs">
-            {edited.map((file) => {
-              const at = disk.get(file.path)
-              const read = onDisk(file, at, started)
-              return (
-                <li
-                  key={file.path}
-                  className="flex flex-col gap-0.5"
-                  data-testid="edited-file"
-                  data-path={file.path}
-                  data-standing={read.standing}
-                >
-                  <button
-                    type="button"
-                    className="text-left font-mono wrap-anywhere hover:underline"
+          {leaves.length === 0 ? null : (
+            <FileTree label={say('session.edited')} leaves={leaves} onOpen={onOpen} />
+          )}
+          {outside.length === 0 ? null : (
+            <ul className="mt-1.5 flex flex-col gap-1.5 text-xs">
+              {outside.map((file) => {
+                const at = disk.get(file.path)
+                const read = onDisk(file, at, started)
+                const shown = at?.shown ?? file.path
+                return (
+                  <li
+                    key={file.path}
+                    className="flex flex-col gap-0.5"
+                    data-testid="edited-file"
                     data-path={file.path}
-                    aria-label={say('session.edited.open', { path: at?.shown ?? file.path })}
-                    onClick={onOpen}
+                    data-standing={read.standing}
                   >
-                    {at?.shown ?? file.path}
-                  </button>
-                  <span className="text-muted-foreground flex flex-wrap items-center gap-1.5">
-                    {say('session.edited.calls', { count: file.calls })}
-                    {file.governed ? (
-                      <Pill intent="on">{say('session.edited.governed')}</Pill>
-                    ) : null}
-                    {file.failed ? (
-                      <Pill intent="error">{say('session.edited.failed')}</Pill>
-                    ) : null}
-                  </span>
-                  {read.standing === 'unasked' ? null : (
-                    <span className="text-muted-foreground flex flex-wrap items-center gap-1.5">
-                      <DiskSaid standing={read.standing} changed={at?.changed ?? ''} />
-                      {read.disagrees ? (
-                        <Pill intent="warn">{say('session.edited.disagrees')}</Pill>
-                      ) : null}
-                    </span>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
+                    <button
+                      type="button"
+                      className="text-left font-mono wrap-anywhere hover:underline"
+                      data-path={file.path}
+                      aria-label={say('session.edited.open', { path: shown })}
+                      onClick={openOutside}
+                    >
+                      {shown}
+                    </button>
+                    <EditedFacts file={file} read={read} changed={at?.changed ?? ''} />
+                  </li>
+                )
+              })}
+            </ul>
+          )}
         </>
       )}
     </section>
@@ -448,7 +623,8 @@ function EditedFiles({
  * **Unattributed, and said so.** A formatter or a generator run through Bash writes files the
  * stream never mentions, and git is not this app's to ask — so the shell watches the root and
  * this lists what moved. Anything else writing under the project in that time is in here too,
- * which the caption does not pretend otherwise about.
+ * which the caption does not pretend otherwise about. Every path is under the root, which is
+ * what the watch is of, so all of it is the tree (RG265).
  */
 function MovedOnDisk({
   moved,
@@ -460,13 +636,27 @@ function MovedOnDisk({
   readonly beyond: number
   /** The paths the edited list already names, which this one does not repeat. */
   readonly edited: readonly string[]
-  readonly onOpen: (event: MouseEvent<HTMLButtonElement>) => void
+  readonly onOpen: (path: string) => void
 }) {
   const say = useWording()
   const when = useWhen()
   // What the edited list already named is not news: a path it holds is drawn there, with its
   // calls beside it. Compared on the spelling the shell answers with, which is what both carry.
-  const rest = moved.filter((one) => !edited.includes(one.path))
+  const rest = useMemo(() => moved.filter((one) => !edited.includes(one.path)), [moved, edited])
+  const leaves = useMemo(
+    () =>
+      rest.map((one): Leaf => ({
+        at: one.path,
+        path: one.path,
+        list: 'moved-file',
+        facts: (
+          <span className="text-muted-foreground text-xs">
+            {say('session.disk.moves', { count: one.moves })} · {when(one.last)}
+          </span>
+        ),
+      })),
+    [rest, say, when],
+  )
 
   return (
     <section className="mt-4" data-testid="moved-disk">
@@ -476,29 +666,7 @@ function MovedOnDisk({
       ) : (
         <>
           <p className="text-muted-foreground mb-1.5 text-xs">{say('session.disk.about')}</p>
-          <ul className="flex flex-col gap-1.5 text-xs">
-            {rest.map((one) => (
-              <li
-                key={one.path}
-                className="flex flex-col gap-0.5"
-                data-testid="moved-file"
-                data-path={one.path}
-              >
-                <button
-                  type="button"
-                  className="text-left font-mono wrap-anywhere hover:underline"
-                  data-path={one.path}
-                  aria-label={say('session.edited.open', { path: one.path })}
-                  onClick={onOpen}
-                >
-                  {one.path}
-                </button>
-                <span className="text-muted-foreground">
-                  {say('session.disk.moves', { count: one.moves })} · {when(one.last)}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <FileTree label={say('session.disk')} leaves={leaves} onOpen={onOpen} />
           {beyond === 0 ? null : (
             <p className="text-muted-foreground mt-1.5 text-xs">
               {say('session.disk.beyond', { count: beyond })}
@@ -544,21 +712,14 @@ function Moved({
   record,
   now,
   outcome,
-  acts,
   files,
   claims,
-  moved,
-  movedBeyond,
 }: {
   readonly record: SessionRecord
   readonly now: Reading | null
   readonly outcome: SessionOutcome | null
-  readonly acts: readonly Act[]
   readonly files: readonly GovernedFile[]
   readonly claims: ClaimsPayload | null
-  /** What moved on disk while it ran, as last told (RG247). */
-  readonly moved: readonly MovedPath[]
-  readonly movedBeyond: number
 }) {
   const say = useWording()
   // A landing is a line's brief before against after (RG263). A session handed a finding has
@@ -568,14 +729,67 @@ function Moved({
     now === null || record.handed.kind !== 'line'
       ? null
       : landingBetween({ kind: 'read', payload: record.handed.brief }, now)
+
+  return (
+    <BentoPanel contentClassName="p-5">
+      <PanelTitle>{say('session.moved')}</PanelTitle>
+      {landing === null || !landing.moved ? (
+        <p className="text-muted-foreground text-xs">{say('session.moved.none')}</p>
+      ) : (
+        <ul className="flex flex-col gap-1.5 text-[13px]" data-testid="moved">
+          {landing.changes.map((change) => (
+            <li key={change.kind} className="wrap-anywhere">
+              <ChangeSaid change={change} />
+            </li>
+          ))}
+        </ul>
+      )}
+      {outcome === null || outcome.result === '' ? null : (
+        <p className="text-muted-foreground mt-3 text-xs wrap-anywhere">
+          {say('session.result', { result: outcome.result })}
+        </p>
+      )}
+      {outcome === null || outcome.said === '' ? null : (
+        <pre className="text-muted-foreground mt-2 max-h-32 overflow-auto text-[11px] whitespace-pre-wrap">
+          {outcome.said}
+        </pre>
+      )}
+      <Files files={files} />
+      <Elsewhere claims={claims} id={record.id} />
+    </BentoPanel>
+  )
+}
+
+/**
+ * The files the session touched, as a card of their own (RG265).
+ *
+ * They shared a panel with what moved in the backlog, which made that column three answers deep
+ * before the first file — and were two flat lists of full paths, each repeating its prefix, so a
+ * reader asking what changed under one folder read every row to find out. Here they are two
+ * trees, the edited and the moved, since they are two accounts of the same folders.
+ */
+function Touched({
+  record,
+  outcome,
+  acts,
+  moved,
+  movedBeyond,
+}: {
+  readonly record: SessionRecord
+  readonly outcome: SessionOutcome | null
+  readonly acts: readonly Act[]
+  /** What moved on disk while it ran, as last told (RG247). */
+  readonly moved: readonly MovedPath[]
+  readonly movedBeyond: number
+}) {
   const ended = outcome !== null
   const edited = useMemo(() => editedIn(acts), [acts])
   const disk = useEditedAt(record.key, edited, ended)
   // Which file is open in the viewer, and what makes it worth rereading (RG245, RG247). One
   // state for both lists, since a file opens the same way whichever named it.
   const [open, setOpen] = useState<string | null>(null)
-  const opening = useCallback((event: MouseEvent<HTMLButtonElement>) => {
-    setOpen(event.currentTarget.dataset['path'] ?? null)
+  const opening = useCallback((path: string) => {
+    setOpen(path)
   }, [])
   const closing = useCallback(() => {
     setOpen(null)
@@ -603,32 +817,8 @@ function Moved({
 
   return (
     <BentoPanel contentClassName="p-5">
-      <PanelTitle>{say('session.moved')}</PanelTitle>
-      {landing === null || !landing.moved ? (
-        <p className="text-muted-foreground text-xs">{say('session.moved.none')}</p>
-      ) : (
-        <ul className="flex flex-col gap-1.5 text-[13px]" data-testid="moved">
-          {landing.changes.map((change) => (
-            <li key={change.kind} className="wrap-anywhere">
-              <ChangeSaid change={change} />
-            </li>
-          ))}
-        </ul>
-      )}
-      {outcome === null || outcome.result === '' ? null : (
-        <p className="text-muted-foreground mt-3 text-xs wrap-anywhere">
-          {say('session.result', { result: outcome.result })}
-        </p>
-      )}
-      {outcome === null || outcome.said === '' ? null : (
-        <pre className="text-muted-foreground mt-2 max-h-32 overflow-auto text-[11px] whitespace-pre-wrap">
-          {outcome.said}
-        </pre>
-      )}
       <EditedFiles edited={edited} disk={disk} started={record.started} onOpen={opening} />
       <MovedOnDisk moved={moved} beyond={movedBeyond} edited={drawn} onOpen={opening} />
-      <Files files={files} />
-      <Elsewhere claims={claims} id={record.id} />
       {open === null ? null : (
         <FileSheet
           sessionKey={record.key}
@@ -839,20 +1029,27 @@ export function Session() {
           <div className="min-w-0 lg:col-start-1 lg:row-start-1" data-region="session-handed">
             <Handed record={session.record} />
           </div>
-          <div
-            className="min-w-0 lg:col-start-1 lg:row-start-2 xl:col-start-3 xl:row-start-1"
-            data-region="session-moved"
-          >
-            <Moved
-              record={session.record}
-              now={session.now}
-              outcome={session.outcome}
-              acts={acts}
-              files={session.files}
-              claims={session.claims}
-              moved={session.moved}
-              movedBeyond={session.movedBeyond}
-            />
+          {/* What moved in the backlog, and under it the files it touched as a card of their
+              own (RG265): one grid cell holding both, so neither layout above it moves. */}
+          <div className="flex min-w-0 flex-col gap-5 lg:col-start-1 lg:row-start-2 xl:col-start-3 xl:row-start-1">
+            <div className="min-w-0" data-region="session-moved">
+              <Moved
+                record={session.record}
+                now={session.now}
+                outcome={session.outcome}
+                files={session.files}
+                claims={session.claims}
+              />
+            </div>
+            <div className="min-w-0" data-region="session-files">
+              <Touched
+                record={session.record}
+                outcome={session.outcome}
+                acts={acts}
+                moved={session.moved}
+                movedBeyond={session.movedBeyond}
+              />
+            </div>
           </div>
         </div>
       )}

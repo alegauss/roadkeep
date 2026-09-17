@@ -54,6 +54,24 @@ import { stubBridge } from './stub-bridge'
  * with the browser project's file (RG213).
  */
 
+/** Every file row either list draws, whichever tree or list it sits in. */
+const FILE_ROWS = /^(edited|moved)-file$/
+
+/**
+ * Open a file the way a reader does (RG265): by its row. A file in a tree is a row of the tree
+ * and the row is the control; one outside the project is a row of its own with its button.
+ * Found by the path the session named it by, which is what the viewer is asked for.
+ */
+async function openFile(path: string) {
+  const row = await waitFor(() => {
+    const found = screen.getAllByTestId(FILE_ROWS).find((one) => one.dataset['path'] === path)
+    if (found === undefined) throw new Error(`no row for ${path}`)
+    return found
+  })
+  fireEvent.click(row.closest('[role="treeitem"]') ?? within(row).getByRole('button'))
+  return screen.findByTestId('file-sheet')
+}
+
 afterEach(() => {
   Reflect.deleteProperty(window, 'roadkeep')
 })
@@ -467,7 +485,7 @@ describe('RG243: the files a session edited', () => {
     if (i18next.isInitialized) await changeLanguage(BASE_LOCALE)
   })
 
-  it('lists each file the stream edited under what moved, counted, marked and failed', async () => {
+  it('lists each file the stream edited, counted, marked and failed', async () => {
     const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
     const edited = await screen.findByTestId('edited')
     // Nothing edited is a state of its own, drawn before the first call.
@@ -496,7 +514,9 @@ describe('RG243: the files a session edited', () => {
     expect(
       within(screen.getByTestId('edited')).getByText(BASE['session.edited.about']),
     ).toBeTruthy()
-    expect(screen.getByTestId('edited').closest('[data-region="session-moved"]')).not.toBeNull()
+    // A card of its own since RG265, and no longer a section of what moved in the backlog.
+    expect(screen.getByTestId('edited').closest('[data-region="session-files"]')).not.toBeNull()
+    expect(screen.getByTestId('edited').closest('[data-region="session-moved"]')).toBeNull()
   })
 
   it('says it in the language the window speaks', async () => {
@@ -572,8 +592,10 @@ describe('RG244: the edited files against the disk', () => {
     // Changed since the session started: the time, in the window's language, and no dispute.
     const alpha = within(row(ALPHA))
     expect(row(ALPHA).dataset['standing']).toBe('changed')
-    // Drawn as the shell shortened it, and matched on the path the call spelled.
-    expect(alpha.getByText('src/alpha.ts')).toBeTruthy()
+    // Drawn under the folder the shell's shortening puts it in, and matched on the path the call
+    // spelled (RG265): the row carries its own name, and `src` is the tree's.
+    expect(alpha.getByText('alpha.ts')).toBeTruthy()
+    expect(row(ALPHA).closest('[role="treeitem"]')?.getAttribute('aria-level')).toBe('2')
     expect(
       alpha.getByText(fill(BASE['session.edited.changed'], { when: timeIn(CHANGED, BASE_LOCALE) })),
     ).toBeTruthy()
@@ -631,6 +653,88 @@ describe('RG244: the edited files against the disk', () => {
   })
 })
 
+describe('RG265: the files it touched, as a tree of their own', () => {
+  const editing = (id: string, path: string) =>
+    JSON.stringify({
+      type: 'assistant',
+      message: { content: [{ type: 'tool_use', id, name: 'Edit', input: { file_path: path } }] },
+    })
+
+  /** The row a folder or a file is drawn as, found by the name the tree gives it. */
+  const treeRow = (name: string) => {
+    const found = screen
+      .getAllByRole('treeitem')
+      .find((one) => one.querySelector('span')?.textContent === name || one.textContent === name)
+    if (found === undefined) throw new Error(`no tree row named ${name}`)
+    return found
+  }
+
+  it('draws the edited files as folders holding them, not as full paths', async () => {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
+    await screen.findByTestId('edited')
+
+    hear(wired, 'session', { session: KEY, index: 1, line: editing('t1', 'src/alpha.ts') })
+    hear(wired, 'session', { session: KEY, index: 2, line: editing('t2', 'src/beta.ts') })
+
+    const tree = await screen.findByRole('tree', { name: BASE['session.edited'] })
+    // One `src`, holding both — the prefix said once instead of on every row.
+    await waitFor(() => {
+      expect(within(tree).getAllByRole('treeitem')).toHaveLength(3)
+    })
+    expect(treeRow('src').getAttribute('aria-level')).toBe('1')
+    expect(treeRow('src').getAttribute('aria-expanded')).toBe('true')
+    expect(within(tree).queryByText('src/alpha.ts')).toBeNull()
+  })
+
+  it('keeps a folder the reader closed closed, and opens the one a new file arrives in', async () => {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
+    await screen.findByTestId('edited')
+    hear(wired, 'session', { session: KEY, index: 1, line: editing('t1', 'src/alpha.ts') })
+    hear(wired, 'session', { session: KEY, index: 2, line: editing('t2', 'src/beta.ts') })
+    await screen.findByRole('tree', { name: BASE['session.edited'] })
+    await waitFor(() => {
+      expect(treeRow('src').getAttribute('aria-expanded')).toBe('true')
+    })
+
+    fireEvent.click(treeRow('src'))
+    await waitFor(() => {
+      expect(treeRow('src').getAttribute('aria-expanded')).toBe('false')
+    })
+
+    // A file lands in a folder nobody has seen yet, while the session runs. It turns up open,
+    // since a closed one would hide the file that just moved; the folder the reader shut stays
+    // shut, since that was theirs.
+    hear(wired, 'session', { session: KEY, index: 3, line: editing('t3', 'lib/gamma.ts') })
+    await waitFor(() => {
+      expect(treeRow('lib').getAttribute('aria-expanded')).toBe('true')
+    })
+    expect(treeRow('src').getAttribute('aria-expanded')).toBe('false')
+    expect(screen.getAllByTestId('edited-file').map((one) => one.dataset['path'])).toEqual([
+      'lib/gamma.ts',
+    ])
+  })
+
+  it('draws what moved on disk as a tree too, in the same card', async () => {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
+    await screen.findByTestId('moved-disk')
+
+    hear(wired, 'session', {
+      session: KEY,
+      moved: [
+        { path: 'dist/bundle.js', first: STARTED, last: STARTED, moves: 1 },
+        { path: 'dist/bundle.css', first: STARTED, last: STARTED, moves: 1 },
+      ],
+      beyond: 0,
+    })
+
+    const tree = await screen.findByRole('tree', { name: BASE['session.disk'] })
+    await waitFor(() => {
+      expect(within(tree).getAllByRole('treeitem')).toHaveLength(3)
+    })
+    expect(screen.getByTestId('moved-disk').closest('[data-region="session-files"]')).not.toBeNull()
+  })
+})
+
 describe('RG245: counting a file’s lines', () => {
   it('counts the lines a file has, and not the empty one after its last break', () => {
     expect(linesIn('')).toBe(0)
@@ -668,12 +772,7 @@ describe('RG245: an edited file opened from the window', () => {
     bytes: text.length,
   })
 
-  const openRow = async (path: string) => {
-    fireEvent.click(
-      await screen.findByRole('button', { name: fill(BASE['session.edited.open'], { path }) }),
-    )
-    return screen.findByTestId('file-sheet')
-  }
+  const openRow = openFile
 
   it('opens a row as the disk holds the file now, numbered, and forgets it when closed', async () => {
     const wired = await at(sessionPath(ROOT, 'AL1', KEY), {
@@ -796,14 +895,7 @@ describe('RG246: what the session changed inside the file', () => {
     bytes: 24,
   }
 
-  const openAlpha = async () => {
-    fireEvent.click(
-      await screen.findByRole('button', {
-        name: fill(BASE['session.edited.open'], { path: 'src/alpha.ts' }),
-      }),
-    )
-    return screen.findByTestId('file-sheet')
-  }
+  const openAlpha = () => openFile('src/alpha.ts')
 
   it('draws each edit above the file, checked against the text that was read', async () => {
     const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD], texts: [TEXT] })
@@ -906,13 +998,8 @@ describe('RG247: files that moved on disk while the session ran', () => {
     expect(disk.getByText(BASE['session.disk.none'])).toBeTruthy()
 
     hear(wired, 'session', { session: KEY, moved: MOVED, beyond: 0 })
-    fireEvent.click(
-      await screen.findByRole('button', {
-        name: fill(BASE['session.edited.open'], { path: 'dist/bundle.js' }),
-      }),
-    )
 
-    const sheet = within(await screen.findByTestId('file-sheet'))
+    const sheet = within(await openFile('dist/bundle.js'))
     await waitFor(() => {
       expect(sheet.getByTestId('file-text').textContent).toBe('built\n')
     })

@@ -321,9 +321,14 @@ async function prefer(shot: ShotApp, key: string, value: string): Promise<void> 
 const SCROLL_STREAM_UP =
   '(() => { const region = document.querySelector(\'[data-testid="stream"]\'); if (region) region.scrollTop = 0 })()'
 
-/** Open the first file the session edited in the viewer, which is a reader clicking its row (RG245). */
+/**
+ * Open the first file the session edited in the viewer, which is a reader clicking its row (RG245).
+ *
+ * The row is a tree's since RG265, and a tree's row is its own control — so it is the row that is
+ * clicked, and the button only for a file outside the project, which keeps a row of its own.
+ */
 const OPEN_EDITED_FILE =
-  '(() => { const row = document.querySelector(\'[data-testid="edited-file"] button\'); if (row) row.click() })()'
+  '(() => { const file = document.querySelector(\'[data-testid="edited-file"]\'); const row = file && (file.closest(\'[role="treeitem"]\') || file.querySelector("button")); if (row) row.click() })()'
 
 /** How long the viewer takes to slide in, which a quiet document does not wait for: CSS moves it. */
 const SHEET_OPENS_MS = 600

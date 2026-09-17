@@ -14,8 +14,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG265** (deps: —) **the files a session touched are two flat lists of full paths, sharing a panel with what moved in the backlog** — The files take a card of their own, drawn with the design system's Tree the way an editor's explorer draws a working tree. → §RG265
-
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
