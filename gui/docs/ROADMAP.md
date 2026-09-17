@@ -14,7 +14,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG270** (deps: RG268 ✅, RG269 ✅) **a tool call the session was refused is never shown, and nothing lets a person allow it for the next turn** — Headless Claude Code refuses any call the project's settings do not allow, so a session stalls on its first edit. → §RG270
 - 📋 **RG271** (deps: —) **a session's words are drawn with their Markdown literal, so bold, code and lists read as asterisks and backticks** — An agent writes for a terminal that renders Markdown, and the window shows it harder to read than the terminal it replaces. → §RG271
 
 ## Block G — The shell (an executable now, a service later)

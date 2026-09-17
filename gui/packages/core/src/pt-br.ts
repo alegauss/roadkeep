@@ -240,6 +240,10 @@ export const PT_BR: Wording = {
   'session.reply.unavailable':
     'Nenhum Claude Code respondeu aqui, então a sessão não foi retomada. Tentado: {tried}',
   'session.reply.withheld': 'A resposta não foi enviada: {reason}',
+  'session.grant.title': 'Negadas, e suas para liberar no próximo turno',
+  'session.grant.allow': 'Liberar no próximo turno: {tool}',
+  'session.grant.call': 'a chamada',
+  'session.grant.reply': 'Liberado para este turno: {tools}. Pode seguir.',
   'session.edited': 'Os arquivos que ela editou',
   'session.edited.about':
     'Nomeados pelas próprias chamadas da sessão; o disco diz como cada um está.',

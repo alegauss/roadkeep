@@ -8,6 +8,7 @@ import {
   landingBetween,
   onDisk,
   scrolledTo,
+  subjectOf,
   type Act,
   type Actionable,
   type BriefPayload,
@@ -23,12 +24,20 @@ import {
   type GovernedFile,
   type MessageKey,
   type MovedPath,
+  type PermissionDenial,
   type Reading,
   type SessionOutcome,
   type SessionRecord,
   type SessionState,
 } from '@rk/core'
-import { Button, Textarea, Tree, treeFromPaths, type TreeNode } from '@viglet/viglet-design-system'
+import {
+  Button,
+  Checkbox,
+  Textarea,
+  Tree,
+  treeFromPaths,
+  type TreeNode,
+} from '@viglet/viglet-design-system'
 import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-system/bento'
 import {
   useCallback,
@@ -872,6 +881,65 @@ type Replying =
 
 const NOT_REPLYING: Replying = { kind: 'idle' }
 
+/** Nothing granted yet: every refusal starts unchecked, which is what it was. */
+const NONE_ALLOWED: ReadonlySet<string> = new Set()
+
+/**
+ * One call the session was refused (RG270): the tool, what it would have touched, the way to its
+ * call in the stream, and the box that allows that tool for the next turn.
+ *
+ * **The box allows a tool, not this call.** The grant is `--allowedTools` naming the tool, since
+ * spelling a narrower rule from the call's input would be this app composing a permission grammar
+ * — so two refused edits share one grant, and both boxes say so.
+ */
+function Refusal({
+  denial,
+  seq,
+  allowed,
+  onAllow,
+}: {
+  readonly denial: PermissionDenial
+  /** Where its call sits in the stream, or null where the stream never carried it. */
+  readonly seq: number | null
+  readonly allowed: boolean
+  readonly onAllow: (tool: string, on: boolean) => void
+}) {
+  const say = useWording()
+  const touched = subjectOf(denial.input)
+  const toggled = useCallback(
+    (checked: boolean | 'indeterminate') => {
+      onAllow(denial.tool, checked === true)
+    },
+    [onAllow, denial.tool],
+  )
+  const show = useCallback(() => {
+    if (seq === null) return
+    document.getElementById(`act-${String(seq)}`)?.scrollIntoView({ block: 'center' })
+  }, [seq])
+
+  return (
+    <li className="flex items-start gap-2" data-testid="refusal" data-tool={denial.tool}>
+      <Checkbox
+        className="mt-0.5"
+        checked={allowed}
+        onCheckedChange={toggled}
+        aria-label={say('session.grant.allow', { tool: denial.tool })}
+      />
+      <span className="flex min-w-0 flex-col gap-0.5 text-xs">
+        <span className="font-mono font-semibold">{denial.tool}</span>
+        {touched === '' ? null : (
+          <span className="text-muted-foreground font-mono wrap-anywhere">{touched}</span>
+        )}
+        {seq === null ? null : (
+          <button type="button" className="w-fit text-left underline" onClick={show}>
+            {say('session.grant.call')}
+          </button>
+        )}
+      </span>
+    </li>
+  )
+}
+
 /**
  * Where a session stopped, and the box that answers it (RG269).
  *
@@ -887,15 +955,26 @@ const NOT_REPLYING: Replying = { kind: 'idle' }
 function Reply({
   sessionKey,
   outcome,
+  acts,
 }: {
   readonly sessionKey: string
   readonly outcome: SessionOutcome
+  /** The stream's acts, which is where a refused call is found again (RG270). */
+  readonly acts: readonly Act[]
 }) {
   const say = useWording()
   const [text, setText] = useState('')
   const [replying, setReplying] = useState<Replying>(NOT_REPLYING)
+  const [allowed, setAllowed] = useState<ReadonlySet<string>>(NONE_ALLOWED)
+  // The sentence last placed in the box for a grant, so a second grant rewrites it while it is
+  // still that sentence, and never once the person has written their own.
+  const placed = useRef('')
   const box = useRef<HTMLTextAreaElement>(null)
   const waiting = outcome.state === 'waiting'
+  const seqOf = useMemo(
+    () => new Map(acts.flatMap((act) => (act.kind === 'used' ? [[act.id, act.seq] as const] : []))),
+    [acts],
+  )
 
   useEffect(() => {
     if (waiting) box.current?.focus()
@@ -904,14 +983,33 @@ function Reply({
   const typed = useCallback((event: ChangeEvent<HTMLTextAreaElement>) => {
     setText(event.target.value)
   }, [])
+  // A grant with no words sends the sentence the wording table holds for it (RG270), placed in
+  // the box before sending, so what the session reads is still the person's to change.
+  const allow = useCallback(
+    (tool: string, on: boolean) => {
+      const next = new Set(allowed)
+      if (on) next.add(tool)
+      else next.delete(tool)
+      setAllowed(next)
+      const sentence =
+        next.size === 0 ? '' : say('session.grant.reply', { tools: [...next].join(', ') })
+      if (text.trim() === '' || text === placed.current) {
+        placed.current = sentence
+        setText(sentence)
+      }
+    },
+    [allowed, say, text],
+  )
   const send = useCallback(() => {
     const bridge = getBridge()
     if (bridge === undefined) return
     setReplying({ kind: 'sending' })
-    void bridge.replySession(sessionKey, text).then(
+    void bridge.replySession(sessionKey, text, [...allowed]).then(
       (replied) => {
         if (replied.kind === 'started') {
           setText('')
+          setAllowed(NONE_ALLOWED)
+          placed.current = ''
           setReplying(NOT_REPLYING)
           return
         }
@@ -924,7 +1022,7 @@ function Reply({
         })
       },
     )
-  }, [sessionKey, text])
+  }, [sessionKey, text, allowed])
 
   return (
     <section className="border-t px-5 py-4" data-testid="reply">
@@ -932,6 +1030,22 @@ function Reply({
         <p className="text-[13px] leading-relaxed whitespace-pre-wrap wrap-anywhere">
           {say('session.result', { result: outcome.result })}
         </p>
+      )}
+      {outcome.denials.length === 0 ? null : (
+        <div className="mt-3" data-testid="refusals">
+          <PanelTitle>{say('session.grant.title')}</PanelTitle>
+          <ul className="flex flex-col gap-2">
+            {outcome.denials.map((denial) => (
+              <Refusal
+                key={denial.callId === '' ? denial.tool : denial.callId}
+                denial={denial}
+                seq={seqOf.get(denial.callId) ?? null}
+                allowed={allowed.has(denial.tool)}
+                onAllow={allow}
+              />
+            ))}
+          </ul>
+        </div>
       )}
       <Textarea
         ref={box}
@@ -1141,17 +1255,6 @@ export function Session() {
   // session reached from the sessions list or a handover never said which project it was in.
   const face = session === null ? null : session.face
   const trail = useMemo(() => <ProjectTrail root={root} face={face} task={id} />, [root, face, id])
-  // Once it has stopped and named itself, which is when there is something to answer and a
-  // session to resume (RG269). Built once per outcome, since the stream redraws for every act.
-  const ended = session?.outcome ?? null
-  const reply = useMemo(
-    () =>
-      ended === null || ended.sessionId === '' ? undefined : (
-        <Reply sessionKey={key} outcome={ended} />
-      ),
-    [ended, key],
-  )
-
   // Read once for both columns that need them: the stream draws the acts, and what moved lists
   // the files they edited (RG243).
   const lines = session?.lines
@@ -1159,6 +1262,16 @@ export function Session() {
   const acts = useMemo(
     () => (lines === undefined || marks === undefined ? [] : actsIn(lines, marks)),
     [lines, marks],
+  )
+  // Once it has stopped and named itself, which is when there is something to answer and a
+  // session to resume (RG269). Built once per outcome, since the stream redraws for every act.
+  const ended = session?.outcome ?? null
+  const reply = useMemo(
+    () =>
+      ended === null || ended.sessionId === '' ? undefined : (
+        <Reply sessionKey={key} outcome={ended} acts={acts} />
+      ),
+    [ended, key, acts],
   )
 
   return (

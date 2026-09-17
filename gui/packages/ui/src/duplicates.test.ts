@@ -54,9 +54,14 @@ function published(): Set<string> {
  * The package's own pattern with the `export` requirement taken out, which is the whole of
  * the difference: what it looks for is a name being declared, and whether anybody else can
  * import it says nothing about whether it is a copy.
+ *
+ * **Not an import specifier.** The package's pattern requires `export`, so it never met one; with
+ * that gone, `type TreeNode,` alone on a line of a multi-line import read as a type declared here,
+ * which is the one thing it is not. A declared name is never followed by a comma, a closing brace
+ * or `as` — an import's names are.
  */
 const DECLARED =
-  /^\s*(?:export\s+)?(?:declare\s+)?(?:abstract\s+)?(?:const|let|var|function\*?|class|type|interface|enum)\s+([A-Za-z_$][\w$]*)/gm
+  /^\s*(?:export\s+)?(?:declare\s+)?(?:abstract\s+)?(?:const|let|var|function\*?|class|type|interface|enum)\s+([A-Za-z_$][\w$]*)\b(?!\s*(?:,|\}|as\s))/gm
 
 /** The package's own escape hatch, honoured here so a deliberate collision is said once. */
 const ALLOWED = /viglet-ds-allow-duplicate\s+([A-Za-z_$][\w$]*)/g
@@ -92,6 +97,20 @@ describe('RG186: a name the design system publishes, declared here', () => {
     expect(published().size).toBeGreaterThan(100)
     expect(published().has('Label')).toBe(true)
     expect(ROOTS.flatMap(everySource).length).toBeGreaterThan(100)
+  })
+
+  it('reads a name in a multi-line import as imported, not declared', () => {
+    const imported = [
+      'import {',
+      '  Button,',
+      '  type TreeNode,',
+      '  type Label as Named,',
+      "} from 'x'",
+    ].join('\n')
+    const declared = ['type TreeNode = string', 'interface Label {}'].join('\n')
+
+    expect([...imported.matchAll(DECLARED)].map((one) => one[1])).toEqual([])
+    expect([...declared.matchAll(DECLARED)].map((one) => one[1])).toEqual(['TreeNode', 'Label'])
   })
 
   it('finds none, exported or not', () => {

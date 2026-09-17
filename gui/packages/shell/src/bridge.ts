@@ -304,11 +304,16 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
   // far side does not already hold. Anything else is not a reply this carrier can send.
   ipcMain.handle(
     BRIDGE_CHANNELS.replySession,
-    (_event, key: unknown, text: unknown): Promise<HandedOver> => {
-      if (typeof key !== 'string' || typeof text !== 'string') {
+    (_event, key: unknown, text: unknown, allowed: unknown): Promise<HandedOver> => {
+      if (
+        typeof key !== 'string' ||
+        typeof text !== 'string' ||
+        !Array.isArray(allowed) ||
+        !allowed.every((tool) => typeof tool === 'string')
+      ) {
         return Promise.resolve({ kind: 'withheld', reason: 'no reply was named' })
       }
-      return sessions.reply(key, text)
+      return sessions.reply(key, text, allowed)
     },
   )
   // A session about a gate finding (RG263), named by the door that closes it — the same two

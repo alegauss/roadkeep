@@ -184,6 +184,7 @@
 - ✅ **RG266** **leading from an edit to its act is never checked to scroll, and throws unhandled in every unit run** — The unit setup gives jsdom a scrollIntoView that records what it was asked, so leading from an edit to its act is asserted and the run is clean (design recorded in `packages/ui/src/scroll-record.ts`).
 - ✅ **RG268** **a session that ends its turn waiting on a person is drawn as done, so a stalled task reads as finished** — A turn that ended with a call refused is waiting, and a line session that ended without shipping is drawn as a stop, never as done (design recorded in `packages/core/src/landing.ts`).
 - ✅ **RG269** **a session that stopped to ask something cannot be answered from the window, only from a terminal with its id** — A stopped session is answered from the window: the reply resumes it by its own id under the same key, beside its last words (design recorded in `packages/core/src/session.ts`).
+- ✅ **RG270** **a tool call the session was refused is never shown, and nothing lets a person allow it for the next turn** — Each refused call is drawn under the stopped session, and a checked one goes with the reply as --allowedTools for that turn alone (design recorded in `packages/core/src/session.ts`).
 
 ## Block G — The shell (an executable now, a service later)
 

@@ -113,17 +113,35 @@ export function sessionCall(command: string, cwd: string, prompt: string): Sessi
  * one, so nothing is put around it. It goes last, after `--`, because it is prose a person typed:
  * a reply that happens to begin with a dash would otherwise be parsed as an option, and the CLI
  * would answer a flag nobody meant.
+ *
+ * **A grant is the person's, for one turn** (RG270). `allowed` names the tools somebody checked
+ * among the calls the session was refused, and goes as `--allowedTools` on this call alone:
+ * never a permission mode, never a skip, never a rule spelled from a call's input — composing a
+ * permission grammar would be this app deciding what a rule means — and nothing written to the
+ * project's `.claude` settings, which are the project's.
  */
 export function resumeCall(
   command: string,
   cwd: string,
   sessionId: string,
   reply: string,
+  allowed: readonly string[] = [],
 ): SessionCall {
+  const grant = allowed.length === 0 ? [] : ['--allowedTools', ...new Set(allowed)]
   return {
     command,
     cwd,
-    argv: ['-p', '--resume', sessionId, '--output-format', 'stream-json', '--verbose', '--', reply],
+    argv: [
+      '-p',
+      '--resume',
+      sessionId,
+      ...grant,
+      '--output-format',
+      'stream-json',
+      '--verbose',
+      '--',
+      reply,
+    ],
   }
 }
 

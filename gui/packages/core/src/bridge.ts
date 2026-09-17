@@ -188,8 +188,11 @@ export interface RendererBridge {
    * its id and what it was handed, and a reply to a session it does not hold, or to one still
    * running, is withheld. A line somebody else took since the session stopped is named, as a
    * handover names a held one, and nothing is resumed.
+   *
+   * `allowed` is what the person granted for that turn alone (RG270): tools, each one the session
+   * was refused. A tool it was not refused is not a grant this carrier sends.
    */
-  replySession(key: string, text: string): Promise<HandedOver>
+  replySession(key: string, text: string, allowed: readonly string[]): Promise<HandedOver>
   /**
    * The project's governed files, each with when the disk last changed it (RG153).
    *

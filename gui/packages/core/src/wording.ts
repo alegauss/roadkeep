@@ -257,6 +257,10 @@ export const EN = {
   'session.reply.unavailable':
     'No Claude Code answered here, so the session was not resumed. Tried: {tried}',
   'session.reply.withheld': 'The reply was not sent: {reason}',
+  'session.grant.title': 'Refused, and yours to allow for the next turn',
+  'session.grant.allow': 'Allow for the next turn: {tool}',
+  'session.grant.call': 'the call',
+  'session.grant.reply': 'Allowed for this turn: {tools}. Go on.',
   'session.edited': 'The files it edited',
   'session.edited.about': "Named by the session's own calls; the disk says where each stands.",
   'session.edited.none': 'The session has edited no file yet.',

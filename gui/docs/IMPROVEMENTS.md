@@ -12,28 +12,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-### §RG270 A grant is the person's, for one turn
-
-Headless Claude Code has nobody to ask, so a call the project's settings do not allow is
-refused and the turn goes on without it. The refusals arrive on the `result` line and
-RG268 keeps them on the outcome; nothing draws them, and a person who would allow the
-edit has no way to say so.
-
-Each refusal is drawn under the ended session: the tool, what it would have touched, a
-path for a file edit and a command for Bash, and a link to its call in the stream. Each
-has a checkbox, and the reply RG269 sends passes `--allowedTools` naming the checked
-tools, for that resumed turn and no other.
-
-`sessionCall` decides no permission, and that stands: here the person decides, one turn
-at a time. So never a `--permission-mode`, never a skip of permissions, never a tool
-nobody was refused, and nothing written to the project's `.claude` settings, which are
-the project's. The grant names a tool and not a rule spelled from its input, since
-composing a permission grammar would be this app deciding what a rule means.
-
-A grant with no words sends the sentence the wording table holds for it, placed in the
-box before sending, so what the session reads is still the person's to change. A refusal
-left unchecked stays listed, and is refused again if the session calls it again.
-
 ### §RG271 Rendered where a person reads, raw where a tool measures
 
 An agent writes Markdown for a terminal that renders it, and the stream draws it as

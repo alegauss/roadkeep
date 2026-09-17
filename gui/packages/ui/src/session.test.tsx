@@ -1145,7 +1145,7 @@ describe('RG269: answering a session that stopped, from the window', () => {
     fireEvent.click(send)
 
     await waitFor(() => {
-      expect(wired.replied).toEqual([{ key: KEY, text: 'The first one.' }])
+      expect(wired.replied).toEqual([{ key: KEY, text: 'The first one.', allowed: [] }])
     })
     await waitFor(() => {
       expect((box as HTMLTextAreaElement).value).toBe('')
@@ -1204,5 +1204,75 @@ describe('RG269: answering a session that stopped, from the window', () => {
       expect(screen.queryByTestId('reply')).toBeNull()
     })
     expect(screen.getByText(BASE['session.state.running'])).toBeTruthy()
+  })
+})
+
+describe('RG270: a refused call, shown and allowed for one turn', () => {
+  /** A session whose Edit was refused, with the call in its stream so the link has somewhere to go. */
+  const EDIT_CALL = JSON.stringify({
+    type: 'assistant',
+    message: {
+      content: [
+        { type: 'tool_use', id: 'toolu_01', name: 'Edit', input: { file_path: 'docs/ROADMAP.md' } },
+      ],
+    },
+  })
+  const WAITING: SessionOutcome = {
+    state: 'waiting',
+    sessionId: 's-42',
+    code: 0,
+    said: '',
+    result: 'I need to edit the roadmap.',
+    denials: [{ tool: 'Edit', callId: 'toolu_01', input: { file_path: 'docs/ROADMAP.md' } }],
+  }
+  const WAITING_RECORD = { ...RECORD, lines: [...RECORD.lines, EDIT_CALL], outcome: WAITING }
+
+  it('lists each refusal with its tool, what it would have touched and its call', async () => {
+    await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [WAITING_RECORD] })
+
+    const refusal = await screen.findByTestId('refusal')
+    expect(within(refusal).getByText('Edit')).toBeTruthy()
+    expect(within(refusal).getByText('docs/ROADMAP.md')).toBeTruthy()
+    expect(
+      within(refusal).getByRole('checkbox', {
+        name: fill(BASE['session.grant.allow'], { tool: 'Edit' }),
+      }),
+    ).toBeTruthy()
+
+    fireEvent.click(within(refusal).getByRole('button', { name: BASE['session.grant.call'] }))
+    // The link leads to the act that made the call.
+    const called = document.querySelector('[data-kind="used"]')
+    expect(scrolledIntoView).toContain(called)
+  })
+
+  it('places the grant’s sentence in an empty box, still the reader’s to change', async () => {
+    await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [WAITING_RECORD] })
+    const refusal = await screen.findByTestId('refusal')
+
+    fireEvent.click(within(refusal).getByRole('checkbox'))
+
+    const box = screen.getByLabelText(BASE['session.reply']) as HTMLTextAreaElement
+    await waitFor(() => {
+      expect(box.value).toBe(fill(BASE['session.grant.reply'], { tools: 'Edit' }))
+    })
+  })
+
+  it('sends the checked tool with the reply, and nothing where nothing was checked', async () => {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [WAITING_RECORD] })
+    const refusal = await screen.findByTestId('refusal')
+    const box = screen.getByLabelText(BASE['session.reply'])
+
+    fireEvent.change(box, { target: { value: 'Not yet.' } })
+    fireEvent.click(screen.getByRole('button', { name: BASE['session.reply.send'] }))
+    await waitFor(() => {
+      expect(wired.replied).toEqual([{ key: KEY, text: 'Not yet.', allowed: [] }])
+    })
+
+    fireEvent.click(within(refusal).getByRole('checkbox'))
+    fireEvent.change(box, { target: { value: 'Go on.' } })
+    fireEvent.click(screen.getByRole('button', { name: BASE['session.reply.send'] }))
+    await waitFor(() => {
+      expect(wired.replied.at(-1)).toEqual({ key: KEY, text: 'Go on.', allowed: ['Edit'] })
+    })
   })
 })

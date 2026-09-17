@@ -671,3 +671,38 @@ describe('RG269: answering a session that stopped', () => {
     expect(fake.calls).toHaveLength(1)
   })
 })
+
+describe('RG270: allowing a refused call for the next turn', () => {
+  async function refused() {
+    const made = await sessions()
+    const handed = await made.made.handOver(ROOT, 'FX1')
+    if (handed.kind !== 'started') throw new Error('not started')
+    made.fake.end({
+      ...DONE,
+      state: 'waiting',
+      sessionId: 's-42',
+      denials: [{ tool: 'Edit', callId: 't1', input: { file_path: 'docs/ROADMAP.md' } }],
+    })
+    await Promise.resolve()
+    await Promise.resolve()
+    return { ...made, key: handed.session.key }
+  }
+
+  it('resumes with the tool the person allowed, and only on that turn', async () => {
+    const { made, fake, key } = await refused()
+
+    expect((await made.reply(key, 'Go on.', ['Edit'])).kind).toBe('started')
+
+    const resumed = fake.calls[1]
+    const at = resumed?.argv.indexOf('--allowedTools') ?? -1
+    expect(resumed?.argv.slice(at, at + 2)).toEqual(['--allowedTools', 'Edit'])
+  })
+
+  it('refuses a grant for a tool the session was never refused', async () => {
+    const { made, fake, key } = await refused()
+
+    // Allowing Bash here would be a permission nobody saw a reason for.
+    expect((await made.reply(key, 'Go on.', ['Bash'])).kind).toBe('withheld')
+    expect(fake.calls).toHaveLength(1)
+  })
+})

@@ -97,7 +97,7 @@ export interface Sessions {
   /** Start one on a gate finding rather than a line (RG263), named by the door that closes it. */
   handOverDoor(root: string, offered: string, which: number): Promise<HandedOver>
   /** Answer one that stopped, by continuing it under the same key (RG269). */
-  reply(key: string, text: string): Promise<HandedOver>
+  reply(key: string, text: string, allowed?: readonly string[]): Promise<HandedOver>
   /** Every session started, each with its lines so far. Copies, so nothing outside edits one. */
   list(): SessionRecord[]
   /**
@@ -134,6 +134,7 @@ const NO_SESSION = 'this window holds no session by that key'
 const NO_REPLY = 'a reply has to say something'
 const STILL_RUNNING = 'the session is still running, and a reply waits for it to stop'
 const NEVER_NAMED = 'the session never named itself, so there is nothing to resume'
+const NOT_REFUSED = 'a grant names only a tool the session was refused'
 
 /** Why a door names no session: the batch is gone, or nothing in the report offered it. */
 const NO_SUCH_DOOR = 'that door is no longer on offer: the governed files have moved since'
@@ -304,13 +305,19 @@ export function createSessions(options: SessionsOptions): Sessions {
       }
     },
 
-    async reply(key, text) {
+    async reply(key, text, allowed = []) {
       const session = held.get(key)
       if (session === undefined) return { kind: 'withheld', reason: NO_SESSION }
       if (text.trim() === '') return { kind: 'withheld', reason: NO_REPLY }
       if (session.outcome === null) return { kind: 'withheld', reason: STILL_RUNNING }
       const sessionId = session.outcome.sessionId
       if (sessionId === '') return { kind: 'withheld', reason: NEVER_NAMED }
+      // Never a tool nobody was refused (RG270): the grant answers a refusal the person saw, and
+      // one that names anything else is a permission this carrier would be inventing.
+      const refused = new Set(session.outcome.denials.map((denial) => denial.tool))
+      if (allowed.some((tool) => !refused.has(tool))) {
+        return { kind: 'withheld', reason: NOT_REFUSED }
+      }
 
       // The line is read again before anything resumes (RG269): somebody may have taken it while
       // the session sat stopped, and a reply is not the moment to start a second author on it.
@@ -339,7 +346,12 @@ export function createSessions(options: SessionsOptions): Sessions {
       // holds is over, and the lines that follow are a turn still going.
       session.outcome = null
       options.publish({ session: session.key, resumed: true })
-      run(session, resumeCall(command, session.root, sessionId, text), found.agent, inherits)
+      run(
+        session,
+        resumeCall(command, session.root, sessionId, text, allowed),
+        found.agent,
+        inherits,
+      )
       return { kind: 'started', session: recordOf(session) }
     },
 

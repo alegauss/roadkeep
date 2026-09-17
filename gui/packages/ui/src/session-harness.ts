@@ -202,7 +202,11 @@ export interface Wired {
   /** What `sessions` answers next, which main moves under a standing list (RG178). */
   holds: SessionRecord[]
   /** Each reply sent, as the session's key and the words (RG269). */
-  readonly replied: { readonly key: string; readonly text: string }[]
+  readonly replied: {
+    readonly key: string
+    readonly text: string
+    readonly allowed: readonly string[]
+  }[]
 }
 
 export async function at(
@@ -274,8 +278,8 @@ export async function at(
         if (answer.kind === 'started') held.push(answer.session)
         return Promise.resolve(answer)
       },
-      replySession: (one, text) => {
-        wired.replied.push({ key: one, text })
+      replySession: (one, text, allowed) => {
+        wired.replied.push({ key: one, text, allowed })
         const record = held.find((session) => session.key === one) ?? RECORD
         return Promise.resolve(
           over.reply ?? { kind: 'started' as const, session: { ...record, outcome: null } },

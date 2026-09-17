@@ -355,3 +355,21 @@ describe('RG269: the call that answers a session', () => {
     expect(call.argv.at(-2)).toBe('--')
   })
 })
+
+describe('RG270: a grant is the person’s, for one turn', () => {
+  it('names the tools the person allowed, on that resumed turn and no other', () => {
+    const call = resumeCall('claude', '/w/proj', 's-42', 'Go on.', ['Edit', 'Bash', 'Edit'])
+
+    const at = call.argv.indexOf('--allowedTools')
+    expect(call.argv.slice(at, at + 3)).toEqual(['--allowedTools', 'Edit', 'Bash'])
+    // Before the end of options, so the reply is still the last word and still a reply.
+    expect(call.argv.at(-1)).toBe('Go on.')
+  })
+
+  it('passes no grant where nothing was allowed, and never a permission mode', () => {
+    const call = resumeCall('claude', '/w/proj', 's-42', 'Go on.')
+
+    expect(call.argv).not.toContain('--allowedTools')
+    expect(call.argv.some((part) => part.includes('permission'))).toBe(false)
+  })
+})
