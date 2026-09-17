@@ -52,6 +52,8 @@ const bridge: RendererBridge = {
   handOver: (root, id) => ipcRenderer.invoke(BRIDGE_CHANNELS.handOver, root, id),
   replySession: (key, text, allowed) =>
     ipcRenderer.invoke(BRIDGE_CHANNELS.replySession, key, text, allowed),
+  answerSession: (key, requestId, answer) =>
+    ipcRenderer.invoke(BRIDGE_CHANNELS.answerSession, key, requestId, answer),
   handOverDoor: (root, offered, which) =>
     ipcRenderer.invoke(BRIDGE_CHANNELS.handOverDoor, root, offered, which),
   governedAt: (root) => ipcRenderer.invoke(BRIDGE_CHANNELS.governedAt, root),

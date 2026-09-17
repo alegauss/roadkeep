@@ -186,6 +186,7 @@
 - ✅ **RG269** **a session that stopped to ask something cannot be answered from the window, only from a terminal with its id** — A stopped session is answered from the window: the reply resumes it by its own id under the same key, beside its last words (design recorded in `packages/core/src/session.ts`).
 - ✅ **RG270** **a tool call the session was refused is never shown, and nothing lets a person allow it for the next turn** — Each refused call is drawn under the stopped session, and a checked one goes with the reply as --allowedTools for that turn alone (design recorded in `packages/core/src/session.ts`).
 - ✅ **RG271** **a session's words are drawn with their Markdown literal, so bold, code and lists read as asterisks and backticks** — A session's words and its last word render as Markdown (react-markdown, GFM): no raw HTML, no image fetched, links through the guard, wide code scrolling in the stream by keyboard too.
+- ✅ **RG272** **a running session is refused every call that needs permission, and the person watching is never asked** — A running session's permission questions reach the window: allowed once, for the session or declined from under the stream, kept as lines, and the session drawn as asking.
 
 ## Block G — The shell (an executable now, a service later)
 

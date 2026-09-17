@@ -1,6 +1,8 @@
 import {
   actsIn,
   arrivedSince,
+  asksIn,
+  grantsOf,
   drawnState,
   editedIn,
   foldedNotes,
@@ -11,6 +13,8 @@ import {
   subjectOf,
   type Act,
   type Actionable,
+  type AskAnswer,
+  type AskStanding,
   type BriefPayload,
   type Change,
   type ClaimsPayload,
@@ -24,6 +28,7 @@ import {
   type GovernedFile,
   type MessageKey,
   type MovedPath,
+  type PermissionAsk,
   type PermissionDenial,
   type Reading,
   type SessionOutcome,
@@ -92,6 +97,7 @@ import { useWhen, useWording } from './wording'
 export const STATE_TEXT: Readonly<Record<DrawnState, MessageKey>> = {
   starting: 'session.state.starting',
   running: 'session.state.running',
+  asking: 'session.state.asking',
   done: 'session.state.done',
   waiting: 'session.state.waiting',
   unshipped: 'session.state.unshipped',
@@ -102,11 +108,13 @@ export const STATE_TEXT: Readonly<Record<DrawnState, MessageKey>> = {
 
 /**
  * Waiting and stopped short are the warning intent (RG268): the one a reader already reads as
- * their move, which both are — a refused call to grant, a line the turn did not finish.
+ * their move, which both are — a refused call to grant, a line the turn did not finish. Asking is
+ * too (RG272), and the most urgent of them: the session is held until somebody answers.
  */
 export const STATE_INTENT: Readonly<Record<DrawnState, Intent>> = {
   starting: null,
   running: null,
+  asking: 'warn',
   done: 'on',
   waiting: 'warn',
   unshipped: 'warn',
@@ -128,8 +136,49 @@ function Raw({ line }: { readonly line: string }) {
   )
 }
 
-function Spoken({ act }: { readonly act: Act }) {
+/**
+ * Where a question stands, as drawn (RG272): the lines' own answer, or still open — which past
+ * the end of the process is a question nobody answered, and never one still waiting.
+ */
+type Standing = AskStanding | 'unanswered'
+
+/** A question's act, which is what its row in the stream is drawn from. */
+type AskedAct = Extract<Act, { readonly kind: 'asked' }>
+
+const ASK_TEXT: Readonly<Record<Standing, MessageKey>> = {
+  open: 'session.ask.open',
+  once: 'session.ask.answered.once',
+  session: 'session.ask.answered.session',
+  decline: 'session.ask.answered.decline',
+  withdrawn: 'session.ask.withdrawn',
+  unanswered: 'session.ask.unanswered',
+}
+
+/** A question in the stream: what it asked for, and where it stands. Answered under the stream. */
+function Asked({ act, standing }: { readonly act: AskedAct; readonly standing: Standing }) {
   const say = useWording()
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex flex-wrap items-center gap-2">
+        <Pill intent={standing === 'open' ? 'warn' : null}>{say('session.ask.asked')}</Pill>
+        <span className="font-mono text-xs font-semibold">{act.ask.tool}</span>
+        {act.on === '' ? null : (
+          <span className="text-muted-foreground min-w-0 font-mono text-xs wrap-anywhere">
+            {act.on}
+          </span>
+        )}
+      </div>
+      <span className="text-xs" data-testid="ask-standing" data-standing={standing}>
+        {say(ASK_TEXT[standing])}
+      </span>
+    </div>
+  )
+}
+
+function Spoken({ act, standing }: { readonly act: Act; readonly standing?: Standing }) {
+  const say = useWording()
+
+  if (act.kind === 'asked') return <Asked act={act} standing={standing ?? 'open'} />
 
   // Its words are written for a person, so they are rendered (RG271); what a tool was called on
   // and what it gave back are measured, so they stay raw.
@@ -167,9 +216,9 @@ function Spoken({ act }: { readonly act: Act }) {
   return <span className="text-muted-foreground font-mono text-xs">{act.about}</span>
 }
 
-/** One act, edged where it touched a file this project governs. */
-function ActRow({ act }: { readonly act: Act }) {
-  const touched = act.kind === 'used' && act.governed.length > 0
+/** One act, edged where it touched a file this project governs, or asks what nobody answered. */
+function ActRow({ act, standing }: { readonly act: Act; readonly standing?: Standing }) {
+  const touched = (act.kind === 'used' && act.governed.length > 0) || standing === 'open'
   return (
     <li
       // Named by its seq, so an edit in the file viewer leads back to the act that made it
@@ -179,7 +228,7 @@ function ActRow({ act }: { readonly act: Act }) {
       data-testid="act"
       data-kind={act.kind}
     >
-      <Spoken act={act} />
+      <Spoken act={act} standing={standing} />
       <Raw line={act.line} />
     </li>
   )
@@ -886,6 +935,149 @@ const NOT_REPLYING: Replying = { kind: 'idle' }
 const NONE_ALLOWED: ReadonlySet<string> = new Set()
 
 /**
+ * One question a running session is held on (RG272): what it would run, the way to it in the
+ * stream, and the three answers.
+ *
+ * **Answered by name, composed on the far side.** The buttons send the question's id and which
+ * answer; the call's input and the engine's suggestions go back out of what the far side read, so
+ * nothing on this page spells a permission. Allowing for the session is offered only where the
+ * session offered something to allow, and says what that is in the engine's own spelling.
+ */
+function Question({
+  sessionKey,
+  ask,
+  seq,
+}: {
+  readonly sessionKey: string
+  readonly ask: PermissionAsk
+  /** Where its act sits in the stream. */
+  readonly seq: number | null
+}) {
+  const say = useWording()
+  const [sending, setSending] = useState(false)
+  const [withheld, setWithheld] = useState('')
+  const on = subjectOf(ask.input)
+  const grants = useMemo(() => grantsOf(ask), [ask])
+
+  const answer = useCallback(
+    (given: AskAnswer) => {
+      const bridge = getBridge()
+      if (bridge === undefined) return
+      setSending(true)
+      setWithheld('')
+      void bridge.answerSession(sessionKey, ask.requestId, given).then(
+        (answered) => {
+          // Sent is not drawn here: the answer arrives as a line, and the question leaves this
+          // panel when the lines say it is answered — in every window at once.
+          setSending(false)
+          if (answered.kind === 'withheld') setWithheld(answered.reason)
+        },
+        (cause: unknown) => {
+          setSending(false)
+          setWithheld(cause instanceof Error ? cause.message : '')
+        },
+      )
+    },
+    [sessionKey, ask.requestId],
+  )
+  const once = useCallback(() => {
+    answer('once')
+  }, [answer])
+  const forSession = useCallback(() => {
+    answer('session')
+  }, [answer])
+  const decline = useCallback(() => {
+    answer('decline')
+  }, [answer])
+  const show = useCallback(() => {
+    if (seq === null) return
+    document.getElementById(`act-${String(seq)}`)?.scrollIntoView({ block: 'center' })
+  }, [seq])
+
+  return (
+    <li className="flex flex-col gap-1.5 text-xs" data-testid="ask" data-tool={ask.tool}>
+      <span className="flex flex-wrap items-baseline gap-2">
+        <span className="font-mono font-semibold">{ask.tool}</span>
+        {on === '' ? null : (
+          <span className="text-muted-foreground min-w-0 font-mono wrap-anywhere">{on}</span>
+        )}
+      </span>
+      {ask.description === '' || ask.description === on ? null : (
+        <span className="text-muted-foreground wrap-anywhere">{ask.description}</span>
+      )}
+      {seq === null ? null : (
+        <button type="button" className="w-fit text-left underline" onClick={show}>
+          {say('session.grant.call')}
+        </button>
+      )}
+      <span className="mt-1 flex flex-wrap items-center gap-2">
+        <Button size="sm" disabled={sending} onClick={once}>
+          {say('session.ask.once')}
+        </Button>
+        {ask.suggestions.length === 0 ? null : (
+          <Button size="sm" variant="outline" disabled={sending} onClick={forSession}>
+            {say('session.ask.session')}
+          </Button>
+        )}
+        <Button size="sm" variant="outline" disabled={sending} onClick={decline}>
+          {say('session.ask.decline')}
+        </Button>
+      </span>
+      {ask.suggestions.length === 0 || grants.length === 0 ? null : (
+        <span className="text-muted-foreground font-mono wrap-anywhere">
+          {say('session.ask.grants', { grants: grants.join(', ') })}
+        </span>
+      )}
+      {withheld === '' ? null : (
+        <span className="text-destructive" role="alert">
+          {say('session.ask.withheld', { reason: withheld })}
+        </span>
+      )}
+    </li>
+  )
+}
+
+/**
+ * The questions a running session is held on (RG272), under the stream where the reply sits once
+ * it stops: the reader's move, beside the words that led to it.
+ */
+function Asking({
+  sessionKey,
+  asks,
+  acts,
+}: {
+  readonly sessionKey: string
+  readonly asks: readonly PermissionAsk[]
+  readonly acts: readonly Act[]
+}) {
+  const say = useWording()
+  const seqOf = useMemo(
+    () =>
+      new Map(
+        acts.flatMap((act) =>
+          act.kind === 'asked' ? [[act.ask.requestId, act.seq] as const] : [],
+        ),
+      ),
+    [acts],
+  )
+  return (
+    <section className="border-t px-5 py-4" data-testid="asking">
+      <PanelTitle>{say('session.ask.title')}</PanelTitle>
+      <ul className="flex flex-col gap-4">
+        {asks.map((ask) => (
+          <Question
+            key={ask.requestId}
+            sessionKey={sessionKey}
+            ask={ask}
+            seq={seqOf.get(ask.requestId) ?? null}
+          />
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+/**
  * One call the session was refused (RG270): the tool, what it would have touched, the way to its
  * call in the stream, and the box that allows that tool for the next turn.
  *
@@ -1098,10 +1290,13 @@ function Reply({
 function Stream({
   acts,
   after,
+  standings,
 }: {
   readonly acts: readonly Act[]
   /** What sits under the region inside the panel, which its height leaves room for (RG269). */
   readonly after?: ReactNode
+  /** Where each question stands, by its id (RG272). */
+  readonly standings: ReadonlyMap<string, Standing>
 }) {
   const say = useWording()
   // Folded where the reader chose it, and applied here rather than in `actsIn`: the acts stay
@@ -1181,7 +1376,13 @@ function Stream({
         <ul>
           {rows.map((row) =>
             row.kind === 'act' ? (
-              <ActRow key={row.act.seq} act={row.act} />
+              <ActRow
+                key={row.act.seq}
+                act={row.act}
+                standing={
+                  row.act.kind === 'asked' ? standings.get(row.act.ask.requestId) : undefined
+                }
+              />
             ) : (
               <FoldedRow key={`folded-${String(row.notes[0]?.seq ?? 0)}`} notes={row.notes} />
             ),
@@ -1225,8 +1426,27 @@ export function Session() {
     session === null || session.now === null || session.record.handed.kind !== 'line'
       ? null
       : landingBetween({ kind: 'read', payload: session.record.handed.brief }, session.now)
-  const state = drawnState(outcome, landing)
   const running = session !== null && session.outcome === null
+  // Every question the session asked, each where the lines say it stands (RG272). Open past the
+  // process's end is a question nobody answered, and only a running session is held on one.
+  const lines = session?.lines
+  const ended = session?.outcome ?? null
+  const asked = useMemo(() => asksIn(lines ?? []), [lines])
+  const standings = useMemo(
+    () =>
+      new Map<string, Standing>(
+        asked.map((one) => [
+          one.ask.requestId,
+          one.standing === 'open' && ended !== null ? 'unanswered' : one.standing,
+        ]),
+      ),
+    [asked, ended],
+  )
+  const open = useMemo(
+    () => (running ? asked.flatMap((one) => (one.standing === 'open' ? [one.ask] : [])) : []),
+    [asked, running],
+  )
+  const state = drawnState(outcome, landing, open.length)
 
   let subtitle: ReactNode = say('session.opening')
   if (view.kind === 'absent') subtitle = say('transport.absent')
@@ -1259,7 +1479,6 @@ export function Session() {
   const trail = useMemo(() => <ProjectTrail root={root} face={face} task={id} />, [root, face, id])
   // Read once for both columns that need them: the stream draws the acts, and what moved lists
   // the files they edited (RG243).
-  const lines = session?.lines
   const marks = session?.marks
   const acts = useMemo(
     () => (lines === undefined || marks === undefined ? [] : actsIn(lines, marks)),
@@ -1267,14 +1486,15 @@ export function Session() {
   )
   // Once it has stopped and named itself, which is when there is something to answer and a
   // session to resume (RG269). Built once per outcome, since the stream redraws for every act.
-  const ended = session?.outcome ?? null
-  const reply = useMemo(
-    () =>
-      ended === null || ended.sessionId === '' ? undefined : (
-        <Reply sessionKey={key} outcome={ended} acts={acts} />
-      ),
-    [ended, key, acts],
-  )
+  // While it runs, the same place holds the questions it is waiting on (RG272).
+  const reply = useMemo(() => {
+    if (ended === null) {
+      return open.length === 0 ? undefined : <Asking sessionKey={key} asks={open} acts={acts} />
+    }
+    return ended.sessionId === '' ? undefined : (
+      <Reply sessionKey={key} outcome={ended} acts={acts} />
+    )
+  }, [ended, key, acts, open])
 
   return (
     <>
@@ -1297,7 +1517,7 @@ export function Session() {
             className="min-w-0 lg:col-start-2 lg:row-span-2 lg:row-start-1 xl:row-span-1"
             data-region="session-stream"
           >
-            <Stream acts={acts} after={reply} />
+            <Stream acts={acts} after={reply} standings={standings} />
           </div>
           <div className="min-w-0 lg:col-start-1 lg:row-start-1" data-region="session-handed">
             <Handed record={session.record} />

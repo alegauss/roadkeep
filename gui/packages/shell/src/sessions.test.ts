@@ -1,5 +1,6 @@
 import {
   bridgedRun,
+  DECLINED,
   EngineCallFailed,
   openedFrom,
   openProject,
@@ -118,8 +119,20 @@ interface Fake {
   /** The environment each call was started with, in the same order. */
   readonly envs: NodeJS.ProcessEnv[]
   readonly cancelled: number
+  /** What was written to the session's standard input once it started (RG272), in order. */
+  readonly sent: string[]
   write(line: string): void
   end(outcome: SessionOutcome): void
+  /** Stop reading standard input, as a process past its `result` does. */
+  stopReading(): void
+}
+
+/** The words a call hands the session: its first message, read back out of the line (RG272). */
+function promptOf(call: SessionCall | undefined): string {
+  const [first = '{}'] = call?.input ?? []
+  const message = JSON.parse(first) as { message?: { content?: unknown } }
+  const content = message.message?.content
+  return typeof content === 'string' ? content : ''
 }
 
 function process(): { fake: Fake; start: NonNullable<SessionsOptions['start']> } {
@@ -128,15 +141,21 @@ function process(): { fake: Fake; start: NonNullable<SessionsOptions['start']> }
   let watcher: SessionWatcher = {}
   let finish: (outcome: SessionOutcome) => void = () => undefined
   let cancelled = 0
+  let reading = true
+  const sent: string[] = []
   const fake: Fake = {
     calls,
     envs,
     get cancelled() {
       return cancelled
     },
+    sent,
     write: (line) => watcher.onLine?.(line),
     end: (outcome) => {
       finish(outcome)
+    },
+    stopReading: () => {
+      reading = false
     },
   }
   const start = (
@@ -157,6 +176,11 @@ function process(): { fake: Fake; start: NonNullable<SessionsOptions['start']> }
       },
       finished,
       events: [],
+      write: (line) => {
+        if (!reading) return false
+        sent.push(line)
+        return true
+      },
     }
   }
   return { fake, start }
@@ -347,7 +371,10 @@ describe('RG153: a line handed to a session', () => {
     expect(call?.command).toBe('node')
     expect(call?.argv[0]).toBe('claude.mjs')
     expect(call?.argv).toContain('-p')
-    expect(call?.argv.find((part) => part.includes('"id": "FX1"'))).toBeDefined()
+    // On standard input, never the command line (RG272), and the questions are sent there too.
+    expect(promptOf(call)).toContain('"id": "FX1"')
+    expect(call?.argv.some((part) => part.includes('"id": "FX1"'))).toBe(false)
+    expect(call?.argv).toEqual(expect.arrayContaining(['--permission-prompt-tool', 'stdio']))
     expect(call?.cwd).toBe(ROOT)
   })
 
@@ -566,8 +593,8 @@ describe('RG263: a gate finding handed to a session', () => {
     expect(handed.session.id).toBe('')
 
     // The prompt carries the finding and the command, and the agent is told to run that one.
-    const prompt = fake.calls[0]?.argv.find((part) => part.includes('ref.dangling'))
-    expect(prompt).toBeDefined()
+    const prompt = promptOf(fake.calls[0])
+    expect(prompt).toContain('ref.dangling')
     expect(prompt).toContain('section amend T50 --body - --role improvements')
     expect(prompt).toContain('standard input')
   })
@@ -619,9 +646,10 @@ describe('RG269: answering a session that stopped', () => {
     expect(replied.session.key).toBe(key)
     expect(replied.session.lines).toHaveLength(1)
     expect(replied.session.outcome).toBeNull()
-    // The reply goes last, after `--`, as it was typed.
+    // The reply goes in on standard input, as it was typed (RG272).
     const [, resumed] = fake.calls
-    expect(resumed?.argv.slice(-2)).toEqual(['--', 'The first one.'])
+    expect(promptOf(resumed)).toBe('The first one.')
+    expect(resumed?.argv).not.toContain('The first one.')
     expect(resumed?.argv).toContain('--resume')
     expect(resumed?.argv[resumed.argv.indexOf('--resume') + 1]).toBe('s-42')
     // Every window watching is told the outcome it holds is over.
@@ -704,5 +732,103 @@ describe('RG270: allowing a refused call for the next turn', () => {
     // Allowing Bash here would be a permission nobody saw a reason for.
     expect((await made.reply(key, 'Go on.', ['Bash'])).kind).toBe('withheld')
     expect(fake.calls).toHaveLength(1)
+  })
+})
+
+describe('RG272: a question a running session asks, answered from the window', () => {
+  /** A question as the engine writes one: a Write, with the mode it offers for the session. */
+  const ASK = JSON.stringify({
+    type: 'control_request',
+    request_id: 'ask-1',
+    request: {
+      subtype: 'can_use_tool',
+      tool_name: 'Write',
+      input: { file_path: 'notes.md', content: 'hi' },
+      description: 'notes.md',
+      permission_suggestions: [{ type: 'setMode', mode: 'acceptEdits', destination: 'session' }],
+      tool_use_id: 'toolu_1',
+    },
+  })
+
+  async function asking(ask: string = ASK) {
+    const made = await sessions()
+    const handed = await made.made.handOver(ROOT, 'FX1')
+    if (handed.kind !== 'started') throw new Error('not started')
+    made.fake.write(ask)
+    return { ...made, key: handed.session.key }
+  }
+
+  it('sends the answer composed out of the question, and keeps it as a line of the record', async () => {
+    const { made, fake, published, key } = await asking()
+
+    expect(made.answer(key, 'ask-1', 'once')).toEqual({ kind: 'answered' })
+
+    const [sent = '{}'] = fake.sent
+    expect(JSON.parse(sent)).toEqual({
+      type: 'control_response',
+      response: {
+        subtype: 'success',
+        request_id: 'ask-1',
+        response: { behavior: 'allow', updatedInput: { file_path: 'notes.md', content: 'hi' } },
+      },
+    })
+    expect(made.list().find((one) => one.key === key)?.lines).toEqual([ASK, sent])
+    expect(published).toContainEqual({ session: key, index: 1, line: sent })
+  })
+
+  it('narrows what it allows for the session to the session, and declines in a sentence', async () => {
+    const forSession = await asking()
+    forSession.made.answer(forSession.key, 'ask-1', 'session')
+    expect(JSON.parse(forSession.fake.sent[0] ?? '{}')).toMatchObject({
+      response: {
+        response: {
+          behavior: 'allow',
+          updatedPermissions: [{ type: 'setMode', mode: 'acceptEdits', destination: 'session' }],
+        },
+      },
+    })
+
+    const declined = await asking()
+    declined.made.answer(declined.key, 'ask-1', 'decline')
+    expect(JSON.parse(declined.fake.sent[0] ?? '{}')).toMatchObject({
+      response: { response: { behavior: 'deny', message: DECLINED } },
+    })
+  })
+
+  it('answers a question once, and never one it was not asked', async () => {
+    const { made, fake, key } = await asking()
+
+    expect(made.answer(key, 'ask-9', 'once').kind).toBe('withheld')
+    expect(made.answer('nobody', 'ask-1', 'once').kind).toBe('withheld')
+    expect(made.answer(key, 'ask-1', 'decline').kind).toBe('answered')
+    expect(made.answer(key, 'ask-1', 'once').kind).toBe('withheld')
+    expect(fake.sent).toHaveLength(1)
+  })
+
+  it('sends nothing to a session that stopped or no longer reads, and keeps nothing', async () => {
+    const reading = await asking()
+    reading.fake.stopReading()
+    expect(reading.made.answer(reading.key, 'ask-1', 'once').kind).toBe('withheld')
+    expect(reading.made.list()[0]?.lines).toEqual([ASK])
+
+    const ended = await asking()
+    ended.fake.end(DONE)
+    await Promise.resolve()
+    await Promise.resolve()
+    expect(ended.made.answer(ended.key, 'ask-1', 'once').kind).toBe('withheld')
+    expect(ended.fake.sent).toEqual([])
+  })
+
+  it('refuses allowing for the session where the session offered nothing to allow', async () => {
+    const bare = JSON.stringify({
+      type: 'control_request',
+      request_id: 'ask-1',
+      request: { subtype: 'can_use_tool', tool_name: 'Bash', input: { command: 'npm test' } },
+    })
+    const { made, fake, key } = await asking(bare)
+
+    expect(made.answer(key, 'ask-1', 'session').kind).toBe('withheld')
+    expect(made.answer(key, 'ask-1', 'once').kind).toBe('answered')
+    expect(fake.sent).toHaveLength(1)
   })
 })

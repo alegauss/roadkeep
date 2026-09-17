@@ -16,6 +16,7 @@ export type {
   FileText,
   GovernedFile,
   Handed,
+  AnsweredAsk,
   HandedOver,
   LaunchSettings,
   OpenedProject,
@@ -297,6 +298,7 @@ export type { Written } from './sections'
 export { commandLine, createTranscript, entryLine, quoteFor } from './transcript'
 export type { Entry as TranscriptEntry, Ran, Shell, Transcript } from './transcript'
 export {
+  inputMessage,
   outcomeOf,
   promptFor,
   promptForDoor,
@@ -304,6 +306,8 @@ export {
   resumeCall,
   sessionCall,
 } from './session'
+export { answeredBy, answerLine, askOf, asksIn, DECLINED, grantsOf, openAsks } from './asking'
+export type { AskAnswer, AskStanding, PermissionAsk } from './asking'
 export type {
   PermissionDenial,
   SessionCall,

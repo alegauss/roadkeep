@@ -19,8 +19,10 @@ import {
  * a state rather than a crash: no `claude` on the machine, a session that exits non-zero,
  * and a session cancelled from the window.
  *
- * **stdin is closed.** Left open, the CLI waits three seconds for input that is never
- * coming and says so — the prompt goes in as an argument, and there is nothing to pipe.
+ * **stdin is the session's other half** (RG272). The prompt goes in as the first message, and
+ * standard input stays open for the answers to the questions the session asks while it runs. It
+ * is closed at the `result` line, which is where the session stops reading and exits — left open
+ * past it, the process would wait on input that is never coming.
  *
  * **No shell.** The prompt is a whole JSON payload with quotes and newlines in it, and it
  * is one element of an argv array. A shell is where that becomes a quoting defect.
@@ -33,6 +35,11 @@ export interface RunningSession {
   readonly finished: Promise<SessionOutcome>
   /** Every event read so far, in the order the session wrote them. */
   readonly events: readonly SessionEvent[]
+  /**
+   * Write one line to the session's standard input (RG272). False where it no longer reads it —
+   * ended, killed, or past its `result` — and nothing was written.
+   */
+  write(line: string): boolean
 }
 
 export interface SessionWatcher {
@@ -69,6 +76,12 @@ export function startSession(
   let cancelled = false
   let stderr = ''
   let child: ReturnType<typeof spawn> | null = null
+  // Whether standard input still takes a line: false from the `result` line, or once it closed.
+  let reading = false
+  const closeInput = () => {
+    reading = false
+    child?.stdin?.end()
+  }
 
   const finished = new Promise<SessionOutcome>((resolve) => {
     let settled = false
@@ -84,10 +97,17 @@ export function startSession(
         shell: false,
         windowsHide: true,
         env,
-        // Closed: the prompt is an argument, and an open stdin makes the CLI wait for
-        // input that is never coming.
-        stdio: ['ignore', 'pipe', 'pipe'],
+        stdio: ['pipe', 'pipe', 'pipe'],
       })
+      // A session that exits first leaves a write with nowhere to go, and that is not a crash.
+      child.stdin?.on('error', () => undefined)
+      child.stdin?.on('close', () => {
+        reading = false
+      })
+      reading = true
+      for (const line of call.input) child.stdin?.write(`${line}\n`)
+      // Nothing to say is nothing to wait for: a call with no message would hold the CLI open.
+      if (call.input.length === 0) closeInput()
     } catch (cause) {
       // Node can throw synchronously for a command that cannot be spawned at all.
       settle({
@@ -125,6 +145,8 @@ export function startSession(
       }
       events.push(event)
       watcher.onEvent?.(event)
+      // The turn is over, and the session reads nothing more: closing is what lets it exit.
+      if (event.kind === 'finished') closeInput()
     }
 
     child.stdout?.setEncoding('utf8')
@@ -165,6 +187,12 @@ export function startSession(
     finished,
     get events() {
       return events
+    },
+    write(line) {
+      const input = child?.stdin
+      if (!reading || input?.writable !== true) return false
+      input.write(`${line}\n`)
+      return true
     },
   }
 }

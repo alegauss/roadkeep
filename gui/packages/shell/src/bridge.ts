@@ -17,6 +17,7 @@ import {
   type EditedFile,
   type FileText,
   type GovernedFile,
+  type AnsweredAsk,
   type HandedOver,
   type KnownRoot,
   type LaunchSettings,
@@ -314,6 +315,21 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
         return Promise.resolve({ kind: 'withheld', reason: 'no reply was named' })
       }
       return sessions.reply(key, text, allowed)
+    },
+  )
+  // An answer to a running session's question (RG272): the question's id and which of the three
+  // answers, and never the words of one — the far side composes it out of the question it holds.
+  ipcMain.handle(
+    BRIDGE_CHANNELS.answerSession,
+    (_event, key: unknown, requestId: unknown, answer: unknown): AnsweredAsk => {
+      if (
+        typeof key !== 'string' ||
+        typeof requestId !== 'string' ||
+        (answer !== 'once' && answer !== 'session' && answer !== 'decline')
+      ) {
+        return { kind: 'withheld', reason: 'no answer was named' }
+      }
+      return sessions.answer(key, requestId, answer)
     },
   )
   // A session about a gate finding (RG263), named by the door that closes it — the same two

@@ -14,6 +14,7 @@
  */
 
 import type { Agent } from './agent'
+import type { AskAnswer } from './asking'
 import type { BuildIdentity } from './build'
 import type { CapabilityReport } from './capabilities'
 import type { ProjectCatalogue } from './catalogue'
@@ -193,6 +194,16 @@ export interface RendererBridge {
    * was refused. A tool it was not refused is not a grant this carrier sends.
    */
   replySession(key: string, text: string, allowed: readonly string[]): Promise<HandedOver>
+  /**
+   * Answer a question a running session is waiting on (RG272): allow the call, allow it for the
+   * session, or decline it.
+   *
+   * **Named by the question, never spelled.** The far side finds the question in the lines it
+   * holds and composes the answer out of it, so a page cannot send a session an input or a rule of
+   * its own. A question that is not open — answered, withdrawn, or on a session that stopped — is
+   * withheld with the reason.
+   */
+  answerSession(key: string, requestId: string, answer: AskAnswer): Promise<AnsweredAsk>
   /**
    * The project's governed files, each with when the disk last changed it (RG153).
    *
@@ -395,7 +406,11 @@ export interface SessionRecord {
   readonly handed: Handed
   /** Which Claude Code runs it, as resolution found it. */
   readonly agent: Agent
-  /** Every line of its stream so far, raw and in order. */
+  /**
+   * Every line of its stream so far, raw and in order — with each answer this window wrote back
+   * to a question it asked (RG272), at the place it was sent, so a question reads as answered off
+   * the lines alone.
+   */
   readonly lines: readonly string[]
   /**
    * Every path under the root that moved on disk while it ran (RG247), folded per path.
@@ -427,6 +442,10 @@ export type HandedOver =
   | { readonly kind: 'unavailable'; readonly tried: readonly (readonly string[])[] }
   /** Not a project the carrier opens, or not a line id. */
   | { readonly kind: 'withheld'; readonly reason: string }
+
+/** What answering a session's question did (RG272): sent, or why not. */
+export type AnsweredAsk =
+  { readonly kind: 'answered' } | { readonly kind: 'withheld'; readonly reason: string }
 
 /**
  * What each topic carries, one event at a time (RG144). The table main, the preload and a
@@ -642,6 +661,7 @@ export const BRIDGE_CHANNELS = {
   handOver: 'roadkeep:hand-over',
   handOverDoor: 'roadkeep:hand-over-door',
   replySession: 'roadkeep:reply-session',
+  answerSession: 'roadkeep:answer-session',
   governedAt: 'roadkeep:governed-at',
   editedAt: 'roadkeep:edited-at',
   fileText: 'roadkeep:file-text',

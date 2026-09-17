@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import { promptFor, sessionCall, type SessionEvent } from '@rk/core'
+import { answerLine, askOf, promptFor, sessionCall, type SessionEvent } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { aLine, openWithDesign, read, REPO } from './live'
@@ -99,6 +99,30 @@ describe('RG38: a session started from a real brief', () => {
   })
 })
 
+describe('RG272: a session that asks, answered on its standard input', () => {
+  it('reads the prompt off standard input, takes the answer there, and exits when its turn ends', async () => {
+    const lines: string[] = []
+    const session = run({ asking: true }, { onLine: (line: string) => lines.push(line) })
+
+    // The fake says its prompt back, so this is the prompt as it arrived and not as it was built.
+    await expect
+      .poll(() => lines.some((line) => askOf(line) !== null), { timeout: 20000 })
+      .toBe(true)
+    const said = session.events.find((event) => event.kind === 'said')
+    expect(said?.kind === 'said' ? said.text : '').toBe(prompt)
+
+    const ask = lines.map(askOf).find((one) => one !== null) ?? null
+    if (ask === null) throw new Error('no question')
+    expect(session.write(answerLine(ask, 'decline'))).toBe(true)
+
+    // Closing standard input at the result is the only thing that lets the fake exit.
+    const outcome = await session.finished
+    expect(outcome.result).toBe('deny')
+    expect(outcome.state).toBe('done')
+    expect(session.write(answerLine(ask, 'once'))).toBe(false)
+  }, 30000)
+})
+
 describe('RG38: the three ways it does not work', () => {
   it('is unavailable when there is no claude on the machine', async () => {
     // A fact about the machine, not a session that went wrong — which is why it is its
@@ -107,6 +131,7 @@ describe('RG38: the three ways it does not work', () => {
       command: path.join(REPO, 'no-such-claude-anywhere'),
       cwd: REPO,
       argv: ['-p', 'x'],
+      input: [],
     })
     const outcome = await session.finished
 
@@ -133,6 +158,7 @@ describe('RG38: the three ways it does not work', () => {
       command: process.execPath,
       cwd: REPO,
       argv: ['-e', 'process.exit(3)'],
+      input: [],
     })
     const outcome2 = await empty.finished
     expect(outcome2.state).toBe('failed')

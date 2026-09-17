@@ -28,6 +28,7 @@ import { linesIn } from './file-sheet'
 import { drawWindow } from './harness'
 import { holdSessionNotes } from './preferring'
 import {
+  ASKED,
   at,
   CHANGED,
   engine,
@@ -1372,5 +1373,102 @@ describe('RG271: what an agent wrote for a person, rendered', () => {
     const lastWord = await screen.findByTestId('last-word')
     expect(within(lastWord).getByText('one').tagName).toBe('STRONG')
     expect(await screen.findByText('**raw** out')).toBeTruthy()
+  })
+})
+
+describe('RG272: a question the running session asks, answered from the window', () => {
+  const ASKING_RECORD = { ...RECORD, lines: [...RECORD.lines, ASKED] }
+  const pill = (text: string) => screen.findByText(text)
+
+  it('draws the question in the stream and the session as asking, on its screen and the list', async () => {
+    await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [ASKING_RECORD] })
+
+    expect(await pill(BASE['session.state.asking'])).toBeTruthy()
+    const asked = screen.getAllByTestId('act').find((one) => one.dataset['kind'] === 'asked')
+    if (asked === undefined) throw new Error('no question in the stream')
+    expect(within(asked).getByText('Write')).toBeTruthy()
+    expect(within(asked).getByText('src/notes.md')).toBeTruthy()
+    expect(within(asked).getByTestId('ask-standing').dataset['standing']).toBe('open')
+    cleanup()
+
+    await at(SESSIONS_ROUTE, { sessions: [ASKING_RECORD] })
+    const row = await screen.findByTestId('session')
+    expect(within(row).getByText(BASE['session.state.asking'])).toBeTruthy()
+  })
+
+  it('offers the three answers under the stream, and what allowing for the session grants', async () => {
+    await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [ASKING_RECORD] })
+
+    const asking = await screen.findByTestId('asking')
+    expect(asking.closest('[data-region="session-stream"]')).not.toBeNull()
+    const ask = within(asking).getByTestId('ask')
+    for (const key of ['session.ask.once', 'session.ask.session', 'session.ask.decline'] as const) {
+      expect(within(ask).getByRole('button', { name: BASE[key] })).toBeTruthy()
+    }
+    expect(
+      within(ask).getByText(fill(BASE['session.ask.grants'], { grants: 'acceptEdits' })),
+    ).toBeTruthy()
+    // No reply box while it runs: a reply is for a session that stopped.
+    expect(screen.queryByTestId('reply')).toBeNull()
+  })
+
+  it('sends the answer by the question, and draws it answered once the line arrives', async () => {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [ASKING_RECORD] })
+    const ask = await screen.findByTestId('ask')
+
+    fireEvent.click(within(ask).getByRole('button', { name: BASE['session.ask.session'] }))
+    await waitFor(() => {
+      expect(wired.answered).toEqual([{ key: KEY, requestId: 'ask-1', answer: 'session' }])
+    })
+
+    // The far side keeps the answer as a line, and every window hears it as one.
+    const line = JSON.stringify({
+      type: 'control_response',
+      response: {
+        subtype: 'success',
+        request_id: 'ask-1',
+        response: { behavior: 'allow', updatedInput: {}, updatedPermissions: [] },
+      },
+    })
+    hear(wired, 'session', { session: KEY, index: ASKING_RECORD.lines.length, line })
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('asking')).toBeNull()
+    })
+    expect(screen.getByTestId('ask-standing').dataset['standing']).toBe('session')
+    expect(await pill(BASE['session.state.running'])).toBeTruthy()
+  })
+
+  it('says why an answer was not sent, and keeps the question open', async () => {
+    await at(sessionPath(ROOT, 'AL1', KEY), {
+      sessions: [ASKING_RECORD],
+      answer: { kind: 'withheld', reason: 'that question is no longer open' },
+    })
+    const ask = await screen.findByTestId('ask')
+
+    fireEvent.click(within(ask).getByRole('button', { name: BASE['session.ask.decline'] }))
+
+    expect(
+      await within(ask).findByText(
+        fill(BASE['session.ask.withheld'], { reason: 'that question is no longer open' }),
+      ),
+    ).toBeTruthy()
+    expect(screen.getByTestId('asking')).toBeTruthy()
+  })
+
+  it('draws a question left open by a session that ended as unanswered, with nothing to press', async () => {
+    const ended: SessionOutcome = {
+      state: 'cancelled',
+      sessionId: '',
+      code: null,
+      said: '',
+      result: '',
+      denials: [],
+    }
+    await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [{ ...ASKING_RECORD, outcome: ended }] })
+
+    expect(await screen.findByText(BASE['session.ask.unanswered'])).toBeTruthy()
+    expect(screen.queryByTestId('asking')).toBeNull()
+    expect(screen.queryByText(BASE['session.state.asking'])).toBeNull()
   })
 })

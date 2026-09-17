@@ -4,6 +4,8 @@ import {
   openedFrom,
   openProject,
   readBriefPayload,
+  type AnsweredAsk,
+  type AskAnswer,
   type EditedFile,
   type FileText,
   type HandedOver,
@@ -116,6 +118,20 @@ export const USED = JSON.stringify({
   },
 })
 
+/** A question the session asks while it runs (RG272): a Write, with a mode offered for the session. */
+export const ASKED = JSON.stringify({
+  type: 'control_request',
+  request_id: 'ask-1',
+  request: {
+    subtype: 'can_use_tool',
+    tool_name: 'Write',
+    input: { file_path: 'src/notes.md', content: 'hi' },
+    description: 'notes.md',
+    permission_suggestions: [{ type: 'setMode', mode: 'acceptEdits', destination: 'session' }],
+    tool_use_id: 'toolu_1',
+  },
+})
+
 export const SAID = JSON.stringify({
   type: 'assistant',
   message: { content: [{ type: 'text', text: 'Working it now.' }] },
@@ -207,6 +223,12 @@ export interface Wired {
     readonly text: string
     readonly allowed: readonly string[]
   }[]
+  /** Each answer to a question, as the session's key, the question and the answer (RG272). */
+  readonly answered: {
+    readonly key: string
+    readonly requestId: string
+    readonly answer: AskAnswer
+  }[]
 }
 
 export async function at(
@@ -221,6 +243,8 @@ export async function at(
     readonly texts?: readonly FileText[]
     /** What a reply answers (RG269). A resumed session unless a test says otherwise. */
     readonly reply?: HandedOver
+    /** What answering a question does (RG272). Sent unless a test says otherwise. */
+    readonly answer?: AnsweredAsk
   } = {},
 ): Promise<Wired> {
   const moved = { shipped: over.shipped ?? false }
@@ -235,6 +259,7 @@ export async function at(
     texts: new Map((over.texts ?? []).map((text) => [text.path, text])),
     holds: [],
     replied: [],
+    answered: [],
   }
   // What this window holds, which a handover adds to — the state RG175 reads to decide
   // whether the line is offered again, and which a test can move under a standing list
@@ -284,6 +309,10 @@ export async function at(
         return Promise.resolve(
           over.reply ?? { kind: 'started' as const, session: { ...record, outcome: null } },
         )
+      },
+      answerSession: (one, requestId, answer) => {
+        wired.answered.push({ key: one, requestId, answer })
+        return Promise.resolve(over.answer ?? { kind: 'answered' as const })
       },
       stopSession: (one) => {
         wired.stopped.push(one)

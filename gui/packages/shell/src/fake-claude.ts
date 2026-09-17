@@ -37,6 +37,26 @@ export interface FakeBehaviour {
   readonly garbage?: boolean
   /** Split every line across two writes, so the reader has to assemble them. */
   readonly chunked?: boolean
+  /**
+   * Run as a session under `--input-format stream-json` does (RG272): read the prompt off standard
+   * input and say it back, ask one question, end the turn with the answer it was given as its
+   * result — and exit only when standard input closes, which a real one does too.
+   */
+  readonly asking?: boolean
+}
+
+/** The question an asking fake puts, shaped as Claude Code writes one. */
+export const FAKE_ASK = {
+  type: 'control_request',
+  request_id: 'fake-ask',
+  request: {
+    subtype: 'can_use_tool',
+    tool_name: 'Write',
+    input: { file_path: 'notes.md', content: 'hi' },
+    description: 'notes.md',
+    permission_suggestions: [{ type: 'setMode', mode: 'acceptEdits', destination: 'session' }],
+    tool_use_id: 'fake-call',
+  },
 }
 
 /** The lines, as a captured run wrote them. */
@@ -69,11 +89,32 @@ function script(behaviour: FakeBehaviour): string {
   ]
 
   return [
+    "import { createInterface } from 'node:readline'",
     'const argv = process.argv.slice(2)',
     // The session's own cwd, so a test can prove the process ran where it was told to.
     `const lines = ${JSON.stringify(lines)}`,
     'lines[0].cwd = process.cwd()',
-    `if (${String(behaviour.hanging === true)}) { setInterval(() => {}, 1000) } else {`,
+    'const write = (value) => process.stdout.write(JSON.stringify(value) + "\\n")',
+    `if (${String(behaviour.asking === true)}) {`,
+    '  let prompted = false',
+    '  const input = createInterface({ input: process.stdin })',
+    "  input.on('line', (line) => {",
+    '    const message = JSON.parse(line)',
+    "    if (!prompted && message.type === 'user') {",
+    '      prompted = true',
+    '      write(lines[0])',
+    "      write({ type: 'assistant', message: { role: 'assistant', content: [{ type: 'text', text: message.message.content }] }, session_id: 'fake-0001' })",
+    `      write(${JSON.stringify(FAKE_ASK)})`,
+    '      return',
+    '    }',
+    "    if (message.type === 'control_response') {",
+    '      const answer = message.response.response',
+    "      write({ type: 'result', subtype: 'success', is_error: false, result: answer.behavior, num_turns: 1, duration_ms: 1, session_id: 'fake-0001' })",
+    '    }',
+    '  })',
+    // Only closing standard input ends it, so a test that hangs is a session never let go of.
+    "  input.on('close', () => process.exit(0))",
+    `} else if (${String(behaviour.hanging === true)}) { setInterval(() => {}, 1000) } else {`,
     `  if (${String(behaviour.garbage === true)}) process.stdout.write('not json at all\\n')`,
     '  for (const line of lines) {',
     '    const text = JSON.stringify(line) + "\\n"',

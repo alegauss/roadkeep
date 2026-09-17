@@ -58,7 +58,7 @@ async function sessionSees(env: NodeJS.ProcessEnv): Promise<string> {
     "process.stdout.write(JSON.stringify({ type: 'result', is_error: false, result: seen }) + '\\n')",
   ].join('\n')
   const session = startSession(
-    { command: process.execPath, cwd: REPO, argv: ['-e', probe] },
+    { command: process.execPath, cwd: REPO, argv: ['-e', probe], input: [] },
     {},
     env,
   )

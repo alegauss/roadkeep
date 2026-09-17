@@ -2,6 +2,8 @@ import { randomUUID } from 'node:crypto'
 
 import {
   actionableReport,
+  answerLine,
+  asksIn,
   claimingBrief,
   doorsIn,
   findingAt,
@@ -19,6 +21,8 @@ import {
   sessionMoves,
   type Agent,
   type AgentResolution,
+  type AnsweredAsk,
+  type AskAnswer,
   type BriefAnswer,
   type BriefPayload,
   type Handed,
@@ -98,6 +102,8 @@ export interface Sessions {
   handOverDoor(root: string, offered: string, which: number): Promise<HandedOver>
   /** Answer one that stopped, by continuing it under the same key (RG269). */
   reply(key: string, text: string, allowed?: readonly string[]): Promise<HandedOver>
+  /** Answer a question one that runs is waiting on (RG272), by the question's id. */
+  answer(key: string, requestId: string, answer: AskAnswer): AnsweredAsk
   /** Every session started, each with its lines so far. Copies, so nothing outside edits one. */
   list(): SessionRecord[]
   /**
@@ -135,6 +141,13 @@ const NO_REPLY = 'a reply has to say something'
 const STILL_RUNNING = 'the session is still running, and a reply waits for it to stop'
 const NEVER_NAMED = 'the session never named itself, so there is nothing to resume'
 const NOT_REFUSED = 'a grant names only a tool the session was refused'
+
+/** Why an answer is not sent (RG272). */
+const NOT_RUNNING = 'the session has stopped, so nothing is waiting on an answer'
+const NO_ASK = 'the session asked no question by that id'
+const NOT_OPEN = 'that question is no longer open'
+const NOTHING_SUGGESTED = 'the session offered nothing to allow for the rest of it'
+const NOT_READING = 'the session no longer reads its input'
 
 /** Why a door names no session: the batch is gone, or nothing in the report offered it. */
 const NO_SUCH_DOOR = 'that door is no longer on offer: the governed files have moved since'
@@ -353,6 +366,30 @@ export function createSessions(options: SessionsOptions): Sessions {
         inherits,
       )
       return { kind: 'started', session: recordOf(session) }
+    },
+
+    answer(key, requestId, answer) {
+      const session = held.get(key)
+      if (session === undefined) return { kind: 'withheld', reason: NO_SESSION }
+      if (session.outcome !== null || session.running === null) {
+        return { kind: 'withheld', reason: NOT_RUNNING }
+      }
+      // The question is found in what the session wrote, never taken from the page: the answer is
+      // composed out of it, so what goes back is its own call and its own suggestions.
+      const asked = asksIn(session.lines).find((one) => one.ask.requestId === requestId)
+      if (asked === undefined) return { kind: 'withheld', reason: NO_ASK }
+      if (asked.standing !== 'open') return { kind: 'withheld', reason: NOT_OPEN }
+      if (answer === 'session' && asked.ask.suggestions.length === 0) {
+        return { kind: 'withheld', reason: NOTHING_SUGGESTED }
+      }
+
+      const line = answerLine(asked.ask, answer)
+      if (!session.running.write(line)) return { kind: 'withheld', reason: NOT_READING }
+      // Kept as a line of the record where it was sent, so every window reads the question as
+      // answered off the same lines, and a screen opened later does too.
+      session.lines.push(line)
+      options.publish({ session: session.key, index: session.lines.length - 1, line })
+      return { kind: 'answered' }
     },
 
     async handOverDoor(root, offered, which) {

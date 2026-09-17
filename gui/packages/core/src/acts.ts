@@ -20,6 +20,7 @@
  * to work around.
  */
 
+import { askOf, type PermissionAsk } from './asking'
 import type { EditedFile } from './bridge'
 import { asRecord } from './reading'
 
@@ -119,6 +120,18 @@ export type Act =
       readonly text: string
       readonly line: string
     }
+  /**
+   * A question the session put to the person, holding a call up until it is answered (RG272).
+   * Where it stands is read off the lines after it, so the act is the question alone.
+   */
+  | {
+      readonly kind: 'asked'
+      readonly seq: number
+      readonly ask: PermissionAsk
+      /** What the call is on, by the same keys a call's subject is read from. */
+      readonly on: string
+      readonly line: string
+    }
   /** Read and drawn as nothing more: thinking, rate limits, accounting. */
   | { readonly kind: 'note'; readonly seq: number; readonly about: string; readonly line: string }
 
@@ -173,6 +186,12 @@ export function actsOf(line: string, from: number, marks: Marks = NOTHING_MARKED
   const type = typeof object['type'] === 'string' ? object['type'] : ''
   let seq = from
   const next = () => seq++
+
+  // A question is the one control line drawn as more than a note (RG272). Its answer and a
+  // withdrawal stay notes: where the question stands is drawn on the question.
+  const ask = askOf(trimmed)
+  if (ask !== null)
+    return [{ kind: 'asked', seq: next(), ask, on: subjectOf(ask.input), line: trimmed }]
 
   if (type === 'assistant') {
     return contentOf(object).flatMap((part): Act[] => {
@@ -511,6 +530,8 @@ export function actLine(act: Act): string {
     }
     case 'returned':
       return act.ok ? act.text : `failed: ${act.text}`
+    case 'asked':
+      return act.on === '' ? `asks for ${act.ask.tool}` : `asks for ${act.ask.tool}  ${act.on}`
     default:
       return act.about
   }

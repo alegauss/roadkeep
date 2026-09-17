@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest'
 
 import { readBriefPayload, type BriefPayload } from './payloads'
-import { outcomeOf, promptFor, readSessionLine, resumeCall, sessionCall } from './session'
+import {
+  inputMessage,
+  outcomeOf,
+  promptFor,
+  readSessionLine,
+  resumeCall,
+  sessionCall,
+} from './session'
 
 /** Captured from a real `brief --json`, trimmed to the keys the shape declares. */
 const RAW = {
@@ -103,7 +110,19 @@ describe('RG38: the call, and nothing beside it', () => {
     // setting: without it the call is refused.
     const call = sessionCall('claude', '/w/proj', 'do the thing')
 
-    expect(call.argv).toEqual(['-p', 'do the thing', '--output-format', 'stream-json', '--verbose'])
+    // And a question goes down standard input rather than being refused (RG272), which is where
+    // the prompt goes too.
+    expect(call.argv).toEqual([
+      '-p',
+      '--input-format',
+      'stream-json',
+      '--output-format',
+      'stream-json',
+      '--verbose',
+      '--permission-prompt-tool',
+      'stdio',
+    ])
+    expect(call.input).toEqual([inputMessage('do the thing')])
   })
 
   it('runs in the project root, so the project own wiring answers', () => {
@@ -113,10 +132,18 @@ describe('RG38: the call, and nothing beside it', () => {
 
   it('passes no configuration at all', () => {
     // No model, no permission mode, no --add-dir, no system prompt: each would be this
-    // app deciding something the project or the person already decides.
+    // app deciding something the project or the person already decides. Where a question goes is
+    // not one of them (RG272): the project's rules still answer every call they cover.
     const argv = sessionCall('claude', '/w', 'x').argv.join(' ')
 
-    for (const flag of ['--model', '--permission-mode', '--add-dir', '--append-system-prompt']) {
+    for (const flag of [
+      '--model',
+      '--permission-mode',
+      '--add-dir',
+      '--append-system-prompt',
+      '--allowedTools',
+      '--dangerously-skip-permissions',
+    ]) {
       expect(argv).not.toContain(flag)
     }
   })
@@ -126,12 +153,20 @@ describe('RG38: the call, and nothing beside it', () => {
     expect(sessionCall('/opt/claude/bin/claude', '/w', 'x').command).toBe('/opt/claude/bin/claude')
   })
 
-  it('puts a whole JSON prompt in one argument, newlines and quotes included', () => {
+  it('puts a whole JSON prompt in one message on standard input, newlines and quotes included', () => {
     const prompt = promptFor(brief())
     const call = sessionCall('claude', '/w', prompt)
 
-    expect(call.argv[1]).toBe(prompt)
-    expect(call.argv.filter((part) => part === prompt)).toHaveLength(1)
+    // One line, since a message is a line of the stream the session reads (RG272).
+    const [message = ''] = call.input
+    expect(message).not.toContain('\n')
+    expect(JSON.parse(message)).toEqual({
+      type: 'user',
+      message: { role: 'user', content: prompt },
+      parent_tool_use_id: null,
+      session_id: '',
+    })
+    expect(call.argv).not.toContain(prompt)
   })
 })
 
@@ -339,20 +374,23 @@ describe('RG269: the call that answers a session', () => {
       '-p',
       '--resume',
       's-42',
+      '--input-format',
+      'stream-json',
       '--output-format',
       'stream-json',
       '--verbose',
-      '--',
-      'The first one.',
+      '--permission-prompt-tool',
+      'stdio',
     ])
+    expect(call.input).toEqual([inputMessage('The first one.')])
   })
 
-  it('sends the reply as written, after the end of options, whatever it begins with', () => {
-    // Prose a person typed, and a reply that begins with a dash is still a reply.
+  it('sends the reply as written, off the command line, whatever it begins with', () => {
+    // Prose a person typed, and a reply that begins with a dash is still a reply (RG272).
     const call = resumeCall('claude', '/w/proj', 's-42', '--no, the second')
 
-    expect(call.argv.at(-1)).toBe('--no, the second')
-    expect(call.argv.at(-2)).toBe('--')
+    expect(call.argv).not.toContain('--no, the second')
+    expect(call.input).toEqual([inputMessage('--no, the second')])
   })
 })
 
@@ -361,15 +399,21 @@ describe('RG270: a grant is the person’s, for one turn', () => {
     const call = resumeCall('claude', '/w/proj', 's-42', 'Go on.', ['Edit', 'Bash', 'Edit'])
 
     const at = call.argv.indexOf('--allowedTools')
-    expect(call.argv.slice(at, at + 3)).toEqual(['--allowedTools', 'Edit', 'Bash'])
-    // Before the end of options, so the reply is still the last word and still a reply.
-    expect(call.argv.at(-1)).toBe('Go on.')
+    // Ended by the next option, so the list names the tools and nothing after them.
+    expect(call.argv.slice(at, at + 4)).toEqual([
+      '--allowedTools',
+      'Edit',
+      'Bash',
+      '--input-format',
+    ])
+    expect(call.input).toEqual([inputMessage('Go on.')])
   })
 
   it('passes no grant where nothing was allowed, and never a permission mode', () => {
     const call = resumeCall('claude', '/w/proj', 's-42', 'Go on.')
 
     expect(call.argv).not.toContain('--allowedTools')
-    expect(call.argv.some((part) => part.includes('permission'))).toBe(false)
+    expect(call.argv).not.toContain('--permission-mode')
+    expect(call.argv.some((part) => part.includes('skip-permissions'))).toBe(false)
   })
 })

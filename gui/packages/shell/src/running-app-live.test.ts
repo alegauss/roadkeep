@@ -45,8 +45,10 @@ describe('RG60: what the renderer was given', () => {
     // and the language's writes into the one that writes a preference. RG244 added the one that
     // says when the disk last changed each file a session edited, RG245 the one that reads one
     // of those files, RG251 the one that answers what a verb printed at an earlier launch, and
-    // RG252 the one that says whether that answer still stands.
+    // RG252 the one that says whether that answer still stands. RG272 added the one that answers a
+    // question a running session is held on.
     expect(methods).toEqual([
+      'answerSession',
       'check',
       'chooseRoot',
       'door',
@@ -215,8 +217,9 @@ describe('RG60: what the renderer was not given', () => {
     // since RG244 added the one that asks the disk about a session's edited files. Eighteen since
     // RG245 added the one that reads one of them, nineteen since RG251 added the one that
     // answers what a verb printed at an earlier launch, and twenty since RG252 added the one
-    // that says whether it still stands.
-    expect(reachable).toHaveLength(22)
+    // that says whether it still stands. Twenty-three since RG272 added the one that answers a
+    // running session's question.
+    expect(reachable).toHaveLength(23)
     expect(reachable.every((one) => one === 'function')).toBe(true)
   })
 })

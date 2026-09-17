@@ -11,7 +11,8 @@ import { removeTree } from './scratch'
  * something else to be looked at: a run long enough to overflow the stream region, with notes to
  * fold and tool calls to draw, and one still running when it is photographed. So this replays a
  * captured run and a tail after it, then stays up writing nothing — running, with a document
- * that settles.
+ * that settles. The last line it writes is a question (RG272), so what is photographed is a
+ * session held on a person, which is the moment the screen is for.
  *
  * **It answers what resolution asks.** `--version` prints a version line and `auth status` a
  * login, so RG43 resolves it and RG205 decides its environment exactly as for the real one.
@@ -41,7 +42,37 @@ export interface ScriptedAgentOptions {
   readonly tail?: number
   /** The pause between lines, so the stream arrives as a run's does rather than all at once. */
   readonly intervalMs?: number
+  /**
+   * End the replay on a question nobody has answered (RG272), which is where a real run waits on
+   * a person. True unless a caller wants a run that only runs.
+   */
+  readonly asking?: boolean
 }
+
+/**
+ * The question a replay ends on (RG272): a Bash call the project's rules leave open, with the rule
+ * the engine offers for the rest of the session, as Claude Code 2.1.274 writes one.
+ */
+export const SCRIPTED_ASK = JSON.stringify({
+  type: 'control_request',
+  request_id: 'scripted-ask',
+  request: {
+    subtype: 'can_use_tool',
+    tool_name: 'Bash',
+    display_name: 'Bash',
+    input: { command: 'npm test', description: 'Run the tests' },
+    description: 'Run the tests',
+    permission_suggestions: [
+      {
+        type: 'addRules',
+        rules: [{ toolName: 'Bash', ruleContent: 'npm test:*' }],
+        behavior: 'allow',
+        destination: 'localSettings',
+      },
+    ],
+    tool_use_id: 'scripted-ask-call',
+  },
+})
 
 export interface ScriptedAgent {
   /** The argv to start it with: this process's node and the script. */
@@ -185,10 +216,10 @@ function script(linesFile: string, intervalMs: number): string {
 }
 
 export function scriptedAgent(options: ScriptedAgentOptions = {}): ScriptedAgent {
-  const lines = scriptedLines(
-    readFileSync(options.stream ?? CAPTURED_STREAM, 'utf8'),
-    options.tail ?? 40,
-  )
+  const lines = [
+    ...scriptedLines(readFileSync(options.stream ?? CAPTURED_STREAM, 'utf8'), options.tail ?? 40),
+    ...(options.asking === false ? [] : [SCRIPTED_ASK]),
+  ]
   const home = mkdtempSync(path.join(tmpdir(), 'rk-scripted-agent-'))
   const linesFile = path.join(home, 'lines.json')
   const file = path.join(home, 'claude.mjs')

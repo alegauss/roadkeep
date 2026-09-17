@@ -1,4 +1,11 @@
-import { EVERY_SOURCE, folderName, type SessionRecord, type SessionState } from '@rk/core'
+import {
+  drawnState,
+  EVERY_SOURCE,
+  folderName,
+  openAsks,
+  type DrawnState,
+  type SessionRecord,
+} from '@rk/core'
 import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-system/bento'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -59,9 +66,12 @@ function useSessions(): readonly SessionRecord[] {
   return held
 }
 
-function stateOf(record: SessionRecord): SessionState {
+function stateOf(record: SessionRecord): DrawnState {
   if (record.outcome !== null) return record.outcome.state
-  return record.lines.length === 0 ? 'starting' : 'running'
+  if (record.lines.length === 0) return 'starting'
+  // Held on a question is the list's to say too (RG272): a reader scanning what runs is looking
+  // for the one waiting on them.
+  return drawnState('running', null, openAsks(record.lines).length)
 }
 
 export function Sessions() {

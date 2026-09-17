@@ -4,9 +4,10 @@ import { asRecord } from './reading'
 /**
  * What a Claude Code session is handed, and what it says back.
  *
- * Claude Code runs headless — `claude -p <prompt> --output-format stream-json --verbose`,
- * a child process writing one JSON object per line. That call is the whole integration,
- * and everything difficult about it sits on either side of it.
+ * Claude Code runs headless — `claude -p --output-format stream-json --verbose`, a child
+ * process writing one JSON object per line, with the prompt on its standard input (RG272).
+ * That call is the whole integration, and everything difficult about it sits on either side
+ * of it.
  *
  * **`--verbose` is not optional.** With `--print`, `--output-format stream-json` is
  * refused without it — `Error: When using --print, --output-format=stream-json requires
@@ -84,22 +85,57 @@ export interface SessionCall {
   readonly argv: readonly string[]
   /** The project root, which is where the session's own wiring is found. */
   readonly cwd: string
+  /**
+   * The lines written to the session's standard input as it starts (RG272): the prompt, as the
+   * first message. Standard input then stays open for the answers to its questions.
+   */
+  readonly input: readonly string[]
+}
+
+/**
+ * The flags every turn runs under (RG272).
+ *
+ * `--input-format stream-json` is what keeps standard input a channel rather than a prompt, and
+ * `--permission-prompt-tool stdio` is what sends a question down it instead of refusing the call.
+ * That flag decides no permission: the project's rules answer every call they cover, and only a
+ * call they leave to a question is asked — of the person, through this window, where a headless
+ * run asked nobody.
+ */
+const STREAM = [
+  '--input-format',
+  'stream-json',
+  '--output-format',
+  'stream-json',
+  '--verbose',
+  '--permission-prompt-tool',
+  'stdio',
+] as const
+
+/**
+ * One message, as the session reads it on standard input (RG272).
+ *
+ * Off the command line, the prompt has no length an operating system refuses and no character a
+ * parser reads as an option, so a reply that begins with a dash is only a reply.
+ */
+export function inputMessage(text: string): string {
+  return JSON.stringify({
+    type: 'user',
+    message: { role: 'user', content: text },
+    parent_tool_use_id: null,
+    session_id: '',
+  })
 }
 
 /**
  * Build the call.
  *
- * Nothing is passed but the prompt and the format. No model, no permission mode, no
- * `--add-dir`, no system prompt: every one of those would be this app deciding something
- * the project or the person already decides, and the session is meant to run under the
- * project's own configuration.
+ * Nothing is passed but the formats and where a question goes. No model, no permission mode, no
+ * `--add-dir`, no system prompt: every one of those would be this app deciding something the
+ * project or the person already decides, and the session is meant to run under the project's own
+ * configuration.
  */
 export function sessionCall(command: string, cwd: string, prompt: string): SessionCall {
-  return {
-    command,
-    cwd,
-    argv: ['-p', prompt, '--output-format', 'stream-json', '--verbose'],
-  }
+  return { command, cwd, argv: ['-p', ...STREAM], input: [inputMessage(prompt)] }
 }
 
 /**
@@ -110,9 +146,8 @@ export function sessionCall(command: string, cwd: string, prompt: string): Sessi
  * way the first turn was. The one flag added is that id.
  *
  * **The reply is the person's, sent as written.** `promptFor` frames a payload and a reply is not
- * one, so nothing is put around it. It goes last, after `--`, because it is prose a person typed:
- * a reply that happens to begin with a dash would otherwise be parsed as an option, and the CLI
- * would answer a flag nobody meant.
+ * one, so nothing is put around it. It goes in on standard input as the prompt does (RG272), so
+ * prose a person typed is never on a command line an option parser reads.
  *
  * **A grant is the person's, for one turn** (RG270). `allowed` names the tools somebody checked
  * among the calls the session was refused, and goes as `--allowedTools` on this call alone:
@@ -131,17 +166,8 @@ export function resumeCall(
   return {
     command,
     cwd,
-    argv: [
-      '-p',
-      '--resume',
-      sessionId,
-      ...grant,
-      '--output-format',
-      'stream-json',
-      '--verbose',
-      '--',
-      reply,
-    ],
+    argv: ['-p', '--resume', sessionId, ...grant, ...STREAM],
+    input: [inputMessage(reply)],
   }
 }
 

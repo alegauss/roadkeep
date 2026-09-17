@@ -156,9 +156,14 @@ export function saidButNotDone(claimedShipped: boolean, landing: Landing): boole
  * line has not been read again yet has no second reading — and then the outcome is all there is,
  * worded as what the engine said: that the turn ended.
  */
-export type DrawnState = SessionState | 'unshipped'
+export type DrawnState = SessionState | 'unshipped' | 'asking'
 
-export function drawnState(state: SessionState, landing: Landing | null): DrawnState {
+/**
+ * @param asking how many questions the session has open (RG272): a running session waiting on
+ *   a person is drawn as asking, since running says the reader has nothing to do.
+ */
+export function drawnState(state: SessionState, landing: Landing | null, asking = 0): DrawnState {
+  if (state === 'running' && asking > 0) return 'asking'
   if (state !== 'done' || landing === null) return state
   return landing.changes.some((change) => change.kind === 'shipped') ? 'done' : 'unshipped'
 }
