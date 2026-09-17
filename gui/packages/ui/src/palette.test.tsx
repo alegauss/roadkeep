@@ -187,6 +187,27 @@ describe('RG147: lines in the palette', () => {
     expect(listed).toEqual([])
   })
 
+  it('reads the backlogs when the palette is opened by its key, as by the button (RG267)', async () => {
+    // The key toggled the palette's state directly while the button went through the path that
+    // asks for the listings, so the palette a reader opened the way they are taught searched
+    // nothing at all.
+    await wired()
+    drawWindow()
+    await waitFor(() => {
+      expect(screen.getByTestId('palette-trigger')).toBeTruthy()
+    })
+
+    await act(async () => {
+      fireEvent.keyDown(window, { key: 'k', ctrlKey: true })
+      await Promise.resolve()
+    })
+
+    expect(await screen.findByRole('dialog')).toBeTruthy()
+    await waitFor(() => {
+      expect(listed.length).toBe(2)
+    })
+  })
+
   it('offers a line the search returned, from whichever backlog holds it', async () => {
     await wired()
     drawWindow()

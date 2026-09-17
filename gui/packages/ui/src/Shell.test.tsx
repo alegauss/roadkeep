@@ -1,5 +1,5 @@
 import { BASE, SESSIONS_ROUTE, SETTINGS_ROUTE } from '@rk/core'
-import { bentoNavTarget } from '@viglet/viglet-design-system/bento'
+import { BENTO_SHELL_SHORTCUTS, bentoNavTarget } from '@viglet/viglet-design-system/bento'
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
@@ -113,6 +113,39 @@ describe('RG237: the shell offers the full width by route, never a page', () => 
     expect(drawnBySession.length).toBeGreaterThan(1)
     expect(columnAt('/project/r/task/RG1')).toBe('reading')
     expect(columnAt('/project/r/gate/session/k')).toBe('full')
+  })
+})
+
+describe('RG267: the keys the shortcuts sheet lists', () => {
+  it('opens what the sheet says for every key in the set it reads', async () => {
+    // The sheet is the package's and lists the package's set. This window bound two keys of its
+    // own, so when the set grew `/` the sheet taught a key that did nothing. Read off the set,
+    // so a binding added to it and not answered here is a red run.
+    for (const shortcut of BENTO_SHELL_SHORTCUTS) {
+      const { unmount } = drawWindow()
+
+      await press(shortcut.key, shortcut.mod === true ? { ctrlKey: true } : {})
+
+      const dialog = await screen.findByRole('dialog')
+      // The palette is the one with a box to type in; the sheet has none.
+      const typing = within(dialog).queryByRole('combobox') !== null
+      expect({ key: shortcut.key, opened: typing ? 'palette' : 'shortcuts' }).toEqual({
+        key: shortcut.key,
+        opened: shortcut.action,
+      })
+      unmount()
+    }
+  })
+
+  it('hints at a key the set binds, and at no other', () => {
+    drawWindow()
+    const chord = BENTO_SHELL_SHORTCUTS.find((one) => one.action === 'palette' && one.mod === true)
+
+    expect(
+      within(screen.getByTestId('palette-trigger')).getByText(
+        `Ctrl ${chord?.key.toUpperCase() ?? ''}`,
+      ),
+    ).toBeTruthy()
   })
 })
 

@@ -9,10 +9,12 @@ import {
   toast,
 } from '@viglet/viglet-design-system'
 import {
+  BENTO_SHELL_SHORTCUTS,
   BentoBackToTop,
   BentoCommandPalette,
   BentoNavRail,
   BentoShortcutsDialog,
+  useBentoShellShortcuts,
 } from '@viglet/viglet-design-system/bento'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
@@ -86,19 +88,17 @@ function isMac(): boolean {
 }
 
 /**
- * Whether a keystroke belongs to whatever the reader is typing into.
+ * The keycaps the palette trigger hints at, read off the package's binding set (RG267).
  *
- * `?` is a global, and a global that fires inside a search box is a search box that cannot
- * contain a question mark.
+ * Read and never written: the set is what `useBentoShellShortcuts` binds and what the shortcuts
+ * sheet lists, so a hint composed from it cannot name a key nothing answers. The chord is the
+ * one to show — `/` is bound too, and a bare key is a thing a reader brings, not one to teach.
  */
-function typingInto(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false
-  return (
-    target.isContentEditable ||
-    target instanceof HTMLInputElement ||
-    target instanceof HTMLTextAreaElement ||
-    target instanceof HTMLSelectElement
-  )
+function paletteHint(mac: boolean): string {
+  const chord = BENTO_SHELL_SHORTCUTS.find((one) => one.action === 'palette' && one.mod === true)
+  if (chord === undefined) return ''
+  const key = chord.key.toUpperCase()
+  return mac ? `⌘${key}` : `Ctrl ${key}`
 }
 
 /** A prop, so it is built once: a fresh array per render re-renders the menu. */
@@ -154,6 +154,13 @@ export function AppShell() {
     searchable.ask()
     setPaletteOpen(true)
   }, [searchable])
+  // A key toggles, since pressing it again is how a reader closes what it opened — and opens
+  // through `openPalette`, the button's own path (RG267). It set the state directly before,
+  // so a palette opened by the key a reader is taught had never asked for anything to search.
+  const togglePalette = useCallback(() => {
+    if (paletteOpen) setPaletteOpen(false)
+    else openPalette()
+  }, [paletteOpen, openPalette])
   const openShortcuts = useCallback(() => {
     setShortcutsOpen(true)
   }, [])
@@ -174,24 +181,12 @@ export function AppShell() {
     }
   }, [say])
 
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
-        event.preventDefault()
-        setPaletteOpen((open) => !open)
-        return
-      }
-      if (event.key === '?' && !typingInto(event.target)) {
-        event.preventDefault()
-        setShortcutsOpen(true)
-      }
-    }
-
-    window.addEventListener('keydown', onKey)
-    return () => {
-      window.removeEventListener('keydown', onKey)
-    }
-  }, [])
+  // The shell's keys are the package's set, bound by the package (RG267). This window bound its
+  // own two, and since 2026.3.12 the sheet lists the package's three — so `/` was a key the
+  // sheet taught and nothing answered. One set now, for the sheet, the keys and the hint, with
+  // the rules that come with it: a nearer handler keeps its key, and a bare key is never taken
+  // from somebody typing.
+  useBentoShellShortcuts({ onPalette: togglePalette, onShortcuts: openShortcuts, isMac: mac })
 
   return (
     <>
@@ -237,7 +232,7 @@ export function AppShell() {
         >
           <IconSearch className="size-4 shrink-0 sm:hidden" aria-hidden />
           <span className="hidden truncate sm:inline">{say('shell.palette')}</span>
-          <kbd className="font-mono text-xs">{mac ? '⌘K' : 'Ctrl K'}</kbd>
+          <kbd className="font-mono text-xs">{paletteHint(mac)}</kbd>
         </Button>
 
         {/*
