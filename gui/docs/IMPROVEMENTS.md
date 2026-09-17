@@ -12,6 +12,33 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
+### §RG274 Continued in VS Code, by the session's own id
+
+The Claude Code extension registers a URI handler. Read in 2.1.274's `extension.js`:
+`vscode://anthropic.claude-code/open` takes `session` and `prompt`, drops a `session`
+that does not parse as an id, and opens that session in an editor tab. A `prompt` is
+only typed into the input box, never sent. Every session record here already carries its
+`sessionId`.
+
+**Offered on a session that is not running.** Stopped, finished or failed, beside
+RG269's reply: two processes appending one transcript is what this avoids. Nothing is
+sent from here, and continuing is the person's next message, typed there.
+
+**`shell` opens it, and spawns nothing.** `shell.openExternal`, with no `code` looked up
+on PATH. Both links are composed beside that call, and a unit test holds their spelling.
+The action is offered only where `app.getApplicationNameForProtocol` names a `vscode:`
+handler, so a machine without VS Code learns it from the button and not from an
+operating-system dialog.
+
+**Which window answers is unproven, and is measured first.** The handler resumes from
+the session list of the window that received the link, and a session is listed under the
+folder it ran in. So `vscode://file/<root>` opens first, then the session link, and a
+real window has to show the session opening there, not in whichever window last had
+focus.
+
+**The record stops at the hand-off.** Turns taken in VS Code are in the transcript, so a
+later reply from this window carries them, but this screen's stream does not show them.
+
 ## Block G — The shell (an executable now, a service later)
 
 ### §RG49 The signature, and what it needs that code cannot supply
