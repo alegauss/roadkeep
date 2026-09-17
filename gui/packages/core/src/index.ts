@@ -192,7 +192,8 @@ export {
 } from './gate'
 export type { GateHealth, GateLedger, GateRecord, GateVerdict } from './gate'
 export type { ProjectFamily, ProjectMember, ProjectSite } from './families'
-export { changeLine, landingBetween, saidButNotDone } from './landing'
+export { changeLine, drawnState, landingBetween, saidButNotDone } from './landing'
+export type { DrawnState } from './landing'
 export type { Change, Landing, Reading } from './landing'
 export { accountOf, deferred, leftPointing, resumed, retired, shipped } from './leaving'
 export type { Departure, Edit, Leaving } from './leaving'
@@ -296,7 +297,13 @@ export type { Written } from './sections'
 export { commandLine, createTranscript, entryLine, quoteFor } from './transcript'
 export type { Entry as TranscriptEntry, Ran, Shell, Transcript } from './transcript'
 export { outcomeOf, promptFor, promptForDoor, readSessionLine, sessionCall } from './session'
-export type { SessionCall, SessionEvent, SessionOutcome, SessionState } from './session'
+export type {
+  PermissionDenial,
+  SessionCall,
+  SessionEvent,
+  SessionOutcome,
+  SessionState,
+} from './session'
 export { DARK_QUERY, followsSystem, GROUNDS, groundFor, THEME_ORDER } from './ground'
 export type { Ground } from './ground'
 export {

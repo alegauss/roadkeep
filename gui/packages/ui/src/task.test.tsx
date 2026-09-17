@@ -451,7 +451,14 @@ describe('RG175: the line a session already has', () => {
 
   it('offers it again once the session has ended, read from the record and not a clock', async () => {
     await at(taskPath(ROOT, 'AL1'), [
-      sessionOn('AL1', { state: 'done', sessionId: 's1', code: 0, said: '', result: 'shipped' }),
+      sessionOn('AL1', {
+        state: 'done',
+        sessionId: 's1',
+        code: 0,
+        said: '',
+        result: 'shipped',
+        denials: [],
+      }),
     ])
 
     expect(await screen.findByRole('button', { name: BASE['task.handOver'] })).toBeTruthy()

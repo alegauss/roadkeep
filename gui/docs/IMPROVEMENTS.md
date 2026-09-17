@@ -12,29 +12,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-### §RG268 An ended turn is not a finished task
-
-A headless session's `result` line says `is_error: false` whenever its turn ended
-cleanly, and `outcomeOf` reads that as `done`. That is not the work being finished.
-commitclerk's T65 ended its turn asking for the Edit permission it had been refused and
-for a choice between two remedies; the window drew it as concluded, with the line still
-in progress and nothing written.
-
-Two signals say so without reading meaning. The `result` line carries
-`permission_denials`, each a tool name, the call's id and its input: `readSessionLine`
-reads them into `finished`, and `outcomeOf` answers a new state, `waiting`, where any
-call was refused. And a session handed a line has a landing: a turn that ended without a
-`shipped` change is drawn as a stop, never as done.
-
-The prose is never read for a question. Whether words ask something is meaning this app
-has none of, and a question mark matched in the last paragraph is wrong the first time
-an agent quotes one.
-
-`done` is worded as what the engine said, that the turn ended, on the sessions list as
-well as the pill, since the list has no landing to read. `waiting` takes the warning
-intent, the one a reader already reads as their move. The denials stay on the outcome,
-for the lines that draw them and grant them.
-
 ### §RG269 Answering is resuming
 
 A headless session ends its turn at its first question, and the only way to answer it

@@ -1,6 +1,7 @@
 import {
   actsIn,
   arrivedSince,
+  drawnState,
   editedIn,
   foldedNotes,
   FOLLOWING,
@@ -13,6 +14,7 @@ import {
   type Change,
   type ClaimsPayload,
   type DiskStanding,
+  type DrawnState,
   type Handed,
   type Follow,
   type Edited,
@@ -74,19 +76,27 @@ import { useWhen, useWording } from './wording'
  * Where the session stands, in this app's words for the engine's states. Exported because the
  * list of what is running says the same thing about each one, and two tables would drift.
  */
-export const STATE_TEXT: Readonly<Record<SessionState, MessageKey>> = {
+export const STATE_TEXT: Readonly<Record<DrawnState, MessageKey>> = {
   starting: 'session.state.starting',
   running: 'session.state.running',
   done: 'session.state.done',
+  waiting: 'session.state.waiting',
+  unshipped: 'session.state.unshipped',
   failed: 'session.state.failed',
   cancelled: 'session.state.cancelled',
   unavailable: 'session.state.unavailable',
 }
 
-export const STATE_INTENT: Readonly<Record<SessionState, Intent>> = {
+/**
+ * Waiting and stopped short are the warning intent (RG268): the one a reader already reads as
+ * their move, which both are — a refused call to grant, a line the turn did not finish.
+ */
+export const STATE_INTENT: Readonly<Record<DrawnState, Intent>> = {
   starting: null,
   running: null,
   done: 'on',
+  waiting: 'warn',
+  unshipped: 'warn',
   failed: 'error',
   cancelled: 'warn',
   unavailable: 'error',
@@ -958,10 +968,17 @@ export function Session() {
     void getBridge()?.stopSession(key)
   }, [key])
 
-  const state: SessionState =
+  const outcome: SessionState =
     session === null
       ? 'starting'
       : (session.outcome?.state ?? (session.lines.length === 0 ? 'starting' : 'running'))
+  // Drawn off the files where they have something to say (RG268): a session handed a line has a
+  // landing, and a turn that ended without it shipping is a stop and not a done.
+  const landing =
+    session === null || session.now === null || session.record.handed.kind !== 'line'
+      ? null
+      : landingBetween({ kind: 'read', payload: session.record.handed.brief }, session.now)
+  const state = drawnState(outcome, landing)
   const running = session !== null && session.outcome === null
 
   let subtitle: ReactNode = say('session.opening')

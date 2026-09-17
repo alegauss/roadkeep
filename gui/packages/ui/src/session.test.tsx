@@ -18,7 +18,7 @@ import {
   type FileText,
   type MovedPath,
 } from '@rk/core'
-import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { projectPath, SESSIONS_ROUTE, sessionPath, taskPath } from './areas'
@@ -214,7 +214,14 @@ describe('RG153: the session beside its task', () => {
 
     hear(wired, 'session', {
       session: KEY,
-      outcome: { state: 'cancelled', sessionId: 'fake', code: null, said: '', result: '' },
+      outcome: {
+        state: 'cancelled',
+        sessionId: 'fake',
+        code: null,
+        said: '',
+        result: '',
+        denials: [],
+      },
     })
 
     expect(await screen.findByText(BASE['session.state.cancelled'])).toBeTruthy()
@@ -371,7 +378,7 @@ describe('RG178: a list that hears what it lists', () => {
     // Main's own record moves, and then main says so on the topic.
     wired.holds[0] = {
       ...RECORD,
-      outcome: { state: 'done', sessionId: KEY, code: 0, said: '', result: 'shipped' },
+      outcome: { state: 'done', sessionId: KEY, code: 0, said: '', result: 'shipped', denials: [] },
     }
     hear(wired, 'session', { session: KEY, outcome: wired.holds[0].outcome as SessionOutcome })
 
@@ -634,7 +641,7 @@ describe('RG244: the edited files against the disk', () => {
 
     hear(wired, 'session', {
       session: KEY,
-      outcome: { state: 'done', sessionId: 'fake', code: 0, said: '', result: 'done' },
+      outcome: { state: 'done', sessionId: 'fake', code: 0, said: '', result: 'done', denials: [] },
     })
     await waitFor(() => {
       expect(wired.editedAsked).toHaveLength(2)
@@ -1031,5 +1038,57 @@ describe('RG242: which project a session is in', () => {
     )
     const chip = await within(trail).findByTestId('project-chip')
     expect(chip.getAttribute('aria-hidden')).toBe('true')
+  })
+})
+
+describe('RG268: an ended turn, drawn as what the files and the refusals say', () => {
+  const ENDED: SessionOutcome = {
+    state: 'done',
+    sessionId: 'fake',
+    code: 0,
+    said: '',
+    result: 'I stopped to ask which remedy you want.',
+    denials: [],
+  }
+  const REFUSED: SessionOutcome = {
+    ...ENDED,
+    state: 'waiting',
+    denials: [{ tool: 'Edit', callId: 'toolu_01', input: { file_path: 'docs/IMPROVEMENTS.md' } }],
+  }
+
+  /** The hero's own pill, which is where a reader looks for how the session stands. */
+  const pill = async (text: string) => {
+    const hero = await screen.findByText(text)
+    return hero
+  }
+
+  it('draws a clean end that left the line unshipped as a stop, not as done', async () => {
+    // commitclerk's T65 ended its turn asking for a choice, with the line still in progress
+    // and nothing written, and the window drew it as done.
+    await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [{ ...RECORD, outcome: ENDED }] })
+
+    expect(await pill(BASE['session.state.unshipped'])).toBeTruthy()
+    expect(screen.queryByText(BASE['session.state.done'])).toBeNull()
+  })
+
+  it('draws it as the turn ending where the files say the line shipped', async () => {
+    await at(sessionPath(ROOT, 'AL1', KEY), {
+      sessions: [{ ...RECORD, outcome: ENDED }],
+      shipped: true,
+    })
+
+    expect(await pill(BASE['session.state.done'])).toBeTruthy()
+    expect(screen.queryByText(BASE['session.state.unshipped'])).toBeNull()
+  })
+
+  it('says a session refused a call is waiting on the reader, on the screen and on the list', async () => {
+    await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [{ ...RECORD, outcome: REFUSED }] })
+    expect(await pill(BASE['session.state.waiting'])).toBeTruthy()
+    cleanup()
+
+    // The list has no landing to read, so it says what the engine did: waiting, never done.
+    await at(SESSIONS_ROUTE, { sessions: [{ ...RECORD, outcome: REFUSED }] })
+    const row = await screen.findByTestId('session')
+    expect(within(row).getByText(BASE['session.state.waiting'])).toBeTruthy()
   })
 })

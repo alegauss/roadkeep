@@ -1,5 +1,6 @@
 import type { BriefPayload } from './payloads'
 import type { Refusal } from './refusals'
+import type { SessionState } from './session'
 
 /**
  * What the session did, beside what it said.
@@ -140,4 +141,24 @@ export function changeLine(change: Change): string {
  */
 export function saidButNotDone(claimedShipped: boolean, landing: Landing): boolean {
   return claimedShipped && !landing.changes.some((change) => change.kind === 'shipped')
+}
+
+/**
+ * The state a session is drawn in: its outcome's, except where the files say the turn stopped
+ * short of the work (RG268).
+ *
+ * **An ended turn is not a finished task.** The engine reports success whenever a turn ends
+ * cleanly, and commitclerk's T65 ended its turn asking for a choice, with the line still in
+ * progress and nothing written — drawn as done. A session handed a line has a landing, and a
+ * landing is the files' word: a clean end without a `shipped` change is a stop, never a done.
+ *
+ * Null where there is no landing to read — a session handed a finding has no line, and one whose
+ * line has not been read again yet has no second reading — and then the outcome is all there is,
+ * worded as what the engine said: that the turn ended.
+ */
+export type DrawnState = SessionState | 'unshipped'
+
+export function drawnState(state: SessionState, landing: Landing | null): DrawnState {
+  if (state !== 'done' || landing === null) return state
+  return landing.changes.some((change) => change.kind === 'shipped') ? 'done' : 'unshipped'
 }

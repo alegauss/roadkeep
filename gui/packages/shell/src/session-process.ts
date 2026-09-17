@@ -96,6 +96,7 @@ export function startSession(
         code: null,
         said: cause instanceof Error ? cause.message : String(cause),
         result: '',
+        denials: [],
       })
       return
     }
@@ -143,6 +144,7 @@ export function startSession(
         code: null,
         said: cause.message,
         result: '',
+        denials: [],
       })
     })
 

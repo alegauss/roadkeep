@@ -128,8 +128,37 @@ export type SessionEvent =
       readonly turns: number
       readonly durationMs: number
       readonly sessionId: string
+      /** Every call the session asked for and was refused (RG268), as the line listed them. */
+      readonly denials: readonly PermissionDenial[]
     }
   | { readonly kind: 'other'; readonly type: string; readonly line: string }
+
+/**
+ * One call a session asked to make and was refused, as its `result` line lists it (RG268).
+ *
+ * The tool, the call's id and what it would have been run with — the three fields the engine
+ * writes, carried as it wrote them. The input stays unread here: it is whatever that tool takes,
+ * and a screen that draws or grants the call is the one that knows which tool it is looking at.
+ */
+export interface PermissionDenial {
+  readonly tool: string
+  readonly callId: string
+  readonly input: unknown
+}
+
+/** The refused calls a `result` line lists, each kept only where it names its tool. */
+function denialsOf(value: unknown): PermissionDenial[] {
+  if (!Array.isArray(value)) return []
+  const denials: PermissionDenial[] = []
+  for (const element of value) {
+    const denial = asRecord(element)
+    if (denial === null) continue
+    const tool = stringAt(denial, 'tool_name')
+    if (tool === '') continue
+    denials.push({ tool, callId: stringAt(denial, 'tool_use_id'), input: denial['tool_input'] })
+  }
+  return denials
+}
 
 function textOf(message: unknown): string {
   const object = asRecord(message)
@@ -211,6 +240,7 @@ export function readSessionLine(line: string): SessionEvent | null {
       turns: numberAt(object, 'num_turns'),
       durationMs: numberAt(object, 'duration_ms'),
       sessionId,
+      denials: denialsOf(object['permission_denials']),
     }
   }
 
@@ -224,7 +254,19 @@ export function readSessionLine(line: string): SessionEvent | null {
  * is a fact about the machine, and it is the one a screen has to say plainly rather than
  * reporting as a session that went wrong.
  */
-export type SessionState = 'starting' | 'running' | 'done' | 'failed' | 'cancelled' | 'unavailable'
+export type SessionState =
+  | 'starting'
+  | 'running'
+  | 'done'
+  /**
+   * The turn ended with a call the session asked for refused (RG268). The engine calls that a
+   * success, since nothing erred; it is the reader's move, and drawing it as done is how a task
+   * waiting on a permission read as finished.
+   */
+  | 'waiting'
+  | 'failed'
+  | 'cancelled'
+  | 'unavailable'
 
 export interface SessionOutcome {
   readonly state: SessionState
@@ -236,6 +278,8 @@ export interface SessionOutcome {
   readonly said: string
   /** The last thing the session reported as its result. */
   readonly result: string
+  /** The calls it was refused, for the screens that name them and grant them (RG268). */
+  readonly denials: readonly PermissionDenial[]
 }
 
 /**
@@ -254,16 +298,29 @@ export function outcomeOf(
   const sessionId = finished?.sessionId ?? started?.sessionId ?? ''
 
   if (exit.cancelled) {
-    return { state: 'cancelled', sessionId, code: exit.code, said: exit.said, result: '' }
+    return {
+      state: 'cancelled',
+      sessionId,
+      code: exit.code,
+      said: exit.said,
+      result: '',
+      denials: [],
+    }
   }
   if (finished !== undefined) {
+    // A clean end is `done` only where nothing was refused (RG268). A refused call is a
+    // question the session could not answer itself, which the engine reports as success
+    // because nothing went wrong — and a failure stays one, with what it was refused beside it.
+    let state: SessionState = 'failed'
+    if (finished.ok) state = finished.denials.length > 0 ? 'waiting' : 'done'
     return {
-      state: finished.ok ? 'done' : 'failed',
+      state,
       sessionId,
       code: exit.code,
       said: exit.said,
       result: finished.result,
+      denials: finished.denials,
     }
   }
-  return { state: 'failed', sessionId, code: exit.code, said: exit.said, result: '' }
+  return { state: 'failed', sessionId, code: exit.code, said: exit.said, result: '', denials: [] }
 }

@@ -151,7 +151,7 @@ function process(): { fake: Fake; start: NonNullable<SessionsOptions['start']> }
     return {
       cancel: () => {
         cancelled += 1
-        finish({ state: 'cancelled', sessionId: '', code: null, said: '', result: '' })
+        finish({ state: 'cancelled', sessionId: '', code: null, said: '', result: '', denials: [] })
       },
       finished,
       events: [],
@@ -316,7 +316,14 @@ const GATED = {
   ],
 }
 
-const DONE: SessionOutcome = { state: 'done', sessionId: 's', code: 0, said: '', result: 'done' }
+const DONE: SessionOutcome = {
+  state: 'done',
+  sessionId: 's',
+  code: 0,
+  said: '',
+  result: 'done',
+  denials: [],
+}
 
 describe('RG153: a line handed to a session', () => {
   it('takes the line with a claiming brief and starts the session from that payload', async () => {

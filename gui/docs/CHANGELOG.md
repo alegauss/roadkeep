@@ -182,6 +182,7 @@
 - ✅ **RG263** **a door that reads prose has only a box, so the reader who cannot write it has no way to hand it over** — A finding and the door that closes it start a Claude Code session, which writes the prose and runs that command itself (design recorded in `packages/core/src/session.ts`).
 - ✅ **RG265** **the files a session touched are two flat lists of full paths, sharing a panel with what moved in the backlog** — The files a session touched take a card of their own as the design system's Tree, each folder open unless the reader closed it (design recorded in `packages/ui/src/Session.tsx`).
 - ✅ **RG266** **leading from an edit to its act is never checked to scroll, and throws unhandled in every unit run** — The unit setup gives jsdom a scrollIntoView that records what it was asked, so leading from an edit to its act is asserted and the run is clean (design recorded in `packages/ui/src/scroll-record.ts`).
+- ✅ **RG268** **a session that ends its turn waiting on a person is drawn as done, so a stalled task reads as finished** — A turn that ended with a call refused is waiting, and a line session that ended without shipping is drawn as a stop, never as done (design recorded in `packages/core/src/landing.ts`).
 
 ## Block G — The shell (an executable now, a service later)
 

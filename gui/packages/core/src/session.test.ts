@@ -255,3 +255,77 @@ describe('RG38: where a session ended up', () => {
     expect(outcomeOf([], { code: 1, cancelled: false, said: '' }).sessionId).toBe('')
   })
 })
+
+describe('RG268: an ended turn is not a finished task', () => {
+  /** commitclerk's T65 ended its turn like this: a clean end, and the Edit it asked for refused. */
+  const ASKED = JSON.stringify({
+    type: 'result',
+    subtype: 'success',
+    is_error: false,
+    result: 'I need permission to edit docs/IMPROVEMENTS.md, and a choice between two remedies.',
+    num_turns: 12,
+    duration_ms: 90000,
+    session_id: 'c0ffee',
+    permission_denials: [
+      {
+        tool_name: 'Edit',
+        tool_use_id: 'toolu_01',
+        tool_input: { file_path: 'docs/IMPROVEMENTS.md', old_string: 'a', new_string: 'b' },
+      },
+    ],
+  })
+
+  it('reads the calls a result line says were refused, as the engine wrote them', () => {
+    const event = readSessionLine(ASKED)
+
+    if (event?.kind !== 'finished') throw new Error('not a result')
+    expect(event.denials).toEqual([
+      {
+        tool: 'Edit',
+        callId: 'toolu_01',
+        input: { file_path: 'docs/IMPROVEMENTS.md', old_string: 'a', new_string: 'b' },
+      },
+    ])
+    // The engine still calls it a success, which is exactly why it cannot be read as done.
+    expect(event.ok).toBe(true)
+  })
+
+  it('is waiting, not done, where the turn ended with a call refused', () => {
+    const outcome = outcomeOf([readSessionLine(ASKED)!], {
+      code: 0,
+      cancelled: false,
+      said: '',
+    })
+
+    expect(outcome.state).toBe('waiting')
+    expect(outcome.denials.map((denial) => denial.tool)).toEqual(['Edit'])
+  })
+
+  it('is done where nothing was refused, and carries an empty list rather than none', () => {
+    const outcome = outcomeOf([readSessionLine(DONE)!], { code: 0, cancelled: false, said: '' })
+
+    expect(outcome.state).toBe('done')
+    expect(outcome.denials).toEqual([])
+  })
+
+  it('stays failed where the turn erred, with what it was refused beside it', () => {
+    const erred = JSON.stringify({ ...JSON.parse(ASKED), is_error: true })
+    const outcome = outcomeOf([readSessionLine(erred)!], { code: 1, cancelled: false, said: '' })
+
+    expect(outcome.state).toBe('failed')
+    expect(outcome.denials).toHaveLength(1)
+  })
+
+  it('keeps no denial that names no tool, since nothing could draw or grant it', () => {
+    const odd = JSON.stringify({
+      type: 'result',
+      is_error: false,
+      result: '',
+      permission_denials: [{ tool_use_id: 'x' }, 'not a record', { tool_name: 'Bash' }],
+    })
+    const event = readSessionLine(odd)
+
+    if (event?.kind !== 'finished') throw new Error('not a result')
+    expect(event.denials.map((denial) => denial.tool)).toEqual(['Bash'])
+  })
+})

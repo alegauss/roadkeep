@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { changeLine, landingBetween, saidButNotDone, type Reading } from './landing'
+import { changeLine, drawnState, landingBetween, saidButNotDone, type Reading } from './landing'
 import { readBriefPayload } from './payloads'
 import { readRefusal } from './refusals'
 
@@ -147,5 +147,41 @@ describe('RG42: beside the stream, not inside it', () => {
 
   it('claims nothing about a session that claimed nothing', () => {
     expect(saidButNotDone(false, landingBetween(reading(), reading()))).toBe(false)
+  })
+})
+
+describe('RG268: a stop is not a done', () => {
+  it('draws a clean end that did not ship its line as a stop', () => {
+    // commitclerk's T65: the turn ended asking for a choice, and the line was still in progress.
+    const stopped = landingBetween(reading({ status: '📋' }), reading({ status: '🛠' }))
+
+    expect(drawnState('done', stopped)).toBe('unshipped')
+  })
+
+  it('draws it done where the files say the line shipped', () => {
+    const shipped = landingBetween(reading(), reading({ status: '✅', shipped: true }))
+
+    expect(drawnState('done', shipped)).toBe('done')
+  })
+
+  it('takes the outcome as it is where there is no landing to read', () => {
+    // A session handed a finding has no line; one whose line was not read again has no second
+    // reading. The outcome is all there is, and it is not second-guessed.
+    expect(drawnState('done', null)).toBe('done')
+  })
+
+  it('leaves every other state alone, whatever the files say', () => {
+    const stopped = landingBetween(reading(), reading())
+
+    for (const state of [
+      'starting',
+      'running',
+      'waiting',
+      'failed',
+      'cancelled',
+      'unavailable',
+    ] as const) {
+      expect(drawnState(state, stopped)).toBe(state)
+    }
   })
 })
