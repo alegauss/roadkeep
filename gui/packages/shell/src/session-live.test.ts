@@ -26,7 +26,7 @@ function run(behaviour: FakeBehaviour = {}, watcher = {}): RunningSession {
   const fake = fakeClaude(behaviour)
   disposals.push(fake.dispose)
   const call = sessionCall(fake.command, REPO, prompt)
-  return startSession({ ...call, argv: [...fake.prefixArgs, ...call.argv] }, watcher)
+  return startSession({ ...call, prefix: [...fake.prefixArgs] }, watcher)
 }
 
 beforeAll(async () => {
@@ -85,15 +85,15 @@ describe('RG38: a session started from a real brief', () => {
     expect(outcome.state).toBe('done')
   })
 
-  it('tells a line it could not read from one it read and ignored', async () => {
-    const unreadable: string[] = []
-    const session = run(
-      { garbage: true },
-      { onUnreadable: (line: string) => unreadable.push(line) },
-    )
-    await session.finished
+  it('reads past output that is not JSON, and keeps what it read and ignored', async () => {
+    // Since RG273 the Agent SDK reads the stream, and a line that is not JSON is its to drop: it
+    // never reaches the record, and it does not end the run either.
+    const lines: string[] = []
+    const session = run({ garbage: true }, { onLine: (line: string) => lines.push(line) })
+    const outcome = await session.finished
 
-    expect(unreadable).toEqual(['not json at all'])
+    expect(lines.some((line) => line.includes('not json at all'))).toBe(false)
+    expect(outcome.state).toBe('done')
     // And the rate-limit line, which it read and had no use for, is still an event.
     expect(session.events.some((event) => event.kind === 'other')).toBe(true)
   })
@@ -101,6 +101,8 @@ describe('RG38: a session started from a real brief', () => {
 
 describe('RG272: a session that asks, answered on its standard input', () => {
   it('reads the prompt off standard input, takes the answer there, and exits when its turn ends', async () => {
+    // Carried by the Agent SDK since RG273: the question arrives as `canUseTool`, and is kept as
+    // the line RG272's reader takes, with the id the engine gave it.
     const lines: string[] = []
     const session = run({ asking: true }, { onLine: (line: string) => lines.push(line) })
 
@@ -127,12 +129,7 @@ describe('RG38: the three ways it does not work', () => {
   it('is unavailable when there is no claude on the machine', async () => {
     // A fact about the machine, not a session that went wrong — which is why it is its
     // own state. Naming which copy would have answered is RG43's.
-    const session = startSession({
-      command: path.join(REPO, 'no-such-claude-anywhere'),
-      cwd: REPO,
-      argv: ['-p', 'x'],
-      input: [],
-    })
+    const session = startSession(sessionCall(path.join(REPO, 'no-such-claude-anywhere'), REPO, 'x'))
     const outcome = await session.finished
 
     expect(outcome.state).toBe('unavailable')
@@ -155,10 +152,9 @@ describe('RG38: the three ways it does not work', () => {
 
     // Nothing at all on stdout and a non-zero exit: there is no verdict to believe.
     const empty = startSession({
-      command: process.execPath,
-      cwd: REPO,
-      argv: ['-e', 'process.exit(3)'],
-      input: [],
+      ...sessionCall(process.execPath, REPO, 'x'),
+      // Ended by `--`, so the SDK's flags are the script's arguments and not Node's options.
+      prefix: ['-e', 'process.exit(3)', '--'],
     })
     const outcome2 = await empty.finished
     expect(outcome2.state).toBe('failed')
@@ -190,7 +186,7 @@ describe('RG38: the three ways it does not work', () => {
     const call = sessionCall(fake.command, REPO, prompt)
     const session = startSession({
       ...call,
-      argv: [...fake.prefixArgs, ...call.argv, '--say-on-stderr'],
+      prefix: [...fake.prefixArgs, '--say-on-stderr'],
     })
     const outcome = await session.finished
 

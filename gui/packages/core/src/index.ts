@@ -298,7 +298,6 @@ export type { Written } from './sections'
 export { commandLine, createTranscript, entryLine, quoteFor } from './transcript'
 export type { Entry as TranscriptEntry, Ran, Shell, Transcript } from './transcript'
 export {
-  inputMessage,
   outcomeOf,
   promptFor,
   promptForDoor,

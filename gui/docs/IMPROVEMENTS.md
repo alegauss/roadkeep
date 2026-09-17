@@ -12,36 +12,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-### §RG273 Carried by the Agent SDK, read by the same record
-
-A session is `claude -p` plus a line protocol this app writes by hand: the prompt as a
-`user` line, a question as `control_request`, its answer as `control_response`, standard
-input closed at `result`. RG272 adds the permission half.
-`@anthropic-ai/claude-agent-sdk` is that protocol, published: `query()` takes the
-prompt, `cwd` and `resume`, yields each message as the object the stream line held, and
-calls `canUseTool` where the project's rules fall through to a question.
-
-**Only `startSession` changes.** Each message the SDK yields goes into the same `offer`
-as the line it was, so `readSessionLine`, the record and every screen read what they
-read today. `canUseTool` writes the question line RG272's reader takes and resolves on
-the person's answer; cancel is the SDK's abort. `core` keeps describing the call as data
-and never imports the SDK.
-
-**The person's `claude`, never the bundled one.** The SDK installs a native Claude Code
-per platform as an optional dependency. `pathToClaudeCodeExecutable` is always the
-candidate RG43 resolved, for the reason `agent-candidates.ts` gives. `files` in
-`electron-builder.yml` is an allow-list, so the platform package never ships, and a live
-test holds that.
-
-**Settings named, not defaulted.** `settingSources` is passed as `user`, `project` and
-`local` rather than left to a default that has changed before, and `env` whole as RG205
-composes it, since the SDK replaces the environment rather than merging.
-
-**The scripted agent answers `initialize`.** The SDK opens with a control request
-RG210's replay never saw.
-
-On ship: --recorded-in packages/shell/src/session-process.ts
-
 ### §RG274 Continued in VS Code, by the session's own id
 
 The Claude Code extension registers a URI handler. Read in 2.1.274's `extension.js`:

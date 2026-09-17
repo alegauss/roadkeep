@@ -115,7 +115,7 @@ describe('RG40: acts off a session as it runs', () => {
     const seen: Act[] = []
 
     const session = startSession(
-      { ...call, argv: [...fake.prefixArgs, ...call.argv] },
+      { ...call, prefix: [...fake.prefixArgs] },
       { onLine: (line) => seen.push(...actsOf(line, seen.length + 1, marks)) },
     )
     const outcome = await session.finished
@@ -134,7 +134,7 @@ describe('RG40: acts off a session as it runs', () => {
     const lines: string[] = []
 
     const session = startSession(
-      { ...call, argv: [...fake.prefixArgs, ...call.argv] },
+      { ...call, prefix: [...fake.prefixArgs] },
       { onLine: (line) => lines.push(line) },
     )
     await session.finished

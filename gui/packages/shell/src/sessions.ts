@@ -263,7 +263,7 @@ export function createSessions(options: SessionsOptions): Sessions {
     })
 
     session.running = start(
-      { ...call, argv: [...prefix, ...call.argv] },
+      { ...call, prefix: [...prefix, ...call.prefix] },
       {
         onLine: (line) => {
           session.lines.push(line)

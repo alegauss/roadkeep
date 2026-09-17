@@ -4,14 +4,10 @@ import { asRecord } from './reading'
 /**
  * What a Claude Code session is handed, and what it says back.
  *
- * Claude Code runs headless — `claude -p --output-format stream-json --verbose`, a child
- * process writing one JSON object per line, with the prompt on its standard input (RG272).
- * That call is the whole integration, and everything difficult about it sits on either side
- * of it.
- *
- * **`--verbose` is not optional.** With `--print`, `--output-format stream-json` is
- * refused without it — `Error: When using --print, --output-format=stream-json requires
- * --verbose` — so it is part of the call and not a setting somebody might turn off.
+ * Claude Code runs headless: a child process writing one JSON object per line, reading its
+ * prompt and the answers to its questions on standard input. Since RG273 that protocol is the
+ * Agent SDK's to speak, and this module is what the session is handed and how what it says back
+ * reads — the same objects the SDK yields, one line each.
  *
  * **What goes in is not a prompt somebody typed.** It is the payload `brief` returned for
  * the task: the tier it was chosen by, its deps, its design section, what shipping it
@@ -79,79 +75,56 @@ export function promptForDoor(finding: unknown, argv: readonly string[]): string
   ].join('\n')
 }
 
+/**
+ * One turn of a session, described (RG273).
+ *
+ * Data and nothing that runs: `shell` hands it to the Agent SDK, which is where the stream
+ * protocol lives now, and `core` never imports the SDK. Each field is something a person or the
+ * project decided — which `claude`, where, what it is told, which conversation it continues and
+ * what somebody allowed — and nothing is here that would be this app deciding for them.
+ */
 export interface SessionCall {
   /** The command to run. Named by the caller: which `claude` answers is RG43's question. */
   readonly command: string
-  readonly argv: readonly string[]
+  /**
+   * What goes between the command and the SDK's own flags: the rest of the command line the
+   * agent resolved as, such as the script a runtime runs. Empty for a `claude` on its own.
+   */
+  readonly prefix: readonly string[]
   /** The project root, which is where the session's own wiring is found. */
   readonly cwd: string
-  /**
-   * The lines written to the session's standard input as it starts (RG272): the prompt, as the
-   * first message. Standard input then stays open for the answers to its questions.
-   */
-  readonly input: readonly string[]
-}
-
-/**
- * The flags every turn runs under (RG272).
- *
- * `--input-format stream-json` is what keeps standard input a channel rather than a prompt, and
- * `--permission-prompt-tool stdio` is what sends a question down it instead of refusing the call.
- * That flag decides no permission: the project's rules answer every call they cover, and only a
- * call they leave to a question is asked — of the person, through this window, where a headless
- * run asked nobody.
- */
-const STREAM = [
-  '--input-format',
-  'stream-json',
-  '--output-format',
-  'stream-json',
-  '--verbose',
-  '--permission-prompt-tool',
-  'stdio',
-] as const
-
-/**
- * One message, as the session reads it on standard input (RG272).
- *
- * Off the command line, the prompt has no length an operating system refuses and no character a
- * parser reads as an option, so a reply that begins with a dash is only a reply.
- */
-export function inputMessage(text: string): string {
-  return JSON.stringify({
-    type: 'user',
-    message: { role: 'user', content: text },
-    parent_tool_use_id: null,
-    session_id: '',
-  })
+  /** What the session is told: a frame around a payload, or a person's reply. */
+  readonly prompt: string
+  /** The session this turn continues (RG269), or empty for a new one. */
+  readonly resume: string
+  /** The tools a person allowed for this turn alone (RG270). */
+  readonly allowed: readonly string[]
 }
 
 /**
  * Build the call.
  *
- * Nothing is passed but the formats and where a question goes. No model, no permission mode, no
- * `--add-dir`, no system prompt: every one of those would be this app deciding something the
- * project or the person already decides, and the session is meant to run under the project's own
- * configuration.
+ * Nothing is passed but the prompt. No model, no permission mode, no extra directory, no system
+ * prompt of this app's: every one of those would be this app deciding something the project or
+ * the person already decides, and the session is meant to run under the project's own
+ * configuration — which `shell` spells out to the SDK rather than leaving to its defaults.
  */
 export function sessionCall(command: string, cwd: string, prompt: string): SessionCall {
-  return { command, cwd, argv: ['-p', ...STREAM], input: [inputMessage(prompt)] }
+  return { command, prefix: [], cwd, prompt, resume: '', allowed: [] }
 }
 
 /**
  * The call that answers a session which stopped, by continuing it (RG269).
  *
- * `--resume` with the session's own id is Claude Code's door for this: the conversation goes on
- * with everything it had, from the same root and under the same stream flags, so it is read the
- * way the first turn was. The one flag added is that id.
+ * Resuming by the session's own id is Claude Code's door for this: the conversation goes on with
+ * everything it had, from the same root, so it is read the way the first turn was.
  *
  * **The reply is the person's, sent as written.** `promptFor` frames a payload and a reply is not
- * one, so nothing is put around it. It goes in on standard input as the prompt does (RG272), so
- * prose a person typed is never on a command line an option parser reads.
+ * one, so nothing is put around it, and it never reaches a command line an option parser reads.
  *
  * **A grant is the person's, for one turn** (RG270). `allowed` names the tools somebody checked
- * among the calls the session was refused, and goes as `--allowedTools` on this call alone:
- * never a permission mode, never a skip, never a rule spelled from a call's input — composing a
+ * among the calls the session was refused, and goes as allowed tools on this call alone: never a
+ * permission mode, never a skip, never a rule spelled from a call's input — composing a
  * permission grammar would be this app deciding what a rule means — and nothing written to the
  * project's `.claude` settings, which are the project's.
  */
@@ -162,12 +135,13 @@ export function resumeCall(
   reply: string,
   allowed: readonly string[] = [],
 ): SessionCall {
-  const grant = allowed.length === 0 ? [] : ['--allowedTools', ...new Set(allowed)]
   return {
     command,
+    prefix: [],
     cwd,
-    argv: ['-p', '--resume', sessionId, ...grant, ...STREAM],
-    input: [inputMessage(reply)],
+    prompt: reply,
+    resume: sessionId,
+    allowed: [...new Set(allowed)],
   }
 }
 

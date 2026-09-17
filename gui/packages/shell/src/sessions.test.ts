@@ -127,14 +127,6 @@ interface Fake {
   stopReading(): void
 }
 
-/** The words a call hands the session: its first message, read back out of the line (RG272). */
-function promptOf(call: SessionCall | undefined): string {
-  const [first = '{}'] = call?.input ?? []
-  const message = JSON.parse(first) as { message?: { content?: unknown } }
-  const content = message.message?.content
-  return typeof content === 'string' ? content : ''
-}
-
 function process(): { fake: Fake; start: NonNullable<SessionsOptions['start']> } {
   const calls: SessionCall[] = []
   const envs: NodeJS.ProcessEnv[] = []
@@ -369,12 +361,9 @@ describe('RG153: a line handed to a session', () => {
     // The agent's own command first, then the call: the prompt is the brief, never a page's.
     const [call] = fake.calls
     expect(call?.command).toBe('node')
-    expect(call?.argv[0]).toBe('claude.mjs')
-    expect(call?.argv).toContain('-p')
-    // On standard input, never the command line (RG272), and the questions are sent there too.
-    expect(promptOf(call)).toContain('"id": "FX1"')
-    expect(call?.argv.some((part) => part.includes('"id": "FX1"'))).toBe(false)
-    expect(call?.argv).toEqual(expect.arrayContaining(['--permission-prompt-tool', 'stdio']))
+    expect(call?.prefix).toEqual(['claude.mjs'])
+    expect(call?.prompt).toContain('"id": "FX1"')
+    expect(call?.resume).toBe('')
     expect(call?.cwd).toBe(ROOT)
   })
 
@@ -593,7 +582,7 @@ describe('RG263: a gate finding handed to a session', () => {
     expect(handed.session.id).toBe('')
 
     // The prompt carries the finding and the command, and the agent is told to run that one.
-    const prompt = promptOf(fake.calls[0])
+    const prompt = fake.calls[0]?.prompt
     expect(prompt).toContain('ref.dangling')
     expect(prompt).toContain('section amend T50 --body - --role improvements')
     expect(prompt).toContain('standard input')
@@ -646,12 +635,11 @@ describe('RG269: answering a session that stopped', () => {
     expect(replied.session.key).toBe(key)
     expect(replied.session.lines).toHaveLength(1)
     expect(replied.session.outcome).toBeNull()
-    // The reply goes in on standard input, as it was typed (RG272).
+    // The reply goes as it was typed, continuing the session by its own id.
     const [, resumed] = fake.calls
-    expect(promptOf(resumed)).toBe('The first one.')
-    expect(resumed?.argv).not.toContain('The first one.')
-    expect(resumed?.argv).toContain('--resume')
-    expect(resumed?.argv[resumed.argv.indexOf('--resume') + 1]).toBe('s-42')
+    expect(resumed?.prompt).toBe('The first one.')
+    expect(resumed?.resume).toBe('s-42')
+    expect(resumed?.prefix).toEqual(['claude.mjs'])
     // Every window watching is told the outcome it holds is over.
     expect(published).toContainEqual({ session: key, resumed: true })
   })
@@ -722,8 +710,7 @@ describe('RG270: allowing a refused call for the next turn', () => {
     expect((await made.reply(key, 'Go on.', ['Edit'])).kind).toBe('started')
 
     const resumed = fake.calls[1]
-    const at = resumed?.argv.indexOf('--allowedTools') ?? -1
-    expect(resumed?.argv.slice(at, at + 2)).toEqual(['--allowedTools', 'Edit'])
+    expect(resumed?.allowed).toEqual(['Edit'])
   })
 
   it('refuses a grant for a tool the session was never refused', async () => {

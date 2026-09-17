@@ -196,7 +196,17 @@ function script(linesFile: string, intervalMs: number): string {
     "  process.stdout.write(JSON.stringify({ loggedIn: true, authMethod: 'scripted' }) + '\\n')",
     '  process.exit(0)',
     '}',
-    "if (!argv.includes('-p')) { process.stderr.write('the scripted agent takes -p\\n'); process.exit(2) }",
+    "if (!argv.includes('--output-format')) { process.stderr.write('the scripted agent is a session: it takes --output-format\\n'); process.exit(2) }",
+    // The Agent SDK opens with an `initialize` request (RG273), which a real one answers before
+    // anything else; the replay answers it too, and reads nothing else it is sent.
+    "import('node:readline').then(({ createInterface }) => {",
+    "  createInterface({ input: process.stdin }).on('line', (line) => {",
+    '    let message = null',
+    '    try { message = JSON.parse(line) } catch { return }',
+    "    if (message?.type !== 'control_request' || message.request?.subtype !== 'initialize') return",
+    "    process.stdout.write(JSON.stringify({ type: 'control_response', response: { subtype: 'success', request_id: message.request_id, response: {} } }) + '\\n')",
+    '  })',
+    '})',
     // Written as the run starts, the way a command a session runs writes one: no edit call
     // names it, so only a watch on the root can report it.
     'try {',

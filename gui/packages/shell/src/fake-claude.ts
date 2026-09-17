@@ -79,9 +79,11 @@ function script(behaviour: FakeBehaviour): string {
     },
     {
       type: 'result',
-      subtype: behaviour.failing === true ? 'error' : 'success',
+      subtype: behaviour.failing === true ? 'error_during_execution' : 'success',
       is_error: behaviour.failing === true,
       result: behaviour.failing === true ? 'ran out of turns' : 'done',
+      // A failed run lists what went wrong, and the Agent SDK reads the list (RG273).
+      ...(behaviour.failing === true ? { errors: ['ran out of turns'] } : {}),
       num_turns: 3,
       duration_ms: 1234,
       session_id: 'fake-0001',
@@ -100,10 +102,18 @@ function script(behaviour: FakeBehaviour): string {
     '  const input = createInterface({ input: process.stdin })',
     "  input.on('line', (line) => {",
     '    const message = JSON.parse(line)',
+    // The Agent SDK opens with `initialize` (RG273), and a real session answers it first.
+    "    if (message.type === 'control_request' && message.request.subtype === 'initialize') {",
+    "      write({ type: 'control_response', response: { subtype: 'success', request_id: message.request_id, response: {} } })",
+    '      return',
+    '    }',
     "    if (!prompted && message.type === 'user') {",
     '      prompted = true',
     '      write(lines[0])',
-    "      write({ type: 'assistant', message: { role: 'assistant', content: [{ type: 'text', text: message.message.content }] }, session_id: 'fake-0001' })",
+    // A message's content is a string or a list of parts, and the prompt is said back as its text.
+    '      const content = message.message.content',
+    "      const text = typeof content === 'string' ? content : content.map((part) => part.text ?? '').join('')",
+    "      write({ type: 'assistant', message: { role: 'assistant', content: [{ type: 'text', text }] }, session_id: 'fake-0001' })",
     `      write(${JSON.stringify(FAKE_ASK)})`,
     '      return',
     '    }',

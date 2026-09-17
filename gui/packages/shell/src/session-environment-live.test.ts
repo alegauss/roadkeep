@@ -2,6 +2,7 @@ import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
+import { sessionCall } from '@rk/core'
 import { afterAll, describe, expect, it } from 'vitest'
 
 import { createProcessTransport } from './process-transport'
@@ -58,7 +59,10 @@ async function sessionSees(env: NodeJS.ProcessEnv): Promise<string> {
     "process.stdout.write(JSON.stringify({ type: 'result', is_error: false, result: seen }) + '\\n')",
   ].join('\n')
   const session = startSession(
-    { command: process.execPath, cwd: REPO, argv: ['-e', probe], input: [] },
+    {
+      ...sessionCall(process.execPath, REPO, 'a prompt nobody reads'),
+      prefix: ['-e', probe, '--'],
+    },
     {},
     env,
   )

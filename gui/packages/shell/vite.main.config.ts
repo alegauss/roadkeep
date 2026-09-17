@@ -1,3 +1,5 @@
+import { builtinModules } from 'node:module'
+
 import { defineConfig } from 'vite'
 
 // Everything in this package that Node runs: the Electron entry point, and the two
@@ -36,7 +38,20 @@ export default defineConfig({
       // Playwright stays external for the reason Electron does: it is present at runtime,
       // and it resolves its own files relative to where it is installed.
       // axe likewise (RG211): its builder reads axe's own source off disk at runtime.
-      external: [/^node:/, 'electron', 'vite', /^playwright-core/, /^@axe-core\//, 'axe-core'],
+      //
+      // `builtinModules` and not `/^node:/` alone (RG273): the Agent SDK imports `fs`, `path` and
+      // a dozen more by their bare names, and bundled rather than left to Node those become a
+      // module with nothing in it — an app that threw `Cannot read properties of undefined` on
+      // load, which no test but the packaged run could see.
+      external: [
+        /^node:/,
+        ...builtinModules,
+        'electron',
+        'vite',
+        /^playwright-core/,
+        /^@axe-core\//,
+        'axe-core',
+      ],
     },
   },
 })

@@ -14,7 +14,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG273** (deps: RG272 ✅) **a session runs on a hand-written copy of Claude Code's stream protocol, so each change to it is this app's to chase** — Anthropic publishes that protocol as the Agent SDK, and RG272's permission channel is a second hand-written half of it. → §RG273
 - 📋 **RG274** (deps: —) **a session that stopped in the window cannot be picked up in VS Code, where the person reads the code it changed** — The Claude Code extension opens a session by id from a link, and every record here already holds that id with no way to hand it over. → §RG274
 
 ## Block G — The shell (an executable now, a service later)

@@ -63,10 +63,7 @@ describe('RG210: a scripted run', () => {
     const [command = '', ...prefix] = agent.command
     const call = sessionCall(command, root, 'a prompt nobody reads')
     const events: SessionEvent[] = []
-    const session = startSession(
-      { ...call, argv: [...prefix, ...call.argv] },
-      { onEvent: (event) => events.push(event) },
-    )
+    const session = startSession({ ...call, prefix }, { onEvent: (event) => events.push(event) })
 
     await expect
       .poll(() => events.length, { timeout: 20000, interval: 50 })
