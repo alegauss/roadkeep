@@ -1,6 +1,7 @@
 import { cleanup, configure } from '@testing-library/react'
 import { afterEach, beforeEach } from 'vitest'
 
+import { recordScrolls } from './scroll-record'
 import { startSpeaking } from './speaking'
 
 /**
@@ -60,6 +61,15 @@ beforeEach(() => {
       dispatchEvent: () => false,
     }),
   })
+})
+
+/**
+ * jsdom implements no `scrollIntoView` either (RG266), and the session screen calls one on the
+ * frame after an edit leads back to its act. The one given here records what it was asked, for
+ * the reason and in the module `scroll-record` says.
+ */
+beforeEach(() => {
+  recordScrolls()
 })
 
 // Vitest does not enable globals here, so Testing Library's own auto-cleanup never

@@ -41,6 +41,7 @@ import {
   USED,
 } from './session-harness'
 import { startSpeaking } from './speaking'
+import { scrolledIntoView } from './scroll-record'
 import { stubBridge } from './stub-bridge'
 
 /**
@@ -935,7 +936,13 @@ describe('RG246: what the session changed inside the file', () => {
     await waitFor(() => {
       expect(screen.queryByTestId('file-sheet')).toBeNull()
     })
-    expect(document.getElementById(`act-${seq}`)).not.toBeNull()
+    const named = document.getElementById(`act-${seq}`)
+    expect(named).not.toBeNull()
+    // And brought into view, on the frame after the viewer closed (RG266) — the half of the lead
+    // nothing checked while jsdom threw on it after the test had ended.
+    await waitFor(() => {
+      expect(scrolledIntoView).toEqual([named])
+    })
   })
 })
 
