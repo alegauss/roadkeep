@@ -53,26 +53,3 @@ digest is then required to carry that set.
 
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
-
-### §RG264 A width no route can miss
-
-RG237 gave the session the window's width, because its three regions inside a 64rem
-column left the stream about 360 pixels. RG263 added a second route to the same screen
-and the table did not follow, so a session handed a gate finding is drawn in the reading
-column — the exact defect RG237 named, back on a route nobody listed.
-
-`FULL_WIDTH` names routes one at a time, which is why. That is the right shape for a
-table about layout and the wrong one to leave unguarded: a third session route would be
-narrow the same way and nothing would fail. So the guard is the point. Every route the
-`Session` element answers takes the full width, checked against the router's own table
-rather than a second list beside it — `SURFACES` already pairs each path with its
-element, so a route added without a width is a red run instead of a narrow screen.
-
-The table stays a list and does not become a rule about path shapes. A route is
-full-width because of what it draws, not because its pattern contains a word: matching
-on `session` would make the width depend on a spelling, and a screen renamed would
-silently change column.
-
-Nothing else moves. `reading` is still every other page at 64rem, and the session's own
-grid — two side bars from `xl`, beside the stream below it — is what RG237 settled and
-this does not reopen.

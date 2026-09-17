@@ -20,8 +20,6 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- 📋 **RG264** (deps: —) **a session handed a gate finding is drawn in the reading column, since the width table names one session route** — Every route the session screen answers takes the window's width, and a guard reads that off the router's own table. → §RG264
-
 ## Done when — Block A
 
 - **The client runs with no Electron and no React** The transport is one interface, so

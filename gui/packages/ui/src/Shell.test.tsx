@@ -1,4 +1,4 @@
-import { BASE, SESSION_ROUTE, SESSIONS_ROUTE, SETTINGS_ROUTE } from '@rk/core'
+import { BASE, SESSIONS_ROUTE, SETTINGS_ROUTE } from '@rk/core'
 import { bentoNavTarget } from '@viglet/viglet-design-system/bento'
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -6,7 +6,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { AREAS, surfacesIn } from './areas'
 import { columnAt, COLUMN_CLASS, FULL_WIDTH } from './column'
 import { drawWindow } from './harness'
-import { ROUTED } from './routes'
+import { ROUTED, SURFACES } from './routes'
+import { Session } from './Session'
 
 /**
  * RG63: the chrome, before any screen is written against it.
@@ -87,11 +88,15 @@ describe('RG237: the shell offers the full width by route, never a page', () => 
   it('draws a session across the window and every other route in the column', () => {
     // Every route the router serves, so a surface added later is read in the column unless
     // the table says otherwise. The width itself is measured in `surfaces.browser.test.tsx`.
-    for (const route of ROUTED) {
+    //
+    // What a route should get is read off what it draws, never written beside it (RG264): this
+    // expected the one session route by name, so when RG263 added a second the check expected
+    // the narrow column for it too, and passed over the very screen it exists to hold.
+    for (const { path: route, element } of SURFACES) {
       const at = route.replace(':root', 'r').replace(':id', 'RG1').replace(':key', 'k')
       const { container, unmount } = drawWindow({ at })
       const main = container.querySelector('main')
-      const wanted = route === SESSION_ROUTE ? 'full' : 'reading'
+      const wanted = element.type === Session ? 'full' : 'reading'
 
       expect({ route, column: main?.dataset['column'] }).toEqual({ route, column: wanted })
       expect(main?.className).toContain(COLUMN_CLASS[wanted])
@@ -99,9 +104,15 @@ describe('RG237: the shell offers the full width by route, never a page', () => 
     }
   })
 
-  it('keeps the session`s route the one entry that takes the width', () => {
-    expect(FULL_WIDTH).toEqual([SESSION_ROUTE])
+  it('gives the width to every route the session screen answers, and to nothing else', () => {
+    // The table against the router's own: a route drawn by `Session` and missing from the list
+    // is a narrow session, and one listed that draws something else is a page with no column.
+    const drawnBySession = SURFACES.filter((surface) => surface.element.type === Session)
+
+    expect([...FULL_WIDTH].sort()).toEqual(drawnBySession.map((surface) => surface.path).sort())
+    expect(drawnBySession.length).toBeGreaterThan(1)
     expect(columnAt('/project/r/task/RG1')).toBe('reading')
+    expect(columnAt('/project/r/gate/session/k')).toBe('full')
   })
 })
 

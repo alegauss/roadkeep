@@ -1,4 +1,4 @@
-import { SESSION_ROUTE } from '@rk/core'
+import { GATE_SESSION_ROUTE, SESSION_ROUTE } from '@rk/core'
 import { matchPath } from 'react-router-dom'
 
 /**
@@ -18,8 +18,17 @@ import { matchPath } from 'react-router-dom'
  */
 export type Column = 'reading' | 'full'
 
-/** The routes that take the whole width. A route not listed is read in the column. */
-export const FULL_WIDTH: readonly string[] = [SESSION_ROUTE]
+/**
+ * The routes that take the whole width. A route not listed is read in the column.
+ *
+ * **Every route the session screen answers, and a test says so** (RG264). RG263 gave the screen a
+ * second route and this list did not follow, so a session handed a gate finding came back into
+ * the 64rem column RG237 took it out of. A list rather than a rule about path shapes, because a
+ * route is full-width for what it draws and not for a word in its pattern; the guard in
+ * `Shell.test.tsx` reads the router's own table, so a third route drawn by `Session` and missing
+ * here is a red run rather than a narrow screen.
+ */
+export const FULL_WIDTH: readonly string[] = [SESSION_ROUTE, GATE_SESSION_ROUTE]
 
 /** Each variant's class, written out whole so the stylesheet's scanner finds it. */
 export const COLUMN_CLASS: Readonly<Record<Column, string>> = {
