@@ -14,8 +14,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG274** (deps: —) **a session that stopped in the window cannot be picked up in VS Code, where the person reads the code it changed** — The Claude Code extension opens a session by id from a link, and every record here already holds that id with no way to hand it over. → §RG274
-
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49

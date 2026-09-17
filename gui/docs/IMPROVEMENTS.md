@@ -16,28 +16,27 @@
 
 The Claude Code extension registers a URI handler. Read in 2.1.274's `extension.js`:
 `vscode://anthropic.claude-code/open` takes `session` and `prompt`, drops a `session`
-that does not parse as an id, and opens that session in an editor tab. A `prompt` is
-only typed into the input box, never sent. Every session record here already carries its
-`sessionId`.
+that does not parse as an id, and runs `claude-vscode.primaryEditor.open`, which creates
+a panel. A `prompt` is only typed into the input box, never sent. Every session record
+here already carries its `sessionId`.
 
-**Offered on a session that is not running.** Stopped, finished or failed, beside
-RG269's reply: two processes appending one transcript is what this avoids. Nothing is
-sent from here, and continuing is the person's next message, typed there.
+**Measured before it was built, and it did not answer.** On 2026-09-17, on Windows with
+2.1.274 installed and a real session of this repository: the folder link and then the
+session link, the same link again through `code --open-url`, and a third once VS Code
+had remembered the permission. No panel opened on any of the three, and nothing said
+why. So this is not an action to offer yet — a button that does nothing is worse than no
+button.
 
-**`shell` opens it, and spawns nothing.** `shell.openExternal`, with no `code` looked up
-on PATH. Both links are composed beside that call, and a unit test holds their spelling.
-The action is offered only where `app.getApplicationNameForProtocol` names a `vscode:`
-handler, so a machine without VS Code learns it from the button and not from an
-operating-system dialog.
+**What it is once it answers.** Offered on a session that is not running, beside RG269's
+reply: two processes appending one transcript is what that avoids. Nothing is sent from
+here, and continuing is the person's next message, typed there. `shell` opens it with
+`shell.openExternal` and spawns nothing, with no `code` on PATH; the action is offered
+only where `app.getApplicationNameForProtocol` names a `vscode:` handler. Turns taken in
+VS Code are in the transcript, so a later reply from here carries them, but this
+screen's stream does not show them.
 
-**Which window answers is unproven, and is measured first.** The handler resumes from
-the session list of the window that received the link, and a session is listed under the
-folder it ran in. So `vscode://file/<root>` opens first, then the session link, and a
-real window has to show the session opening there, not in whichever window last had
-focus.
-
-**The record stops at the hand-off.** Turns taken in VS Code are in the transcript, so a
-later reply from this window carries them, but this screen's stream does not show them.
+**What a resume asks first.** Why the panel never opened, which window answers a link,
+and whether the session's own folder has to be open in it.
 
 ## Block G — The shell (an executable now, a service later)
 
