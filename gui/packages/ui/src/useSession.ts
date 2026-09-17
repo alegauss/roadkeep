@@ -115,6 +115,11 @@ export function useSession(root: string, id: string, key: string): SessionView {
     const stop = bridge.subscribe('session', key, (event) => {
       if ('outcome' in event) {
         setHeard((was) => ({ ...was, outcome: event.outcome }))
+      } else if ('resumed' in event) {
+        // Answered and running again (RG269): the outcome this screen holds is over, the record's
+        // as well as the one heard, or the ended pill would stand over a turn still going.
+        setHeard((was) => ({ ...was, outcome: null }))
+        setRecord((was) => (was === null || was === undefined ? was : { ...was, outcome: null }))
       } else if ('moved' in event) {
         // The whole folded list each time (RG247), so a screen that missed one event is not
         // behind: what arrives replaces what was held.

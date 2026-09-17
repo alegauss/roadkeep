@@ -296,7 +296,14 @@ export { saidOfWrite, wasCreated, whereWritten, writtenFrom } from './sections'
 export type { Written } from './sections'
 export { commandLine, createTranscript, entryLine, quoteFor } from './transcript'
 export type { Entry as TranscriptEntry, Ran, Shell, Transcript } from './transcript'
-export { outcomeOf, promptFor, promptForDoor, readSessionLine, sessionCall } from './session'
+export {
+  outcomeOf,
+  promptFor,
+  promptForDoor,
+  readSessionLine,
+  resumeCall,
+  sessionCall,
+} from './session'
 export type {
   PermissionDenial,
   SessionCall,

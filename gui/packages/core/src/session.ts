@@ -103,6 +103,31 @@ export function sessionCall(command: string, cwd: string, prompt: string): Sessi
 }
 
 /**
+ * The call that answers a session which stopped, by continuing it (RG269).
+ *
+ * `--resume` with the session's own id is Claude Code's door for this: the conversation goes on
+ * with everything it had, from the same root and under the same stream flags, so it is read the
+ * way the first turn was. The one flag added is that id.
+ *
+ * **The reply is the person's, sent as written.** `promptFor` frames a payload and a reply is not
+ * one, so nothing is put around it. It goes last, after `--`, because it is prose a person typed:
+ * a reply that happens to begin with a dash would otherwise be parsed as an option, and the CLI
+ * would answer a flag nobody meant.
+ */
+export function resumeCall(
+  command: string,
+  cwd: string,
+  sessionId: string,
+  reply: string,
+): SessionCall {
+  return {
+    command,
+    cwd,
+    argv: ['-p', '--resume', sessionId, '--output-format', 'stream-json', '--verbose', '--', reply],
+  }
+}
+
+/**
  * One line of the stream, read into something a screen can use.
  *
  * `other` is deliberate: the stream carries kinds this app has no use for today — rate

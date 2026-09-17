@@ -21,7 +21,20 @@ import { useLayoutEffect, useState, type RefObject } from 'react'
  * Null until it has measured, which is the first frame of a server-rendered or test tree, and
  * the caller draws without a bound rather than with a guess.
  */
-export function useRegionHeight(region: RefObject<HTMLElement | null>): number | null {
+export function useRegionHeight(
+  region: RefObject<HTMLElement | null>,
+  /**
+   * What sits under the region and has to stay in view with it (RG269), whose height is taken off
+   * the room as the gutter is. The session's reply box is one: a region measured to the window's
+   * bottom leaves anything under it below the fold.
+   */
+  below?: RefObject<HTMLElement | null>,
+  /**
+   * Whether anything is under the region now. It is what the room is measured again for: `below`
+   * is a ref, which changes nothing when what it points at appears.
+   */
+  reserving = false,
+): number | null {
   const [room, setRoom] = useState<number | null>(null)
 
   // The function lives in the effect rather than in a `useCallback` above it: what it reads
@@ -42,7 +55,9 @@ export function useRegionHeight(region: RefObject<HTMLElement | null>): number |
           // page is not a reader with less room.
           top: rect.top + window.scrollY,
           viewport: window.innerHeight,
-          gutter: main === null ? 0 : Number.parseFloat(getComputedStyle(main).paddingBottom) || 0,
+          gutter:
+            (main === null ? 0 : Number.parseFloat(getComputedStyle(main).paddingBottom) || 0) +
+            (reserving ? (below?.current?.getBoundingClientRect().height ?? 0) : 0),
           floor: REGION_FLOOR_REM * em,
         }),
       )
@@ -53,7 +68,7 @@ export function useRegionHeight(region: RefObject<HTMLElement | null>): number |
     return () => {
       window.removeEventListener('resize', measure)
     }
-  }, [region])
+  }, [region, below, reserving])
 
   return room
 }

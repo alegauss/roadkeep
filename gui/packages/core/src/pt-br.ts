@@ -231,6 +231,15 @@ export const PT_BR: Wording = {
   'session.change.depsDropped': 'dependências retiradas: {ids}',
   'session.change.left': 'a linha saiu: {said}',
   'session.result': 'sua última palavra: {result}',
+  'session.reply': 'Responder à sessão',
+  'session.reply.send': 'Enviar a resposta',
+  'session.reply.sending': 'Retomando a sessão.',
+  'session.reply.held': 'Com {by}, desde {since}, então a sessão não foi retomada.',
+  'session.reply.refused':
+    'A linha não respondeu ao brief, então a sessão não foi retomada: {reason}',
+  'session.reply.unavailable':
+    'Nenhum Claude Code respondeu aqui, então a sessão não foi retomada. Tentado: {tried}',
+  'session.reply.withheld': 'A resposta não foi enviada: {reason}',
   'session.edited': 'Os arquivos que ela editou',
   'session.edited.about':
     'Nomeados pelas próprias chamadas da sessão; o disco diz como cada um está.',

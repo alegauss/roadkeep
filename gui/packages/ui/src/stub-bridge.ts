@@ -32,6 +32,7 @@ export function stubBridge(over: Partial<RendererBridge> = {}): RendererBridge {
     saveRoots: unasked,
     handOver: unasked,
     handOverDoor: unasked,
+    replySession: unasked,
     governedAt: unasked,
     editedAt: unasked,
     fileText: unasked,

@@ -12,30 +12,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-### §RG269 Answering is resuming
-
-A headless session ends its turn at its first question, and the only way to answer it
-today is a terminal, the project's folder and a session id this window never shows.
-Claude Code already has the door: `claude -p <reply> --resume <session_id>` with the
-same stream flags, run from the same root, continues the conversation with everything it
-had.
-
-`core` gains the resume form of `sessionCall`, the one flag added being the session's
-own id. The reply is the person's words, sent verbatim and never framed: `promptFor`
-frames a payload, and a reply is not one. `No field this app composes` bounds it without
-forbidding it, since a reply is no governed field and the session still writes through
-the verbs.
-
-`Sessions.reply(key, text)` continues the same record: the same key, the lines keeping
-their indexes, the outcome back to null and the root watched again. It refuses an empty
-reply, a session still running, a key naming nothing and a session that never named its
-id. Before resuming, the line's brief is read again, and a line another holder took
-since is refused with the holder named, as a handover is.
-
-The screen draws a reply box under the stream once a session that named its id has
-ended, beside its last words, and the side panel stops repeating those words. A session
-that ended `waiting` (RG268) opens with the box focused.
-
 ### §RG270 A grant is the person's, for one turn
 
 Headless Claude Code has nobody to ask, so a call the project's settings do not allow is

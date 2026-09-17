@@ -16,6 +16,7 @@ import {
   type DiskStanding,
   type DrawnState,
   type Handed,
+  type HandedOver,
   type Follow,
   type Edited,
   type EditedFile,
@@ -27,14 +28,16 @@ import {
   type SessionRecord,
   type SessionState,
 } from '@rk/core'
-import { Button, Tree, treeFromPaths, type TreeNode } from '@viglet/viglet-design-system'
+import { Button, Textarea, Tree, treeFromPaths, type TreeNode } from '@viglet/viglet-design-system'
 import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-system/bento'
 import {
   useCallback,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
   useState,
+  type ChangeEvent,
   type MouseEvent,
   type ReactNode,
 } from 'react'
@@ -754,11 +757,6 @@ function Moved({
           ))}
         </ul>
       )}
-      {outcome === null || outcome.result === '' ? null : (
-        <p className="text-muted-foreground mt-3 text-xs wrap-anywhere">
-          {say('session.result', { result: outcome.result })}
-        </p>
-      )}
       {outcome === null || outcome.said === '' ? null : (
         <pre className="text-muted-foreground mt-2 max-h-32 overflow-auto text-[11px] whitespace-pre-wrap">
           {outcome.said}
@@ -844,6 +842,127 @@ function Touched({
 }
 
 /**
+ * Why a reply resumed nothing, in this window's words (RG269).
+ *
+ * Its own sentences and not the handover's: a reply takes no line and hands nothing over, so
+ * "the line was not handed over" would say a thing that never happened.
+ */
+function saidOfReply(
+  replied: Exclude<HandedOver, { readonly kind: 'started' }>,
+  say: ReturnType<typeof useWording>,
+): string {
+  if (replied.kind === 'held') {
+    const holder = replied.held[0]
+    return say('session.reply.held', { by: holder?.by ?? '', since: holder?.since ?? '' })
+  }
+  if (replied.kind === 'refused') return say('session.reply.refused', { reason: replied.said })
+  if (replied.kind === 'unavailable') {
+    return say('session.reply.unavailable', {
+      tried: replied.tried.map((command) => command.join(' ')).join(', '),
+    })
+  }
+  const reason = replied.kind === 'withheld' ? replied.reason : replied.readiness
+  return say('session.reply.withheld', { reason })
+}
+
+type Replying =
+  | { readonly kind: 'idle' }
+  | { readonly kind: 'sending' }
+  | { readonly kind: 'said'; readonly replied: Exclude<HandedOver, { readonly kind: 'started' }> }
+
+const NOT_REPLYING: Replying = { kind: 'idle' }
+
+/**
+ * Where a session stopped, and the box that answers it (RG269).
+ *
+ * **Answering is resuming.** A headless session ends its turn at its first question, and the only
+ * way to answer it was a terminal, the project's folder and a session id this window never
+ * showed. The reply goes to the far side as it was typed, and the session continues under the
+ * same key — the stream above grows where it left off.
+ *
+ * **Beside its last words**, since those are what is being answered; the side panel no longer
+ * repeats them. Focused when the session ended waiting on a refused call (RG268), which is the
+ * one case where the reader's move is the whole reason the screen is open.
+ */
+function Reply({
+  sessionKey,
+  outcome,
+}: {
+  readonly sessionKey: string
+  readonly outcome: SessionOutcome
+}) {
+  const say = useWording()
+  const [text, setText] = useState('')
+  const [replying, setReplying] = useState<Replying>(NOT_REPLYING)
+  const box = useRef<HTMLTextAreaElement>(null)
+  const waiting = outcome.state === 'waiting'
+
+  useEffect(() => {
+    if (waiting) box.current?.focus()
+  }, [waiting])
+
+  const typed = useCallback((event: ChangeEvent<HTMLTextAreaElement>) => {
+    setText(event.target.value)
+  }, [])
+  const send = useCallback(() => {
+    const bridge = getBridge()
+    if (bridge === undefined) return
+    setReplying({ kind: 'sending' })
+    void bridge.replySession(sessionKey, text).then(
+      (replied) => {
+        if (replied.kind === 'started') {
+          setText('')
+          setReplying(NOT_REPLYING)
+          return
+        }
+        setReplying({ kind: 'said', replied })
+      },
+      (cause: unknown) => {
+        setReplying({
+          kind: 'said',
+          replied: { kind: 'withheld', reason: cause instanceof Error ? cause.message : '' },
+        })
+      },
+    )
+  }, [sessionKey, text])
+
+  return (
+    <section className="border-t px-5 py-4" data-testid="reply">
+      {outcome.result === '' ? null : (
+        <p className="text-[13px] leading-relaxed whitespace-pre-wrap wrap-anywhere">
+          {say('session.result', { result: outcome.result })}
+        </p>
+      )}
+      <Textarea
+        ref={box}
+        className="mt-3 w-full"
+        rows={3}
+        aria-label={say('session.reply')}
+        value={text}
+        onChange={typed}
+      />
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <Button
+          size="sm"
+          onClick={send}
+          disabled={text.trim() === '' || replying.kind === 'sending'}
+        >
+          {say('session.reply.send')}
+        </Button>
+        {replying.kind === 'sending' ? (
+          <span className="text-muted-foreground text-xs">{say('session.reply.sending')}</span>
+        ) : null}
+        {replying.kind === 'said' ? (
+          <span className="text-xs font-medium" data-testid="reply-failed">
+            {saidOfReply(replying.replied, say)}
+          </span>
+        ) : null}
+      </div>
+    </section>
+  )
+}
+
+/**
  * The session's own words, in a region that scrolls by itself and follows its end (RG206).
  *
  * The drawing gives the stream a height of its own; drawn as a list the page grows around, a
@@ -860,7 +979,14 @@ function Touched({
  * back with what arrived since, and at the end it follows again. The jump is instant, because
  * a smooth scroll chasing several lines a second never arrives.
  */
-function Stream({ acts }: { readonly acts: readonly Act[] }) {
+function Stream({
+  acts,
+  after,
+}: {
+  readonly acts: readonly Act[]
+  /** What sits under the region inside the panel, which its height leaves room for (RG269). */
+  readonly after?: ReactNode
+}) {
   const say = useWording()
   // Folded where the reader chose it, and applied here rather than in `actsIn`: the acts stay
   // whole, and following still counts every one of them (RG208).
@@ -871,7 +997,11 @@ function Stream({ acts }: { readonly acts: readonly Act[] }) {
     [acts, notes],
   )
   const region = useRef<HTMLDivElement>(null)
-  const room = useRegionHeight(region)
+  const tail = useRef<HTMLDivElement>(null)
+  // The reply box under the region is kept in view (RG269): the region's room is measured to the
+  // bottom of the window, and a box under it would otherwise open below the fold at the very
+  // moment the session is asking for it.
+  const room = useRegionHeight(region, tail, after !== undefined)
   // Built once per measurement: a fresh object every render is a prop the region redraws for,
   // which `react-perf` refuses and a stream redrawn several times a second cannot afford.
   const bound = useMemo(() => (room === null ? undefined : { maxHeight: room }), [room])
@@ -942,6 +1072,7 @@ function Stream({ acts }: { readonly acts: readonly Act[] }) {
           )}
         </ul>
       </div>
+      <div ref={tail}>{after}</div>
       {follow.leftAt === null ? null : (
         <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center">
           <Button size="sm" className="pointer-events-auto shadow-md" onClick={jump}>
@@ -1010,6 +1141,16 @@ export function Session() {
   // session reached from the sessions list or a handover never said which project it was in.
   const face = session === null ? null : session.face
   const trail = useMemo(() => <ProjectTrail root={root} face={face} task={id} />, [root, face, id])
+  // Once it has stopped and named itself, which is when there is something to answer and a
+  // session to resume (RG269). Built once per outcome, since the stream redraws for every act.
+  const ended = session?.outcome ?? null
+  const reply = useMemo(
+    () =>
+      ended === null || ended.sessionId === '' ? undefined : (
+        <Reply sessionKey={key} outcome={ended} />
+      ),
+    [ended, key],
+  )
 
   // Read once for both columns that need them: the stream draws the acts, and what moved lists
   // the files they edited (RG243).
@@ -1041,7 +1182,7 @@ export function Session() {
             className="min-w-0 lg:col-start-2 lg:row-span-2 lg:row-start-1 xl:row-span-1"
             data-region="session-stream"
           >
-            <Stream acts={acts} />
+            <Stream acts={acts} after={reply} />
           </div>
           <div className="min-w-0 lg:col-start-1 lg:row-start-1" data-region="session-handed">
             <Handed record={session.record} />

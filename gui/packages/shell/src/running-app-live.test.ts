@@ -60,6 +60,7 @@ describe('RG60: what the renderer was given', () => {
       'open',
       'projects',
       'readings',
+      'replySession',
       'roots',
       'run',
       'savePreference',
@@ -215,7 +216,7 @@ describe('RG60: what the renderer was not given', () => {
     // RG245 added the one that reads one of them, nineteen since RG251 added the one that
     // answers what a verb printed at an earlier launch, and twenty since RG252 added the one
     // that says whether it still stands.
-    expect(reachable).toHaveLength(21)
+    expect(reachable).toHaveLength(22)
     expect(reachable.every((one) => one === 'function')).toBe(true)
   })
 })

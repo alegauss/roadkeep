@@ -1092,3 +1092,117 @@ describe('RG268: an ended turn, drawn as what the files and the refusals say', (
     expect(within(row).getByText(BASE['session.state.waiting'])).toBeTruthy()
   })
 })
+
+describe('RG269: answering a session that stopped, from the window', () => {
+  const STOPPED: SessionOutcome = {
+    state: 'done',
+    sessionId: 's-42',
+    code: 0,
+    said: '',
+    result: 'Which of the two remedies do you want?',
+    denials: [],
+  }
+
+  it('offers a reply under the stream once the session stopped, beside its last words', async () => {
+    await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [{ ...RECORD, outcome: STOPPED }] })
+
+    const reply = await screen.findByTestId('reply')
+    expect(
+      within(reply).getByText(fill(BASE['session.result'], { result: STOPPED.result })),
+    ).toBeTruthy()
+    expect(within(reply).getByLabelText(BASE['session.reply'])).toBeTruthy()
+    // Said once, beside the box, and no longer repeated in the side panel.
+    expect(
+      screen.getAllByText(fill(BASE['session.result'], { result: STOPPED.result })),
+    ).toHaveLength(1)
+    // Under the stream, in its panel: the reply is to what the stream says.
+    expect(reply.closest('[data-region="session-stream"]')).not.toBeNull()
+  })
+
+  it('offers none while the session runs, or where it never named itself', async () => {
+    await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
+    await screen.findByText(BASE['session.handed'])
+    expect(screen.queryByTestId('reply')).toBeNull()
+    cleanup()
+
+    await at(sessionPath(ROOT, 'AL1', KEY), {
+      sessions: [{ ...RECORD, outcome: { ...STOPPED, sessionId: '' } }],
+    })
+    await screen.findByText(BASE['session.handed'])
+    expect(screen.queryByTestId('reply')).toBeNull()
+  })
+
+  it('sends the words to that session, and empties the box when it resumed', async () => {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), {
+      sessions: [{ ...RECORD, outcome: STOPPED }],
+    })
+    const box = await screen.findByLabelText(BASE['session.reply'])
+    const send = screen.getByRole('button', { name: BASE['session.reply.send'] })
+    // Nothing to send before anything is written.
+    expect(send.hasAttribute('disabled')).toBe(true)
+
+    fireEvent.change(box, { target: { value: 'The first one.' } })
+    fireEvent.click(send)
+
+    await waitFor(() => {
+      expect(wired.replied).toEqual([{ key: KEY, text: 'The first one.' }])
+    })
+    await waitFor(() => {
+      expect((box as HTMLTextAreaElement).value).toBe('')
+    })
+  })
+
+  it('says why a reply resumed nothing, in its own words and not a handover’s', async () => {
+    await at(sessionPath(ROOT, 'AL1', KEY), {
+      sessions: [{ ...RECORD, outcome: STOPPED }],
+      reply: {
+        kind: 'held',
+        held: [{ by: 'another session', since: 'an hour ago', state: 'held', paths: [] }],
+      },
+    })
+    fireEvent.change(await screen.findByLabelText(BASE['session.reply']), {
+      target: { value: 'The first one.' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: BASE['session.reply.send'] }))
+
+    expect(
+      await screen.findByText(
+        fill(BASE['session.reply.held'], { by: 'another session', since: 'an hour ago' }),
+      ),
+    ).toBeTruthy()
+  })
+
+  it('opens with the box focused where the session is waiting on the reader', async () => {
+    await at(sessionPath(ROOT, 'AL1', KEY), {
+      sessions: [
+        {
+          ...RECORD,
+          outcome: {
+            ...STOPPED,
+            state: 'waiting',
+            denials: [{ tool: 'Edit', callId: 't1', input: {} }],
+          },
+        },
+      ],
+    })
+
+    const box = await screen.findByLabelText(BASE['session.reply'])
+    await waitFor(() => {
+      expect(document.activeElement).toBe(box)
+    })
+  })
+
+  it('runs again when the far side says it resumed, with no ended pill or reply left over', async () => {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), {
+      sessions: [{ ...RECORD, outcome: STOPPED }],
+    })
+    await screen.findByTestId('reply')
+
+    hear(wired, 'session', { session: KEY, resumed: true })
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('reply')).toBeNull()
+    })
+    expect(screen.getByText(BASE['session.state.running'])).toBeTruthy()
+  })
+})

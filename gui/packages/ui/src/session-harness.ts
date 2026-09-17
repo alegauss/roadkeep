@@ -201,6 +201,8 @@ export interface Wired {
   readonly texts: Map<string, FileText>
   /** What `sessions` answers next, which main moves under a standing list (RG178). */
   holds: SessionRecord[]
+  /** Each reply sent, as the session's key and the words (RG269). */
+  readonly replied: { readonly key: string; readonly text: string }[]
 }
 
 export async function at(
@@ -213,6 +215,8 @@ export async function at(
     readonly edited?: readonly EditedFile[]
     /** What each file reads as, by the path a call spelled (RG245). */
     readonly texts?: readonly FileText[]
+    /** What a reply answers (RG269). A resumed session unless a test says otherwise. */
+    readonly reply?: HandedOver
   } = {},
 ): Promise<Wired> {
   const moved = { shipped: over.shipped ?? false }
@@ -226,6 +230,7 @@ export async function at(
     fileAsked: [],
     texts: new Map((over.texts ?? []).map((text) => [text.path, text])),
     holds: [],
+    replied: [],
   }
   // What this window holds, which a handover adds to — the state RG175 reads to decide
   // whether the line is offered again, and which a test can move under a standing list
@@ -268,6 +273,13 @@ export async function at(
         const answer = over.handOver ?? { kind: 'withheld' as const, reason: 'nothing asked' }
         if (answer.kind === 'started') held.push(answer.session)
         return Promise.resolve(answer)
+      },
+      replySession: (one, text) => {
+        wired.replied.push({ key: one, text })
+        const record = held.find((session) => session.key === one) ?? RECORD
+        return Promise.resolve(
+          over.reply ?? { kind: 'started' as const, session: { ...record, outcome: null } },
+        )
       },
       stopSession: (one) => {
         wired.stopped.push(one)

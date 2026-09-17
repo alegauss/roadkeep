@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { readBriefPayload, type BriefPayload } from './payloads'
-import { outcomeOf, promptFor, readSessionLine, sessionCall } from './session'
+import { outcomeOf, promptFor, readSessionLine, resumeCall, sessionCall } from './session'
 
 /** Captured from a real `brief --json`, trimmed to the keys the shape declares. */
 const RAW = {
@@ -327,5 +327,31 @@ describe('RG268: an ended turn is not a finished task', () => {
 
     if (event?.kind !== 'finished') throw new Error('not a result')
     expect(event.denials.map((denial) => denial.tool)).toEqual(['Bash'])
+  })
+})
+
+describe('RG269: the call that answers a session', () => {
+  it('resumes the session by its own id, under the stream flags the first turn had', () => {
+    const call = resumeCall('claude', '/w/proj', 's-42', 'The first one.')
+
+    expect(call.cwd).toBe('/w/proj')
+    expect(call.argv).toEqual([
+      '-p',
+      '--resume',
+      's-42',
+      '--output-format',
+      'stream-json',
+      '--verbose',
+      '--',
+      'The first one.',
+    ])
+  })
+
+  it('sends the reply as written, after the end of options, whatever it begins with', () => {
+    // Prose a person typed, and a reply that begins with a dash is still a reply.
+    const call = resumeCall('claude', '/w/proj', 's-42', '--no, the second')
+
+    expect(call.argv.at(-1)).toBe('--no, the second')
+    expect(call.argv.at(-2)).toBe('--')
   })
 })

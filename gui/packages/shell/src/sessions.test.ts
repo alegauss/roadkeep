@@ -42,8 +42,10 @@ const LINE = {
 
 const HOLDER = { by: 'another session', since: '2026-09-11T10:00:00Z', state: 'held', paths: [] }
 
-function engine(): { transport: Transport; asked: string[][] } {
+function engine(): { transport: Transport; asked: string[][]; taken: Set<string> } {
   const asked: string[][] = []
+  /** Lines another holder took since a session started on them (RG269). */
+  const taken = new Set<string>()
   const transport: Transport = {
     run(request) {
       asked.push([...request.argv])
@@ -82,7 +84,7 @@ function engine(): { transport: Transport; asked: string[][] } {
       if (verb === 'commands') return said({ version: '0.2.400', source: null, commands: [] })
       if (verb === 'brief') {
         const claiming = request.argv.includes('--claim')
-        if (id === 'FX2') return said({ ...LINE, id, held: [HOLDER] })
+        if (id === 'FX2' || taken.has(id)) return said({ ...LINE, id, held: [HOLDER] })
         if (id === 'FX3') return said({ ...LINE, id, readiness: 'blocked' })
         if (id === 'FX9') {
           return Promise.resolve({
@@ -102,7 +104,7 @@ function engine(): { transport: Transport; asked: string[][] } {
       return Promise.reject(new EngineCallFailed('unspawnable', 'no', 1))
     },
   }
-  return { transport, asked }
+  return { transport, asked, taken }
 }
 
 const FOUND: AgentResolution = {
@@ -207,7 +209,7 @@ function fakeWatch() {
 }
 
 async function sessions(agent: AgentResolution = FOUND) {
-  const { transport, asked } = engine()
+  const { transport, asked, taken } = engine()
   const opened: OpenedProject = openedFrom(
     await openProject(ROOT, [['python', 'launch.py']], () => transport),
   )
@@ -250,6 +252,7 @@ async function sessions(agent: AgentResolution = FOUND) {
     made,
     fake,
     watch,
+    taken,
     doors,
     published,
     claims,
@@ -589,5 +592,82 @@ describe('RG263: a gate finding handed to a session', () => {
 
     expect(handed.kind).toBe('withheld')
     expect(fake.calls).toEqual([])
+  })
+})
+
+describe('RG269: answering a session that stopped', () => {
+  /** A session handed FX1 whose turn ended, named, asking something. */
+  async function stopped() {
+    const made = await sessions()
+    const handed = await made.made.handOver(ROOT, 'FX1')
+    if (handed.kind !== 'started') throw new Error('not started')
+    made.fake.write('{"type":"system","subtype":"init","session_id":"s-42"}')
+    made.fake.end({ ...DONE, sessionId: 's-42', result: 'Which of the two remedies?' })
+    await Promise.resolve()
+    await Promise.resolve()
+    return { ...made, key: handed.session.key }
+  }
+
+  it('continues the same session with the reply, resumed by its own id', async () => {
+    const { made, fake, published, key } = await stopped()
+
+    const replied = await made.reply(key, 'The first one.')
+
+    expect(replied.kind).toBe('started')
+    if (replied.kind !== 'started') return
+    // The same key and the same record: its lines are where they were, and it runs again.
+    expect(replied.session.key).toBe(key)
+    expect(replied.session.lines).toHaveLength(1)
+    expect(replied.session.outcome).toBeNull()
+    // The reply goes last, after `--`, as it was typed.
+    const [, resumed] = fake.calls
+    expect(resumed?.argv.slice(-2)).toEqual(['--', 'The first one.'])
+    expect(resumed?.argv).toContain('--resume')
+    expect(resumed?.argv[resumed.argv.indexOf('--resume') + 1]).toBe('s-42')
+    // Every window watching is told the outcome it holds is over.
+    expect(published).toContainEqual({ session: key, resumed: true })
+  })
+
+  it("puts the next turn's lines after the first turn's, in their places", async () => {
+    const { made, fake, published, key } = await stopped()
+    await made.reply(key, 'The first one.')
+
+    fake.write('{"type":"assistant"}')
+
+    expect(published).toContainEqual({ session: key, index: 1, line: '{"type":"assistant"}' })
+    expect(made.list().find((one) => one.key === key)?.lines).toHaveLength(2)
+  })
+
+  it('refuses a key it holds nothing under, an empty reply and a session still running', async () => {
+    const running = await sessions()
+    const handed = await running.made.handOver(ROOT, 'FX1')
+    if (handed.kind !== 'started') throw new Error('not started')
+
+    expect((await running.made.reply('nobody', 'hello')).kind).toBe('withheld')
+    expect((await running.made.reply(handed.session.key, '   ')).kind).toBe('withheld')
+    expect((await running.made.reply(handed.session.key, 'hello')).kind).toBe('withheld')
+    expect(running.fake.calls).toHaveLength(1)
+  })
+
+  it('refuses a session that never named itself, since there is nothing to resume', async () => {
+    const made = await sessions()
+    const handed = await made.made.handOver(ROOT, 'FX1')
+    if (handed.kind !== 'started') throw new Error('not started')
+    made.fake.end({ ...DONE, sessionId: '' })
+    await Promise.resolve()
+    await Promise.resolve()
+
+    expect((await made.made.reply(handed.session.key, 'hello')).kind).toBe('withheld')
+    expect(made.fake.calls).toHaveLength(1)
+  })
+
+  it('names who took the line since it stopped, and resumes nothing', async () => {
+    const { made, fake, taken, key } = await stopped()
+    taken.add('FX1')
+
+    const replied = await made.reply(key, 'The first one.')
+
+    expect(replied).toEqual({ kind: 'held', held: [HOLDER] })
+    expect(fake.calls).toHaveLength(1)
   })
 })

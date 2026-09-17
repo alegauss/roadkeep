@@ -181,6 +181,16 @@ export interface RendererBridge {
    */
   handOverDoor(root: string, offered: string, which: number): Promise<HandedOver>
   /**
+   * Answer a session that stopped, by continuing it (RG269): the reply is the person's words, and
+   * the session goes on under the same key, its lines keeping their places.
+   *
+   * **Nothing about the session crosses but its key and the words.** The far side holds its root,
+   * its id and what it was handed, and a reply to a session it does not hold, or to one still
+   * running, is withheld. A line somebody else took since the session stopped is named, as a
+   * handover names a held one, and nothing is resumed.
+   */
+  replySession(key: string, text: string): Promise<HandedOver>
+  /**
    * The project's governed files, each with when the disk last changed it (RG153).
    *
    * Beside the landing rather than in it: what moved in a line is the engine's answer, and
@@ -436,6 +446,11 @@ export interface TopicEvents {
     | { readonly session: string; readonly index: number; readonly line: string }
     | { readonly session: string; readonly outcome: SessionOutcome }
     /**
+     * The session was answered and runs again (RG269), so the outcome a screen holds is over. Its
+     * own event because nothing else says so: the lines that follow could be a turn still going.
+     */
+    | { readonly session: string; readonly resumed: true }
+    /**
      * What has moved on disk under the session's root so far (RG247), the whole list each time.
      *
      * The list and not the difference, because it is folded per path and a screen that missed
@@ -623,6 +638,7 @@ export const BRIDGE_CHANNELS = {
   saveRoots: 'roadkeep:save-roots',
   handOver: 'roadkeep:hand-over',
   handOverDoor: 'roadkeep:hand-over-door',
+  replySession: 'roadkeep:reply-session',
   governedAt: 'roadkeep:governed-at',
   editedAt: 'roadkeep:edited-at',
   fileText: 'roadkeep:file-text',

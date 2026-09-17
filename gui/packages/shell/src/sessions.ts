@@ -13,6 +13,7 @@ import {
   promptFor,
   promptForDoor,
   readLintPayload,
+  resumeCall,
   sessionCall,
   MOVES_QUIET_MS,
   sessionMoves,
@@ -95,6 +96,8 @@ export interface Sessions {
   handOver(root: string, id: string): Promise<HandedOver>
   /** Start one on a gate finding rather than a line (RG263), named by the door that closes it. */
   handOverDoor(root: string, offered: string, which: number): Promise<HandedOver>
+  /** Answer one that stopped, by continuing it under the same key (RG269). */
+  reply(key: string, text: string): Promise<HandedOver>
   /** Every session started, each with its lines so far. Copies, so nothing outside edits one. */
   list(): SessionRecord[]
   /**
@@ -125,6 +128,12 @@ interface Held {
   outcome: SessionOutcome | null
   running: RunningSession | null
 }
+
+/** Why a reply resumes nothing (RG269), each said in the words a person would act on. */
+const NO_SESSION = 'this window holds no session by that key'
+const NO_REPLY = 'a reply has to say something'
+const STILL_RUNNING = 'the session is still running, and a reply waits for it to stop'
+const NEVER_NAMED = 'the session never named itself, so there is nothing to resume'
 
 /** Why a door names no session: the batch is gone, or nothing in the report offered it. */
 const NO_SUCH_DOOR = 'that door is no longer on offer: the governed files have moved since'
@@ -189,7 +198,7 @@ export function createSessions(options: SessionsOptions): Sessions {
     found: Agent,
     inherits: NodeJS.ProcessEnv,
   ): Held => {
-    const [command = '', ...prefix] = found.command
+    const [command = ''] = found.command
     // Each shape frames its own payload (RG263), and neither is rewritten on the way in.
     const prompt =
       handed.kind === 'line' ? promptFor(handed.brief) : promptForDoor(handed.finding, handed.argv)
@@ -210,7 +219,19 @@ export function createSessions(options: SessionsOptions): Sessions {
       running: null,
     }
     held.set(session.key, session)
+    run(session, call, found, inherits)
+    return session
+  }
 
+  /**
+   * Spawn one turn of a held session, and keep what it says on the record (RG269).
+   *
+   * The first turn and every reply go through here, so a continued session is the same session:
+   * its lines are appended where the last turn left them, its root is watched again, and the
+   * outcome it ends with replaces the one it had.
+   */
+  const run = (session: Held, call: SessionCall, found: Agent, inherits: NodeJS.ProcessEnv) => {
+    const [, ...prefix] = found.command
     // What the stream cannot name (RG247): a formatter or a generator run through Bash. Watched
     // from the spawn, given back at the outcome, and told in bursts rather than per event.
     const tell = () => {
@@ -221,7 +242,7 @@ export function createSessions(options: SessionsOptions): Sessions {
         beyond: session.moves.beyond,
       })
     }
-    session.watching = watching(root, (path, at) => {
+    session.watching = watching(session.root, (path, at) => {
       session.moves.moved(path, at)
       session.holding?.()
       session.holding = clock.after(MOVES_QUIET_MS, tell)
@@ -247,7 +268,6 @@ export function createSessions(options: SessionsOptions): Sessions {
       tell()
       options.publish({ session: session.key, outcome })
     })
-    return session
   }
 
   return {
@@ -282,6 +302,45 @@ export function createSessions(options: SessionsOptions): Sessions {
           begin(root, id, { kind: 'line', brief: took.payload }, found.agent, inherits),
         ),
       }
+    },
+
+    async reply(key, text) {
+      const session = held.get(key)
+      if (session === undefined) return { kind: 'withheld', reason: NO_SESSION }
+      if (text.trim() === '') return { kind: 'withheld', reason: NO_REPLY }
+      if (session.outcome === null) return { kind: 'withheld', reason: STILL_RUNNING }
+      const sessionId = session.outcome.sessionId
+      if (sessionId === '') return { kind: 'withheld', reason: NEVER_NAMED }
+
+      // The line is read again before anything resumes (RG269): somebody may have taken it while
+      // the session sat stopped, and a reply is not the moment to start a second author on it.
+      // A session handed a finding has no line, and nothing of the kind to check.
+      if (session.handed.kind === 'line') {
+        const reached = await openOver(options.carrier, session.root)
+        if (reached.kind !== 'open') {
+          return { kind: 'withheld', reason: openingUnreadable(reached).message }
+        }
+        const read = briefed(
+          await reached.project.client.call(session.root, 'brief', { id: session.id }),
+          session.id,
+        )
+        if ('said' in read) return { kind: 'refused', said: read.said }
+        const standing = handoverOf(read.payload)
+        if (standing.held.length > 0) return { kind: 'held', held: standing.held }
+      }
+
+      const found = await resolved(session.root)
+      if (found.kind !== 'resolved') return { kind: 'unavailable', tried: found.tried }
+      env ??= environment(found.agent, session.root)
+      const inherits = await env
+
+      const [command = ''] = found.agent.command
+      // The outcome goes before the process starts, and every window watching is told: what it
+      // holds is over, and the lines that follow are a turn still going.
+      session.outcome = null
+      options.publish({ session: session.key, resumed: true })
+      run(session, resumeCall(command, session.root, sessionId, text), found.agent, inherits)
+      return { kind: 'started', session: recordOf(session) }
     },
 
     async handOverDoor(root, offered, which) {

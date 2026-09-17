@@ -300,6 +300,17 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
       return sessions.handOver(root, id)
     },
   )
+  // A reply to a session that stopped (RG269): a key and the person's words, and nothing the
+  // far side does not already hold. Anything else is not a reply this carrier can send.
+  ipcMain.handle(
+    BRIDGE_CHANNELS.replySession,
+    (_event, key: unknown, text: unknown): Promise<HandedOver> => {
+      if (typeof key !== 'string' || typeof text !== 'string') {
+        return Promise.resolve({ kind: 'withheld', reason: 'no reply was named' })
+      }
+      return sessions.reply(key, text)
+    },
+  )
   // A session about a gate finding (RG263), named by the door that closes it — the same two
   // arguments `door` takes, checked the same way, since a name the renderer made up names
   // nothing in the keep either.
