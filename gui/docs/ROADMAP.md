@@ -14,6 +14,11 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
+- 📋 **RG268** (deps: —) **a session that ends its turn waiting on a person is drawn as done, so a stalled task reads as finished** — The result line reports success whenever a turn ends cleanly, and the window reads that as the task being done. → §RG268
+- 📋 **RG269** (deps: RG268) **a session that stopped to ask something cannot be answered from the window, only from a terminal with its id** — A headless session ends its turn at its first question, so every handover that needs a choice stalls there. → §RG269
+- 📋 **RG270** (deps: RG268, RG269) **a tool call the session was refused is never shown, and nothing lets a person allow it for the next turn** — Headless Claude Code refuses any call the project's settings do not allow, so a session stalls on its first edit. → §RG270
+- 📋 **RG271** (deps: —) **a session's words are drawn with their Markdown literal, so bold, code and lists read as asterisks and backticks** — An agent writes for a terminal that renders Markdown, and the window shows it harder to read than the terminal it replaces. → §RG271
+
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49

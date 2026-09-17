@@ -12,6 +12,103 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
+### §RG268 An ended turn is not a finished task
+
+A headless session's `result` line says `is_error: false` whenever its turn ended
+cleanly, and `outcomeOf` reads that as `done`. That is not the work being finished.
+commitclerk's T65 ended its turn asking for the Edit permission it had been refused and
+for a choice between two remedies; the window drew it as concluded, with the line still
+in progress and nothing written.
+
+Two signals say so without reading meaning. The `result` line carries
+`permission_denials`, each a tool name, the call's id and its input: `readSessionLine`
+reads them into `finished`, and `outcomeOf` answers a new state, `waiting`, where any
+call was refused. And a session handed a line has a landing: a turn that ended without a
+`shipped` change is drawn as a stop, never as done.
+
+The prose is never read for a question. Whether words ask something is meaning this app
+has none of, and a question mark matched in the last paragraph is wrong the first time
+an agent quotes one.
+
+`done` is worded as what the engine said, that the turn ended, on the sessions list as
+well as the pill, since the list has no landing to read. `waiting` takes the warning
+intent, the one a reader already reads as their move. The denials stay on the outcome,
+for the lines that draw them and grant them.
+
+### §RG269 Answering is resuming
+
+A headless session ends its turn at its first question, and the only way to answer it
+today is a terminal, the project's folder and a session id this window never shows.
+Claude Code already has the door: `claude -p <reply> --resume <session_id>` with the
+same stream flags, run from the same root, continues the conversation with everything it
+had.
+
+`core` gains the resume form of `sessionCall`, the one flag added being the session's
+own id. The reply is the person's words, sent verbatim and never framed: `promptFor`
+frames a payload, and a reply is not one. `No field this app composes` bounds it without
+forbidding it, since a reply is no governed field and the session still writes through
+the verbs.
+
+`Sessions.reply(key, text)` continues the same record: the same key, the lines keeping
+their indexes, the outcome back to null and the root watched again. It refuses an empty
+reply, a session still running, a key naming nothing and a session that never named its
+id. Before resuming, the line's brief is read again, and a line another holder took
+since is refused with the holder named, as a handover is.
+
+The screen draws a reply box under the stream once a session that named its id has
+ended, beside its last words, and the side panel stops repeating those words. A session
+that ended `waiting` (RG268) opens with the box focused.
+
+### §RG270 A grant is the person's, for one turn
+
+Headless Claude Code has nobody to ask, so a call the project's settings do not allow is
+refused and the turn goes on without it. The refusals arrive on the `result` line and
+RG268 keeps them on the outcome; nothing draws them, and a person who would allow the
+edit has no way to say so.
+
+Each refusal is drawn under the ended session: the tool, what it would have touched, a
+path for a file edit and a command for Bash, and a link to its call in the stream. Each
+has a checkbox, and the reply RG269 sends passes `--allowedTools` naming the checked
+tools, for that resumed turn and no other.
+
+`sessionCall` decides no permission, and that stands: here the person decides, one turn
+at a time. So never a `--permission-mode`, never a skip of permissions, never a tool
+nobody was refused, and nothing written to the project's `.claude` settings, which are
+the project's. The grant names a tool and not a rule spelled from its input, since
+composing a permission grammar would be this app deciding what a rule means.
+
+A grant with no words sends the sentence the wording table holds for it, placed in the
+box before sending, so what the session reads is still the person's to change. A refusal
+left unchecked stays listed, and is refused again if the session calls it again.
+
+### §RG271 Rendered where a person reads, raw where a tool measures
+
+An agent writes Markdown for a terminal that renders it, and the stream draws it as
+characters: bold as asterisks, code as backticks. commitclerk's T65 ended on two
+numbered choices a reader had to decode before choosing.
+
+`No Markdown parsed in this app` bounds this and does not forbid it: its reason is facts
+read off a governed file, and nothing is read out of these words. The rule for every
+surface is to render what an agent wrote for a person to read, and keep raw what a gate
+measures, a commit diffs, a line number points into or a verb reads back.
+
+| Surface                                 | Drawn    | Because                                   |
+| --------------------------------------- | -------- | ----------------------------------------- |
+| A session's words and its last word     | rendered | nothing measures, stores or diffs them    |
+| A tool call's input and output          | raw      | a command and its output are data         |
+| A file in the viewer                    | raw      | RG246's edits point at its line numbers   |
+| A design section                        | raw      | the gate counts it and a commit diffs it  |
+| A symptom, a why, a governed file       | raw      | a verb wrote it and reads it back         |
+| The raw line                            | raw      | it is the stream as it arrived            |
+
+The design system ships no renderer, so `ui` takes `react-markdown` with `remark-gfm`:
+no raw HTML, no image fetched, a link through the guard's external opener. Elements take
+the design system's type and tokens in both grounds, and a wide code block scrolls
+inside the stream, never the page.
+
+On ship: `non-goal amend` narrows the lead to governed files and fields, quoting this
+rule.
+
 ## Block G — The shell (an executable now, a service later)
 
 ### §RG49 The signature, and what it needs that code cannot supply
