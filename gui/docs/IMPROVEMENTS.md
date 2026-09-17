@@ -12,34 +12,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-### §RG271 Rendered where a person reads, raw where a tool measures
-
-An agent writes Markdown for a terminal that renders it, and the stream draws it as
-characters: bold as asterisks, code as backticks. commitclerk's T65 ended on two
-numbered choices a reader had to decode before choosing.
-
-`No Markdown parsed in this app` bounds this and does not forbid it: its reason is facts
-read off a governed file, and nothing is read out of these words. The rule for every
-surface is to render what an agent wrote for a person to read, and keep raw what a gate
-measures, a commit diffs, a line number points into or a verb reads back.
-
-| Surface                                 | Drawn    | Because                                   |
-| --------------------------------------- | -------- | ----------------------------------------- |
-| A session's words and its last word     | rendered | nothing measures, stores or diffs them    |
-| A tool call's input and output          | raw      | a command and its output are data         |
-| A file in the viewer                    | raw      | RG246's edits point at its line numbers   |
-| A design section                        | raw      | the gate counts it and a commit diffs it  |
-| A symptom, a why, a governed file       | raw      | a verb wrote it and reads it back         |
-| The raw line                            | raw      | it is the stream as it arrived            |
-
-The design system ships no renderer, so `ui` takes `react-markdown` with `remark-gfm`:
-no raw HTML, no image fetched, a link through the guard's external opener. Elements take
-the design system's type and tokens in both grounds, and a wide code block scrolls
-inside the stream, never the page.
-
-On ship: `non-goal amend` narrows the lead to governed files and fields, quoting this
-rule.
-
 ## Block G — The shell (an executable now, a service later)
 
 ### §RG49 The signature, and what it needs that code cannot supply

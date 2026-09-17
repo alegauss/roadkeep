@@ -14,8 +14,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG271** (deps: —) **a session's words are drawn with their Markdown literal, so bold, code and lists read as asterisks and backticks** — An agent writes for a terminal that renders Markdown, and the window shows it harder to read than the terminal it replaces. → §RG271
-
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
@@ -150,8 +148,9 @@
 ## Non-goals
 
 - **No Markdown parsed in this app** Every fact shown comes off a payload some verb
-  printed, so a reader that parses the file is the second implementation roadkeep exists
-  to remove and is wrong the first time the grammar moves.
+  printed, so a reader that parses a governed file or a field is the second
+  implementation roadkeep exists to remove. Words an agent wrote for a person are drawn
+  rendered and read for nothing (RG271).
 - **No write to a governed file** The app composes an argv and the command writes, so
   the parse-render round trip stays the tool's and two writers never share one file.
 - **No rule compiled into the client** No marker, id shape, limit, block label or

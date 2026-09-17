@@ -58,6 +58,7 @@ import { PanelTitle } from './forms'
 import { HeroActions } from './hero'
 import { Glyph, Pill, type Intent } from './marks'
 import { useSessionNotes } from './preferring'
+import { Prose } from './prose'
 import { ProjectTrail } from './trail'
 import { useEditedAt } from './useEditedAt'
 import { useRegionHeight } from './useRegionHeight'
@@ -130,9 +131,9 @@ function Raw({ line }: { readonly line: string }) {
 function Spoken({ act }: { readonly act: Act }) {
   const say = useWording()
 
-  if (act.kind === 'said') {
-    return <p className="text-[13px] leading-relaxed whitespace-pre-wrap">{act.text}</p>
-  }
+  // Its words are written for a person, so they are rendered (RG271); what a tool was called on
+  // and what it gave back are measured, so they stay raw.
+  if (act.kind === 'said') return <Prose text={act.text} />
   if (act.kind === 'used') {
     return (
       <div className="flex flex-col gap-1">
@@ -1027,9 +1028,10 @@ function Reply({
   return (
     <section className="border-t px-5 py-4" data-testid="reply">
       {outcome.result === '' ? null : (
-        <p className="text-[13px] leading-relaxed whitespace-pre-wrap wrap-anywhere">
-          {say('session.result', { result: outcome.result })}
-        </p>
+        <div data-testid="last-word">
+          <PanelTitle>{say('session.result')}</PanelTitle>
+          <Prose text={outcome.result} />
+        </div>
       )}
       {outcome.denials.length === 0 ? null : (
         <div className="mt-3" data-testid="refusals">

@@ -1107,14 +1107,12 @@ describe('RG269: answering a session that stopped, from the window', () => {
     await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [{ ...RECORD, outcome: STOPPED }] })
 
     const reply = await screen.findByTestId('reply')
-    expect(
-      within(reply).getByText(fill(BASE['session.result'], { result: STOPPED.result })),
-    ).toBeTruthy()
+    const lastWord = within(reply).getByTestId('last-word')
+    expect(within(lastWord).getByText(BASE['session.result'])).toBeTruthy()
+    expect(within(lastWord).getByText(STOPPED.result)).toBeTruthy()
     expect(within(reply).getByLabelText(BASE['session.reply'])).toBeTruthy()
     // Said once, beside the box, and no longer repeated in the side panel.
-    expect(
-      screen.getAllByText(fill(BASE['session.result'], { result: STOPPED.result })),
-    ).toHaveLength(1)
+    expect(screen.getAllByText(BASE['session.result'])).toHaveLength(1)
     // Under the stream, in its panel: the reply is to what the stream says.
     expect(reply.closest('[data-region="session-stream"]')).not.toBeNull()
   })
@@ -1274,5 +1272,105 @@ describe('RG270: a refused call, shown and allowed for one turn', () => {
     await waitFor(() => {
       expect(wired.replied.at(-1)).toEqual({ key: KEY, text: 'Go on.', allowed: ['Edit'] })
     })
+  })
+})
+
+describe('RG271: what an agent wrote for a person, rendered', () => {
+  /** A said line, as the stream carries one. */
+  function saying(text: string) {
+    return JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text }] } })
+  }
+
+  async function heard(text: string) {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
+    await screen.findByText(BASE['session.handed'])
+    hear(wired, 'session', { session: KEY, index: 1, line: saying(text) })
+    return waitFor(() => {
+      const said = screen.getAllByTestId('act').find((one) => one.dataset['kind'] === 'said')
+      if (said === undefined) throw new Error('no said act')
+      return said
+    })
+  }
+
+  it('draws its bold, its code and its choices as elements, not as characters', async () => {
+    const said = await heard(
+      'Two **remedies** for `lint`:\n\n1. Retire the row\n2. Flip the row\n\n```sh\nnpm run lint\n```',
+    )
+
+    expect(within(said).getByText('remedies').tagName).toBe('STRONG')
+    expect(within(said).getByText('lint').tagName).toBe('CODE')
+    expect(
+      within(said)
+        .getAllByRole('listitem')
+        .map((one) => one.textContent),
+    ).toEqual(['Retire the row', 'Flip the row'])
+    expect(within(said).getByText('npm run lint').closest('pre')).not.toBeNull()
+    // Scrolled inside the stream, and reachable by a keyboard, which is what reads its end.
+    const wide = within(said).getByRole('region', { name: BASE['session.prose.wide'] })
+    expect(wide.tabIndex).toBe(0)
+    expect(within(wide).getByText('npm run lint')).toBeTruthy()
+    // The asterisks are gone from what is read, and still in the raw line under it.
+    expect(within(within(said).getByTestId('prose')).queryByText(/\*\*/)).toBeNull()
+    expect(
+      within(said)
+        .getByText(/\*\*remedies\*\*/)
+        .closest('details'),
+    ).not.toBeNull()
+  })
+
+  it('renders no raw HTML and fetches no image, and opens a link in its own window', async () => {
+    const said = await heard(
+      'Look <b>here</b> ![the chart](https://example.com/chart.png) and [the docs](https://example.com/docs)',
+    )
+
+    expect(said.querySelector('b')).toBeNull()
+    expect(said.querySelector('img')).toBeNull()
+    expect(within(said).getByText('the chart').tagName).toBe('SPAN')
+    const link = within(said).getByRole('link', { name: 'the docs' })
+    // A link with a target is a window the shell's guard sends to the desktop's browser.
+    expect(link.getAttribute('target')).toBe('_blank')
+    expect(link.getAttribute('rel')).toBe('noreferrer noopener')
+  })
+
+  it('draws an agent heading as emphasis, never as a heading of this screen', async () => {
+    const said = await heard('# Plan\n\nShip it.')
+
+    expect(within(said).queryByRole('heading')).toBeNull()
+    expect(within(said).getByText('Plan').tagName).toBe('P')
+  })
+
+  it('labels a task list mark with whether it is done', async () => {
+    const said = await heard('- [x] typecheck\n- [ ] shots')
+
+    expect(within(said).queryByRole('checkbox')).toBeNull()
+    const items = within(said)
+      .getAllByRole('listitem')
+      .map((one) => one.textContent)
+    expect(items).toEqual([
+      `${BASE['session.prose.task.done']} typecheck`,
+      `${BASE['session.prose.task.open']} shots`,
+    ])
+  })
+
+  it('renders its last word too, and keeps a tool call and what it gave back raw', async () => {
+    const outcome: SessionOutcome = {
+      state: 'done',
+      sessionId: 's-42',
+      code: 0,
+      said: '',
+      result: 'Pick **one**.',
+      denials: [],
+    }
+    const returned = JSON.stringify({
+      type: 'user',
+      message: { content: [{ type: 'tool_result', tool_use_id: 't1', content: '**raw** out' }] },
+    })
+    await at(sessionPath(ROOT, 'AL1', KEY), {
+      sessions: [{ ...RECORD, lines: [...RECORD.lines, USED, returned], outcome }],
+    })
+
+    const lastWord = await screen.findByTestId('last-word')
+    expect(within(lastWord).getByText('one').tagName).toBe('STRONG')
+    expect(await screen.findByText('**raw** out')).toBeTruthy()
   })
 })

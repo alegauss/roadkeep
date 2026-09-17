@@ -62,7 +62,25 @@ export interface ScriptedAgent {
  * Each edit carries both its halves, so the viewer has what the session changed to draw (RG246)
  * — the first one puts back a heading the fixture's roadmap really holds, and the rest put text
  * it does not, which are the two answers checking an edit against the file can give.
+ *
+ * What it says is written the way an agent writes, in Markdown (RG271): every step's sentence has
+ * its bold and its code, and every fifth is a choice with a command wider than the stream.
  */
+function said(at: number): string {
+  const step = String(at)
+  if (at % 5 !== 0) return `Step ${step} of the **scripted** run, checked with \`npm test\`.`
+  return [
+    `Step ${step}: two remedies for the **lint** finding.`,
+    '',
+    '1. Retire the row',
+    '2. Flip the row',
+    '',
+    '```sh',
+    'npx vitest run --project ui packages/ui/src/session.test.tsx --reporter verbose --no-cache',
+    '```',
+  ].join('\n')
+}
+
 function tailCycle(at: number): string[] {
   const id = `scripted-${String(at)}`
   const edited =
@@ -81,7 +99,7 @@ function tailCycle(at: number): string[] {
   return [
     {
       type: 'assistant',
-      message: { content: [{ type: 'text', text: `Step ${String(at)} of the scripted run.` }] },
+      message: { content: [{ type: 'text', text: said(at) }] },
     },
     {
       type: 'assistant',

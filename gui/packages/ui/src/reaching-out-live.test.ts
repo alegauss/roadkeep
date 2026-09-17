@@ -86,6 +86,11 @@ const ACCOUNTED: readonly { readonly host: string; readonly kind: string; readon
       why: 'The synthetic origin the router gives a history with no document. Never requested.',
     },
     {
+      host: 'github.com',
+      kind: 'message',
+      why: "The docs link in `hast-util-to-jsx-runtime`'s errors, which `react-markdown` renders session words through (RG271).",
+    },
+    {
       host: 'api.iconify.design',
       kind: 'fetched',
       why: "Iconify's default API, reached for an `icon` name given an entity tile or shell — RG133's rule forbids one.",
