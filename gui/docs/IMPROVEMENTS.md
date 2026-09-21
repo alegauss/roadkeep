@@ -137,6 +137,84 @@ Done when a browser test drags the right handle, sees one `savePreference` call 
 new percentage, and sees a remount draw the same width; and when a file holding 90 per
 cent reads back clamped, with its notice.
 
+### §RG280 Created, changed or deleted, off the first answer on a path
+
+Each row of the edited list (RG243) says how many calls named the file and where the
+disk has it (RG244), never what the session did to it. A created file reads like one
+touched on one line, where VS Code's source-control list answers with a letter.
+
+**The answer is already in the stream.** Claude Code answers an `Edit` or a `Write` with
+a `tool_use_result`: `originalFile`, the file before the call, and for a `Write` a
+`type` of `create` or `update`. The `returned` act keeps that raw line, so
+`originOf(acts, path)` in `core/acts.ts` reads the first answered, successful call on
+the path. A `Write`'s `type` decides; an `Edit` changed a file that was there, and a
+null `originalFile` is one too large to carry. A line with two `tool_result`s is not
+read, since its one `tool_use_result` cannot say whose it is. No answer yet is no mark.
+
+**The disk finishes it.** Was there and missing now is deleted; was there and present is
+changed; absent before and present is created; created and missing now is its own word.
+
+**Drawn as a letter and a word** in a `Pill` after the call count, `data-kind` on the
+leaf, a deleted file's name struck through. Both catalogues carry the words.
+
+`No git command run by this app` bounds this: the before is Claude Code's answer, never
+the repository's.
+
+Done when `acts.test.ts` reads each kind off a captured `Edit` and `Write` line, taken
+from a real run as `session-stream.jsonl` was, and `session.test.tsx` draws them.
+
+### §RG281 Appeared, changed or gone, off the watch's own stat
+
+The list of what moved on disk (RG247) holds what no edit call named: a file `rm`
+removed, one a generator created, one a formatter rewrote. It says how often each moved
+and when, never which it was, the letter RG280 puts on an edited row.
+
+**Not the event's name.** `fs.watch` says `rename` or `change`, and macOS reports most
+writes as `rename`. The portable facts are whether the path is there after the event and
+when it was born.
+
+**The stat is already made.** `watchSessionRoot` stats each path to drop folders; it now
+hands on present and `birthtime` too. `sessionMoves` in `core/watching.ts` keeps the
+first birth and the last presence: born at or after the session started is created,
+before it is changed, absent at its last move is gone, and born after the start and gone
+came and went.
+
+**Where it is wrong, said.** A save that writes a copy and renames it over the file
+gives a new birth, so it reads as created. A filesystem with no birth time answers zero,
+which reads as changed, never a false new. A file made and removed faster than the stat
+reads as gone. The caption, which already calls the list unattributed, says so.
+
+A stat reads no byte, so RG247's rule holds: a name and a clock.
+
+Done when `watching.test.ts` folds each kind and `session-watch-live.test.ts` sees a
+created and a deleted file on the real watch.
+
+### §RG282 The file against its original, line by line
+
+The viewer (RG245) shows the file as the disk has it, and above it each call's two
+halves (RG246): ten edits are ten blocks, and a formatter run after them is in none. VS
+Code shows one comparison, the original beside the file now.
+
+**The original is RG280's.** `originOf` hands the first answer's `originalFile`; a
+created file's is empty, every line added. The file now is the read the viewer already
+makes, so what changed it after the last call counts too, and a deleted file is an empty
+side, every line removed. A file only the watch saw has no original, and the viewer says
+so.
+
+**Compared in `core`.** `linesBetween(before, after)` is a pure line comparison: hunks
+with both sides' numbers, three unchanged lines around each, the rest folded. `core` has
+no dependency and a Myers comparison is small enough to own; past a ceiling on lines
+none is made, and the viewer says so.
+
+**Drawn here, not with `BentoDiff`.** VDS140 compares fields word by word; a file
+compares by line, with numbers. Inline first, side by side as a toggle that widens the
+sheet, each line marked `+` or `−` in text as well as colour, in both grounds. A file
+with an original opens on the comparison, the file and the calls in the design system's
+`Tabs` beside it. A Markdown file is compared as lines, never rendered.
+
+Done when `compare.test.ts` holds the hunks and `npm run shots` draws a created, a
+changed and a deleted file.
+
 ## Block G — The shell (an executable now, a service later)
 
 ### §RG49 The signature, and what it needs that code cannot supply
