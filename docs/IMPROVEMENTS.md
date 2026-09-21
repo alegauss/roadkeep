@@ -77,26 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1695 A count read as an address
-
-`record amend RK1 --lines 2 --why "It works now.\n\n  more prose"` on a wrapped entry is
-the reproduction: the blank line ends the entry, `Document.rewrite_entry` raises
-`Continuation` exactly as designed, and the caller gets a Python traceback instead of
-that refusal. Found while shipping RK1693, and reachable on every door that writes a
-tail back.
-
-The cause is a name. `_refused` asks `_retrying` for the retry a refusal can offer, and
-`_retrying` reads the address off the first of `_OFFERS` — `offered`, then `free` — that
-the error carries. `Continuation` stores its line count as `offered`, an `int`, so the
-retry substitutes a number into the caller's argv and `deliverable` calls `endswith` on
-it.
-
-The repair belongs to the channel, not to this one error: rename the kernel's field
-(`given`, as `Wrapped` already spells its own count) so no count can be read as an
-address, and have `_retrying` take only a string, so a third refusal choosing the same
-word fails as no retry rather than as a crash. A test drives the reproduction through
-`main` and asserts exit 2 and the refusal's own sentence on stderr.
-
 ## Block C — Query
 
 ## Block D — The gate

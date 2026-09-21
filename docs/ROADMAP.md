@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1695** (deps: —) **a record amend whose tail the parser would not read back crashes with a traceback instead of refusing** — Continuation names its line count offered, the attribute _retrying reads as a computed address, so the retry puts an int in the argv. → §RK1695
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

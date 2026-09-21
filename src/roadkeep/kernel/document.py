@@ -426,13 +426,18 @@ class Continuation(ValueError):
 
     Refused against the **re-parse** rather than against a copy of the parser's rules: the
     rules are :meth:`Document.parse`'s, and a second statement of them here is the one that
-    goes stale. `offered` is what the caller passed and `held` what came back, so the
+    goes stale. `given` is how many the caller passed and `held` how many came back, so the
     message can name the line that stopped being a tail instead of the count that changed.
+
+    **`given` and never `offered`** (RK1695): `offered` is the channel a refusal carries a
+    computed *address* on for the retry the layer above composes (`SchemaError.offered`), and a
+    count stored under that name was substituted into the caller's argv as one — so the refusal
+    this class exists to be arrived as a traceback. `Wrapped` already spells its count `given`.
     """
 
     def __init__(self, task_id: str, offered: int, held: int, line: str = "") -> None:
         self.task_id = task_id
-        self.offered = offered
+        self.given = offered
         self.held = held
         self.line = line
         names = (

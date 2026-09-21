@@ -789,6 +789,19 @@ def test_a_blank_tail_line_is_refused_because_it_ends_the_entry(tmp_path):
     assert read(tmp_path, "CHANGELOG.md") == CONTINUED
 
 
+def test_that_refusal_reaches_the_caller_as_one_through_the_command(tmp_path, capsys):
+    """RK1695. The two tests above call `amend`, so they never met the layer that renders the
+    refusal — where the count, stored as `offered`, was read as the address a retry substitutes
+    and the caller got a traceback. Driven through `main`, which is the only reading of it."""
+    project(tmp_path, roadmap=BARE_ROADMAP, ledger=CONTINUED)
+    argv = ["record", "amend", "RK1", "--lines", "3", "--why", "It works now.\n\n  orphaned."]
+    assert main(["-C", str(tmp_path), *argv]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "a blank line ends the entry" in said
+    assert "Traceback" not in said
+    assert read(tmp_path, "CHANGELOG.md") == CONTINUED
+
+
 def test_a_newline_without_the_count_is_still_the_refusal_that_names_the_shell(tmp_path):
     # The door is `--lines`, deliberately: everywhere else a newline in a one-line field is
     # PowerShell expanding `` `n ``, and passing it through would grow an entry silently.

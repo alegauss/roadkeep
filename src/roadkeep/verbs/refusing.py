@@ -194,7 +194,17 @@ def _retrying(error: Exception) -> _Retry | None:
     from roadkeep.provenance import invocation_argv  # noqa: PLC0415 - RK260
     from roadkeep.remedying import Door  # noqa: PLC0415 - RK260
 
-    offered = next((getattr(error, one, "") for one in _OFFERS if getattr(error, one, "")), "")
+    # A **string** and nothing else (RK1695): an address is text, and a refusal that happened to
+    # store something else under one of these names — a count, as `Continuation` once did — is
+    # a refusal with no retry to offer, never a number substituted into the caller's argv.
+    offered = next(
+        (
+            value
+            for one in _OFFERS
+            if isinstance(value := getattr(error, one, ""), str) and value
+        ),
+        "",
+    )
     if not offered:
         return None
     argv = list(invocation_argv())
