@@ -8,8 +8,8 @@ import { asRecord } from './reading'
  * The one thing this app owns.
  *
  * Everything on screen is read from a repository except this: the roots, their depths, the
- * ignore set, the pool width, the theme, the locale, how a session draws its notes and the
- * order the portfolio opens in. Small, versioned, validated on read.
+ * ignore set, the pool width, the theme, the locale, how a session draws its notes, where
+ * its cards sit and the order the portfolio opens in. Small, versioned, validated on read.
  *
  * **A bad file resets and says so, rather than taking the window down** — and field by
  * field: a pool width typed as a word should not cost somebody the roots they spent a
@@ -39,6 +39,28 @@ export type Theme = 'system' | 'light' | 'dark'
  */
 export type SessionNotes = 'shown' | 'hidden'
 
+/**
+ * A card the session screen draws beside its stream (RG276), named after its grid's
+ * `data-region` less the `session-` prefix. The stream is not one: it is the editor area and
+ * stays in the middle, so no arrangement can move it or leave it out.
+ */
+export type SessionCard = 'handed' | 'moved' | 'files'
+
+/** One of the two side bars a card sits in. */
+export type SessionSide = 'left' | 'right'
+
+/**
+ * Where the session screen's cards sit (RG276): an ordered list for each side bar. A choice
+ * nobody can rebuild by looking, which is what this file holds; the widths are not in it.
+ */
+export interface SessionLayout {
+  readonly left: readonly SessionCard[]
+  readonly right: readonly SessionCard[]
+}
+
+/** Every card this build draws, in the order the default arrangement lists them. */
+export const SESSION_CARDS: readonly SessionCard[] = ['handed', 'moved', 'files']
+
 export interface Settings {
   readonly version: number
   /** The folders to scan, and how far under each. The person's statement, never a scan's. */
@@ -66,6 +88,8 @@ export interface Settings {
    * moment a line ships, in a file that holds only what somebody chose.
    */
   readonly portfolioOrder: RowOrder
+  /** Where the session screen's side cards sit, and in what order (RG276). */
+  readonly sessionLayout: SessionLayout
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -80,6 +104,10 @@ export const DEFAULT_SETTINGS: Settings = {
   sessionNotes: 'shown',
   // The record's order, as before there was a choice.
   portfolioOrder: 'record',
+  // The grid `Session.tsx` drew before there was a choice: what was handed over on the left,
+  // what moved and the files it touched on the right. A field arriving with a default is not a
+  // new version, so `SETTINGS_VERSION` stays where it was.
+  sessionLayout: { left: ['handed'], right: ['moved', 'files'] },
 }
 
 /**
@@ -109,6 +137,7 @@ export type Lost =
   | 'locale'
   | 'sessionNotes'
   | 'portfolioOrder'
+  | 'sessionLayout'
 
 export interface Reset {
   readonly lost: Lost
@@ -150,6 +179,93 @@ const SESSION_NOTES = new Set<SessionNotes>(['shown', 'hidden'])
  */
 export function isSessionNotes(value: unknown): value is SessionNotes {
   return typeof value === 'string' && SESSION_NOTES.has(value as SessionNotes)
+}
+
+const SIDES: readonly SessionSide[] = ['left', 'right']
+
+function isSessionCard(value: unknown): value is SessionCard {
+  return typeof value === 'string' && (SESSION_CARDS as readonly string[]).includes(value)
+}
+
+/**
+ * Whether a value is an arrangement exactly as this build writes one (RG276): the two side
+ * bars and nothing else, and each known card exactly once between them.
+ *
+ * Stricter than the reader on purpose. The reader repairs what it can, so a check as loose as
+ * the reader would let a page store something the next launch quietly rewrites — and a choice
+ * read back as a different one looks exactly like a choice that was never kept.
+ */
+export function isSessionLayout(value: unknown): value is SessionLayout {
+  const record = asRecord(value)
+  if (record === null || Object.keys(record).length !== SIDES.length) return false
+  const cards: unknown[] = []
+  for (const side of SIDES) {
+    const list = record[side]
+    if (!Array.isArray(list)) return false
+    cards.push(...(list as unknown[]))
+  }
+  return (
+    cards.length === SESSION_CARDS.length &&
+    cards.every(isSessionCard) &&
+    new Set(cards).size === SESSION_CARDS.length
+  )
+}
+
+/**
+ * The arrangement a file holds, repaired card by card, and the loss where it cannot be used.
+ *
+ * Only a value that is not two lists is a loss. An id this build does not draw is dropped, a
+ * repeated one keeps its first place, and a card the file never names goes where the default
+ * puts it — which is how a card a later build adds still appears in a file written before it,
+ * and why none of the three is a notice: nothing the person chose was lost.
+ */
+function layoutIn(raw: unknown): readonly [SessionLayout, Reset | null] {
+  const fallback = DEFAULT_SETTINGS.sessionLayout
+  if (raw === undefined) return [fallback, null]
+  const record = asRecord(raw)
+  const left: unknown = record?.['left']
+  const right: unknown = record?.['right']
+  if (!Array.isArray(left) || !Array.isArray(right)) {
+    return [fallback, { lost: 'sessionLayout' }]
+  }
+
+  const seen = new Set<SessionCard>()
+  const kept = (list: readonly unknown[]): SessionCard[] =>
+    list.filter((card): card is SessionCard => {
+      if (!isSessionCard(card) || seen.has(card)) return false
+      seen.add(card)
+      return true
+    })
+  const sides: Record<SessionSide, SessionCard[]> = { left: kept(left), right: kept(right) }
+
+  for (const side of SIDES) {
+    fallback[side].forEach((card, index) => {
+      if (!seen.has(card)) sides[side].splice(Math.min(index, sides[side].length), 0, card)
+    })
+  }
+  return [sides, null]
+}
+
+/**
+ * The arrangement with one card moved to a side bar, at an index in that side bar as it reads
+ * once the card has left its old place (RG276) — the index a sortable list reports for a drop.
+ *
+ * One rule for every way a card moves: a drag, a keyboard, a menu entry. An index past either
+ * end lands the card at that end.
+ */
+export function moveCard(
+  layout: SessionLayout,
+  card: SessionCard,
+  side: SessionSide,
+  index: number,
+): SessionLayout {
+  const without = {
+    left: layout.left.filter((one) => one !== card),
+    right: layout.right.filter((one) => one !== card),
+  }
+  const target = without[side]
+  target.splice(Math.max(0, Math.min(index, target.length)), 0, card)
+  return without
 }
 
 /** One root, or null where it is not one. A bad entry is dropped, not the whole list. */
@@ -276,6 +392,7 @@ export function readSettings(source: unknown): SettingsRead {
     DEFAULT_SETTINGS.portfolioOrder,
     { lost: 'portfolioOrder' },
   )
+  const [sessionLayout, saidOfLayout] = layoutIn(file['sessionLayout'])
 
   return {
     settings: {
@@ -288,6 +405,7 @@ export function readSettings(source: unknown): SettingsRead {
       locale,
       sessionNotes,
       portfolioOrder,
+      sessionLayout,
     },
     reset: [
       version.said,
@@ -299,6 +417,7 @@ export function readSettings(source: unknown): SettingsRead {
       saidOfLocale,
       saidOfNotes,
       saidOfOrder,
+      saidOfLayout,
     ].filter((said): said is Reset => said !== null),
   }
 }

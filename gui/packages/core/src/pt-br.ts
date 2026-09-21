@@ -492,6 +492,8 @@ export const PT_BR: Wording = {
     'o modo de desenhar as notas de sistema de uma sessão não é um que esta build conhece, então toda nota é desenhada',
   'settings.lost.portfolioOrder':
     'a ordem do portfólio não é uma que esta build conhece, então ele abre na ordem do registro',
+  'settings.lost.sessionLayout':
+    'onde ficam os cartões de uma sessão não eram duas listas, então eles voltaram ao lugar de origem',
 
   'shell.home': 'Início',
   'shell.palette': 'Encontre uma linha em qualquer backlog',

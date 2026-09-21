@@ -25,7 +25,7 @@ const bridge: RendererBridge = stubBridge({
   settings: () =>
     Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: 'pt-BR', projectsAtOnce: 0 }),
   savePreference: (key, value) => {
-    if (key === 'locale') kept.push(value)
+    if (key === 'locale' && typeof value === 'string') kept.push(value)
     return Promise.resolve()
   },
 })

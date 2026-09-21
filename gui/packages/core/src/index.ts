@@ -350,14 +350,27 @@ export type {
 } from './watching'
 export {
   DEFAULT_SETTINGS,
+  isSessionLayout,
   isSessionNotes,
   isTheme,
+  moveCard,
   readSettings,
+  SESSION_CARDS,
   SETTINGS_VERSION,
   settingsText,
   wasReset,
 } from './settings'
-export type { Lost, Reset, SessionNotes, Settings, SettingsRead, Theme } from './settings'
+export type {
+  Lost,
+  Reset,
+  SessionCard,
+  SessionLayout,
+  SessionNotes,
+  SessionSide,
+  Settings,
+  SettingsRead,
+  Theme,
+} from './settings'
 export {
   BASE,
   BASE_LOCALE,

@@ -42,7 +42,7 @@ function recording(): { kept: string[] } {
   withBridge(
     bridge({
       savePreference: (key, value) => {
-        if (key === 'locale') kept.push(value)
+        if (key === 'locale' && typeof value === 'string') kept.push(value)
         return Promise.resolve()
       },
     }),

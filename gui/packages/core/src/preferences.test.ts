@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { LOCALE_TAGS } from './locales'
 import { isPreferenceKey, PREFERENCES, withPreference } from './preferences'
-import { DEFAULT_SETTINGS, readSettings, type Settings } from './settings'
+import { DEFAULT_SETTINGS, readSettings, settingsText, type Settings } from './settings'
 
 /**
  * RG207: the one way a page writes a preference.
@@ -20,11 +20,12 @@ const HELD: Settings = {
 
 describe('RG207: the table', () => {
   it('names the preferences a page chooses, and nothing that decides a scan', () => {
-    // The ground and the language (RG207), how a session draws its notes (RG208), and the
-    // order the portfolio opens in (RG241).
+    // The ground and the language (RG207), how a session draws its notes (RG208), the order
+    // the portfolio opens in (RG241), and where a session's cards sit (RG276).
     expect(Object.keys(PREFERENCES).sort()).toEqual([
       'locale',
       'portfolioOrder',
+      'sessionLayout',
       'sessionNotes',
       'theme',
     ])
@@ -66,6 +67,28 @@ describe('RG207: writing one', () => {
     })
   })
 
+  it("writes where a session's cards sit (RG276)", () => {
+    const layout = { left: ['moved', 'handed'], right: ['files'] }
+
+    expect(withPreference(HELD, 'sessionLayout', layout)).toEqual({
+      ...HELD,
+      sessionLayout: layout,
+    })
+  })
+
+  it('refuses an arrangement the reader would repair, not only one it would reset (RG276)', () => {
+    // Each of these reads back as something else, so storing it is a choice not kept.
+    for (const repaired of [
+      { left: ['handed'], right: ['moved'] },
+      { left: ['handed', 'moved'], right: ['moved', 'files'] },
+      { left: ['handed', 'stream'], right: ['moved', 'files'] },
+      { left: ['handed'], right: ['moved', 'files'], extra: [] },
+      'handed',
+    ]) {
+      expect(withPreference(HELD, 'sessionLayout', repaired)).toBeNull()
+    }
+  })
+
   it('refuses a value the reader would reset, so the file never holds one', () => {
     expect(withPreference(HELD, 'portfolioOrder', 'open')).toBeNull()
     expect(withPreference(HELD, 'sessionNotes', 'folded')).toBeNull()
@@ -91,5 +114,16 @@ describe('RG207: writing one', () => {
     if (ordered === null) throw new Error('refused an order the reader accepts')
 
     expect(readSettings(ordered)).toEqual({ settings: ordered, reset: [] })
+
+    const arranged = withPreference(HELD, 'sessionLayout', {
+      left: [],
+      right: ['files', 'handed', 'moved'],
+    })
+    if (arranged === null) throw new Error('refused an arrangement the reader accepts')
+
+    expect(readSettings(JSON.parse(settingsText(arranged)))).toEqual({
+      settings: arranged,
+      reset: [],
+    })
   })
 })

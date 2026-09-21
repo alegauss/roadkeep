@@ -1,6 +1,6 @@
 import { LOCALE_TAGS } from './locales'
 import { isRowOrder } from './portfolio'
-import { isSessionNotes, isTheme, type Settings } from './settings'
+import { isSessionLayout, isSessionNotes, isTheme, type Settings } from './settings'
 
 /**
  * What the renderer may write into the settings file, and nothing past it (RG207).
@@ -37,6 +37,8 @@ export const PREFERENCES = {
   locale: isShippedLocale satisfies Check<'locale'>,
   sessionNotes: isSessionNotes satisfies Check<'sessionNotes'>,
   portfolioOrder: isRowOrder satisfies Check<'portfolioOrder'>,
+  // Each known card exactly once, which is stricter than the reader's repair (RG276).
+  sessionLayout: isSessionLayout satisfies Check<'sessionLayout'>,
 } as const
 
 /** Whether a key the renderer named is one it may write. The renderer's word, so unknown. */

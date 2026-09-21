@@ -38,31 +38,6 @@ screen's stream does not show them.
 **What a resume asks first.** Why the panel never opened, which window answers a link,
 and whether the session's own folder has to be open in it.
 
-### §RG276 The session screen's arrangement as a settings field
-
-The session screen draws three cards around its stream, what was handed over, what moved
-and the files it touched, in a grid `Session.tsx` fixes. Moving them needs the
-arrangement kept, and settings.json holds the choices nobody can rebuild by looking.
-
-The field is `sessionLayout`: two ordered lists of card ids, `left` and `right`, named
-after the grid's `data-region`s less their prefix: `handed`, `moved`, `files`. The
-stream is not in it: it is the editor area, and stays in the middle. The default is
-today's grid, so an upgrade changes nothing on screen, and a field arriving with a
-default leaves `SETTINGS_VERSION` at 1, as `portfolioOrder` did.
-
-`readSettings` recovers it alone, as it does every field. An unknown id is dropped, a
-repeated one keeps its first place, and a known card the file omits goes where the
-default puts it, so a card a later build adds still appears. A value that is not two
-lists resets under a `Lost` code of its own, with its sentence in both catalogues.
-
-`moveCard(layout, card, side, index)` is the pure move beside the reader, so a drag and
-a keyboard call one rule. The `PREFERENCES` row wants each known id exactly once,
-stricter than the reader, so nothing written is what the reader would repair. The
-bridge, the preload and the main process do not change.
-
-Done when `settings.test.ts` and `preferences.test.ts` hold each recovery, the move, and
-a round trip through `settingsText`.
-
 ### §RG277 Dragging a session card by its title
 
 VS Code moves a view by dragging its title to the other side bar or along its own. The

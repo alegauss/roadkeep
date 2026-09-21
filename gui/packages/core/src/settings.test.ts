@@ -6,13 +6,20 @@ import { DEPTH_CEILING } from './roots'
 import { DEFAULT_POLICY } from './scanning'
 import {
   DEFAULT_SETTINGS,
+  isSessionLayout,
   isSessionNotes,
   isTheme,
+  moveCard,
   readSettings,
+  SESSION_CARDS,
   SETTINGS_VERSION,
   settingsText,
   wasReset,
+  type SessionLayout,
 } from './settings'
+
+/** An arrangement somebody chose, which is not the default one (RG276). */
+const ARRANGED: SessionLayout = { left: ['files', 'handed'], right: ['moved'] }
 
 /** A settings file as this build writes one. */
 const WRITTEN = {
@@ -26,6 +33,7 @@ const WRITTEN = {
   locale: 'pt-BR',
   sessionNotes: 'hidden',
   portfolioOrder: 'open-descending',
+  sessionLayout: ARRANGED,
 }
 
 describe('RG47: the one thing this app owns', () => {
@@ -47,12 +55,14 @@ describe('RG47: the one thing this app owns', () => {
   it('holds no project data and no cached answer', () => {
     // The project list is the catalogue's and a remembered reading is its own record
     // (RG251); this file is only what somebody chose.
-    // The portfolio's order is a choice too, and not the ranking it produced (RG241).
+    // The portfolio's order is a choice too, and not the ranking it produced (RG241), and so
+    // is where a session's cards sit (RG276).
     expect(Object.keys(DEFAULT_SETTINGS).sort()).toEqual([
       'locale',
       'portfolioOrder',
       'projectsAtOnce',
       'roots',
+      'sessionLayout',
       'sessionNotes',
       'skip',
       'theme',
@@ -118,6 +128,7 @@ describe('RG47: a bad file resets field by field, and says so', () => {
       locale: 42,
       sessionNotes: 'whispered',
       portfolioOrder: 'by mood',
+      sessionLayout: 'wherever',
     })
 
     // One code per field, in the order the fields are read.
@@ -129,6 +140,7 @@ describe('RG47: a bad file resets field by field, and says so', () => {
       'locale',
       'sessionNotes',
       'portfolioOrder',
+      'sessionLayout',
     ])
     expect(read.settings).toEqual(DEFAULT_SETTINGS)
   })
@@ -224,6 +236,144 @@ describe('RG241: the order the portfolio opens in', () => {
     for (const junk of ['', 'open', 'name', 'Record', 'toString', 0, null, undefined, ['record']]) {
       expect(isRowOrder(junk)).toBe(false)
     }
+  })
+})
+
+describe("RG276: where the session screen's cards sit", () => {
+  it('draws the grid every earlier build drew where the file says nothing', () => {
+    // What was handed over on the left, what moved and the files it touched on the right: an
+    // upgrade changes nothing on screen, and the field's arrival is not a new version.
+    const read = readSettings({ version: SETTINGS_VERSION, theme: 'dark' })
+
+    expect(read.settings.sessionLayout).toEqual({ left: ['handed'], right: ['moved', 'files'] })
+    expect(read.reset).toEqual([])
+    expect(SETTINGS_VERSION).toBe(1)
+  })
+
+  it('names every card the default draws, and never the stream', () => {
+    const { left, right } = DEFAULT_SETTINGS.sessionLayout
+
+    expect([...left, ...right].sort()).toEqual([...SESSION_CARDS].sort())
+    expect(SESSION_CARDS).not.toContain('stream')
+  })
+
+  it('drops an id this build does not draw, keeping the rest where the file put them', () => {
+    const read = readSettings({
+      ...WRITTEN,
+      sessionLayout: { left: ['files', 'stream', 7, 'handed'], right: ['moved', 'gates'] },
+    })
+
+    expect(read.settings.sessionLayout).toEqual(ARRANGED)
+    expect(read.reset).toEqual([])
+  })
+
+  it('keeps the first place of a card named twice', () => {
+    const read = readSettings({
+      ...WRITTEN,
+      sessionLayout: { left: ['moved', 'handed'], right: ['files', 'moved', 'handed'] },
+    })
+
+    expect(read.settings.sessionLayout).toEqual({ left: ['moved', 'handed'], right: ['files'] })
+    expect(read.reset).toEqual([])
+  })
+
+  it('puts a card the file never names where the default puts it', () => {
+    // How a card a later build adds still appears in a file written before it existed.
+    const read = readSettings({
+      ...WRITTEN,
+      sessionLayout: { left: ['moved'], right: [] },
+    })
+
+    expect(read.settings.sessionLayout).toEqual({ left: ['handed', 'moved'], right: ['files'] })
+    expect(read.reset).toEqual([])
+
+    const empty = readSettings({ ...WRITTEN, sessionLayout: { left: [], right: [] } })
+
+    expect(empty.settings.sessionLayout).toEqual(DEFAULT_SETTINGS.sessionLayout)
+  })
+
+  it('resets a value that is not two lists, says so, and keeps every other field', () => {
+    for (const junk of [
+      'left',
+      null,
+      ['handed', 'moved', 'files'],
+      { left: ['handed'] },
+      { left: 'handed', right: ['moved', 'files'] },
+    ]) {
+      const read = readSettings({ ...WRITTEN, sessionLayout: junk })
+
+      expect(read.settings).toEqual({
+        ...WRITTEN,
+        sessionLayout: DEFAULT_SETTINGS.sessionLayout,
+      })
+      expect(read.reset).toEqual([{ lost: 'sessionLayout' }])
+    }
+  })
+
+  it('reads back through the file text exactly what was arranged', () => {
+    const arranged = { ...DEFAULT_SETTINGS, sessionLayout: ARRANGED }
+    const read = readSettings(JSON.parse(settingsText(arranged)))
+
+    expect(read).toEqual({ settings: arranged, reset: [] })
+  })
+
+  it('accepts an arrangement only as this build writes one', () => {
+    expect(isSessionLayout(DEFAULT_SETTINGS.sessionLayout)).toBe(true)
+    // Every card on one side, and none on the other, is an arrangement.
+    expect(isSessionLayout({ left: [], right: ['files', 'handed', 'moved'] })).toBe(true)
+    for (const junk of [
+      { left: ['handed'], right: ['moved'] },
+      { left: ['handed', 'handed'], right: ['moved', 'files'] },
+      { left: ['handed', 'stream'], right: ['moved', 'files'] },
+      { left: ['handed'], right: ['moved', 'files'], width: 20 },
+      { left: 'handed', right: ['moved', 'files'] },
+      ['handed', 'moved', 'files'],
+      null,
+      undefined,
+    ]) {
+      expect(isSessionLayout(junk)).toBe(false)
+    }
+  })
+})
+
+describe('RG276: moving one card', () => {
+  const layout = DEFAULT_SETTINGS.sessionLayout
+
+  it('moves a card to the top of the other side bar', () => {
+    expect(moveCard(layout, 'files', 'left', 0)).toEqual({
+      left: ['files', 'handed'],
+      right: ['moved'],
+    })
+  })
+
+  it('reorders a card along its own side bar, at the index it reads once it has left', () => {
+    // The index a sortable list reports for a drop, so a drag and a keyboard call one rule.
+    expect(moveCard(layout, 'moved', 'right', 1)).toEqual({
+      left: ['handed'],
+      right: ['files', 'moved'],
+    })
+    expect(moveCard(layout, 'files', 'right', 0)).toEqual({
+      left: ['handed'],
+      right: ['files', 'moved'],
+    })
+  })
+
+  it('lands a card at the end an index past either end names', () => {
+    expect(moveCard(layout, 'handed', 'right', 99)).toEqual({
+      left: [],
+      right: ['moved', 'files', 'handed'],
+    })
+    expect(moveCard(layout, 'files', 'left', -4)).toEqual({
+      left: ['files', 'handed'],
+      right: ['moved'],
+    })
+  })
+
+  it('leaves the layout it was handed alone, and hands back one the table accepts', () => {
+    const moved = moveCard(layout, 'handed', 'right', 1)
+
+    expect(layout).toEqual({ left: ['handed'], right: ['moved', 'files'] })
+    expect(isSessionLayout(moved)).toBe(true)
   })
 })
 

@@ -506,6 +506,8 @@ export const EN = {
     'how a session draws its system notes was not a choice this build knows, so every note is drawn',
   'settings.lost.portfolioOrder':
     "the portfolio's order was not one this build knows, so it opens in the record's order",
+  'settings.lost.sessionLayout':
+    "where a session's cards sit was not two lists, so they are back where they started",
 
   'shell.home': 'Home',
   'shell.palette': 'Find a line in every backlog',
@@ -561,6 +563,7 @@ export const RESET_TEXT: Readonly<Record<Lost, MessageKey>> = {
   locale: 'settings.lost.locale',
   sessionNotes: 'settings.lost.sessionNotes',
   portfolioOrder: 'settings.lost.portfolioOrder',
+  sessionLayout: 'settings.lost.sessionLayout',
 }
 
 /**
