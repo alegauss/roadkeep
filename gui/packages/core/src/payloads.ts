@@ -1617,6 +1617,56 @@ export const readUnvalidatedPayload: Reader<UnvalidatedPayload> = record<Unvalid
   unvalidated: orMissing(listOf(readUnvalidatedEntry), []),
 })
 
+/**
+ * One commit in a task's history, as `origin` resolves it (RG291).
+ *
+ * **Derived and never stored**, which is the verb's own argument: a hash written into a governed
+ * file would be rewritten by the first squash, and a dead hash reads exactly like a live one. So
+ * this is a fact about the repository at the moment it was asked, and a task whose history was
+ * rewritten answers differently tomorrow.
+ */
+export interface OriginCommit {
+  readonly sha: string
+  readonly short: string
+  /** As the history spells it, never parsed here: a date is a string this app draws. */
+  readonly date: string
+  readonly author: string
+  readonly subject: string
+  /** The whole commit message — what `--why` prints, and the only account of why it was done. */
+  readonly reasoning: string
+}
+
+export const readOriginCommit: Reader<OriginCommit> = record<OriginCommit>({
+  sha: orMissing(aString, ''),
+  short: orMissing(aString, ''),
+  date: orMissing(aString, ''),
+  author: orMissing(aString, ''),
+  subject: orMissing(aString, ''),
+  reasoning: orMissing(aString, ''),
+})
+
+/**
+ * Where a task was proposed and where it shipped (RG291).
+ *
+ * Either is null and each means its own thing: an open line has no shipping commit, a line
+ * nobody has committed yet has neither, and a checkout with no history answers both null for
+ * every id. None of them is a failure, which is why they are nulls and not a refusal.
+ */
+export interface OriginPayload {
+  readonly id: string
+  readonly proposedIn: OriginCommit | null
+  readonly shippedIn: OriginCommit | null
+}
+
+export const readOriginPayload: Reader<OriginPayload> = record<OriginPayload>(
+  {
+    id: aString,
+    proposedIn: orMissing(orNull(readOriginCommit), null),
+    shippedIn: orMissing(orNull(readOriginCommit), null),
+  },
+  { proposedIn: 'proposed_in', shippedIn: 'shipped_in' },
+)
+
 /** The open line a failed verdict filed in the same transaction (RG289). */
 export interface FiledLine {
   readonly id: string

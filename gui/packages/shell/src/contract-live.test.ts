@@ -245,6 +245,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
         'lint',
         'list',
         'nonGoalList',
+        'origin',
         'pick',
         'reversals',
         'sectionShow',

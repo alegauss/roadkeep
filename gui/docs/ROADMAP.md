@@ -15,6 +15,7 @@
 ## Block F — The agent surface (handing one task to Claude Code)
 
 - 📋 **RG299** (deps: RG288 ✅) **an explanation nests a paragraph inside a paragraph, which React reports as invalid HTML on every answer** — Prose draws its own block of paragraphs, and three shapes wrap it in a paragraph where a block belongs. → §RG299
+- 📋 **RG301** (deps: —) **a walkthrough is asked through askGloss, so the module that runs every read-only question is named after one of them** — The names are the gloss's and the mechanism is not, so a reader meets GlossCall and GlossRun on a path that has nothing to do with a gloss. → §RG301
 
 ## Block G — The shell (an executable now, a service later)
 
@@ -26,8 +27,7 @@
 
 ## Block I — Validation (the list a person works through)
 
-- 📋 **RG291** (deps: RG289 ✅) **a person told a line is unvalidated has to work out how to check it from one sentence in the ledger** — A run reads the commit that shipped it and answers a shape — what to have ready, and each step as a do and a see — and says where there is nothing to look at. → §RG291
-- 📋 **RG292** (deps: RG291) **a walkthrough is lost when the sheet closes, and the sheet is closed by the person going off to follow it** — A walkthrough is kept per entry and language, so coming back finds it; it reads as old once the shipping commit moved, and Regenerate asks anew. → §RG292
+- 📋 **RG292** (deps: RG291 ✅) **a walkthrough is lost when the sheet closes, and the sheet is closed by the person going off to follow it** — A walkthrough is kept per entry and language, so coming back finds it; it reads as old once the shipping commit moved, and Regenerate asks anew. → §RG292
 - 📋 **RG293** (deps: RG289 ✅) **nothing on a project surface says what is shipped and unlooked-at, so the list lives in a terminal** — A tab beside the changelog draws what awaits a person, newest first, and opening a row is what asks for its walkthrough. → §RG293
 - 📋 **RG294** (deps: RG293) **a person who followed a walkthrough has nowhere to say what happened, so the verdict never reaches the ledger** — Three answers under the steps — it worked, it did not, there is nothing to see — each take one sentence and send it through `validate`. → §RG294
 - 📋 **RG295** (deps: RG294) **a validation that failed ends in a sentence nobody files, so the defect it found is lost at the dialog** — The sentence becomes the symptom of a line filed in the same call, so what a person saw goes back into the backlog without being typed twice. → §RG295

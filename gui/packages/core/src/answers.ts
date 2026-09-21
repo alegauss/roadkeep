@@ -12,6 +12,7 @@ import {
   readLintPayload,
   readListPayload,
   readNonGoalsPayload,
+  readOriginPayload,
   readPickPayload,
   readReversalsPayload,
   readSection,
@@ -29,6 +30,7 @@ import {
   type LintPayload,
   type ListPayload,
   type NonGoalsPayload,
+  type OriginPayload,
   type PickPayload,
   type RationaleSection,
   type ReversalsPayload,
@@ -82,6 +84,7 @@ export interface VerbAnswers {
   sectionShow: RationaleSection
   claims: ClaimsPayload
   unvalidated: UnvalidatedPayload
+  origin: OriginPayload
 }
 
 export const ANSWERS: { [K in VerbName]: Reader<VerbAnswers[K]> } = {
@@ -105,4 +108,5 @@ export const ANSWERS: { [K in VerbName]: Reader<VerbAnswers[K]> } = {
   sectionShow: readSection,
   claims: readClaimsPayload,
   unvalidated: readUnvalidatedPayload,
+  origin: readOriginPayload,
 }

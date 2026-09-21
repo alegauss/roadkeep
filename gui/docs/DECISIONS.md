@@ -210,3 +210,23 @@ Tiles keep every other use the layer intends — a hub, a stats strip, a project
 
 ## Block I — Validation (the list a person works through)
 
+- ✅ **RG291** **a person told a line is unvalidated has to work out how to check it from one sentence in the ledger** — A read-only agent's tool bound is a PreToolUse hook, never an allowedTools specifier and never a prompt-surface gate.
+
+### §RG291 Why the bound is a hook and not a list
+
+Both alternatives were built and both were watched failing, which is why this is a
+decision and not a preference.
+
+**A specifier grants the whole tool.** `Bash(git show:*)` in `allowedTools` reads like a
+bound; the captured run under it called `ls`, `python` and `npx vitest`. The entry
+admitted `Bash` and the parenthesis decided nothing.
+
+**A prompt-surface gate is asked too late.** `canUseTool` runs where a person would be
+asked, after the permission rules — and a question loading a project's settings for its
+vocabulary loads that project's allowlist too, so everything the checkout already
+permits never reaches it.
+
+**A hook decides before the rules**, needs no permission mode, and is a function here
+rather than a string another program parses. It answers three ways and not two: a gate
+that decided every call denied `StructuredOutput`, which is how a schema is answered,
+and the run came back with nothing.

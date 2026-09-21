@@ -76,6 +76,31 @@ the explanation's tests gain an assertion that no `p` in the dialog holds a `p` 
 Done when that assertion holds for a gloss filling every slot, and the running window
 logs no nesting error when an answer is drawn.
 
+### §RG301 The module that outgrew the question it was named for
+
+`gloss-process.ts` was one question asked of Claude Code and everything in it was named
+after that question. RG291 added a second — a walkthrough over a shipped commit — and it
+is asked through `askGloss`, with a `GlossCall`, answering a `GlossRead` over a
+`GlossRun`. Nothing about the mechanism is a gloss: it is one read-only query, a schema,
+a tool list and a gate.
+
+**The file is right and the words are wrong.** A second module would duplicate a hundred
+lines of spawn plumbing under Electron — the pipes, the `error` that means no `claude`,
+the abort a cancel turns into — which is the drift the one call exists to prevent. So
+this is a rename and not a split: the module keeps its shape and loses the name of the
+first question that used it.
+
+**What it becomes is the open half.** `askQuestion` over a `Question` is one reading;
+`ask` beside the existing `askGloss` is another, keeping the gloss's own door. Whatever
+it is, `GLOSS_TOOLS` and `GLOSS_TURNS` go with it, `gloss-live.test.ts` and
+`walkthrough-live.test.ts` both call it, and `glosses.ts` holds the one option typed as
+`GlossCall`. `ReadOutcome` is taken in `core`, so a `ReadCall` here would be a second
+meaning of one word a package over.
+
+Done when no name on the path a walkthrough takes says gloss, both live files and
+`glosses.ts` call it by that name, and the gloss's own module still reads as the one
+question it is.
+
 ## Block G — The shell (an executable now, a service later)
 
 ### §RG49 The signature, and what it needs that code cannot supply
@@ -160,29 +185,6 @@ That is a commit in somebody else's repository with a consequence for five other
 which is why it is written down here rather than made quietly.
 
 ## Block I — Validation (the list a person works through)
-
-### §RG291 How to check it, asked of the commit
-
-The ledger's sentence is the outcome, not the change. A walkthrough written from it is
-generic, and a generic one is worse than none: somebody follows four invented clicks and
-learns nothing about what shipped. So the run is anchored where the truth is — `origin
-<id> --why` gives the commit that wrote the entry, and the diff is what the agent reads.
-
-**The shape, mirroring `gloss.ts`.** `before` is what has to be true first — a build, a
-project open, a checkout somewhere. `steps` is a list of pairs, one `does` and the
-`sees` it should produce, because a step with no expected result is not checkable.
-`where` is reused whole.
-
-**And `nothingToSee`.** The slot the gloss has no equivalent of, and the one that
-decides whether any of this gets used: a test-only change or an internal rule has
-nothing a person can open, and an agent with no way to say so will invent a procedure
-instead. Filled, the screen proposes that verdict rather than a walkthrough.
-
-Same three tools as RG284 — `Read`, `Grep`, `Glob` — and one more read of git, which the
-shell supplies.
-
-Done when a captured run over a real shipped commit answers steps for a screen change
-and `nothingToSee` for a refactor.
 
 ### §RG292 Keeping it while somebody goes and follows it
 

@@ -169,6 +169,14 @@ export interface VerbInputs {
    * starts, are two states this returns rather than two ways of failing.
    */
   unvalidated: { block?: string }
+  /**
+   * Which commits proposed a task and shipped it, resolved from the history (RG291).
+   *
+   * **No `--why`.** That flag prints the shipping commit's message as prose and the verb refuses
+   * it beside `--json`, one answer per call — and the payload carries the same message under
+   * `reasoning`, so the machine-readable form is the whole of what the prose one says.
+   */
+  origin: { id: string }
 }
 
 export type VerbName = keyof VerbInputs
@@ -289,6 +297,7 @@ export const VERBS: { [K in VerbName]: ArgvFor<K> } = {
   sectionShow: (input) => [input.anchor, ...optional('--role', input.role)],
   claims: () => [],
   unvalidated: (input) => [...optional('--block', input.block)],
+  origin: (input) => [input.id],
 }
 
 /**
@@ -337,4 +346,5 @@ export const EVERY_INPUT: { [K in VerbName]: VerbInputs[K] } = {
   sectionShow: { anchor: 'RG1', role: 'decisions' },
   claims: {},
   unvalidated: { block: 'A' },
+  origin: { id: 'RG1' },
 }

@@ -216,8 +216,12 @@ function termsIn(value: unknown): GlossTerm[] {
  * seam (RG65): nothing here folds a separator, resolves anything or asks whether two spellings
  * are one file. The prompt asks for it relative to the repository root, and a run that answered
  * otherwise is drawn as it answered.
+ *
+ * Exported because a walkthrough reuses `where` whole (RG291): the same slot, the same schema
+ * and the same reading, so a second copy of this would be a second answer to *which files* in a
+ * screen that draws both under one heading.
  */
-function placesIn(value: unknown): GlossPlace[] {
+export function placesIn(value: unknown): GlossPlace[] {
   if (!Array.isArray(value)) return []
   const seen = new Set<string>()
   return value.flatMap((one): GlossPlace[] => {

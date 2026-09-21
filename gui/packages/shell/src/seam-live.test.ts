@@ -52,6 +52,7 @@ const READS: { [K in VerbName]: VerbInputs[K] } = {
   sectionShow: { anchor: 'FX3' },
   claims: {},
   unvalidated: {},
+  origin: { id: 'FX3' },
 }
 
 beforeAll(async () => {

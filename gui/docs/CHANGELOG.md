@@ -350,3 +350,4 @@
 ## Block I — Validation (the list a person works through)
 
 - ✅ **RG289** **the app can neither ask which entries await a person nor record a verdict: neither verb is in its tables** — Both validation verbs are in the tables with the shapes a live fixture proved, and a build with neither is reported as offering neither (design recorded in `packages/core/src/writes.ts`).
+- ✅ **RG291** **a person told a line is unvalidated has to work out how to check it from one sentence in the ledger** — A run reads the commit that shipped an entry and answers steps a person can follow, or says there is nothing to open (design recorded in `packages/core/src/walkthrough.ts`).

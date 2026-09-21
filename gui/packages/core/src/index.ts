@@ -109,8 +109,24 @@ export type {
 } from './acts'
 export { COMPARE_CEILING, COMPARE_CONTEXT, linesBetween, linesOf } from './compare'
 export type { Comparison, CompareHunk, CompareLine, CompareMark } from './compare'
-export { GLOSS_SCHEMA, hasGloss, lanesOf, NO_GLOSS, promptForGloss, readGloss } from './gloss'
+export {
+  GLOSS_SCHEMA,
+  hasGloss,
+  lanesOf,
+  NO_GLOSS,
+  placesIn,
+  promptForGloss,
+  readGloss,
+} from './gloss'
 export type { Gloss, GlossLane, GlossPlace, GlossTerm } from './gloss'
+export {
+  hasWalkthrough,
+  NO_WALKTHROUGH,
+  promptForWalkthrough,
+  readWalkthrough,
+  WALKTHROUGH_SCHEMA,
+} from './walkthrough'
+export type { Walkthrough, WalkthroughStep } from './walkthrough'
 export {
   glossedLine,
   glossesFrom,
@@ -548,6 +564,8 @@ export {
   readStatsPayload,
   readBlockListPayload,
   readStatusPayload,
+  readOriginCommit,
+  readOriginPayload,
   readTaskLine,
   readUnblocks,
   readUnvalidatedPayload,
@@ -615,6 +633,8 @@ export type {
   TaskLine,
   Unblocks,
   FiledLine,
+  OriginCommit,
+  OriginPayload,
   UnvalidatedEntry,
   UnvalidatedPayload,
   ValidatePayload,

@@ -2,6 +2,7 @@ import { spawn, type ChildProcess } from 'node:child_process'
 
 import {
   query,
+  type HookCallback,
   type Options,
   type SpawnedProcess,
   type SpawnOptions,
@@ -9,18 +10,24 @@ import {
 import { asRecord } from '@rk/core'
 
 /**
- * One read-only query to Claude Code (RG284): what a task means, and nothing it may write.
+ * One read-only query to Claude Code (RG284): a question about the project, and nothing it may
+ * write.
  *
- * A session (RG153) is a turn that may write, held open, answered by a person. A gloss is none
- * of those — one question, no tool, nobody to ask — so it is its own call beside `startSession`,
- * sharing what belongs to the machine and not to a session: the `claude` RG43 resolved, the
- * environment RG205 decided, and the way a child is spawned under Electron.
+ * A session (RG153) is a turn that may write, held open, answered by a person. A question here is
+ * none of those — asked once, answered against a schema, nobody to ask — so it is its own call
+ * beside `startSession`, sharing what belongs to the machine and not to a session: the `claude`
+ * RG43 resolved, the environment RG205 decided, and the way a child is spawned under Electron.
  *
- * **Nothing it runs can change anything.** Three tools and all of them reads (RG288): `Read`,
- * `Grep` and `Glob`, so the design's own files can be read before the task is explained. No MCP
- * server is configured and strict configuration keeps the project's own out, and permissions are
- * never asked about: a call the run tries beyond those three is denied where it stands. So *no
- * write to a governed file* holds here by there being nothing to write with.
+ * **Two questions are asked through it.** A gloss says what a task means (RG284); a walkthrough
+ * says how to check one that shipped (RG291). They differ in the prompt, the schema and what they
+ * are allowed to read, and in nothing else — so the tools are a field of the call rather than a
+ * constant of this file, and adding a question is a list beside the prompt it goes with.
+ *
+ * **Nothing it runs can change anything.** Every tool any question is given is a read (RG288):
+ * `Read`, `Grep` and `Glob`, and for a walkthrough one bounded `git show`. No MCP server is
+ * configured and strict configuration keeps the project's own out, and permissions are never
+ * asked about: a call the run tries beyond its list is denied where it stands. So *no write to a
+ * governed file* holds here by there being nothing to write with.
  *
  * **And every line is told** (RG297). A structured answer arrives at the end and says nothing on
  * the way, so its stream is the only progress there is: each message is handed to the caller as
@@ -45,6 +52,58 @@ const CLAUDE_CODE_PROMPT: Options['systemPrompt'] = { type: 'preset', preset: 'c
 export const GLOSS_TOOLS = ['Read', 'Grep', 'Glob']
 
 /**
+ * The tools a walkthrough is allowed outright (RG291). The gloss's three, and no more.
+ *
+ * `Bash` is deliberately absent: it is the one a walkthrough needs and the one nothing may have
+ * unconditionally, so it is not granted here at all and reaches `permits` instead.
+ */
+export const WALKTHROUGH_TOOLS = GLOSS_TOOLS
+
+/** A chained or redirected command, whatever it starts with. */
+const CHAINED = /[;&|`$<>\n\r]/
+
+/**
+ * Whether a shell command is the one read a walkthrough may make (RG291).
+ *
+ * **The agent runs git, not this app**, which is how *No git command run by this app* holds
+ * here: what the shell supplies is the permission and the bound, and the run spends it the way
+ * it spends `Read`. The bound has to be this side because the list does not hold it — a
+ * `Bash(git show:*)` entry in `allowedTools` grants the whole shell, which a captured run proved
+ * by reaching for `ls`, `python` and `grep` under it.
+ *
+ * So: `git show`, and nothing chained or redirected onto the end of it. Staging, committing and
+ * pushing — the writes that non-goal is about — are unreachable from here, and a person still
+ * reviews every write this app makes, because it makes none.
+ */
+export function isGitRead(command: string): boolean {
+  const said = command.trim()
+  return said.startsWith('git show ') && !CHAINED.test(said)
+}
+
+/**
+ * What a gate says about one call.
+ *
+ * Three and not two, because a gate that answered every call would answer for the ones it is not
+ * about: the tools in the list, and the one the SDK writes a schema's answer with. Deciding those
+ * is how the first gate here denied `StructuredOutput` and the run came back with no answer at
+ * all. `defer` is the only honest word for a call this gate has no opinion on.
+ */
+export type Permit = 'allow' | 'deny' | 'defer'
+
+/**
+ * The gate a walkthrough runs under: one bounded `git show`, and no other shell call.
+ *
+ * It governs `Bash` and defers the rest, which is the whole of its reach: the read tools are the
+ * list's as they always were, and anything else the run tries is denied where it stands because
+ * nothing granted it.
+ */
+export function permitsGitRead(tool: string, input: Record<string, unknown>): Permit {
+  if (tool !== 'Bash') return 'defer'
+  const command = input['command']
+  return typeof command === 'string' && isGitRead(command) ? 'allow' : 'deny'
+}
+
+/**
  * How many turns one question may take.
  *
  * Above one because the engine answers a schema by taking a turn to write it, and well above it
@@ -61,8 +120,22 @@ export interface GlossCall {
   /** The project root, so the project's own configuration answers. */
   readonly cwd: string
   readonly prompt: string
-  /** The shape the answer is held to, which is `GLOSS_SCHEMA`'s. */
+  /** The shape the answer is held to: `GLOSS_SCHEMA`'s, or a walkthrough's. */
   readonly schema: Record<string, unknown>
+  /**
+   * What this question may read outright. `GLOSS_TOOLS` unless a caller says, which is the list
+   * that was a constant here before a second question had a different one.
+   */
+  readonly tools?: readonly string[]
+  /**
+   * One more thing it may do, decided per call (RG291).
+   *
+   * Absent, nothing outside `tools` is reachable: the run is refused where it stands and nobody
+   * is asked. Given, it decides the calls it is about before the list and before the project's
+   * own allowlist — which is how a walkthrough gets `git show` and no other shell command. A
+   * list entry cannot say this: `Bash(git show:*)` in `allowedTools` grants the whole shell.
+   */
+  readonly permits?: (tool: string, input: Record<string, unknown>) => Permit
   /**
    * Told of each line of the stream as it passes (RG297), which is the only progress a schema
    * has: the files it reads, what it says, and the notes that show it is still thinking.
@@ -89,6 +162,38 @@ export interface GlossRun {
   readonly answered: Promise<GlossRead>
   /** Give it up. Answering `cancelled` is what a reader who closed the screen gets. */
   cancel(): void
+}
+
+/**
+ * A caller's gate, as a `PreToolUse` hook (RG291).
+ *
+ * **A hook and not `canUseTool`**, which is the second thing this had to be. Permission *rules*
+ * are read before a prompt surface is asked, and the settings a question loads for the project's
+ * vocabulary carry that project's own allowlist — so a gate on the prompt surface is never
+ * consulted for anything the checkout already allows, and a captured run proved it by running
+ * `npx vitest` under one. A hook decision is taken before the rules, so this one holds whatever
+ * the project permits its own sessions.
+ *
+ * It answers in both directions and neither is a prompt: allowed, or denied with the sentence
+ * the run reads. The input is never rewritten — a gate that edited a command would be this app
+ * composing one, and what it approved would not be what ran.
+ */
+function gate(permits: (tool: string, input: Record<string, unknown>) => Permit): HookCallback {
+  return (input) => {
+    if (input.hook_event_name !== 'PreToolUse') return Promise.resolve({})
+    const said = permits(input.tool_name, asRecord(input.tool_input) ?? {})
+    if (said === 'defer') return Promise.resolve({})
+    return Promise.resolve({
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        permissionDecision: said,
+        permissionDecisionReason:
+          said === 'allow'
+            ? 'the one read this question may make'
+            : `${input.tool_name} is not one of the reads this question may make`,
+      },
+    })
+  }
 }
 
 /** What the `init` line names about the run: which model answered, and which Claude Code. */
@@ -169,13 +274,18 @@ export function askGloss(call: GlossCall, env: NodeJS.ProcessEnv = process.env):
           settingSources: SETTING_SOURCES,
           systemPrompt: CLAUDE_CODE_PROMPT,
           outputFormat: { type: 'json_schema', schema: call.schema },
-          // Nothing to write with: three reads and no more, no server configured, and a mode
-          // that denies where it stands rather than asking a person who is not there.
-          allowedTools: GLOSS_TOOLS,
+          // Nothing to write with: this question's reads and no more, and no server configured.
+          allowedTools: [...(call.tools ?? GLOSS_TOOLS)],
           disallowedTools: [],
           mcpServers: {},
           strictMcpConfig: true,
+          // Nobody is there to ask, so anything past the list is denied where it stands. A gate
+          // decides before that, and before the project's own allowlist, which is why it is a
+          // hook: it is the only answer taken ahead of the rules a checkout carries.
           permissionMode: 'dontAsk',
+          ...(call.permits === undefined
+            ? {}
+            : { hooks: { PreToolUse: [{ hooks: [gate(call.permits)] }] } }),
           persistSession: false,
           maxTurns: GLOSS_TURNS,
         },
