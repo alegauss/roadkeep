@@ -38,6 +38,105 @@ screen's stream does not show them.
 **What a resume asks first.** Why the panel never opened, which window answers a link,
 and whether the session's own folder has to be open in it.
 
+### §RG276 The session screen's arrangement as a settings field
+
+The session screen draws three cards around its stream, what was handed over, what moved
+and the files it touched, in a grid `Session.tsx` fixes. Moving them needs the
+arrangement kept, and settings.json holds the choices nobody can rebuild by looking.
+
+The field is `sessionLayout`: two ordered lists of card ids, `left` and `right`, named
+after the grid's `data-region`s less their prefix: `handed`, `moved`, `files`. The
+stream is not in it: it is the editor area, and stays in the middle. The default is
+today's grid, so an upgrade changes nothing on screen, and a field arriving with a
+default leaves `SETTINGS_VERSION` at 1, as `portfolioOrder` did.
+
+`readSettings` recovers it alone, as it does every field. An unknown id is dropped, a
+repeated one keeps its first place, and a known card the file omits goes where the
+default puts it, so a card a later build adds still appears. A value that is not two
+lists resets under a `Lost` code of its own, with its sentence in both catalogues.
+
+`moveCard(layout, card, side, index)` is the pure move beside the reader, so a drag and
+a keyboard call one rule. The `PREFERENCES` row wants each known id exactly once,
+stricter than the reader, so nothing written is what the reader would repair. The
+bridge, the preload and the main process do not change.
+
+Done when `settings.test.ts` and `preferences.test.ts` hold each recovery, the move, and
+a round trip through `settingsText`.
+
+### §RG277 Dragging a session card by its title
+
+VS Code moves a view by dragging its title to the other side bar or along its own. The
+session screen's three side cards get the same, over the field RG276 adds.
+
+The drag is `@dnd-kit/core` and `@dnd-kit/sortable`, which the design system already
+depends on; they join `packages/ui/package.json` at its pinned versions, so one copy
+stays installed. Its `BentoTileGrid` edit mode reorders tiles in one mosaic, which is
+not two side bars around a stream.
+
+Each side bar is a sortable list and each card's `PanelTitle` row its handle, a grip
+showing on hover and focus. A card dropped on the other side bar lands at the pointer's
+index under an insertion line. A side bar left empty gives its column to the stream, and
+during a drag is a thin strip that still takes a drop.
+
+The move is drawn first and written after, through `preferring.ts` as `sessionNotes` is.
+The task and gate routes read one arrangement, since they are one screen.
+
+The handle is drawn from `xl`, where two side bars exist. At `lg` the side column holds
+left then right, and below it RG225's order stands. dnd-kit's keyboard sensor is on,
+announcing through the catalogue.
+
+Done when a browser test drags `files` to the top of the left side bar, sees it land and
+`savePreference` carry the layout, and sees a remount draw the same.
+
+### §RG278 Moving a card without dragging it, and putting them all back
+
+A drag is not every person's way to move something, and VS Code does not rely on it
+alone: a view's title menu has Move View, and the palette has View: Reset View
+Locations. The session screen needs both beside the drag RG277 builds.
+
+Each side card's title gets a menu, the design system's `DropdownMenu`, with three
+entries: move to the other side bar, move up, move down. An entry that would do nothing,
+up on the first card, is not offered. Each calls the `moveCard` RG276 adds and is
+written as a drop is, so one path reaches the file.
+
+Resetting writes `DEFAULT_SETTINGS.sessionLayout` back, so the default lives in one
+place. It is offered twice: as a command in the shell's `BentoCommandPalette`, where VS
+Code puts it, and as a button on the Settings screen beside how a session draws its
+notes, where a person looks for what they changed. Neither is offered while the
+arrangement already is the default.
+
+The entries, the command and the button come from the catalogue in both languages, and
+the menu is reached by Tab from the card's title.
+
+Done when a test moves `handed` to the right side bar through the menu, resets from the
+palette, and sees the default drawn and written; and when the accessibility report
+beside `npm run shots` names the menu.
+
+### §RG279 Side bars that keep the width they were dragged to
+
+The two side bars are 18rem whatever they hold, the width RG237 gave them. A long path
+in the files card is cut, and a person who wants a wider stream has no way to get one.
+VS Code lets a side bar's edge be dragged, and the next launch opens at that width.
+
+The design system ships the divider as `ResizablePanelGroup`, `ResizablePanel` and
+`ResizableHandle`, over react-resizable-panels. The `xl` grid in `Session.tsx` becomes
+one horizontal group of up to three panels, the stream in the middle, imported from the
+design system rather than the library, so `package.json` gains nothing.
+
+The width goes to disk, not to the browser. The library's `autoSaveId` and
+`useDefaultLayout` write to `localStorage`, which is not settings.json and not a file a
+person can read or edit. The widths are a second settings row, `sessionSides`: each side
+bar as a percentage of the group, clamped by the reader to the panels' own minimum and
+maximum. They are saved from `onLayoutChanged`, which fires once when the drag ends,
+never from `onLayoutChange`, which fires on every pointer move.
+
+A side bar RG277 emptied has no panel and so no handle; its saved width is kept for when
+a card comes back to it.
+
+Done when a browser test drags the right handle, sees one `savePreference` call with the
+new percentage, and sees a remount draw the same width; and when a file holding 90 per
+cent reads back clamped, with its notice.
+
 ## Block G — The shell (an executable now, a service later)
 
 ### §RG49 The signature, and what it needs that code cannot supply

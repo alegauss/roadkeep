@@ -14,6 +14,11 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
+- 📋 **RG276** (deps: —) **the settings file has nowhere to keep how the session screen's cards are arranged, so none outlives the window** — An arrangement is a choice nobody can rebuild by looking, which is what settings.json holds, and a bad one must reset alone. → §RG276
+- 📋 **RG277** (deps: RG276) **the session screen's side cards stay where the grid puts them, and cannot be dragged to the other side or reordered** — A verification is read beside the files it touched and a task beside what moved, yet one fixed grid serves both. → §RG277
+- 📋 **RG278** (deps: RG277) **a session card moves only under a pointer drag, and an arrangement nobody wants is undone one card at a time** — VS Code pairs the drag with Move View and Reset View Locations, since a drag is not every person's way to move a card. → §RG278
+- 📋 **RG279** (deps: RG277) **the session screen's side bars are 18rem whatever they hold, so a long path is cut and the stream cannot be widened** — VS Code keeps the width a side bar's edge was dragged to, and the design system already ships that divider. → §RG279
+
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
