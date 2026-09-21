@@ -350,3 +350,36 @@ describe('RG287: a gloss kept between openings', () => {
     expect(store.held).toHaveLength(1)
   })
 })
+
+describe('RG288: what the run is reading', () => {
+  it('names the project and the line beside each read, as the run makes it', async () => {
+    const transport = engine()
+    const opened: OpenedProject = openedFrom(
+      await openProject(ROOT, [['python', 'launch.py']], () => transport),
+    )
+    const query = asking()
+    const told: [string, string, string, string][] = []
+    const made = createGlosses({
+      carrier: {
+        open: () => Promise.resolve(opened),
+        run: (root, request) => bridgedRun(() => transport.run({ ...request, root })),
+      },
+      agent: () => Promise.resolve(AGENT),
+      environment: () => Promise.resolve({}),
+      tag: () => 'en',
+      ask: query.ask,
+      reading: (root, id, tool, on) => {
+        told.push([root, id, tool, on])
+      },
+    })
+
+    const answering = made.gloss(ROOT, 'FX1')
+    await new Promise((settle) => setTimeout(settle, 0))
+    // What the run passes back as it reads, which the query carries rather than composes.
+    query.calls[0]?.reading?.('Read', 'packages/core/src/compare.ts')
+    query.say(ANSWER)
+    await answering
+
+    expect(told).toEqual([[ROOT, 'FX1', 'Read', 'packages/core/src/compare.ts']])
+  })
+})

@@ -579,6 +579,10 @@ export const EN = {
   'explain.deps': 'What it waits on',
   'explain.unblocks': 'What finishing it frees',
   'explain.binds': 'What bounds it',
+  // Where the work lands (RG288), by the folders the paths themselves name.
+  'explain.where': 'Where the work lands',
+  'explain.where.root': 'At the top of the project',
+  'explain.reading': 'Reading the files its design names',
   // The chain the gloss captions (RG286): its nodes are the brief's, never the answer's.
   'explain.stale':
     'The line has moved since this was written: its claim, its design or what binds it.',

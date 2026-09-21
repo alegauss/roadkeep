@@ -11,6 +11,7 @@ import {
   type RendererBridge,
   type SessionRecord,
   type SessionOutcome,
+  type TopicEvents,
   type Transport,
 } from '@rk/core'
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
@@ -508,6 +509,13 @@ describe('RG285: what a task means, for somebody new', () => {
     ],
     risks: ['a file too long to compare'],
     done: ['the viewer draws a created, a changed and a deleted file'],
+    where: [
+      { path: 'packages/core/src/compare.ts', said: 'nothing compares two texts here yet' },
+      {
+        path: 'packages/ui/src/viewer.tsx',
+        said: 'the file as the disk has it, and where the toggle goes',
+      },
+    ],
     deps: { AL0: 'the line that reads the original' },
     unblocks: {},
     binds: { 'No Markdown parsed in this app': 'the lines are drawn as they are' },
@@ -625,6 +633,7 @@ describe('RG285: what a task means, for somebody new', () => {
             today: '',
             after: '',
             steps: [],
+            where: [],
             terms: [],
             risks: [],
             done: [],
@@ -648,6 +657,11 @@ describe('RG286: the gloss as shapes', () => {
       today: 'what is true now',
       after: 'what is true after',
       steps: ['first this', 'then that'],
+      where: [
+        { path: 'packages/core/src/gloss.ts', said: 'the schema the answer is held to' },
+        { path: 'packages/ui/src/explained.tsx', said: 'the shapes the gloss is drawn in' },
+        { path: 'CHANGELOG.md', said: 'what a ship writes, at the top of the project' },
+      ],
       terms: [{ term: 'brief', said: 'what the engine answered about the line' }],
       risks: ['the one thing to get wrong'],
       done: ['the tests pass'],
@@ -708,7 +722,15 @@ describe('RG286: the gloss as shapes', () => {
       gloss: () =>
         Promise.resolve({
           ...PART,
-          gloss: { ...PART.gloss, steps: [], terms: [], risks: [], done: [], binds: {} },
+          gloss: {
+            ...PART.gloss,
+            steps: [],
+            where: [],
+            terms: [],
+            risks: [],
+            done: [],
+            binds: {},
+          },
         }),
     })
     fireEvent.click(await screen.findByTestId('explain'))
@@ -716,6 +738,7 @@ describe('RG286: the gloss as shapes', () => {
     await dialog.findByTestId('explain-said')
 
     expect(dialog.queryByTestId('explain-steps')).toBeNull()
+    expect(dialog.queryByTestId('explain-where')).toBeNull()
     expect(dialog.queryByTestId('explain-terms')).toBeNull()
     expect(dialog.queryByTestId('explain-risks')).toBeNull()
     expect(dialog.queryByTestId('explain-binds')).toBeNull()
@@ -732,6 +755,7 @@ describe('RG287: a gloss kept, and asked for again', () => {
       today: '',
       after: '',
       steps: [],
+      where: [],
       terms: [],
       risks: [],
       done: [],
@@ -781,5 +805,97 @@ describe('RG287: a gloss kept, and asked for again', () => {
     await dialog.findByTestId('explain-said')
     expect(dialog.queryByTestId('explain-stale')).toBeNull()
     expect(dialog.getByTestId('explain-regenerate')).toBeTruthy()
+  })
+})
+
+describe('RG288: where the work lands, and what is being read', () => {
+  /** An answer that read four files: two under one folder, one under another, one at the root. */
+  const PLACED = {
+    kind: 'said' as const,
+    gloss: {
+      headline: 'the shape of it',
+      today: 'what is true now',
+      after: 'what is true after',
+      steps: [],
+      where: [
+        { path: 'packages/core/src/gloss.ts', said: 'the schema the answer is held to' },
+        { path: 'packages/ui/src/explained.tsx', said: 'the shapes a gloss is drawn in' },
+        { path: 'docs/IMPROVEMENTS.md', said: 'the design this task is written under' },
+        { path: 'CHANGELOG.md', said: 'what shipping it writes' },
+      ],
+      terms: [],
+      risks: [],
+      done: [],
+      deps: {},
+      unblocks: {},
+      binds: {},
+    },
+    model: 'claude-opus-5',
+    version: '2.1.274',
+    kept: false,
+    stale: false,
+  }
+
+  it('draws one lane per top-level folder, each place under its own', async () => {
+    await at(taskPath(ROOT, 'AL1'), [], { gloss: () => Promise.resolve(PLACED) })
+    fireEvent.click(await screen.findByTestId('explain'))
+    const dialog = within(await screen.findByTestId('explain-dialog'))
+
+    const where = within(await dialog.findByTestId('explain-where'))
+    // The folders are the paths' own, in the order the answer gave them; a file at the top of
+    // the project has no folder, and the lane says so in the window's words.
+    const lanes = where.getAllByTestId('explain-lane')
+    expect(lanes.map((lane) => lane.dataset['folder'])).toEqual(['packages', 'docs', ''])
+    expect(lanes[0]?.textContent).toContain('packages/core/src/gloss.ts')
+    expect(lanes[0]?.textContent).toContain('the schema the answer is held to')
+    // Two files under one folder are one lane, not two.
+    expect(within(lanes[0] as HTMLElement).getAllByTestId('explain-place')).toHaveLength(2)
+    expect(lanes[2]?.textContent).toContain(BASE['explain.where.root'])
+    expect(lanes[2]?.textContent).toContain('CHANGELOG.md')
+  })
+
+  it('names each file as the run reads it, and forgets them on the next asking', async () => {
+    const heard: ((event: TopicEvents['gloss']) => void)[] = []
+    let asks = 0
+    await at(taskPath(ROOT, 'AL1'), [], {
+      // Never answers: what the screen looks like while a run reads its way to one.
+      gloss: () => {
+        asks += 1
+        return new Promise(() => undefined)
+      },
+      subscribe: (topic, source, listener) => {
+        if (topic === 'gloss' && source === ROOT) {
+          heard.push(listener as (event: TopicEvents['gloss']) => void)
+        }
+        return () => undefined
+      },
+    })
+    fireEvent.click(await screen.findByTestId('explain'))
+    const dialog = within(await screen.findByTestId('explain-dialog'))
+    await dialog.findByTestId('explain-asking')
+
+    await waitFor(() => {
+      expect(heard).toHaveLength(1)
+    })
+    const tell = (id: string, on: string): void => {
+      for (const listener of heard) listener({ root: ROOT, id, tool: 'Read', on })
+    }
+    tell('AL1', 'packages/core/src/compare.ts')
+    // Another line's reads reach the same project's listeners and are not this dialog's.
+    tell('AL2', 'packages/core/src/elsewhere.ts')
+
+    const reading = await dialog.findByTestId('explain-reading')
+    expect(reading.textContent).toContain('packages/core/src/compare.ts')
+    expect(reading.textContent).not.toContain('elsewhere.ts')
+
+    // Asking again starts the list over: this is progress and not a log.
+    fireEvent.click(dialog.getByRole('button', { name: BASE['explain.cancel'] }))
+    fireEvent.click(await screen.findByTestId('explain'))
+    await waitFor(() => {
+      expect(asks).toBe(2)
+    })
+    expect(
+      within(await screen.findByTestId('explain-dialog')).queryByTestId('explain-reading'),
+    ).toBeNull()
   })
 })

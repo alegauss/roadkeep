@@ -557,6 +557,25 @@ export interface TopicEvents {
    * `gates` answers the same shape, so a row fills the same way whichever it came from.
    */
   readonly gate: ProjectGate
+  /**
+   * One file a gloss is reading, while it is being written (RG288).
+   *
+   * A structured answer arrives all at once, so this is the only progress there is: the run reads
+   * the files its design names, and each read is a `tool_use` in its stream. The event is what was
+   * read and never what came back — a screen says which file is being looked at, and the reading
+   * itself is the run's.
+   *
+   * **Keyed on the project, carrying the line**, as `governed` is keyed: a window has one dialog
+   * open at a time, and which line it is about is the dialog's to check.
+   */
+  readonly gloss: {
+    readonly root: string
+    readonly id: string
+    /** The tool, as Claude Code names it: `Read`, `Grep` or `Glob`. */
+    readonly tool: string
+    /** What it was called on — a path, or the pattern a search was for. */
+    readonly on: string
+  }
 }
 
 export type Topic = keyof TopicEvents
@@ -567,6 +586,7 @@ export const BRIDGE_TOPICS = {
   session: 'roadkeep:on-session',
   gate: 'roadkeep:on-gate',
   catalogue: 'roadkeep:on-catalogue',
+  gloss: 'roadkeep:on-gloss',
 } as const satisfies Record<Topic, string>
 
 /**

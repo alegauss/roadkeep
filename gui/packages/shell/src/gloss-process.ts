@@ -6,7 +6,7 @@ import {
   type SpawnedProcess,
   type SpawnOptions,
 } from '@anthropic-ai/claude-agent-sdk'
-import { asRecord } from '@rk/core'
+import { actsOf, asRecord } from '@rk/core'
 
 /**
  * One read-only query to Claude Code (RG284): what a task means, and nothing it may write.
@@ -16,10 +16,15 @@ import { asRecord } from '@rk/core'
  * sharing what belongs to the machine and not to a session: the `claude` RG43 resolved, the
  * environment RG205 decided, and the way a child is spawned under Electron.
  *
- * **Nothing it runs can change anything.** No tool is allowed, no MCP server is configured and
- * strict configuration keeps the project's own out, and permissions are never asked about: a
- * call the run tries is denied where it stands. So *no write to a governed file* holds here by
- * there being nothing to write with.
+ * **Nothing it runs can change anything.** Three tools and all of them reads (RG288): `Read`,
+ * `Grep` and `Glob`, so the design's own files can be read before the task is explained. No MCP
+ * server is configured and strict configuration keeps the project's own out, and permissions are
+ * never asked about: a call the run tries beyond those three is denied where it stands. So *no
+ * write to a governed file* holds here by there being nothing to write with.
+ *
+ * **And every read is told.** A structured answer arrives at the end and says nothing on the way,
+ * so the `tool_use` lines are the only progress there is: each one is handed to the caller as it
+ * passes, and a screen names the file the run is looking at.
  *
  * **And nothing is kept.** `persistSession: false` keeps a gloss out of the sessions a person
  * can resume, which is right for a read nobody named: what comes back is an answer, not a
@@ -36,13 +41,18 @@ const SETTING_SOURCES: Options['settingSources'] = ['user', 'project', 'local']
 /** Claude Code's own system prompt, as a `claude` started by hand runs with. */
 const CLAUDE_CODE_PROMPT: Options['systemPrompt'] = { type: 'preset', preset: 'claude_code' }
 
+/** The tools a gloss is given (RG288). Three, all reads, and the list is the whole permission. */
+export const GLOSS_TOOLS = ['Read', 'Grep', 'Glob']
+
 /**
  * How many turns one question may take.
  *
- * Above one because the engine answers a schema by taking a turn to write it; small because
- * nothing here is a conversation, and a run that wanders is a run to stop.
+ * Above one because the engine answers a schema by taking a turn to write it, and well above it
+ * since RG288: reading the files a design names is a turn each, and a run cut off mid-reading
+ * answers nothing at all. Still bounded, because nothing here is a conversation and a run that
+ * wanders is a run to stop.
  */
-export const GLOSS_TURNS = 4
+export const GLOSS_TURNS = 24
 
 export interface GlossCall {
   /** The executable Claude Code resolved to, and the rest of its command line. */
@@ -53,6 +63,12 @@ export interface GlossCall {
   readonly prompt: string
   /** The shape the answer is held to, which is `GLOSS_SCHEMA`'s. */
   readonly schema: Record<string, unknown>
+  /**
+   * Told of each read as the run makes it (RG288), which is the only progress a schema has.
+   *
+   * @param on the path, or the pattern a search was for
+   */
+  readonly reading?: (tool: string, on: string) => void
 }
 
 /** What one query came back with. Every way of not answering is its own kind. */
@@ -74,6 +90,19 @@ export interface GlossRun {
   readonly answered: Promise<GlossRead>
   /** Give it up. Answering `cancelled` is what a reader who closed the screen gets. */
   cancel(): void
+}
+
+/**
+ * Every read one message of the stream made (RG288).
+ *
+ * `actsOf` and not a reader of its own: a gloss's stream is a session's stream, the calls are in
+ * the same place and the subject is under the same keys — so a tool this app has never heard of
+ * is still named, which is what the session list does with one.
+ */
+function readsIn(message: unknown): { readonly tool: string; readonly on: string }[] {
+  return actsOf(JSON.stringify(message), 0).flatMap((act) =>
+    act.kind === 'used' && act.on !== '' ? [{ tool: act.tool, on: act.on }] : [],
+  )
 }
 
 /** What the `init` line names about the run: which model answered, and which Claude Code. */
@@ -154,9 +183,9 @@ export function askGloss(call: GlossCall, env: NodeJS.ProcessEnv = process.env):
           settingSources: SETTING_SOURCES,
           systemPrompt: CLAUDE_CODE_PROMPT,
           outputFormat: { type: 'json_schema', schema: call.schema },
-          // Nothing to write with: no tool allowed, no server configured, and a mode that
-          // denies where it stands rather than asking a person who is not there.
-          allowedTools: [],
+          // Nothing to write with: three reads and no more, no server configured, and a mode
+          // that denies where it stands rather than asking a person who is not there.
+          allowedTools: GLOSS_TOOLS,
           disallowedTools: [],
           mcpServers: {},
           strictMcpConfig: true,
@@ -168,6 +197,7 @@ export function askGloss(call: GlossCall, env: NodeJS.ProcessEnv = process.env):
       for await (const message of messages) {
         named = initOf(message) ?? named
         const line = asRecord(message)
+        for (const read of readsIn(message)) call.reading?.(read.tool, read.on)
         if (line?.['type'] !== 'result') continue
         structured = line['structured_output']
         const text = line['result']

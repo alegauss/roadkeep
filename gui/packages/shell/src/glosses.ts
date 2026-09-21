@@ -32,8 +32,11 @@ import { askGloss, type GlossCall, type GlossRun } from './gloss-process'
  * could ask it anything.
  *
  * **One at a time per line.** A second ask for a line already being glossed joins the first
- * rather than starting a second process, and a reader who gives up cancels the one run. Nothing
- * is kept once it answers: a gloss is a read, and what a screen does with it is the screen's.
+ * rather than starting a second process, and a reader who gives up cancels the one run. What was
+ * answered is kept (RG287), and a line kept in this language answers without a process at all.
+ *
+ * **What it is reading, while it reads** (RG288): each of the run's calls is passed on as it
+ * passes, so a window can say which file is being looked at. Nothing of it is kept.
  *
  * The run itself is `gloss-process`, which is where no-tool, no-server, nothing-kept lives.
  */
@@ -60,6 +63,13 @@ export interface GlossesOptions {
   readonly keep?: (glosses: KeptGlosses) => void
   /** When a gloss was answered, which is what the bound reads. The clock unless a test drives it. */
   readonly now?: () => Date
+  /**
+   * Tell whoever is watching that project which file the run is reading (RG288).
+   *
+   * Nothing is kept of it: a read is passed on as it happens and forgotten. A window that opened
+   * the dialog after a run started hears the rest of them, which is what progress is.
+   */
+  readonly reading?: (root: string, id: string, tool: string, on: string) => void
 }
 
 export interface Glosses {
@@ -136,6 +146,9 @@ export function createGlosses(options: GlossesOptions): Glosses {
         cwd: root,
         prompt: promptForGloss(read.payload, tag),
         schema: GLOSS_SCHEMA,
+        reading: (tool, on) => {
+          options.reading?.(root, id, tool, on)
+        },
       },
       env,
     )

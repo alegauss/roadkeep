@@ -8,7 +8,7 @@ import {
   DialogTitle,
   Skeleton,
 } from '@viglet/viglet-design-system'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { getBridge } from './bridge'
 import { Explained } from './explained'
@@ -32,6 +32,10 @@ import { useWording } from './wording'
  *
  * **Every string is drawn as prose** (RG271), which is what the session's stream does with what
  * an agent writes: no Markdown is parsed, and the words are the answer's own.
+ *
+ * **A structured answer has one kind of progress** (RG288): the files the run reads on its way to
+ * it. They arrive as events while the dialog waits, and none of them is kept — a reader who asks
+ * again watches the next run read.
  */
 
 type Explaining =
@@ -60,8 +64,29 @@ function saidOfAnswer(answer: GlossAnswer, say: Translate): string {
   return say('explain.empty')
 }
 
-/** The answer's shape while it is still being written, so the dialog does not jump when it lands. */
-function Asking() {
+/** One call the run made while the answer was being written (RG288). */
+interface Read {
+  /** Its place in the run, which is what tells two reads of one file apart. */
+  readonly at: number
+  readonly tool: string
+  readonly on: string
+}
+
+/**
+ * How many reads are shown at once.
+ *
+ * The last few and not all of them: this is progress and not a log — what a reader wants is that
+ * it is still going and what it is looking at now, and a run that reads thirty files would
+ * otherwise push the answer off the screen before it arrived.
+ */
+const READS_SHOWN = 5
+
+/**
+ * The answer's shape while it is still being written, so the dialog does not jump when it lands —
+ * and under it, the files the run is reading (RG288).
+ */
+function Asking({ reads }: { readonly reads: readonly Read[] }) {
+  const say = useWording()
   return (
     <div className="flex flex-col gap-3" data-testid="explain-asking">
       <Skeleton className="h-6 w-3/4" />
@@ -70,6 +95,20 @@ function Asking() {
       <Skeleton className="h-4 w-2/3" />
       <Skeleton className="h-4 w-full" />
       <Skeleton className="h-4 w-1/2" />
+      {reads.length === 0 ? null : (
+        // Told as it happens, so a reader waiting on a long run sees it move.
+        <div className="mt-1 flex flex-col gap-1" aria-live="polite" data-testid="explain-reading">
+          <p className="text-muted-foreground text-xs">{say('explain.reading')}</p>
+          <ul className="flex flex-col gap-0.5">
+            {reads.map((read) => (
+              <li key={read.at} className="flex min-w-0 items-baseline gap-2 text-xs">
+                <span className="text-muted-foreground shrink-0 font-mono">{read.tool}</span>
+                <span className="min-w-0 font-mono wrap-anywhere">{read.on}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   )
 }
@@ -86,6 +125,7 @@ export function Explain({
   const say = useWording()
   const spoken = useSpokenLocale()
   const [explaining, setExplaining] = useState<Explaining>(CLOSED)
+  const [reads, setReads] = useState<readonly Read[]>([])
   // A reader who closed the dialog is not waiting on an answer, and one who left the screen is
   // not either: both give the run up rather than letting it finish into nothing.
   const onScreen = useRef(true)
@@ -103,6 +143,7 @@ export function Explain({
     (again = false) => {
       const bridge = getBridge()
       if (bridge === undefined) return
+      setReads([])
       setExplaining({ kind: 'asking' })
       void bridge.gloss(root, id, again).then(
         (answer) => {
@@ -127,6 +168,17 @@ export function Explain({
     ask(true)
   }, [ask])
 
+  // What the run is reading, while it reads (RG288): its own events, keyed on the project and
+  // named by the line, so a dialog open on another line hears them and keeps none.
+  const asking = explaining.kind === 'asking'
+  useEffect(() => {
+    if (!asking) return undefined
+    return getBridge()?.subscribe('gloss', root, (event) => {
+      if (event.id !== id) return
+      setReads((held) => [...held, { at: held.length, tool: event.tool, on: event.on }])
+    })
+  }, [asking, root, id])
+
   const close = useCallback(
     (showing: boolean) => {
       if (showing) return
@@ -140,6 +192,8 @@ export function Explain({
   const stop = useCallback(() => {
     close(false)
   }, [close])
+  // The last few, kept out of the render so the list is one array and not a new one each time.
+  const shown = useMemo(() => reads.slice(-READS_SHOWN), [reads])
 
   const answer = explaining.kind === 'said' ? explaining.answer : null
   // A gloss that says nothing at all is not one: the answer came back and the reader is told so.
@@ -162,7 +216,7 @@ export function Explain({
             <DialogDescription>{say('explain.about')}</DialogDescription>
           </DialogHeader>
           <div className="mt-4">
-            {explaining.kind === 'asking' ? <Asking /> : null}
+            {explaining.kind === 'asking' ? <Asking reads={shown} /> : null}
             {/* Shown either way: it explained the line as it stood, and what moved since is
                 what a reader decides about (RG287). */}
             {answer?.kind === 'said' && answer.stale ? (

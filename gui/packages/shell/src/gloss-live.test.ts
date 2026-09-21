@@ -2,10 +2,10 @@ import { mkdtempSync, readdirSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
-import { GLOSS_SCHEMA, hasGloss, readGloss, type BriefPayload } from '@rk/core'
+import { GLOSS_SCHEMA, hasGloss, lanesOf, readGloss, type BriefPayload } from '@rk/core'
 import { afterAll, describe, expect, it } from 'vitest'
 
-import { askGloss } from './gloss-process'
+import { askGloss, GLOSS_TOOLS } from './gloss-process'
 import { removeTree } from './scratch'
 import { scriptedAgent } from './scripted-agent'
 
@@ -13,7 +13,9 @@ import { scriptedAgent } from './scripted-agent'
  * RG284: one read-only query, run for real.
  *
  * `captured/gloss-stream.jsonl` is what a real gloss run wrote, kept as it came back but for the
- * handshake the replay answers itself and the token accounting. The scripted agent replays it to
+ * handshake the replay answers itself, the token accounting, the thinking, and what each read
+ * returned — this repository's own source, cut to its first lines since the run's reads are what
+ * is held here and not the files. The scripted agent replays it to
  * its end — a read answers once and exits, where a session's replay stays up — so what is held
  * here is the whole path: the SDK spawns the agent, reads its lines, and the `structured_output`
  * on the result comes back as a gloss.
@@ -135,5 +137,42 @@ describe('RG284: a gloss run to its end', () => {
         (line) => (line as { structured_output?: unknown }).structured_output !== undefined,
       ),
     ).toBe(true)
+  })
+})
+
+describe('RG288: a run that reads the files the design names', () => {
+  it('tells the caller each read as it passes, and answers where the work lands', async () => {
+    const agent = scriptedAgent({ stream: CAPTURED, ends: true, intervalMs: 1 })
+    const root = where()
+    const reads: [string, string][] = []
+    try {
+      const said = await askGloss({
+        command: agent.command[0] ?? '',
+        prefix: agent.command.slice(1),
+        cwd: root,
+        prompt: 'what does this line mean',
+        schema: GLOSS_SCHEMA,
+        reading: (tool, on) => {
+          reads.push([tool, on])
+        },
+      }).answered
+
+      if (said.kind !== 'said') throw new Error(said.kind)
+      // The captured run read this repository: at least one file, by name, before it answered.
+      expect(reads.some(([tool]) => tool === 'Read')).toBe(true)
+      expect(reads.every(([, on]) => on !== '')).toBe(true)
+
+      const gloss = readGloss(said.structured, BRIEF)
+      expect(gloss.where.length).toBeGreaterThan(0)
+      expect(gloss.where.every((place) => place.path !== '' && place.said !== '')).toBe(true)
+      // And the lanes the screen draws are the folders of the paths it named.
+      expect(lanesOf(gloss.where).length).toBeGreaterThan(0)
+    } finally {
+      agent.dispose()
+    }
+  }, 30000)
+
+  it('is given three tools and all of them read', () => {
+    expect(GLOSS_TOOLS).toEqual(['Read', 'Grep', 'Glob'])
   })
 })

@@ -58,28 +58,28 @@ catalogue in both languages.
 Done when a test moves `handed` through the menu, resets from the palette, and sees the
 default drawn and written.
 
-### §RG288 Reading the files the design names
+### §RG290 The shape a kept gloss was written under
 
-A gloss from the brief alone restates the design in plainer words. What a newcomer also
-wants is where the change lands: which files, what they do today, what moves. The design
-names them, and reading them is the depth.
+A gloss is kept per line and language (RG287) and answers again without a process. RG288
+widened what an answer holds: the places the run read, drawn as lanes. A gloss written
+before it has none, and the line it answered has not moved — so it is not stale, nothing
+is said about it, and the reader has no reason to press Regenerate.
 
-**Three tools, all reads.** The RG284 call lists `Read`, `Grep` and `Glob` as its
-`tools`: still no `Bash`, no edit, no MCP server, and `dontAsk` refuses anything else
-without a question nobody would answer. The frame adds one instruction: read what the
-design names before explaining, and say for each place what it does now and what the
-task changes there.
+**The shape belongs on the gloss, not on the file.** `KeptGlosses.version` says what the
+file is; what is missing here is which shape of answer each entry was written under.
+`KeptGloss` gains a number, `GLOSS_SHAPE`, written when it is kept and read back as 0
+for every entry that predates this. Bumping the file version instead would throw away
+every kept gloss on the next build that widens the schema, which is the opposite of
+RG287.
 
-**The `where` slot.** The schema gains `where`, each item a path and its account; the
-picture draws them as one lane per top-level folder, since which folders a project has
-is its own and never this app's list.
+**Old is old, whichever way.** The dialog already draws a notice and a Regenerate button
+for a gloss whose line has moved. A gloss written under an earlier shape reads as old
+too, under its own sentence: the line is as it was, and a new reading would say more
+about it. Two reasons and two sentences, since a reader deciding whether to spend the
+wait is deciding on the reason.
 
-**Progress, at last.** A read is a `tool_use` in the stream, so while asking, the dialog
-names each file as it is read — the only progress a structured answer has.
-
-A deeper gloss is a slower one, and RG287 is what pays for it once per brief.
-
-Done when the captured stream reads at least one file and the picture draws its lane.
+Done when a kept gloss with no shape reads as old in `glosses.test.ts`, the dialog says
+which of the two reasons it is, and a gloss kept under the current shape says neither.
 
 ## Block G — The shell (an executable now, a service later)
 

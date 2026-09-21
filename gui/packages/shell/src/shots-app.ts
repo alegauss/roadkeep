@@ -354,6 +354,14 @@ function opensViewer(state: string | null): boolean {
 /** The task surface's explanation, opened as a reader opens it (RG285). */
 const OPEN_EXPLAIN = `(() => { const button = document.querySelector('[data-testid="explain"]'); if (button) button.click() })()`
 
+/** Whether this state opens the explanation, which two of them do (RG285, RG288). */
+function opensExplain(state: string | null): boolean {
+  return state !== null && state.startsWith('explain')
+}
+
+/** Where the work lands, scrolled to inside the dialog it is drawn in (RG288). */
+const SHOW_WHERE = `(() => { const where = document.querySelector('[data-testid="explain-where"]'); if (where) where.scrollIntoView({ block: 'start' }) })()`
+
 /** How long the viewer takes to slide in, which a quiet document does not wait for: CSS moves it. */
 const SHEET_OPENS_MS = 600
 
@@ -431,10 +439,15 @@ export async function takeCapture(
       await page.evaluate(SCROLL_STREAM_UP)
       settled = await settle(page)
     }
-    if (capture.state === 'explain') {
+    if (opensExplain(capture.state)) {
       await page.evaluate(OPEN_EXPLAIN)
       await page.waitForSelector('[data-testid="explain-dialog"]', { timeout: SETTLE_CEILING_MS })
       await page.waitForTimeout(SHEET_OPENS_MS)
+      settled = await settle(page)
+    }
+    if (capture.state === 'explain-where') {
+      await page.waitForSelector('[data-testid="explain-where"]', { timeout: SETTLE_CEILING_MS })
+      await page.evaluate(SHOW_WHERE)
       settled = await settle(page)
     }
     if (opensViewer(capture.state)) {
@@ -463,7 +476,7 @@ export async function takeCapture(
     // closed as a reader closes it before the next capture draws the session without it.
     // Both are the screen's own state and survive a hash set to the same route, so each is
     // closed as a reader closes it before the next capture draws the surface without it.
-    if (opensViewer(capture.state) || capture.state === 'explain') {
+    if (opensViewer(capture.state) || opensExplain(capture.state)) {
       await page.keyboard.press('Escape')
     }
   }

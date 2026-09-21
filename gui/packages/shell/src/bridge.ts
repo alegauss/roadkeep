@@ -418,6 +418,11 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
     keep: (written) => {
       saveGlosses(app.getPath('userData'), written)
     },
+    // Each file the run reads (RG288), told to whoever is watching that project — a gate's
+    // arrangement: nobody subscribed to it is nobody to send it to.
+    reading: (root, id, tool, on) => {
+      subscriptions.publish('gloss', root, { root, id, tool, on })
+    },
   })
 
   ipcMain.handle(

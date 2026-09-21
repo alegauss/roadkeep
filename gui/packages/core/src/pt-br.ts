@@ -558,6 +558,9 @@ export const PT_BR: Wording = {
   'explain.deps': 'Do que ela depende',
   'explain.unblocks': 'O que terminá-la libera',
   'explain.binds': 'O que a limita',
+  'explain.where': 'Onde o trabalho acontece',
+  'explain.where.root': 'Na raiz do projeto',
+  'explain.reading': 'Lendo os arquivos que o desenho nomeia',
   'explain.stale':
     'A linha mudou desde que isto foi escrito: o que ela diz, seu design ou o que a limita.',
   'explain.regenerate': 'Pedir outra leitura',

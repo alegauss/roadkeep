@@ -134,11 +134,19 @@ const readGlossTerm = record<{ term: string; said: string }>({
   said: orMissing(aString, ''),
 })
 
+const readPlace = record<{ path: string; said: string }>({
+  path: orMissing(aString, ''),
+  said: orMissing(aString, ''),
+})
+
 const readSaid: Reader<Gloss> = record<Gloss>({
   headline: orMissing(aString, ''),
   today: orMissing(aString, ''),
   after: orMissing(aString, ''),
   steps: orMissing(listOf(aString), []),
+  // Missing in every gloss kept before RG288, which reads as a gloss that names no place: the
+  // answer is still the line explained, and asking again is what fills the lanes in.
+  where: orMissing(listOf(readPlace), []),
   terms: orMissing(listOf(readGlossTerm), []),
   risks: orMissing(listOf(aString), []),
   done: orMissing(listOf(aString), []),

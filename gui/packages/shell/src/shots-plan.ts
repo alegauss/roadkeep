@@ -58,10 +58,13 @@ export const SESSION_SHOTS = [
 export type SessionShot = (typeof SESSION_SHOTS)[number]
 
 /**
- * The states the task surface is photographed in: at rest, and with the explanation open
- * (RG285), which is a dialog a reader opens and the one state that surface has.
+ * The states the task surface is photographed in: at rest, with the explanation open (RG285),
+ * and with that dialog scrolled to where the work lands (RG288).
+ *
+ * The second explanation shot is the lanes: the dialog is taller than the window it opens in, so
+ * a picture of its top is a picture of everything above them.
  */
-export const TASK_SHOTS = [null, 'explain'] as const
+export const TASK_SHOTS = [null, 'explain', 'explain-where'] as const
 export type TaskShot = (typeof TASK_SHOTS)[number]
 
 export const SHOT_GROUNDS: readonly Exclude<Theme, 'system'>[] = ['light', 'dark']

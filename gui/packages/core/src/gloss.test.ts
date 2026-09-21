@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import CAPTURED from './captured/gloss-answer.json?raw'
-import { GLOSS_SCHEMA, hasGloss, NO_GLOSS, promptForGloss, readGloss } from './gloss'
+import { GLOSS_SCHEMA, hasGloss, lanesOf, NO_GLOSS, promptForGloss, readGloss } from './gloss'
 import type { BriefPayload } from './payloads'
 
 /**
@@ -27,7 +27,15 @@ const BRIEF: BriefPayload = {
   section: {
     anchor: 'RG282',
     title: 'The file against its original, line by line',
-    body: 'The viewer shows the file as the disk has it, and above it each call’s two halves.',
+    body:
+      'The viewer shows the file as the disk has it, and above it each call’s two halves. Ten ' +
+      'edits are ten blocks, and what a formatter changed after the last of them is in none of ' +
+      "them. This is the other view: the file's text from before the run on one side and its " +
+      'text now on the other, matched up line by line, with three unchanged lines of context ' +
+      'around each stretch that differs and the rest folded away. `compare.ts` in core is where ' +
+      'the comparison is written, and `compared.tsx` in ui is where it is drawn, beside the ' +
+      "viewer in `viewer.tsx`; the original comes off the session's own acts, which `acts.ts` " +
+      'reads.',
     level: 3,
     file: 'docs/IMPROVEMENTS.md',
     first: 61,
@@ -72,7 +80,15 @@ describe('RG283: the frame a gloss is asked for in', () => {
 
     expect(prompt).toContain('has never worked on this project')
     expect(prompt).toContain('Write every string in pt-BR.')
-    expect(prompt).toContain('Say only what the payload says')
+    expect(prompt).toContain('Say only what the payload and those files say')
+  })
+
+  it('asks for the design’s own files to be read, with the three tools it has (RG288)', () => {
+    const prompt = promptForGloss(BRIEF, 'en')
+
+    expect(prompt).toContain('Read those files before explaining')
+    expect(prompt).toContain('`Grep` and `Glob` are the only tools you have')
+    expect(prompt).toContain('what it does today')
   })
 
   it('answers against a schema whose slots are the ones a gloss has', () => {
@@ -142,5 +158,53 @@ describe('RG283: reading what came back', () => {
 
     expect(gloss.steps).toEqual(['read it', 'write it'])
     expect(gloss.terms).toEqual([{ term: 'hunk', said: 'a run of lines' }])
+  })
+})
+
+describe('RG288: where the work lands', () => {
+  it('reads the places a captured answer named, each with a path and an account', () => {
+    const gloss = readGloss(ANSWER, BRIEF)
+
+    expect(gloss.where.length).toBeGreaterThan(0)
+    expect(gloss.where.every((place) => place.path !== '' && place.said !== '')).toBe(true)
+  })
+
+  it('keeps the path as the answer spelled it, and one entry per spelling', () => {
+    const gloss = readGloss(
+      {
+        where: [
+          { path: 'packages/core/src/gloss.ts', said: 'the schema' },
+          { path: 'packages/ui/src/explain.tsx', said: 'the dialog' },
+          { path: 'packages/core/src/gloss.ts', said: 'said twice' },
+          { path: '', said: 'a place with no file' },
+          { said: 'no path at all' },
+          'not a place',
+        ],
+      },
+      BRIEF,
+    )
+
+    // Nothing is resolved or folded here: what a path means is the shell's side of it (RG65).
+    expect(gloss.where).toEqual([
+      { path: 'packages/core/src/gloss.ts', said: 'the schema' },
+      { path: 'packages/ui/src/explain.tsx', said: 'the dialog' },
+    ])
+  })
+
+  it('lanes them by top-level folder, a file at the root in the lane with none', () => {
+    const lanes = lanesOf([
+      { path: 'packages/core/src/gloss.ts', said: '' },
+      { path: 'docs/IMPROVEMENTS.md', said: '' },
+      { path: 'packages/ui/src/explain.tsx', said: '' },
+      { path: 'CHANGELOG.md', said: '' },
+    ])
+
+    expect(lanes.map((lane) => lane.folder)).toEqual(['packages', 'docs', ''])
+    expect(lanes[0]?.places.map((place) => place.path)).toEqual([
+      'packages/core/src/gloss.ts',
+      'packages/ui/src/explain.tsx',
+    ])
+    expect(lanes[2]?.places).toHaveLength(1)
+    expect(lanesOf([])).toEqual([])
   })
 })

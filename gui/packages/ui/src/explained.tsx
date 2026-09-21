@@ -1,4 +1,4 @@
-import type { BriefPayload, Gloss } from '@rk/core'
+import { lanesOf, type BriefPayload, type Gloss } from '@rk/core'
 import { useMemo } from 'react'
 
 import { PanelTitle } from './forms'
@@ -18,9 +18,9 @@ import { useWording } from './wording'
  * only captions it. A dep the gloss skipped keeps its id and says nothing, which is honest; a
  * caption for something the brief never held was dropped before it reached here (RG283).
  *
- * **The shapes are this app's.** Two panels and an arrow, a numbered path, a glossary grid, a
- * callout each for the risks: React and the design system's tokens, so both grounds hold without
- * a palette of their own, and the arrow is the one piece of inline SVG.
+ * **The shapes are this app's.** Two panels and an arrow, a numbered path, lanes of places, a
+ * glossary grid, a callout each for the risks: React and the design system's tokens, so both
+ * grounds hold without a palette of their own, and the arrow is the one piece of inline SVG.
  *
  * **No diagram the agent wrote.** Mermaid or SVG in an answer is a program this window would
  * have to run, which `skipHtml` (RG271) and the content policy both refuse. Fixed slots keep
@@ -204,6 +204,53 @@ function Steps({ steps }: { readonly steps: readonly string[] }) {
   )
 }
 
+/**
+ * Where the work lands (RG288): one lane per top-level folder, each place under its own.
+ *
+ * The lanes are the paths' own — `lanesOf` groups on what the answer spelled — because which
+ * folders a project has is the project's, and a list of them here would draw this repository and
+ * no other. A file at the root gets the lane with no folder, which the wording names.
+ */
+function Where({ gloss }: { readonly gloss: Gloss }) {
+  const say = useWording()
+  const lanes = useMemo(() => lanesOf(gloss.where), [gloss.where])
+  if (lanes.length === 0) return null
+
+  return (
+    <section className="mt-5" data-testid="explain-where">
+      <PanelTitle>{say('explain.where')}</PanelTitle>
+      <div className="flex flex-col gap-2">
+        {lanes.map((lane) => (
+          <div
+            key={lane.folder}
+            className="bg-card rounded-lg border p-3"
+            data-testid="explain-lane"
+            data-folder={lane.folder}
+          >
+            <p className="font-mono text-xs font-semibold wrap-anywhere">
+              {lane.folder === '' ? say('explain.where.root') : lane.folder}
+            </p>
+            <ul className="mt-2 grid gap-2 sm:grid-cols-2">
+              {lane.places.map((place) => (
+                <li
+                  key={place.path}
+                  className="bg-muted/40 min-w-0 rounded-lg border p-2"
+                  data-testid="explain-place"
+                >
+                  <p className="font-mono text-xs wrap-anywhere">{place.path}</p>
+                  <p className="text-muted-foreground mt-1 text-sm">
+                    <Prose text={place.said} />
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 /** The words the line uses, as a glossary: the term, and what it means here. */
 function Terms({ gloss }: { readonly gloss: Gloss }) {
   const say = useWording()
@@ -303,6 +350,7 @@ export function Explained({
       <BeforeAfter gloss={gloss} />
       <Chain payload={payload} gloss={gloss} />
       <Steps steps={gloss.steps} />
+      <Where gloss={gloss} />
       <Terms gloss={gloss} />
       <RisksAndDone gloss={gloss} />
       <Binds payload={payload} gloss={gloss} />
