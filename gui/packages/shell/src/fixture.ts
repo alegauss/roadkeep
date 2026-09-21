@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { appendFileSync, cpSync, existsSync, mkdtempSync, realpathSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
@@ -70,6 +71,18 @@ export interface FixtureShape {
    * the other fields name.
    */
   readonly outside?: boolean
+  /**
+   * Give it a history, declare `[validation]`, and ship one more line after that (RG300).
+   *
+   * `unvalidated` places where looking starts on the commit that declared the table, so a
+   * project with no history answers `placed` false and one whose ledger predates the table
+   * answers an empty list. Neither draws a row, and a row is what the validation tab and the
+   * walkthrough dialog are pictures of.
+   *
+   * The line is an extra rather than one of the open ones, so every other count this shape
+   * asks for is the count it gets and the pictures beside it do not move.
+   */
+  readonly validating?: boolean
 }
 
 /** Work no ship in a fixture can satisfy, spelled as a person files it: prose, not an id. */
@@ -274,6 +287,8 @@ export async function buildFixture(
       }
     }
 
+    if (shape.validating === true) await declareValidation(transport, root, timeoutMs)
+
     // Last, so every write above runs against a project with no ceiling on a read. The
     // table is appended rather than templated: what the file already holds is `init`'s,
     // and this adds the one line that makes the listing bounded.
@@ -294,6 +309,69 @@ export async function buildFixture(
 }
 
 /**
+ * Commit the tree under a command-line identity, so a machine with none can still build this.
+ */
+function commitAll(root: string, message: string): void {
+  const identity = ['-c', 'user.name=fixture', '-c', 'user.email=fixture@example.invalid']
+  execFileSync('git', ['-C', root, ...identity, 'add', '-A'], { stdio: 'pipe' })
+  execFileSync('git', ['-C', root, ...identity, 'commit', '-q', '-m', message], { stdio: 'pipe' })
+}
+
+/**
+ * Make one entry await a person (RG300), which takes a history and an order.
+ *
+ * The order is the whole of it: `[validation]` is declared in a commit, and what the question is
+ * asked of is every entry the ledger gained after it. A line shipped before that commit is
+ * history the declaration named as such, so the entry has to be written last.
+ */
+async function declareValidation(
+  transport: Transport,
+  root: string,
+  timeoutMs: number,
+): Promise<void> {
+  execFileSync('git', ['-C', root, 'init', '--quiet'], { stdio: 'pipe' })
+  commitAll(root, 'the project before the question was asked')
+  appendFileSync(
+    path.join(root, 'roadkeep.toml'),
+    `
+[validation]
+`,
+    'utf8',
+  )
+  commitAll(root, 'ask whether anybody tried what ships')
+
+  const stdout = await must(
+    transport,
+    root,
+    [
+      'add',
+      '--block',
+      'B',
+      '--symptom',
+      'the answer arrives in the wrong order',
+      '--why',
+      'The rows came back sorted by id, and the engine had already ordered them.',
+      '--section',
+      'Why the order belongs to the engine',
+      '--section-body',
+      'A rationale long enough to be prose and short enough to stay inside the budget the project declares for a section.',
+      '--json',
+    ],
+    timeoutMs,
+  )
+  const id = (JSON.parse(stdout) as { id: string }).id
+  await must(
+    transport,
+    root,
+    ['ship', id, '--why', 'The rows arrive in the order the engine gave them.'],
+    timeoutMs,
+  )
+  // And committed, so `origin` can place where it shipped: an entry in the working tree has no
+  // commit, and a walkthrough about it can never be held against one.
+  commitAll(root, 'the rows arrive in the order the engine gave them')
+}
+
+/**
  * The name this shape's built project is kept under.
  *
  * Every field, so a shape that differs in one number is a different project — which it is:
@@ -310,6 +388,7 @@ function nameOf(shape: FixtureShape): string {
     // cache is keyed on the shape and a field left out of the key is a field it ignores.
     `chained-${shape.chained === true ? 'yes' : 'no'}`,
     `outside-${shape.outside === true ? 'yes' : 'no'}`,
+    `validating-${shape.validating === true ? 'yes' : 'no'}`,
   ].join('-')
 }
 

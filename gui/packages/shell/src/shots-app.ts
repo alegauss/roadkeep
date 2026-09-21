@@ -362,6 +362,17 @@ function opensExplain(state: string | null): boolean {
 /** The validation tab, chosen as a reader chooses it (RG293). */
 const OPEN_VALIDATION = `(() => { const tab = document.querySelector('[data-testid="validation-tab"]'); if (tab) tab.click() })()`
 
+/** The walkthrough over the first entry awaiting a person, opened as a reader opens it (RG300). */
+const OPEN_CHECK = `(() => { const button = document.querySelector('[data-testid="check"]'); if (button) button.click() })()`
+
+/** Whether this state opens that dialog, which two of them do. */
+function opensCheck(state: string | null): boolean {
+  return state !== null && state.startsWith('checking')
+}
+
+/** The verdicts, scrolled to inside the dialog they are drawn at the foot of (RG294). */
+const SHOW_VERDICT = `(() => { const form = document.querySelector('[data-testid="verdict-form"]'); if (form) form.scrollIntoView({ block: 'end' }) })()`
+
 /** Where the work lands, scrolled to inside the dialog it is drawn in (RG288). */
 const SHOW_WHERE = `(() => { const where = document.querySelector('[data-testid="explain-where"]'); if (where) where.scrollIntoView({ block: 'start' }) })()`
 
@@ -453,10 +464,21 @@ export async function takeCapture(
       await page.evaluate(SHOW_WHERE)
       settled = await settle(page)
     }
-    if (capture.state === 'validation') {
+    if (capture.state?.startsWith('validation') === true || opensCheck(capture.state)) {
       // The tab is offered only where this engine publishes `unvalidated` (RG6), so a fixture on
       // an older build has nothing to click and the picture is the project surface at rest.
       await page.evaluate(OPEN_VALIDATION)
+      settled = await settle(page)
+    }
+    if (opensCheck(capture.state)) {
+      await page.evaluate(OPEN_CHECK)
+      await page.waitForSelector('[data-testid="check-dialog"]', { timeout: SETTLE_CEILING_MS })
+      await page.waitForTimeout(SHEET_OPENS_MS)
+      settled = await settle(page)
+    }
+    if (capture.state === 'checking-verdict') {
+      await page.waitForSelector('[data-testid="verdict-form"]', { timeout: SETTLE_CEILING_MS })
+      await page.evaluate(SHOW_VERDICT)
       settled = await settle(page)
     }
     if (opensViewer(capture.state)) {

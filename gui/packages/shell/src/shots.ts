@@ -10,7 +10,7 @@ import {
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
-import { DEFAULT_SETTINGS, listedTasks } from '@rk/core'
+import { DEFAULT_SETTINGS, lineOf, listedTasks } from '@rk/core'
 
 import { GATED_IMPACTS, outlivedFindings, unexcusedFindings } from './accessibility'
 import { AGENT_VAR } from './agent-candidates'
@@ -19,6 +19,7 @@ import { buildFixture } from './fixture'
 import { liveEngine, liveHeld, read, REPO } from './live'
 import { removeTree } from './scratch'
 import { saveSettings } from './settings-file'
+import { keepAnswers } from './shots-kept'
 import { CAPTURED_GLOSS, scriptedAgent } from './scripted-agent'
 import {
   buildOf,
@@ -140,7 +141,14 @@ async function main(): Promise<number> {
     }
   }
 
-  const fixture = await buildFixture(liveEngine, { open: 3, shipped: 1, deferred: 1 })
+  // Governed and committed since RG300, so one entry awaits a person: the validation tab has a
+  // row to draw and the walkthrough dialog has something to open on.
+  const fixture = await buildFixture(liveEngine, {
+    open: 3,
+    shipped: 1,
+    deferred: 1,
+    validating: true,
+  })
   const userData = mkdtempSync(path.join(tmpdir(), 'rk-shots-'))
   // The session surface is photographed mid-run against an agent that replays one (RG210), and
   // the task surface's explanation against the gloss a real read wrote (RG285).
@@ -149,6 +157,15 @@ async function main(): Promise<number> {
   try {
     const [first, second] = listedTasks(await read(fixture.root, 'list', {}))
     saveSettings(userData, { ...DEFAULT_SETTINGS, roots: [{ path: fixture.root, depth: 0 }] })
+
+    // What this machine has kept (RG300): the two dialogs are photographed on an answer, which
+    // is the state a fresh run can never be in. The entry is the one awaiting a person and the
+    // commit is the one the engine placed it at — a walkthrough about another one reads as old.
+    const awaits = (await read(fixture.root, 'unvalidated', {})).unvalidated[0]
+    const shipped = await read(fixture.root, 'origin', { id: awaits?.id ?? '' })
+    const briefed = lineOf(await read(fixture.root, 'brief', { id: first?.id ?? '' }))
+    if (briefed === null) throw new Error('the fixture opened no line to keep a gloss for')
+    keepAnswers(userData, fixture.root, briefed, awaits?.id ?? '', shipped.shippedIn?.sha ?? '')
 
     const shot = await launchForShots(userData, { [AGENT_VAR]: JSON.stringify(agent.command) })
     const taken: Taken[] = []

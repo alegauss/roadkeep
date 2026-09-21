@@ -86,6 +86,14 @@ describe('RG210: the session, photographed in the states a reader puts it in', (
 
     expect(new Set(project.map((one) => one.state))).toEqual(new Set(PROJECT_SHOTS))
     expect(project.map((one) => one.file)).toContain('project.validation.dark.pt-BR.400.png')
+    // And the walkthrough over one of its rows (RG300).
+    expect(project.map((one) => one.file)).toContain('project.checking.light.en.1280.png')
+  })
+
+  it('RG300: takes the explanation on a kept answer the reader is told is old', () => {
+    const task = capturesFor(VALUES, ['project-task'])
+
+    expect(task.map((one) => one.file)).toContain('project-task.explain-old.dark.pt-BR.400.png')
   })
 
   it('goes to the line that was handed over, and leaves the task surface on a line nobody holds', () => {

@@ -60,23 +60,26 @@ export type SessionShot = (typeof SESSION_SHOTS)[number]
 
 /**
  * The states the task surface is photographed in: at rest, with the explanation open (RG285),
- * and with that dialog scrolled to where the work lands (RG288).
+ * with that dialog scrolled to where the work lands (RG288), and with a kept answer the reader is
+ * told is old (RG300).
  *
  * The second explanation shot is the lanes: the dialog is taller than the window it opens in, so
- * a picture of its top is a picture of everything above them.
+ * a picture of its top is a picture of everything above them. The third is the two notices: the
+ * line has moved and the answer's shape has been widened since, and both are drawn in the same
+ * place — what they do to each other at 400 wide is a question only a picture asks.
  */
-export const TASK_SHOTS = [null, 'explain', 'explain-where'] as const
+export const TASK_SHOTS = [null, 'explain', 'explain-where', 'explain-old'] as const
 export type TaskShot = (typeof TASK_SHOTS)[number]
 
 /**
  * The states the project surface is photographed in: at rest, and on the validation tab (RG293).
  *
  * The tab is its own picture because its content is nothing like the ledger beside it — a list of
- * what awaits a person, or one of three sentences saying why there is none. The fixture declares
- * no `[validation]`, so what this shows is the commonest of the three, which is the one a reader
- * of somebody else's project meets first.
+ * what awaits a person. The third is the walkthrough dialog over that list (RG300), and the
+ * fourth is the same dialog scrolled to what it is for: the verdicts under the steps, which sit
+ * below the fold of any dialog whose steps are worth following.
  */
-export const PROJECT_SHOTS = [null, 'validation'] as const
+export const PROJECT_SHOTS = [null, 'validation', 'checking', 'checking-verdict'] as const
 export type ProjectShot = (typeof PROJECT_SHOTS)[number]
 
 export const SHOT_GROUNDS: readonly Exclude<Theme, 'system'>[] = ['light', 'dark']

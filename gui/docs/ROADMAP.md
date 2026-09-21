@@ -19,7 +19,6 @@
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
-- 📋 **RG300** (deps: —) **no shot fixture keeps an answer, so a kept gloss's notices and the walkthrough dialog are drawn by no picture** — A state per dialog opens each on an answer written into the machine's own file first, so both are photographed in every ground and width. → §RG300
 
 ## Block H — The look (a design system for governed prose)
 

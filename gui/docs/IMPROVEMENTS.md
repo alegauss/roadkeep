@@ -94,30 +94,6 @@ ready task forever. What can be built without it is the pipeline that would use 
 the about surface saying plainly that this build is unsigned — which is the honest half
 and is worth having on its own.
 
-### §RG300 Why a kept answer needs a picture of its own
-
-Two dialogs draw an answer somebody asked for, and no picture shows either in the state
-that matters. `TASK_SHOTS` opens the explain dialog on a gloss the scripted agent has
-just answered — neither stale nor written under an earlier shape, so its two notices are
-drawn by nothing. The walkthrough dialog (RG293) is worse off: the fixture declares no
-`[validation]`, so the tab photographs its empty sentence and the dialog is never opened
-at all.
-
-**A state each, not a surface each.** Both dialogs are already reachable; what is
-missing is a run where the store holds something. The cheapest honest way is what RG287
-and RG292 keep anyway: write the answer into the machine's own file before the capture —
-a gloss under a shape this build has widened past, a walkthrough for an entry the
-fixture's ledger carries — and open the dialog on it. The walkthrough tab needs the
-fixture governed and committed too, which is the arrangement `contract-live` already
-builds by hand.
-
-**Both notices in one picture is the point**, for the gloss: they are two blocks stacked
-in the same place, and the layout question is what they do to each other at 400 wide.
-
-Done when a shots run writes `project-task.explain-old.*` and a picture of the
-walkthrough dialog in both grounds, both languages and both widths, each scan is clean,
-and the gloss's picture shows both notices above the reading they are about.
-
 ## Block H — The look (a design system for governed prose)
 
 ### §RG62 Joining the checks the other consoles already answer to
