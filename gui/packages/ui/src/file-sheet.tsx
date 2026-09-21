@@ -2,6 +2,8 @@ import {
   editsOf,
   editStanding,
   FILE_REFUSAL_TEXT,
+  linesBetween,
+  originalIn,
   type Act,
   type FileEdit,
   type FileText,
@@ -13,10 +15,15 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
 } from '@viglet/viglet-design-system'
 import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react'
 
 import { getBridge } from './bridge'
+import { Compared } from './compared'
 import { Pill } from './marks'
 import { useWording } from './wording'
 
@@ -36,8 +43,13 @@ import { useWording } from './wording'
  * the stream edits the same path while it is open — as the call is made and as its answer
  * lands, since the second is when the disk has moved.
  *
- * **What the session changed is above the file** (RG246), read off its own calls and checked
- * against the text below it rather than believed.
+ * **What the session changed is beside the file** (RG246), read off its own calls and checked
+ * against the text rather than believed.
+ *
+ * **And the file against what it was** (RG282), which is the other question: ten calls are ten
+ * blocks and a formatter run after them is in none, where one comparison holds every line that
+ * differs whoever changed it. A file with an original opens on that comparison; one nothing
+ * answered for has none, and the sheet says so rather than comparing against a guess.
  */
 
 type Viewing =
@@ -221,6 +233,21 @@ export function FileSheet({
     [lines],
   )
   const edits = useMemo(() => editsOf(acts, path), [acts, path])
+  // What the file was before the session first touched it, and what it is now: one comparison
+  // (RG282), made only where a call answered with an original.
+  const original = useMemo(() => originalIn(acts, path), [acts, path])
+  // A file that is not there any more is an empty side, every line removed — which is the one
+  // comparison worth drawing for a file the viewer itself cannot show.
+  const now = read?.text ?? (answer?.kind === 'refused' && answer.code === 'missing' ? '' : null)
+  const comparison = useMemo(
+    () => (original === null || now === null ? null : linesBetween(original, now)),
+    [original, now],
+  )
+  const [tab, setTab] = useState<string | null>(null)
+  const [sideBySide, setSideBySide] = useState(false)
+  // A file with an original opens on the comparison, and one without opens on itself. Held as
+  // null until the reader chooses, so an answer arriving late still opens where it should.
+  const shown = tab ?? (comparison === null ? 'file' : 'compare')
   // What the file is, in one sentence: still being read, how long it is, or why it was not read.
   let described = say('session.file.reading')
   if (read !== null) described = say('session.file.lines', { count: lines })
@@ -228,7 +255,12 @@ export function FileSheet({
 
   return (
     <Sheet open onOpenChange={changed}>
-      <SheetContent side="right" className="w-full gap-0 sm:max-w-3xl" data-testid="file-sheet">
+      {/* Wider with the two sides in columns, which is the width that shape needs (RG282). */}
+      <SheetContent
+        side="right"
+        className={sideBySide ? 'w-full gap-0 sm:max-w-6xl' : 'w-full gap-0 sm:max-w-3xl'}
+        data-testid="file-sheet"
+      >
         <SheetHeader className="border-b pr-12">
           <SheetTitle className="font-mono text-sm wrap-anywhere">{read?.shown ?? path}</SheetTitle>
           <SheetDescription
@@ -243,30 +275,72 @@ export function FileSheet({
             </Button>
           </span>
         </SheetHeader>
-        {/* Reachable by keyboard, because it scrolls: a region a mouse can scroll and a Tab
-            cannot reach is the finding the accessibility pass names (RG211), and a file long
-            enough to scroll is the ordinary case here. Named by the file, as a group. */}
-        <section
-          className="min-h-0 flex-1 overflow-auto"
-          data-testid="file-body"
-          tabIndex={0}
-          aria-label={read?.shown ?? path}
-        >
-          <Edits edits={edits} text={read?.text ?? null} onAct={onAct} />
-          {read === null ? null : (
-            <div className="flex font-mono text-xs leading-5">
-              <pre
-                aria-hidden="true"
-                className="text-muted-foreground bg-background sticky left-0 border-r px-3 py-3 text-right select-none"
-              >
-                {numbers}
-              </pre>
-              <pre className="px-3 py-3" data-testid="file-text">
-                {read.text}
-              </pre>
-            </div>
+        {/* Each panel scrolls, and each is reachable by keyboard: a region a mouse can scroll
+            and a Tab cannot reach is the finding the accessibility pass names (RG211), and a
+            file long enough to scroll is the ordinary case here. Named by the file, as a
+            group. Radix gives a panel its own tab stop, which is what makes that true. */}
+        <Tabs value={shown} onValueChange={setTab} className="min-h-0 flex-1 gap-0">
+          <TabsList className="mx-4 my-2 self-start">
+            {comparison === null ? null : (
+              <TabsTrigger value="compare">{say('session.file.tab.compare')}</TabsTrigger>
+            )}
+            <TabsTrigger value="file">{say('session.file.tab.file')}</TabsTrigger>
+            {edits.length === 0 ? null : (
+              <TabsTrigger value="edits">{say('session.file.tab.edits')}</TabsTrigger>
+            )}
+          </TabsList>
+          {comparison === null ? null : (
+            <TabsContent
+              value="compare"
+              className="min-h-0 flex-1 overflow-auto"
+              data-testid="file-body"
+              aria-label={read?.shown ?? path}
+            >
+              <Compared
+                comparison={comparison}
+                sideBySide={sideBySide}
+                onSideBySide={setSideBySide}
+              />
+            </TabsContent>
           )}
-        </section>
+          <TabsContent
+            value="file"
+            className="min-h-0 flex-1 overflow-auto"
+            data-testid="file-body"
+            aria-label={read?.shown ?? path}
+          >
+            {/* A file nothing answered for has no original, and is said to have none rather
+                than compared against an empty one, which would read as every line new. */}
+            {original !== null || read === null ? null : (
+              <p className="text-muted-foreground px-4 pt-3 text-xs" data-testid="compare-none">
+                {say('session.file.compare.none')}
+              </p>
+            )}
+            {read === null ? null : (
+              <div className="flex font-mono text-xs leading-5">
+                <pre
+                  aria-hidden="true"
+                  className="text-muted-foreground bg-background sticky left-0 border-r px-3 py-3 text-right select-none"
+                >
+                  {numbers}
+                </pre>
+                <pre className="px-3 py-3" data-testid="file-text">
+                  {read.text}
+                </pre>
+              </div>
+            )}
+          </TabsContent>
+          {edits.length === 0 ? null : (
+            <TabsContent
+              value="edits"
+              className="min-h-0 flex-1 overflow-auto"
+              data-testid="file-body"
+              aria-label={read?.shown ?? path}
+            >
+              <Edits edits={edits} text={read?.text ?? null} onAct={onAct} />
+            </TabsContent>
+          )}
+        </Tabs>
       </SheetContent>
     </Sheet>
   )

@@ -58,32 +58,6 @@ catalogue in both languages.
 Done when a test moves `handed` through the menu, resets from the palette, and sees the
 default drawn and written.
 
-### §RG282 The file against its original, line by line
-
-The viewer (RG245) shows the file as the disk has it, and above it each call's two
-halves (RG246): ten edits are ten blocks, and a formatter run after them is in none. VS
-Code shows one comparison, the original beside the file now.
-
-**The original is RG280's.** a reader beside `originOf` hands that answer's
-`originalFile`, empty for a created file. The file now is the read the viewer already
-makes, so what changed it after the last call counts too, and a deleted file is an empty
-side, every line removed. A file only the watch saw has no original, and the viewer says
-so.
-
-**Compared in `core`.** `linesBetween(before, after)` is a pure line comparison: hunks
-with both sides' numbers, three unchanged lines around each, the rest folded. `core` has
-no dependency and a Myers comparison is small enough to own; past a ceiling on lines
-none is made, and the viewer says so.
-
-**Drawn here, not with `BentoDiff`.** VDS140 compares fields word by word; a file
-compares by line, with numbers. Inline first, side by side as a toggle that widens the
-sheet, each line marked `+` or `−` in text as well as colour, in both grounds. A file
-with an original opens on the comparison, the file and the calls in the design system's
-`Tabs` beside it. A Markdown file is compared as lines, never rendered.
-
-Done when `compare.test.ts` holds the hunks and `npm run shots` draws a created, a
-changed and a deleted file.
-
 ### §RG283 A gloss: the brief framed for a newcomer, and the answer's shape
 
 A line is written for whoever builds it: a symptom, one why, and a design that names

@@ -195,6 +195,7 @@
 - ✅ **RG279** **the session screen's side bars are 18rem whatever they hold, so a long path is cut and the stream cannot be widened** — A session side bar keeps the width its edge was dragged to, in settings.json rather than in the browser (design recorded in `packages/ui/src/session-cards.tsx`).
 - ✅ **RG280** **an edited file's row never says whether the session created, changed or deleted it** — Each edited file's row says whether the session created, changed or deleted it, off the answer its own call came back with (design recorded in `packages/core/src/acts.ts`).
 - ✅ **RG281** **a file that moved on disk while the session ran never says whether it appeared, changed or went away** — Each file that moved on disk says whether it appeared, changed, went away or came and went, off the stat the watch already made (design recorded in `packages/core/src/watching.ts`).
+- ✅ **RG282** **an edited file opens as it is now, with no view of it against what it was before the session** — An edited file opens on itself against what it was before the session, line by line, inline or side by side (design recorded in `packages/core/src/compare.ts`).
 
 ## Block G — The shell (an executable now, a service later)
 

@@ -417,6 +417,42 @@ function resultOf(line: string): Record<string, unknown> | null {
  * reader's business.
  */
 export function originOf(acts: readonly Act[], path: string): FileOrigin | null {
+  const first = firstAnswered(acts, path)
+  if (first === null) return null
+
+  const type = first.result['type']
+  if (type === 'create') return 'created'
+  if (type === 'update') return 'changed'
+  // A `Write` from a build that answered without a type says the same thing by what it
+  // replaced; every other editing tool needed the file to be there.
+  if (first.tool === 'Write') return first.result['originalFile'] === null ? 'created' : 'changed'
+  return 'changed'
+}
+
+/**
+ * The file as it stood before the session first touched it (RG282), out of the same answer
+ * `originOf` reads: empty for a file the session created, since every line of it is new.
+ *
+ * Null where nothing says what it was — no answered call on the path, or an answer that carried
+ * no `originalFile` because the file was too large to send back. A comparison is not drawn from
+ * a guess: the viewer says it does not know instead.
+ */
+export function originalIn(acts: readonly Act[], path: string): string | null {
+  const first = firstAnswered(acts, path)
+  if (first === null) return null
+
+  const original = first.result['originalFile']
+  if (typeof original === 'string') return original
+  // A `Write` that made the file answers `null` here and says so with its type; anything else
+  // answering `null` is a file that was there and did not fit in the answer.
+  return original === null && first.result['type'] === 'create' ? '' : null
+}
+
+/** The first answered, successful editing call on a path, with what it answered. */
+function firstAnswered(
+  acts: readonly Act[],
+  path: string,
+): { readonly tool: string; readonly result: Record<string, unknown> } | null {
   const answers = new Map<string, Extract<Act, { kind: 'returned' }>>()
   for (const act of acts) if (act.kind === 'returned' && act.id !== '') answers.set(act.id, act)
 
@@ -425,15 +461,7 @@ export function originOf(acts: readonly Act[], path: string): FileOrigin | null 
     const answer = answers.get(act.id)
     if (answer === undefined || !answer.ok) continue
     const result = resultOf(answer.line)
-    if (result === null) continue
-
-    const type = result['type']
-    if (type === 'create') return 'created'
-    if (type === 'update') return 'changed'
-    // A `Write` from a build that answered without a type says the same thing by what it
-    // replaced; every other editing tool needed the file to be there.
-    if (act.tool === 'Write') return result['originalFile'] === null ? 'created' : 'changed'
-    return 'changed'
+    if (result !== null) return { tool: act.tool, result }
   }
   return null
 }

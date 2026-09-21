@@ -39,10 +39,21 @@ export interface ShotValues {
 
 /**
  * The states the session surface is photographed in (RG210): following its end as a run writes,
- * scrolled up with the way back showing, with its notes folded (RG208), and with the first file
- * it edited open in the viewer (RG245).
+ * scrolled up with the way back showing, with its notes folded (RG208), and with a file it
+ * edited open in the viewer (RG245).
+ *
+ * Three files rather than one, since the viewer opens on the file against its original (RG282)
+ * and the three answers that comparison can give are different pictures: a file changed, one
+ * made — every line new — and one gone, every line removed with the file itself unreadable.
  */
-export const SESSION_SHOTS = ['following', 'scrolled', 'folded', 'file'] as const
+export const SESSION_SHOTS = [
+  'following',
+  'scrolled',
+  'folded',
+  'file',
+  'file-made',
+  'file-gone',
+] as const
 export type SessionShot = (typeof SESSION_SHOTS)[number]
 
 export const SHOT_GROUNDS: readonly Exclude<Theme, 'system'>[] = ['light', 'dark']

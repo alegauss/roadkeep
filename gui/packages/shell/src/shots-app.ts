@@ -16,6 +16,7 @@ import {
   type Finding,
 } from './accessibility'
 import { electronPath, launchEnv, shellRoot } from './launch'
+import { SCRIPTED_MADE } from './scripted-agent'
 import { settleScript, type Capture } from './shots-plan'
 
 /**
@@ -330,6 +331,26 @@ const SCROLL_STREAM_UP =
 const OPEN_EDITED_FILE =
   '(() => { const file = document.querySelector(\'[data-testid="edited-file"]\'); const row = file && (file.closest(\'[role="treeitem"]\') || file.querySelector("button")); if (row) row.click() })()'
 
+/**
+ * The same, for the row of one path: which file the viewer opens is what makes the comparison a
+ * created, a changed or a deleted one (RG282), and each of the three is its own picture.
+ */
+function openEdited(file: string): string {
+  const selector = `[data-testid="edited-file"][data-path="${file}"]`
+  return `(() => { const row = document.querySelector('${selector}'); const click = row && (row.closest('[role="treeitem"]') || row.querySelector("button")); if (click) click.click() })()`
+}
+
+/** Which file each viewer state opens, by the path the scripted run's own calls name. */
+const VIEWER_FILES: Readonly<Record<string, string>> = {
+  'file-made': SCRIPTED_MADE,
+  'file-gone': 'src/scripted.ts',
+}
+
+/** Whether this state opens the viewer at all, which three of them do. */
+function opensViewer(state: string | null): boolean {
+  return state !== null && state.startsWith('file')
+}
+
 /** How long the viewer takes to slide in, which a quiet document does not wait for: CSS moves it. */
 const SHEET_OPENS_MS = 600
 
@@ -407,8 +428,9 @@ export async function takeCapture(
       await page.evaluate(SCROLL_STREAM_UP)
       settled = await settle(page)
     }
-    if (capture.state === 'file') {
-      await page.evaluate(OPEN_EDITED_FILE)
+    if (opensViewer(capture.state)) {
+      const named = VIEWER_FILES[capture.state ?? '']
+      await page.evaluate(named === undefined ? OPEN_EDITED_FILE : openEdited(named))
       await page.waitForSelector('[data-testid="file-sheet"]', { timeout: SETTLE_CEILING_MS })
       await page.waitForTimeout(SHEET_OPENS_MS)
       settled = await settle(page)
@@ -430,7 +452,7 @@ export async function takeCapture(
     if (capture.state === 'folded') await prefer(shot, 'sessionNotes', 'shown')
     // The viewer is the screen's own state and survives a hash set to the same route, so it is
     // closed as a reader closes it before the next capture draws the session without it.
-    if (capture.state === 'file') await page.keyboard.press('Escape')
+    if (opensViewer(capture.state)) await page.keyboard.press('Escape')
   }
 }
 

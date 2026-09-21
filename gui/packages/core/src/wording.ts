@@ -322,6 +322,23 @@ export const EN = {
   'session.file.lines': '{count} lines, as the disk holds it now',
   'session.file.lines.one': '{count} line, as the disk holds it now',
   'session.file.edits': 'What the session changed',
+  // The file against what it was before the session (RG282), beside the file and the calls.
+  'session.file.tab.compare': 'Against the original',
+  'session.file.tab.file': 'The file',
+  'session.file.tab.edits': 'The calls',
+  'session.file.compare.same': 'Nothing differs from what it was before the session.',
+  'session.file.compare.refused':
+    'The file is longer than the {ceiling} lines this window compares, so it is not compared.',
+  'session.file.compare.none':
+    'No call of this session named this file, so what it was before is not known.',
+  'session.file.compare.added': '{count} lines added',
+  'session.file.compare.added.one': '{count} line added',
+  'session.file.compare.removed': '{count} lines removed',
+  'session.file.compare.removed.one': '{count} line removed',
+  'session.file.compare.folded': '{count} unchanged lines',
+  'session.file.compare.folded.one': '{count} unchanged line',
+  'session.file.compare.side': 'Side by side',
+  'session.file.compare.inline': 'Inline',
   'session.file.edit.act': 'act {seq}',
   'session.file.edit.replaced': 'replaced',
   'session.file.edit.put': 'put there',

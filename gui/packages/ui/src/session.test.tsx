@@ -908,12 +908,18 @@ describe('RG246: what the session changed inside the file', () => {
 
   const openAlpha = () => openFile('src/alpha.ts')
 
+  /** The calls are a tab of their own since RG282, beside the file and the comparison. */
+  const showCalls = (sheet: ReturnType<typeof within>) => {
+    fireEvent.mouseDown(sheet.getByRole('tab', { name: BASE['session.file.tab.edits'] }))
+  }
+
   it('draws each edit above the file, checked against the text that was read', async () => {
     const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD], texts: [TEXT] })
     hear(wired, 'session', { session: KEY, index: 1, line: EDITS })
     hear(wired, 'session', { session: KEY, index: 2, line: ANSWERS })
 
     const sheet = within(await openAlpha())
+    showCalls(sheet)
     await waitFor(() => {
       expect(sheet.getAllByTestId('file-edit')).toHaveLength(2)
     })
@@ -935,6 +941,7 @@ describe('RG246: what the session changed inside the file', () => {
     const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD], texts: [TEXT] })
     hear(wired, 'session', { session: KEY, index: 1, line: EDITS })
     const sheet = within(await openAlpha())
+    showCalls(sheet)
     const [first] = await sheet.findAllByTestId('file-edit')
     const seq = first?.dataset['seq'] ?? ''
 
@@ -1614,5 +1621,146 @@ describe('RG280: what the session did to each file', () => {
 
     const say = translator(PT_BR, PT_BR_LOCALE)
     expect(row(MADE).textContent).toContain(say('session.kind.created'))
+  })
+})
+
+describe('RG282: the file against its original', () => {
+  const PATH = 'src/alpha.ts'
+  /** One call per line, each answered on its own, which is how a real run arrives. */
+  const CALL = (id: string, tool: string, path: string) =>
+    JSON.stringify({
+      type: 'assistant',
+      message: { content: [{ type: 'tool_use', id, name: tool, input: { file_path: path } }] },
+    })
+  const ANSWER = (id: string, result: Record<string, unknown>) =>
+    JSON.stringify({
+      type: 'user',
+      message: {
+        content: [{ tool_use_id: id, type: 'tool_result', content: 'ok', is_error: false }],
+      },
+      tool_use_result: result,
+    })
+
+  /** Eight lines, so a change has unchanged ones around it and more beyond them. */
+  const WAS = Array.from({ length: 8 }, (_, index) => `line ${String(index + 1)}`).join('\n')
+  const NOW = WAS.replace('line 6', 'line six')
+  const TEXT: FileText = {
+    kind: 'read',
+    path: PATH,
+    shown: PATH,
+    text: `${NOW}\n`,
+    bytes: NOW.length + 1,
+  }
+
+  async function opened(lines: readonly string[], text: FileText = TEXT) {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD], texts: [text] })
+    lines.forEach((line, index) => {
+      hear(wired, 'session', { session: KEY, index: index + 1, line })
+    })
+    return within(await openFile(PATH))
+  }
+
+  /** The edit the session made, answering with the file as it stood before the call. */
+  const EDITED = [
+    CALL('c1', 'Edit', PATH),
+    ANSWER('c1', { filePath: PATH, originalFile: `${WAS}\n` }),
+  ]
+
+  it('opens on the comparison, marking each line in text and numbering both sides', async () => {
+    const sheet = await opened(EDITED)
+
+    const compare = await sheet.findByTestId('compare')
+    expect(
+      sheet.getByRole('tab', { name: BASE['session.file.tab.compare'] }).dataset['state'],
+    ).toBe('active')
+    // One line replaced: one removed, one added, and the counts say so.
+    expect(within(compare).getByTestId('compare-counts').textContent).toContain(
+      fill(BASE['session.file.compare.added.one'], { count: 1 }),
+    )
+    const marks = within(compare)
+      .getAllByTestId('compare-line')
+      .map((line) => line.dataset['mark'])
+    expect(marks.filter((mark) => mark === 'removed')).toHaveLength(1)
+    expect(marks.filter((mark) => mark === 'added')).toHaveLength(1)
+    // Marked in text as well as colour, which is what reads in either ground.
+    const removed = within(compare)
+      .getAllByTestId('compare-line')
+      .find((line) => line.dataset['mark'] === 'removed')
+    expect(removed?.textContent).toContain('− line 6')
+    expect(removed?.textContent).toContain('6')
+    const added = within(compare)
+      .getAllByTestId('compare-line')
+      .find((line) => line.dataset['mark'] === 'added')
+    expect(added?.textContent).toContain('+ line six')
+  })
+
+  it('folds the unchanged lines it did not draw, counted', async () => {
+    const sheet = await opened(EDITED)
+    await sheet.findByTestId('compare')
+
+    // Three lines either side of the change are drawn; the two before them are counted.
+    expect(sheet.getByTestId('compare-folded').textContent).toBe(
+      fill(BASE['session.file.compare.folded'], { count: 2 }),
+    )
+  })
+
+  it('reads a file the session created as every line new', async () => {
+    const made: FileText = { kind: 'read', path: PATH, shown: PATH, text: 'a\nb\n', bytes: 4 }
+    const sheet = await opened(
+      [
+        CALL('c2', 'Write', PATH),
+        ANSWER('c2', { type: 'create', filePath: PATH, originalFile: null }),
+      ],
+      made,
+    )
+
+    const compare = await sheet.findByTestId('compare')
+    const marks = within(compare)
+      .getAllByTestId('compare-line')
+      .map((line) => line.dataset['mark'])
+    expect(marks).toEqual(['added', 'added'])
+  })
+
+  it('offers the two sides in columns, and goes back', async () => {
+    const sheet = await opened(EDITED)
+    await sheet.findByTestId('compare')
+
+    fireEvent.click(sheet.getByRole('button', { name: BASE['session.file.compare.side'] }))
+
+    // Each line is one row with both sides in it, and the sheet is wider.
+    expect(screen.getByTestId('file-sheet').className).toContain('sm:max-w-6xl')
+    expect(sheet.getByRole('button', { name: BASE['session.file.compare.inline'] })).toBeTruthy()
+
+    fireEvent.click(sheet.getByRole('button', { name: BASE['session.file.compare.inline'] }))
+
+    expect(screen.getByTestId('file-sheet').className).toContain('sm:max-w-3xl')
+  })
+
+  it('says it does not know what a file nobody answered for was before', async () => {
+    // A file only the watch saw: no call named it, so there is nothing to compare against.
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD], texts: [TEXT] })
+    hear(wired, 'session', {
+      session: KEY,
+      moved: [{ path: PATH, first: STARTED, last: CHANGED, moves: 1, kind: 'changed' }],
+      beyond: 0,
+    })
+    const sheet = within(await openFile(PATH))
+
+    expect(await sheet.findByTestId('compare-none')).toBeTruthy()
+    expect(sheet.queryByRole('tab', { name: BASE['session.file.tab.compare'] })).toBeNull()
+    expect(sheet.getByTestId('file-text')).toBeTruthy()
+  })
+
+  it('says nothing differs where the file is the original again', async () => {
+    const back: FileText = {
+      kind: 'read',
+      path: PATH,
+      shown: PATH,
+      text: `${WAS}\n`,
+      bytes: WAS.length + 1,
+    }
+    const sheet = await opened(EDITED, back)
+
+    expect(await sheet.findByTestId('compare-same')).toBeTruthy()
   })
 })

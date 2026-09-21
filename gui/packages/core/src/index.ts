@@ -89,6 +89,7 @@ export {
   marksOf,
   NOTHING_MARKED,
   onDisk,
+  originalIn,
   originOf,
   subjectOf,
   touched,
@@ -105,6 +106,8 @@ export type {
   OnDisk,
   StreamRow,
 } from './acts'
+export { COMPARE_CEILING, COMPARE_CONTEXT, linesBetween, linesOf } from './compare'
+export type { Comparison, CompareHunk, CompareLine, CompareMark } from './compare'
 export { loggedIn, resolveAgent, saidOfAgent, versionIn } from './agent'
 export type {
   Agent,

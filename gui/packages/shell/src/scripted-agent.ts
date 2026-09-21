@@ -85,10 +85,15 @@ export interface ScriptedAgent {
 /**
  * One cycle of the tail: something said, a call, its answer, and a note between turns.
  *
- * Every other call is an edit, spread over three files, so the files a session edited have rows
+ * Every other call is an edit, spread over four files, so the files a session edited have rows
  * to draw with more than one call among them (RG243). Each stands differently on disk (RG244):
  * one is outside the project, one is not there, and the first is the fixture's roadmap, which
  * is there to be opened in the viewer (RG245). Nothing is written: a replay only reports edits.
+ *
+ * **And each is a different thing to have done** (RG280, RG282): the changelog is written as a
+ * file this session made, `src/scripted.ts` is one it changed and nothing holds now, and the
+ * roadmap is one it changed and the disk still has — so the marks and the three comparisons the
+ * viewer draws are all in one replay.
  *
  * Each edit carries both its halves, so the viewer has what the session changed to draw (RG246)
  * — the first one puts back a heading the fixture's roadmap really holds, and the rest put text
@@ -112,35 +117,63 @@ function said(at: number): string {
   ].join('\n')
 }
 
+/**
+ * The files the replay edits, in the order its edits take them.
+ *
+ * The roadmap first, because it is the one the viewer opens and the one really on disk; then a
+ * file nothing holds, a file outside the project, and the changelog, which this run is written
+ * as having made.
+ */
+export const SCRIPTED_EDITS = [
+  'docs/ROADMAP.md',
+  'src/scripted.ts',
+  '../elsewhere/scripted-notes.md',
+  'docs/CHANGELOG.md',
+] as const
+
+/** The one the replay writes rather than edits, so a created file has a row and a comparison. */
+export const SCRIPTED_MADE = 'docs/CHANGELOG.md'
+
 function tailCycle(at: number): string[] {
   const id = `scripted-${String(at)}`
-  const edited =
-    ['../elsewhere/scripted-notes.md', 'src/scripted.ts', 'docs/ROADMAP.md'][at % 3] ?? ''
+  // Every other step edits, so the rotation counts edits and not steps: over four edits each
+  // file is taken once, whatever the tail's length.
+  const edited = SCRIPTED_EDITS[(Math.floor(at / 2) - 1) % SCRIPTED_EDITS.length] ?? ''
+  const made = edited === SCRIPTED_MADE
   const replaced = `the line step ${String(at)} replaced`
+  const wrote = at === 2 ? '## Block A — The model' : `what step ${String(at)} put there`
   const call =
     at % 2 === 0
-      ? {
-          name: 'Edit',
-          input: {
-            file_path: edited,
-            old_string: replaced,
-            new_string: at === 2 ? '## Block A — The model' : `what step ${String(at)} put there`,
-          },
-        }
+      ? made
+        ? { name: 'Write', input: { file_path: edited, content: `${wrote}\n` } }
+        : {
+            name: 'Edit',
+            input: { file_path: edited, old_string: replaced, new_string: wrote },
+          }
       : { name: 'Read', input: { file_path: 'docs/ROADMAP.md' } }
-  // An edit answers with the file as it stood before the call, the way a real run does (RG280):
-  // every one of these changed a file that was there, which is what the row is then marked with.
+  // An edit answers with the file as it stood before the call, and a write with whether it made
+  // the file, the way a real run does (RG280): that is what marks the row and what the viewer
+  // compares the file against (RG282).
   const answered =
     at % 2 === 0
       ? {
-          tool_use_result: {
-            filePath: edited,
-            oldString: replaced,
-            newString: call.input.new_string ?? '',
-            originalFile: `${replaced}\n`,
-            structuredPatch: [],
-            userModified: false,
-          },
+          tool_use_result: made
+            ? {
+                type: 'create',
+                filePath: edited,
+                content: `${wrote}\n`,
+                structuredPatch: [],
+                originalFile: null,
+                userModified: false,
+              }
+            : {
+                filePath: edited,
+                oldString: replaced,
+                newString: wrote,
+                originalFile: `${replaced}\n`,
+                structuredPatch: [],
+                userModified: false,
+              },
         }
       : {}
   return [
