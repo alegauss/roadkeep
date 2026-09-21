@@ -231,3 +231,69 @@ def test_the_verb_answers_in_both_registers(tmp_path):
     assert answer["replaced"] == "worked"
     assert answer["line"] == 7
     assert answer["wrote"] == ["docs/CHANGELOG.md"]
+
+
+# -- the read: what nobody has looked at (RK1691) -----------------------------
+
+
+def test_a_ledger_with_one_verdict_and_two_without_answers_with_the_two(tmp_path):
+    """RK1691's done-when, and the three it leaves out are the ones `validate` refuses."""
+    from roadkeep.validating import looked, unvalidated
+
+    ledger = LEDGER + "- ✅ **RK5** **A fifth symptom** — It works as well.\n"
+    config = project(tmp_path, ledger=ledger)
+    validate(config, "RK1", "worked", saw="It did.").save()
+    answer = unvalidated(config)
+    assert [one.task_id for one in answer.rows] == ["RK2", "RK5"]
+    assert answer.validated == 1
+    # The counts `stats` carries are the list's own, never a second walk that could disagree.
+    counts = looked(config)
+    assert (counts.validated, counts.unvalidated) == (1, len(answer.rows))
+    assert "2 of 3 shipped entr(ies) carry no verdict" in answer.stated()
+
+
+def test_the_list_narrows_to_a_block_and_refuses_one_the_ledger_lacks(tmp_path):
+    from roadkeep.validating import unvalidated
+
+    config = project(tmp_path)
+    assert [one.task_id for one in unvalidated(config, "A").rows] == ["RK1", "RK2"]
+    with pytest.raises(KeyError, match="no heading declares Block ZZ"):
+        unvalidated(config, "ZZ")
+
+
+def test_the_verb_and_stats_answer_in_both_registers(tmp_path):
+    project(tmp_path)
+    payload = io.StringIO()
+    with contextlib.redirect_stdout(payload):
+        assert main(["-C", str(tmp_path), "unvalidated", "--json"]) == EXIT_OK
+    answer = json.loads(payload.getvalue())
+    assert [one["id"] for one in answer["unvalidated"]] == ["RK1", "RK2"]
+    # No git in the fixture, so the commit column is a stated absence and not a blank.
+    assert answer["searched"] is False
+    assert answer["unvalidated"][0]["commit"] is None
+
+    counted = io.StringIO()
+    with contextlib.redirect_stdout(counted):
+        assert main(["-C", str(tmp_path), "stats", "--json"]) == EXIT_OK
+    assert json.loads(counted.getvalue())["validation"] == {"validated": 0, "unvalidated": 2}
+    said = io.StringIO()
+    with contextlib.redirect_stdout(said):
+        assert main(["-C", str(tmp_path), "stats"]) == EXIT_OK
+    rows = {line.split()[0]: line.split()[1:] for line in said.getvalue().splitlines()[1:]}
+    assert rows["verdicts"] == ["0", "2", "without", "one"]
+
+
+def test_the_door_under_the_list_runs_as_printed(tmp_path, capsys):
+    """The one command `unvalidated` composes, executed rather than matched (RK1209): the id is
+    the row's own and the verdict is the person's, so the harness supplies both and what proves
+    the door is the line the write puts under the entry."""
+    from composing import commands, filled, supplied
+
+    config = project(tmp_path)
+    assert main(["-C", str(tmp_path), "unvalidated"]) == EXIT_OK
+    said = capsys.readouterr().out
+    (argv,) = [one for one in commands(said) if one[:1] == ["validate"]]
+    chosen = {"<id>": "RK2", "<verdict>": "worked"}
+    taken = supplied(filled([chosen.get(one, one) for one in argv]))
+    assert main(["-C", str(tmp_path), *taken]) == EXIT_OK
+    assert "  validated **worked** It was there when I looked.\n" in ledger_of(config)

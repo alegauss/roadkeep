@@ -88,6 +88,8 @@ QUESTIONS: tuple[Question, ...] = (
         "which of my open lines did somebody already write the code for",
         ("unclosed",),
     ),
+    # RK1691. Its mirror on the ledger: which shipped work nobody has left a verdict on.
+    Question("which shipped entries has no person looked at yet", ("unvalidated",)),
     Question("which rationale addresses are spent, and what is the next free one", ("anchors",)),
     # RK1270. The one read whose subject is `roadkeep.toml`, which every other rule here is
     # read out of and which nothing printed the shape of.

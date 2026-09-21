@@ -93,28 +93,6 @@ already written, not authorship.
 
 ## Block J — Validation (whether a person ever tried it)
 
-### §RK1691 The list of what nobody has looked at
-
-A verdict nobody can enumerate is a verdict nobody writes. `unvalidated` is the read
-that makes the state actionable, and it is `unclosed`'s mirror in shape and in
-temperament: a report and never a gate, since whether work needs a person is a judgement
-this tool has no model for.
-
-**What it answers.** Every ledger entry at or after where validation starts that carries
-no `validated` line, in block order, with the id, the symptom and the commit `origin`
-resolves for it. `--block` narrows it and `--json` is what a client reads.
-
-**And `stats` carries the two counts**, validated and not, because a caller drawing
-twenty backlogs wants the figure without the list — the same reason that verb already
-carries open and recorded.
-
-Not a lint finding, and the distinction matters more here than it looks. An unvalidated
-entry is the ordinary state of work that shipped an hour ago; a gate that fired on every
-ship is a gate somebody switches off, and it would take the honest findings with it.
-
-Done when a fixture ledger holding one verdict and two without answers with the two, and
-the counts agree with the list.
-
 ### §RK1692 Where looking starts
 
 This repository has 1163 shipped entries and roadkeep-gui 283. A project that adopts

@@ -337,6 +337,9 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         # whose work a commit already names is what a session that shipped the code and
         # closed the terminal leaves behind, and the next one has no other way to see it.
         "unclosed",
+        # Its mirror on the ledger (RK1691): the entry a person tried is found here before
+        # `validate` can say what they saw.
+        "unvalidated",
         # The read the agent is the subject of (RK415): its writes go through whatever
         # `roadkeep` the session reaches and its hand edits are denied by whatever the
         # harness installed, and those are allowed to be two versions of this tool.

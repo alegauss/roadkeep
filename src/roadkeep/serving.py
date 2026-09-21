@@ -789,6 +789,10 @@ TOOLS: tuple[Tool, ...] = (
     # are: the caller this catches is an agent driving a block, whose own session is where
     # a line gets left open — and a read it cannot make is one nobody makes.
     Tool("unclosed", ()),
+    # Its mirror on the ledger (RK1691), served for its reason: the agent a person tells what
+    # they tried is the one that has to find which entry that was, and `block` narrows a list
+    # that on a long ledger is otherwise the whole history.
+    Tool("unvalidated", ("block",)),
     # Which copies of this tool write, judge and gate the project (RK415). Exposed because
     # the agent is the one it happens to: its writes go through whatever `roadkeep` the
     # session reaches and its hand edits are denied by whatever the harness installed, and

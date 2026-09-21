@@ -215,7 +215,14 @@ characters = 2850
 # and the 147 after that are the verdict set and the ledger's limit with its aim, published
 # so a client validates the call instead of guessing the three words. 69010, headroom 119,
 # which is the discipline of the 118 above it.
-session = 69010
+# Raised from 69010 for the read that makes a verdict findable (RK1691): unvalidated is
+# unclosed's mirror on the ledger, and the reading here is 69304. What the headroom buys is
+# the agent a person tells what they tried, which has to find the entry that was before it
+# can call validate - and a list only the CLI could reach is one that agent reads by
+# grepping the ledger, the move the hook exists to prevent. Paid for first out of its own
+# prose: the description and the block help came to 504 and were cut to 413. 69425,
+# headroom 121, which is the discipline of the 119 above it.
+session = 69425
 
 [budgets]
 # Files loaded on every turn, and what each may cost (RK30). This budget lived in prose at

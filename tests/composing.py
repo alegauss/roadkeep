@@ -330,6 +330,10 @@ SITES: tuple[Site, ...] = (
     # which substitutes the id off the row above it — the one token no table fills, being the
     # caller's own line — and reads the ledger entry the ship then writes.
     Site("history.py:Unclosed.stated", "run"),
+    # RK1691, its mirror on the ledger: the door under the rows is the verdict a person gives.
+    # Run by `test_validating`, which substitutes the row's id and a verdict out of the set —
+    # the two tokens no table fills — and reads the line the write then puts under the entry.
+    Site("validating.py:Unvalidated.stated", "run"),
     # RK1230. Run by `test_installing`, which asserts the line it composes *is* the copy the
     # registry names — the one composed command here whose whole point is being pasted.
     Site("installing.py:Engines.invoke", "run"),
@@ -552,6 +556,8 @@ FILLS: dict[str, str] = {
     # anchor two prose roles declare is resolved by the caller naming which they mean, and
     # `improvements` is the role every fixture here declares.
     "--role": "improvements",
+    # RK1691. What a person saw, which is theirs to write and never this tool's (L4).
+    "--saw": "It was there when I looked.",
 }
 
 #: The tokens this tool prints where the author's own words go. Both spellings: `…` is what

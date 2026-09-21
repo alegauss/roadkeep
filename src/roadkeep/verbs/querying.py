@@ -64,6 +64,7 @@ from roadkeep.rendering import (
 )
 from roadkeep.serving import Prose, Withheld, detail, surface
 from roadkeep.showing import Overrun, fits_under, show, views
+from roadkeep.validating import looked
 from roadkeep.verbs.declaring import (
     _DESIGNED_HELP,
     _HAVE_COUNTING_HELP,
@@ -303,9 +304,19 @@ def _stats(config: Config, args: argparse.Namespace) -> Result | int:
     # of the file this counts, so reading one inside the census would make a count of the
     # roadmap depend on a directory git ignores.
     owed = debt(config)
+    # And the verdicts, a third subject joined the same way (RK1691): what a person has looked
+    # at is a fact about the ledger, so a count of the roadmap carries it beside its own numbers
+    # rather than inside them, and a label the ledger has no heading for simply has none.
+    seen = None
+    if config.on_disk("changelog"):
+        try:
+            counted = looked(config, args.block)
+            seen = (counted.validated, counted.unvalidated)
+        except KeyError:
+            seen = None
     return Result(
-        census.counts(config, standing, owed, args.have),
-        census.counted_out(config, owed, args.have),
+        census.counts(config, standing, owed, args.have, looked=seen),
+        census.counted_out(config, owed, args.have, looked=seen),
         noted="\n".join(census.silence(standing)),
     )
 

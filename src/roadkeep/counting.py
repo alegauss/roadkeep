@@ -702,7 +702,12 @@ class Census:
         }
 
     def counted_out(
-        self, config: Config, debt: Debt, available: Iterable[str] = ()
+        self,
+        config: Config,
+        debt: Debt,
+        available: Iterable[str] = (),
+        *,
+        looked: tuple[int, int] | None = None,
     ) -> str:
         """The tallies, the totals, and the capture debt beside them (RK10, RK1139).
 
@@ -742,6 +747,13 @@ class Census:
                 f"  {'longest':<{pad}}  {longest.task.id} at {measured(longest.raw)} "
                 f"of {self.schema.line_max}"
             )
+        # What a person has looked at, beside the counts and never inside them (RK1691): the
+        # ledger's fact, joined here the way the capture debt below is, as one row in its
+        # shape — the verdicts, then how many shipped entries carry none — and nothing where
+        # nothing shipped. Two plain ints, because `validating` reads this module.
+        if looked is not None and sum(looked):
+            validated, unvalidated = looked
+            rows.append(f"  {'verdicts':<{pad}}  {validated:>4}  {unvalidated} without one")
         rows += debt.stated(config, pad)
         return "\n".join(rows)
 
@@ -751,6 +763,8 @@ class Census:
         standing: Standing | None,
         debt: Debt,
         available: Iterable[str] = (),
+        *,
+        looked: tuple[int, int] | None = None,
     ) -> dict[str, object]:
         """The same answer as data, with the debt this project holds under its own key."""
         from roadkeep.rendering import CHARACTER_UNIT  # noqa: PLC0415 - RK260
@@ -789,6 +803,11 @@ class Census:
             # argument is against those. Its own key, because it is debt this project holds
             # and not a line of the backlog it is reporting.
             "captures": debt.payload(config),
+            # RK1691: the two counts a verdict splits the ledger into, and null where there is
+            # no ledger to ask — its own key for the reason `captures` is one.
+            "validation": None
+            if looked is None
+            else {"validated": looked[0], "unvalidated": looked[1]},
         }
 
     def audited(self) -> str:

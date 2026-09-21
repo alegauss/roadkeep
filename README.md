@@ -125,12 +125,12 @@ called unbuilt were already in the ledger.
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| J — Validation (whether a person ever tried it) | 4 | 1 | 0 |
-| **Total** | 4 | 1164 | 24 |
+| J — Validation (whether a person ever tried it) | 3 | 2 | 0 |
+| **Total** | 3 | 1165 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1691** (deps: RK1690 ✅) **nothing answers which shipped entries no person has looked at, so the list is read by eye** — An `unvalidated` read mirrors `unclosed` — a report and never a gate — and `stats` carries the two counts, so a portfolio shows the backlog of looking without the list. → §RK1691
+- 📋 **RK1692** (deps: RK1691 ✅) **a project adopting validation opens with every entry it ever shipped in the list, 1163 of them here** — A `[validation]` table declares where looking starts, so the list opens at the next ship and not the first — the same opt-in `[criteria]` already is. → §RK1692
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

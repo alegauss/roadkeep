@@ -37,7 +37,7 @@ from roadkeep.shipping import (
 )
 from roadkeep.rendering import Result, answered
 from roadkeep.serving import Prose
-from roadkeep.validating import VERDICTS, validate
+from roadkeep.validating import VERDICTS, unvalidated, validate
 from roadkeep.verbs.declaring import (
     _JSON_HELP,
     _PIPE,
@@ -449,6 +449,20 @@ def _validate(config: Config, args: argparse.Namespace) -> Result | int:
         return _refused(error)
 
     return answered(validated, config=config, wrote=wrote)
+
+
+def _unvalidated(config: Config, args: argparse.Namespace) -> Result | int:
+    """The shipped entries no person has left a verdict on (RK1691). A report, so exit 0.
+
+    `unclosed`'s rule and for its reason: an entry that shipped an hour ago is unvalidated as
+    its ordinary state, so a non-zero here would fail every session that just shipped.
+    """
+    try:
+        answer = unvalidated(config, args.block)
+    except (KeyError, OSError) as error:
+        return _refused(error)
+
+    return answered(answer)
 
 
 def _retire(config: Config, args: argparse.Namespace) -> Result | int:
@@ -942,6 +956,19 @@ def declare_departures(subcommands: argparse._SubParsersAction) -> None:
     validate_parser.set_defaults(
         handler=_validate, reads_stdin=(Prose(dest="saw", omitted=False),)
     )
+
+    unvalidated_parser = subcommands.add_parser(
+        "unvalidated",
+        help="shipped entries no person has left a verdict on, and the commit that shipped each",
+        description=(
+            "Every ledger entry a verdict can be about that carries none, in file order. A "
+            "report and never a gate: an entry shipped an hour ago is unvalidated as its "
+            "ordinary state."
+        ),
+    )
+    unvalidated_parser.add_argument("--block", help="only the entries under this label")
+    unvalidated_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    unvalidated_parser.set_defaults(handler=_unvalidated, reads_only=True)
 
     retire_parser = subcommands.add_parser(
         "retire",
