@@ -933,3 +933,6 @@ deriving the anchor, which is how they came apart.
 
 - ✅ **RK1400** **No job builds the area, so a page that stopped compiling is found by a reader and a stale commit is published** — The site is published by a workflow that builds it, never served from a branch: one directory of it is generated, and a branch deploy means committing output a stale commit publishes.
 - ✅ **RK1417** **The pitch is a hand-edited HTML file inside the governed store, which is also the web root the site is served from** — The published site never comes out of the governed store: docs/ holds what the roles declare and the deploy uploads site/dist/.
+
+## Block J — Validation (whether a person ever tried it)
+
