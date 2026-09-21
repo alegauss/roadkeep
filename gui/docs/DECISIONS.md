@@ -207,3 +207,6 @@ is drawn for the shape of the data. `docs/design/` drew both readings, and
 `Main.dc.html` is the one it settles on.
 
 Tiles keep every other use the layer intends — a hub, a stats strip, a project card.
+
+## Block I — Validation (the list a person works through)
+

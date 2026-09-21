@@ -122,3 +122,159 @@ digest is then required to carry that set.
 
 That is a commit in somebody else's repository with a consequence for five other apps,
 which is why it is written down here rather than made quietly.
+
+## Block I — Validation (the list a person works through)
+
+### §RG289 The two verbs, and the door that is withheld
+
+`verbs.ts` is the read table and `writes.ts` the write table, deliberately two: a read
+is offered freely and a write is not. Validation needs one of each — `unvalidated` to
+ask and `validate` to answer — and neither is more than a row plus the reader beside it.
+
+**The engine may not have them.** Every project on this machine runs its own roadkeep,
+and most will be older than the build that grows these verbs. That is RG6's mechanism
+and it is already built: `capabilities` asks `commands --json` once per project, and a
+screen withholds a door rather than offering one that will be refused. So the whole
+validation surface is absent on a project whose engine publishes neither verb, with the
+version it did answer — a state, and not a failure.
+
+Which is also why nothing here waits on the upstream work: the tables can carry a verb
+this machine has no engine for, and the door stays shut until one arrives.
+
+**Nothing here validates a verdict token.** The set belongs to the engine, which refuses
+better than a copy of its rules would, and a refusal comes back as its code and field
+for the door to mark.
+
+Done when the contract reads both verbs live against a fixture, and a project on an
+older engine reads as offering neither.
+
+### §RG291 How to check it, asked of the commit
+
+The ledger's sentence is the outcome, not the change. A walkthrough written from it is
+generic, and a generic one is worse than none: somebody follows four invented clicks and
+learns nothing about what shipped. So the run is anchored where the truth is — `origin
+<id> --why` gives the commit that wrote the entry, and the diff is what the agent reads.
+
+**The shape, mirroring `gloss.ts`.** `before` is what has to be true first — a build, a
+project open, a checkout somewhere. `steps` is a list of pairs, one `does` and the
+`sees` it should produce, because a step with no expected result is not checkable.
+`where` is reused whole.
+
+**And `nothingToSee`.** The slot the gloss has no equivalent of, and the one that
+decides whether any of this gets used: a test-only change or an internal rule has
+nothing a person can open, and an agent with no way to say so will invent a procedure
+instead. Filled, the screen proposes that verdict rather than a walkthrough.
+
+Same three tools as RG284 — `Read`, `Grep`, `Glob` — and one more read of git, which the
+shell supplies.
+
+Done when a captured run over a real shipped commit answers steps for a screen change
+and `nothingToSee` for a refactor.
+
+### §RG292 Keeping it while somebody goes and follows it
+
+RG287 keeps a gloss because reopening a task paid the wait and the tokens again. A
+walkthrough has the sharper version of the same problem: the sheet is closed *by the act
+of following it*. The person leaves the window, opens a terminal, runs a build, comes
+back. Throwing the answer away at that moment throws it away every single time, not
+occasionally.
+
+**Mirroring `glosses.ts`.** Kept per project, entry and language; bounded, oldest first,
+so a machine reading a hundred projects keeps a file somebody could open. Where it is
+kept is the shell's, as it is there.
+
+**Stale is a comparison, never a clock.** A gloss stands while its line reads the same.
+A walkthrough stands while the **shipping commit is the same hash**, and that is the
+whole test: the entry's sentence can be corrected without the work changing, and the
+work cannot change without a new commit. Cheaper than the gloss comparison and stricter.
+
+A stale one is still drawn, under a notice, because it was true of what shipped — and
+Regenerate asks anew.
+
+Done when closing and reopening the sheet costs nothing, and an amended shipping commit
+reads the kept walkthrough as old.
+
+### §RG293 The list, beside the ledger it comes from
+
+`ProjectTabs` already draws the four governed files beside the roadmap, the changelog
+among them as `list --role changelog`. What is shipped and unlooked-at is a narrowing of
+that same file, so it belongs there: one more tab reading `unvalidated`, not a second
+window and not a filter nobody finds.
+
+**Newest first**, against the block order every other tab uses. The reason is the
+deferred tab's: what somebody will actually validate is what they just shipped, while
+they still remember what it was for, and block order buries that under whatever Block A
+left behind.
+
+**A row is the id, the symptom and the block, and opening one is what asks.** Nothing is
+asked for a list being scrolled past — the same rule the improvements tab follows for
+its sections, and the reason a walkthrough costs tokens is the reason it is never
+speculative.
+
+An empty list is a state and says so: every entry since validation started has a
+verdict, which is the screen this whole block exists to produce.
+
+Done when the tab draws a fixture's unvalidated entries newest first, an empty one says
+so, and the shots read in both grounds, both languages and at both widths.
+
+### §RG294 Saying what happened
+
+The walkthrough is a read; this is the write it exists for. Under the steps, three
+answers — **it worked**, **it did not**, **there is nothing to see** — each opening the
+same small form for one sentence: what the person did and what they saw.
+
+**The sentence is required.** A verdict with no account is a tick box, and a ledger full
+of bare verdicts is the thing this block was meant to replace. The engine holds the
+limit and this app does not copy it: a refused sentence comes back as its code and
+field, and the door marks it, which is RG5 working exactly as it was built to.
+
+**`nothingToSee` pre-selects the third**, with the agent's own sentence already in the
+box to accept or rewrite. That is the only place this app suggests an answer, and it
+suggests the one that costs least to be wrong about — a walkthrough that was wrongly
+skipped is a row somebody re-opens, not a false claim in the ledger.
+
+On success the row leaves the list, because the list is a query and not a state this app
+keeps.
+
+Done when each of the three verdicts reaches a fixture ledger, and a sentence the engine
+refuses marks the field rather than closing the sheet.
+
+### §RG295 The defect a failure found
+
+Somebody who says *it did not work* has just written the symptom of a task. Sending them
+to the filing form to type it again is how the finding gets lost: they are
+mid-procedure, not mid-backlog, and the sentence they already wrote is the one worth
+keeping.
+
+**One call files both.** The engine writes the verdict and the open line in a single
+transaction, so this app passes the sentence it already holds and composes nothing — no
+second call, no window where the verdict landed and the line did not. Where the
+project's engine is older than the flag, `capabilities` withholds the offer and the
+verdict is recorded alone; the app never simulates a transaction with two writes.
+
+**The symptom is the person's, unedited.** `Filing` is offered afterwards to amend the
+line, never before to compose it: a form standing in front of the sentence is a form
+that stops somebody reporting.
+
+Done when a failed verdict leaves both the verdict and a new open line under the same
+block in a fixture, and a project whose engine lacks the flag leaves only the verdict,
+with the offer absent rather than refused.
+
+### §RG296 Where somebody is owed a walkthrough
+
+The portfolio is why this app exists: twenty backlogs, one view. A row says what is open
+and what is next, and after this block the number that matters most is a third one —
+what shipped and nobody has looked at. That is where the work now is, and it is
+invisible until somebody opens the project one at a time, which is the reading this
+screen was built to replace.
+
+**Off the count the engine already answers**, so this is a field on a row and not a
+second read. The portfolio composes its rows from one call per project, and a call per
+project is the cost RG7 and RG8 exist to hold down.
+
+**Withheld, not zeroed**, on a project whose engine cannot say. A blank reads as *this
+build does not answer that*; a `0` would be a claim, and the wrong one — an old engine
+has no verdicts precisely because it has no way to record any.
+
+Done when a fixture with two unvalidated entries draws the figure, a project on an older
+engine draws none, and the shots read at both widths.

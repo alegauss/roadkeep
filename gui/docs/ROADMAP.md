@@ -22,6 +22,16 @@
 
 ## Block H — The look (a design system for governed prose)
 
+## Block I — Validation (the list a person works through)
+
+- 📋 **RG289** (deps: —) **the app can neither ask which entries await a person nor record a verdict: neither verb is in its tables** — `unvalidated` joins the read table and `validate` the write table, and a project whose engine publishes neither is offered no door, which is what `capabilities` is for. → §RG289
+- 📋 **RG291** (deps: RG289) **a person told a line is unvalidated has to work out how to check it from one sentence in the ledger** — A run reads the commit that shipped it and answers a shape — what to have ready, and each step as a do and a see — and says where there is nothing to look at. → §RG291
+- 📋 **RG292** (deps: RG291) **a walkthrough is lost when the sheet closes, and the sheet is closed by the person going off to follow it** — A walkthrough is kept per entry and language, so coming back finds it; it reads as old once the shipping commit moved, and Regenerate asks anew. → §RG292
+- 📋 **RG293** (deps: RG289) **nothing on a project surface says what is shipped and unlooked-at, so the list lives in a terminal** — A tab beside the changelog draws what awaits a person, newest first, and opening a row is what asks for its walkthrough. → §RG293
+- 📋 **RG294** (deps: RG293) **a person who followed a walkthrough has nowhere to say what happened, so the verdict never reaches the ledger** — Three answers under the steps — it worked, it did not, there is nothing to see — each take one sentence and send it through `validate`. → §RG294
+- 📋 **RG295** (deps: RG294) **a validation that failed ends in a sentence nobody files, so the defect it found is lost at the dialog** — The sentence becomes the symptom of a line filed in the same call, so what a person saw goes back into the backlog without being typed twice. → §RG295
+- 📋 **RG296** (deps: RG289) **a project row says what is open and nothing about what shipped with nobody looking at it** — The row carries the count the engine already answers, so a machine of twenty backlogs shows at a glance where somebody is owed a walkthrough. → §RG296
+
 ## Done when — Block A
 
 - **The client runs with no Electron and no React** The transport is one interface, so

@@ -344,3 +344,6 @@
 - ✅ **RG242** **the task and session screens do not show which project they belong to, so finding out means going back** — Task, session, files and gate name their project above the title with the portfolio's chip, and the session adds a crumb back to its line (design recorded in `packages/ui/src/trail.tsx`).
 - ✅ **RG264** **a session handed a gate finding is drawn in the reading column, since the width table names one session route** — Every route the session screen answers takes the window's width, and a guard reads which those are off the router's own table (design recorded in `packages/ui/src/column.ts`).
 - ✅ **RG267** **the shortcuts sheet lists / for the palette, which nothing binds, and a palette opened by its key searches nothing** — The window binds the package's shortcut set, which its sheet reads, and a key opens the palette the way the button does (design recorded in `packages/ui/src/Shell.tsx`).
+
+## Block I — Validation (the list a person works through)
+
