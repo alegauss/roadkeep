@@ -38,31 +38,6 @@ screen's stream does not show them.
 **What a resume asks first.** Why the panel never opened, which window answers a link,
 and whether the session's own folder has to be open in it.
 
-### §RG277 Dragging a session card by its title
-
-VS Code moves a view by dragging its title to the other side bar or along its own. The
-session screen's three side cards get the same, over the field RG276 adds.
-
-The drag is `@dnd-kit/core` and `@dnd-kit/sortable`, which the design system already
-depends on; they join `packages/ui/package.json` at its pinned versions, so one copy
-stays installed. Its `BentoTileGrid` edit mode reorders tiles in one mosaic, which is
-not two side bars around a stream.
-
-Each side bar is a sortable list and each card's `PanelTitle` row its handle, a grip
-showing on hover and focus. A card dropped on the other side bar lands at the pointer's
-index under an insertion line. A side bar left empty gives its column to the stream, and
-during a drag is a thin strip that still takes a drop.
-
-The move is drawn first and written after, through `preferring.ts` as `sessionNotes` is.
-The task and gate routes read one arrangement, since they are one screen.
-
-The handle is drawn from `xl`, where two side bars exist. At `lg` the side column holds
-left then right, and below it RG225's order stands. dnd-kit's keyboard sensor is on,
-announcing through the catalogue.
-
-Done when a browser test drags `files` to the top of the left side bar, sees it land and
-`savePreference` carry the layout, and sees a remount draw the same.
-
 ### §RG278 Moving a card without dragging it, and putting them all back
 
 A drag is not every person's way to move something, and VS Code does not rely on it
@@ -71,8 +46,9 @@ Locations. The session screen needs both beside the drag RG277 builds.
 
 Each side card's title gets a menu, the design system's `DropdownMenu`, with three
 entries: move to the other side bar, move up, move down. An entry that would do nothing,
-up on the first card, is not offered. Each calls the `moveCard` RG276 adds and is
-written as a drop is, so one path reaches the file.
+up on the first card, is not offered. Each is a `steppedPlace` step, as an arrow key in
+`session-cards.tsx` is, then the `moveCard` RG276 adds, and is written as a drop is, so
+one path reaches the file.
 
 Resetting writes `DEFAULT_SETTINGS.sessionLayout` back, so the default lives in one
 place. It is offered twice: as a command in the shell's `BentoCommandPalette`, where VS
@@ -94,9 +70,10 @@ in the files card is cut, and a person who wants a wider stream has no way to ge
 VS Code lets a side bar's edge be dragged, and the next launch opens at that width.
 
 The design system ships the divider as `ResizablePanelGroup`, `ResizablePanel` and
-`ResizableHandle`, over react-resizable-panels. The `xl` grid in `Session.tsx` becomes
-one horizontal group of up to three panels, the stream in the middle, imported from the
-design system rather than the library, so `package.json` gains nothing.
+`ResizableHandle`, over react-resizable-panels. The `xl` grid in `session-cards.tsx`,
+which RG277 moved there, becomes one horizontal group of up to three panels, the stream
+in the middle, imported from the design system rather than the library, so
+`package.json` gains nothing.
 
 The width goes to disk, not to the browser. The library's `autoSaveId` and
 `useDefaultLayout` write to `localStorage`, which is not settings.json and not a file a

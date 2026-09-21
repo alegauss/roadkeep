@@ -350,17 +350,23 @@ export type {
 } from './watching'
 export {
   DEFAULT_SETTINGS,
+  isSessionCard,
   isSessionLayout,
   isSessionNotes,
   isTheme,
   moveCard,
+  placeOf,
   readSettings,
+  sameLayout,
   SESSION_CARDS,
   SETTINGS_VERSION,
   settingsText,
+  steppedPlace,
   wasReset,
 } from './settings'
 export type {
+  CardPlace,
+  CardStep,
   Lost,
   Reset,
   SessionCard,

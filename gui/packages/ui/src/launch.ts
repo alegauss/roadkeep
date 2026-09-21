@@ -6,12 +6,13 @@ import {
   type RendererBridge,
   type Reset,
   type RowOrder,
+  type SessionLayout,
   type SessionNotes,
   type Theme,
 } from '@rk/core'
 
 import { getBridge } from './bridge'
-import { holdPortfolioOrder, holdSessionNotes } from './preferring'
+import { holdPortfolioOrder, holdSessionLayout, holdSessionNotes } from './preferring'
 
 /**
  * What this window opens as, asked once before anything is drawn.
@@ -67,6 +68,8 @@ export interface LaunchChoices {
   readonly sessionNotes: SessionNotes
   /** The order the portfolio opens in (RG241), or the record's where nothing answered. */
   readonly portfolioOrder: RowOrder
+  /** Where a session's cards sit (RG277), or the grid every earlier build drew. */
+  readonly sessionLayout: SessionLayout
   /**
    * How long one engine call may take before it is abandoned (RG249), clamped by `withLimits`.
    *
@@ -85,6 +88,7 @@ const AT_WORST: LaunchChoices = {
   reset: [],
   sessionNotes: DEFAULT_SETTINGS.sessionNotes,
   portfolioOrder: DEFAULT_SETTINGS.portfolioOrder,
+  sessionLayout: DEFAULT_SETTINGS.sessionLayout,
   timeoutMs: DEFAULT_LIMITS.timeoutMs,
   // No bound where nothing answered: the ceiling is a fact about the machine, which only the
   // shell can take — and a window that invented one would be slower than it has any reason to
@@ -126,6 +130,7 @@ export async function choicesFromBridge(
         reset: answer.reset,
         sessionNotes: answer.settings.sessionNotes,
         portfolioOrder: answer.settings.portfolioOrder,
+        sessionLayout: answer.settings.sessionLayout,
         // Clamped here as everywhere: a number a person edited into the file is theirs, and
         // a sane range is what `withLimits` is for.
         timeoutMs: withLimits(answer.settings).timeoutMs,
@@ -187,6 +192,7 @@ export async function choicesAtLaunch(): Promise<LaunchChoices> {
   lost = choices.reset
   holdSessionNotes(choices.sessionNotes)
   holdPortfolioOrder(choices.portfolioOrder)
+  holdSessionLayout(choices.sessionLayout)
   holdDeadline(choices.timeoutMs)
   holdProjectsAtOnce(choices.projectsAtOnce)
   return choices

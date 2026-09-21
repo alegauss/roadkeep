@@ -3,12 +3,16 @@ import {
   DEFAULT_LIMITS,
   DEFAULT_SETTINGS,
   type RendererBridge,
+  type SessionLayout,
   type Theme,
 } from '@rk/core'
 import { describe, expect, it } from 'vitest'
 
 import { choicesFromBridge, LAUNCH_CEILING_MS } from './launch'
 import { stubBridge } from './stub-bridge'
+
+/** An arrangement somebody moved a card into, which no default is (RG277). */
+const MOVED: SessionLayout = { left: ['files', 'handed'], right: ['moved'] }
 
 /**
  * RG86 and RG87: what the renderer asks for before it draws anything.
@@ -75,6 +79,7 @@ describe('RG87: the ground the window opens in', () => {
       reset: [],
       sessionNotes: 'shown',
       portfolioOrder: 'record',
+      sessionLayout: DEFAULT_SETTINGS.sessionLayout,
       // The deadline a read runs under rides in the same answer (RG249).
       timeoutMs: DEFAULT_LIMITS.timeoutMs,
       // How many projects a cold start may read at once rides in the same answer (RG250).
@@ -112,6 +117,7 @@ describe('RG106: an answer that never comes', () => {
       reset: [],
       sessionNotes: 'shown',
       portfolioOrder: 'record',
+      sessionLayout: DEFAULT_SETTINGS.sessionLayout,
       timeoutMs: DEFAULT_LIMITS.timeoutMs,
       // Nothing answered, so no bound this side invented.
       projectsAtOnce: 0,
@@ -132,6 +138,7 @@ describe('RG106: an answer that never comes', () => {
                   theme: 'dark',
                   sessionNotes: 'hidden',
                   portfolioOrder: 'open-descending',
+                  sessionLayout: MOVED,
                 },
                 reset: [],
                 locale: 'pt-BR',
@@ -143,14 +150,15 @@ describe('RG106: an answer that never comes', () => {
       savePreference: () => Promise.resolve(),
     })
 
-    // And how a session draws its notes rides in the same answer (RG208), as does the order
-    // the portfolio opens in (RG241).
+    // And how a session draws its notes rides in the same answer (RG208), as do the order
+    // the portfolio opens in (RG241) and where a session's cards sit (RG277).
     expect(await choicesFromBridge(slow, 500)).toEqual({
       locale: 'pt-BR',
       theme: 'dark',
       reset: [],
       sessionNotes: 'hidden',
       portfolioOrder: 'open-descending',
+      sessionLayout: MOVED,
       timeoutMs: DEFAULT_LIMITS.timeoutMs,
       projectsAtOnce: 2,
     })

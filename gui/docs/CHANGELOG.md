@@ -190,6 +190,7 @@
 - ✅ **RG273** **a session runs on a hand-written copy of Claude Code's stream protocol, so each change to it is this app's to chase** — Sessions run through the Agent SDK, keeping the same record, the person's own claude, and settings and system prompt named (design recorded in `packages/shell/src/session-process.ts`).
 - ✅ **RG275** **a session a task hands over grows the page with every act, where one the gate hands over scrolls in its stream** — A task's session scrolls inside its stream like the gate's: the region mounts with its first act and is measured then (design recorded in `packages/ui/src/Session.tsx`).
 - ✅ **RG276** **the settings file has nowhere to keep how the session screen's cards are arranged, so none outlives the window** — settings.json keeps the session cards as sessionLayout, repaired card by card on read, with a pure moveCard and a strict preference row (design recorded in `packages/core/src/settings.ts`).
+- ✅ **RG277** **the session screen's side cards stay where the grid puts them, and cannot be dragged to the other side or reordered** — A session card moves by its title grip, by pointer or keys, to a place drawn as an insertion line, and settings keep the move (design recorded in `packages/ui/src/session-cards.tsx`).
 
 ## Block G — The shell (an executable now, a service later)
 

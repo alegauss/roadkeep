@@ -209,6 +209,18 @@ export const PT_BR: Wording = {
   'session.handed.bounds': '{count} não-objetivos',
   'session.handed.bounds.one': '{count} não-objetivo',
   'session.handed.agent': 'iniciada com {command}, Claude Code {version}',
+  'session.card.grip': 'Mover o cartão “{card}”',
+  'session.card.role': 'cartão móvel',
+  'session.card.instructions':
+    'Pressione Espaço para pegar o cartão, as setas para escolher onde ele vai, e então Espaço para soltá-lo ali ou Esc para deixá-lo onde estava.',
+  'session.card.lifted': 'Cartão “{card}” pego.',
+  'session.card.at.left': '“{card}”: barra lateral esquerda, posição {place}.',
+  'session.card.at.right': '“{card}”: barra lateral direita, posição {place}.',
+  'session.card.dropped.left':
+    'Cartão “{card}” solto na barra lateral esquerda, na posição {place}.',
+  'session.card.dropped.right':
+    'Cartão “{card}” solto na barra lateral direita, na posição {place}.',
+  'session.card.back': 'O cartão “{card}” voltou para onde estava.',
   'session.stream': 'O fluxo',
   'session.stream.empty': 'Nada foi escrito ainda.',
   'session.follow': 'Ir para o fim',

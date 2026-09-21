@@ -1,4 +1,11 @@
-import { BASE, DEFAULT_SETTINGS, type RowOrder, type SessionNotes, type Settings } from '@rk/core'
+import {
+  BASE,
+  DEFAULT_SETTINGS,
+  type RowOrder,
+  type SessionLayout,
+  type SessionNotes,
+  type Settings,
+} from '@rk/core'
 import { toast } from '@viglet/viglet-design-system'
 import { useSyncExternalStore } from 'react'
 
@@ -6,7 +13,9 @@ import { getBridge } from './bridge'
 
 /**
  * The preferences with no library behind them, as this window holds them: how a session draws
- * its system notes (RG208), and the order the portfolio opens in (RG241).
+ * its system notes (RG208), the order the portfolio opens in (RG241), and where a session's
+ * cards sit (RG277) — one arrangement for the window, since the task and gate routes draw one
+ * screen.
  *
  * **Held once for the window, like the language.** The ground has `next-themes` and the
  * language has i18next; these have neither, so this is the smallest store that does the same
@@ -20,11 +29,12 @@ import { getBridge } from './bridge'
  */
 
 /** The settings rows held here, typed as the file's own fields so a write takes them as they are. */
-type Held = Pick<Settings, 'sessionNotes' | 'portfolioOrder'>
+type Held = Pick<Settings, 'sessionNotes' | 'portfolioOrder' | 'sessionLayout'>
 
 let held: Held = {
   sessionNotes: DEFAULT_SETTINGS.sessionNotes,
   portfolioOrder: DEFAULT_SETTINGS.portfolioOrder,
+  sessionLayout: DEFAULT_SETTINGS.sessionLayout,
 }
 const listeners = new Set<() => void>()
 
@@ -92,4 +102,23 @@ function currentOrder(): RowOrder {
 /** The order in force, as the portfolio reads it. */
 export function usePortfolioOrder(): RowOrder {
   return useSyncExternalStore(subscribe, currentOrder, currentOrder)
+}
+
+/** Take what the settings file holds, at launch (RG277). */
+export function holdSessionLayout(layout: SessionLayout): void {
+  hold('sessionLayout', layout)
+}
+
+/** Move a card: the screen redraws first and the file is written after. */
+export function chooseSessionLayout(layout: SessionLayout): void {
+  choose('sessionLayout', layout)
+}
+
+function currentLayout(): SessionLayout {
+  return held.sessionLayout
+}
+
+/** The arrangement in force, as the session screen reads it. */
+export function useSessionLayout(): SessionLayout {
+  return useSyncExternalStore(subscribe, currentLayout, currentLayout)
 }

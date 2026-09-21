@@ -6,14 +6,18 @@ import { DEPTH_CEILING } from './roots'
 import { DEFAULT_POLICY } from './scanning'
 import {
   DEFAULT_SETTINGS,
+  isSessionCard,
   isSessionLayout,
   isSessionNotes,
   isTheme,
   moveCard,
+  placeOf,
   readSettings,
+  sameLayout,
   SESSION_CARDS,
   SETTINGS_VERSION,
   settingsText,
+  steppedPlace,
   wasReset,
   type SessionLayout,
 } from './settings'
@@ -374,6 +378,70 @@ describe('RG276: moving one card', () => {
 
     expect(layout).toEqual({ left: ['handed'], right: ['moved', 'files'] })
     expect(isSessionLayout(moved)).toBe(true)
+  })
+})
+
+describe('RG277: the place a card is moved to', () => {
+  const layout = DEFAULT_SETTINGS.sessionLayout
+
+  it('says where a card sits in the terms a move takes, so moving it there moves nothing', () => {
+    expect(placeOf(layout, 'handed')).toEqual({ side: 'left', index: 0 })
+    expect(placeOf(layout, 'files')).toEqual({ side: 'right', index: 1 })
+
+    const place = placeOf(layout, 'moved')
+    if (place === null) throw new Error('lost a card the default draws')
+    expect(sameLayout(moveCard(layout, 'moved', place.side, place.index), layout)).toBe(true)
+  })
+
+  it('tells two arrangements apart by every place, not by what they hold', () => {
+    expect(sameLayout(layout, { left: ['handed'], right: ['moved', 'files'] })).toBe(true)
+    expect(sameLayout(layout, { left: ['handed'], right: ['files', 'moved'] })).toBe(false)
+    expect(sameLayout(layout, { left: [], right: ['handed', 'moved', 'files'] })).toBe(false)
+  })
+
+  it('steps along a side bar by one place and stops at either end', () => {
+    // `files` counted without itself: the right side bar is `moved` alone, so two places.
+    const last = { side: 'right', index: 1 } as const
+
+    expect(steppedPlace(layout, 'files', last, 'up')).toEqual({ side: 'right', index: 0 })
+    expect(steppedPlace(layout, 'files', last, 'down')).toEqual(last)
+    expect(steppedPlace(layout, 'files', { side: 'right', index: 0 }, 'up')).toEqual({
+      side: 'right',
+      index: 0,
+    })
+  })
+
+  it('crosses to the other side bar at the same place, or at its end where it is shorter', () => {
+    expect(steppedPlace(layout, 'files', { side: 'right', index: 1 }, 'left')).toEqual({
+      side: 'left',
+      index: 1,
+    })
+    // Third on the left, and the right side bar is empty: its one place is its end.
+    const piled = { left: ['handed', 'moved', 'files'], right: [] } satisfies SessionLayout
+    expect(steppedPlace(piled, 'files', { side: 'left', index: 2 }, 'right')).toEqual({
+      side: 'right',
+      index: 0,
+    })
+    expect(
+      steppedPlace(
+        { left: ['handed', 'moved'], right: ['files'] },
+        'moved',
+        { side: 'left', index: 1 },
+        'right',
+      ),
+    ).toEqual({ side: 'right', index: 1 })
+    // Left of the left side bar is still the left side bar.
+    expect(steppedPlace(layout, 'handed', { side: 'left', index: 0 }, 'left')).toEqual({
+      side: 'left',
+      index: 0,
+    })
+  })
+
+  it('knows the cards this build draws and nothing else, for the ids a drag hands back', () => {
+    expect(SESSION_CARDS.every(isSessionCard)).toBe(true)
+    for (const junk of ['stream', 'side-left', '', 'Handed', 0, null, undefined]) {
+      expect(isSessionCard(junk)).toBe(false)
+    }
   })
 })
 

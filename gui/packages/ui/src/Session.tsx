@@ -64,6 +64,7 @@ import { HeroActions } from './hero'
 import { Glyph, Pill, type Intent } from './marks'
 import { useSessionNotes } from './preferring'
 import { Prose } from './prose'
+import { SessionCards } from './session-cards'
 import { ProjectTrail } from './trail'
 import { useEditedAt } from './useEditedAt'
 import { useRegionHeight } from './useRegionHeight'
@@ -1507,36 +1508,20 @@ export function Session() {
     )
   }, [ended, key, acts, open])
 
-  return (
-    <>
-      <BentoHero eyebrow={trail} title={id} subtitle={subtitle} trailing={trailing} />
-      {session === null ? null : (
-        // The stream is written first and placed in the middle (RG225). Stacked below `lg`,
-        // the columns fall in the order they are written, and what was handed over and what
-        // moved used to come first — so at 400 wide the session's own words, which a reader
-        // opened this screen for, started below the fold whatever the region's height did.
-        // First in the document is also first for a screen reader, at every width.
-        //
-        // Laid out as an editor is, across the window's whole width (RG237): from `xl` what was
-        // handed over is a side bar on the left, what moved one on the right, and the stream
-        // takes the middle. Between `lg` and `xl` the two side panels share the left column —
-        // what moved under what was handed, the stream spanning both rows — since three columns
-        // at 1024 would leave the stream where the reading column had it. The second row is
-        // `1fr` so a stream taller than the two panels grows that row and not the gap between them.
-        <div className="grid items-start gap-5 lg:grid-cols-[18rem_minmax(0,1fr)] lg:grid-rows-[auto_1fr] xl:grid-cols-[18rem_minmax(0,1fr)_18rem] xl:grid-rows-none">
-          <div
-            className="min-w-0 lg:col-start-2 lg:row-span-2 lg:row-start-1 xl:row-span-1"
-            data-region="session-stream"
-          >
-            <Stream acts={acts} after={reply} standings={standings} />
-          </div>
-          <div className="min-w-0 lg:col-start-1 lg:row-start-1" data-region="session-handed">
-            <Handed record={session.record} />
-          </div>
-          {/* What moved in the backlog, and under it the files it touched as a card of their
-              own (RG265): one grid cell holding both, so neither layout above it moves. */}
-          <div className="flex min-w-0 flex-col gap-5 lg:col-start-1 lg:row-start-2 xl:col-start-3 xl:row-start-1">
-            <div className="min-w-0" data-region="session-moved">
+  // The stream and the three cards beside it, which `SessionCards` places where the settings
+  // file says (RG277): what was handed over, what moved in the backlog, and the files it
+  // touched as a card of its own (RG265).
+  const stream = useMemo(
+    () => <Stream acts={acts} after={reply} standings={standings} />,
+    [acts, reply, standings],
+  )
+  const cards = useMemo(
+    () =>
+      session === null
+        ? null
+        : {
+            handed: <Handed record={session.record} />,
+            moved: (
               <Moved
                 record={session.record}
                 now={session.now}
@@ -1544,8 +1529,8 @@ export function Session() {
                 files={session.files}
                 claims={session.claims}
               />
-            </div>
-            <div className="min-w-0" data-region="session-files">
+            ),
+            files: (
               <Touched
                 record={session.record}
                 outcome={session.outcome}
@@ -1553,10 +1538,15 @@ export function Session() {
                 moved={session.moved}
                 movedBeyond={session.movedBeyond}
               />
-            </div>
-          </div>
-        </div>
-      )}
+            ),
+          },
+    [session, acts],
+  )
+
+  return (
+    <>
+      <BentoHero eyebrow={trail} title={id} subtitle={subtitle} trailing={trailing} />
+      {cards === null ? null : <SessionCards stream={stream} cards={cards} />}
     </>
   )
 }

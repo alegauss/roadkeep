@@ -229,6 +229,8 @@ export interface Wired {
     readonly requestId: string
     readonly answer: AskAnswer
   }[]
+  /** Each preference the screen wrote, as its key and the value (RG277). */
+  readonly preferred: { readonly key: string; readonly value: unknown }[]
 }
 
 export async function at(
@@ -260,6 +262,7 @@ export async function at(
     holds: [],
     replied: [],
     answered: [],
+    preferred: [],
   }
   // What this window holds, which a handover adds to — the state RG175 reads to decide
   // whether the line is offered again, and which a test can move under a standing list
@@ -316,6 +319,10 @@ export async function at(
       },
       stopSession: (one) => {
         wired.stopped.push(one)
+        return Promise.resolve()
+      },
+      savePreference: (preference, value) => {
+        wired.preferred.push({ key: preference, value })
         return Promise.resolve()
       },
     }),

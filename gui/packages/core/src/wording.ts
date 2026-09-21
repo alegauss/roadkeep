@@ -227,6 +227,19 @@ export const EN = {
   'session.handed.bounds': '{count} non-goals',
   'session.handed.bounds.one': '{count} non-goal',
   'session.handed.agent': 'started with {command}, Claude Code {version}',
+  // A side card moved by its grip (RG277): named by its own title, and told where it is going
+  // in words, since a screen reader has no insertion line to see.
+  'session.card.grip': 'Move the “{card}” card',
+  'session.card.role': 'movable card',
+  'session.card.instructions':
+    'Press Space to pick the card up, the arrow keys to choose where it goes, then Space to drop it there or Escape to leave it where it was.',
+  'session.card.lifted': 'Picked up the “{card}” card.',
+  'session.card.at.left': '“{card}”: left side bar, place {place}.',
+  'session.card.at.right': '“{card}”: right side bar, place {place}.',
+  'session.card.dropped.left': 'Dropped the “{card}” card in the left side bar, at place {place}.',
+  'session.card.dropped.right':
+    'Dropped the “{card}” card in the right side bar, at place {place}.',
+  'session.card.back': 'The “{card}” card is back where it was.',
   'session.stream': 'The stream',
   'session.stream.empty': 'Nothing has been written yet.',
   'session.follow': 'Jump to latest',

@@ -183,7 +183,11 @@ export function isSessionNotes(value: unknown): value is SessionNotes {
 
 const SIDES: readonly SessionSide[] = ['left', 'right']
 
-function isSessionCard(value: unknown): value is SessionCard {
+/**
+ * Whether a value names a card this build draws. Exported for the screen, where a dragged
+ * card comes back as whatever id the drag library was handed.
+ */
+export function isSessionCard(value: unknown): value is SessionCard {
   return typeof value === 'string' && (SESSION_CARDS as readonly string[]).includes(value)
 }
 
@@ -266,6 +270,57 @@ export function moveCard(
   const target = without[side]
   target.splice(Math.max(0, Math.min(index, target.length)), 0, card)
   return without
+}
+
+/**
+ * A place a card can be moved to (RG277): a side bar, and an index in it counted as `moveCard`
+ * counts one, once the card has left — so a place is exactly the two arguments a move takes.
+ */
+export interface CardPlace {
+  readonly side: SessionSide
+  readonly index: number
+}
+
+/** Where a card sits now, as a place, so moving it there is no move at all. */
+export function placeOf(layout: SessionLayout, card: SessionCard): CardPlace | null {
+  for (const side of SIDES) {
+    const index = layout[side].indexOf(card)
+    if (index !== -1) return { side, index }
+  }
+  return null
+}
+
+/** Whether two arrangements put every card in the same place. */
+export function sameLayout(one: SessionLayout, other: SessionLayout): boolean {
+  return SIDES.every(
+    (side) =>
+      one[side].length === other[side].length &&
+      one[side].every((card, index) => other[side][index] === card),
+  )
+}
+
+/** One arrow key, as a direction a card being moved is sent in. */
+export type CardStep = 'up' | 'down' | 'left' | 'right'
+
+/**
+ * The place one arrow key sends a card to, from the place it would land now (RG277).
+ *
+ * Up and down move it one place along its side bar and stop at either end. Left and right send
+ * it to that side bar at the same place, or at the end where that side bar is shorter — the
+ * way a caret keeps its column moving between lines of different lengths.
+ */
+export function steppedPlace(
+  layout: SessionLayout,
+  card: SessionCard,
+  place: CardPlace,
+  step: CardStep,
+): CardPlace {
+  const room = (side: SessionSide): number => layout[side].filter((one) => one !== card).length
+  if (step === 'up') return { side: place.side, index: Math.max(0, place.index - 1) }
+  if (step === 'down') {
+    return { side: place.side, index: Math.min(room(place.side), place.index + 1) }
+  }
+  return { side: step, index: Math.min(place.index, room(step)) }
 }
 
 /** One root, or null where it is not one. A bad entry is dropped, not the whole list. */
