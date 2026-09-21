@@ -4006,6 +4006,12 @@ def test_a_composed_carried_line_is_recognised_as_one():
     # As the file holds it, which is what the recogniser is handed: a line with its ending on.
     assert carries(carried("A lead", "Because of a reason.") + "\n")
     assert carries(carried("A lead", "Because of a reason.") + "\r\n")
+    # And the second derived word (RK1693): a verdict `validate` composed is this tool's line
+    # too, read through the verdict's own recogniser rather than a second prefix here.
+    from roadkeep.validating import VERDICTS, verdict_line
+
+    for verdict in VERDICTS:
+        assert carries(verdict_line(verdict, "It was there when I looked.") + "\n")
 
 
 def test_a_retirement_names_back_the_id_it_was_composed_with():

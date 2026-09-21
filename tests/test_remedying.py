@@ -78,6 +78,9 @@ def emitted() -> set[str]:
         address("referring"),
         address("criteria"),
         address("scoping"),
+        # RK1693, for the two above's reason: the verdict line's four codes are declared as
+        # constants beside the writer and its recogniser, and the gate emits them through them.
+        address("validating"),
     ):
         text = (SOURCE / name).read_text(encoding="utf-8")
         # **The hyphen on both halves** (RK1266). The tail already allowed one and the head
@@ -1465,6 +1468,12 @@ def test_no_row_writes_a_word_only_the_author_could_have(tmp_path):
                     None,
                 )
                 enumerated = declared is not None and word in (declared.choices or ())
+                # Or a **positional** the parser enumerates (RK1693): `validate`'s verdict is a
+                # closed set with no option string to find it by, and the word is the parser's.
+                enumerated = enumerated or any(
+                    not one.option_strings and word in (one.choices or ())
+                    for one in parser._actions  # noqa: SLF001
+                )
                 assert enumerated or word in ROLES, (
                     f"{code}: `{' '.join(words)}` writes {word!r}, which is neither a verb, "
                     f"a flag, a blank, a value the finding gave, nor a choice the parser "

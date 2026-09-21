@@ -117,7 +117,7 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 234 | 2 |
+| B — Authoring (insert, never hand-edit) | 1 | 234 | 2 |
 | C — Query (consult without reading the file) | 0 | 202 | 7 |
 | D — The gate | 0 | 318 | 7 |
 | E — Adoption | 0 | 122 | 1 |
@@ -125,12 +125,12 @@ called unbuilt were already in the ledger.
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| J — Validation (whether a person ever tried it) | 2 | 3 | 0 |
-| **Total** | 2 | 1166 | 24 |
+| J — Validation (whether a person ever tried it) | 1 | 4 | 0 |
+| **Total** | 2 | 1167 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1693** (deps: RK1690 ✅) **a verdict line is invisible to `carries`, so an entry holding one reads as hand-wrapped to `record amend`** — The recogniser moves with the writer, as RK1507 put them, and lint reports an unknown verdict, a second on one entry, and one under a line still open. → §RK1693
+- 📋 **RK1694** (deps: RK1690 ✅) **a validation that failed is a defect with nowhere to go, so the verdict and its line are two commands** — `--files` writes the open line in the transaction that writes the verdict, as `--decides` writes a decision, so the failure is filed by the act that found it. → §RK1694
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

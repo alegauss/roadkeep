@@ -77,6 +77,26 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1695 A count read as an address
+
+`record amend RK1 --lines 2 --why "It works now.\n\n  more prose"` on a wrapped entry is
+the reproduction: the blank line ends the entry, `Document.rewrite_entry` raises
+`Continuation` exactly as designed, and the caller gets a Python traceback instead of
+that refusal. Found while shipping RK1693, and reachable on every door that writes a
+tail back.
+
+The cause is a name. `_refused` asks `_retrying` for the retry a refusal can offer, and
+`_retrying` reads the address off the first of `_OFFERS` — `offered`, then `free` — that
+the error carries. `Continuation` stores its line count as `offered`, an `int`, so the
+retry substitutes a number into the caller's argv and `deliverable` calls `endswith` on
+it.
+
+The repair belongs to the channel, not to this one error: rename the kernel's field
+(`given`, as `Wrapped` already spells its own count) so no count can be read as an
+address, and have `_retrying` take only a string, so a third refusal choosing the same
+word fails as no retry rather than as a crash. A test drives the reproduction through
+`main` and asserts exit 2 and the refusal's own sentence on stderr.
+
 ## Block C — Query
 
 ## Block D — The gate
@@ -92,30 +112,6 @@ already written, not authorship.
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
 ## Block J — Validation (whether a person ever tried it)
-
-### §RK1693 The recogniser and the gate
-
-RK1507 put `carries` beside `carried` because a writer and a reader of one shape drift
-silently and in the direction that costs. Widening the writer without the reader is that
-failure exactly: an entry holding a verdict would read as hand-wrapped to
-`_derived_tail`, `record amend` would go back to demanding `--lines`, and nothing would
-be red.
-
-**So the pair moves together**, and the round-trip test that already sends a composed
-line back through `carries` gains the second word.
-
-**Four findings**, each the format being wrong rather than the work being unfinished:
-
-- `validation.verdict` — a token outside the declared set.
-- `validation.saw` — a sentence empty or past the ledger's `why` limit, which `validate` already refuses under that code; `tests/test_backstop.py` lists both as unbackstopped until this lands.
-- `validation.repeated` — two verdicts on one entry, which is RK1690's rewrite having failed.
-- `validation.open` — a verdict under a line still open in the roadmap, which nothing has shipped.
-
-None of them is *unvalidated*. That is a state, and RK1691 says why it is not a
-violation.
-
-Done when a hand-written verdict of each shape is reported with its code, and an entry
-holding a legal one round-trips through `record amend` with no `--lines`.
 
 ### §RK1694 What a failure is owed
 

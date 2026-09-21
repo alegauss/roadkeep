@@ -247,6 +247,14 @@ PREVENTION: tuple[Prevented, ...] = (
         "refused",
         ("criterion", "add", "--block", "A", "--lead", "A short lead", "--why", LONG),
     ),
+    # RK1693. The verdict line's two fields, refused where `validate` composes it: a token the
+    # parser does not enumerate, and a sentence past the ledger's own `why` limit.
+    Prevented("validation.verdict", "refused", ("validate", "RK5", "great", "--saw", WHY)),
+    Prevented("validation.saw", "refused", ("validate", "RK5", "worked", "--saw", LONG)),
+    # And the two no write can produce: `validate` collapses a second verdict into the one it
+    # writes, and refuses a line the roadmap still holds open.
+    Prevented("validation.repeated", "gate", because=HAND),
+    Prevented("validation.open", "gate", because=HAND),
     # RK1682. `FILE` for `priority.config`'s reason exactly: the row is a value somebody wrote
     # into `roadkeep.toml`, which no verb writes and the guard deliberately does not govern, so
     # there was never a door that could have refused a name three units too wide.
@@ -493,7 +501,13 @@ def test_how_much_of_the_register_is_measured():
 def test_the_probe_measures_what_its_row_claims(row, tmp_path, capsys):
     project(tmp_path)
     before = {name: (tmp_path / name).read_text(encoding="utf-8") for name in GOVERNED}
-    code = main(["-C", str(tmp_path), *row.probe])
+    try:
+        code = main(["-C", str(tmp_path), *row.probe])
+    except SystemExit as ended:
+        # The parser refusing a value it enumerates, which argparse does by ending the process
+        # (RK1693, `composing.runs`' reading of RK1595): a choice refused there is refused at
+        # the door, and the code it exits with is the answer a caller sees.
+        code = 0 if ended.code is None else int(ended.code)
     capsys.readouterr()
     if row.state == "refused":
         assert code != EXIT_OK, f"{row.code}: the write accepted it"

@@ -104,7 +104,7 @@ from typing import Any
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 
-from roadkeep import criteria, queueing, scoping
+from roadkeep import criteria, queueing, scoping, validating
 from roadkeep.backlog import Backlog, DepStatus, Stage, id_order
 from roadkeep.blocking import removable
 from roadkeep.config import LINE_ROLES as _LINE_ROLES
@@ -863,6 +863,9 @@ def _rules() -> tuple[_Rule, ...]:
             ),
         ),
         _Rule("documents", queued),
+        # The verdict lines `validate` writes (RK1693), read back against the rules it wrote
+        # them under — the gate the writer's own recogniser makes possible.
+        _Rule("documents", lambda scan: _verdicts(scan.config, scan.documents)),
         _Rule("documents", lambda scan: _collective(scan.config, scan.documents)),
         _Rule("tree", lambda scan: _disagreeing(scan.config, scan.tree)),
         _Rule("revision", against_baseline),
@@ -2627,6 +2630,60 @@ def _scope(config: Config, roadmap: Document | None) -> list[Finding]:
                 )
             )
         seen.setdefault(lead, non_goal.first)
+    return out
+
+
+def _verdicts(config: Config, documents: dict[str, Document]) -> list[Finding]:
+    """Every verdict line in the ledger, held to the rules `validate` holds it to (RK1693).
+
+    The backstop for what no write produced: a verdict typed by hand, or two left side by side by
+    a merge. Each finding is the format being wrong and never the work being unfinished — an
+    entry with no verdict is *unvalidated*, a state `unvalidated` reports and this never does,
+    since an entry shipped an hour ago is in it as its ordinary condition. Not opt-in either: a
+    verdict line is a shape this tool writes, so one that is wrong is wrong whether or not the
+    project has declared the question.
+    """
+    ledger = documents.get("changelog")
+    if ledger is None:
+        return []
+    file = config.relative(config.path("changelog"))
+    roadmap = documents.get("roadmap")
+    still_open = frozenset(roadmap.by_id()) if roadmap is not None else frozenset()
+    out: list[Finding] = []
+    for entry in ledger.entries:
+        held = validating.verdicts_under(ledger, entry)
+        if not held:
+            continue
+        task_id = entry.task.id
+        for index in held:
+            read = validating.read_verdict(ledger.lines[index])
+            said = (read.verdict, read.saw) if read is not None else ("", "")
+            for violation in validating.violations(config, *said):
+                out.append(Finding(violation.code, file, violation.message, index + 1, id=task_id))
+        if len(held) > 1:
+            out.append(
+                Finding(
+                    validating.REPEATED,
+                    file,
+                    f"{len(held)} verdicts under one entry, where the last one written replaces "
+                    f"the one before it — so a second is a rewrite that did not happen, and a "
+                    f"reader counts two opinions where the file means one",
+                    held[1] + 1,
+                    id=task_id,
+                )
+            )
+        if task_id in still_open:
+            out.append(
+                Finding(
+                    validating.OPEN,
+                    file,
+                    f"a verdict under an entry whose line {config.relative(config.path('roadmap'))} "
+                    f"still holds open: a half that shipped is not the whole, and a verdict here "
+                    f"reads as one about work that has not finished",
+                    held[0] + 1,
+                    id=task_id,
+                )
+            )
     return out
 
 

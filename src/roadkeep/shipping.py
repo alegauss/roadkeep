@@ -150,6 +150,7 @@ from roadkeep.markers import refresh
 from roadkeep.provenance import invocation
 from roadkeep.remedying import Door
 from roadkeep.renumbering import NotAnId, SameId, family_of
+from roadkeep.validating import is_verdict_line
 from roadkeep.kernel.schema import (
     ELSEWHERE,
     IN_PROGRESS,
@@ -2431,7 +2432,12 @@ def _derived_tail(ledger: Document, entry: Entry) -> tuple[str, ...] | None:
         return ()
     under = tuple(ledger.lines[entry.index + 1 : entry.stop])
     if all(carries(one) for one in under):
-        return under
+        # Without their endings (RK1693), which is the shape :meth:`Document.rewrite_entry`
+        # takes a tail in: it supplies each line's ending itself, so handing it the file's lines
+        # as they sit wrote every one twice — a stray blank under an entry with one derived
+        # line, and an entry split in two, and refused, under one with two. A verdict beside a
+        # `checked` line is the first entry to carry two, which is how this was found.
+        return tuple(one.rstrip("\r\n") for one in under)
     return None
 
 
@@ -3979,8 +3985,14 @@ def carries(line: str) -> bool:
     the entry's, so what identifies the line is the shape around them. What the pairing buys is
     that the shape is spelled once — `tests/test_shipping.py` round-trips a composed line back
     through this, so a change to either is a change to both or a red.
+
+    **And the second derived word** (RK1693): a verdict `validate` wrote is the same kind of
+    line, so an entry carrying one is not hand-wrapped and `record amend` keeps it without a
+    span. Asked of the verdict's own recogniser, which sits beside its writer, rather than a
+    second prefix spelled here — the pair moves together or it is not a pair.
     """
-    return line.strip("\r\n").startswith(f"  {_CHECKED} **")
+    stripped = line.strip("\r\n")
+    return stripped.startswith(f"  {_CHECKED} **") or is_verdict_line(stripped)
 
 
 def _addressed(leads: Sequence[str]) -> frozenset[str]:

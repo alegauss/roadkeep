@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1695** (deps: —) **a record amend whose tail the parser would not read back crashes with a traceback instead of refusing** — Continuation names its line count offered, the attribute _retrying reads as a computed address, so the retry puts an int in the argv. → §RK1695
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
@@ -42,7 +44,6 @@
 
 ## Block J — Validation (whether a person ever tried it)
 
-- 📋 **RK1693** (deps: RK1690 ✅) **a verdict line is invisible to `carries`, so an entry holding one reads as hand-wrapped to `record amend`** — The recogniser moves with the writer, as RK1507 put them, and lint reports an unknown verdict, a second on one entry, and one under a line still open. → §RK1693
 - 📋 **RK1694** (deps: RK1690 ✅) **a validation that failed is a defect with nowhere to go, so the verdict and its line are two commands** — `--files` writes the open line in the transaction that writes the verdict, as `--decides` writes a decision, so the failure is filed by the act that found it. → §RK1694
 
 ## Done when — Block D

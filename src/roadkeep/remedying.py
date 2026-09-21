@@ -880,6 +880,45 @@ _TABLE: Mapping[str, _Rule] = {
             "read the list first where the lead as this file reads it is not obvious",
         ),
     ),
+    # RK1693. A verdict line the writer would have refused, and the writer is the door: it
+    # rewrites the one line in place, so a bad token or sentence is replaced rather than kept
+    # beside the good one. Which of the three verdicts it is was the person's, so all three are
+    # offered and none is chosen here.
+    "validation.verdict": _decide(
+        "the verdict is out of a closed set, and which of the three somebody reached is theirs:",
+        (("validate", "{id}", "worked", "--saw", BLANK), "they tried it and it did what it said"),
+        (("validate", "{id}", "failed", "--saw", BLANK), "they tried it and it did not"),
+        (
+            ("validate", "{id}", "nothing to see", "--saw", BLANK),
+            "there is nothing a person can open, a refactor",
+        ),
+    ),
+    "validation.saw": _decide(
+        "the sentence is past the ledger's limit or unreadable, and the verdict beside it stands:",
+        (("validate", "{id}", "worked", "--saw", BLANK), "rewrite it under `worked`"),
+        (("validate", "{id}", "failed", "--saw", BLANK), "rewrite it under `failed`"),
+        (
+            ("validate", "{id}", "nothing to see", "--saw", BLANK),
+            "rewrite it under `nothing to see`",
+        ),
+    ),
+    # The newest call is the latest verdict by construction, so `validate` collapses every
+    # verdict under the entry to the one it writes — which is the rule the file broke, applied.
+    "validation.repeated": _decide(
+        "two verdicts where the last one replaces the one before, and which is the last is not "
+        "a fact the file holds — a new one written over both is:",
+        (("validate", "{id}", "worked", "--saw", BLANK), "it works"),
+        (("validate", "{id}", "failed", "--saw", BLANK), "it does not"),
+        (("validate", "{id}", "nothing to see", "--saw", BLANK), "nothing to open"),
+    ),
+    # Only a hand or a merge reaches it: `validate` refuses an open line. Whether the line
+    # finishes or the verdict was early is the judgement, so the doors are the ship and the read.
+    "validation.open": _decide(
+        "the verdict sits under a half whose line is still open, so it reads as a verdict on "
+        "work that has not finished:",
+        (("ship", "{id}", "--why", BLANK), "the rest landed: finish the line"),
+        (("show", "{id}"), "read the entry and the open line before deciding the verdict was early"),
+    ),
     "criterion.why": _compose(
         ("criterion", "amend", "{id}", "--why", "-"),
         "past the limit for a criterion's reason; the shorter sentence is yours and arrives "

@@ -57,10 +57,14 @@ _PREFIX = f"  {_VALIDATED} **"
 
 _LINE = re.compile(rf"^{re.escape(_PREFIX)}(?P<verdict>[^*]+)\*\*(?: (?P<saw>.*))?$")
 
-#: The codes a refused verdict carries. `validation.verdict` is the code the gate reports for a
-#: hand-written token outside the set, so the door and the backstop name one rule.
+#: The codes a verdict can be wrong under, declared once for the door and the gate (RK1693). The
+#: first two are refused where `validate` composes the line and reported where a hand wrote
+#: one; the last two are states only a hand or a merge reaches — the write collapses a second
+#: verdict and refuses an open line — so the gate is where they are read at all.
 VERDICT = "validation.verdict"
 SAW = "validation.saw"
+REPEATED = "validation.repeated"
+OPEN = "validation.open"
 
 
 def verdict_line(verdict: str, saw: str) -> str:
@@ -94,7 +98,14 @@ def read_verdict(line: str) -> Verdict | None:
 
 
 def check(config: Config, verdict: str, saw: str) -> None:
-    """Refuse a verdict outside the set, or a sentence the ledger could not hold, all at once.
+    """Refuse a verdict outside the set, or a sentence the ledger could not hold, all at once."""
+    out = violations(config, verdict, saw)
+    if out:
+        raise SchemaError(tuple(out))
+
+
+def violations(config: Config, verdict: str, saw: str) -> list[Violation]:
+    """Every rule a verdict line is held to, for the door and the gate alike (RK1693).
 
     The sentence is held to the ledger's own `why` limit, being a sentence under one of its
     entries, and to the codec check every field is (RK1497). Length and shape only: that the
@@ -128,8 +139,16 @@ def check(config: Config, verdict: str, saw: str) -> None:
             )
         )
     out += mangled("saw", said)
-    if out:
-        raise SchemaError(tuple(out))
+    return out
+
+
+def verdicts_under(ledger: Document, entry: Entry) -> tuple[int, ...]:
+    """The 0-based indices of the verdict lines an entry owns, in file order."""
+    return tuple(
+        index
+        for index in range(entry.index + 1, entry.stop)
+        if is_verdict_line(ledger.lines[index])
+    )
 
 
 class Unshipped(ValueError):
@@ -145,20 +164,19 @@ class Unshipped(ValueError):
         super().__init__(f"{task_id} {why}: a verdict is about work that shipped")
 
 
-class Repeated(ValueError):
-    """An entry already carrying two verdicts, which is a rewrite that failed (RK1690).
+class Twice(ValueError):
+    """A verdict on an id the ledger states twice (RK1690).
 
-    Refused rather than resolved to either: which of the two is the last is not a fact the
-    file holds, and `record amend --lines` is the door that rewrites a span somebody read.
+    `shipping.Ambiguous`' refusal and for its reason — which entry the verdict is about is not a
+    fact any file holds — spelled here because `shipping` reads this module for `carries`.
     """
 
     def __init__(self, task_id: str, where: str, linenos: Sequence[int]) -> None:
         self.task_id = task_id
-        spelled = ", ".join(str(one) for one in linenos)
+        lines = ", ".join(str(one) for one in linenos)
         super().__init__(
-            f"{where}: {task_id} carries {len(linenos)} verdicts (lines {spelled}), and a "
-            f"verdict is rewritten in place — so which is the last is not a fact the file "
-            f"holds: correct the entry with `record amend {task_id} --lines`, then validate"
+            f"{where} states {task_id} at {len(linenos)} lines ({lines}): which of them this "
+            f"verdict is about is not a fact any file holds — de-duplicate it first"
         )
 
 
@@ -219,9 +237,12 @@ def validate(config: Config, task_id: str, verdict: str, *, saw: str) -> Validat
     where it carries one — so a second verdict replaces the first and never sits beside it.
     Everything else under the entry stays verbatim: a `checked` line, and a hand-wrapped
     paragraph, are both text this write was not asked about.
-    """
-    from roadkeep.shipping import Ambiguous  # noqa: PLC0415 - shipping reads this module
 
+    **An entry already carrying two is collapsed to this one** (RK1693), at the first's place.
+    Which of the two was the last is not a fact the file holds, and it does not need to be:
+    the call being made now is the latest verdict by construction, so writing it over both is
+    the rule the file broke, applied — and the door `validation.repeated` names.
+    """
     check(config, verdict, saw)
     ledger = config.document("changelog")
     where = config.relative(config.path("changelog"))
@@ -232,31 +253,33 @@ def validate(config: Config, task_id: str, verdict: str, *, saw: str) -> Validat
     if not twins:
         raise Unshipped(task_id, why=f"is not in {where}")
     if len(twins) > 1:
-        raise Ambiguous(task_id, where, tuple(entry.lineno for entry in twins))
+        raise Twice(task_id, where, tuple(entry.lineno for entry in twins))
     entry = twins[0]
     if entry.task.status == ledger.schema.retired_marker:
         raise Unshipped(task_id, why="was retired and never shipped")
 
-    under = ledger.lines[entry.index + 1 : entry.stop]
-    held = [entry.index + 1 + at for at, line in enumerate(under) if is_verdict_line(line)]
-    if len(held) > 1:
-        raise Repeated(task_id, where, [one + 1 for one in held])
+    held = verdicts_under(ledger, entry)
     line = verdict_line(verdict, saw)
     if held:
         index = held[0]
         standing = ledger.lines[index].rstrip("\r\n")
         before = read_verdict(standing)
         replaced = "" if before is None else before.verdict
-        if standing == line:
+        if standing == line and len(held) == 1:
             return Validated(task_id, ledger, index + 1, verdict, line, changed=False)
-        document = ledger.replace_line(index, line)
+        # The extra ones first and from the bottom, so the indices above them still hold.
+        document = ledger
+        for extra in reversed(held[1:]):
+            document = document.remove_line(extra)
+        document = document.replace_line(index, line)
     else:
         index, replaced = entry.stop, ""
         document = ledger.insert_line(index, line)
     # The one check, made against the re-parse for `rewrite_entry`'s reason: a tail is whatever
     # the parser reads as one, so whether the line came back as this entry's is its question.
     owned = document.by_id()[task_id]
-    if owned.stop != entry.stop + (0 if held else 1):
+    expected = entry.stop - (len(held) - 1 if held else -1)
+    if owned.stop != expected:
         raise Continuation(task_id, 1, owned.stop - entry.stop, line)
     return Validated(task_id, document, index + 1, verdict, line, replaced=replaced)
 
@@ -265,7 +288,7 @@ def validate(config: Config, task_id: str, verdict: str, *, saw: str) -> Validat
 
 
 def _carries_verdict(ledger: Document, entry: Entry) -> bool:
-    return any(is_verdict_line(one) for one in ledger.lines[entry.index + 1 : entry.stop])
+    return bool(verdicts_under(ledger, entry))
 
 
 class NoStart(KeyError):

@@ -25,7 +25,6 @@ from roadkeep.validating import (
     VERDICT,
     VERDICTS,
     NoStart,
-    Repeated,
     Unshipped,
     is_verdict_line,
     looked,
@@ -181,17 +180,27 @@ def test_work_nothing_shipped_is_refused(tmp_path, task_id, because):
     assert because in str(refused.value)
 
 
-def test_an_entry_already_holding_two_verdicts_is_refused_and_named(tmp_path):
-    doubled = LEDGER.replace(
-        "- ✅ **RK2** **A second symptom** — It works too.\n",
+DOUBLED = LEDGER.replace(
+    "- ✅ **RK2** **A second symptom** — It works too.\n",
+    "- ✅ **RK2** **A second symptom** — It works too.\n"
+    "  validated **worked** Once.\n"
+    "  validated **failed** Twice.\n",
+)
+
+
+def test_an_entry_already_holding_two_verdicts_collapses_to_the_one_written(tmp_path):
+    """RK1693. Which of the two was the last is not a fact the file holds, and it need not be:
+    the call being made now is the latest verdict, so it is written over both."""
+    config = project(tmp_path, ledger=DOUBLED)
+    written = validate(config, "RK2", "worked", saw="A third time.")
+    written.save()
+    text = ledger_of(config)
+    assert text.count("validated **") == 1
+    assert (
         "- ✅ **RK2** **A second symptom** — It works too.\n"
-        "  validated **worked** Once.\n"
-        "  validated **failed** Twice.\n",
-    )
-    config = project(tmp_path, ledger=doubled)
-    with pytest.raises(Repeated) as refused:
-        validate(config, "RK2", "worked", saw="A third time.")
-    assert "lines 8, 9" in str(refused.value)
+        "  validated **worked** A third time.\n- 🗑 **RK4**"
+    ) in text
+    assert written.lineno == 8
 
 
 def test_a_hand_wrapped_entry_keeps_its_prose_and_gains_the_verdict_under_it(tmp_path):
@@ -388,3 +397,60 @@ def test_the_table_declared_twice_names_the_read_and_not_a_key_it_lacks(tmp_path
     runs(tmp_path, said)
 
 
+
+
+# -- the recogniser and the gate (RK1693) -------------------------------------
+
+
+def test_an_entry_holding_a_verdict_is_corrected_with_no_span(tmp_path):
+    """RK1693's done-when, the half about the recogniser: a verdict is this tool's line, so
+    `record amend` keeps it and the `checked` line beside it without asking for `--lines`."""
+    config = project(tmp_path)
+    validate(config, "RK1", "worked", saw="It did.").save()
+    assert main(["-C", str(tmp_path), "record", "amend", "RK1", "--why", "It works, now."]) == EXIT_OK
+    # Written once each, with the next entry straight under them: the tail was handed back with
+    # its endings on and written with a second one, which split an entry holding two.
+    assert (
+        "- ✅ **RK1** **A first symptom** — It works, now.\n"
+        "  checked **It opens** Because it does.\n"
+        "  validated **worked** It did.\n"
+        "- ✅ **RK2**"
+    ) in ledger_of(config)
+
+
+def _reported(config: Config) -> dict[str, list[int | None]]:
+    out: dict[str, list[int | None]] = {}
+    for finding in lint(Config.discover(config.root)).findings:
+        if finding.code.startswith("validation."):
+            out.setdefault(finding.code, []).append(finding.lineno)
+    return out
+
+
+@pytest.mark.parametrize(
+    ("typed", "code"),
+    [
+        ("  validated **great** It was great.\n", "validation.verdict"),
+        ("  validated **worked**\n", "validation.saw"),
+        ("  validated **worked** " + "word " * 60 + "\n", "validation.saw"),
+    ],
+    ids=["a-word-outside-the-set", "no-sentence", "a-sentence-past-the-limit"],
+)
+def test_a_hand_written_verdict_of_each_shape_is_reported_with_its_code(tmp_path, typed, code):
+    ledger = LEDGER.replace("- 🗑 **RK4**", typed + "- 🗑 **RK4**")
+    config = project(tmp_path, ledger=ledger)
+    assert _reported(config) == {code: [8]}
+
+
+def test_two_verdicts_and_one_under_an_open_line_are_reported(tmp_path):
+    assert _reported(project(tmp_path, ledger=DOUBLED)) == {"validation.repeated": [9]}
+    opened = LEDGER + "- ✅ **RK3** **An open symptom** — Half of it works.\n  validated **worked** It did.\n"
+    assert _reported(project(tmp_path / "open", ledger=opened)) == {"validation.open": [10]}
+
+
+def test_a_legal_verdict_is_not_a_finding_and_an_absent_one_never_is(tmp_path):
+    """Unvalidated is a state and not a violation (RK1691): an entry shipped an hour ago is in
+    it as its ordinary condition, so the gate has nothing to say about an entry with none."""
+    config = project(tmp_path)
+    assert _reported(config) == {}
+    validate(config, "RK2", "nothing to see", saw="A refactor.").save()
+    assert _reported(config) == {}
