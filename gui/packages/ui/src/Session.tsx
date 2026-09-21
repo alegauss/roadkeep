@@ -1270,6 +1270,34 @@ function Reply({
   )
 }
 
+interface StreamProps {
+  readonly acts: readonly Act[]
+  /** What sits under the region inside the panel, which its height leaves room for (RG269). */
+  readonly after?: ReactNode
+  /** Where each question stands, by its id (RG272). */
+  readonly standings: ReadonlyMap<string, Standing>
+}
+
+/**
+ * The session's words, or the panel that says there are none yet.
+ *
+ * **Two components, so the one that measures mounts with its region** (RG275). A task opens this
+ * screen the moment its session spawns, before the first line. The region was measured then,
+ * against nothing, and never again, so it grew the page with every act. The gate only links
+ * here and the link is pressed later, when there are acts, which is why its session never grew.
+ */
+function Stream({ acts, after, standings }: StreamProps) {
+  const say = useWording()
+  if (acts.length === 0) {
+    return (
+      <BentoPanel className="min-w-0" contentClassName="p-6">
+        <BentoEmptyState title={say('session.stream.empty')} />
+      </BentoPanel>
+    )
+  }
+  return <Flowing acts={acts} after={after} standings={standings} />
+}
+
 /**
  * The session's own words, in a region that scrolls by itself and follows its end (RG206).
  *
@@ -1287,17 +1315,7 @@ function Reply({
  * back with what arrived since, and at the end it follows again. The jump is instant, because
  * a smooth scroll chasing several lines a second never arrives.
  */
-function Stream({
-  acts,
-  after,
-  standings,
-}: {
-  readonly acts: readonly Act[]
-  /** What sits under the region inside the panel, which its height leaves room for (RG269). */
-  readonly after?: ReactNode
-  /** Where each question stands, by its id (RG272). */
-  readonly standings: ReadonlyMap<string, Standing>
-}) {
+function Flowing({ acts, after, standings }: StreamProps) {
   const say = useWording()
   // Folded where the reader chose it, and applied here rather than in `actsIn`: the acts stay
   // whole, and following still counts every one of them (RG208).
@@ -1353,13 +1371,6 @@ function Stream({
     setFollow(FOLLOWING)
   }, [])
 
-  if (count === 0) {
-    return (
-      <BentoPanel className="min-w-0" contentClassName="p-6">
-        <BentoEmptyState title={say('session.stream.empty')} />
-      </BentoPanel>
-    )
-  }
   const arrived = arrivedSince(follow, count)
   return (
     <BentoPanel className="min-w-0" contentClassName="relative p-0">

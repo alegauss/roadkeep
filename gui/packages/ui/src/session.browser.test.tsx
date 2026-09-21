@@ -201,6 +201,25 @@ describe('RG217: the room the stream is given', () => {
     expect(wired.listeners.length).toBeGreaterThan(0)
   })
 
+  it('bounds a stream that opened with no acts, as one a task has just handed over does', async () => {
+    // A task navigates here the moment the session spawns, before its first line (RG275). The
+    // region was not drawn yet, so the room was measured against nothing and never again, and the
+    // stream grew the page with every act. The gate's link is pressed later, which hid this.
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [{ ...RECORD, lines: [] }] })
+    await screen.findByText(BASE['session.stream.empty'])
+
+    append(wired, 0, LONG_RUN)
+    const region = await screen.findByTestId('stream')
+    await waitFor(() => {
+      expect(region.scrollHeight).toBeGreaterThan(region.clientHeight + 200)
+    })
+    expect(region.getBoundingClientRect().bottom).toBeLessThanOrEqual(window.innerHeight)
+    await waitFor(() => {
+      expect(atEnd(region)).toBe(true)
+    })
+    expect(window.scrollY).toBe(0)
+  })
+
   it('takes the room a narrower window leaves, down to a floor it stops at', async () => {
     // At 400 the columns stack, so the region's top is far down the page and the measurement
     // hits its floor — below which a region is not worth scrolling inside and the page is.
