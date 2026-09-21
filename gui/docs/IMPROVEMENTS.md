@@ -215,6 +215,162 @@ with an original opens on the comparison, the file and the calls in the design s
 Done when `compare.test.ts` holds the hunks and `npm run shots` draws a created, a
 changed and a deleted file.
 
+### §RG283 A gloss: the brief framed for a newcomer, and the answer's shape
+
+A line is written for whoever builds it: a symptom, one why, and a design that names
+modules and non-goals. A person new to the project reads all three and still asks what
+the task *is*. Claude Code can say so, and the brief is already the read that says what
+to explain.
+
+**The prompt is `promptFor`'s shape.** `promptForGloss(payload, tag)` in `core/gloss.ts`
+frames the brief payload verbatim, as the hand-over does, and adds what a session does
+not need: the reader knows neither the project nor roadkeep's words, every string is
+written in the language `tag` names, and nothing is changed.
+
+**The answer is a shape, not a page.** `GLOSS_SCHEMA` is the JSON Schema Claude Code
+answers against: `headline`, `today`, `after`, `steps`, `terms`, `risks`, `done`, and
+three lists keyed by what the brief carries — `deps` and `unblocks` by id, `binds` by
+lead. `readGloss(answer, payload)` reads it as every payload reader does: a missing slot
+is empty, and an item keyed by an id or a lead the payload lacks is dropped, so no fact
+on screen is the agent's.
+
+`No Markdown parsed in this app` reaches this: every string is drawn and read for
+nothing, and the keys are matched against the brief, never parsed out of prose.
+
+Done when `gloss.test.ts` reads a captured answer, drops a foreign id, and holds a
+missing slot as empty.
+
+### §RG284 One read-only query, through the SDK the session already uses
+
+A session (RG273) is a turn that may write, answered by a person. A gloss is neither:
+one question, no tool that changes anything, nobody to ask. So it is its own call beside
+`startSession`, sharing what is the machine's — the `claude` RG43 resolved, the RG205
+environment, `spawnAgent` — and nothing that is a session's.
+
+**What `shell/gloss-process.ts` hands `query()`.** `cwd` the root, with the session's
+`settingSources` and preset prompt, so the project's `CLAUDE.md` supplies its
+vocabulary. `outputFormat` the RG283 schema, read back from the result's
+`structured_output`. `tools: []`, `strictMcpConfig` with no servers and `permissionMode:
+'dontAsk'`, so no tool exists and none is asked about. `persistSession: false`, so a
+gloss never joins the person's resumable sessions. A small `maxTurns`. No model: the
+person's default answers, and the `init` line names it.
+
+**The tag is main's.** `localeChoice(settings.locale, app.getLocale())` already answers
+the window's language, so the renderer never sends it.
+
+**Over the bridge** as `roadkeep:gloss` and `roadkeep:cancel-gloss`, answering the gloss
+with its model and Claude Code version, or one failure: no `claude`, signed out, failed
+with its stderr, cancelled. `explain` is roadkeep's verb for a lint code, hence another
+name.
+
+Done when a live test runs the scripted agent against `captured/gloss-stream.jsonl`,
+taken from a real run as `session-stream.jsonl` was, and a cancelled gloss leaves no
+process.
+
+### §RG285 An Explain button, and a dialog written for somebody new
+
+**Where it is.** An Explain action in the task hero's `HeroActions`, beside Copy the
+brief and Hand over, opening the design system's `Dialog`, wide and scrolling. Disabled,
+with its reason, where RG43 found no `claude`.
+
+**Its states.** Asking: a `Skeleton` in the answer's shape, and Cancel. Answered: the
+headline large, then today and after, the steps as an ordered list, the terms, the risks
+and what done looks like, each string through `Prose` (RG271). Failed: the failure's own
+sentence, and Try again. Every word of the frame in both catalogues.
+
+**Its author, named.** The footer says Claude Code {version} and {model} wrote this, in
+{language}, from the brief of {id}, and that it is not part of the backlog. `No engine
+the reader cannot name` is about roadkeep's copy, and its reason holds here too: two
+models may explain one task two ways.
+
+`No field this app composes` bounds this: the gloss is Claude Code's, shown and never
+written, and nothing copies it into a symptom, a why or a section. `No write to a
+governed file` holds with it.
+
+**Its screens.** A task-surface state in `shots-plan.ts` opens the dialog, as the
+session's `file` state opens its sheet, and the scripted agent answers it.
+
+Done when `task.test.tsx` draws each state off the stub bridge and `npm run shots` shows
+the dialog in both grounds, both languages and both widths.
+
+### §RG286 The picture: facts off the brief, captions off the gloss
+
+Drawn as paragraphs, a gloss is a longer design. A task is grasped at a glance by its
+shape: what it waits on and what waits on it, before against after, the path of steps.
+
+**Facts off the brief, words off the gloss.** The chain `deps → this line → unblocks` is
+drawn from `depsResolved` and `unblocks`, each node with its marker and readiness; the
+gloss's keyed items caption the nodes, and one it skipped keeps its symptom. The binding
+leads are cards over their meanings. No node is the agent's: `readGloss` dropped what
+the brief lacks.
+
+**The rest are shapes this app owns.** Today and after as two panels and an arrow; the
+steps as a numbered path, across when wide and down when narrow; the terms as a glossary
+grid; each risk a callout. React and inline SVG over the design system's tokens, so both
+grounds hold without a second palette.
+
+**No diagram the agent writes.** Mermaid or SVG in the answer is a program the window
+would run, which `skipHtml` (RG271) and the script policy refuse; fixed slots keep every
+gloss legible.
+
+Each shape has its words beside it, and the chain reads as a list to a screen reader.
+
+Done when the shots and their accessibility report are clean, and a test draws a node
+the gloss never named.
+
+On ship: --decides "A gloss is drawn in shapes this app owns, never in a diagram an
+agent wrote"
+
+### §RG287 Kept per brief and language, reused, and regenerated on demand
+
+A gloss costs a wait and the person's tokens, and closing the dialog throws it away.
+Kept, reopening a task shows it at once and asks Claude Code nothing.
+
+**Kept in its own file.** `core/glosses.ts` holds each gloss by root, id and language
+tag, beside the brief it answered; `shell/glosses-file.ts` keeps them in `glosses.json`
+under `userData`, written by rename as `readings-file.ts` writes, so a restart keeps
+them too. Not `settings.json`, whose header holds no cached answer, and nothing in the
+project's tree. Bounded, the oldest dropped first.
+
+**Stale is a comparison, not a clock.** A kept gloss stands while the brief's line,
+design, deps and binding lists equal the ones it answered; `glossStands()` is that
+comparison, as `readingStands()` is RG251's. A stale gloss is still shown, under a
+notice that the task changed since.
+
+**The language is part of the key.** A window switched to another language has no gloss
+in it, so opening the dialog asks anew, and switching back finds the first one kept.
+
+**Regenerate, always there.** A Regenerate button in the dialog's footer asks again and
+replaces the kept gloss: for a stale one, and for a person who wants another reading of
+a task that did not change.
+
+Done when `glosses.test.ts` holds a gloss across a reopen, reads it stale once the
+brief's design moved, and keeps two languages apart; and `task.test.tsx` shows a kept
+gloss with no call made, and Regenerate making one.
+
+### §RG288 Reading the files the design names
+
+A gloss from the brief alone restates the design in plainer words. What a newcomer also
+wants is where the change lands: which files, what they do today, what moves. The design
+names them, and reading them is the depth.
+
+**Three tools, all reads.** The RG284 call lists `Read`, `Grep` and `Glob` as its
+`tools`: still no `Bash`, no edit, no MCP server, and `dontAsk` refuses anything else
+without a question nobody would answer. The frame adds one instruction: read what the
+design names before explaining, and say for each place what it does now and what the
+task changes there.
+
+**The `where` slot.** The schema gains `where`, each item a path and its account; the
+picture draws them as one lane per top-level folder, since which folders a project has
+is its own and never this app's list.
+
+**Progress, at last.** A read is a `tool_use` in the stream, so while asking, the dialog
+names each file as it is read — the only progress a structured answer has.
+
+A deeper gloss is a slower one, and RG287 is what pays for it once per brief.
+
+Done when the captured stream reads at least one file and the picture draws its lane.
+
 ## Block G — The shell (an executable now, a service later)
 
 ### §RG49 The signature, and what it needs that code cannot supply
