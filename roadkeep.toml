@@ -222,7 +222,14 @@ characters = 2850
 # grepping the ledger, the move the hook exists to prevent. Paid for first out of its own
 # prose: the description and the block help came to 504 and were cut to 413. 69425,
 # headroom 121, which is the discipline of the 119 above it.
-session = 69425
+# Raised from 69425 for a flag rather than a verb (RK1694): validate --files writes the line
+# a failure found in the transaction that writes the verdict, and the reading here is
+# 69544. What the headroom buys is the second call nobody forgets: the agent that heard what
+# failed is the caller on this transport, and a flag the CLI alone could reach would leave
+# it the two-command path the flag exists to close. Paid for first out of its own help, cut
+# to one line, and the symptom's ceiling beside it is the roadmap's own number. 69665,
+# headroom 122, which is the discipline of the 121 above it.
+session = 69665
 
 [budgets]
 # Files loaded on every turn, and what each may cost (RK30). This budget lived in prose at

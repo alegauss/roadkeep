@@ -36,9 +36,13 @@ import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from roadkeep.config import Config
 from roadkeep.kernel.document import Continuation, Document, Entry
+
+if TYPE_CHECKING:  # a name for the annotation only: `authoring` is imported where it is called
+    from roadkeep.authoring import Insertion
 from roadkeep.kernel.schema import SchemaError, Violation, mangled, over_by, width
 
 #: The closed set a verdict is drawn from. A tuple and not a config key: the set is what the
@@ -194,22 +198,43 @@ class Validated:
     replaced: str = ""
     #: False where the entry already carried exactly this verdict and nothing was written.
     changed: bool = True
+    #: The open line a failure filed in the same transaction (RK1694), or None.
+    filed: Insertion | None = None
 
     def save(self) -> tuple[Path, ...]:
-        """Write the ledger and answer it (RK1130), or nothing where nothing moved."""
+        """Write the ledger — and the roadmap a failure filed into — as one (RK1130, RK1694).
+
+        Both or neither, which is the whole of `--files`: a verdict and the line it owes left as
+        two writes is how the second one gets forgotten, `ship`'s argument for its three.
+        """
+        from roadkeep.kernel.document import save_all  # noqa: PLC0415 - RK260
+
+        if self.filed is not None:
+            return save_all(
+                self.ledger if self.changed else None, self.filed.document, self.filed.prose
+            )
         return self.ledger.save() if self.changed else ()
 
     def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        from roadkeep.authoring import follow_ups, owed_rows  # noqa: PLC0415 - RK260
         from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
 
         where = config.relative(config.path("changelog"))
-        if not self.changed:
+        if not self.changed and self.filed is None:
             return f"{self.task_id} unchanged: the entry already carries that verdict"
         rows = [f"{self.task_id} validated  {where}:{self.lineno}  {self.verdict}", self.rendered]
         if self.replaced:
             # Said at the one door that could be read as having kept both: the last verdict
             # wins, and a reader who did not see the old one go would count two.
             rows.append(f"  replaced {self.replaced}, rewritten in place: the last verdict wins")
+        if self.filed is not None:
+            filed = self.filed
+            rows.append(f"  filed    {filed.entry.raw.rstrip()}")
+            if filed.needs is not None:
+                # The design the new line points at is still the caller's to write (L4), so the
+                # pointer owes one and the answer says so, as `add`'s does.
+                calls = follow_ups(filed.needs, filed.needs_role, filed.opens)
+                rows += owed_rows(filed.needs, calls)
         rows += _staging_rows(config.relative(one) for one in wrote)
         return "\n".join(rows)
 
@@ -226,11 +251,53 @@ class Validated:
             # that overwrote another without diffing the file.
             "replaced": self.replaced or None,
             "changed": self.changed,
+            # The line a failure filed (RK1694), with the design it still owes where it owes one
+            # — `absent`-shaped as `reopen` publishes it — or null where nothing was filed.
+            "filed": None if self.filed is None else self._filed(),
             **_wrote_json(config, wrote),
         }
 
+    def _filed(self) -> dict[str, object]:
+        from roadkeep.authoring import follow_ups  # noqa: PLC0415 - RK260
 
-def validate(config: Config, task_id: str, verdict: str, *, saw: str) -> Validated:
+        filed = self.filed
+        assert filed is not None
+        return {
+            "id": filed.entry.task.id,
+            "block": filed.entry.task.block,
+            "line": filed.entry.lineno,
+            "rendered": filed.entry.raw.rstrip(),
+            **(
+                {}
+                if filed.needs is None
+                else {
+                    "needs": filed.needs,
+                    "doors": [
+                        {"argv": one.split(), "what": "the design this pointer resolves to"}
+                        for one in follow_ups(filed.needs, filed.needs_role, filed.opens)
+                    ],
+                }
+            ),
+        }
+
+
+class NotAFailure(ValueError):
+    """`--files` on a verdict that found nothing to file (RK1694).
+
+    A `worked` that filed a line would be filing work nobody found, and `nothing to see` has
+    nothing to report — so the flag is refused naming the one verdict that takes it.
+    """
+
+    def __init__(self, verdict: str) -> None:
+        super().__init__(
+            f"--files files the defect a failed validation found, and {verdict!r} found none: "
+            f"pass it with `failed`, or leave it off"
+        )
+
+
+def validate(
+    config: Config, task_id: str, verdict: str, *, saw: str, files: str | None = None
+) -> Validated:
     """Write what a person saw under the ledger entry for `task_id` (RK1690).
 
     Appended as the entry's last line where it carries none, and rewritten where it stands
@@ -242,8 +309,17 @@ def validate(config: Config, task_id: str, verdict: str, *, saw: str) -> Validat
     Which of the two was the last is not a fact the file holds, and it does not need to be:
     the call being made now is the latest verdict by construction, so writing it over both is
     the rule the file broke, applied — and the door `validation.repeated` names.
+
+    **`files` writes the line a failure found** (RK1694), in the transaction that writes the
+    verdict, as `ship --decides` writes a decision: the open line lands under the entry's own
+    block with `files` as its symptom and the `saw` sentence as its why — both the caller's, so
+    nothing here composes prose — and it is refused through every rule `add` holds a line to,
+    before anything is written. Only with `failed`: `worked` found nothing to file and
+    `nothing to see` has nothing to report.
     """
     check(config, verdict, saw)
+    if files is not None and verdict != "failed":
+        raise NotAFailure(verdict)
     ledger = config.document("changelog")
     where = config.relative(config.path("changelog"))
     if task_id in config.document("roadmap").by_id():
@@ -258,15 +334,45 @@ def validate(config: Config, task_id: str, verdict: str, *, saw: str) -> Validat
     if entry.task.status == ledger.schema.retired_marker:
         raise Unshipped(task_id, why="was retired and never shipped")
 
-    held = verdicts_under(ledger, entry)
     line = verdict_line(verdict, saw)
+    written = _written(ledger, entry, line)
+    filed = None
+    if files is not None:
+        from roadkeep.authoring import prepared  # noqa: PLC0415 - RK260
+
+        filed = prepared(
+            config, block=entry.task.block, symptom=files, why=" ".join(saw.split())
+        )
+    return Validated(
+        task_id,
+        written.document,
+        written.index + 1,
+        verdict,
+        line,
+        replaced=written.replaced,
+        changed=written.changed,
+        filed=filed,
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class _Written:
+    document: Document
+    index: int
+    replaced: str = ""
+    changed: bool = True
+
+
+def _written(ledger: Document, entry: Entry, line: str) -> _Written:
+    """The ledger with `line` as the entry's one verdict, appended or written over the rest."""
+    held = verdicts_under(ledger, entry)
     if held:
         index = held[0]
         standing = ledger.lines[index].rstrip("\r\n")
         before = read_verdict(standing)
         replaced = "" if before is None else before.verdict
         if standing == line and len(held) == 1:
-            return Validated(task_id, ledger, index + 1, verdict, line, changed=False)
+            return _Written(ledger, index, changed=False)
         # The extra ones first and from the bottom, so the indices above them still hold.
         document = ledger
         for extra in reversed(held[1:]):
@@ -277,11 +383,12 @@ def validate(config: Config, task_id: str, verdict: str, *, saw: str) -> Validat
         document = ledger.insert_line(index, line)
     # The one check, made against the re-parse for `rewrite_entry`'s reason: a tail is whatever
     # the parser reads as one, so whether the line came back as this entry's is its question.
+    task_id = entry.task.id
     owned = document.by_id()[task_id]
     expected = entry.stop - (len(held) - 1 if held else -1)
     if owned.stop != expected:
         raise Continuation(task_id, 1, owned.stop - entry.stop, line)
-    return Validated(task_id, document, index + 1, verdict, line, replaced=replaced)
+    return _Written(document, index, replaced)
 
 
 # -- the read: what nobody has looked at (RK1691) -----------------------------

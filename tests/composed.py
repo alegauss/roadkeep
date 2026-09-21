@@ -140,6 +140,12 @@ FIELDS: dict[str, Composed] = {
         "the sentence under that verdict, the caller's own, written verbatim into the ledger",
         "validation.saw", "char.mangled",
     ),
+    # RK1694. The symptom of the line a failed verdict files, refused by `add`'s own rules.
+    "defect": _schema(
+        "the claim a failed verdict files as an open line, written into the roadmap",
+        "symptom.empty", "symptom.too-long", "symptom.markup", "symptom.sentence",
+        "symptom.newline", "symptom.control", "symptom.whitespace",
+    ),
     # -- prose held to the two character rules and nothing else -------------------
     # RK1627's own finding, and the row this register exists to be able to make: `govern`
     # wraps the sentence into comment lines above the key and re-parses the whole file before

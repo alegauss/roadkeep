@@ -112,25 +112,3 @@ word fails as no retry rather than as a crash. A test drives the reproduction th
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
 ## Block J — Validation (whether a person ever tried it)
-
-### §RK1694 What a failure is owed
-
-A validation that failed found a defect, and this tool has exactly one thing for a
-defect: an open line. Leaving the verdict and the line as two commands is how the second
-one gets forgotten, which is the argument `ship`'s three edits are one transaction for.
-
-**`--files <symptom>` writes both**, as `--decides` writes a decision into the fourth
-file: the verdict lands on the ledger entry, the open line lands under the same block,
-and the caller's `--saw` sentence becomes its why. Nothing composes prose — the symptom
-is the caller's too.
-
-**Only with `failed`.** A `worked` that filed a line would be filing work nobody found,
-and a `nothing to see` has nothing to report. Refused on either, naming the verdict that
-takes it.
-
-This is also what makes RK1690's rewrite-in-place safe. A verdict is overwritten by the
-next one, but a failure that filed a line left a record no rewrite touches, and that
-line ships into the ledger as its own entry.
-
-Done when a failed validation with `--files` leaves the verdict and a new open line
-under the same block, or leaves neither, and the other two verdicts refuse the flag.

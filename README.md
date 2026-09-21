@@ -125,12 +125,12 @@ called unbuilt were already in the ledger.
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| J — Validation (whether a person ever tried it) | 1 | 4 | 0 |
-| **Total** | 2 | 1167 | 24 |
+| J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
+| **Total** | 1 | 1168 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1694** (deps: RK1690 ✅) **a validation that failed is a defect with nowhere to go, so the verdict and its line are two commands** — `--files` writes the open line in the transaction that writes the verdict, as `--decides` writes a decision, so the failure is filed by the act that found it. → §RK1694
+- 📋 **RK1695** (deps: —) **a record amend whose tail the parser would not read back crashes with a traceback instead of refusing** — Continuation names its line count offered, the attribute _retrying reads as a computed address, so the retry puts an int in the argv. → §RK1695
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

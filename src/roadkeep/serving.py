@@ -561,7 +561,9 @@ TOOLS: tuple[Tool, ...] = (
     # What a person saw under the entry (RK1690), served beside the ledger's other writes: the
     # person who tried the thing is usually talking to an agent, and a verdict only a terminal
     # could write is one the guard denies that agent the hand edit for.
-    Tool("validate", ("id", "verdict", "saw")),
+    # `files` beside them (RK1694): the failure and the line it owes are one transaction, and
+    # the agent that heard what failed is the one that would otherwise forget the second call.
+    Tool("validate", ("id", "verdict", "saw", "defect")),
     Tool("non-goal add", ("lead", "why")),
     # The correction the other two bullet grammars had and this one did not (RK368). Exposed
     # beside them for `record amend`'s reason: without it a reworded constraint is a drop and
@@ -866,6 +868,9 @@ _DESTS: Mapping[str, Mapping[str, str]] = {
     # preposition the pair needs and `with` is not a name Python lets an attribute be spelled,
     # so the flag and the dest differ for a reason no other row has.
     "section amend": {"--with": "replacement"},
+    # RK1694. The verb the flag reads as (`--files` the defect) and a dest no reader takes for
+    # a path, which `files` would be to every one that classifies path arguments by name.
+    "validate": {"--files": "defect"},
 }
 
 
@@ -1049,6 +1054,11 @@ _BOUNDS = {
     "saw": lambda config: {
         "maxLength": config.schema_for("changelog").why_max,
         "note": _aimed(config.schema_for("changelog").why_max),
+    },
+    # The symptom of the line a failure files (RK1694), held to the roadmap's own ceiling.
+    "defect": lambda config: {
+        "maxLength": config.schema.symptom_max,
+        "note": _aimed(config.schema.symptom_max),
     },
 }
 

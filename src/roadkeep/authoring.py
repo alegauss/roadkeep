@@ -950,6 +950,56 @@ def add(
     correct three words in a different argument. So the prose is not fetched until the line
     it belongs to has passed.
     """
+    insertion = prepared(
+        config,
+        block=block,
+        symptom=symptom,
+        why=why,
+        status=status,
+        deps=deps,
+        requires=requires,
+        ref=ref,
+        task_id=task_id,
+        family=family,
+        section=section,
+    )
+    # The paths ride back on the record (RK1129), because the caller composing a commit is the
+    # one who needs them and `save` is the only reader that knows what a projection refreshed.
+    # And the neighbours beside them (RK1370), read after the write rather than before it: this
+    # is a *report* and not a gate — nothing here refuses a duplicate and nothing could (RK441)
+    # — so it costs the same ranking whichever side of `save` it runs, and running it here keeps
+    # every refusal above untouched by a read that cannot refuse anything.
+    shown, recorded, open_lines = _near(config, insertion)
+    return replace(
+        insertion,
+        wrote=insertion.save(),
+        near=shown,
+        near_recorded=recorded,
+        near_open=open_lines,
+    )
+
+
+def prepared(
+    config: Config,
+    *,
+    block: str,
+    symptom: str,
+    why: str,
+    status: str | None = None,
+    deps: Sequence[str] = (),
+    requires: Sequence[str] = (),
+    ref: str | None = None,
+    task_id: str | None = None,
+    family: str | None = None,
+    section: Rationale | None = None,
+) -> Insertion:
+    """:func:`add`'s whole transaction up to the save, and nothing written (RK1694).
+
+    The door a second write files a line through: `validate --files` writes a verdict into the
+    ledger and the line its failure found into the roadmap, and the two land together or not at
+    all — so it needs every refusal `add` makes, made here, and the save left to it. One body
+    and two callers, because a second copy of these refusals is the one that drifts.
+    """
     promise: Promise | None = None
     if task_id is None:
         # Read before the write and not after it: this `add` is about to put the derived id
@@ -1020,20 +1070,7 @@ def add(
         )
     else:
         insertion = _binding(config, insertion)
-    # The paths ride back on the record (RK1129), because the caller composing a commit is the
-    # one who needs them and `save` is the only reader that knows what a projection refreshed.
-    # And the neighbours beside them (RK1370), read after the write rather than before it: this
-    # is a *report* and not a gate — nothing here refuses a duplicate and nothing could (RK441)
-    # — so it costs the same ranking whichever side of `save` it runs, and running it here keeps
-    # every refusal above untouched by a read that cannot refuse anything.
-    shown, recorded, open_lines = _near(config, insertion)
-    return replace(
-        insertion,
-        wrote=insertion.save(),
-        near=shown,
-        near_recorded=recorded,
-        near_open=open_lines,
-    )
+    return insertion
 
 
 def volunteered_rows(

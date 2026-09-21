@@ -443,7 +443,9 @@ def _validate(config: Config, args: argparse.Namespace) -> Result | int:
     off the record.
     """
     try:
-        validated = validate(config, args.id, args.verdict, saw=_piped(args.saw))
+        validated = validate(
+            config, args.id, args.verdict, saw=_piped(args.saw), files=args.defect
+        )
         wrote = validated.save()
     except REFUSALS as error:
         return _refused(error)
@@ -951,6 +953,15 @@ def declare_departures(subcommands: argparse._SubParsersAction) -> None:
         "--saw",
         required=True,
         help="what you did and what happened, one sentence, written verbatim" + _PIPE,
+    )
+    # RK1694. The line a failure found, filed in the transaction that writes the verdict, as
+    # `ship --decides` files a decision: two commands is how the second gets forgotten.
+    # `defect` and not `files`, which is a path's name to every reader that classifies one.
+    validate_parser.add_argument(
+        "--files",
+        dest="defect",
+        metavar="SYMPTOM",
+        help="failed only: file the defect as an open line in the entry's block, --saw its why",
     )
     validate_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     validate_parser.set_defaults(

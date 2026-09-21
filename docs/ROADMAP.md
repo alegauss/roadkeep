@@ -44,8 +44,6 @@
 
 ## Block J — Validation (whether a person ever tried it)
 
-- 📋 **RK1694** (deps: RK1690 ✅) **a validation that failed is a defect with nowhere to go, so the verdict and its line are two commands** — `--files` writes the open line in the transaction that writes the verdict, as `--decides` writes a decision, so the failure is filed by the act that found it. → §RK1694
-
 ## Done when — Block D
 
 - **The gate passes on this repository's own docs** the format is proven by the artefact

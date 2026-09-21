@@ -25,6 +25,7 @@ from roadkeep.validating import (
     VERDICT,
     VERDICTS,
     NoStart,
+    NotAFailure,
     Unshipped,
     is_verdict_line,
     looked,
@@ -454,3 +455,42 @@ def test_a_legal_verdict_is_not_a_finding_and_an_absent_one_never_is(tmp_path):
     assert _reported(config) == {}
     validate(config, "RK2", "nothing to see", saw="A refactor.").save()
     assert _reported(config) == {}
+
+
+# -- what a failure is owed (RK1694) -------------------------------------------
+
+
+def test_a_failed_validation_files_the_line_it_found_under_the_same_block(tmp_path):
+    """RK1694's done-when, the half that lands: the verdict on the entry, and an open line under
+    the entry's own block whose symptom is the caller's and whose why is the `saw` sentence."""
+    config = project(tmp_path)
+    written = validate(
+        config, "RK2", "failed", saw="The second open came back empty.",
+        files="The second open comes back empty",
+    )
+    wrote = written.save()
+    assert {one.name for one in wrote} >= {"CHANGELOG.md", "ROADMAP.md"}
+    assert "  validated **failed** The second open came back empty.\n" in ledger_of(config)
+    filed = Config.discover(tmp_path).document("roadmap").by_id()["RK5"]
+    assert (filed.task.block, filed.task.symptom, filed.task.why) == (
+        "A", "The second open comes back empty", "The second open came back empty."
+    )
+    assert written.payload(config, wrote)["filed"]["needs"] == "RK5"
+
+
+def test_a_failure_whose_line_would_be_refused_writes_neither(tmp_path):
+    """Both or neither: the ledger would take this sentence and the roadmap will not, having no
+    full stop to end a why on — so the verdict is not written either."""
+    config = project(tmp_path)
+    before = (ledger_of(config), (tmp_path / "docs" / "ROADMAP.md").read_text(encoding="utf-8"))
+    with pytest.raises(SchemaError):
+        validate(config, "RK2", "failed", saw="it came back empty", files="It comes back empty")
+    after = (ledger_of(config), (tmp_path / "docs" / "ROADMAP.md").read_text(encoding="utf-8"))
+    assert after == before
+
+
+@pytest.mark.parametrize("verdict", ["worked", "nothing to see"])
+def test_the_other_two_verdicts_refuse_the_flag(tmp_path, verdict):
+    config = project(tmp_path)
+    with pytest.raises(NotAFailure, match="pass it with `failed`"):
+        validate(config, "RK2", verdict, saw="It did.", files="Something")

@@ -377,7 +377,9 @@ saw is `validate <id> <verdict> --saw "…"`**: one line under the entry, the ve
 `worked`, `failed` and `nothing to see` and the sentence yours. `ship --checked` is the
 session verifying its own criterion and this is somebody using the thing, so write it when
 they tell you, never on their behalf. A second verdict rewrites the first in place; a line
-still open, or retired, is refused. `section add
+still open, or retired, is refused. A failure owes a line, and `validate <id> failed --saw
+"…" --files "<symptom>"` files it as an open line in the entry's block, `--saw` its why, in the
+same transaction — both or neither. `section add
 <id> --title "…"` is that same write for a line that already exists, and takes prose on
 **stdin**, within the word budget, filled to the configured width, under the task's block
 — or, where the pointer is an outline anchor, under the section that anchor extends, since
