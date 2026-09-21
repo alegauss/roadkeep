@@ -309,11 +309,15 @@ def _stats(config: Config, args: argparse.Namespace) -> Result | int:
     # rather than inside them, and a label the ledger has no heading for simply has none.
     seen = None
     if config.on_disk("changelog"):
+        # None where the question is not asked (RK1692) — no `[validation]`, no history to
+        # place its start, or a `from` the ledger lacks, which `unvalidated` is the read that
+        # refuses — so a count of the roadmap never fails over the ledger's question.
         try:
             counted = looked(config, args.block)
-            seen = (counted.validated, counted.unvalidated)
         except KeyError:
-            seen = None
+            counted = None
+        if counted is not None:
+            seen = (counted.validated, counted.unvalidated)
     return Result(
         census.counts(config, standing, owed, args.have, looked=seen),
         census.counted_out(config, owed, args.have, looked=seen),

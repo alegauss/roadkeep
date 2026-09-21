@@ -198,7 +198,11 @@ class RoleDeclared(ValueError):
 #: all the same, because the state it is opted out of is the one that matters — a reader with
 #: no declaration knows it is holding a folder name, where an always-present table would hand
 #: back an empty name indistinguishable from a project that has none.
-OPT_IN: tuple[str, ...] = ("non_goals", "criteria", "project")
+#:
+#: `[validation]` is the fourth and opens a *question* rather than a gate (RK1692): whether a
+#: person tried what shipped. Opened empty, looking starts at the next ship — the reading that
+#: needs no id chosen — so a project with a long history is never handed all of it.
+OPT_IN: tuple[str, ...] = ("non_goals", "criteria", "project", "validation")
 
 
 class TableDeclared(ValueError):
@@ -223,11 +227,18 @@ class TableDeclared(ValueError):
         from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
 
         self.table = table
+        # The two lists' numbers are `govern`'s; the other two tables hold no number to tune,
+        # so their door is the read of what they carry (RK1692) — `govern project.lead` is a
+        # key neither has, and a door naming it exits 2.
+        door = (
+            f"`{invocation()} govern {table}.lead` reads what the list holds against the "
+            f"number and takes a new one after it, and `.why` is the other key"
+            if table in ("non_goals", "criteria")
+            else f"`{invocation()} config --table {table}` reads what it carries"
+        )
         super().__init__(
             f"this project already declares [{table}]: declare opens the table and one "
-            f"that is open needs no opening — `{invocation()} govern {table}.lead` reads "
-            f"what the list holds against the number and takes a new one after it, and "
-            f"`.why` is the other key"
+            f"that is open needs no opening — {door}"
         )
 
 
@@ -1412,6 +1423,9 @@ _TABLE_OPENS = {
     # roadkeep.toml being the file the guard deliberately does not govern — and `config` is
     # what says whether they landed and what each row may cost.
     "project": "config --table project",
+    # The read the table turns on (RK1692): what shipped after it and carries no verdict,
+    # which is empty the moment it opens and fills as work ships.
+    "validation": "unvalidated",
 }
 
 

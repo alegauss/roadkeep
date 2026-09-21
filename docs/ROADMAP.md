@@ -42,7 +42,6 @@
 
 ## Block J — Validation (whether a person ever tried it)
 
-- 📋 **RK1692** (deps: RK1691 ✅) **a project adopting validation opens with every entry it ever shipped in the list, 1163 of them here** — A `[validation]` table declares where looking starts, so the list opens at the next ship and not the first — the same opt-in `[criteria]` already is. → §RK1692
 - 📋 **RK1693** (deps: RK1690 ✅) **a verdict line is invisible to `carries`, so an entry holding one reads as hand-wrapped to `record amend`** — The recogniser moves with the writer, as RK1507 put them, and lint reports an unknown verdict, a second on one entry, and one under a line still open. → §RK1693
 - 📋 **RK1694** (deps: RK1690 ✅) **a validation that failed is a defect with nowhere to go, so the verdict and its line are two commands** — `--files` writes the open line in the transaction that writes the verdict, as `--decides` writes a decision, so the failure is filed by the act that found it. → §RK1694
 

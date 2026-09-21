@@ -59,6 +59,7 @@ from roadkeep.config import (
     _SCOPE_KEYS,
     _TOOLS_KEYS,
     _TOP_KEYS,
+    _VALIDATION_KEYS,
 )
 
 __all__ = ["Key", "Shape", "TABLES", "WHERE", "notes", "shape"]
@@ -96,6 +97,7 @@ TABLES: Mapping[str, frozenset[str]] = {
     "grammar.<role>": _GRAMMAR_KEYS,
     "tools": _TOOLS_KEYS,
     "reads": _READS_KEYS,
+    "validation": _VALIDATION_KEYS,
 }
 
 
@@ -188,6 +190,9 @@ WHERE: Mapping[tuple[str, str], object] = {
     ("reads", "brief"): None,
     ("reads", "list"): None,
     ("reads", "show"): None,
+    # No default and not an unknown either (RK1692): absent, looking starts at the next ship
+    # after the table was declared, which history answers and no constant could.
+    ("validation", "from"): None,
 }
 
 
@@ -373,6 +378,7 @@ _DESCRIBED = {
     "grammar.<role>": "_GRAMMAR_KEYS",
     "tools": "_TOOLS_KEYS",
     "reads": "_READS_KEYS",
+    "validation": "_VALIDATION_KEYS",
 }
 
 

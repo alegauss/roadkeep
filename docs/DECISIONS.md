@@ -937,3 +937,4 @@ deriving the anchor, which is how they came apart.
 ## Block J — Validation (whether a person ever tried it)
 
 - ✅ **RK1690** **the ledger says what shipped and nothing says whether a person ever tried it** — A verdict stores no date and no author: the commit that wrote its line holds both, and origin resolves them.
+- ✅ **RK1692** **a project adopting validation opens with every entry it ever shipped in the list, 1163 of them here** — Where validation starts is a commit and never a file position: the ledger is grouped by block and ships are not, so from names the commit that first wrote it.

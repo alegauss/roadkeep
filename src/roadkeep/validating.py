@@ -33,7 +33,7 @@ caller drawing twenty backlogs who wants the figure without the list.
 from __future__ import annotations
 
 import re
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -268,27 +268,139 @@ def _carries_verdict(ledger: Document, entry: Entry) -> bool:
     return any(is_verdict_line(one) for one in ledger.lines[entry.index + 1 : entry.stop])
 
 
-def _about(config: Config, block: str | None) -> tuple[Document, tuple[Entry, ...]]:
-    """The ledger, and every entry in it a verdict can be about, in file order.
+class NoStart(KeyError):
+    """`validation.from` naming an id the ledger does not carry (RK1692).
+
+    Refused as every other declared address is: a start nothing answers is a question the
+    project believes it is asking and is not, and silence would read as *nothing to look at*.
+    """
+
+    def __init__(self, source: str, start: str, where: str) -> None:
+        self.start = start
+        super().__init__(
+            f"{source}: validation.from names {start}, which {where} does not carry — it "
+            f"names the first ledger entry a verdict is asked of, so it has to be one"
+        )
+
+
+def _walked(config: Config) -> Mapping[str, str] | None:
+    """Which commit first wrote each id into the ledger, or None where there is no history."""
+    from roadkeep.history import HistoryUnavailable, added_ids  # noqa: PLC0415 - RK260
+
+    try:
+        return added_ids(config, "changelog")
+    except (HistoryUnavailable, OSError):
+        return None
+
+
+def _started(
+    config: Config, ledger: Document, walked: Mapping[str, str] | None
+) -> frozenset[str] | None:
+    """The ids shipped at or after where looking starts, or None where history cannot say.
+
+    **Placed on the history and never on the file**, because the file is grouped by block and
+    the ships are not: an entry shipped this morning into Block A sits above one shipped last
+    year into Block J. So the start is a commit — the one that first wrote `from` into the
+    ledger, or, with no `from`, the one that declared the table — and what is in the question
+    is every entry the ledger carries now that it did not carry just before that commit. A
+    start nobody has committed yet is the working tree's, which is where the next ship lands.
+    """
+    from roadkeep.history import (  # noqa: PLC0415 - RK260
+        HistoryUnavailable,
+        commits_touching,
+        content_at,
+        resolves,
+    )
+
+    declared = config.validation
+    assert declared is not None
+    now = frozenset(ledger.by_id())
+    if walked is None:
+        return None
+    try:
+        if declared.start is not None:
+            if declared.start not in now:
+                raise NoStart(
+                    config.relative(config.source or config.root),
+                    declared.start,
+                    config.relative(config.path("changelog")),
+                )
+            sha = walked.get(declared.start)
+        else:
+            source = (config.source or config.root / "roadkeep.toml").resolve()
+            try:
+                relative = source.relative_to(config.root)
+            except ValueError:
+                relative = source
+            opened = commits_touching(config.root, "[validation]", relative)
+            sha = opened[0].sha if opened else None
+        base = f"{sha}^" if sha else "HEAD"
+        if resolves(config, base):
+            earlier = Document.parse(content_at(config, base, "changelog"), schema=ledger.schema)
+            after = now - frozenset(earlier.by_id())
+        else:
+            # The start is the first commit there is, or there is none yet: nothing came before.
+            after = now
+    except (HistoryUnavailable, OSError, ValueError):
+        return None
+    if declared.start is None or sha is None:
+        return after
+    # One commit carries no order among the entries it wrote — an adopted ledger arrives in
+    # one — so inside the commit that wrote `from` the file's own order is the only one there
+    # is, and what sits above `from` there is history the declaration named as such.
+    position = {entry.task.id: at for at, entry in enumerate(ledger.entries)}
+    first = position[declared.start]
+    return frozenset(
+        one for one in after if walked.get(one) != sha or position.get(one, first) >= first
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class _Asked:
+    """The entries the question is asked of, and why there may be none."""
+
+    ledger: Document
+    entries: tuple[Entry, ...] = ()
+    #: False where this project declares no `[validation]`.
+    governed: bool = True
+    #: False where the history could not place the start.
+    placed: bool = True
+    walked: Mapping[str, str] | None = None
+
+
+def _about(config: Config, block: str | None) -> _Asked:
+    """Every ledger entry a verdict is asked of, in file order.
 
     Exactly the entries :func:`validate` accepts, so the list never offers one the write then
     refuses: a retirement left with nothing to try, and an id the roadmap still holds open is
-    a half whose verdict would read as a verdict on the whole. A label the ledger declares no
-    heading for is refused by the census's own words, a filter matching nothing being the
-    answer a finished backlog also gives.
+    a half whose verdict would read as a verdict on the whole. And only those at or after where
+    looking starts (RK1692) — none at all where the project has not declared the question. A
+    label the ledger declares no heading for is refused by the census's own words, a filter
+    matching nothing being the answer a finished backlog also gives.
     """
     from roadkeep.counting import Census  # noqa: PLC0415 - counting reads this module
 
     ledger = config.document("changelog")
     if block is not None:
         Census.of(config, "changelog", ledger).select(block=block)
+    if config.validation is None:
+        return _Asked(ledger, governed=False)
+    walked = _walked(config)
+    started = _started(config, ledger, walked)
+    if started is None:
+        return _Asked(ledger, placed=False)
     still_open = set(config.document("roadmap").by_id()) if config.on_disk("roadmap") else set()
-    return ledger, tuple(
-        entry
-        for entry in ledger.entries
-        if (block is None or entry.task.block == block)
-        and entry.task.status != ledger.schema.retired_marker
-        and entry.task.id not in still_open
+    return _Asked(
+        ledger,
+        tuple(
+            entry
+            for entry in ledger.entries
+            if (block is None or entry.task.block == block)
+            and entry.task.status != ledger.schema.retired_marker
+            and entry.task.id not in still_open
+            and entry.task.id in started
+        ),
+        walked=walked,
     )
 
 
@@ -300,11 +412,17 @@ class Looked:
     unvalidated: int = 0
 
 
-def looked(config: Config, block: str | None = None) -> Looked:
-    """How many of the entries a verdict can be about carry one, and how many do not."""
-    ledger, about = _about(config, block)
-    carrying = sum(1 for entry in about if _carries_verdict(ledger, entry))
-    return Looked(validated=carrying, unvalidated=len(about) - carrying)
+def looked(config: Config, block: str | None = None) -> Looked | None:
+    """How many of the entries a verdict is asked of carry one, and how many do not.
+
+    None where the question is not asked — no `[validation]`, or no history to place its start —
+    so `stats` prints no row rather than a zero that reads as *every one looked at*.
+    """
+    asked = _about(config, block)
+    if not (asked.governed and asked.placed):
+        return None
+    carrying = sum(1 for entry in asked.entries if _carries_verdict(asked.ledger, entry))
+    return Looked(validated=carrying, unvalidated=len(asked.entries) - carrying)
 
 
 @dataclass(frozen=True, slots=True)
@@ -328,24 +446,42 @@ class Unvalidated:
     rows: tuple[Unlooked, ...] = ()
     validated: int = 0
     block: str | None = None
-    #: Whether the history answered at all, for `Unclosed.searched`'s reason: a blank commit
-    #: column means *no git here* or *no commit wrote it*, and only this tells them apart.
-    searched: bool = True
+    #: False where this project declares no `[validation]` (RK1692): the list is not empty,
+    #: it is not asked, and the answer says which with the command that asks it.
+    governed: bool = True
+    #: False where the history could not place where looking starts, for `Unclosed.searched`'s
+    #: reason: an empty list here and an empty list because every entry carries a verdict are
+    #: two answers, and only this tells them apart.
+    placed: bool = True
+    #: `validation.from` as declared, or None where looking starts at the table's own ship.
+    start: str | None = None
 
     def stated(self) -> str:
         from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
 
+        if not self.governed:
+            return (
+                f"this project declares no [validation], so no shipped entry is asked about — "
+                f"`{invocation()} declare validation` opens it, and looking starts at the next "
+                f"ship"
+            )
+        if not self.placed:
+            return (
+                "no history to read, so where looking starts cannot be placed and no entry is "
+                "listed"
+            )
         shipped = self.validated + len(self.rows)
         scope = f" under Block {self.block}" if self.block else ""
+        since = f"from {self.start}" if self.start else "since [validation] was declared"
+        if not shipped:
+            return f"nothing has shipped {since}{scope}, so no entry is asked about yet"
         if not self.rows:
-            return f"every one of {shipped} shipped entr(ies){scope} carries a verdict"
-        out = [f"{len(self.rows)} of {shipped} shipped entr(ies){scope} carry no verdict"]
+            return f"every one of {shipped} entr(ies) shipped {since}{scope} carries a verdict"
+        out = [f"{len(self.rows)} of {shipped} entr(ies) shipped {since}{scope} carry no verdict"]
         for one in self.rows:
             out.append(
                 f"  {one.task_id:<8} Block {one.block:<3} {one.commit[:8] or '-':<8}  {one.symptom}"
             )
-        if not self.searched:
-            out.append("  history  none to read, so no row names the commit that shipped it")
         # The door, as every report here carries one (RK420): what closes a row is a person
         # saying what they saw, and the verb writes it rather than this read guessing.
         out.append(
@@ -359,7 +495,9 @@ class Unvalidated:
             "file": self.file,
             # Null where no block was named, which is the question rather than a missing answer.
             "block": self.block,
-            "searched": self.searched,
+            "governed": self.governed,
+            "placed": self.placed,
+            "from": self.start,
             "validated": self.validated,
             "unvalidated": [
                 {
@@ -375,22 +513,25 @@ class Unvalidated:
 
 
 def unvalidated(config: Config, block: str | None = None) -> Unvalidated:
-    """Every entry a verdict can be about that carries none, in the ledger's own order.
+    """Every entry a verdict is asked of that carries none, in the ledger's own order.
 
-    One walk of the ledger's history for every commit column (`history.added_ids`), never one
-    `origin` per row: that is a pickaxe per id, and a list of a thousand entries is the read
-    this exists to make cheap enough to ask.
+    One walk of the ledger's history for the start and every commit column
+    (`history.added_ids`), never one `origin` per row: that is a pickaxe per id, and a list of
+    a thousand entries is the read this exists to make cheap enough to ask.
     """
-    from roadkeep.history import HistoryUnavailable, added_ids  # noqa: PLC0415 - RK260
-
-    ledger, about = _about(config, block)
-    missing = tuple(entry for entry in about if not _carries_verdict(ledger, entry))
-    try:
-        shipped_in, searched = (added_ids(config, "changelog") if missing else {}), True
-    except (HistoryUnavailable, OSError):
-        shipped_in, searched = {}, False
+    asked = _about(config, block)
+    file = config.relative(config.path("changelog"))
+    start = None if config.validation is None else config.validation.start
+    if not (asked.governed and asked.placed):
+        return Unvalidated(
+            file=file, block=block, governed=asked.governed, placed=asked.placed, start=start
+        )
+    missing = tuple(
+        entry for entry in asked.entries if not _carries_verdict(asked.ledger, entry)
+    )
+    shipped_in = asked.walked or {}
     return Unvalidated(
-        file=config.relative(config.path("changelog")),
+        file=file,
         rows=tuple(
             Unlooked(
                 task_id=entry.task.id,
@@ -401,7 +542,9 @@ def unvalidated(config: Config, block: str | None = None) -> Unvalidated:
             )
             for entry in missing
         ),
-        validated=len(about) - len(missing),
+        validated=len(asked.entries) - len(missing),
         block=block,
-        searched=searched,
+        start=start,
     )
+
+

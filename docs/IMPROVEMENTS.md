@@ -93,29 +93,6 @@ already written, not authorship.
 
 ## Block J — Validation (whether a person ever tried it)
 
-### §RK1692 Where looking starts
-
-This repository has 1163 shipped entries and roadkeep-gui 283. A project that adopts
-validation and finds its whole history in the list has been handed a backlog nobody will
-start — the adoption gate that gets bypassed instead of adopted, which is the argument
-`[criteria]` and `[non_goals]` are both opt-in for.
-
-**Declared means governed.** A `[validation]` table turns the state on, and its `from`
-key names the first ledger entry that enters the list: everything before it is history
-and answers nothing. A project that declares the table and no `from` starts at its next
-ship, which is the reading that needs no id chosen.
-
-A ledger id and not a date. The ledger is ordered by the ships that wrote it, a date
-would be a second ordering to keep true, and RK1690 already refuses to store one.
-Refused on an id the ledger does not carry, as every other declared address is.
-
-Nothing migrates. An entry before the start is not *validated* and not *unvalidated* —
-it is outside the question, which is the third state `attesting` needed for the same
-reason.
-
-Done when a project with no table has no list, one declaring `from` lists only what
-followed it, and an id the ledger lacks is refused at config read.
-
 ### §RK1693 The recogniser and the gate
 
 RK1507 put `carries` beside `carried` because a writer and a reader of one shape drift

@@ -324,3 +324,9 @@ section = 150
 name = "roadkeep"
 description = "Owns the writes to a project's roadmap and changelog, so the format is a schema."
 icon = "🛣️"
+
+# Whether a person tried what shipped (RK1692), asked here because this repository's docs are
+# the conformance fixture and a table no fixture carries is proven by tests alone. No `from`:
+# 1163 entries shipped before the question existed, and a list opening on all of them is a
+# backlog nobody starts — so looking begins at the ship after this table was declared.
+[validation]

@@ -263,10 +263,11 @@ and forgot the line leaves behind — a commit touching only governed files is *
 writing* and is not counted, so an amended `why` or a corrected rationale never reads as
 work that landed; `unvalidated [--block <x>]` is its mirror on the ledger — each shipped
 entry no person has left a `validate` verdict on, with the commit that shipped it, a report
-and never a gate, and `stats` carries the two counts; `origin <id> --why` reads it out of
-history, and `origin §<anchor>` answers the other end of a pointer — a rationale address
-somebody's prose still cites after a ship deleted the section, which no file records, so the
-three answers are the
+and never a gate, and `stats` carries the two counts. It lists nothing until `[validation]`
+asks, and then only what shipped from its `from`, or after the table was declared; `origin
+<id> --why` reads it out of history, and `origin §<anchor>` answers the other end of a
+pointer — a rationale address somebody's prose still cites after a ship deleted the section,
+which no file records, so the three answers are the
 commit that wrote it, the one that took it, and "searched and nobody ever wrote it", which
 is what a typo looks like. `anchors [--family <x>]` is that question about the
 **addresses**: which a heading declares now, which a ship retired while every entry citing

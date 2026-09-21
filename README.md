@@ -125,12 +125,12 @@ called unbuilt were already in the ledger.
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| J — Validation (whether a person ever tried it) | 3 | 2 | 0 |
-| **Total** | 3 | 1165 | 24 |
+| J — Validation (whether a person ever tried it) | 2 | 3 | 0 |
+| **Total** | 2 | 1166 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1692** (deps: RK1691 ✅) **a project adopting validation opens with every entry it ever shipped in the list, 1163 of them here** — A `[validation]` table declares where looking starts, so the list opens at the next ship and not the first — the same opt-in `[criteria]` already is. → §RK1692
+- 📋 **RK1693** (deps: RK1690 ✅) **a verdict line is invisible to `carries`, so an entry holding one reads as hand-wrapped to `record amend`** — The recogniser moves with the writer, as RK1507 put them, and lint reports an unknown verdict, a second on one entry, and one under a line still open. → §RK1693
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -29,10 +29,12 @@ surface works, and a verb this CLI has is never respelled into another act.
 `init`, `adopt` and `install` run *before* a project is governed, or on its wiring, and want
 the CLI — `declare` above is the one write on a configured tree, which is why it is served
 and they are not. **It takes two vocabularies**: a *role* writes that file and the `[files]`
-key governing it, and one of the two *opt-in tables* — `criteria`, `non_goals` — opens the
-list a verb refuses over, empty, which is what opting in means; `govern` is what tunes the
-numbers in it afterwards. Reach for it when a write refuses over an undeclared role or
-table, which is the refusal that now names this command rather than a hand edit. **And it is
+key governing it, and an *opt-in table* — `criteria` or `non_goals` — opens the list a verb
+refuses over, empty, which is what opting in means; `govern` is what tunes the numbers in it
+afterwards. `validation` opens a question instead: whether a person tried what shipped, asked
+from the next ship on, or from the entry its `from` names. Reach for it when a write refuses
+over an undeclared role or table, which is the refusal that now names this command rather
+than a hand edit. **And it is
 what the tool list is composed from**: a verb that is one role's whole grammar — `defer` and
 `resume` for the store, `supersede` and `revise` for the decisions file, `dismiss` and
 `reopen` for the dismissed one — is published only where that role

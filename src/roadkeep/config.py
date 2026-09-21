@@ -192,8 +192,17 @@ _TOP_KEYS = frozenset(
         "history",
         # RK1682. What this project is called, for a reader that has only the folder name.
         "project",
+        # RK1692. Whether a person's verdict is asked of shipped work, and from which entry.
+        "validation",
     }
 )
+#: `[validation]` — where the question *has a person tried this* starts (RK1692). Declared
+#: means governed, and the one key names the first ledger entry the question is asked of:
+#: everything shipped before it is history and answers nothing. Absent, looking starts at the
+#: next ship after the table was declared, which is the reading that needs no id chosen. An
+#: id and never a date: the ledger is ordered by the ships that wrote it, and a date would be
+#: a second ordering to keep true.
+_VALIDATION_KEYS = frozenset({"from"})
 #: `[history]` — what a reader of this project's commits may not take at face value (RK1496).
 #: One key, because there is one such fact and it is a **declaration**: `unclosed` drops a
 #: commit that touched governed files and nothing else, on the argument that such a commit is
@@ -450,6 +459,18 @@ class Identity:
     #: One emoji, whole. The longest single grapheme anybody writes is a ZWJ sequence with two
     #: skin-tone modifiers, which measures 15; 16 clears it and refuses a word.
     icon: int = 16
+
+
+@dataclass(frozen=True, slots=True)
+class Validation:
+    """Where this project asks whether a person tried what it shipped (RK1692).
+
+    `start` is the table's `from` — a word Python keeps — and **None** is not an absent answer
+    but the other one: looking starts at the next ship after the table was declared, which is
+    read out of the history rather than chosen.
+    """
+
+    start: str | None = None
 
 
 #: `[project]` — a name, a sentence, a glyph and the file the glyph stands in for. Anything a
@@ -827,6 +848,11 @@ class Config:
     #: said: a reader of many checkouts then knows it is holding a folder name rather than a
     #: name, which is the distinction the table exists to make.
     project: Project | None = None
+    #: `[validation]` — **None** where this project has not asked whether a person tried what
+    #: it shipped (RK1692), which is the state `unvalidated` answers with no list at all: a
+    #: project adopting the question finding its whole history in it has been handed a backlog
+    #: nobody will start, the adoption gate `[criteria]` is opt-in against.
+    validation: Validation | None = None
     #: `[limits] name/description/icon` — the widths those three rows are held to. Always a
     #: value, unlike the table it bounds: a limit undeclared is this build's number, and only
     #: the identity itself is opt-in.
@@ -963,6 +989,7 @@ class Config:
         non_goals = _scope(data.get("non_goals"), problems)
         criteria = _scope(data.get("criteria"), problems, "criteria")
         project = _project(data.get("project"), problems)
+        validation = _validation(data.get("validation"), problems)
         identity = _identity(data.get("limits"), problems)
         upstream = _upstream(data.get("report"), problems)
         incidental = _incidental(data.get("history"), problems)
@@ -995,6 +1022,7 @@ class Config:
         if schema is not None:
             _check_priority(schema, priority, problems)
             _check_reserved(schema, reserved, problems)
+            _check_start(schema, validation, problems)
         if problems:
             raise ConfigError(tuple(problems), source)
 
@@ -1019,6 +1047,7 @@ class Config:
             non_goals=non_goals,
             criteria=criteria,
             project=project,
+            validation=validation,
             identity=identity,
             upstream=upstream,
             incidental=incidental,
@@ -2303,6 +2332,41 @@ def _held(raw: object, problems: list[str]) -> int:
         )
         return CLAIM_HELD
     return value
+
+
+def _validation(raw: object, problems: list[str]) -> Validation | None:
+    """`[validation]` — opt-in, and `from` an id when it is written (RK1692)."""
+    if raw is None:
+        return None
+    if not isinstance(raw, Mapping):
+        problems.append("validation must be a table, with an optional from = '<id>'")
+        return None
+    _reject_unknown(raw, _VALIDATION_KEYS, "validation.", problems)
+    value = raw.get("from")
+    if value is None:
+        return Validation()
+    if not isinstance(value, str):
+        problems.append("validation.from must be the id of a ledger entry, as a string")
+        return Validation()
+    return Validation(start=value)
+
+
+def _check_start(
+    schema: Schema, validation: Validation | None, problems: list[str]
+) -> None:
+    """`validation.from` is an id of this project (RK1692), refused where it is not.
+
+    The shape at the read and never the file: that the ledger carries the entry is asked where
+    the start is placed, because reading the ledger here would charge every command — the hook
+    among them — for a table only two reads consult.
+    """
+    if validation is None or validation.start is None:
+        return
+    if not schema.id_pattern().match(validation.start):
+        problems.append(
+            f"validation.from: not an id of this project: {validation.start!r} — it names "
+            f"the first ledger entry a verdict is asked of"
+        )
 
 
 def _upstream(raw: object, problems: list[str]) -> str | None:

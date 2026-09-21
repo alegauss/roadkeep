@@ -14,17 +14,23 @@ from pathlib import Path
 
 import pytest
 
+from composing import runs
+from conftest import git_commit, git_init
+
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
-from roadkeep.config import Config
+from roadkeep.config import Config, ConfigError
 from roadkeep.kernel.schema import SchemaError
 from roadkeep.linting import lint
 from roadkeep.validating import (
     VERDICT,
     VERDICTS,
+    NoStart,
     Repeated,
     Unshipped,
     is_verdict_line,
+    looked,
     read_verdict,
+    unvalidated,
     validate,
     verdict_line,
 )
@@ -236,41 +242,49 @@ def test_the_verb_answers_in_both_registers(tmp_path):
 # -- the read: what nobody has looked at (RK1691) -----------------------------
 
 
-def test_a_ledger_with_one_verdict_and_two_without_answers_with_the_two(tmp_path):
-    """RK1691's done-when, and the three it leaves out are the ones `validate` refuses."""
-    from roadkeep.validating import looked, unvalidated
+def asking(tmp_path: Path, *, ledger: str = LEDGER, start: str | None = "RK1") -> Config:
+    """A project that asks the question from `start`, committed so the start can be placed."""
+    project(tmp_path, ledger=ledger)
+    declared = "[validation]\n" + ("" if start is None else f'from = "{start}"\n')
+    with (tmp_path / "roadkeep.toml").open("a", encoding="utf-8", newline="") as handle:
+        handle.write(declared)
+    git_init(tmp_path)
+    git_commit(tmp_path, "the project, asking")
+    return Config.discover(tmp_path)
 
+
+def test_a_ledger_with_one_verdict_and_two_without_answers_with_the_two(tmp_path):
+    """RK1691's done-when, and the two it leaves out are the ones `validate` refuses."""
     ledger = LEDGER + "- ✅ **RK5** **A fifth symptom** — It works as well.\n"
-    config = project(tmp_path, ledger=ledger)
+    config = asking(tmp_path, ledger=ledger)
     validate(config, "RK1", "worked", saw="It did.").save()
     answer = unvalidated(config)
     assert [one.task_id for one in answer.rows] == ["RK2", "RK5"]
     assert answer.validated == 1
     # The counts `stats` carries are the list's own, never a second walk that could disagree.
     counts = looked(config)
+    assert counts is not None
     assert (counts.validated, counts.unvalidated) == (1, len(answer.rows))
-    assert "2 of 3 shipped entr(ies) carry no verdict" in answer.stated()
+    assert "2 of 3 entr(ies) shipped from RK1 carry no verdict" in answer.stated()
 
 
 def test_the_list_narrows_to_a_block_and_refuses_one_the_ledger_lacks(tmp_path):
-    from roadkeep.validating import unvalidated
-
-    config = project(tmp_path)
+    config = asking(tmp_path)
     assert [one.task_id for one in unvalidated(config, "A").rows] == ["RK1", "RK2"]
     with pytest.raises(KeyError, match="no heading declares Block ZZ"):
         unvalidated(config, "ZZ")
 
 
 def test_the_verb_and_stats_answer_in_both_registers(tmp_path):
-    project(tmp_path)
+    asking(tmp_path)
     payload = io.StringIO()
     with contextlib.redirect_stdout(payload):
         assert main(["-C", str(tmp_path), "unvalidated", "--json"]) == EXIT_OK
     answer = json.loads(payload.getvalue())
     assert [one["id"] for one in answer["unvalidated"]] == ["RK1", "RK2"]
-    # No git in the fixture, so the commit column is a stated absence and not a blank.
-    assert answer["searched"] is False
-    assert answer["unvalidated"][0]["commit"] is None
+    assert (answer["governed"], answer["placed"], answer["from"]) == (True, True, "RK1")
+    # The commit that first wrote the entry, which is what `origin` answers as where it shipped.
+    assert len(answer["unvalidated"][0]["commit"]) == 40
 
     counted = io.StringIO()
     with contextlib.redirect_stdout(counted):
@@ -289,7 +303,7 @@ def test_the_door_under_the_list_runs_as_printed(tmp_path, capsys):
     the door is the line the write puts under the entry."""
     from composing import commands, filled, supplied
 
-    config = project(tmp_path)
+    config = asking(tmp_path)
     assert main(["-C", str(tmp_path), "unvalidated"]) == EXIT_OK
     said = capsys.readouterr().out
     (argv,) = [one for one in commands(said) if one[:1] == ["validate"]]
@@ -297,3 +311,80 @@ def test_the_door_under_the_list_runs_as_printed(tmp_path, capsys):
     taken = supplied(filled([chosen.get(one, one) for one in argv]))
     assert main(["-C", str(tmp_path), *taken]) == EXIT_OK
     assert "  validated **worked** It was there when I looked.\n" in ledger_of(config)
+
+
+# -- where looking starts (RK1692) ----------------------------------------------
+
+
+def test_a_project_with_no_table_has_no_list(tmp_path, capsys):
+    """Not an empty list: the question is not asked, and the answer names what asks it."""
+    config = project(tmp_path)
+    git_init(tmp_path)
+    git_commit(tmp_path, "the project, not asking")
+    answer = unvalidated(config)
+    assert (answer.governed, answer.rows) == (False, ())
+    assert looked(config) is None
+    assert main(["-C", str(tmp_path), "stats", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["validation"] is None
+    # And the door it names opens the question, from the next ship on.
+    runs(tmp_path, answer.stated())
+    assert "[validation]" in (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+
+
+def test_a_declared_start_lists_only_what_followed_it(tmp_path):
+    """Placed on the history and not on the file: RK5 ships into Block A, above RK2 in the
+    file, and is still after it — and RK1, written in the same commit as RK2 but above it, is
+    history the declaration named as such."""
+    config = asking(tmp_path, start="RK2")
+    ledger = ledger_of(config).replace(
+        "- 🗑 **RK4**", "- ✅ **RK5** **A fifth symptom** — It works as well.\n- 🗑 **RK4**"
+    )
+    (tmp_path / "docs" / "CHANGELOG.md").write_text(ledger, encoding="utf-8", newline="")
+    git_commit(tmp_path, "ship RK5")
+    assert [one.task_id for one in unvalidated(Config.discover(tmp_path)).rows] == ["RK2", "RK5"]
+
+
+def test_with_no_start_looking_begins_at_the_ship_after_the_table(tmp_path):
+    project(tmp_path)
+    git_init(tmp_path)
+    git_commit(tmp_path, "the history")
+    assert main(["-C", str(tmp_path), "declare", "validation"]) == EXIT_OK
+    git_commit(tmp_path, "asking from here")
+    config = Config.discover(tmp_path)
+    assert unvalidated(config).rows == ()
+    assert "nothing has shipped since [validation] was declared" in unvalidated(config).stated()
+    # The next ship is in the question the moment it lands, committed or not.
+    main(["-C", str(tmp_path), "record", "add", "--block", "A", "--symptom", "A later one",
+          "--why", "It works."])
+    assert [one.task_id for one in unvalidated(Config.discover(tmp_path)).rows] == ["RK5"]
+
+
+def test_a_start_the_ledger_lacks_is_refused_and_one_that_is_no_id_at_config_read(tmp_path):
+    asking(tmp_path, start="RK9")
+    with pytest.raises(NoStart, match="validation.from names RK9"):
+        unvalidated(Config.discover(tmp_path))
+    text = (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+    (tmp_path / "roadkeep.toml").write_text(text.replace('"RK9"', '"banana"'), encoding="utf-8")
+    with pytest.raises(ConfigError, match="validation.from: not an id"):
+        Config.discover(tmp_path)
+
+
+def test_with_no_history_the_start_is_not_placed_and_nothing_is_listed(tmp_path):
+    project(tmp_path)
+    with (tmp_path / "roadkeep.toml").open("a", encoding="utf-8") as handle:
+        handle.write('[validation]\nfrom = "RK1"\n')
+    answer = unvalidated(Config.discover(tmp_path))
+    assert (answer.governed, answer.placed, answer.rows) == (True, False, ())
+    assert "no history to read" in answer.stated()
+
+
+def test_the_table_declared_twice_names_the_read_and_not_a_key_it_lacks(tmp_path, capsys):
+    """The door `declare` prints for an open table was `govern <table>.lead`, which this table
+    has no such key for — so it is the read of what the table carries, and it runs."""
+    asking(tmp_path)
+    assert main(["-C", str(tmp_path), "declare", "validation"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "govern" not in said
+    runs(tmp_path, said)
+
+
