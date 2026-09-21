@@ -206,7 +206,16 @@ characters = 2850
 # first out of its own new prose, which is the test RK1059 sets before a raise - the
 # description and the id's help came to 308 and were cut to 214 before this number
 # moved. 68100, headroom 118, which is the discipline of the 125 above it.
-session = 68100
+# Raised from 68100 for a verb rather than a flag (RK1690): validate is the only door a
+# verdict on a shipped entry has, and the reading here is 68891. What the headroom buys is
+# the caller who is usually holding the verdict - a person tells the agent what they saw,
+# and a door only the CLI could reach leaves that agent the hand edit the guard denies it.
+# Paid for first out of its own new prose, the test RK1059 sets before a raise: the
+# description and the two helps came to 982 and were cut to 762 before this number moved,
+# and the 147 after that are the verdict set and the ledger's limit with its aim, published
+# so a client validates the call instead of guessing the three words. 69010, headroom 119,
+# which is the discipline of the 118 above it.
+session = 69010
 
 [budgets]
 # Files loaded on every turn, and what each may cost (RK30). This budget lived in prose at

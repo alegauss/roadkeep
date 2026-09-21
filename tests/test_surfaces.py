@@ -312,7 +312,9 @@ def test_every_write_command_is_either_wired_or_exempted():
     # 44 since `dismiss` and `reopen` (RK1618), both wired: one writes the dismissed store and
     # the other moves a line between it and the roadmap, and a commit that filed a finding
     # nobody looked at again reads the staging line for the file it landed in.
-    assert len(declared) == 44 and len(wired) == 38
+    # 45 since `validate` (RK1690), wired for `record amend`'s reason: it writes a line under a
+    # ledger entry, and the staging line is what a commit recording a verdict reads.
+    assert len(declared) == 45 and len(wired) == 39
 
 
 def test_every_wired_write_reaches_the_one_printer():
@@ -530,6 +532,9 @@ MEASURED: dict[tuple[str, str], list[str]] = {
     ],
     ("record amend", "why"): ["record", "amend", "RK9", "--why", OVER],
     ("revise", "decides"): ["revise", "RK9", "--decides", OVER],
+    # RK1690. What a person saw, measured against the ledger's own `why` limit before the line
+    # under the entry is composed.
+    ("validate", "saw"): ["validate", "RK9", "worked", "--saw", OVER],
     ("section add", "body"): [
         "section", "add", "RK3", "--title", "A design", "--body", OVER_BODY,
     ],

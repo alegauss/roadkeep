@@ -1226,3 +1226,4 @@
 
 ## Block J — Validation (whether a person ever tried it)
 
+- ✅ **RK1690** **the ledger says what shipped and nothing says whether a person ever tried it** — An entry carries what a person saw: validate writes one line under it, a second verdict rewrites it in place, and a token outside the set is refused (design recorded in `src/roadkeep/validating.py`).

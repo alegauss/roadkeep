@@ -936,3 +936,4 @@ deriving the anchor, which is how they came apart.
 
 ## Block J — Validation (whether a person ever tried it)
 
+- ✅ **RK1690** **the ledger says what shipped and nothing says whether a person ever tried it** — A verdict stores no date and no author: the commit that wrote its line holds both, and origin resolves them.

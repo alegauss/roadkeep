@@ -243,6 +243,9 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         "record_move",
         "record_drop",
         "record_renumber",
+        # What a person saw under an entry (RK1690): the person who tried the thing is usually
+        # talking to an agent, and that agent is denied the hand edit the verdict would be.
+        "validate",
         "non_goal_add",
         # The correction the other two bullet grammars had and this one did not (RK368).
         "non_goal_amend",
@@ -646,6 +649,9 @@ def _minimal(tool: Tool) -> dict[str, object]:
     filled: dict[str, object] = {}
     for name in required:
         one = "RK1" if name == "id" else "x"
+        # A closed set is filled from itself (RK1690): `validate`'s verdict publishes one, and
+        # an `x` there is a value the parser refuses before the argv is about anything.
+        one = (properties.get(name, {}).get("enum") or [one])[0]
         filled[name] = [one] if properties.get(name, {}).get("type") == "array" else one
     for prose in prose_of(tool.command):
         if prose.dest in tool.unconditional and prose.reached_by(filled):
@@ -1199,6 +1205,8 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
         "record_move",
         "record_drop",
         "record_renumber",
+        # It writes a line under a ledger entry (RK1690), so it is never free to ask.
+        "validate",
         "non_goal_add",
         # The correction the other two bullet grammars had and this one did not (RK368).
         "non_goal_amend",
@@ -1577,6 +1585,9 @@ def test_the_paths_that_could_reach_it_are_the_ones_declared():
         # The decisions file's correction door (RK1453): its `--decides` is the one sentence
         # in that file, and it reaches the pipe for the same reason every `--why` does.
         "revise",
+        # A verdict's `--saw` is the caller's sentence under an entry (RK1690), and reaches the
+        # pipe for the reason every `--why` does.
+        "validate",
         "section_add",
         "section_amend",
     }

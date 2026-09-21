@@ -130,6 +130,16 @@ FIELDS: dict[str, Composed] = {
         "the bolded head of a non-goal or a criterion, which is also its address",
         "non-goal.lead", "non-goal.shape", "criterion.lead", "criterion.shape",
     ),
+    # RK1690. What a person saw, written as one line under a ledger entry: the verdict out of
+    # a closed set and the sentence under the ledger's own `why` limit, both refused at the door.
+    "verdict": _schema(
+        "the verdict a person leaves on an entry, from the closed set the writer declares",
+        "validation.verdict",
+    ),
+    "saw": _schema(
+        "the sentence under that verdict, the caller's own, written verbatim into the ledger",
+        "validation.saw", "char.mangled",
+    ),
     # -- prose held to the two character rules and nothing else -------------------
     # RK1627's own finding, and the row this register exists to be able to make: `govern`
     # wraps the sentence into comment lines above the key and re-parses the whole file before

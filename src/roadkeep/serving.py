@@ -105,6 +105,7 @@ from roadkeep.verbs.refusing import EXIT_USAGE as _EXIT_USAGE
 # 30 ms and eight modules — `authoring`, `sections`, `claiming`, `ids`, `markers` and the
 # rest of the write path — on every denied edit, for one character-to-word division.
 from roadkeep.kernel.schema import body_aim, width, words
+from roadkeep.validating import VERDICTS
 
 #: The protocol revision this server answers with when the client asks for one it does not
 #: know. Negotiation is "echo what the client asked for if we understand it": a server that
@@ -557,6 +558,10 @@ TOOLS: tuple[Tool, ...] = (
     # can be one slip or two deliveries, and the default picked the entry that earned the id.
     Tool("record drop", ("id", "line")),
     Tool("record renumber", ("id", "line", "to")),
+    # What a person saw under the entry (RK1690), served beside the ledger's other writes: the
+    # person who tried the thing is usually talking to an agent, and a verdict only a terminal
+    # could write is one the guard denies that agent the hand edit for.
+    Tool("validate", ("id", "verdict", "saw")),
     Tool("non-goal add", ("lead", "why")),
     # The correction the other two bullet grammars had and this one did not (RK368). Exposed
     # beside them for `record amend`'s reason: without it a reworded constraint is a drop and
@@ -1032,6 +1037,15 @@ _BOUNDS = {
     # what keeps the field from being a way around the counter, so it is also checked here and
     # not only published — a bound a client may skip is a bound on the client.
     "task_id": lambda config: {"pattern": config.schema.split_id_pattern().pattern},
+    # The closed set a verdict is drawn from (RK1690), published for RK304's reason: a field
+    # the client cannot validate is a well-formed call the server refuses after it is made, and
+    # here the set is the one thing an agent would otherwise have to guess.
+    "verdict": lambda config: {"enum": list(VERDICTS)},
+    # Held to the ledger's own `why` limit, which is the changelog role's and not the roadmap's.
+    "saw": lambda config: {
+        "maxLength": config.schema_for("changelog").why_max,
+        "note": _aimed(config.schema_for("changelog").why_max),
+    },
 }
 
 

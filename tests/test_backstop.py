@@ -208,14 +208,21 @@ BACKSTOP: tuple[Backstopped, ...] = (
     # probe, the other outcome, and a gate that stopped reporting turns it red.
     Backstopped("body.empty", gate="body.empty", section="### §RK1 A first design\n"),
     Backstopped("title.empty", gate="title.empty", section="### §RK1\n\nA paragraph.\n"),
+    # RK1690. Refused where `validate` composes the line, and a hand-written verdict line in
+    # the ledger is a state a file can hold that nothing reports yet: RK1693 is the line filed
+    # to give the gate the recogniser the writer already has, and these two leave this set there.
+    Backstopped("validation.verdict", because="the gate has no verdict reader until RK1693"),
+    Backstopped("validation.saw", because="the gate has no verdict reader until RK1693"),
 )
 
 #: The codes a file can carry that nothing reports — the register's finding, asserted in both
 #: directions so closing one is a decision somebody writes down (RK491's rule for `UNHELD`).
 #: **Empty since RK1012**, which is a state and not an achievement: the five rows beside them
 #: report nothing because no file can be in the state, and the next row to join this set is
-#: one somebody has to notice writing a refusal without a backstop.
-UNBACKSTOPPED = frozenset()
+#: one somebody has to notice writing a refusal without a backstop. RK1690's two are those,
+#: noticed: the verdict line has a writer and no gate reader, and RK1693 is the line that empties
+#: this again.
+UNBACKSTOPPED = frozenset({"validation.verdict", "validation.saw"})
 
 ROADMAP = (
     "# Roadmap\n\n## Block A — The model\n\n"

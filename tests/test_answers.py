@@ -146,6 +146,7 @@ WRITES: tuple[tuple[tuple[str, ...], str], ...] = (
     (("record", "add", "--block", "A", "--symptom", "A symptom nobody filed", "--why", "It works."), "an entry with no line"),
     (("record", "move", "RK10", "--to-block", "B"), "one filed under the wrong heading"),
     (("record", "amend", "RK10", "--why", "It works, corrected."), "its sentence, where it sits"),
+    (("validate", "RK10", "worked", "--saw", "Opened it and it was there."), "what a person saw, under it"),
     (("record", "drop", "RK5"), "the later of two entries saying one thing"),
     (("record", "renumber", "RK6", "--line", "7"), "one of two deliveries under one id"),
     (("section", "add", "RK8", "--title", "A design filed after its line", "--body", "The reasoning."), "the rationale a line points at"),

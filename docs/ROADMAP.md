@@ -42,11 +42,10 @@
 
 ## Block J — Validation (whether a person ever tried it)
 
-- 📋 **RK1690** (deps: —) **the ledger says what shipped and nothing says whether a person ever tried it** — A verdict is one continuation line under the entry, in the grammar `checked` already writes, and `validate <id> <verdict> --saw` is the only door that puts one there. → §RK1690
-- 📋 **RK1691** (deps: RK1690) **nothing answers which shipped entries no person has looked at, so the list is read by eye** — An `unvalidated` read mirrors `unclosed` — a report and never a gate — and `stats` carries the two counts, so a portfolio shows the backlog of looking without the list. → §RK1691
+- 📋 **RK1691** (deps: RK1690 ✅) **nothing answers which shipped entries no person has looked at, so the list is read by eye** — An `unvalidated` read mirrors `unclosed` — a report and never a gate — and `stats` carries the two counts, so a portfolio shows the backlog of looking without the list. → §RK1691
 - 📋 **RK1692** (deps: RK1691) **a project adopting validation opens with every entry it ever shipped in the list, 1163 of them here** — A `[validation]` table declares where looking starts, so the list opens at the next ship and not the first — the same opt-in `[criteria]` already is. → §RK1692
-- 📋 **RK1693** (deps: RK1690) **a verdict line is invisible to `carries`, so an entry holding one reads as hand-wrapped to `record amend`** — The recogniser moves with the writer, as RK1507 put them, and lint reports an unknown verdict, a second on one entry, and one under a line still open. → §RK1693
-- 📋 **RK1694** (deps: RK1690) **a validation that failed is a defect with nowhere to go, so the verdict and its line are two commands** — `--files` writes the open line in the transaction that writes the verdict, as `--decides` writes a decision, so the failure is filed by the act that found it. → §RK1694
+- 📋 **RK1693** (deps: RK1690 ✅) **a verdict line is invisible to `carries`, so an entry holding one reads as hand-wrapped to `record amend`** — The recogniser moves with the writer, as RK1507 put them, and lint reports an unknown verdict, a second on one entry, and one under a line still open. → §RK1693
+- 📋 **RK1694** (deps: RK1690 ✅) **a validation that failed is a defect with nowhere to go, so the verdict and its line are two commands** — `--files` writes the open line in the transaction that writes the verdict, as `--decides` writes a decision, so the failure is filed by the act that found it. → §RK1694
 
 ## Done when — Block D
 

@@ -125,12 +125,12 @@ called unbuilt were already in the ledger.
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| J — Validation (whether a person ever tried it) | 5 | 0 | 0 |
-| **Total** | 5 | 1163 | 24 |
+| J — Validation (whether a person ever tried it) | 4 | 1 | 0 |
+| **Total** | 4 | 1164 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1690** (deps: —) **the ledger says what shipped and nothing says whether a person ever tried it** — A verdict is one continuation line under the entry, in the grammar `checked` already writes, and `validate <id> <verdict> --saw` is the only door that puts one there. → §RK1690
+- 📋 **RK1691** (deps: RK1690 ✅) **nothing answers which shipped entries no person has looked at, so the list is read by eye** — An `unvalidated` read mirrors `unclosed` — a report and never a gate — and `stats` carries the two counts, so a portfolio shows the backlog of looking without the list. → §RK1691
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

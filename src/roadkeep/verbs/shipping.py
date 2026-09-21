@@ -1,7 +1,7 @@
 """The verbs a task leaves by, and the two reads only the ledger can answer (RK494).
 
-`ship`, `retire` and the `record` family write the terminal entry; `delivered` and
-`reversals` read it back — what a block already shipped, and which of those deliveries was
+`ship`, `retire` and the `record` family write the terminal entry, and `validate` what a person
+saw under one (RK1690); `delivered` and `reversals` read it back — what a block already shipped, and which of those deliveries was
 later undone. Filed by their subject, an entry in the ledger, and not by whether they write
 one: a proposal is checked against both, and the two reads come before it, not after.
 
@@ -37,6 +37,7 @@ from roadkeep.shipping import (
 )
 from roadkeep.rendering import Result, answered
 from roadkeep.serving import Prose
+from roadkeep.validating import VERDICTS, validate
 from roadkeep.verbs.declaring import (
     _JSON_HELP,
     _PIPE,
@@ -432,6 +433,22 @@ def _revise(config: Config, args: argparse.Namespace) -> Result | int:
         return _refused(error)
 
     return answered(corrected, config=config, wrote=wrote)
+
+
+def _validate(config: Config, args: argparse.Namespace) -> Result | int:
+    """What a person saw, written under the entry it is about (RK1690).
+
+    The ledger's one write that is not the shipping session's: the verdict is out of a closed
+    set and the sentence is the caller's own, so the handler passes both and reads the answer
+    off the record.
+    """
+    try:
+        validated = validate(config, args.id, args.verdict, saw=_piped(args.saw))
+        wrote = validated.save()
+    except REFUSALS as error:
+        return _refused(error)
+
+    return answered(validated, config=config, wrote=wrote)
 
 
 def _retire(config: Config, args: argparse.Namespace) -> Result | int:
@@ -897,6 +914,33 @@ def declare_departures(subcommands: argparse._SubParsersAction) -> None:
     revise_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     revise_parser.set_defaults(
         handler=_revise, reads_stdin=(Prose(dest="decides", omitted=False),)
+    )
+
+    validate_parser = subcommands.add_parser(
+        "validate",
+        help="say what a person saw when they tried a shipped entry",
+        description=(
+            "One line under the entry, the verdict and your sentence; a second verdict "
+            "rewrites it in place, the last one winning. `ship --checked` is the shipping "
+            "session verifying its own criterion, and this is somebody using the thing."
+        ),
+    )
+    validate_parser.add_argument("id", help="the shipped entry, e.g. RK5")
+    validate_parser.add_argument(
+        "verdict",
+        # The closed set as the writer declares it, never a second copy: a choice list here
+        # that drifted from it would refuse a verdict the gate accepts (RK1690).
+        choices=VERDICTS,
+        help="what trying it found; 'nothing to see' is for work nobody can open, a refactor",
+    )
+    validate_parser.add_argument(
+        "--saw",
+        required=True,
+        help="what you did and what happened, one sentence, written verbatim" + _PIPE,
+    )
+    validate_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    validate_parser.set_defaults(
+        handler=_validate, reads_stdin=(Prose(dest="saw", omitted=False),)
     )
 
     retire_parser = subcommands.add_parser(

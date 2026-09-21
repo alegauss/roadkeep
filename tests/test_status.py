@@ -655,6 +655,10 @@ SPELLINGS = {
     # it for that reason and `restate` is its door. It reads the pipe because it carries the
     # backtick and the apostrophe a `why` does, which is not the same as being one.
     ("--symptom",): "the claim a line makes, on `restate` alone",
+    # RK1690. Not the entry's sentence and not a correction of it: what a person saw when they
+    # tried the work, which lands as a line of its own under the entry. It reads the pipe for
+    # the reason every sentence here does.
+    ("--saw",): "what a person saw under a shipped entry, on `validate` alone",
 }
 
 
@@ -724,6 +728,11 @@ def test_the_two_that_rename_it_accept_the_name_the_rest_use():
             # fields `amend` deliberately keeps apart one field with two spellings. And
             # `--decides` writes a different file entirely (RK1269), so a `--why` spelling
             # of it would be one flag naming two records.
+            continue
+        if names == ("--saw",):
+            # RK1690, for `--decides`' reason one line over: the verdict's sentence sits under
+            # the entry beside its `why`, so a `--why` spelling of it would read as the verb
+            # rewriting the entry's own sentence — one flag naming two lines.
             continue
         assert "--why" in names, (names, where)
 

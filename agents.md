@@ -38,7 +38,7 @@ so it carries no task numbers — `origin <id>` answers where a rule came from:
   kernel/{schema,document}  one template, and the file it round-trips; imports nothing
                           above it (tests/test_kernel.py)
   config ids referring  a role's declared shape, the id, the relations a reference resolves in
-  authoring blocking shipping markers sections  the writes, whole
+  authoring blocking shipping markers sections validating  the writes, whole, and a person's verdict
   deferring dismissing renumbering merging  the doors that are not terminal, what was traced
                     and not filed, and the merge git cannot make
   locking claiming storing  scan-to-save is one span, who holds a line, one grammar
