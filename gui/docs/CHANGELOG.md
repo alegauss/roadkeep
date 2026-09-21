@@ -202,6 +202,7 @@
 - ✅ **RG286** **an explanation reads as a column of paragraphs, while a task's chain, its before and after and its steps are shapes** — The explanation is drawn as shapes: a chain off the brief, before against after, the steps as a path (design recorded in `packages/ui/src/explained.tsx`).
 - ✅ **RG287** **an explanation is lost when its dialog closes, so reopening a task pays the whole wait and the tokens again** — A gloss is kept per line and language, so reopening a task shows it at once; it reads as old once the brief moved, and Regenerate asks anew (design recorded in `packages/core/src/glosses.ts`).
 - ✅ **RG288** **an explanation answers from the brief alone, so it cannot say where in the code the work lands or what it will touch** — A gloss reads the files its design names and says where the work lands, a lane per folder (design recorded in `packages/shell/src/gloss-process.ts`).
+- ✅ **RG297** **an explanation being written shows only the last files read, so a slow run cannot be told from a stuck one** — The waiting explanation draws the run's own stream with the session's rows, beside a clock of how long it has been asked (design recorded in `packages/ui/src/stream.tsx`).
 
 ## Block G — The shell (an executable now, a service later)
 

@@ -582,7 +582,8 @@ export const EN = {
   // Where the work lands (RG288), by the folders the paths themselves name.
   'explain.where': 'Where the work lands',
   'explain.where.root': 'At the top of the project',
-  'explain.reading': 'Reading the files its design names',
+  // How long it has been asked (RG297), as a clock the window formats: the same in any language.
+  'explain.since': 'Claude Code has been at it for {elapsed}',
   // The chain the gloss captions (RG286): its nodes are the brief's, never the answer's.
   'explain.stale':
     'The line has moved since this was written: its claim, its design or what binds it.',

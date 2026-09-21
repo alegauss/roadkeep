@@ -38,8 +38,6 @@ function recording(): { bridge: RendererBridge; taken: Taken[] } {
             health: UNKNOWN_GATE,
             changed: 0,
             id: '',
-            tool: '',
-            on: '',
           }),
         given: 0,
       }

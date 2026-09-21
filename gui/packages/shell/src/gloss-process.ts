@@ -6,7 +6,7 @@ import {
   type SpawnedProcess,
   type SpawnOptions,
 } from '@anthropic-ai/claude-agent-sdk'
-import { actsOf, asRecord } from '@rk/core'
+import { asRecord } from '@rk/core'
 
 /**
  * One read-only query to Claude Code (RG284): what a task means, and nothing it may write.
@@ -22,9 +22,9 @@ import { actsOf, asRecord } from '@rk/core'
  * never asked about: a call the run tries beyond those three is denied where it stands. So *no
  * write to a governed file* holds here by there being nothing to write with.
  *
- * **And every read is told.** A structured answer arrives at the end and says nothing on the way,
- * so the `tool_use` lines are the only progress there is: each one is handed to the caller as it
- * passes, and a screen names the file the run is looking at.
+ * **And every line is told** (RG297). A structured answer arrives at the end and says nothing on
+ * the way, so its stream is the only progress there is: each message is handed to the caller as
+ * the line it was — `startSession`'s spelling of it — and a screen draws it with a session's rows.
  *
  * **And nothing is kept.** `persistSession: false` keeps a gloss out of the sessions a person
  * can resume, which is right for a read nobody named: what comes back is an answer, not a
@@ -64,11 +64,10 @@ export interface GlossCall {
   /** The shape the answer is held to, which is `GLOSS_SCHEMA`'s. */
   readonly schema: Record<string, unknown>
   /**
-   * Told of each read as the run makes it (RG288), which is the only progress a schema has.
-   *
-   * @param on the path, or the pattern a search was for
+   * Told of each line of the stream as it passes (RG297), which is the only progress a schema
+   * has: the files it reads, what it says, and the notes that show it is still thinking.
    */
-  readonly reading?: (tool: string, on: string) => void
+  readonly line?: (line: string) => void
 }
 
 /** What one query came back with. Every way of not answering is its own kind. */
@@ -90,19 +89,6 @@ export interface GlossRun {
   readonly answered: Promise<GlossRead>
   /** Give it up. Answering `cancelled` is what a reader who closed the screen gets. */
   cancel(): void
-}
-
-/**
- * Every read one message of the stream made (RG288).
- *
- * `actsOf` and not a reader of its own: a gloss's stream is a session's stream, the calls are in
- * the same place and the subject is under the same keys — so a tool this app has never heard of
- * is still named, which is what the session list does with one.
- */
-function readsIn(message: unknown): { readonly tool: string; readonly on: string }[] {
-  return actsOf(JSON.stringify(message), 0).flatMap((act) =>
-    act.kind === 'used' && act.on !== '' ? [{ tool: act.tool, on: act.on }] : [],
-  )
 }
 
 /** What the `init` line names about the run: which model answered, and which Claude Code. */
@@ -197,7 +183,7 @@ export function askGloss(call: GlossCall, env: NodeJS.ProcessEnv = process.env):
       for await (const message of messages) {
         named = initOf(message) ?? named
         const line = asRecord(message)
-        for (const read of readsIn(message)) call.reading?.(read.tool, read.on)
+        call.line?.(JSON.stringify(message))
         if (line?.['type'] !== 'result') continue
         structured = line['structured_output']
         const text = line['result']

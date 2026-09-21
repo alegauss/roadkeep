@@ -558,12 +558,12 @@ export interface TopicEvents {
    */
   readonly gate: ProjectGate
   /**
-   * One file a gloss is reading, while it is being written (RG288).
+   * One line of a gloss's stream, raw, while it is being written (RG297).
    *
-   * A structured answer arrives all at once, so this is the only progress there is: the run reads
-   * the files its design names, and each read is a `tool_use` in its stream. The event is what was
-   * read and never what came back — a screen says which file is being looked at, and the reading
-   * itself is the run's.
+   * A structured answer arrives all at once, so its stream is the only progress there is: the
+   * files it reads (RG288), what it says on the way, and the notes that show it is still thinking.
+   * The line is the one a session's event carries, so a screen reads it with `actsIn` and draws
+   * it with the session's own rows.
    *
    * **Keyed on the project, carrying the line**, as `governed` is keyed: a window has one dialog
    * open at a time, and which line it is about is the dialog's to check.
@@ -571,10 +571,9 @@ export interface TopicEvents {
   readonly gloss: {
     readonly root: string
     readonly id: string
-    /** The tool, as Claude Code names it: `Read`, `Grep` or `Glob`. */
-    readonly tool: string
-    /** What it was called on — a path, or the pattern a search was for. */
-    readonly on: string
+    /** Its place in the run's stream, from 0, which a new asking starts again. */
+    readonly index: number
+    readonly line: string
   }
 }
 

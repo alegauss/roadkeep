@@ -560,7 +560,7 @@ export const PT_BR: Wording = {
   'explain.binds': 'O que a limita',
   'explain.where': 'Onde o trabalho acontece',
   'explain.where.root': 'Na raiz do projeto',
-  'explain.reading': 'Lendo os arquivos que o desenho nomeia',
+  'explain.since': 'O Claude Code está nisso há {elapsed}',
   'explain.stale':
     'A linha mudou desde que isto foi escrito: o que ela diz, seu design ou o que a limita.',
   'explain.regenerate': 'Pedir outra leitura',

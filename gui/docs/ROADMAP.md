@@ -15,10 +15,12 @@
 ## Block F — The agent surface (handing one task to Claude Code)
 
 - 📋 **RG290** (deps: RG288 ✅) **a gloss kept before an answer grew a slot says nothing under it, and reads as current** — A kept answer written under an earlier shape is old in the way a moved line is old, and the reader deciding whether to ask again is deciding on which. → §RG290
+- 📋 **RG299** (deps: RG288 ✅) **an explanation nests a paragraph inside a paragraph, which React reports as invalid HTML on every answer** — Prose draws its own block of paragraphs, and three shapes wrap it in a paragraph where a block belongs. → §RG299
 
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
+- 📋 **RG298** (deps: —) **npm run dev:inspect opens its first window without the debugging port, so Playwright MCP reaches it only after a restart** — The launcher starts the window before it declares the switches it passes, and the bundle reads them as undefined on that first call. → §RG298
 
 ## Block H — The look (a design system for governed prose)
 

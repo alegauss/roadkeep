@@ -187,7 +187,7 @@ const KEYS: { readonly [T in Topic]: (event: TopicEvents[T]) => string } = {
   gate: (event) => event.root,
   // One catalogue, so one source: the key is the same one a screen subscribes with (RG180).
   catalogue: () => EVERY_SOURCE,
-  // The project a gloss is being written about (RG288); the line it is about rides in the event.
+  // The project a gloss is being written about (RG297); the line it is about rides in the event.
   gloss: (event) => event.root,
 }
 

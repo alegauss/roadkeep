@@ -2,7 +2,7 @@ import { mkdtempSync, readdirSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
-import { GLOSS_SCHEMA, hasGloss, lanesOf, readGloss, type BriefPayload } from '@rk/core'
+import { actsIn, GLOSS_SCHEMA, hasGloss, lanesOf, readGloss, type BriefPayload } from '@rk/core'
 import { afterAll, describe, expect, it } from 'vitest'
 
 import { askGloss, GLOSS_TOOLS } from './gloss-process'
@@ -141,10 +141,10 @@ describe('RG284: a gloss run to its end', () => {
 })
 
 describe('RG288: a run that reads the files the design names', () => {
-  it('tells the caller each read as it passes, and answers where the work lands', async () => {
+  it('tells the caller each line as it passes, and answers where the work lands', async () => {
     const agent = scriptedAgent({ stream: CAPTURED, ends: true, intervalMs: 1 })
     const root = where()
-    const reads: [string, string][] = []
+    const lines: string[] = []
     try {
       const said = await askGloss({
         command: agent.command[0] ?? '',
@@ -152,15 +152,19 @@ describe('RG288: a run that reads the files the design names', () => {
         cwd: root,
         prompt: 'what does this line mean',
         schema: GLOSS_SCHEMA,
-        reading: (tool, on) => {
-          reads.push([tool, on])
+        line: (line) => {
+          lines.push(line)
         },
       }).answered
 
       if (said.kind !== 'said') throw new Error(said.kind)
-      // The captured run read this repository: at least one file, by name, before it answered.
-      expect(reads.some(([tool]) => tool === 'Read')).toBe(true)
-      expect(reads.every(([, on]) => on !== '')).toBe(true)
+      // The captured run read this repository: at least one file, by name, before it answered —
+      // read off the lines the way the session's stream reads them (RG297).
+      const reads = actsIn(lines).flatMap((act) => (act.kind === 'used' ? [act] : []))
+      expect(reads.some((act) => act.tool === 'Read' && act.on !== '')).toBe(true)
+      // And the lines are the stream itself, the init first and the answer's result among them.
+      expect(lines.some((line) => line.includes('"subtype":"init"'))).toBe(true)
+      expect(lines.some((line) => line.includes('"structured_output"'))).toBe(true)
 
       const gloss = readGloss(said.structured, BRIEF)
       expect(gloss.where.length).toBeGreaterThan(0)

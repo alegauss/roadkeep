@@ -81,6 +81,24 @@ wait is deciding on the reason.
 Done when a kept gloss with no shape reads as old in `glosses.test.ts`, the dialog says
 which of the two reasons it is, and a gloss kept under the current shape says neither.
 
+### §RG299 A block around Prose, not a paragraph
+
+`Prose` draws a `div` holding one `p` per paragraph. `explained.tsx` puts it inside a
+`p` in three places — the headline, each place under where the work lands, each
+non-goal's account — so the page holds a `div` and a `p` inside a `p`. React reports
+both as invalid HTML on every answer drawn, and a browser may close the outer paragraph
+early.
+
+**A block around a block.** The three wrappers become `div`s with the same classes: the
+wrapper carries the size and the colour, and `Prose` carries the paragraphs.
+
+**Caught where it can be.** jsdom builds the tree as React wrote it and says nothing, so
+the explanation's tests gain an assertion that no `p` in the dialog holds a `p` or a
+`div`.
+
+Done when that assertion holds for a gloss filling every slot, and the running window
+logs no nesting error when an answer is drawn.
+
 ## Block G — The shell (an executable now, a service later)
 
 ### §RG49 The signature, and what it needs that code cannot supply
@@ -91,6 +109,24 @@ and is set aside for a caller that says it has one, rather than coming back as t
 ready task forever. What can be built without it is the pipeline that would use it, and
 the about surface saying plainly that this build is unsigned — which is the honest half
 and is worth having on its own.
+
+### §RG298 The switches declared before the first start
+
+`dev.ts` starts the window with `let child = start()` and declares the switches `start`
+passes a few lines later. The bundle turns both into `var`, so the first call reads
+`switches` as `undefined` and Electron opens with no `--remote-debugging-port`. Only a
+window the watcher restarts gets it, which is why touching a source under
+`packages/shell/src` made port 9333 answer when RG297's waiting dialog was looked at.
+
+**Declared before the first start.** The switches move above `start()`, where the
+compiler holding source order is the whole fix.
+
+**Held by the test that already attaches.** `playwright-mcp-live.test.ts` holds that
+Playwright MCP reaches this app; it reaches a restarted window. It gains the case the
+skill actually describes: `npm run dev:inspect`, nothing touched, and the port answers.
+
+Done when a freshly started `npm run dev:inspect` answers on 9333 before any source
+changes.
 
 ## Block H — The look (a design system for governed prose)
 

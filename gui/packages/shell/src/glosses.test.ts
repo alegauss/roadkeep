@@ -351,14 +351,15 @@ describe('RG287: a gloss kept between openings', () => {
   })
 })
 
-describe('RG288: what the run is reading', () => {
-  it('names the project and the line beside each read, as the run makes it', async () => {
+describe('RG297: the run’s stream, while it is asked', () => {
+  /** A machine that tells every line it hears, and the query that answers it. */
+  async function telling() {
     const transport = engine()
     const opened: OpenedProject = openedFrom(
       await openProject(ROOT, [['python', 'launch.py']], () => transport),
     )
     const query = asking()
-    const told: [string, string, string, string][] = []
+    const told: [string, string, number, string][] = []
     const made = createGlosses({
       carrier: {
         open: () => Promise.resolve(opened),
@@ -368,18 +369,45 @@ describe('RG288: what the run is reading', () => {
       environment: () => Promise.resolve({}),
       tag: () => 'en',
       ask: query.ask,
-      reading: (root, id, tool, on) => {
-        told.push([root, id, tool, on])
+      line: (root, id, index, line) => {
+        told.push([root, id, index, line])
       },
     })
+    return { made, query, told }
+  }
+
+  it('names the project, the line and its place beside each line, as the run writes it', async () => {
+    const { made, query, told } = await telling()
 
     const answering = made.gloss(ROOT, 'FX1')
     await new Promise((settle) => setTimeout(settle, 0))
-    // What the run passes back as it reads, which the query carries rather than composes.
-    query.calls[0]?.reading?.('Read', 'packages/core/src/compare.ts')
+    // What the run passes back as it goes, which the query carries rather than composes.
+    query.calls[0]?.line?.('{"type":"system","subtype":"init"}')
+    query.calls[0]?.line?.('{"type":"assistant"}')
     query.say(ANSWER)
     await answering
 
-    expect(told).toEqual([[ROOT, 'FX1', 'Read', 'packages/core/src/compare.ts']])
+    expect(told).toEqual([
+      [ROOT, 'FX1', 0, '{"type":"system","subtype":"init"}'],
+      [ROOT, 'FX1', 1, '{"type":"assistant"}'],
+    ])
+  })
+
+  it('starts every asking at the first line again', async () => {
+    const { made, query, told } = await telling()
+
+    const first = made.gloss(ROOT, 'FX1')
+    await new Promise((settle) => setTimeout(settle, 0))
+    query.calls[0]?.line?.('{"type":"assistant"}')
+    query.say(ANSWER)
+    await first
+
+    const again = made.gloss(ROOT, 'FX1', true)
+    await new Promise((settle) => setTimeout(settle, 0))
+    query.calls[1]?.line?.('{"type":"assistant"}')
+    query.say(ANSWER)
+    await again
+
+    expect(told.map(([, , index]) => index)).toEqual([0, 0])
   })
 })

@@ -18,6 +18,7 @@ import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { projectPath, taskPath } from './areas'
+import { clockOf } from './explain'
 import { drawWindow } from './harness'
 import { stubBridge } from './stub-bridge'
 
@@ -853,12 +854,28 @@ describe('RG288: where the work lands, and what is being read', () => {
     expect(lanes[2]?.textContent).toContain(BASE['explain.where.root'])
     expect(lanes[2]?.textContent).toContain('CHANGELOG.md')
   })
+})
 
-  it('names each file as the run reads it, and forgets them on the next asking', async () => {
+describe('RG297: the run’s own stream while it is asked', () => {
+  /** A line of the run's stream, spelled as the SDK's message is: one tool call on one file. */
+  const reads = (file: string): string =>
+    JSON.stringify({
+      type: 'assistant',
+      message: {
+        content: [
+          { type: 'tool_use', id: `read-${file}`, name: 'Read', input: { file_path: file } },
+        ],
+      },
+    })
+  const says = (text: string): string =>
+    JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text }] } })
+
+  /** The dialog asking and never answered, and a way to tell it what the run wrote. */
+  async function waiting() {
     const heard: ((event: TopicEvents['gloss']) => void)[] = []
     let asks = 0
     await at(taskPath(ROOT, 'AL1'), [], {
-      // Never answers: what the screen looks like while a run reads its way to one.
+      // Never answers: what the screen looks like while a run works its way to one.
       gloss: () => {
         asks += 1
         return new Promise(() => undefined)
@@ -873,29 +890,69 @@ describe('RG288: where the work lands, and what is being read', () => {
     fireEvent.click(await screen.findByTestId('explain'))
     const dialog = within(await screen.findByTestId('explain-dialog'))
     await dialog.findByTestId('explain-asking')
-
     await waitFor(() => {
       expect(heard).toHaveLength(1)
     })
-    const tell = (id: string, on: string): void => {
-      for (const listener of heard) listener({ root: ROOT, id, tool: 'Read', on })
+    const tell = (id: string, index: number, line: string): void => {
+      for (const listener of heard) listener({ root: ROOT, id, index, line })
     }
-    tell('AL1', 'packages/core/src/compare.ts')
-    // Another line's reads reach the same project's listeners and are not this dialog's.
-    tell('AL2', 'packages/core/src/elsewhere.ts')
+    return { dialog, tell, asks: () => asks }
+  }
 
-    const reading = await dialog.findByTestId('explain-reading')
-    expect(reading.textContent).toContain('packages/core/src/compare.ts')
-    expect(reading.textContent).not.toContain('elsewhere.ts')
+  it('draws each line with the session’s own rows, as the run writes it', async () => {
+    const { dialog, tell } = await waiting()
 
-    // Asking again starts the list over: this is progress and not a log.
+    tell('AL1', 0, says('Reading the design before explaining it.'))
+    tell('AL1', 1, reads('packages/core/src/compare.ts'))
+
+    const stream = within(await dialog.findByTestId('stream'))
+    const acts = await stream.findAllByTestId('act')
+    // What it said and what it called, each as the session screen draws the same line.
+    expect(acts.map((act) => act.dataset['kind'])).toEqual(['said', 'used'])
+    expect(acts[0]?.textContent).toContain('Reading the design before explaining it.')
+    expect(acts[1]?.textContent).toContain('Read')
+    expect(acts[1]?.textContent).toContain('packages/core/src/compare.ts')
+    // And how long it has been asked, beside it.
+    expect(dialog.getByTestId('explain-since').textContent).toBe(
+      fill(BASE['explain.since'], { elapsed: '0:00' }),
+    )
+  })
+
+  it('keeps another line’s run out, and a line heard twice is one row', async () => {
+    const { dialog, tell } = await waiting()
+
+    tell('AL1', 0, reads('packages/core/src/compare.ts'))
+    tell('AL1', 0, reads('packages/core/src/compare.ts'))
+    // Another line's run reaches the same project's listeners and is not this dialog's.
+    tell('AL2', 1, reads('packages/core/src/elsewhere.ts'))
+
+    const stream = await dialog.findByTestId('stream')
+    await waitFor(() => {
+      expect(within(stream).getAllByTestId('act')).toHaveLength(1)
+    })
+    expect(stream.textContent).not.toContain('elsewhere.ts')
+  })
+
+  it('starts over on the next asking, with nothing written yet', async () => {
+    const { dialog, tell, asks } = await waiting()
+    tell('AL1', 0, reads('packages/core/src/compare.ts'))
+    await dialog.findByTestId('stream')
+
     fireEvent.click(dialog.getByRole('button', { name: BASE['explain.cancel'] }))
     fireEvent.click(await screen.findByTestId('explain'))
     await waitFor(() => {
-      expect(asks).toBe(2)
+      expect(asks()).toBe(2)
     })
-    expect(
-      within(await screen.findByTestId('explain-dialog')).queryByTestId('explain-reading'),
-    ).toBeNull()
+
+    const again = within(await screen.findByTestId('explain-dialog'))
+    expect(again.queryByTestId('stream')).toBeNull()
+    expect(again.getByText(BASE['session.stream.empty'])).toBeTruthy()
+  })
+
+  it('counts the clock in minutes and seconds', () => {
+    expect(clockOf(0)).toBe('0:00')
+    expect(clockOf(9_999)).toBe('0:09')
+    expect(clockOf(65_000)).toBe('1:05')
+    expect(clockOf(-5)).toBe('0:00')
   })
 })
