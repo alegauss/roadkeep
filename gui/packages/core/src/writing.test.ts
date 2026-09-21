@@ -146,6 +146,22 @@ describe('RG29: the app composes an argv and the command writes', () => {
     expect(composed.argv.filter((part) => part === symptom)).toHaveLength(1)
   })
 
+  it('RG289: puts a verdict on the command line as two positionals, in the verb order', () => {
+    // The one write with two positionals, and the order is the engine's: `validate <id>
+    // <verdict>`. A flag out of place is refused and read back; a positional out of place
+    // files a verdict about the wrong entry, which nothing refuses.
+    const composed = composeWrite('/w', 'validate', {
+      id: 'RG1',
+      verdict: 'worked',
+      saw: 'Opened it and the listing came back.',
+    })
+    const words = composed.argv.slice(composed.argv.indexOf('validate') + 1)
+
+    expect(words.slice(0, 2)).toEqual(['RG1', 'worked'])
+    expect(words).toContain('--saw')
+    expect(words).not.toContain('--files')
+  })
+
   it('asks for the machine-readable form on every write', () => {
     // A refusal read as prose is a refusal whose field nobody can mark. Driven off
     // `EVERY_WRITE_INPUT` so a write added to the table cannot skip this.

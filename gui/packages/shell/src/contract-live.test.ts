@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { appendFileSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
@@ -30,6 +31,7 @@ import {
   readSectionWritten,
   readShipPayload,
   readStatusPayload,
+  readValidatePayload,
   withheld,
   type VerbAnswers,
   type VerbInputs,
@@ -109,6 +111,11 @@ const SECOND_SHAPES = {
     '`[project]` rows: a declared name and icon, and a row this build has that nothing sets',
   'config on a folder nothing governs':
     '`source`: the file on a project, null with `governed` false',
+  'unvalidated where nothing declares [validation]':
+    '`governed`: true with a list, false with an empty one the question was never asked of',
+  'validate over a verdict already there':
+    '`replaced`: null on the first verdict under an entry, the old word on the one after it',
+  'validate --files': '`filed`: null without it, and the open line the failure wrote with it',
 } as const
 
 type SecondShape = keyof typeof SECOND_SHAPES
@@ -180,6 +187,24 @@ function handWrite(root: string, line: string): void {
   writeFileSync(file, lines.join('\n'), 'utf8')
 }
 
+/**
+ * Commit a fixture's whole tree, so a read that places itself on a history has one (RG289).
+ *
+ * `unvalidated` asks which entries the ledger gained at or after the commit that declared
+ * `[validation]`, and answers `placed` false where there is no history to ask of — so a
+ * fixture in a temp directory can never produce a row, and the shape of one would go
+ * unread. Here rather than in the fixture builder: one case wants a history, and every
+ * other live file would pay two commits for it.
+ *
+ * An identity on the command line and not in the fixture's config, because the machine
+ * running this may have none and a commit refused for that is a failure about the author.
+ */
+function commitAll(root: string, message: string): void {
+  const identity = ['-c', 'user.name=fixture', '-c', 'user.email=fixture@example.invalid']
+  execFileSync('git', ['-C', root, ...identity, 'add', '-A'], { stdio: 'pipe' })
+  execFileSync('git', ['-C', root, ...identity, 'commit', '-q', '-m', message], { stdio: 'pipe' })
+}
+
 describe('RG4: the build this contract was proven against', () => {
   it('names a version, so a green suite is a claim about one engine', () => {
     // Named once and never compared again. It reaches a reader through `explainFailure`,
@@ -225,6 +250,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
         'sectionShow',
         'show',
         'stats',
+        'unvalidated',
       ].sort(),
     )
   })
@@ -246,6 +272,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
         'sectionAmend',
         'ship',
         'status',
+        'validate',
       ].sort(),
     )
   })
@@ -552,6 +579,25 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect(registry.registry).not.toBe('')
     expect(Array.isArray(registry.claims)).toBe(true)
     expect(typeof registry.held).toBe('number')
+  })
+
+  it('RG289: reads a project that never asked whether anybody tried the work', async () => {
+    // The fixture declares no `[validation]`, which is the ordinary state of a project and
+    // not a missing answer: the list is empty because the question is not asked, and
+    // `governed` is the only thing that says so. A screen reading the list alone would draw
+    // this the same as a ledger every entry of which carries a verdict.
+    const waiting = await readVerb('unvalidated', {})
+
+    expect(waiting.file).toContain('CHANGELOG.md')
+    expect(waiting.governed).toBe(false)
+    expect(waiting.unvalidated).toEqual([])
+    expect(waiting.validated).toBe(0)
+    // Null is the whole ledger, and the block where one was named — the question rather
+    // than a missing answer, which is a shape demanding a string fails on.
+    expect(waiting.block).toBeNull()
+    expect((await readVerb('unvalidated', { block: 'A' })).block).toBe('A')
+    expect(waiting.from).toBeNull()
+    covers('unvalidated where nothing declares [validation]')
   })
 
   it('reads an address with no list, and the door that opens one', async () => {
@@ -991,6 +1037,110 @@ describe('RG4: every read this client makes, against a live engine', () => {
     // not they agree: a machine with four copies in play is an ordinary machine.
     expect(payload.verdict).not.toBe('')
     expect(typeof payload.agree).toBe('boolean')
+  })
+
+  it('RG289: reads what awaits a person, and writes the verdict that answers it', async () => {
+    // Its own fixture, and the only one in this file with a history: `[validation]` has to be
+    // declared in a commit and the entry has to ship after it, or the engine has nothing to
+    // place the start against and reports `placed` false with an empty list.
+    const asking = await buildFixture(transport, { open: 2, shipped: 0, deferred: 0 })
+    try {
+      execFileSync('git', ['-C', asking.root, 'init', '--quiet'], { stdio: 'pipe' })
+      commitAll(asking.root, 'the project before the question was asked')
+      appendFileSync(path.join(asking.root, 'roadkeep.toml'), '\n[validation]\n', 'utf8')
+      commitAll(asking.root, 'ask whether anybody tried what ships')
+
+      const [tried] = listedTasks(await read(asking.root, 'list', {})).map((task) => task.id)
+      if (tried === undefined) throw new Error('the fixture opened no line to ship')
+      const shipped = await applyWrite(
+        transport,
+        composeWrite(asking.root, 'ship', { id: tried, why: 'The read answers now.' }),
+        readShipPayload,
+        { timeoutMs: CEILING },
+      )
+      expect(shipped.kind, `the line did not ship: ${JSON.stringify(shipped)}`).toBe('applied')
+
+      const waiting = await read(asking.root, 'unvalidated', {})
+      expect(waiting.governed).toBe(true)
+      expect(waiting.placed).toBe(true)
+      // Null where no id was declared: looking starts at the commit that opened the table.
+      expect(waiting.from).toBeNull()
+      expect(waiting.validated).toBe(0)
+      const row = waiting.unvalidated[0]
+      expect(waiting.unvalidated).toHaveLength(1)
+      expect(row?.id).toBe(tried)
+      expect(row?.block).not.toBe('')
+      expect(row?.symptom).not.toBe('')
+      expect(row?.line).toBeGreaterThan(0)
+      // Null where no commit carries the entry yet, which is this one: it shipped into the
+      // working tree. A shape demanding a string fails on every entry shipped since a commit.
+      expect(row?.commit).toBeNull()
+
+      const first = await applyWrite(
+        transport,
+        composeWrite(asking.root, 'validate', {
+          id: tried,
+          verdict: 'worked',
+          saw: 'Opened the screen and the listing came back.',
+        }),
+        readValidatePayload,
+        { timeoutMs: CEILING },
+      )
+      expect(first.kind, `the verdict was not written: ${JSON.stringify(first)}`).toBe('applied')
+      if (first.kind !== 'applied') throw new Error('unreachable')
+      expect(first.value.id).toBe(tried)
+      expect(first.value.file).toContain('CHANGELOG.md')
+      expect(first.value.line).toBeGreaterThan(0)
+      // The engine's own word, never a token this app holds a set of.
+      expect(first.value.verdict).toBe('worked')
+      expect(first.value.rendered).toContain('worked')
+      expect(first.value.changed).toBe(true)
+      expect(first.value.replaced).toBeNull()
+      expect(first.value.filed).toBeNull()
+      expect(first.value.wrote.length).toBeGreaterThan(0)
+
+      // The second verdict, which rewrites the first in place and files what it found.
+      const again = await applyWrite(
+        transport,
+        composeWrite(asking.root, 'validate', {
+          id: tried,
+          verdict: 'failed',
+          saw: 'Opened the screen and nothing came back.',
+          files: 'the listing is empty where a line has shipped',
+        }),
+        readValidatePayload,
+        { timeoutMs: CEILING },
+      )
+      expect(again.kind, `the second verdict was not written: ${JSON.stringify(again)}`).toBe(
+        'applied',
+      )
+      if (again.kind !== 'applied') throw new Error('unreachable')
+      expect(again.value.replaced).toBe('worked')
+      expect(again.value.verdict).toBe('failed')
+      covers('validate over a verdict already there')
+
+      const filed = again.value.filed
+      expect(
+        filed,
+        'the failure filed no line, so the shape of one has nothing to be read from',
+      ).not.toBeNull()
+      expect(filed?.id).not.toBe('')
+      expect(filed?.block).toBe(row?.block)
+      expect(filed?.line).toBeGreaterThan(0)
+      expect(filed?.rendered).toContain('the listing is empty')
+      // The pointer the new line carries owes a design, and the doors say what writes it.
+      expect(filed?.needs).toBe(filed?.id)
+      expect(filed?.doors.length).toBeGreaterThan(0)
+      expect(filed?.doors[0]?.argv.length).toBeGreaterThan(0)
+      covers('validate --files')
+
+      // And the entry now carries a verdict, so nothing awaits a person under it.
+      const answered = await read(asking.root, 'unvalidated', {})
+      expect(answered.unvalidated).toEqual([])
+      expect(answered.validated).toBe(1)
+    } finally {
+      asking.dispose()
+    }
   })
 })
 

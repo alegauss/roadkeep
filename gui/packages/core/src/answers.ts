@@ -17,6 +17,7 @@ import {
   readSection,
   readShowPayload,
   readStatsPayload,
+  readUnvalidatedPayload,
   type BlockListPayload,
   type ClaimsPayload,
   type BriefAnswer,
@@ -33,6 +34,7 @@ import {
   type ReversalsPayload,
   type ShowPayload,
   type StatsPayload,
+  type UnvalidatedPayload,
 } from './payloads'
 import type { Reader } from './reading'
 import { readExplanation, type Explanation } from './refusals'
@@ -79,6 +81,7 @@ export interface VerbAnswers {
   blockList: BlockListPayload
   sectionShow: RationaleSection
   claims: ClaimsPayload
+  unvalidated: UnvalidatedPayload
 }
 
 export const ANSWERS: { [K in VerbName]: Reader<VerbAnswers[K]> } = {
@@ -101,4 +104,5 @@ export const ANSWERS: { [K in VerbName]: Reader<VerbAnswers[K]> } = {
   blockList: readBlockListPayload,
   sectionShow: readSection,
   claims: readClaimsPayload,
+  unvalidated: readUnvalidatedPayload,
 }

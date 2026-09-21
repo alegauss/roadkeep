@@ -130,6 +130,32 @@ describe('RG6: what a build can do', () => {
     expect(withheld(report)).toContain('explain: this build cannot run it')
   })
 
+  it('RG289: withholds the whole validation surface on a build that has neither verb', () => {
+    // Why nothing in RG289 waits on the upstream work: the tables may carry a verb this
+    // machine has no engine for, and the door stays shut until one arrives. Both at once,
+    // because validation is a read and a write — `unvalidated` to ask and `validate` to
+    // answer — and a screen offering one of them has half a surface and no use for it.
+    const payload = JSON.parse(completeBuild()) as { commands: { command: string }[] }
+    const older = JSON.stringify({
+      ...payload,
+      commands: payload.commands.filter(
+        (entry) => entry.command !== 'unvalidated' && entry.command !== 'validate',
+      ),
+    })
+
+    const report = readCapabilities(older, '0.2.480')
+
+    expect(report.kind).toBe('known')
+    if (report.kind !== 'known') return
+    expect(report.byVerb.unvalidated.callable).toBe(false)
+    expect(report.byVerb.validate.callable).toBe(false)
+    expect(report.complete).toBe(false)
+    expect(withheld(report)).toContain('unvalidated: this build cannot run it')
+    expect(withheld(report)).toContain('validate: this build cannot run it')
+    // And the version it did answer with, which is what makes this a state and not a failure.
+    expect(report.version).toBe('0.2.360')
+  })
+
   it('offers a verb that runs but is not on the MCP tool surface', () => {
     // `stats`, `commands`, `init`, `section` and eighteen others are exactly this. Gating
     // a door on `published` would withhold a third of the verbs that work perfectly well.

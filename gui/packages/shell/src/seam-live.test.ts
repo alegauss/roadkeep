@@ -51,6 +51,7 @@ const READS: { [K in VerbName]: VerbInputs[K] } = {
   blockList: {},
   sectionShow: { anchor: 'FX3' },
   claims: {},
+  unvalidated: {},
 }
 
 beforeAll(async () => {

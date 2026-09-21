@@ -160,6 +160,15 @@ export interface VerbInputs {
    * stepped over, and which are stale. Takes nothing — the registry is the project's.
    */
   claims: Record<string, never>
+  /**
+   * Every shipped entry a verdict can be about that carries none (RG289).
+   *
+   * A report and never a gate — an entry shipped an hour ago is unvalidated as its ordinary
+   * state — and one of the few reads whose answer can be *the question is not asked here*: a
+   * project declaring no `[validation]`, and one whose history cannot place where looking
+   * starts, are two states this returns rather than two ways of failing.
+   */
+  unvalidated: { block?: string }
 }
 
 export type VerbName = keyof VerbInputs
@@ -279,6 +288,7 @@ export const VERBS: { [K in VerbName]: ArgvFor<K> } = {
   blockList: () => [],
   sectionShow: (input) => [input.anchor, ...optional('--role', input.role)],
   claims: () => [],
+  unvalidated: (input) => [...optional('--block', input.block)],
 }
 
 /**
@@ -326,4 +336,5 @@ export const EVERY_INPUT: { [K in VerbName]: VerbInputs[K] } = {
   blockList: {},
   sectionShow: { anchor: 'RG1', role: 'decisions' },
   claims: {},
+  unvalidated: { block: 'A' },
 }

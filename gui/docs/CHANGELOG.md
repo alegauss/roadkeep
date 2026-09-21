@@ -348,3 +348,4 @@
 
 ## Block I — Validation (the list a person works through)
 
+- ✅ **RG289** **the app can neither ask which entries await a person nor record a verdict: neither verb is in its tables** — Both validation verbs are in the tables with the shapes a live fixture proved, and a build with neither is reported as offering neither (design recorded in `packages/core/src/writes.ts`).

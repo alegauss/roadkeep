@@ -169,6 +169,26 @@ export interface WriteInputs {
     /** The new id; omitted, one past the highest in the line's family. */
     to?: string
   }
+  /**
+   * Say what a person saw when they tried a shipped entry (RG289).
+   *
+   * **`verdict` is a string and not a union.** The set belongs to the engine — three words
+   * today, and whatever it publishes tomorrow — and a union here would be that set copied
+   * into the client, refusing a word the engine accepts until somebody edits this file.
+   * `commands` publishes the choices for a screen to offer, and the engine refuses the rest
+   * naming its own.
+   *
+   * A second verdict on the same entry rewrites the first in place, the last one winning;
+   * that is the verb's rule and nothing here holds a copy of it either.
+   */
+  validate: {
+    id: string
+    verdict: string
+    /** What was done and what happened, one sentence, written verbatim. */
+    saw: string
+    /** `failed` only: file the defect as an open line in the entry's block, `saw` its why. */
+    files?: string
+  }
 }
 
 /**
@@ -290,6 +310,13 @@ export const WRITES: { [K in WriteName]: ArgvFor<K> } = {
     ...optional('--lines', input.lines),
   ],
   renumber: (input) => [input.id, ...optional('--to', input.to)],
+  validate: (input) => [
+    input.id,
+    input.verdict,
+    '--saw',
+    input.saw,
+    ...optional('--files', input.files),
+  ],
 }
 
 /**
@@ -356,4 +383,10 @@ export const EVERY_WRITE_INPUT: { [K in WriteName]: WriteInputs[K] } = {
   },
   restate: { id: 'RG1', symptom: 'a symptom', typo: true, lines: '2' },
   renumber: { id: 'RG1', to: 'RG90' },
+  validate: {
+    id: 'RG1',
+    verdict: 'worked',
+    saw: 'Opened it and the listing came back.',
+    files: 'a symptom',
+  },
 }

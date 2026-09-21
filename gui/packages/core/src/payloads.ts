@@ -1561,6 +1561,118 @@ export const readRenumberPayload: Reader<RenumberPayload> = record<RenumberPaylo
   wrote: orMissing(listOf(aString), []),
 })
 
+/**
+ * One shipped entry no person has left a verdict on (RG289).
+ *
+ * `commit` is null where the history could not say which commit shipped it, which a project
+ * with no history answers for every row — so a screen showing it has to draw the absence.
+ */
+export interface UnvalidatedEntry {
+  readonly id: string
+  readonly block: string
+  readonly symptom: string
+  readonly line: number
+  readonly commit: string | null
+}
+
+const readUnvalidatedEntry: Reader<UnvalidatedEntry> = record<UnvalidatedEntry>({
+  id: aString,
+  block: orMissing(aString, ''),
+  symptom: orMissing(aString, ''),
+  line: orMissing(aNumber, 0),
+  commit: orMissing(orNull(aString), null),
+})
+
+/**
+ * Which shipped entries await a person, and the two ways there are none to await.
+ *
+ * **An empty list is three different answers**, and only `governed` and `placed` tell them
+ * apart: a project that declares no `[validation]` is not asking the question, a project
+ * whose history cannot place where looking starts is asking it and cannot answer, and a
+ * project where every entry carries a verdict has answered it. A screen reading the list
+ * alone would draw all three as *nothing to look at*, which is right for one of them.
+ */
+export interface UnvalidatedPayload {
+  readonly file: string
+  /** The block asked about, or null where the question was the whole ledger. */
+  readonly block: string | null
+  /** False where this project declares no `[validation]`. */
+  readonly governed: boolean
+  /** False where the history could not place where looking starts. */
+  readonly placed: boolean
+  /** `validation.from` as declared, or null where looking starts at the table's own ship. */
+  readonly from: string | null
+  /** How many of the entries asked about carry a verdict. */
+  readonly validated: number
+  readonly unvalidated: readonly UnvalidatedEntry[]
+}
+
+export const readUnvalidatedPayload: Reader<UnvalidatedPayload> = record<UnvalidatedPayload>({
+  file: orMissing(aString, ''),
+  block: orMissing(orNull(aString), null),
+  governed: orMissing(aBoolean, true),
+  placed: orMissing(aBoolean, true),
+  from: orMissing(orNull(aString), null),
+  validated: orMissing(aNumber, 0),
+  unvalidated: orMissing(listOf(readUnvalidatedEntry), []),
+})
+
+/** The open line a failed verdict filed in the same transaction (RG289). */
+export interface FiledLine {
+  readonly id: string
+  readonly block: string
+  readonly line: number
+  readonly rendered: string
+  /** The id whose design this new pointer still owes, empty where it owes none. */
+  readonly needs: string
+  /** What writing that design would be, already split. Empty beside an empty `needs`. */
+  readonly doors: readonly Door[]
+}
+
+const readFiledLine: Reader<FiledLine> = record<FiledLine>({
+  id: aString,
+  block: orMissing(aString, ''),
+  line: orMissing(aNumber, 0),
+  rendered: orMissing(aString, ''),
+  needs: orMissing(aString, ''),
+  doors: orMissing(listOf(readDoor), []),
+})
+
+/**
+ * One verdict written under a ledger entry (RG289).
+ *
+ * `replaced` and `changed` are the second verdict's shape: a verb whose rule is that the
+ * last one wins has to say whether this one wrote over another, and whether it wrote at
+ * all — an entry already carrying exactly this verdict is `changed` false and not a
+ * refusal. Nothing here holds a copy of that rule; it reads what the verb did.
+ */
+export interface ValidatePayload {
+  readonly id: string
+  readonly file: string
+  readonly line: number
+  /** The verdict as written, in the engine's own word. */
+  readonly verdict: string
+  readonly rendered: string
+  /** The verdict this one wrote over, or null where the entry carried none. */
+  readonly replaced: string | null
+  readonly changed: boolean
+  /** The line `--files` filed, or null where nothing was filed. */
+  readonly filed: FiledLine | null
+  readonly wrote: readonly string[]
+}
+
+export const readValidatePayload: Reader<ValidatePayload> = record<ValidatePayload>({
+  id: aString,
+  file: orMissing(aString, ''),
+  line: orMissing(aNumber, 0),
+  verdict: orMissing(aString, ''),
+  rendered: orMissing(aString, ''),
+  replaced: orMissing(orNull(aString), null),
+  changed: orMissing(aBoolean, false),
+  filed: orMissing(orNull(readFiledLine), null),
+  wrote: orMissing(listOf(aString), []),
+})
+
 export interface LintFinding {
   readonly code: string
   readonly file: string

@@ -161,29 +161,6 @@ which is why it is written down here rather than made quietly.
 
 ## Block I — Validation (the list a person works through)
 
-### §RG289 The two verbs, and the door that is withheld
-
-`verbs.ts` is the read table and `writes.ts` the write table, deliberately two: a read
-is offered freely and a write is not. Validation needs one of each — `unvalidated` to
-ask and `validate` to answer — and neither is more than a row plus the reader beside it.
-
-**The engine may not have them.** Every project on this machine runs its own roadkeep,
-and most will be older than the build that grows these verbs. That is RG6's mechanism
-and it is already built: `capabilities` asks `commands --json` once per project, and a
-screen withholds a door rather than offering one that will be refused. So the whole
-validation surface is absent on a project whose engine publishes neither verb, with the
-version it did answer — a state, and not a failure.
-
-Which is also why nothing here waits on the upstream work: the tables can carry a verb
-this machine has no engine for, and the door stays shut until one arrives.
-
-**Nothing here validates a verdict token.** The set belongs to the engine, which refuses
-better than a copy of its rules would, and a refusal comes back as its code and field
-for the door to mark.
-
-Done when the contract reads both verbs live against a fixture, and a project on an
-older engine reads as offering neither.
-
 ### §RG291 How to check it, asked of the commit
 
 The ledger's sentence is the outcome, not the change. A walkthrough written from it is
