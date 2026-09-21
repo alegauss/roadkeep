@@ -16,6 +16,7 @@ export type {
   FileText,
   GovernedFile,
   GlossAnswer,
+  WalkthroughAnswer,
   Handed,
   AnsweredAsk,
   HandedOver,
@@ -127,6 +128,16 @@ export {
   WALKTHROUGH_SCHEMA,
 } from './walkthrough'
 export type { Walkthrough, WalkthroughStep } from './walkthrough'
+export {
+  NOTHING_WALKED,
+  WALKTHROUGHS_KEPT,
+  WALKTHROUGHS_VERSION,
+  walkthroughFor,
+  walkthroughsFrom,
+  walkthroughStands,
+  withWalkthrough,
+} from './walkthroughs'
+export type { KeptWalkthrough, KeptWalkthroughs } from './walkthroughs'
 export {
   glossedLine,
   glossesFrom,

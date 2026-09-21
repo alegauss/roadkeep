@@ -27,7 +27,6 @@
 
 ## Block I — Validation (the list a person works through)
 
-- 📋 **RG292** (deps: RG291 ✅) **a walkthrough is lost when the sheet closes, and the sheet is closed by the person going off to follow it** — A walkthrough is kept per entry and language, so coming back finds it; it reads as old once the shipping commit moved, and Regenerate asks anew. → §RG292
 - 📋 **RG293** (deps: RG289 ✅) **nothing on a project surface says what is shipped and unlooked-at, so the list lives in a terminal** — A tab beside the changelog draws what awaits a person, newest first, and opening a row is what asks for its walkthrough. → §RG293
 - 📋 **RG294** (deps: RG293) **a person who followed a walkthrough has nowhere to say what happened, so the verdict never reaches the ledger** — Three answers under the steps — it worked, it did not, there is nothing to see — each take one sentence and send it through `validate`. → §RG294
 - 📋 **RG295** (deps: RG294) **a validation that failed ends in a sentence nobody files, so the defect it found is lost at the dialog** — The sentence becomes the symptom of a line filed in the same call, so what a person saw goes back into the backlog without being typed twice. → §RG295

@@ -29,6 +29,7 @@ import type { SessionOutcome } from './session'
 import type { PreferenceKey } from './preferences'
 import type { Settings, SettingsRead } from './settings'
 import type { ReadingStands, RememberedReadings } from './readings'
+import type { Walkthrough } from './walkthrough'
 import type { MovedPath } from './watching'
 import type { EngineFailure, EngineRequest, EngineResult } from './transport'
 
@@ -499,6 +500,32 @@ export type GlossAnswer =
   /** The reader gave up on it, or the window closed under it. */
   | { readonly kind: 'cancelled' }
   /** Not a project the carrier opens, or not a line id. */
+  | { readonly kind: 'withheld'; readonly reason: string }
+
+/**
+ * What asking for a walkthrough did (RG291, RG292).
+ *
+ * `GlossAnswer`'s kinds, for its reasons — every way of not answering is its own, and none of
+ * them is the walkthrough being wrong. What it adds is the commit: a walkthrough is about one
+ * hash, and a screen that could not name it would be showing steps about an unnamed change.
+ */
+export type WalkthroughAnswer =
+  | {
+      readonly kind: 'said'
+      readonly walkthrough: Walkthrough
+      readonly model: string
+      readonly version: string
+      /** True where this was kept from an earlier asking rather than asked for now (RG292). */
+      readonly kept: boolean
+      /** True where the entry ships from a different commit now: still shown, and said to be old. */
+      readonly stale: boolean
+      /** The shipping commit it was written from, empty where the history could not say. */
+      readonly commit: string
+    }
+  | { readonly kind: 'unavailable'; readonly tried: readonly (readonly string[])[] }
+  | { readonly kind: 'failed'; readonly said: string }
+  | { readonly kind: 'cancelled' }
+  /** Not a project, not an id, or a line that has not shipped — which has nothing to check. */
   | { readonly kind: 'withheld'; readonly reason: string }
 
 /** What answering a session's question did (RG272): sent, or why not. */

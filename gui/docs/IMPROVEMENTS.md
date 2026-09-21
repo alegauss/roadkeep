@@ -186,29 +186,6 @@ which is why it is written down here rather than made quietly.
 
 ## Block I — Validation (the list a person works through)
 
-### §RG292 Keeping it while somebody goes and follows it
-
-RG287 keeps a gloss because reopening a task paid the wait and the tokens again. A
-walkthrough has the sharper version of the same problem: the sheet is closed *by the act
-of following it*. The person leaves the window, opens a terminal, runs a build, comes
-back. Throwing the answer away at that moment throws it away every single time, not
-occasionally.
-
-**Mirroring `glosses.ts`.** Kept per project, entry and language; bounded, oldest first,
-so a machine reading a hundred projects keeps a file somebody could open. Where it is
-kept is the shell's, as it is there.
-
-**Stale is a comparison, never a clock.** A gloss stands while its line reads the same.
-A walkthrough stands while the **shipping commit is the same hash**, and that is the
-whole test: the entry's sentence can be corrected without the work changing, and the
-work cannot change without a new commit. Cheaper than the gloss comparison and stricter.
-
-A stale one is still drawn, under a notice, because it was true of what shipped — and
-Regenerate asks anew.
-
-Done when closing and reopening the sheet costs nothing, and an amended shipping commit
-reads the kept walkthrough as old.
-
 ### §RG293 The list, beside the ledger it comes from
 
 `ProjectTabs` already draws the four governed files beside the roadmap, the changelog
