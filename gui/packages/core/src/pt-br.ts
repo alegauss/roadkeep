@@ -322,7 +322,11 @@ export const PT_BR: Wording = {
   'file.refused.not-text': 'O arquivo não é texto, então a janela não o desenha.',
   'session.disk': 'Mudou no disco enquanto ela rodava',
   'session.disk.about':
-    'Arquivos que mudaram no projeto enquanto a sessão rodava e que nenhuma chamada de edição nomeou. O que mais escreveu nesse tempo também está aqui.',
+    'Arquivos que mudaram no projeto enquanto a sessão rodava e que nenhuma chamada de edição nomeou. O que mais escreveu nesse tempo também está aqui, e um salvamento que substitui o arquivo aparece como um novo.',
+  'session.disk.appeared': 'apareceu',
+  'session.disk.changed': 'mudou',
+  'session.disk.gone': 'sumiu',
+  'session.disk.came-and-went': 'apareceu e sumiu',
   'session.disk.none': 'Nenhum outro arquivo do projeto mudou enquanto a sessão rodava.',
   'session.disk.moves': '{count} mudanças',
   'session.disk.moves.one': '{count} mudança',

@@ -10,6 +10,7 @@ import {
   foldedNotes,
   FOLLOWING,
   landingBetween,
+  MOVED_LETTER,
   onDisk,
   originOf,
   scrolledTo,
@@ -31,6 +32,7 @@ import {
   type FileChange,
   type GovernedFile,
   type MessageKey,
+  type MovedKind,
   type MovedPath,
   type PermissionAsk,
   type PermissionDenial,
@@ -736,6 +738,22 @@ function EditedFiles({
   )
 }
 
+/** What each kind the watch saw is called in this list, where nobody is named (RG281). */
+const MOVED_TEXT: Readonly<Record<MovedKind, MessageKey>> = {
+  appeared: 'session.disk.appeared',
+  changed: 'session.disk.changed',
+  gone: 'session.disk.gone',
+  'came-and-went': 'session.disk.came-and-went',
+}
+
+/** The same kind as a file's row carries it, so one name is struck through on both lists. */
+const MOVED_AS: Readonly<Record<MovedKind, FileChange>> = {
+  appeared: 'created',
+  changed: 'changed',
+  gone: 'deleted',
+  'came-and-went': 'undone',
+}
+
 /**
  * What moved on disk under the project while the session ran, that no edit call named (RG247).
  *
@@ -768,9 +786,19 @@ function MovedOnDisk({
         at: one.path,
         path: one.path,
         list: 'moved-file',
+        // The letter an edited row carries (RG280), under this list's own words (RG281): what
+        // the watch's stats saw, and never who did it.
+        kind: one.kind === null ? undefined : MOVED_AS[one.kind],
         facts: (
-          <span className="text-muted-foreground text-xs">
-            {say('session.disk.moves', { count: one.moves })} · {when(one.last)}
+          <span className="text-muted-foreground flex flex-wrap items-center gap-1.5 text-xs">
+            <span>
+              {say('session.disk.moves', { count: one.moves })} · {when(one.last)}
+            </span>
+            {one.kind === null ? null : (
+              <Pill intent={one.kind === 'gone' ? 'warn' : null}>
+                {MOVED_LETTER[one.kind]} {say(MOVED_TEXT[one.kind])}
+              </Pill>
+            )}
           </span>
         ),
       })),

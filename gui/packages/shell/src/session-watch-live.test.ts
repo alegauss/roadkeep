@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
@@ -95,4 +95,42 @@ describe('RG247: watching one session root for real', () => {
       watching.stop()
     }).not.toThrow()
   })
+})
+
+describe('RG281: what the real watch says each file was', () => {
+  it('sees a file it watched appear, and one it watched go away', async () => {
+    const where = watchable()
+    // There before the session: its birth is early, so a change to it is a change.
+    writeFileSync(path.join(where, 'old.ts'), 'const old = 1\n', 'utf8')
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    const started = new Date().toISOString()
+    const moves = sessionMoves([], started)
+    const watching = watchSessionRoot(where, (spelled, at, seen) => {
+      moves.moved(spelled, at, seen)
+    })
+    const kindOf = (name: string) =>
+      moves.paths.find((one) => one.path.endsWith(name))?.kind ?? null
+
+    try {
+      writeFileSync(path.join(where, 'made.ts'), 'const made = 1\n', 'utf8')
+      writeFileSync(path.join(where, 'old.ts'), 'const old = 2\n', 'utf8')
+      await until(() => kindOf('made.ts') !== null && kindOf('old.ts') !== null)
+
+      expect(kindOf('made.ts')).toBe('appeared')
+      // A filesystem that keeps no birth time answers zero, which reads as already there —
+      // never a false new, which is the one wrong answer here.
+      expect(kindOf('old.ts')).toBe('changed')
+
+      rmSync(path.join(where, 'old.ts'))
+      await until(() => kindOf('old.ts') === 'gone')
+
+      expect(kindOf('old.ts')).toBe('gone')
+      rmSync(path.join(where, 'made.ts'))
+      await until(() => kindOf('made.ts') === 'came-and-went')
+
+      expect(kindOf('made.ts')).toBe('came-and-went')
+    } finally {
+      watching.stop()
+    }
+  }, 20000)
 })

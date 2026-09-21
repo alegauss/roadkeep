@@ -14,7 +14,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG281** (deps: —) **a file that moved on disk while the session ran never says whether it appeared, changed or went away** — The watch already stats every path it hears of, and when a file was born against when the session started separates a new file from a changed one. → §RG281
 - 📋 **RG282** (deps: RG280 ✅) **an edited file opens as it is now, with no view of it against what it was before the session** — The per-call blocks answer what changed one call at a time and miss what a formatter did after them, where VS Code shows the original beside the file. → §RG282
 - 📋 **RG283** (deps: —) **nothing asks Claude Code what a task means in plain words, so a line and its design are read in their own terse terms** — The brief already holds the line, its design and what binds it, so an explanation is one more frame around that payload, as the hand-over is. → §RG283
 - 📋 **RG284** (deps: RG283) **the only door that puts a task before Claude Code is a session that may write, too much to ask what a task means** — An explanation is a read: one query with no tool that writes, no session kept and a schema for its answer, where a session is a turn that may edit. → §RG284

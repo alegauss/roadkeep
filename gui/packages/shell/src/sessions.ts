@@ -217,16 +217,18 @@ export function createSessions(options: SessionsOptions): Sessions {
     const prompt =
       handed.kind === 'line' ? promptFor(handed.brief) : promptForDoor(handed.finding, handed.argv)
     const call = sessionCall(command, root, prompt)
+    // Taken as the process is started, so a file the disk changed before it reads as unchanged —
+    // and it is what a moved file's birth is early or late against (RG281).
+    const started = now().toISOString()
     const session: Held = {
       key: named(),
       root,
       id,
-      // Taken as the process is started, so a file the disk changed before it reads as unchanged.
-      started: now().toISOString(),
+      started,
       handed,
       agent: found,
       lines: [],
-      moves: sessionMoves(skip()),
+      moves: sessionMoves(skip(), started),
       watching: null,
       holding: null,
       outcome: null,
@@ -256,8 +258,8 @@ export function createSessions(options: SessionsOptions): Sessions {
         beyond: session.moves.beyond,
       })
     }
-    session.watching = watching(session.root, (path, at) => {
-      session.moves.moved(path, at)
+    session.watching = watching(session.root, (path, at, seen) => {
+      session.moves.moved(path, at, seen)
       session.holding?.()
       session.holding = clock.after(MOVES_QUIET_MS, tell)
     })

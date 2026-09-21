@@ -1,6 +1,8 @@
 import { statSync, watch, type FSWatcher } from 'node:fs'
 import path from 'node:path'
 
+import type { MoveSeen } from '@rk/core'
+
 /**
  * The handle half of watching what a session's run changes on disk (RG247).
  *
@@ -26,19 +28,37 @@ export function spelledMove(name: string): string {
   return name.replaceAll('\\', '/').replace(/^(?:\.\/)+/, '')
 }
 
+/** What one stat answered: the three facts a move is read from, in one call. */
+interface Stat extends MoveSeen {
+  /**
+   * Whether this move is a folder's own entry rather than a file's.
+   *
+   * Writing a file changes its directory too, and a watch reports both — so a list drawn from
+   * the raw events names `src` beside `src/a.ts`, which is one fact written twice. A path that
+   * is no longer there is not a folder: a deletion is a move, and the file it happened to is
+   * what a reader wants named.
+   */
+  readonly folder: boolean
+}
+
 /**
- * Whether this move is a folder's own entry rather than a file's.
+ * One stat per event, answering all three (RG281): folder, still there, and when it was born.
  *
- * Writing a file changes its directory too, and a watch reports both — so a list drawn from
- * the raw events names `src` beside `src/a.ts`, which is one fact written twice. A path that
- * is no longer there is not a folder: a deletion is a move, and the file it happened to is
- * what a reader wants named.
+ * It was made already, for the folder question alone. A birth time of zero is a filesystem that
+ * keeps none, and is answered as none rather than as the epoch — which would read as a file born
+ * long before every session.
  */
-function isFolder(root: string, spelled: string): boolean {
+function statOf(root: string, spelled: string): Stat {
   try {
-    return statSync(path.resolve(root, spelled)).isDirectory()
+    const found = statSync(path.resolve(root, spelled))
+    return {
+      folder: found.isDirectory(),
+      present: true,
+      born: found.birthtimeMs > 0 ? found.birthtime.toISOString() : '',
+    }
   } catch {
-    return false
+    // Not there: deleted, or renamed away. Both are a move to the file that is gone.
+    return { folder: false, present: false, born: '' }
   }
 }
 
@@ -47,8 +67,11 @@ export interface SessionWatch {
   stop(): void
 }
 
-/** Told that something under the root moved: the path as the platform spelled it, and when. */
-export type OnMoved = (path: string, at: string) => void
+/**
+ * Told that something under the root moved: the path as the platform spelled it, when, and what
+ * the stat behind it saw (RG281).
+ */
+export type OnMoved = (path: string, at: string, seen: MoveSeen) => void
 
 export function watchSessionRoot(
   root: string,
@@ -62,8 +85,9 @@ export function watchSessionRoot(
       // nothing to re-read: the whole answer here is which path moved.
       if (name === null) return
       const spelled = spelledMove(name)
-      if (isFolder(root, spelled)) return
-      moved(spelled, now().toISOString())
+      const seen = statOf(root, spelled)
+      if (seen.folder) return
+      moved(spelled, now().toISOString(), { present: seen.present, born: seen.born })
     })
     watcher.on('error', () => {
       // The root went away, or the platform gave the watch up. Whatever was seen stands.

@@ -3,6 +3,7 @@ import {
   BASE,
   bridgedRun,
   CHANGE_LETTER,
+  MOVED_LETTER,
   fill,
   openedFrom,
   openProject,
@@ -731,8 +732,8 @@ describe('RG265: the files it touched, as a tree of their own', () => {
     hear(wired, 'session', {
       session: KEY,
       moved: [
-        { path: 'dist/bundle.js', first: STARTED, last: STARTED, moves: 1 },
-        { path: 'dist/bundle.css', first: STARTED, last: STARTED, moves: 1 },
+        { path: 'dist/bundle.js', first: STARTED, last: STARTED, moves: 1, kind: 'changed' },
+        { path: 'dist/bundle.css', first: STARTED, last: STARTED, moves: 1, kind: 'appeared' },
       ],
       beyond: 0,
     })
@@ -963,8 +964,8 @@ describe('RG247: files that moved on disk while the session ran', () => {
     },
   })
   const MOVED: MovedPath[] = [
-    { path: 'src/alpha.ts', first: STARTED, last: CHANGED, moves: 1 },
-    { path: 'dist/bundle.js', first: STARTED, last: CHANGED, moves: 4 },
+    { path: 'src/alpha.ts', first: STARTED, last: CHANGED, moves: 1, kind: 'changed' },
+    { path: 'dist/bundle.js', first: STARTED, last: CHANGED, moves: 4, kind: 'appeared' },
   ]
 
   it('lists what no edit call named, unattributed, and leaves the edited list its own', async () => {
@@ -995,6 +996,29 @@ describe('RG247: files that moved on disk while the session ran', () => {
     ).toBeTruthy()
     expect(disk.getByText(BASE['session.disk.about'])).toBeTruthy()
     expect(disk.getByText(fill(BASE['session.disk.beyond'], { count: 3 }))).toBeTruthy()
+    // What the watch's own stats said it was (RG281), under this list's words and the letter an
+    // edited row carries: nobody is named, so a file it saw arrive appeared.
+    const bundle = disk.getAllByTestId('moved-file')[0]
+    if (bundle === undefined) throw new Error('no moved row')
+    expect(bundle.dataset['kind']).toBe('created')
+    expect(bundle.textContent).toContain(
+      `${MOVED_LETTER.appeared} ${BASE['session.disk.appeared']}`,
+    )
+  })
+
+  it('says nothing about a move the watch read nothing of (RG281)', async () => {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
+    await screen.findByTestId('moved-disk')
+
+    hear(wired, 'session', {
+      session: KEY,
+      moved: [{ path: 'dist/bundle.js', first: STARTED, last: CHANGED, moves: 1, kind: null }],
+      beyond: 0,
+    })
+
+    const row = await screen.findByTestId('moved-file')
+    expect(row.dataset['kind']).toBeUndefined()
+    expect(row.textContent).not.toContain(BASE['session.disk.appeared'])
   })
 
   it('says nothing else moved before anything has, and opens a moved file in the viewer', async () => {

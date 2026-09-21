@@ -338,6 +338,7 @@ export {
   CONFIG_FILE,
   createWatching,
   MOVED_CEILING,
+  MOVED_LETTER,
   MOVES_QUIET_MS,
   NEVER_MOVED,
   QUIET_MS,
@@ -347,7 +348,9 @@ export {
 export type {
   Clock,
   Interest,
+  MovedKind,
   MovedPath,
+  MoveSeen,
   OnChanged,
   SessionMoves,
   Watcher,

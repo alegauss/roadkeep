@@ -58,32 +58,6 @@ catalogue in both languages.
 Done when a test moves `handed` through the menu, resets from the palette, and sees the
 default drawn and written.
 
-### §RG281 Appeared, changed or gone, off the watch's own stat
-
-The list of what moved on disk (RG247) holds what no edit call named: a file `rm`
-removed, one a generator created, one a formatter rewrote. It says how often each moved
-and when, never which it was, the letter RG280 puts on an edited row.
-
-**Not the event's name.** `fs.watch` says `rename` or `change`, and macOS reports most
-writes as `rename`. The portable facts are whether the path is there after the event and
-when it was born.
-
-**The stat is already made.** `watchSessionRoot` stats each path to drop folders; it now
-hands on present and `birthtime` too. `sessionMoves` in `core/watching.ts` keeps the
-first birth and the last presence: born at or after the session started is created,
-before it is changed, absent at its last move is gone, and born after the start and gone
-came and went.
-
-**Where it is wrong, said.** A save that writes a copy and renames it over the file
-gives a new birth, so it reads as created. A filesystem with no birth time answers zero,
-which reads as changed, never a false new. A file made and removed faster than the stat
-reads as gone. The caption, which already calls the list unattributed, says so.
-
-A stat reads no byte, so RG247's rule holds: a name and a clock.
-
-Done when `watching.test.ts` folds each kind and `session-watch-live.test.ts` sees a
-created and a deleted file on the real watch.
-
 ### §RG282 The file against its original, line by line
 
 The viewer (RG245) shows the file as the disk has it, and above it each call's two

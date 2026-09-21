@@ -5,6 +5,7 @@ import {
   openedFrom,
   openProject,
   type AgentResolution,
+  type MoveSeen,
   type OpenedProject,
   type SessionCall,
   type SessionOutcome,
@@ -210,8 +211,8 @@ function fakeWatch() {
         }
       },
     },
-    move(path: string, at: string) {
-      told?.(path, at)
+    move(path: string, at: string, seen: MoveSeen = { present: true, born: '' }) {
+      told?.(path, at, seen)
     },
     tick() {
       const running = queued

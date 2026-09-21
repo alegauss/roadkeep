@@ -53,6 +53,57 @@ export interface MovedPath {
   readonly last: string
   /** How many events were folded into it. */
   readonly moves: number
+  /**
+   * What happened to it while the session ran (RG281), or null where nothing was read of it —
+   * a watch that answers a path this never stood a chance of stat'ing says nothing about it.
+   */
+  readonly kind: MovedKind | null
+}
+
+/**
+ * What a move did to the path (RG281): it appeared, it changed, it went away, or it came and
+ * went while the session ran.
+ *
+ * The same four an edited file is marked with (RG280) under this list's own words: nobody is
+ * named here, so *appeared* is what a reader is told rather than *created*.
+ */
+export type MovedKind = 'appeared' | 'changed' | 'gone' | 'came-and-went'
+
+/**
+ * The letter each kind is marked with, which is `CHANGE_LETTER`'s (RG280) — one vocabulary for
+ * the two lists on one screen, kept here because a package that imports this one imports that
+ * one too, and a cycle between them is the split undone.
+ */
+export const MOVED_LETTER: Readonly<Record<MovedKind, string>> = {
+  appeared: 'A',
+  changed: 'M',
+  gone: 'D',
+  'came-and-went': 'X',
+}
+
+/**
+ * What one stat saw when a path moved (RG281): whether it is there afterwards, and when it was
+ * born.
+ *
+ * **Not the event's name.** `fs.watch` says `rename` or `change` and macOS reports most writes
+ * as `rename`, so the portable facts are these two. The stat itself is the shell's, which is the
+ * side with a filesystem; an empty `born` is one it could not read — a filesystem that keeps no
+ * birth time answers zero, which reads as a file that was already there rather than a false new.
+ */
+export interface MoveSeen {
+  readonly present: boolean
+  /** An ISO time, or empty where the filesystem keeps none. */
+  readonly born: string
+}
+
+/** What the stats add up to, against the moment the session started. */
+function kindOf(seen: MoveSeen | undefined, started: string): MovedKind | null {
+  if (seen === undefined) return null
+  const born = Date.parse(seen.born)
+  const since = Date.parse(started)
+  const made = !Number.isNaN(born) && !Number.isNaN(since) && born >= since
+  if (seen.present) return made ? 'appeared' : 'changed'
+  return made ? 'came-and-went' : 'gone'
 }
 
 /**
@@ -73,8 +124,12 @@ export const NEVER_MOVED: readonly string[] = ['.git']
 export const MOVED_CEILING = 500
 
 export interface SessionMoves {
-  /** Take one move, at one time. A path under a skipped folder is not a move. */
-  moved(path: string, at: string): void
+  /**
+   * Take one move, at one time. A path under a skipped folder is not a move.
+   *
+   * @param seen what the stat behind the event saw (RG281), where one was made
+   */
+  moved(path: string, at: string, seen?: MoveSeen): void
   /** The paths so far, in the order each first moved. */
   readonly paths: readonly MovedPath[]
   /** How many paths were left out at the ceiling. */
@@ -90,15 +145,23 @@ export interface SessionMoves {
  *
  * Paths and times only, never contents: what a session's run did, gone with the process.
  *
+ * **What each one was is the stats' answer** (RG281): the first birth and the last presence,
+ * against the moment the session started. A save that writes a copy and renames it over the file
+ * gives a new birth, so it reads as one that appeared — which the caption says.
+ *
  * @param skip folder names to leave out, as the settings spell them for the walk
+ * @param started the session's own start, an ISO time: what a birth is early or late against
  */
-export function sessionMoves(skip: readonly string[] = []): SessionMoves {
+export function sessionMoves(skip: readonly string[] = [], started = ''): SessionMoves {
   const left = new Set([...NEVER_MOVED, ...skip].filter((name) => name !== ''))
   const byPath = new Map<string, MovedPath>()
+  // The first birth and the last presence, by path: a file rewritten twice was born when it was
+  // first seen, and what it is now is what the last stat saw.
+  const stats = new Map<string, MoveSeen>()
   let beyond = 0
 
   return {
-    moved(spelled, at) {
+    moved(spelled, at, seen) {
       // Segments as the side with the filesystem spelled them: which folder a path is under is
       // a question about names, and how a path is written is not this package's (RG65, RG98).
       if (spelled === '' || spelled.split('/').some((segment) => left.has(segment))) return
@@ -107,11 +170,16 @@ export function sessionMoves(skip: readonly string[] = []): SessionMoves {
         beyond += 1
         return
       }
+      if (seen !== undefined) {
+        const born = stats.get(spelled)?.born ?? ''
+        stats.set(spelled, { present: seen.present, born: born === '' ? seen.born : born })
+      }
       byPath.set(spelled, {
         path: spelled,
         first: was?.first ?? at,
         last: at,
         moves: (was?.moves ?? 0) + 1,
+        kind: kindOf(stats.get(spelled), started),
       })
     },
 

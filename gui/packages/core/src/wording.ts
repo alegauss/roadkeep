@@ -341,7 +341,13 @@ export const EN = {
   'file.refused.not-text': 'The file is not text, so the window does not draw it.',
   'session.disk': 'Changed on disk while it ran',
   'session.disk.about':
-    'Files that moved under the project while the session ran, that no edit call named. Anything else writing then is in here too.',
+    'Files that moved under the project while the session ran, that no edit call named. Anything else writing then is in here too, and a save that replaces a file reads as a new one.',
+  // What the watch's own stats say happened (RG281), under this list's words: nobody is named
+  // here, so a file it saw arrive has appeared rather than been created.
+  'session.disk.appeared': 'appeared',
+  'session.disk.changed': 'changed',
+  'session.disk.gone': 'gone',
+  'session.disk.came-and-went': 'came and went',
   'session.disk.none': 'No other file under the project moved while the session ran.',
   'session.disk.moves': '{count} changes',
   'session.disk.moves.one': '{count} change',

@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
+import { CHANGE_LETTER } from './acts'
 import {
   CONFIG_FILE,
   createWatching,
   MOVED_CEILING,
+  MOVED_LETTER,
   QUIET_MS,
   sessionMoves,
   watchedFiles,
@@ -267,8 +269,8 @@ describe('RG247: what moved on disk while a session ran', () => {
     moves.moved('src/a.ts', LATER)
 
     expect(moves.paths).toEqual([
-      { path: 'src/a.ts', first: AT, last: LATER, moves: 2 },
-      { path: 'src/b.ts', first: AT, last: AT, moves: 1 },
+      { path: 'src/a.ts', first: AT, last: LATER, moves: 2, kind: null },
+      { path: 'src/b.ts', first: AT, last: AT, moves: 1, kind: null },
     ])
     expect(moves.beyond).toBe(0)
   })
@@ -304,5 +306,75 @@ describe('RG247: what moved on disk while a session ran', () => {
     expect(moves.paths).toHaveLength(MOVED_CEILING)
     expect(moves.beyond).toBe(7)
     expect(moves.paths[0]?.moves).toBe(2)
+  })
+})
+
+describe('RG281: what each moved file was', () => {
+  const STARTED = '2026-09-15T10:00:00.000Z'
+  const AT = '2026-09-15T10:00:30.000Z'
+  const LATER = '2026-09-15T10:05:00.000Z'
+  const BEFORE = '2026-09-15T09:00:00.000Z'
+
+  it('reads a file born after the session started, and still there, as one that appeared', () => {
+    const moves = sessionMoves([], STARTED)
+
+    moves.moved('src/made.ts', AT, { present: true, born: AT })
+
+    expect(moves.paths[0]?.kind).toBe('appeared')
+  })
+
+  it('reads one that was already there as changed, however often it moved', () => {
+    const moves = sessionMoves([], STARTED)
+
+    moves.moved('src/a.ts', AT, { present: true, born: BEFORE })
+    moves.moved('src/a.ts', LATER, { present: true, born: BEFORE })
+
+    expect(moves.paths[0]?.kind).toBe('changed')
+    expect(moves.paths[0]?.moves).toBe(2)
+  })
+
+  it('reads one that is not there at its last move as gone', () => {
+    const moves = sessionMoves([], STARTED)
+
+    moves.moved('src/a.ts', AT, { present: true, born: BEFORE })
+    moves.moved('src/a.ts', LATER, { present: false, born: '' })
+
+    expect(moves.paths[0]?.kind).toBe('gone')
+  })
+
+  it('reads one born after the start and gone by the end as one that came and went', () => {
+    const moves = sessionMoves([], STARTED)
+
+    moves.moved('tmp/scratch.txt', AT, { present: true, born: AT })
+    moves.moved('tmp/scratch.txt', LATER, { present: false, born: '' })
+
+    // The first birth is kept: a stat of a file that is gone answers nothing about when it was.
+    expect(moves.paths[0]?.kind).toBe('came-and-went')
+  })
+
+  it('reads a filesystem that keeps no birth time as a file that was already there', () => {
+    // Zero is what such a filesystem answers, and a false new is the one wrong answer here.
+    const moves = sessionMoves([], STARTED)
+
+    moves.moved('src/a.ts', AT, { present: true, born: '' })
+    moves.moved('src/gone.ts', AT, { present: false, born: '' })
+
+    expect(moves.paths.map((one) => one.kind)).toEqual(['changed', 'gone'])
+  })
+
+  it('says nothing about a move nothing was read of, rather than guessing', () => {
+    const moves = sessionMoves([], STARTED)
+
+    moves.moved('src/a.ts', AT)
+
+    expect(moves.paths[0]?.kind).toBeNull()
+  })
+
+  it('marks each kind with the letter an edited row carries, and no two alike', () => {
+    expect(MOVED_LETTER.appeared).toBe(CHANGE_LETTER.created)
+    expect(MOVED_LETTER.changed).toBe(CHANGE_LETTER.changed)
+    expect(MOVED_LETTER.gone).toBe(CHANGE_LETTER.deleted)
+    expect(MOVED_LETTER['came-and-went']).toBe(CHANGE_LETTER.undone)
+    expect(new Set(Object.values(MOVED_LETTER)).size).toBe(4)
   })
 })
