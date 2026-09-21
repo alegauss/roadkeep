@@ -563,6 +563,8 @@ export const PT_BR: Wording = {
   'explain.since': 'O Claude Code está nisso há {elapsed}',
   'explain.stale':
     'A linha mudou desde que isto foi escrito: o que ela diz, seu design ou o que a limita.',
+  'explain.outgrown':
+    'A linha não mudou, mas uma leitura pedida agora diria mais sobre ela do que esta tem.',
   'explain.regenerate': 'Pedir outra leitura',
   'explain.chain': 'Onde ela fica',
   'explain.chain.this': 'Esta linha',

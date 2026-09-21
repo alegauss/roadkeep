@@ -484,6 +484,13 @@ export type GlossAnswer =
       readonly kept: boolean
       /** True where the line has moved since it was written: still shown, and said to be old. */
       readonly stale: boolean
+      /**
+       * True where it was written before the answer grew a slot it has nothing under (RG290).
+       *
+       * The other oldness, and its own field because a reader weighs the two differently: the
+       * line has not moved, and what is on offer is a fuller reading of the same task.
+       */
+      readonly outgrown: boolean
     }
   /** No Claude Code answered on this machine. Every command tried, as a hand-over reports it. */
   | { readonly kind: 'unavailable'; readonly tried: readonly (readonly string[])[] }

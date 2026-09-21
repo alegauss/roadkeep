@@ -587,6 +587,9 @@ export const EN = {
   // The chain the gloss captions (RG286): its nodes are the brief's, never the answer's.
   'explain.stale':
     'The line has moved since this was written: its claim, its design or what binds it.',
+  // The other oldness (RG290): the line is as it was, and the answer has grown since.
+  'explain.outgrown':
+    'The line has not moved, but a reading asked for now would say more about it than this one holds.',
   'explain.regenerate': 'Ask for another reading',
   'explain.chain': 'Where it sits',
   'explain.chain.this': 'This line',

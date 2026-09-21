@@ -19,6 +19,12 @@ import { aNumber, aString, dictionaryOf, listOf, orMissing, record, type Reader 
  * one for a remembered reading. A stale gloss is still shown — it was true of the line as it
  * was — under a notice saying the task has moved since.
  *
+ * **Old the other way is old too** (RG290). An answer grows slots — RG288 gave it the places a
+ * run read — and a gloss written before one has nothing under it while its line has not moved:
+ * not stale, nothing said about it, and no reason to press Regenerate. So each entry carries the
+ * shape it was written under, and `glossShapeStands` is the second comparison. Two reasons and
+ * two sentences, because a reader deciding whether to spend the wait is deciding on the reason.
+ *
  * **Bounded, oldest first.** This is a cache and not a record: past `GLOSSES_KEPT` the least
  * recently answered goes, so a machine that reads a hundred projects keeps a file of a size
  * somebody could open.
@@ -28,6 +34,19 @@ import { aNumber, aString, dictionaryOf, listOf, orMissing, record, type Reader 
 
 /** What this build writes. A file claiming a higher number is not read. */
 export const GLOSSES_VERSION = 1
+
+/**
+ * The shape of answer this build writes, raised whenever a gloss grows a slot (RG290).
+ *
+ * **On the entry and not on the file.** `GLOSSES_VERSION` says what a file is, and a build that
+ * raised it would throw every kept gloss away the next time the schema widened — the opposite of
+ * what keeping them is for. This number is written into each entry instead, so widening the
+ * answer costs the reader a sentence rather than the cache.
+ *
+ * 0 is every gloss kept before this, which is what an entry carrying no number reads as: written
+ * under the shape RG288 widened, and old in the way this file's second comparison means.
+ */
+export const GLOSS_SHAPE = 1
 
 /** How many glosses one machine keeps. */
 export const GLOSSES_KEPT = 50
@@ -59,6 +78,8 @@ export interface KeptGloss {
   readonly model: string
   /** When it was answered, as an ISO time: what the oldest-first bound reads. */
   readonly answered: string
+  /** The shape of answer it was written under (RG290). 0 for everything kept before there was one. */
+  readonly shape: number
   readonly line: GlossedLine
 }
 
@@ -103,6 +124,21 @@ export function glossStands(kept: KeptGloss, payload: BriefPayload): boolean {
     same(kept.line.binds, now.binds) &&
     same(kept.line.doneWhen, now.doneWhen)
   )
+}
+
+/**
+ * Whether a kept gloss was written under the shape of answer this build asks for (RG290).
+ *
+ * False where it predates a slot the answer has since grown, which is a different oldness from
+ * `glossStands`': the line is exactly as it was, and a new reading would say more about it. Still
+ * shown, because what it does say was never wrong — and a reason a reader can weigh, since the
+ * two are not the same wait for the same gain.
+ *
+ * Ahead of this build reads as standing. A gloss written by a later build holds every slot this
+ * one draws, and calling it old would ask Claude Code again for an answer already in hand.
+ */
+export function glossShapeStands(kept: KeptGloss): boolean {
+  return kept.shape >= GLOSS_SHAPE
 }
 
 /** The one kept for this line in this language, or null where none is. */
@@ -173,6 +209,9 @@ const readKept: Reader<KeptGloss> = record<KeptGloss>({
   version: orMissing(aString, ''),
   model: orMissing(aString, ''),
   answered: orMissing(aString, ''),
+  // Missing in every gloss kept before RG290, which is exactly what 0 says: written under a
+  // shape this build has since widened, and old under its own sentence rather than silently.
+  shape: orMissing(aNumber, 0),
   line: readLine,
 })
 

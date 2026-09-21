@@ -3,6 +3,7 @@ import {
   openedFrom,
   openProject,
   type AgentResolution,
+  GLOSS_SHAPE,
   NOTHING_GLOSSED,
   type KeptGlosses,
   type OpenedProject,
@@ -298,6 +299,7 @@ describe('RG287: a gloss kept between openings', () => {
     if (said.kind !== 'said') throw new Error(said.kind)
     expect(said.kept).toBe(true)
     expect(said.stale).toBe(false)
+    expect(said.outgrown).toBe(false)
     expect(said.gloss.headline).toBe('what the line is')
     // Nothing was asked of Claude Code the second time.
     expect(again.query.calls).toEqual([])
@@ -331,9 +333,42 @@ describe('RG287: a gloss kept between openings', () => {
     if (said.kind !== 'said') throw new Error(said.kind)
     expect(said.kept).toBe(true)
     expect(said.stale).toBe(true)
+    // The line moved, and the answer's shape did not: one reason, and the reader is told which.
+    expect(said.outgrown).toBe(false)
     // Still handed back rather than thrown away, and nothing was asked for it.
     expect(said.gloss.headline).toBe('what the line is')
     expect(moved.query.calls).toEqual([])
+  })
+
+  it('RG290: hands back one written before the answer grew, saying that instead', async () => {
+    const store = keeping()
+    const first = await machine(store)
+    await asked(first.made, first.query)
+    // What the file holds after a build that had fewer slots than this one. Written over the
+    // store rather than mocked, because what a reader gets has to come off the entry itself.
+    store.keep({
+      ...store.kept(),
+      glosses: store.kept().glosses.map((one) => ({ ...one, shape: GLOSS_SHAPE - 1 })),
+    })
+
+    const again = await machine(store)
+    const said = await again.made.gloss(ROOT, 'FX1')
+
+    if (said.kind !== 'said') throw new Error(said.kind)
+    expect(said.kept).toBe(true)
+    // The line is exactly as it was, which is the state nothing said anything about before.
+    expect(said.stale).toBe(false)
+    expect(said.outgrown).toBe(true)
+    expect(said.gloss.headline).toBe('what the line is')
+    expect(again.query.calls).toEqual([])
+  })
+
+  it('RG290: writes this build shape into what it keeps, so the next build can tell', async () => {
+    const store = keeping()
+    const first = await machine(store)
+    await asked(first.made, first.query)
+
+    expect(store.held[0]?.shape).toBe(GLOSS_SHAPE)
   })
 
   it('asks anew and replaces what was kept when the reader asks again', async () => {

@@ -6,7 +6,9 @@ import {
   glossesFrom,
   GLOSSES_KEPT,
   GLOSSES_VERSION,
+  GLOSS_SHAPE,
   glossFor,
+  glossShapeStands,
   glossStands,
   NOTHING_GLOSSED,
   withGloss,
@@ -40,6 +42,7 @@ const KEPT: KeptGloss = {
   version: '2.1.274',
   model: 'claude-opus-5',
   answered: '2026-09-21T10:00:00.000Z',
+  shape: GLOSS_SHAPE,
   line: glossedLine(LINE),
 }
 
@@ -111,6 +114,37 @@ describe('RG287: a gloss kept by what it answered', () => {
     } as unknown as BriefPayload
 
     expect(glossStands(KEPT, moved)).toBe(true)
+  })
+})
+
+describe('RG290: the shape a kept gloss was written under', () => {
+  it('stands under this build shape, and not under one the answer has since outgrown', () => {
+    expect(glossShapeStands(KEPT)).toBe(true)
+    expect(glossShapeStands({ ...KEPT, shape: GLOSS_SHAPE - 1 })).toBe(false)
+    // Written by a later build, which holds every slot this one draws: asking again would buy
+    // nothing, so it stands rather than reading as old.
+    expect(glossShapeStands({ ...KEPT, shape: GLOSS_SHAPE + 1 })).toBe(true)
+  })
+
+  it('reads an entry with no shape as 0, which is every gloss kept before this', () => {
+    // The whole of why the number is on the entry: an older file is read, not thrown away,
+    // and what it does not say is the sentence the reader gets.
+    const { shape: _dropped, ...before } = KEPT
+    const older = glossesFrom(JSON.stringify({ version: GLOSSES_VERSION, glosses: [before] }))
+
+    const entry = older?.glosses[0]
+    expect(entry?.shape).toBe(0)
+    expect(entry?.gloss.headline).toBe('what it is')
+    expect(entry === undefined || glossShapeStands(entry)).toBe(false)
+  })
+
+  it('is the oldness the line comparison cannot see, and the two are separate', () => {
+    // The symptom exactly: the line has not moved, so nothing is stale, and the gloss still
+    // says nothing under the slot the answer grew.
+    const outgrown = { ...KEPT, shape: 0 }
+
+    expect(glossStands(outgrown, LINE)).toBe(true)
+    expect(glossShapeStands(outgrown)).toBe(false)
   })
 })
 

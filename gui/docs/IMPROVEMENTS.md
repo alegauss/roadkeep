@@ -58,29 +58,6 @@ catalogue in both languages.
 Done when a test moves `handed` through the menu, resets from the palette, and sees the
 default drawn and written.
 
-### §RG290 The shape a kept gloss was written under
-
-A gloss is kept per line and language (RG287) and answers again without a process. RG288
-widened what an answer holds: the places the run read, drawn as lanes. A gloss written
-before it has none, and the line it answered has not moved — so it is not stale, nothing
-is said about it, and the reader has no reason to press Regenerate.
-
-**The shape belongs on the gloss, not on the file.** `KeptGlosses.version` says what the
-file is; what is missing here is which shape of answer each entry was written under.
-`KeptGloss` gains a number, `GLOSS_SHAPE`, written when it is kept and read back as 0
-for every entry that predates this. Bumping the file version instead would throw away
-every kept gloss on the next build that widens the schema, which is the opposite of
-RG287.
-
-**Old is old, whichever way.** The dialog already draws a notice and a Regenerate button
-for a gloss whose line has moved. A gloss written under an earlier shape reads as old
-too, under its own sentence: the line is as it was, and a new reading would say more
-about it. Two reasons and two sentences, since a reader deciding whether to spend the
-wait is deciding on the reason.
-
-Done when a kept gloss with no shape reads as old in `glosses.test.ts`, the dialog says
-which of the two reasons it is, and a gloss kept under the current shape says neither.
-
 ### §RG299 A block around Prose, not a paragraph
 
 `Prose` draws a `div` holding one `p` per paragraph. `explained.tsx` puts it inside a
@@ -127,6 +104,29 @@ skill actually describes: `npm run dev:inspect`, nothing touched, and the port a
 
 Done when a freshly started `npm run dev:inspect` answers on 9333 before any source
 changes.
+
+### §RG300 Why a kept gloss needs a picture of its own
+
+`TASK_SHOTS` opens the explain dialog twice, and both times on a gloss the scripted
+agent has just answered. A fresh answer is neither stale nor written under an earlier
+shape, so the two notices that say a kept gloss is old are drawn by nothing any picture
+shows — the state exists only in jsdom, which lays nothing out, and that is the gap `npm
+run shots` was built to close.
+
+**A third state, not a third surface.** The shots harness already photographs the
+dialog; what it lacks is a run where the store holds something. The cheapest honest way
+is what RG287 keeps anyway: write a gloss into the machine's own file before the
+capture, with a shape this build has widened past and a line the fixture then leaves
+alone, and open the dialog on it. The capture is `explain-old` beside `explain` and
+`explain-where`, so one name covers both sentences and neither needs its own run.
+
+**Both sentences in one picture is the point.** They are two blocks stacked in the same
+place, each a border and a tinted panel, and the layout question is what they do to each
+other and to what follows at 400 wide. A state that showed one would answer half of it.
+
+Done when a shots run writes `project-task.explain-old.*` in both grounds, both
+languages and both widths, its axe scan is clean, and the picture shows both notices
+above the reading they are about.
 
 ## Block H — The look (a design system for governed prose)
 

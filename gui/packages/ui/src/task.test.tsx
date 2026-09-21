@@ -529,6 +529,7 @@ describe('RG285: what a task means, for somebody new', () => {
     version: '2.1.274',
     kept: false,
     stale: false,
+    outgrown: false,
   }
 
   /** The dialog, once the Explain action has been pressed. */
@@ -643,6 +644,7 @@ describe('RG285: what a task means, for somebody new', () => {
           version: '',
           kept: false,
           stale: false,
+          outgrown: false,
         }),
     })
     expect(await empty.findByText(BASE['explain.empty'])).toBeTruthy()
@@ -674,6 +676,7 @@ describe('RG286: the gloss as shapes', () => {
     version: '2.1.274',
     kept: false,
     stale: false,
+    outgrown: false,
   }
 
   async function shapes() {
@@ -768,6 +771,7 @@ describe('RG287: a gloss kept, and asked for again', () => {
     version: '2.1.274',
     kept: true,
     stale: true,
+    outgrown: false,
   }
 
   it('says a kept gloss is old where the line has moved, and asks again on the button', async () => {
@@ -783,6 +787,8 @@ describe('RG287: a gloss kept, and asked for again', () => {
 
     // Opening asks for what was kept, never for a new reading.
     expect(await dialog.findByTestId('explain-stale')).toBeTruthy()
+    // One reason and one sentence: the shape it was written under is this build's (RG290).
+    expect(dialog.queryByTestId('explain-outgrown')).toBeNull()
     expect(asked).toEqual([false])
     expect(dialog.getByText(KEPT.gloss.headline)).toBeTruthy()
 
@@ -805,7 +811,34 @@ describe('RG287: a gloss kept, and asked for again', () => {
 
     await dialog.findByTestId('explain-said')
     expect(dialog.queryByTestId('explain-stale')).toBeNull()
+    expect(dialog.queryByTestId('explain-outgrown')).toBeNull()
     expect(dialog.getByTestId('explain-regenerate')).toBeTruthy()
+  })
+
+  it('RG290: says a gloss the answer outgrew is old, under its own sentence', async () => {
+    await at(taskPath(ROOT, 'AL1'), [], {
+      gloss: () => Promise.resolve({ ...KEPT, stale: false, outgrown: true }),
+    })
+    fireEvent.click(await screen.findByTestId('explain'))
+    const dialog = within(await screen.findByTestId('explain-dialog'))
+
+    // The state RG290 is about: the line has not moved, so the stale notice would be a lie,
+    // and without this one the dialog says nothing at all about an answer with empty slots.
+    expect(await dialog.findByTestId('explain-outgrown')).toBeTruthy()
+    expect(dialog.queryByTestId('explain-stale')).toBeNull()
+    expect(dialog.getByText(KEPT.gloss.headline)).toBeTruthy()
+    expect(dialog.getByTestId('explain-regenerate')).toBeTruthy()
+  })
+
+  it('RG290: says both where both are true, since they are two different reasons', async () => {
+    await at(taskPath(ROOT, 'AL1'), [], {
+      gloss: () => Promise.resolve({ ...KEPT, stale: true, outgrown: true }),
+    })
+    fireEvent.click(await screen.findByTestId('explain'))
+    const dialog = within(await screen.findByTestId('explain-dialog'))
+
+    expect(await dialog.findByTestId('explain-stale')).toBeTruthy()
+    expect(dialog.getByTestId('explain-outgrown')).toBeTruthy()
   })
 })
 
@@ -835,6 +868,7 @@ describe('RG288: where the work lands, and what is being read', () => {
     version: '2.1.274',
     kept: false,
     stale: false,
+    outgrown: false,
   }
 
   it('draws one lane per top-level folder, each place under its own', async () => {

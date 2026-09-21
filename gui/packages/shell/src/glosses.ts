@@ -1,7 +1,9 @@
 import {
   GLOSS_SCHEMA,
+  GLOSS_SHAPE,
   glossedLine,
   glossFor,
+  glossShapeStands,
   glossStands,
   lineOf,
   NOTHING_GLOSSED,
@@ -130,6 +132,9 @@ export function createGlosses(options: GlossesOptions): Glosses {
         version: already.version,
         kept: true,
         stale: !glossStands(already, read.payload),
+        // The other oldness, asked separately because the reader weighs it separately (RG290):
+        // the line has not moved, and a new reading would fill in what this one has no slot for.
+        outgrown: !glossShapeStands(already),
       }
     }
 
@@ -172,6 +177,7 @@ export function createGlosses(options: GlossesOptions): Glosses {
           version: said.version,
           model: said.model,
           answered: now().toISOString(),
+          shape: GLOSS_SHAPE,
           line: glossedLine(read.payload),
         }),
       )
@@ -182,6 +188,7 @@ export function createGlosses(options: GlossesOptions): Glosses {
         version: said.version,
         kept: false,
         stale: false,
+        outgrown: false,
       }
     })
     running.set(key, { run, answer: answered })

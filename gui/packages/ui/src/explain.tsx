@@ -249,6 +249,17 @@ export function Explain({
                 {say('explain.stale')}
               </p>
             ) : null}
+            {/* The other reason it reads as old (RG290), and its own notice: a reader deciding
+                whether to spend the wait is deciding on which of the two it is. Both can be
+                true of one gloss, and then both are said. */}
+            {answer?.kind === 'said' && answer.outgrown ? (
+              <p
+                className="border-l-primary bg-muted/40 mb-4 rounded-r-lg border border-l-4 p-3 text-sm"
+                data-testid="explain-outgrown"
+              >
+                {say('explain.outgrown')}
+              </p>
+            ) : null}
             {said === null ? null : <Explained payload={payload} gloss={said} />}
             {answer === null || said !== null ? null : (
               <div className="flex flex-col items-start gap-3" data-testid="explain-failed">
