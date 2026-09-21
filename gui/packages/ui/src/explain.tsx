@@ -99,26 +99,37 @@ export function Explain({
     }
   }, [root, id])
 
-  const ask = useCallback(() => {
-    const bridge = getBridge()
-    if (bridge === undefined) return
-    setExplaining({ kind: 'asking' })
-    void bridge.gloss(root, id).then(
-      (answer) => {
-        if (onScreen.current) setExplaining({ kind: 'said', answer })
-      },
-      (cause: unknown) => {
-        const reason = cause instanceof Error ? cause.message : ''
-        if (onScreen.current) {
-          setExplaining({ kind: 'said', answer: { kind: 'withheld', reason } })
-        }
-      },
-    )
-  }, [root, id])
+  const ask = useCallback(
+    (again = false) => {
+      const bridge = getBridge()
+      if (bridge === undefined) return
+      setExplaining({ kind: 'asking' })
+      void bridge.gloss(root, id, again).then(
+        (answer) => {
+          if (onScreen.current) setExplaining({ kind: 'said', answer })
+        },
+        (cause: unknown) => {
+          const reason = cause instanceof Error ? cause.message : ''
+          if (onScreen.current) {
+            setExplaining({ kind: 'said', answer: { kind: 'withheld', reason } })
+          }
+        },
+      )
+    },
+    [root, id],
+  )
+  /** Open it: what was kept answers at once, and nothing is asked of Claude Code (RG287). */
+  const open = useCallback(() => {
+    ask()
+  }, [ask])
+  /** Ask again, whatever is kept: a stale gloss, or another reading of a line that has not moved. */
+  const again = useCallback(() => {
+    ask(true)
+  }, [ask])
 
   const close = useCallback(
-    (open: boolean) => {
-      if (open) return
+    (showing: boolean) => {
+      if (showing) return
       setExplaining(CLOSED)
       getBridge()
         ?.cancelGloss(root, id)
@@ -138,7 +149,7 @@ export function Explain({
     // A column like the other actions on this hero (RG235), so its button is the first thing
     // in it and the row's tops meet.
     <div className="flex flex-col items-end gap-1">
-      <Button variant="outline" size="sm" onClick={ask} data-testid="explain">
+      <Button variant="outline" size="sm" onClick={open} data-testid="explain">
         {say('explain.ask')}
       </Button>
       <Dialog open={explaining.kind !== 'closed'} onOpenChange={close}>
@@ -152,11 +163,21 @@ export function Explain({
           </DialogHeader>
           <div className="mt-4">
             {explaining.kind === 'asking' ? <Asking /> : null}
+            {/* Shown either way: it explained the line as it stood, and what moved since is
+                what a reader decides about (RG287). */}
+            {answer?.kind === 'said' && answer.stale ? (
+              <p
+                className="border-l-primary bg-muted/40 mb-4 rounded-r-lg border border-l-4 p-3 text-sm"
+                data-testid="explain-stale"
+              >
+                {say('explain.stale')}
+              </p>
+            ) : null}
             {said === null ? null : <Explained payload={payload} gloss={said} />}
             {answer === null || said !== null ? null : (
               <div className="flex flex-col items-start gap-3" data-testid="explain-failed">
                 <p className="text-sm">{saidOfAnswer(answer, say)}</p>
-                <Button size="sm" onClick={ask}>
+                <Button size="sm" onClick={again}>
                   {say('explain.again')}
                 </Button>
               </div>
@@ -167,6 +188,18 @@ export function Explain({
               <span>
                 <Button variant="outline" size="sm" onClick={stop}>
                   {say('explain.cancel')}
+                </Button>
+              </span>
+            ) : null}
+            {answer?.kind === 'said' ? (
+              <span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={again}
+                  data-testid="explain-regenerate"
+                >
+                  {say('explain.regenerate')}
                 </Button>
               </span>
             ) : null}

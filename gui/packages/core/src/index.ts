@@ -111,6 +111,17 @@ export { COMPARE_CEILING, COMPARE_CONTEXT, linesBetween, linesOf } from './compa
 export type { Comparison, CompareHunk, CompareLine, CompareMark } from './compare'
 export { GLOSS_SCHEMA, hasGloss, NO_GLOSS, promptForGloss, readGloss } from './gloss'
 export type { Gloss, GlossTerm } from './gloss'
+export {
+  glossedLine,
+  glossesFrom,
+  GLOSSES_KEPT,
+  GLOSSES_VERSION,
+  glossFor,
+  glossStands,
+  NOTHING_GLOSSED,
+  withGloss,
+} from './glosses'
+export type { GlossedLine, KeptGloss, KeptGlosses } from './glosses'
 export { loggedIn, resolveAgent, saidOfAgent, versionIn } from './agent'
 export type {
   Agent,

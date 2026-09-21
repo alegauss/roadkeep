@@ -272,8 +272,13 @@ export interface RendererBridge {
    * **The renderer names a line, never a prompt.** The far side briefs the id itself and frames
    * that payload, for `handOver`'s reason — a page cannot put words of its own to an agent — and
    * the language is the one the window already runs in, which main resolved at launch.
+   *
+   * **Answered from what was kept, where one was** (RG287): the same line in the same language
+   * asks Claude Code nothing and comes back at once, marked stale where the line has moved since.
+   *
+   * @param again ask anew and replace what was kept, which is what Regenerate does
    */
-  gloss(root: string, id: string): Promise<GlossAnswer>
+  gloss(root: string, id: string, again?: boolean): Promise<GlossAnswer>
   /**
    * Give up on a gloss that is still running (RG284). Nothing is kept either way, and a name
    * nothing is running under does nothing.
@@ -475,6 +480,10 @@ export type GlossAnswer =
       /** The model that answered and the Claude Code it ran under, as the run named them. */
       readonly model: string
       readonly version: string
+      /** True where this was kept from an earlier asking rather than asked for now (RG287). */
+      readonly kept: boolean
+      /** True where the line has moved since it was written: still shown, and said to be old. */
+      readonly stale: boolean
     }
   /** No Claude Code answered on this machine. Every command tried, as a hand-over reports it. */
   | { readonly kind: 'unavailable'; readonly tried: readonly (readonly string[])[] }

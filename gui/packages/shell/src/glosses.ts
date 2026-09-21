@@ -1,6 +1,11 @@
 import {
   GLOSS_SCHEMA,
+  glossedLine,
+  glossFor,
+  glossStands,
   lineOf,
+  NOTHING_GLOSSED,
+  withGloss,
   openingUnreadable,
   openOver,
   promptForGloss,
@@ -10,6 +15,7 @@ import {
   type BriefAnswer,
   type BriefPayload,
   type GlossAnswer,
+  type KeptGlosses,
   type ReadOutcome,
 } from '@rk/core'
 
@@ -48,11 +54,21 @@ export interface GlossesOptions {
   readonly tag: () => string
   /** Start the query. `askGloss` unless a test says otherwise. */
   readonly ask?: (call: GlossCall, env: NodeJS.ProcessEnv) => GlossRun
+  /** What this machine has kept (RG287). Nothing kept unless a caller holds a file. */
+  readonly kept?: () => KeptGlosses
+  /** Keep what was just answered. Nothing is kept unless a caller writes it somewhere. */
+  readonly keep?: (glosses: KeptGlosses) => void
+  /** When a gloss was answered, which is what the bound reads. The clock unless a test drives it. */
+  readonly now?: () => Date
 }
 
 export interface Glosses {
-  /** Ask what one line means. The answer is the gloss, or why there is none. */
-  gloss(root: string, id: string): Promise<GlossAnswer>
+  /**
+   * Ask what one line means, or hand back what was kept for it (RG287).
+   *
+   * @param again ask anew and replace what was kept, whatever is kept for the line
+   */
+  gloss(root: string, id: string, again?: boolean): Promise<GlossAnswer>
   /** Give up on one that is running. A line nothing is running for does nothing. */
   cancel(root: string, id: string): void
   /** Give up on every one still running, which is what quitting does. */
@@ -75,19 +91,37 @@ function briefed(
 export function createGlosses(options: GlossesOptions): Glosses {
   const ask = options.ask ?? askGloss
   const environment = options.environment ?? (() => Promise.resolve(process.env))
+  const kept = options.kept ?? (() => NOTHING_GLOSSED)
+  const keep = options.keep ?? (() => undefined)
+  const now = options.now ?? (() => new Date())
   /** What is running, by the line it is about: the run to cancel and the answer to share. */
   const running = new Map<
     string,
     { readonly run: GlossRun; readonly answer: Promise<GlossAnswer> }
   >()
 
-  const answer = async (root: string, id: string): Promise<GlossAnswer> => {
+  const answer = async (root: string, id: string, again: boolean): Promise<GlossAnswer> => {
     const reached = await openOver(options.carrier, root)
     if (reached.kind !== 'open') {
       return { kind: 'withheld', reason: openingUnreadable(reached).message }
     }
     const read = briefed(await reached.project.client.call(root, 'brief', { id }), id)
     if ('said' in read) return { kind: 'withheld', reason: read.said }
+
+    // What was kept for this line in this language answers at once, stale or not: asking again
+    // is the reader's own act, and Regenerate is where it lives (RG287).
+    const tag = options.tag()
+    const already = again ? null : glossFor(kept(), root, id, tag)
+    if (already !== null) {
+      return {
+        kind: 'said',
+        gloss: already.gloss,
+        model: already.model,
+        version: already.version,
+        kept: true,
+        stale: !glossStands(already, read.payload),
+      }
+    }
 
     const found = await options.agent(root)
     if (found.kind !== 'resolved') return { kind: 'unavailable', tried: found.tried }
@@ -100,7 +134,7 @@ export function createGlosses(options: GlossesOptions): Glosses {
         command,
         prefix,
         cwd: root,
-        prompt: promptForGloss(read.payload, options.tag()),
+        prompt: promptForGloss(read.payload, tag),
         schema: GLOSS_SCHEMA,
       },
       env,
@@ -112,11 +146,26 @@ export function createGlosses(options: GlossesOptions): Glosses {
       // no Claude Code ran. What was tried is the one command that was.
       if (said.kind === 'unavailable') return { kind: 'unavailable', tried: [agent.command] }
       if (said.kind === 'failed') return { kind: 'failed', said: said.said }
+      const gloss = readGloss(said.structured, read.payload)
+      keep(
+        withGloss(kept(), {
+          root,
+          id,
+          tag,
+          gloss,
+          version: said.version,
+          model: said.model,
+          answered: now().toISOString(),
+          line: glossedLine(read.payload),
+        }),
+      )
       return {
         kind: 'said',
-        gloss: readGloss(said.structured, read.payload),
+        gloss,
         model: said.model,
         version: said.version,
+        kept: false,
+        stale: false,
       }
     })
     running.set(key, { run, answer: answered })
@@ -128,14 +177,14 @@ export function createGlosses(options: GlossesOptions): Glosses {
   }
 
   return {
-    gloss(root, id) {
+    gloss(root, id, again = false) {
       // A positional starting with a dash is an option to any parser, as `handOver` says.
       if (id === '' || id.startsWith('-')) {
         return Promise.resolve({ kind: 'withheld', reason: `\`${id}\` is not a line id` })
       }
       // The same question twice is one run: a screen asking again while it waits is waiting.
-      const already = running.get(`${root}\u0000${id}`)
-      return already?.answer ?? answer(root, id)
+      const asking = running.get(`${root}\u0000${id}`)
+      return asking?.answer ?? answer(root, id, again)
     },
 
     cancel(root, id) {

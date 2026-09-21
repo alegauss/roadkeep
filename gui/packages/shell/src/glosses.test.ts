@@ -3,13 +3,15 @@ import {
   openedFrom,
   openProject,
   type AgentResolution,
+  NOTHING_GLOSSED,
+  type KeptGlosses,
   type OpenedProject,
   type Transport,
 } from '@rk/core'
 import { describe, expect, it } from 'vitest'
 
 import type { GlossCall, GlossRead, GlossRun } from './gloss-process'
-import { createGlosses } from './glosses'
+import { createGlosses, type Glosses } from './glosses'
 
 /**
  * RG284: what asking for a gloss does, with every process faked.
@@ -46,7 +48,7 @@ const NO_AGENT: AgentResolution = {
   tried: [['claude'], ['claude.cmd']],
 }
 
-function engine(): Transport {
+function engine(why = LINE.why): Transport {
   return {
     run(request) {
       const verb = request.argv[2] ?? ''
@@ -78,7 +80,7 @@ function engine(): Transport {
             durationMs: 1,
           })
         }
-        return said({ ...LINE, id })
+        return said({ ...LINE, id, why })
       }
       return said({})
     },
@@ -235,5 +237,116 @@ describe('RG284: asking what a line means', () => {
 
     expect((await answering).kind).toBe('cancelled')
     expect(query.cancels).toBe(1)
+  })
+})
+
+describe('RG287: a gloss kept between openings', () => {
+  /** What one machine has kept, as the file would hold it. */
+  function keeping() {
+    let kept = NOTHING_GLOSSED
+    return {
+      kept: () => kept,
+      keep: (written: KeptGlosses) => {
+        kept = written
+      },
+      get held() {
+        return kept.glosses
+      },
+    }
+  }
+
+  async function machine(store = keeping(), tag = 'en', why?: string) {
+    const transport = engine(why)
+    const opened: OpenedProject = openedFrom(
+      await openProject(ROOT, [['python', 'launch.py']], () => transport),
+    )
+    const query = asking()
+    const made = createGlosses({
+      carrier: {
+        open: () => Promise.resolve(opened),
+        run: (root, request) => bridgedRun(() => transport.run({ ...request, root })),
+      },
+      agent: () => Promise.resolve(AGENT),
+      environment: () => Promise.resolve({}),
+      tag: () => tag,
+      ask: query.ask,
+      kept: store.kept,
+      keep: store.keep,
+      now: () => new Date('2026-09-21T10:00:00.000Z'),
+    })
+    return { made, query, store }
+  }
+
+  /** Ask, answer, and hand back what the caller got. */
+  async function asked(made: Glosses, query: ReturnType<typeof asking>, again = false) {
+    const answering = made.gloss(ROOT, 'FX1', again)
+    await new Promise((settle) => setTimeout(settle, 0))
+    query.say(ANSWER)
+    return answering
+  }
+
+  it('keeps what was answered, and hands it back without asking again', async () => {
+    const store = keeping()
+    const first = await machine(store)
+    expect((await asked(first.made, first.query)).kind).toBe('said')
+    expect(store.held).toHaveLength(1)
+
+    // A second window, a second run of the app: the file is what carries it across.
+    const again = await machine(store)
+    const said = await again.made.gloss(ROOT, 'FX1')
+
+    if (said.kind !== 'said') throw new Error(said.kind)
+    expect(said.kept).toBe(true)
+    expect(said.stale).toBe(false)
+    expect(said.gloss.headline).toBe('what the line is')
+    // Nothing was asked of Claude Code the second time.
+    expect(again.query.calls).toEqual([])
+  })
+
+  it('keeps one language apart from another', async () => {
+    const store = keeping()
+    const english = await machine(store, 'en')
+    await asked(english.made, english.query)
+
+    const portuguese = await machine(store, 'pt-BR')
+    const answering = portuguese.made.gloss(ROOT, 'FX1')
+    await new Promise((settle) => setTimeout(settle, 0))
+
+    // A window in another language has none kept, so it asks — in that language.
+    expect(portuguese.query.calls[0]?.prompt).toContain('Write every string in pt-BR.')
+    portuguese.query.say(ANSWER)
+    await answering
+    expect(store.held).toHaveLength(2)
+  })
+
+  it('hands back a gloss the line has moved under, saying it is old', async () => {
+    const store = keeping()
+    const first = await machine(store)
+    await asked(first.made, first.query)
+
+    // The same line, restated since: the gloss explained what it used to claim.
+    const moved = await machine(store, 'en', 'Somebody rewrote why this matters.')
+    const said = await moved.made.gloss(ROOT, 'FX1')
+
+    if (said.kind !== 'said') throw new Error(said.kind)
+    expect(said.kept).toBe(true)
+    expect(said.stale).toBe(true)
+    // Still handed back rather than thrown away, and nothing was asked for it.
+    expect(said.gloss.headline).toBe('what the line is')
+    expect(moved.query.calls).toEqual([])
+  })
+
+  it('asks anew and replaces what was kept when the reader asks again', async () => {
+    const store = keeping()
+    const first = await machine(store)
+    await asked(first.made, first.query)
+
+    const again = await machine(store)
+    const said = await asked(again.made, again.query, true)
+
+    if (said.kind !== 'said') throw new Error(said.kind)
+    expect(said.kept).toBe(false)
+    expect(again.query.calls).toHaveLength(1)
+    expect(store.held).toHaveLength(1)
   })
 })

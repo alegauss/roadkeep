@@ -14,8 +14,7 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG287** (deps: RG285 ✅) **an explanation is lost when its dialog closes, so reopening a task pays the whole wait and the tokens again** — A gloss answers one brief in one language, so it is reused until that brief moves, and Regenerate asks again whenever the person wants. → §RG287
-- 📋 **RG288** (deps: RG286 ✅, RG287) **an explanation answers from the brief alone, so it cannot say where in the code the work lands or what it will touch** — The design names the files, and reading them turns a restated design into an account of the change; Read, Grep and Glob change nothing. → §RG288
+- 📋 **RG288** (deps: RG286 ✅, RG287 ✅) **an explanation answers from the brief alone, so it cannot say where in the code the work lands or what it will touch** — The design names the files, and reading them turns a restated design into an account of the change; Read, Grep and Glob change nothing. → §RG288
 
 ## Block G — The shell (an executable now, a service later)
 

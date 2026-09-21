@@ -580,6 +580,9 @@ export const EN = {
   'explain.unblocks': 'What finishing it frees',
   'explain.binds': 'What bounds it',
   // The chain the gloss captions (RG286): its nodes are the brief's, never the answer's.
+  'explain.stale':
+    'The line has moved since this was written: its claim, its design or what binds it.',
+  'explain.regenerate': 'Ask for another reading',
   'explain.chain': 'Where it sits',
   'explain.chain.this': 'This line',
   'explain.chain.none': 'nothing',

@@ -200,6 +200,7 @@
 - ✅ **RG284** **the only door that puts a task before Claude Code is a session that may write, too much to ask what a task means** — A task can be asked of Claude Code as a read: one query with no tool, nothing kept, answered against a schema (design recorded in `packages/shell/src/gloss-process.ts`).
 - ✅ **RG285** **the task screen offers no plain account of a task, only the line and a design written for whoever builds it** — The task screen has an Explain action: a plain-words account of the line, in the window's language, naming who wrote it (design recorded in `packages/ui/src/explain.tsx`).
 - ✅ **RG286** **an explanation reads as a column of paragraphs, while a task's chain, its before and after and its steps are shapes** — The explanation is drawn as shapes: a chain off the brief, before against after, the steps as a path (design recorded in `packages/ui/src/explained.tsx`).
+- ✅ **RG287** **an explanation is lost when its dialog closes, so reopening a task pays the whole wait and the tokens again** — A gloss is kept per line and language, so reopening a task shows it at once; it reads as old once the brief moved, and Regenerate asks anew (design recorded in `packages/core/src/glosses.ts`).
 
 ## Block G — The shell (an executable now, a service later)
 

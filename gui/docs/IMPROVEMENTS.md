@@ -58,33 +58,6 @@ catalogue in both languages.
 Done when a test moves `handed` through the menu, resets from the palette, and sees the
 default drawn and written.
 
-### §RG287 Kept per brief and language, reused, and regenerated on demand
-
-A gloss costs a wait and the person's tokens, and closing the dialog throws it away.
-Kept, reopening a task shows it at once and asks Claude Code nothing.
-
-**Kept in its own file.** `core/glosses.ts` holds each gloss by root, id and language
-tag, beside the brief it answered; `shell/glosses-file.ts` keeps them in `glosses.json`
-under `userData`, written by rename as `readings-file.ts` writes, so a restart keeps
-them too. Not `settings.json`, whose header holds no cached answer, and nothing in the
-project's tree. Bounded, the oldest dropped first.
-
-**Stale is a comparison, not a clock.** A kept gloss stands while the brief's line,
-design, deps and binding lists equal the ones it answered; `glossStands()` is that
-comparison, as `readingStands()` is RG251's. A stale gloss is still shown, under a
-notice that the task changed since.
-
-**The language is part of the key.** A window switched to another language has no gloss
-in it, so opening the dialog asks anew, and switching back finds the first one kept.
-
-**Regenerate, always there.** A Regenerate button in the dialog's footer asks again and
-replaces the kept gloss: for a stale one, and for a person who wants another reading of
-a task that did not change.
-
-Done when `glosses.test.ts` holds a gloss across a reopen, reads it stale once the
-brief's design moved, and keeps two languages apart; and `task.test.tsx` shows a kept
-gloss with no call made, and Regenerate making one.
-
 ### §RG288 Reading the files the design names
 
 A gloss from the brief alone restates the design in plainer words. What a newcomer also

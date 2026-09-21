@@ -35,6 +35,7 @@ import { loadCatalogue, saveCatalogue } from './catalogue-file'
 import { loadReadings, saveReadings } from './readings-file'
 import { createCarrier, type Carrier } from './carrier'
 import { createGlosses } from './glosses'
+import { loadGlosses, saveGlosses } from './glosses-file'
 import { editedAt } from './edited-at'
 import { fileText } from './file-text'
 import { governedAt } from './governed-at'
@@ -411,15 +412,21 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
         root,
       ),
     tag: () => localeChoice(loadSettings(app.getPath('userData')).settings.locale, app.getLocale()),
+    // Kept between openings (RG287), in a file of this app's own: reopening a task shows what
+    // was written for it and asks Claude Code nothing.
+    kept: () => loadGlosses(app.getPath('userData')),
+    keep: (written) => {
+      saveGlosses(app.getPath('userData'), written)
+    },
   })
 
   ipcMain.handle(
     BRIDGE_CHANNELS.gloss,
-    (_event, root: unknown, id: unknown): Promise<GlossAnswer> => {
+    (_event, root: unknown, id: unknown, again: unknown): Promise<GlossAnswer> => {
       if (typeof root !== 'string' || typeof id !== 'string') {
         return Promise.resolve({ kind: 'withheld', reason: 'no line was named' })
       }
-      return glosses.gloss(root, id)
+      return glosses.gloss(root, id, again === true)
     },
   )
   ipcMain.handle(BRIDGE_CHANNELS.cancelGloss, (_event, root: unknown, id: unknown): void => {

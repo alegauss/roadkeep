@@ -518,6 +518,8 @@ describe('RG285: what a task means, for somebody new', () => {
     gloss: GLOSS,
     model: 'claude-opus-5',
     version: '2.1.274',
+    kept: false,
+    stale: false,
   }
 
   /** The dialog, once the Explain action has been pressed. */
@@ -629,6 +631,8 @@ describe('RG285: what a task means, for somebody new', () => {
           },
           model: '',
           version: '',
+          kept: false,
+          stale: false,
         }),
     })
     expect(await empty.findByText(BASE['explain.empty'])).toBeTruthy()
@@ -653,6 +657,8 @@ describe('RG286: the gloss as shapes', () => {
     },
     model: 'claude-opus-5',
     version: '2.1.274',
+    kept: false,
+    stale: false,
   }
 
   async function shapes() {
@@ -715,5 +721,65 @@ describe('RG286: the gloss as shapes', () => {
     expect(dialog.queryByTestId('explain-binds')).toBeNull()
     // The chain stands whatever the gloss said: its nodes are the engine's.
     expect(dialog.getByTestId('explain-chain')).toBeTruthy()
+  })
+})
+
+describe('RG287: a gloss kept, and asked for again', () => {
+  const KEPT = {
+    kind: 'said' as const,
+    gloss: {
+      headline: 'what it was when this was written',
+      today: '',
+      after: '',
+      steps: [],
+      terms: [],
+      risks: [],
+      done: [],
+      deps: {},
+      unblocks: {},
+      binds: {},
+    },
+    model: 'claude-opus-5',
+    version: '2.1.274',
+    kept: true,
+    stale: true,
+  }
+
+  it('says a kept gloss is old where the line has moved, and asks again on the button', async () => {
+    const asked: boolean[] = []
+    await at(taskPath(ROOT, 'AL1'), [], {
+      gloss: (_root, _id, again) => {
+        asked.push(again === true)
+        return Promise.resolve(asked.length === 1 ? KEPT : { ...KEPT, kept: false, stale: false })
+      },
+    })
+    fireEvent.click(await screen.findByTestId('explain'))
+    const dialog = within(await screen.findByTestId('explain-dialog'))
+
+    // Opening asks for what was kept, never for a new reading.
+    expect(await dialog.findByTestId('explain-stale')).toBeTruthy()
+    expect(asked).toEqual([false])
+    expect(dialog.getByText(KEPT.gloss.headline)).toBeTruthy()
+
+    fireEvent.click(dialog.getByTestId('explain-regenerate'))
+
+    await waitFor(() => {
+      expect(asked).toEqual([false, true])
+    })
+    await waitFor(() => {
+      expect(dialog.queryByTestId('explain-stale')).toBeNull()
+    })
+  })
+
+  it('draws a kept gloss that still stands without the notice', async () => {
+    await at(taskPath(ROOT, 'AL1'), [], {
+      gloss: () => Promise.resolve({ ...KEPT, stale: false }),
+    })
+    fireEvent.click(await screen.findByTestId('explain'))
+    const dialog = within(await screen.findByTestId('explain-dialog'))
+
+    await dialog.findByTestId('explain-said')
+    expect(dialog.queryByTestId('explain-stale')).toBeNull()
+    expect(dialog.getByTestId('explain-regenerate')).toBeTruthy()
   })
 })
