@@ -27,8 +27,6 @@
 
 ## Block I — Validation (the list a person works through)
 
-- 📋 **RG296** (deps: RG289 ✅) **a project row says what is open and nothing about what shipped with nobody looking at it** — The row carries the count the engine already answers, so a machine of twenty backlogs shows at a glance where somebody is owed a walkthrough. → §RG296
-
 ## Done when — Block A
 
 - **The client runs with no Electron and no React** The transport is one interface, so

@@ -49,6 +49,7 @@ const STATS: StatsPayload = {
     { block: 'A', counted: 9, uncounted: 0, markers: {} },
     { block: 'B', counted: 6, uncounted: 0, markers: {} },
   ],
+  validation: null,
 }
 
 describe('RG22: a filter is a call, not a predicate', () => {

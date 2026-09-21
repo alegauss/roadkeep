@@ -60,6 +60,8 @@ export const EN = {
   'counts.uncounted.one': '{count} not counted',
   'counts.blocked': '{count} blocked',
   'counts.blocked.one': '{count} blocked',
+  'counts.unvalidated': '{count} awaiting a person',
+  'counts.unvalidated.one': '{count} awaiting a person',
   'counts.lines': '{count} lines',
   'counts.lines.one': '{count} line',
   'counts.sections': '{count} sections',

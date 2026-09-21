@@ -50,6 +50,7 @@ const STATS: StatsPayload = {
   markers: { '📋': 11, '💭': 48, '🛠': 1 },
   startable: { open: 60, startable: 58, waiting: 2, absent: [] },
   blocks: [],
+  validation: { validated: 4, unvalidated: 2 },
 }
 
 const PICK: PickPayload = {

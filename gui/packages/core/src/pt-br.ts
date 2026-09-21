@@ -40,6 +40,8 @@ export const PT_BR: Wording = {
   'counts.uncounted.one': '{count} não contada',
   'counts.blocked': '{count} bloqueadas',
   'counts.blocked.one': '{count} bloqueada',
+  'counts.unvalidated': '{count} esperando alguém',
+  'counts.unvalidated.one': '{count} esperando alguém',
   'counts.lines': '{count} linhas',
   'counts.lines.one': '{count} linha',
   'counts.sections': '{count} seções',

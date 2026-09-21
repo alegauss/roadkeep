@@ -39,6 +39,7 @@ const statsFor = (total: number): StatsPayload => ({
   markers: {},
   startable: null,
   blocks: [],
+  validation: null,
 })
 
 /**

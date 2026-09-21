@@ -48,6 +48,15 @@ export interface RowCounts {
   readonly waiting: number
   /** Marker-bearing lines the count could not read. Above zero the row is narrower than the file. */
   readonly uncounted: number
+  /**
+   * How many shipped entries await somebody trying them (RG296), or **null** where this
+   * project's engine does not answer the question.
+   *
+   * Withheld and not zeroed: a blank reads as *this build does not say*, and a `0` would be a
+   * claim — that everything shipped has been looked at — which is the opposite of what an
+   * engine with no way to record a verdict means.
+   */
+  readonly unvalidated: number | null
 }
 
 export interface RowNext {
@@ -288,6 +297,9 @@ function countsFrom(stats: StatsPayload): RowCounts {
     startable: stats.startable?.startable ?? 0,
     waiting: stats.startable?.waiting ?? 0,
     uncounted: stats.uncounted,
+    // Null carried as null, which is the whole of RG296's reading: the engine says nothing
+    // about a question it is not asked, and a number here would be this app answering it.
+    unvalidated: stats.validation?.unvalidated ?? null,
   }
 }
 

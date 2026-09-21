@@ -186,22 +186,3 @@ That is a commit in somebody else's repository with a consequence for five other
 which is why it is written down here rather than made quietly.
 
 ## Block I — Validation (the list a person works through)
-
-### §RG296 Where somebody is owed a walkthrough
-
-The portfolio is why this app exists: twenty backlogs, one view. A row says what is open
-and what is next, and after this block the number that matters most is a third one —
-what shipped and nobody has looked at. That is where the work now is, and it is
-invisible until somebody opens the project one at a time, which is the reading this
-screen was built to replace.
-
-**Off the count the engine already answers**, so this is a field on a row and not a
-second read. The portfolio composes its rows from one call per project, and a call per
-project is the cost RG7 and RG8 exist to hold down.
-
-**Withheld, not zeroed**, on a project whose engine cannot say. A blank reads as *this
-build does not answer that*; a `0` would be a claim, and the wrong one — an old engine
-has no verdicts precisely because it has no way to record any.
-
-Done when a fixture with two unvalidated entries draws the figure, a project on an older
-engine draws none, and the shots read at both widths.

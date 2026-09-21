@@ -285,6 +285,15 @@ function BacklogCell({ row }: { readonly row: ProjectRow }) {
           {say('counts.uncounted', { count: counts.uncounted })}
         </div>
       ) : null}
+      {/* Where the work now is, once a block ships (RG296). Withheld on a project whose engine
+          does not answer the question — a blank reads as *this build does not say*, and a zero
+          would claim everything shipped has been looked at. Silent at zero too, which is the
+          same rule the uncounted line above follows: a row says what there is to do. */}
+      {counts.unvalidated !== null && counts.unvalidated > 0 ? (
+        <div className="text-muted-foreground text-xs" data-testid="row-unvalidated">
+          {say('counts.unvalidated', { count: counts.unvalidated })}
+        </div>
+      ) : null}
     </div>
   )
 }

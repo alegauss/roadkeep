@@ -50,6 +50,9 @@ const READ = '/code/alpha'
 const PENDING = '/code/beta'
 const REFUSED = '/code/gamma'
 
+/** Whether this engine answers the validation question at all (RG296). */
+let asksNothing = false
+
 const SAID: Record<string, string> = {
   engines: JSON.stringify({
     writing: { version: '0.2.400', home: '/engines/one', revision: 'abc1234', on_disk: '0.2.400' },
@@ -86,6 +89,9 @@ const SAID: Record<string, string> = {
     markers: { '📋': 11, '💭': 48, '🛠': 1 },
     startable: { open: 60, startable: 58, waiting: 2, absent: [] },
     blocks: [],
+    // The two counts a verdict splits the ledger into (RG296). A build that does not ask the
+    // question answers null instead, which `asksNothing` puts this machine into.
+    validation: { validated: 4, unvalidated: 2 },
   }),
   pick: JSON.stringify({
     pick: {
@@ -104,9 +110,16 @@ const SAID: Record<string, string> = {
 
 const machine: Transport = {
   run(request) {
-    const answer = SAID[request.argv[2] ?? '']
+    const verb = request.argv[2] ?? ''
+    const answer = SAID[verb]
     if (answer === undefined) return Promise.reject(new EngineCallFailed('unspawnable', 'no', 1))
-    return Promise.resolve({ code: 0, stdout: answer, stderr: '', durationMs: 1 })
+    // An engine older than the verbs answers the counts as null, which is a state and not a
+    // zero (RG296): it has no verdicts because it has no way to record one.
+    const said =
+      verb === 'stats' && asksNothing
+        ? JSON.stringify({ ...(JSON.parse(answer) as object), validation: null })
+        : answer
+    return Promise.resolve({ code: 0, stdout: said, stderr: '', durationMs: 1 })
   },
 }
 
@@ -191,6 +204,7 @@ afterEach(() => {
   Reflect.deleteProperty(window, 'roadkeep')
   // One value for the window's life (RG241), so an order one test chose is the next one's start.
   holdPortfolioOrder('record')
+  asksNothing = false
   toast.dismiss()
 })
 
@@ -1671,5 +1685,30 @@ describe('RG204: the picture a project declares', () => {
       expect(within(rowOf('alpha')).getByText('🔎')).toBeTruthy()
     })
     expect(within(rowOf('alpha')).queryByTestId('project-mark')).toBeNull()
+  })
+})
+
+describe('RG296: where somebody is owed a walkthrough', () => {
+  it('draws the count the engine already answered, beside the open ones', async () => {
+    await threeStates()
+    drawWindow()
+
+    // The third number a row carries once a block ships: what is done and unlooked-at, which
+    // is where the work now is and is invisible until somebody opens each project.
+    const said = await screen.findAllByTestId('row-unvalidated')
+    expect(said[0]?.textContent).toBe(fill(BASE['counts.unvalidated'], { count: 2 }))
+  })
+
+  it('withholds it on a project whose engine does not answer, rather than drawing a zero', async () => {
+    // A blank reads as *this build does not say*. A `0` would be a claim, and the wrong one:
+    // an old engine has no verdicts precisely because it has no way to record any.
+    asksNothing = true
+    await threeStates()
+    drawWindow()
+
+    await waitFor(() => {
+      expect(screen.getAllByTestId('open-project').length).toBeGreaterThan(0)
+    })
+    expect(screen.queryAllByTestId('row-unvalidated')).toEqual([])
   })
 })

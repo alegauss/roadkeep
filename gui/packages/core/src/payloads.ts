@@ -356,6 +356,24 @@ export interface BlockCount {
   readonly markers: Record<string, number>
 }
 
+/**
+ * The two counts a verdict splits the ledger into (RG296).
+ *
+ * Null on the payload where the question is not asked at all — a project declaring no
+ * `[validation]`, or a history that cannot place where looking starts — which is why a screen
+ * withholds the figure there rather than drawing a zero. An old engine has no verdicts precisely
+ * because it has no way to record any, and `0` would be a claim about that.
+ */
+export interface ValidationCounts {
+  readonly validated: number
+  readonly unvalidated: number
+}
+
+export const readValidationCounts: Reader<ValidationCounts> = record<ValidationCounts>({
+  validated: orMissing(aNumber, 0),
+  unvalidated: orMissing(aNumber, 0),
+})
+
 export interface StatsPayload {
   readonly file: string
   readonly total: number
@@ -365,6 +383,8 @@ export interface StatsPayload {
   readonly markers: Record<string, number>
   readonly startable: Startable | null
   readonly blocks: readonly BlockCount[]
+  /** How many shipped entries carry a verdict and how many await one, or null where nothing asks. */
+  readonly validation: ValidationCounts | null
 }
 
 export const readStatsPayload: Reader<StatsPayload> = record<StatsPayload>({
@@ -384,6 +404,7 @@ export const readStatsPayload: Reader<StatsPayload> = record<StatsPayload>({
     ),
     [],
   ),
+  validation: orMissing(orNull(readValidationCounts), null),
 })
 
 export interface RationaleSection {
