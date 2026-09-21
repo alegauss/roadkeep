@@ -4,6 +4,7 @@ import {
   type RowOrder,
   type SessionLayout,
   type SessionNotes,
+  type SessionSides,
   type Settings,
 } from '@rk/core'
 import { toast } from '@viglet/viglet-design-system'
@@ -14,8 +15,8 @@ import { getBridge } from './bridge'
 /**
  * The preferences with no library behind them, as this window holds them: how a session draws
  * its system notes (RG208), the order the portfolio opens in (RG241), and where a session's
- * cards sit (RG277) — one arrangement for the window, since the task and gate routes draw one
- * screen.
+ * cards sit (RG277) and how wide its side bars are (RG279) — one of each for the window, since
+ * the task and gate routes draw one screen.
  *
  * **Held once for the window, like the language.** The ground has `next-themes` and the
  * language has i18next; these have neither, so this is the smallest store that does the same
@@ -29,12 +30,13 @@ import { getBridge } from './bridge'
  */
 
 /** The settings rows held here, typed as the file's own fields so a write takes them as they are. */
-type Held = Pick<Settings, 'sessionNotes' | 'portfolioOrder' | 'sessionLayout'>
+type Held = Pick<Settings, 'sessionNotes' | 'portfolioOrder' | 'sessionLayout' | 'sessionSides'>
 
 let held: Held = {
   sessionNotes: DEFAULT_SETTINGS.sessionNotes,
   portfolioOrder: DEFAULT_SETTINGS.portfolioOrder,
   sessionLayout: DEFAULT_SETTINGS.sessionLayout,
+  sessionSides: DEFAULT_SETTINGS.sessionSides,
 }
 const listeners = new Set<() => void>()
 
@@ -121,4 +123,23 @@ function currentLayout(): SessionLayout {
 /** The arrangement in force, as the session screen reads it. */
 export function useSessionLayout(): SessionLayout {
   return useSyncExternalStore(subscribe, currentLayout, currentLayout)
+}
+
+/** Take what the settings file holds, at launch (RG279). */
+export function holdSessionSides(sides: SessionSides): void {
+  hold('sessionSides', sides)
+}
+
+/** Keep a side bar's width once its edge is let go: the panel already draws it. */
+export function chooseSessionSides(sides: SessionSides): void {
+  choose('sessionSides', sides)
+}
+
+function currentSides(): SessionSides {
+  return held.sessionSides
+}
+
+/** The widths in force, as the session screen reads them. */
+export function useSessionSides(): SessionSides {
+  return useSyncExternalStore(subscribe, currentSides, currentSides)
 }

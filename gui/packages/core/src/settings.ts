@@ -61,6 +61,26 @@ export interface SessionLayout {
 /** Every card this build draws, in the order the default arrangement lists them. */
 export const SESSION_CARDS: readonly SessionCard[] = ['handed', 'moved', 'files']
 
+/**
+ * How wide each session side bar is drawn (RG279): its share of the row it and the stream
+ * divide, in per cent, as its edge was last dragged to. `null` is the width every earlier build
+ * drew, 18rem, which a side bar nobody dragged keeps. A side bar with no card keeps its share for
+ * when one comes back to it.
+ *
+ * On disk and never in the browser's storage, which is neither this file nor one a person can
+ * read — the library's own `autoSaveId` would put it there.
+ */
+export interface SessionSides {
+  readonly left: number | null
+  readonly right: number | null
+}
+
+/**
+ * The narrowest and widest share a side bar is drawn at, in per cent: the panels' own bounds,
+ * and so the reader's — two at the widest still leave the stream a fifth of the row.
+ */
+export const SIDE_SHARE = { min: 12, max: 40 } as const
+
 export interface Settings {
   readonly version: number
   /** The folders to scan, and how far under each. The person's statement, never a scan's. */
@@ -90,6 +110,8 @@ export interface Settings {
   readonly portfolioOrder: RowOrder
   /** Where the session screen's side cards sit, and in what order (RG276). */
   readonly sessionLayout: SessionLayout
+  /** How wide the session screen's side bars are drawn (RG279). */
+  readonly sessionSides: SessionSides
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -108,6 +130,8 @@ export const DEFAULT_SETTINGS: Settings = {
   // what moved and the files it touched on the right. A field arriving with a default is not a
   // new version, so `SETTINGS_VERSION` stays where it was.
   sessionLayout: { left: ['handed'], right: ['moved', 'files'] },
+  // Neither side bar dragged: both at the 18rem every earlier build drew.
+  sessionSides: { left: null, right: null },
 }
 
 /**
@@ -138,6 +162,8 @@ export type Lost =
   | 'sessionNotes'
   | 'portfolioOrder'
   | 'sessionLayout'
+  | 'sessionSides'
+  | 'sidesClamped'
 
 export interface Reset {
   readonly lost: Lost
@@ -270,6 +296,61 @@ export function moveCard(
   const target = without[side]
   target.splice(Math.max(0, Math.min(index, target.length)), 0, card)
   return without
+}
+
+function clampShare(share: number): number {
+  return Math.min(Math.max(share, SIDE_SHARE.min), SIDE_SHARE.max)
+}
+
+/**
+ * A side bar's share as it is kept (RG279): to a tenth of a per cent, and within the bounds.
+ * The drag library answers to the fifteenth decimal, which is noise in a file a person reads.
+ */
+export function sideShare(share: number): number {
+  return clampShare(Math.round(share * 10) / 10)
+}
+
+function isShareOrUnset(value: unknown): value is number | null {
+  return value === null || (typeof value === 'number' && Number.isFinite(value))
+}
+
+/**
+ * Whether a value is a pair of side bar widths exactly as this build writes one (RG279): the two
+ * sides and nothing else, each unset or a share within the bounds — so nothing a page stores is
+ * something the reader would clamp.
+ */
+export function isSessionSides(value: unknown): value is SessionSides {
+  const record = asRecord(value)
+  if (record === null || Object.keys(record).length !== SIDES.length) return false
+  return SIDES.every((side) => {
+    const share = record[side]
+    return isShareOrUnset(share) && (share === null || clampShare(share) === share)
+  })
+}
+
+/**
+ * The side bar widths a file holds (RG279). A share outside the bounds is held to the nearest
+ * one and said, since the person dragged something the screen will not draw; a value that is not
+ * two shares is no widths at all, and both go back to where they started.
+ */
+function sidesIn(raw: unknown): readonly [SessionSides, Reset | null] {
+  const fallback = DEFAULT_SETTINGS.sessionSides
+  if (raw === undefined) return [fallback, null]
+  const record = asRecord(raw)
+  if (record === null) return [fallback, { lost: 'sessionSides' }]
+  const left = record['left'] ?? null
+  const right = record['right'] ?? null
+  if (!isShareOrUnset(left) || !isShareOrUnset(right)) return [fallback, { lost: 'sessionSides' }]
+
+  const held = {
+    left: left === null ? null : clampShare(left),
+    right: right === null ? null : clampShare(right),
+  }
+  const clamped = held.left !== left || held.right !== right
+  return [
+    held,
+    clamped ? { lost: 'sidesClamped', fields: { min: SIDE_SHARE.min, max: SIDE_SHARE.max } } : null,
+  ]
 }
 
 /**
@@ -448,6 +529,7 @@ export function readSettings(source: unknown): SettingsRead {
     { lost: 'portfolioOrder' },
   )
   const [sessionLayout, saidOfLayout] = layoutIn(file['sessionLayout'])
+  const [sessionSides, saidOfSides] = sidesIn(file['sessionSides'])
 
   return {
     settings: {
@@ -461,6 +543,7 @@ export function readSettings(source: unknown): SettingsRead {
       sessionNotes,
       portfolioOrder,
       sessionLayout,
+      sessionSides,
     },
     reset: [
       version.said,
@@ -473,6 +556,7 @@ export function readSettings(source: unknown): SettingsRead {
       saidOfNotes,
       saidOfOrder,
       saidOfLayout,
+      saidOfSides,
     ].filter((said): said is Reset => said !== null),
   }
 }

@@ -21,12 +21,14 @@ const HELD: Settings = {
 describe('RG207: the table', () => {
   it('names the preferences a page chooses, and nothing that decides a scan', () => {
     // The ground and the language (RG207), how a session draws its notes (RG208), the order
-    // the portfolio opens in (RG241), and where a session's cards sit (RG276).
+    // the portfolio opens in (RG241), where a session's cards sit (RG276) and how wide its
+    // side bars are (RG279).
     expect(Object.keys(PREFERENCES).sort()).toEqual([
       'locale',
       'portfolioOrder',
       'sessionLayout',
       'sessionNotes',
+      'sessionSides',
       'theme',
     ])
     for (const reaching of ['roots', 'skip', 'width', 'version']) {
@@ -87,6 +89,15 @@ describe('RG207: writing one', () => {
     ]) {
       expect(withPreference(HELD, 'sessionLayout', repaired)).toBeNull()
     }
+  })
+
+  it('writes how wide the session side bars are, and refuses a width the reader would clamp (RG279)', () => {
+    expect(withPreference(HELD, 'sessionSides', { left: null, right: 30.5 })).toEqual({
+      ...HELD,
+      sessionSides: { left: null, right: 30.5 },
+    })
+    expect(withPreference(HELD, 'sessionSides', { left: 90, right: null })).toBeNull()
+    expect(withPreference(HELD, 'sessionSides', { right: 30 })).toBeNull()
   })
 
   it('refuses a value the reader would reset, so the file never holds one', () => {

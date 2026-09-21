@@ -246,6 +246,8 @@ export const EN = {
   'session.card.toRight': 'Move to the right side bar',
   'session.card.up': 'Move up',
   'session.card.down': 'Move down',
+  'session.side.width.left': 'Width of the left side bar',
+  'session.side.width.right': 'Width of the right side bar',
   'session.stream': 'The stream',
   'session.stream.empty': 'Nothing has been written yet.',
   'session.follow': 'Jump to latest',
@@ -530,6 +532,10 @@ export const EN = {
     "the portfolio's order was not one this build knows, so it opens in the record's order",
   'settings.lost.sessionLayout':
     "where a session's cards sit was not two lists, so they are back where they started",
+  'settings.lost.sessionSides':
+    "how wide a session's side bars are was not two shares, so both are back to where they started",
+  'settings.lost.sidesClamped':
+    'a session side bar was set outside {min} to {max} per cent of the row, so it is held at the nearest',
 
   'shell.home': 'Home',
   'shell.palette': 'Find a line in every backlog',
@@ -586,6 +592,8 @@ export const RESET_TEXT: Readonly<Record<Lost, MessageKey>> = {
   sessionNotes: 'settings.lost.sessionNotes',
   portfolioOrder: 'settings.lost.portfolioOrder',
   sessionLayout: 'settings.lost.sessionLayout',
+  sessionSides: 'settings.lost.sessionSides',
+  sidesClamped: 'settings.lost.sidesClamped',
 }
 
 /**

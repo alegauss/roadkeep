@@ -58,32 +58,6 @@ catalogue in both languages.
 Done when a test moves `handed` through the menu, resets from the palette, and sees the
 default drawn and written.
 
-### §RG279 Side bars that keep the width they were dragged to
-
-The two side bars are 18rem whatever they hold, the width RG237 gave them. A long path
-in the files card is cut, and a person who wants a wider stream has no way to get one.
-VS Code lets a side bar's edge be dragged, and the next launch opens at that width.
-
-The design system ships the divider as `ResizablePanelGroup`, `ResizablePanel` and
-`ResizableHandle`, over react-resizable-panels. The `xl` grid in `session-cards.tsx`,
-which RG277 moved there, becomes one horizontal group of up to three panels, the stream
-in the middle, imported from the design system rather than the library, so
-`package.json` gains nothing.
-
-The width goes to disk, not to the browser. The library's `autoSaveId` and
-`useDefaultLayout` write to `localStorage`, which is not settings.json and not a file a
-person can read or edit. The widths are a second settings row, `sessionSides`: each side
-bar as a percentage of the group, clamped by the reader to the panels' own minimum and
-maximum. They are saved from `onLayoutChanged`, which fires once when the drag ends,
-never from `onLayoutChange`, which fires on every pointer move.
-
-A side bar RG277 emptied has no panel and so no handle; its saved width is kept for when
-a card comes back to it.
-
-Done when a browser test drags the right handle, sees one `savePreference` call with the
-new percentage, and sees a remount draw the same width; and when a file holding 90 per
-cent reads back clamped, with its notice.
-
 ### §RG280 Created, changed or deleted, off the first answer on a path
 
 Each row of the edited list (RG243) says how many calls named the file and where the

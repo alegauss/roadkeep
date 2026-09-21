@@ -192,6 +192,7 @@
 - ✅ **RG276** **the settings file has nowhere to keep how the session screen's cards are arranged, so none outlives the window** — settings.json keeps the session cards as sessionLayout, repaired card by card on read, with a pure moveCard and a strict preference row (design recorded in `packages/core/src/settings.ts`).
 - ✅ **RG277** **the session screen's side cards stay where the grid puts them, and cannot be dragged to the other side or reordered** — A session card moves by its title grip, by pointer or keys, to a place drawn as an insertion line, and settings keep the move (design recorded in `packages/ui/src/session-cards.tsx`).
 - ✅ **RG278 (title menu and Settings reset)** **a session card moves only under a pointer drag, and an arrangement nobody wants is undone one card at a time** — Each session card's title menu moves it across or along without a drag, and Settings puts every card back where it started.
+- ✅ **RG279** **the session screen's side bars are 18rem whatever they hold, so a long path is cut and the stream cannot be widened** — A session side bar keeps the width its edge was dragged to, in settings.json rather than in the browser (design recorded in `packages/ui/src/session-cards.tsx`).
 
 ## Block G — The shell (an executable now, a service later)
 

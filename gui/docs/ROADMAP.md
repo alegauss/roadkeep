@@ -14,7 +14,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG279** (deps: RG277 ✅) **the session screen's side bars are 18rem whatever they hold, so a long path is cut and the stream cannot be widened** — VS Code keeps the width a side bar's edge was dragged to, and the design system already ships that divider. → §RG279
 - 📋 **RG280** (deps: —) **an edited file's row never says whether the session created, changed or deleted it** — Claude Code answers each Edit and Write with the file as it stood before the call, so the first answer on a path already says whether it existed. → §RG280
 - 📋 **RG281** (deps: —) **a file that moved on disk while the session ran never says whether it appeared, changed or went away** — The watch already stats every path it hears of, and when a file was born against when the session started separates a new file from a changed one. → §RG281
 - 📋 **RG282** (deps: RG280) **an edited file opens as it is now, with no view of it against what it was before the session** — The per-call blocks answer what changed one call at a time and miss what a formatter did after them, where VS Code shows the original beside the file. → §RG282

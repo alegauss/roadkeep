@@ -4,6 +4,7 @@ import {
   DEFAULT_SETTINGS,
   type RendererBridge,
   type SessionLayout,
+  type SessionSides,
   type Theme,
 } from '@rk/core'
 import { describe, expect, it } from 'vitest'
@@ -13,6 +14,9 @@ import { stubBridge } from './stub-bridge'
 
 /** An arrangement somebody moved a card into, which no default is (RG277). */
 const MOVED: SessionLayout = { left: ['files', 'handed'], right: ['moved'] }
+
+/** A right side bar somebody dragged wider (RG279). */
+const WIDENED: SessionSides = { left: null, right: 33 }
 
 /**
  * RG86 and RG87: what the renderer asks for before it draws anything.
@@ -80,6 +84,7 @@ describe('RG87: the ground the window opens in', () => {
       sessionNotes: 'shown',
       portfolioOrder: 'record',
       sessionLayout: DEFAULT_SETTINGS.sessionLayout,
+      sessionSides: DEFAULT_SETTINGS.sessionSides,
       // The deadline a read runs under rides in the same answer (RG249).
       timeoutMs: DEFAULT_LIMITS.timeoutMs,
       // How many projects a cold start may read at once rides in the same answer (RG250).
@@ -118,6 +123,7 @@ describe('RG106: an answer that never comes', () => {
       sessionNotes: 'shown',
       portfolioOrder: 'record',
       sessionLayout: DEFAULT_SETTINGS.sessionLayout,
+      sessionSides: DEFAULT_SETTINGS.sessionSides,
       timeoutMs: DEFAULT_LIMITS.timeoutMs,
       // Nothing answered, so no bound this side invented.
       projectsAtOnce: 0,
@@ -139,6 +145,7 @@ describe('RG106: an answer that never comes', () => {
                   sessionNotes: 'hidden',
                   portfolioOrder: 'open-descending',
                   sessionLayout: MOVED,
+                  sessionSides: WIDENED,
                 },
                 reset: [],
                 locale: 'pt-BR',
@@ -151,7 +158,8 @@ describe('RG106: an answer that never comes', () => {
     })
 
     // And how a session draws its notes rides in the same answer (RG208), as do the order
-    // the portfolio opens in (RG241) and where a session's cards sit (RG277).
+    // the portfolio opens in (RG241), where a session's cards sit (RG277) and how wide its side
+    // bars are (RG279).
     expect(await choicesFromBridge(slow, 500)).toEqual({
       locale: 'pt-BR',
       theme: 'dark',
@@ -159,6 +167,7 @@ describe('RG106: an answer that never comes', () => {
       sessionNotes: 'hidden',
       portfolioOrder: 'open-descending',
       sessionLayout: MOVED,
+      sessionSides: WIDENED,
       timeoutMs: DEFAULT_LIMITS.timeoutMs,
       projectsAtOnce: 2,
     })

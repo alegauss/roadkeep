@@ -9,6 +9,7 @@ import {
   isSessionCard,
   isSessionLayout,
   isSessionNotes,
+  isSessionSides,
   isTheme,
   moveCard,
   placeOf,
@@ -17,6 +18,8 @@ import {
   SESSION_CARDS,
   SETTINGS_VERSION,
   settingsText,
+  SIDE_SHARE,
+  sideShare,
   steppedPlace,
   wasReset,
   type SessionLayout,
@@ -38,6 +41,7 @@ const WRITTEN = {
   sessionNotes: 'hidden',
   portfolioOrder: 'open-descending',
   sessionLayout: ARRANGED,
+  sessionSides: { left: null, right: 31.5 },
 }
 
 describe('RG47: the one thing this app owns', () => {
@@ -68,6 +72,7 @@ describe('RG47: the one thing this app owns', () => {
       'roots',
       'sessionLayout',
       'sessionNotes',
+      'sessionSides',
       'skip',
       'theme',
       'version',
@@ -133,6 +138,7 @@ describe('RG47: a bad file resets field by field, and says so', () => {
       sessionNotes: 'whispered',
       portfolioOrder: 'by mood',
       sessionLayout: 'wherever',
+      sessionSides: 'wide',
     })
 
     // One code per field, in the order the fields are read.
@@ -145,6 +151,7 @@ describe('RG47: a bad file resets field by field, and says so', () => {
       'sessionNotes',
       'portfolioOrder',
       'sessionLayout',
+      'sessionSides',
     ])
     expect(read.settings).toEqual(DEFAULT_SETTINGS)
   })
@@ -442,6 +449,79 @@ describe('RG277: the place a card is moved to', () => {
     for (const junk of ['stream', 'side-left', '', 'Handed', 0, null, undefined]) {
       expect(isSessionCard(junk)).toBe(false)
     }
+  })
+})
+
+describe('RG279: how wide the session side bars are drawn', () => {
+  it('draws the width every earlier build drew where the file says nothing', () => {
+    const read = readSettings({ version: SETTINGS_VERSION, theme: 'dark' })
+
+    expect(read.settings.sessionSides).toEqual({ left: null, right: null })
+    expect(read.reset).toEqual([])
+  })
+
+  it('holds a share outside the bounds to the nearest one, and says so', () => {
+    // The design's own case: a file holding ninety per cent, which leaves the stream nothing.
+    const read = readSettings({ ...WRITTEN, sessionSides: { left: 90, right: 4 } })
+
+    expect(read.settings.sessionSides).toEqual({ left: SIDE_SHARE.max, right: SIDE_SHARE.min })
+    expect(read.reset).toEqual([
+      { lost: 'sidesClamped', fields: { min: SIDE_SHARE.min, max: SIDE_SHARE.max } },
+    ])
+    // Every other field is kept, the arrangement above all.
+    expect(read.settings.sessionLayout).toEqual(ARRANGED)
+  })
+
+  it('keeps a side the file names no share for at the width it always had', () => {
+    const read = readSettings({ ...WRITTEN, sessionSides: { right: 22 } })
+
+    expect(read.settings.sessionSides).toEqual({ left: null, right: 22 })
+    expect(read.reset).toEqual([])
+  })
+
+  it('puts both back for a value that is not two shares, and says so', () => {
+    for (const junk of [
+      'wide',
+      null,
+      [30, 30],
+      { left: 'wide', right: 30 },
+      { left: Number.NaN },
+    ]) {
+      const read = readSettings({ ...WRITTEN, sessionSides: junk })
+
+      expect(read.settings.sessionSides).toEqual(DEFAULT_SETTINGS.sessionSides)
+      expect(read.reset).toEqual([{ lost: 'sessionSides' }])
+    }
+  })
+
+  it('keeps a share to a tenth of a per cent and within the bounds', () => {
+    expect(sideShare(27.345_678)).toBe(27.3)
+    expect(sideShare(11.96)).toBe(SIDE_SHARE.min)
+    expect(sideShare(55)).toBe(SIDE_SHARE.max)
+  })
+
+  it('accepts widths only as this build writes them', () => {
+    expect(isSessionSides(DEFAULT_SETTINGS.sessionSides)).toBe(true)
+    expect(isSessionSides({ left: 20, right: null })).toBe(true)
+    for (const junk of [
+      { left: 90, right: null },
+      { left: 20 },
+      { left: 20, right: null, stream: 60 },
+      { left: '20', right: null },
+      null,
+      [20, 20],
+    ]) {
+      expect(isSessionSides(junk)).toBe(false)
+    }
+  })
+
+  it('reads back through the file text exactly what was dragged', () => {
+    const dragged = { ...DEFAULT_SETTINGS, sessionSides: { left: 17.5, right: null } }
+
+    expect(readSettings(JSON.parse(settingsText(dragged)))).toEqual({
+      settings: dragged,
+      reset: [],
+    })
   })
 })
 

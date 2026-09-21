@@ -226,6 +226,8 @@ export const PT_BR: Wording = {
   'session.card.toRight': 'Mover para a barra lateral direita',
   'session.card.up': 'Mover para cima',
   'session.card.down': 'Mover para baixo',
+  'session.side.width.left': 'Largura da barra lateral esquerda',
+  'session.side.width.right': 'Largura da barra lateral direita',
   'session.stream': 'O fluxo',
   'session.stream.empty': 'Nada foi escrito ainda.',
   'session.follow': 'Ir para o fim',
@@ -514,6 +516,10 @@ export const PT_BR: Wording = {
     'a ordem do portfólio não é uma que esta build conhece, então ele abre na ordem do registro',
   'settings.lost.sessionLayout':
     'onde ficam os cartões de uma sessão não eram duas listas, então eles voltaram ao lugar de origem',
+  'settings.lost.sessionSides':
+    'as larguras das barras laterais de uma sessão não eram duas proporções, então as duas voltaram ao que eram',
+  'settings.lost.sidesClamped':
+    'uma barra lateral da sessão estava fora de {min} a {max} por cento da linha, então ficou no limite mais próximo',
 
   'shell.home': 'Início',
   'shell.palette': 'Encontre uma linha em qualquer backlog',

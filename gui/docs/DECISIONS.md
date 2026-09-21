@@ -54,6 +54,24 @@ and CJK byte for byte. A failure there is the reason to reopen this.
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
+- ✅ **RG279** **the session screen's side bars are 18rem whatever they hold, so a long path is cut and the stream cannot be widened** — A width somebody drags is kept in settings.json, never in the browser's storage.
+
+### §RG279 A dragged width is a choice, so it goes in the settings file
+
+react-resizable-panels, under the design system's `ResizablePanelGroup`, offers
+`autoSaveId`: name the group and the library keeps every width for you, in
+`localStorage`. One prop against a settings row, a reader, a preference check and a
+callback.
+
+What it buys is not what this app keeps. `localStorage` belongs to the renderer's
+origin: it is not `settings.json`, so a person cannot read it, edit it, copy it to
+another machine or delete it by hand — and this app's rule is that what somebody chose
+lives in one small versioned file a bad value resets field by field, saying what it
+lost.
+
+It outlives this line too. Every panel state a later screen keeps takes the same route:
+a `PREFERENCES` row whose check is the reader's, and a write through the bridge.
+
 ## Block G — The shell (an executable now, a service later)
 
 - ✅ **RG37** **there is no application at all: no window, no build and no way to run any of this** — The desktop shell is Electron over Vite and React, not a native toolkit: the renderer has to be the half a web service later serves to a browser unchanged.

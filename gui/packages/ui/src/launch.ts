@@ -8,11 +8,17 @@ import {
   type RowOrder,
   type SessionLayout,
   type SessionNotes,
+  type SessionSides,
   type Theme,
 } from '@rk/core'
 
 import { getBridge } from './bridge'
-import { holdPortfolioOrder, holdSessionLayout, holdSessionNotes } from './preferring'
+import {
+  holdPortfolioOrder,
+  holdSessionLayout,
+  holdSessionNotes,
+  holdSessionSides,
+} from './preferring'
 
 /**
  * What this window opens as, asked once before anything is drawn.
@@ -70,6 +76,8 @@ export interface LaunchChoices {
   readonly portfolioOrder: RowOrder
   /** Where a session's cards sit (RG277), or the grid every earlier build drew. */
   readonly sessionLayout: SessionLayout
+  /** How wide a session's side bars are (RG279), or the 18rem every earlier build drew. */
+  readonly sessionSides: SessionSides
   /**
    * How long one engine call may take before it is abandoned (RG249), clamped by `withLimits`.
    *
@@ -89,6 +97,7 @@ const AT_WORST: LaunchChoices = {
   sessionNotes: DEFAULT_SETTINGS.sessionNotes,
   portfolioOrder: DEFAULT_SETTINGS.portfolioOrder,
   sessionLayout: DEFAULT_SETTINGS.sessionLayout,
+  sessionSides: DEFAULT_SETTINGS.sessionSides,
   timeoutMs: DEFAULT_LIMITS.timeoutMs,
   // No bound where nothing answered: the ceiling is a fact about the machine, which only the
   // shell can take — and a window that invented one would be slower than it has any reason to
@@ -131,6 +140,7 @@ export async function choicesFromBridge(
         sessionNotes: answer.settings.sessionNotes,
         portfolioOrder: answer.settings.portfolioOrder,
         sessionLayout: answer.settings.sessionLayout,
+        sessionSides: answer.settings.sessionSides,
         // Clamped here as everywhere: a number a person edited into the file is theirs, and
         // a sane range is what `withLimits` is for.
         timeoutMs: withLimits(answer.settings).timeoutMs,
@@ -193,6 +203,7 @@ export async function choicesAtLaunch(): Promise<LaunchChoices> {
   holdSessionNotes(choices.sessionNotes)
   holdPortfolioOrder(choices.portfolioOrder)
   holdSessionLayout(choices.sessionLayout)
+  holdSessionSides(choices.sessionSides)
   holdDeadline(choices.timeoutMs)
   holdProjectsAtOnce(choices.projectsAtOnce)
   return choices

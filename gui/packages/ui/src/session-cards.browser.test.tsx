@@ -262,3 +262,62 @@ describe('RG278: a card moved from the menu on its title', () => {
     expect(box('files').bottom).toBeLessThanOrEqual(box('moved').top)
   })
 })
+
+describe('RG279: a side bar kept at the width its edge was dragged to', () => {
+  function edge(side: 'left' | 'right'): HTMLElement {
+    return screen.getByRole('separator', {
+      name: BASE[side === 'left' ? 'session.side.width.left' : 'session.side.width.right'],
+    })
+  }
+
+  it('opens at the 18rem every earlier build drew', async () => {
+    await opened()
+
+    expect(Math.round(box('handed').width)).toBe(18 * 16)
+    expect(Math.round(box('moved').width)).toBe(18 * 16)
+  })
+
+  it('widens the right side bar by its edge, writes that one share, and draws it on a remount', async () => {
+    const wired = await opened()
+    const before = box('moved').width
+
+    // A hundred and fifty pixels left of where the edge stands, which is into the stream.
+    const stream = box('stream')
+    await userEvent.dragAndDrop(edge('right'), region('stream'), {
+      targetPosition: { x: stream.width - 150, y: 40 },
+      steps: 10,
+    })
+
+    await waitFor(() => {
+      expect(wired.preferred).toHaveLength(1)
+    })
+    const [written] = wired.preferred
+    expect(written?.key).toBe('sessionSides')
+    // The left edge was not touched, so the left side bar keeps the width it always had.
+    const sides = written?.value as { left: number | null; right: number }
+    expect(sides.left).toBeNull()
+    expect(sides.right).toBeGreaterThan(25)
+    const widened = box('moved').width
+    expect(widened).toBeGreaterThan(before + 100)
+
+    cleanup()
+    await opened()
+
+    expect(Math.abs(box('moved').width - widened)).toBeLessThanOrEqual(2)
+    expect(Math.round(box('handed').width)).toBe(18 * 16)
+  })
+
+  it('gives an emptied side bar no edge, and keeps its width for a card that comes back', async () => {
+    await opened()
+
+    grip('handed').focus()
+    await userEvent.keyboard(' ')
+    await userEvent.keyboard('{ArrowRight}')
+    await userEvent.keyboard(' ')
+
+    await waitFor(() => {
+      expect(screen.queryByRole('separator', { name: BASE['session.side.width.left'] })).toBeNull()
+    })
+    expect(edge('right')).toBeTruthy()
+  })
+})

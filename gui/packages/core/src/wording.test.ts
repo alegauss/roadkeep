@@ -464,6 +464,7 @@ const TEXT: readonly string[] = ['block', 'by', 'file', 'found', 'id', 'path', '
  * judgement rather than a shape: its sentence already agrees with the count of lines it could
  * not list, and a read one character long is not a state this app has. `bytes` and `ceiling`
  * are the other (RG245): both are said only of a file past a mebibyte, so neither is ever one.
+ * `min` opens the `{min} to {max}` shape (RG279), whose noun belongs to the range's end.
  */
 const FIGURES: readonly string[] = [
   'bytes',
@@ -473,6 +474,7 @@ const FIGURES: readonly string[] = [
   'left',
   'limit',
   'max',
+  'min',
   'of',
   'over',
   'prose',

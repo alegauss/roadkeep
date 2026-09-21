@@ -18,6 +18,8 @@ import {
   moveCard,
   placeOf,
   sameLayout,
+  SIDE_SHARE,
+  sideShare,
   steppedPlace,
   type CardPlace,
   type CardStep,
@@ -25,6 +27,7 @@ import {
   type SessionCard,
   type SessionLayout,
   type SessionSide,
+  type SessionSides,
 } from '@rk/core'
 import { IconDotsVertical, IconGripVertical } from '@tabler/icons-react'
 import {
@@ -32,10 +35,26 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
 } from '@viglet/viglet-design-system'
-import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react'
+import {
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ComponentProps,
+  type ReactNode,
+} from 'react'
 
-import { chooseSessionLayout, useSessionLayout } from './preferring'
+import {
+  chooseSessionLayout,
+  chooseSessionSides,
+  useSessionLayout,
+  useSessionSides,
+} from './preferring'
 import { useWording } from './wording'
 
 /**
@@ -48,10 +67,12 @@ import { useWording } from './wording'
  * screen for — come before the cards at 400 wide, and first for a screen reader at every width.
  *
  * **Laid out as an editor is** (RG237): from `xl` a side bar left of the stream and one right of
- * it. A side bar left empty gives its column to the stream, and while a card is being moved it
- * is a thin strip that still takes a drop. Between `lg` and `xl` one side column holds the left
- * bar's cards over the right's, the stream spanning both rows, since three columns at 1024 would
- * leave the stream where the reading column had it.
+ * it, each a panel whose edge is dragged and whose width the settings file keeps (RG279) — the
+ * 18rem every earlier build drew until somebody drags it. A side bar left empty gives its column
+ * to the stream, and while a card is being moved it is a thin strip that still takes a drop.
+ * Between `lg` and `xl` one side column holds the left bar's cards over the right's, the stream
+ * spanning both rows, since three columns at 1024 would leave the stream where the reading
+ * column had it.
  *
  * **The drop lands where the pointer is**, under an insertion line: counted against the middle
  * of each card in the side bar under the pointer, and drawn in the gap it will open. So the drag
@@ -115,8 +136,32 @@ const SILENT: Announcements = {
   onDragCancel: () => undefined,
 }
 
-/** Which columns the grid draws, by what each side bar holds. */
-type Columns = 'both' | 'left' | 'right' | 'left-strip' | 'right-strip'
+/**
+ * Where the two side bars stand at `xl`, which is where a person can move and widen them. Asked
+ * of the window rather than written as `xl:` classes, since above it the row is a panel group
+ * and below it a grid: two structures, not one restyled.
+ */
+const WIDE = '(min-width: 80rem)'
+
+function watchWide(changed: () => void): () => void {
+  if (typeof matchMedia !== 'function') return () => undefined
+  const query = matchMedia(WIDE)
+  query.addEventListener('change', changed)
+  return () => {
+    query.removeEventListener('change', changed)
+  }
+}
+
+function isWide(): boolean {
+  return typeof matchMedia === 'function' && matchMedia(WIDE).matches
+}
+
+function useWide(): boolean {
+  return useSyncExternalStore(watchWide, isWide, isWide)
+}
+
+/** Which side bars the grid below `xl` draws, by what each holds. */
+type Columns = 'both' | 'left' | 'right'
 
 interface Placing {
   readonly grid: string
@@ -125,26 +170,14 @@ interface Placing {
   readonly right: string
 }
 
-/** A stream with a side bar on each side of it, at `xl`; one side column below it. */
-const FLANKED = {
-  stream: 'lg:col-start-2 lg:row-span-2 lg:row-start-1 xl:col-start-2 xl:row-span-1',
-  left: 'lg:col-start-1 lg:row-start-1 xl:col-start-1',
-  right: 'lg:col-start-1 lg:row-start-2 xl:col-start-3 xl:row-start-1',
-}
-
 // Spelled out whole, since Tailwind generates only the classes it finds written in a source.
+// Below `lg` the grid is one column, falling in the order it is written.
 const PLACING: Readonly<Record<Columns, Placing>> = {
   both: {
-    grid: 'lg:grid-cols-[18rem_minmax(0,1fr)] lg:grid-rows-[auto_1fr] xl:grid-cols-[18rem_minmax(0,1fr)_18rem] xl:grid-rows-none',
-    ...FLANKED,
-  },
-  'left-strip': {
-    grid: 'lg:grid-cols-[18rem_minmax(0,1fr)] lg:grid-rows-[auto_1fr] xl:grid-cols-[2.5rem_minmax(0,1fr)_18rem] xl:grid-rows-none',
-    ...FLANKED,
-  },
-  'right-strip': {
-    grid: 'lg:grid-cols-[18rem_minmax(0,1fr)] lg:grid-rows-[auto_1fr] xl:grid-cols-[18rem_minmax(0,1fr)_2.5rem] xl:grid-rows-none',
-    ...FLANKED,
+    grid: 'lg:grid-cols-[18rem_minmax(0,1fr)] lg:grid-rows-[auto_1fr]',
+    stream: 'lg:col-start-2 lg:row-span-2 lg:row-start-1',
+    left: 'lg:col-start-1 lg:row-start-1',
+    right: 'lg:col-start-1 lg:row-start-2',
   },
   left: {
     grid: 'lg:grid-cols-[18rem_minmax(0,1fr)]',
@@ -153,17 +186,50 @@ const PLACING: Readonly<Record<Columns, Placing>> = {
     right: '',
   },
   right: {
-    grid: 'lg:grid-cols-[18rem_minmax(0,1fr)] xl:grid-cols-[minmax(0,1fr)_18rem]',
-    stream: 'lg:col-start-2 lg:row-start-1 xl:col-start-1',
+    grid: 'lg:grid-cols-[18rem_minmax(0,1fr)]',
+    stream: 'lg:col-start-2 lg:row-start-1',
     left: '',
-    right: 'lg:col-start-1 lg:row-start-1 xl:col-start-2',
+    right: 'lg:col-start-1 lg:row-start-1',
   },
 }
 
-function columnsOf(layout: SessionLayout, moving: boolean): Columns {
-  if (layout.left.length === 0) return moving ? 'left-strip' : 'right'
-  if (layout.right.length === 0) return moving ? 'right-strip' : 'left'
+function columnsOf(layout: SessionLayout): Columns {
+  if (layout.left.length === 0) return 'right'
+  if (layout.right.length === 0) return 'left'
   return 'both'
+}
+
+/** What a side bar nobody dragged is drawn at: the 18rem every earlier build drew (RG237). */
+const UNDRAGGED = '18rem'
+const SHARE_MIN = `${String(SIDE_SHARE.min)}%`
+const SHARE_MAX = `${String(SIDE_SHARE.max)}%`
+/** The stream keeps at least what two side bars at their widest leave it. */
+const STREAM_MIN = `${String(100 - 2 * SIDE_SHARE.max)}%`
+
+/**
+ * The library clips a group and scrolls a panel by default, which would cut a card's shadow and
+ * the insertion line drawn in the gap above it. The stream scrolls in its own region already.
+ */
+const GROUP_STYLE = { overflow: 'visible', height: 'auto' } as const
+const PANEL_STYLE = { overflow: 'visible' } as const
+
+/** The layout the group answers with: each panel's share, by its id. */
+type Changed = NonNullable<ComponentProps<typeof ResizablePanelGroup>['onLayoutChanged']>
+type Shares = Parameters<Changed>[0]
+
+/**
+ * Each panel's id, which the library answers the layout by — and also writes to the panel as
+ * its `id` and `data-testid`, so none may be a name the page already gives something else.
+ */
+const PANEL_ID: Readonly<Record<SessionSide, string>> = {
+  left: 'session-panel-left',
+  right: 'session-panel-right',
+}
+const STREAM_PANEL = 'session-panel-stream'
+
+const WIDTH_TEXT: Readonly<Record<SessionSide, MessageKey>> = {
+  left: 'session.side.width.left',
+  right: 'session.side.width.right',
 }
 
 /** Where the insertion line goes: beside one card, or in an empty side bar's strip. */
@@ -392,21 +458,65 @@ function SideBar({
     return (
       <div
         ref={setNodeRef}
-        className={`min-h-24 rounded-lg border-2 border-dashed xl:self-stretch ${aimed ? 'border-primary bg-primary/5' : 'border-border'} ${placed}`}
+        className={`min-h-24 w-10 shrink-0 rounded-lg border-2 border-dashed ${aimed ? 'border-primary bg-primary/5' : 'border-border'} ${placed}`}
         data-side={side}
         data-testid="card-strip"
       />
     )
   }
   return (
-    <div
-      ref={setNodeRef}
-      className={`flex min-w-0 flex-col gap-5 xl:self-stretch ${placed}`}
-      data-side={side}
-    >
+    <div ref={setNodeRef} className={`flex min-w-0 flex-col gap-5 ${placed}`} data-side={side}>
       {children}
     </div>
   )
+}
+
+/**
+ * One side bar at `xl`, as a panel whose edge is dragged (RG279). The whole panel takes a drop,
+ * not only the cards in it, so a card let go below the last one still lands at the end.
+ */
+function SidePanel({
+  side,
+  share,
+  children,
+}: {
+  readonly side: SessionSide
+  readonly share: number | null
+  readonly children: ReactNode
+}) {
+  const { setNodeRef } = useDroppable({ id: SIDE_ID[side] })
+  return (
+    <ResizablePanel
+      id={PANEL_ID[side]}
+      elementRef={setNodeRef}
+      defaultSize={share === null ? UNDRAGGED : `${String(share)}%`}
+      minSize={SHARE_MIN}
+      maxSize={SHARE_MAX}
+      style={PANEL_STYLE}
+    >
+      <div className="flex min-w-0 flex-col gap-5" data-side={side}>
+        {children}
+      </div>
+    </ResizablePanel>
+  )
+}
+
+/**
+ * The widths to keep after a drag of an edge (RG279), or null where nothing a person moved.
+ *
+ * Only the side whose share moved is written: dragging the right edge leaves a left side bar
+ * nobody dragged at the width it always had, rather than pinning it to whatever per cent that
+ * happened to be in this window.
+ */
+function keptWidths(before: Shares, after: Shares, sides: SessionSides): SessionSides | null {
+  const moved = (side: SessionSide): number | null => {
+    const now = after[PANEL_ID[side]]
+    const was = before[PANEL_ID[side]]
+    if (now === undefined || (was !== undefined && Math.abs(now - was) < 0.05)) return null
+    return sideShare(now)
+  }
+  const kept = { left: moved('left') ?? sides.left, right: moved('right') ?? sides.right }
+  return kept.left === sides.left && kept.right === sides.right ? null : kept
 }
 
 interface Moving {
@@ -558,8 +668,56 @@ export function SessionCards({
     [say],
   )
 
-  const placing = PLACING[columnsOf(layout, lifted !== null)]
+  // The widths, and the shares the group last drew, which is what says which edge a person moved.
+  const sides = useSessionSides()
+  const drawnShares = useRef<Shares | null>(null)
+  const widened = useCallback<Changed>(
+    (shares, meta) => {
+      const before = drawnShares.current
+      drawnShares.current = shares
+      // A panel arriving or leaving redraws the row too, and that is no choice of anybody's.
+      if (!meta.isUserInteraction || before === null) return
+      const kept = keptWidths(before, shares, sides)
+      if (kept !== null) chooseSessionSides(kept)
+    },
+    [sides],
+  )
+
+  const wide = useWide()
   const line = lifted === null ? null : lineAt(layout, lifted, place)
+
+  const drawn = (side: SessionSide): ReactNode =>
+    layout[side].map((card, index, all) => (
+      <MovableCard
+        key={card}
+        card={card}
+        side={side}
+        first={index === 0}
+        last={index === all.length - 1}
+        lifted={lifted === card}
+        line={line?.kind === 'card' && line.card === card ? line.edge : null}
+        onNode={held}
+        onStep={stepped}
+        onTrigger={menuHeld}
+        refocus={refocus}
+      >
+        {cards[card]}
+      </MovableCard>
+    ))
+  // An empty side bar, while a card moves: a strip beside the group that still takes it.
+  const strip = (side: SessionSide): ReactNode =>
+    layout[side].length > 0 || lifted === null ? null : (
+      <SideBar
+        side={side}
+        placed=""
+        holds={0}
+        moving
+        aimed={line?.kind === 'strip' && line.side === side}
+      >
+        {null}
+      </SideBar>
+    )
+  const placing = PLACING[columnsOf(layout)]
 
   return (
     <DndContext
@@ -571,39 +729,64 @@ export function SessionCards({
       onDragEnd={ended}
       onDragCancel={cancelled}
     >
-      <div className={`grid items-start gap-5 ${placing.grid}`}>
-        <div className={`min-w-0 ${placing.stream}`} data-region="session-stream">
-          {stream}
-        </div>
-        {SIDES.map((side) => (
-          <SideBar
-            key={side}
-            side={side}
-            placed={placing[side]}
-            holds={layout[side].length}
-            moving={lifted !== null}
-            aimed={line?.kind === 'strip' && line.side === side}
+      {wide ? (
+        <div className="flex items-stretch gap-5">
+          {strip('left')}
+          <ResizablePanelGroup
+            orientation="horizontal"
+            className="min-w-0 flex-1"
+            style={GROUP_STYLE}
+            onLayoutChanged={widened}
           >
-            {layout[side].map((card, index, all) => (
-              <MovableCard
-                key={card}
-                card={card}
-                side={side}
-                first={index === 0}
-                last={index === all.length - 1}
-                lifted={lifted === card}
-                line={line?.kind === 'card' && line.card === card ? line.edge : null}
-                onNode={held}
-                onStep={stepped}
-                onTrigger={menuHeld}
-                refocus={refocus}
-              >
-                {cards[card]}
-              </MovableCard>
-            ))}
-          </SideBar>
-        ))}
-      </div>
+            {layout.left.length === 0 ? null : (
+              <>
+                <SidePanel side="left" share={sides.left}>
+                  {drawn('left')}
+                </SidePanel>
+                <ResizableHandle
+                  aria-label={say(WIDTH_TEXT.left)}
+                  className="hover:bg-border focus-visible:bg-border mx-2.5 bg-transparent"
+                />
+              </>
+            )}
+            <ResizablePanel id={STREAM_PANEL} minSize={STREAM_MIN} style={PANEL_STYLE}>
+              <div className="min-w-0" data-region="session-stream">
+                {stream}
+              </div>
+            </ResizablePanel>
+            {layout.right.length === 0 ? null : (
+              <>
+                <ResizableHandle
+                  aria-label={say(WIDTH_TEXT.right)}
+                  className="hover:bg-border focus-visible:bg-border mx-2.5 bg-transparent"
+                />
+                <SidePanel side="right" share={sides.right}>
+                  {drawn('right')}
+                </SidePanel>
+              </>
+            )}
+          </ResizablePanelGroup>
+          {strip('right')}
+        </div>
+      ) : (
+        <div className={`grid items-start gap-5 ${placing.grid}`}>
+          <div className={`min-w-0 ${placing.stream}`} data-region="session-stream">
+            {stream}
+          </div>
+          {SIDES.map((side) => (
+            <SideBar
+              key={side}
+              side={side}
+              placed={placing[side]}
+              holds={layout[side].length}
+              moving={lifted !== null}
+              aimed={line?.kind === 'strip' && line.side === side}
+            >
+              {drawn(side)}
+            </SideBar>
+          ))}
+        </div>
+      )}
       {/* Transparent to the pointer, which it follows: a drop lands on the card under it. */}
       <DragOverlay dropAnimation={null} className="pointer-events-none">
         {lifted === null ? null : <Lifted card={lifted} />}
