@@ -312,6 +312,11 @@ export const EN = {
   'session.edited.outside': 'outside this project, not checked',
   'session.edited.disagrees': 'the disk disagrees',
   'session.edited.open': 'Open {path}',
+  // What the session did to a file (RG280), beside the letter `CHANGE_LETTER` marks it with.
+  'session.kind.created': 'created',
+  'session.kind.changed': 'changed',
+  'session.kind.deleted': 'deleted',
+  'session.kind.undone': 'created, then gone',
   'session.file.reading': 'Reading the file.',
   'session.file.reload': 'Read it again',
   'session.file.lines': '{count} lines, as the disk holds it now',

@@ -13,6 +13,7 @@ node_modules/
 # Captured engine and session output, kept exactly as a real run printed it. Reformatting
 # it would make the fixture a formatter's idea of what the engine says.
 packages/shell/src/captured/
+packages/core/src/captured/
 
 # roadkeep writes these: `roadkeep install` rewrites them from its own checkout and reports
 # a stale one against it. Formatting them makes every copy differ from the source it came

@@ -2,6 +2,7 @@ import {
   DECLARES_NOTHING,
   BASE,
   bridgedRun,
+  CHANGE_LETTER,
   fill,
   openedFrom,
   openProject,
@@ -1470,5 +1471,124 @@ describe('RG272: a question the running session asks, answered from the window',
     expect(await screen.findByText(BASE['session.ask.unanswered'])).toBeTruthy()
     expect(screen.queryByTestId('asking')).toBeNull()
     expect(screen.queryByText(BASE['session.state.asking'])).toBeNull()
+  })
+})
+
+describe('RG280: what the session did to each file', () => {
+  /** One call per line, each answered on its own line, which is how a real run arrives. */
+  const CALL = (id: string, tool: string, path: string) =>
+    JSON.stringify({
+      type: 'assistant',
+      message: { content: [{ type: 'tool_use', id, name: tool, input: { file_path: path } }] },
+    })
+  /** The answer, carrying the `tool_use_result` Claude Code writes beside the result. */
+  const ANSWER = (id: string, result: Record<string, unknown>) =>
+    JSON.stringify({
+      type: 'user',
+      message: {
+        content: [{ tool_use_id: id, type: 'tool_result', content: 'ok', is_error: false }],
+      },
+      tool_use_result: result,
+    })
+
+  const MADE = 'src/made.ts'
+  const ALPHA = 'src/alpha.ts'
+  const GONE = 'src/gone.ts'
+  const LOST = 'src/lost.ts'
+
+  /** Made and still there, changed and still there, changed and gone, made and gone. */
+  const DISK: EditedFile[] = [
+    { path: MADE, shown: MADE, inside: true, present: true, changed: CHANGED },
+    { path: ALPHA, shown: ALPHA, inside: true, present: true, changed: CHANGED },
+    { path: GONE, shown: GONE, inside: true, present: false, changed: '' },
+    { path: LOST, shown: LOST, inside: true, present: false, changed: '' },
+  ]
+
+  const LINES = [
+    CALL('k1', 'Write', MADE),
+    ANSWER('k1', { type: 'create', filePath: MADE, originalFile: null }),
+    CALL('k2', 'Edit', ALPHA),
+    ANSWER('k2', { filePath: ALPHA, originalFile: 'what it said before' }),
+    CALL('k3', 'Edit', GONE),
+    ANSWER('k3', { filePath: GONE, originalFile: 'what it said before' }),
+    CALL('k4', 'Write', LOST),
+    ANSWER('k4', { type: 'create', filePath: LOST, originalFile: null }),
+  ]
+
+  const row = (path: string) => {
+    const found = screen.getAllByTestId('edited-file').find((one) => one.dataset['path'] === path)
+    if (found === undefined) throw new Error(`no row for ${path}`)
+    return found
+  }
+
+  afterEach(async () => {
+    if (i18next.isInitialized) await changeLanguage(BASE_LOCALE)
+  })
+
+  async function drawn() {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD], edited: DISK })
+    await screen.findByTestId('edited')
+    LINES.forEach((line, index) => {
+      hear(wired, 'session', { session: KEY, index: index + 1, line })
+    })
+    await waitFor(() => {
+      expect(row(LOST).dataset['kind']).toBeDefined()
+    })
+  }
+
+  it('marks each file with the letter and the word for what the session did to it', async () => {
+    await drawn()
+
+    expect(row(MADE).dataset['kind']).toBe('created')
+    expect(row(MADE).textContent).toContain(
+      `${CHANGE_LETTER.created} ${BASE['session.kind.created']}`,
+    )
+    expect(row(ALPHA).dataset['kind']).toBe('changed')
+    expect(row(ALPHA).textContent).toContain(
+      `${CHANGE_LETTER.changed} ${BASE['session.kind.changed']}`,
+    )
+  })
+
+  it('reads a file that is gone as deleted, and one it made and lost as its own word', async () => {
+    await drawn()
+
+    // The session's answer says the file was there; the disk says it is not.
+    expect(row(GONE).dataset['kind']).toBe('deleted')
+    expect(row(GONE).textContent).toContain(
+      `${CHANGE_LETTER.deleted} ${BASE['session.kind.deleted']}`,
+    )
+    // And one it created that nothing holds now is not a file it deleted.
+    expect(row(LOST).dataset['kind']).toBe('undone')
+    expect(row(LOST).textContent).toContain(
+      `${CHANGE_LETTER.undone} ${BASE['session.kind.undone']}`,
+    )
+  })
+
+  it('strikes the name of a file that is not there any more', async () => {
+    await drawn()
+
+    expect(within(row(GONE)).getByText('gone.ts').className).toContain('line-through')
+    expect(within(row(MADE)).getByText('made.ts').className).not.toContain('line-through')
+  })
+
+  it('marks nothing until the call is answered, since a mark before it is a guess', async () => {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD], edited: DISK })
+    await screen.findByTestId('edited')
+
+    hear(wired, 'session', { session: KEY, index: 1, line: CALL('k9', 'Write', MADE) })
+
+    await waitFor(() => {
+      expect(row(MADE)).toBeTruthy()
+    })
+    expect(row(MADE).dataset['kind']).toBeUndefined()
+    expect(row(MADE).textContent).not.toContain(BASE['session.kind.created'])
+  })
+
+  it('says the word in the language the window speaks', async () => {
+    await startSpeaking('pt-BR')
+    await drawn()
+
+    const say = translator(PT_BR, PT_BR_LOCALE)
+    expect(row(MADE).textContent).toContain(say('session.kind.created'))
   })
 })

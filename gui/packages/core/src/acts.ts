@@ -357,6 +357,101 @@ export function editedIn(acts: readonly Act[]): Edited[] {
   return [...byPath.values()]
 }
 
+/** What a session's own answer says the file was before it touched it (RG280). */
+export type FileOrigin = 'created' | 'changed'
+
+/**
+ * What a session did to a file (RG280), its answer and the disk together: created it, changed
+ * one that was there, deleted one that was there, or created one that is gone now.
+ */
+export type FileChange = 'created' | 'changed' | 'deleted' | 'undone'
+
+/**
+ * The letter each change is marked with, as a source-control list marks one.
+ *
+ * Here and not in the catalogue because a letter is not prose: `A` and `M` are what a diff and
+ * every review tool write, in whatever language the window speaks, and the word beside it is
+ * what the catalogue says.
+ */
+export const CHANGE_LETTER: Readonly<Record<FileChange, string>> = {
+  created: 'A',
+  changed: 'M',
+  deleted: 'D',
+  undone: 'X',
+}
+
+/**
+ * The `tool_use_result` a raw line carries, where it can only be about one call.
+ *
+ * A `user` line holding two `tool_result`s carries one `tool_use_result` beside them, and
+ * nothing in it says which of the two it answers — so that line is not read rather than
+ * attributed to the first.
+ */
+function resultOf(line: string): Record<string, unknown> | null {
+  let source: unknown
+  try {
+    source = JSON.parse(line)
+  } catch {
+    return null
+  }
+  const object = asRecord(source)
+  if (object === null) return null
+  const results = contentOf(object).filter((part) => asRecord(part)?.['type'] === 'tool_result')
+  return results.length === 1 ? asRecord(object['tool_use_result']) : null
+}
+
+/**
+ * Whether the session created the file or changed one that was there (RG280), off the first
+ * answered call on the path that succeeded.
+ *
+ * **The answer is already in the stream.** Claude Code answers a `Write` with a `type` of
+ * `create` or `update`, and an `Edit` with `originalFile`, the file as it stood before the call.
+ * An `Edit` only lands on a file that was there, so it changed one whatever that field holds —
+ * which is why a `null` there, a file too large to carry back, decides nothing.
+ *
+ * Null where no call on the path has been answered yet: a mark drawn before the answer is a
+ * guess, and this list is watched while it fills.
+ *
+ * *No git command run by this app* bounds it: what the file was before is the session's own
+ * answer, never the repository's, so a file somebody else changed in the same minute is not this
+ * reader's business.
+ */
+export function originOf(acts: readonly Act[], path: string): FileOrigin | null {
+  const answers = new Map<string, Extract<Act, { kind: 'returned' }>>()
+  for (const act of acts) if (act.kind === 'returned' && act.id !== '') answers.set(act.id, act)
+
+  for (const act of acts) {
+    if (act.kind !== 'used' || act.on !== path || !EDITING_TOOLS.has(act.tool)) continue
+    const answer = answers.get(act.id)
+    if (answer === undefined || !answer.ok) continue
+    const result = resultOf(answer.line)
+    if (result === null) continue
+
+    const type = result['type']
+    if (type === 'create') return 'created'
+    if (type === 'update') return 'changed'
+    // A `Write` from a build that answered without a type says the same thing by what it
+    // replaced; every other editing tool needed the file to be there.
+    if (act.tool === 'Write') return result['originalFile'] === null ? 'created' : 'changed'
+    return 'changed'
+  }
+  return null
+}
+
+/**
+ * What the session did to a file, with the disk's answer finishing it (RG280).
+ *
+ * Was there and missing now is deleted; created and missing now is its own word, since nobody
+ * reading a list wants a file the session made and then lost drawn as one it deleted. Where the
+ * disk has not answered, or the file is outside the session's root and so never asked about, the
+ * session's own answer stands.
+ */
+export function changeOf(origin: FileOrigin | null, standing: DiskStanding): FileChange | null {
+  if (origin === null) return null
+  if (standing === 'missing') return origin === 'created' ? 'undone' : 'deleted'
+  return origin
+}
+
 /** One edit a session made to a file, as its own call carried it (RG246). */
 export interface FileEdit {
   /** The seq of the call that made it, which is where it stands in the stream. */

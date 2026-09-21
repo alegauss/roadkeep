@@ -116,17 +116,33 @@ function tailCycle(at: number): string[] {
   const id = `scripted-${String(at)}`
   const edited =
     ['../elsewhere/scripted-notes.md', 'src/scripted.ts', 'docs/ROADMAP.md'][at % 3] ?? ''
+  const replaced = `the line step ${String(at)} replaced`
   const call =
     at % 2 === 0
       ? {
           name: 'Edit',
           input: {
             file_path: edited,
-            old_string: `the line step ${String(at)} replaced`,
+            old_string: replaced,
             new_string: at === 2 ? '## Block A — The model' : `what step ${String(at)} put there`,
           },
         }
       : { name: 'Read', input: { file_path: 'docs/ROADMAP.md' } }
+  // An edit answers with the file as it stood before the call, the way a real run does (RG280):
+  // every one of these changed a file that was there, which is what the row is then marked with.
+  const answered =
+    at % 2 === 0
+      ? {
+          tool_use_result: {
+            filePath: edited,
+            oldString: replaced,
+            newString: call.input.new_string ?? '',
+            originalFile: `${replaced}\n`,
+            structuredPatch: [],
+            userModified: false,
+          },
+        }
+      : {}
   return [
     {
       type: 'assistant',
@@ -141,6 +157,7 @@ function tailCycle(at: number): string[] {
       message: {
         content: [{ type: 'tool_result', tool_use_id: id, content: `read ${String(at)}` }],
       },
+      ...answered,
     },
     { type: 'rate_limit_event', rate_limit_info: { status: 'allowed' } },
   ].map((line) => JSON.stringify(line))

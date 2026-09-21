@@ -2,6 +2,8 @@ import {
   actsIn,
   arrivedSince,
   asksIn,
+  changeOf,
+  CHANGE_LETTER,
   grantsOf,
   drawnState,
   editedIn,
@@ -9,6 +11,7 @@ import {
   FOLLOWING,
   landingBetween,
   onDisk,
+  originOf,
   scrolledTo,
   subjectOf,
   type Act,
@@ -25,6 +28,7 @@ import {
   type Follow,
   type Edited,
   type EditedFile,
+  type FileChange,
   type GovernedFile,
   type MessageKey,
   type MovedPath,
@@ -470,6 +474,8 @@ interface Leaf {
   readonly list: 'edited-file' | 'moved-file'
   /** Where the disk has it, for an edited file; a moved file has only moved. */
   readonly standing?: string
+  /** What the session did to it (RG280), for an edited file whose first call was answered. */
+  readonly kind?: FileChange
   /** What the row says under its name. */
   readonly facts: ReactNode
 }
@@ -482,8 +488,17 @@ function LeafLabel({ name, leaf }: { readonly name: string; readonly leaf: Leaf 
       data-testid={leaf.list}
       data-path={leaf.path}
       data-standing={leaf.standing}
+      data-kind={leaf.kind}
     >
-      <span className="wrap-anywhere">{name}</span>
+      {/* Struck through where the file is not there any more, which is the one state a name
+          alone can be wrong about: the row is about a file the reader cannot open. */}
+      <span
+        className={
+          GONE.has(leaf.kind ?? 'changed') ? 'line-through wrap-anywhere' : 'wrap-anywhere'
+        }
+      >
+        {name}
+      </span>
       <span className="flex flex-col gap-0.5 font-sans">{leaf.facts}</span>
     </span>
   )
@@ -562,21 +577,40 @@ function FileTree({
   )
 }
 
+/** The files a session made and then lost, and the ones it deleted: both are gone (RG280). */
+const GONE: ReadonlySet<FileChange> = new Set<FileChange>(['deleted', 'undone'])
+
+/** What each change is called, beside the letter a source-control list marks it with. */
+const CHANGE_TEXT: Readonly<Record<FileChange, MessageKey>> = {
+  created: 'session.kind.created',
+  changed: 'session.kind.changed',
+  deleted: 'session.kind.deleted',
+  undone: 'session.kind.undone',
+}
+
 /** What a file's row says under its name: the calls, the marks, and where the disk has it. */
 function EditedFacts({
   file,
   read,
   changed,
+  kind,
 }: {
   readonly file: Edited
   readonly read: ReturnType<typeof onDisk>
   readonly changed: string
+  /** What the session did to it (RG280), or null until its first call is answered. */
+  readonly kind: FileChange | null
 }) {
   const say = useWording()
   return (
     <>
       <span className="text-muted-foreground flex flex-wrap items-center gap-1.5 text-xs">
         {say('session.edited.calls', { count: file.calls })}
+        {kind === null ? null : (
+          <Pill intent={GONE.has(kind) ? 'warn' : null}>
+            {CHANGE_LETTER[kind]} {say(CHANGE_TEXT[kind])}
+          </Pill>
+        )}
         {file.governed ? <Pill intent="on">{say('session.edited.governed')}</Pill> : null}
         {file.failed ? <Pill intent="error">{say('session.edited.failed')}</Pill> : null}
       </span>
@@ -606,14 +640,22 @@ function EditedFiles({
   edited,
   disk,
   started,
+  acts,
   onOpen,
 }: {
   readonly edited: readonly Edited[]
   readonly disk: ReadonlyMap<string, EditedFile>
   readonly started: string
+  /** The stream, which is where what the session did to each file is answered (RG280). */
+  readonly acts: readonly Act[]
   readonly onOpen: (path: string) => void
 }) {
   const say = useWording()
+  // One pass per file rather than per render: the stream grows while this list is watched.
+  const origins = useMemo(
+    () => new Map(edited.map((file) => [file.path, originOf(acts, file.path)])),
+    [edited, acts],
+  )
   // Inside unless the shell said otherwise. A file the disk has not answered for is drawn where
   // its own name puts it, and moves into place when the answer shortens it.
   const inside = useMemo(
@@ -626,15 +668,17 @@ function EditedFiles({
       inside.map((file): Leaf => {
         const at = disk.get(file.path)
         const read = onDisk(file, at, started)
+        const kind = changeOf(origins.get(file.path) ?? null, read.standing)
         return {
           at: at?.shown ?? file.path,
           path: file.path,
           list: 'edited-file',
           standing: read.standing,
-          facts: <EditedFacts file={file} read={read} changed={at?.changed ?? ''} />,
+          kind: kind ?? undefined,
+          facts: <EditedFacts file={file} read={read} changed={at?.changed ?? ''} kind={kind} />,
         }
       }),
-    [inside, disk, started],
+    [inside, disk, started, origins],
   )
   // One handler for every row outside the project, reading which file off the button pressed.
   const openOutside = useCallback(
@@ -661,6 +705,7 @@ function EditedFiles({
                 const at = disk.get(file.path)
                 const read = onDisk(file, at, started)
                 const shown = at?.shown ?? file.path
+                const kind = changeOf(origins.get(file.path) ?? null, read.standing)
                 return (
                   <li
                     key={file.path}
@@ -668,17 +713,18 @@ function EditedFiles({
                     data-testid="edited-file"
                     data-path={file.path}
                     data-standing={read.standing}
+                    data-kind={kind ?? undefined}
                   >
                     <button
                       type="button"
-                      className="text-left font-mono wrap-anywhere hover:underline"
+                      className={`text-left font-mono wrap-anywhere hover:underline ${kind !== null && GONE.has(kind) ? 'line-through' : ''}`}
                       data-path={file.path}
                       aria-label={say('session.edited.open', { path: shown })}
                       onClick={openOutside}
                     >
                       {shown}
                     </button>
-                    <EditedFacts file={file} read={read} changed={at?.changed ?? ''} />
+                    <EditedFacts file={file} read={read} changed={at?.changed ?? ''} kind={kind} />
                   </li>
                 )
               })}
@@ -885,7 +931,13 @@ function Touched({
 
   return (
     <BentoPanel contentClassName="p-5">
-      <EditedFiles edited={edited} disk={disk} started={record.started} onOpen={opening} />
+      <EditedFiles
+        edited={edited}
+        disk={disk}
+        started={record.started}
+        acts={acts}
+        onOpen={opening}
+      />
       <MovedOnDisk moved={moved} beyond={movedBeyond} edited={drawn} onOpen={opening} />
       {open === null ? null : (
         <FileSheet

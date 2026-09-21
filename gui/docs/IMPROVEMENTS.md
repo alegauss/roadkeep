@@ -58,32 +58,6 @@ catalogue in both languages.
 Done when a test moves `handed` through the menu, resets from the palette, and sees the
 default drawn and written.
 
-### §RG280 Created, changed or deleted, off the first answer on a path
-
-Each row of the edited list (RG243) says how many calls named the file and where the
-disk has it (RG244), never what the session did to it. A created file reads like one
-touched on one line, where VS Code's source-control list answers with a letter.
-
-**The answer is already in the stream.** Claude Code answers an `Edit` or a `Write` with
-a `tool_use_result`: `originalFile`, the file before the call, and for a `Write` a
-`type` of `create` or `update`. The `returned` act keeps that raw line, so
-`originOf(acts, path)` in `core/acts.ts` reads the first answered, successful call on
-the path. A `Write`'s `type` decides; an `Edit` changed a file that was there, and a
-null `originalFile` is one too large to carry. A line with two `tool_result`s is not
-read, since its one `tool_use_result` cannot say whose it is. No answer yet is no mark.
-
-**The disk finishes it.** Was there and missing now is deleted; was there and present is
-changed; absent before and present is created; created and missing now is its own word.
-
-**Drawn as a letter and a word** in a `Pill` after the call count, `data-kind` on the
-leaf, a deleted file's name struck through. Both catalogues carry the words.
-
-`No git command run by this app` bounds this: the before is Claude Code's answer, never
-the repository's.
-
-Done when `acts.test.ts` reads each kind off a captured `Edit` and `Write` line, taken
-from a real run as `session-stream.jsonl` was, and `session.test.tsx` draws them.
-
 ### §RG281 Appeared, changed or gone, off the watch's own stat
 
 The list of what moved on disk (RG247) holds what no edit call named: a file `rm`
@@ -116,8 +90,8 @@ The viewer (RG245) shows the file as the disk has it, and above it each call's t
 halves (RG246): ten edits are ten blocks, and a formatter run after them is in none. VS
 Code shows one comparison, the original beside the file now.
 
-**The original is RG280's.** `originOf` hands the first answer's `originalFile`; a
-created file's is empty, every line added. The file now is the read the viewer already
+**The original is RG280's.** a reader beside `originOf` hands that answer's
+`originalFile`, empty for a created file. The file now is the read the viewer already
 makes, so what changed it after the last call counts too, and a deleted file is an empty
 side, every line removed. A file only the watch saw has no original, and the viewer says
 so.

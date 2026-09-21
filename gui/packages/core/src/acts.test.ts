@@ -4,6 +4,8 @@ import {
   actLine,
   actsIn,
   actsOf,
+  changeOf,
+  CHANGE_LETTER,
   editedIn,
   editsOf,
   editStanding,
@@ -13,12 +15,16 @@ import {
   marksOf,
   NOTHING_MARKED,
   onDisk,
+  originOf,
   subjectOf,
   touched,
   type Edited,
   type Marks,
 } from './acts'
 import type { EditedFile } from './bridge'
+// The captured run, as text: `core` has no filesystem in scope, so the fixture is imported
+// the way `boundaries.test.ts` imports this package's own sources.
+import EDIT_LINES from './captured/session-edits.jsonl?raw'
 
 /** What this project's `config` and engine resolution would supply. */
 const MARKS: Marks = {
@@ -603,5 +609,86 @@ describe('RG208: notes folded where they stand', () => {
 
   it('draws nothing for a stream that wrote nothing', () => {
     expect(foldedNotes([])).toEqual([])
+  })
+})
+
+/**
+ * RG280: what the session did to each file, off the answers a real run wrote.
+ *
+ * `captured/session-edits.jsonl` is one headless run — a `Write` on a path that was not there,
+ * an `Edit` on it, and a `Write` over a file that was — kept as it printed but for the usage
+ * accounting. What it proves is that this reader handles the shapes Claude Code answered with
+ * on the day it was captured: a `type` of `create` or `update` on a `Write`, and `originalFile`
+ * on an `Edit`.
+ */
+const CAPTURED_EDITS = EDIT_LINES.split('\n').filter((line) => line.trim() !== '')
+
+/** The paths that run's calls carried, spelled as the machine it ran on spells one. */
+const NEW_FILE = String.raw`D:\tmp\rk-capture\new.txt`
+const OLD_FILE = String.raw`D:\tmp\rk-capture\old.txt`
+const NEVER_EDITED = String.raw`D:\tmp\rk-capture\never.txt`
+
+describe('RG280: created, changed or deleted', () => {
+  const acts = actsIn(CAPTURED_EDITS)
+
+  it('reads a created file off the answer to the call that made it', () => {
+    expect(originOf(acts, NEW_FILE)).toBe('created')
+  })
+
+  it('reads a changed file off the answer to the write that replaced it', () => {
+    expect(originOf(acts, OLD_FILE)).toBe('changed')
+  })
+
+  it('takes the first answered call on the path, so a later edit does not restate it', () => {
+    // `new.txt` was written and then edited: created is what the session did to it, and the
+    // `Edit` answering with the file it replaced does not make it a file that was there.
+    const edited = editedIn(acts).find((file) => file.path.endsWith('new.txt'))
+
+    expect(edited?.calls).toBe(2)
+    expect(originOf(acts, NEW_FILE)).toBe('created')
+  })
+
+  it('says nothing about a path no call named, or one nothing has answered yet', () => {
+    expect(originOf(acts, NEVER_EDITED)).toBeNull()
+    // The call alone, with its answer left out of the stream.
+    const unanswered = actsIn(CAPTURED_EDITS.filter((line) => !line.includes('tool_use_result')))
+    expect(originOf(unanswered, NEW_FILE)).toBeNull()
+  })
+
+  it('does not read a line answering two calls, since one payload cannot say whose it is', () => {
+    const doubled = CAPTURED_EDITS.map((line) => {
+      const object: unknown = JSON.parse(line)
+      const record = object as { message?: { content?: unknown[] } }
+      const content = record.message?.content
+      if (!Array.isArray(content) || content[0] === undefined) return line
+      const part = content[0] as { type?: string }
+      if (part.type !== 'tool_result') return line
+      return JSON.stringify({
+        ...(object as object),
+        message: {
+          ...record.message,
+          content: [content[0], { ...content[0], type: 'tool_result' }],
+        },
+      })
+    })
+
+    expect(originOf(actsIn(doubled), NEW_FILE)).toBeNull()
+  })
+
+  it('lets the disk finish it: gone is deleted, and gone after being made is its own word', () => {
+    expect(changeOf('changed', 'missing')).toBe('deleted')
+    expect(changeOf('created', 'missing')).toBe('undone')
+    expect(changeOf('created', 'changed')).toBe('created')
+    expect(changeOf('changed', 'unchanged')).toBe('changed')
+    // Outside the project the disk is never asked, and the session's own answer stands.
+    expect(changeOf('created', 'outside')).toBe('created')
+    expect(changeOf(null, 'missing')).toBeNull()
+  })
+
+  it('marks each change with the letter a source-control list marks it with', () => {
+    expect(CHANGE_LETTER.created).toBe('A')
+    expect(CHANGE_LETTER.changed).toBe('M')
+    expect(CHANGE_LETTER.deleted).toBe('D')
+    expect(new Set(Object.values(CHANGE_LETTER)).size).toBe(4)
   })
 })
