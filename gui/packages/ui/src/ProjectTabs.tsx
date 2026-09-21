@@ -1,10 +1,13 @@
 import {
   allLines,
   backlogFrom,
+  counted,
   reversedFrom,
   storeFrom,
   undoneBy,
   reasonOf,
+  validationFrom,
+  type Validation,
   type MessageKey,
   type OpenProject,
   type ReadOutcome,
@@ -22,6 +25,7 @@ import {
   type SyntheticEvent,
 } from 'react'
 
+import { Checking } from './checking'
 import { Glyph, Pill } from './marks'
 import { useWording } from './wording'
 
@@ -348,6 +352,92 @@ function DesignRow({
         <span>{say('project.design.written', { ref: anchor })}</span>
       </div>
     </Entry>
+  )
+}
+
+/**
+ * What is shipped and unlooked-at, beside the ledger it comes from (RG293).
+ *
+ * A narrowing of the changelog, so it belongs among the tabs that read it — one more reading of
+ * `unvalidated`, not a second window and not a filter nobody finds.
+ *
+ * **Newest first**, against the block order every other tab uses, for the deferred tab's reason:
+ * what somebody will actually check is what they just shipped, while they still remember what it
+ * was for, and the ledger's own order buries that under whatever Block A left behind.
+ *
+ * **An empty list is three answers**, and `validationFrom` is what tells them apart. Each gets
+ * its own sentence, because *this project never asked*, *the history cannot say* and *everything
+ * has a verdict* are three different things to do next.
+ *
+ * **Opening a row is what asks.** Nothing is asked of Claude Code for a list being scrolled past.
+ */
+/**
+ * The sentence for each way the list is empty, by the state's own word.
+ *
+ * A table and not a chain of conditions, so the three stay three: *this project never asked*,
+ * *the history cannot say* and *everything has a verdict* are different things to do next, and a
+ * screen that folded two of them together would tell somebody the wrong one.
+ */
+const NOTHING_AWAITS = {
+  ungoverned: 'project.validation.ungoverned',
+  unplaced: 'project.validation.unplaced',
+  none: 'project.validation.none',
+} as const satisfies Record<Exclude<Validation['kind'], 'awaiting'>, MessageKey>
+
+export function ValidationTab({ project }: { readonly project: OpenProject }) {
+  const say = useWording()
+  const listed = useAnswer(
+    () => project.client.call(project.root, 'unvalidated', {}),
+    `${project.root} unvalidated`,
+  )
+  if (listed === null || 'failed' in listed)
+    return <Waiting answer={listed} empty="project.validation.none" />
+
+  const validation = validationFrom(listed.value)
+  if (validation.kind !== 'awaiting')
+    return <BentoEmptyState title={say(NOTHING_AWAITS[validation.kind])} />
+
+  return (
+    <>
+      <p className="text-muted-foreground mb-2 text-xs" data-testid="validation-order">
+        {/* The order, and how much of the ledger is already answered — the engine's own count,
+            beside the list rather than summed from it. */}
+        {counted(say, [
+          ['project.validation.newest', null],
+          ['project.validation.validated', validation.validated],
+        ])}
+      </p>
+      <Entries>
+        {validation.rows.map((row) => (
+          <li
+            key={row.id}
+            className="grid grid-cols-[6rem_minmax(0,1fr)_auto] gap-x-4 gap-y-2 border-t px-5 py-3 first:border-t-0 max-sm:grid-cols-1"
+            data-testid="unvalidated"
+            data-id={row.id}
+          >
+            <span className="pt-0.5 font-mono text-xs font-semibold">{row.id}</span>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="bg-muted text-muted-foreground rounded px-1.5 text-xs font-semibold">
+                  {row.block}
+                </span>
+                <span className="text-sm font-medium [overflow-wrap:anywhere]">{row.symptom}</span>
+              </div>
+              {/* Null where the history could not say which commit shipped it, which is a state
+                  and not a blank: a screen that drew an empty hash would be inventing one. */}
+              {row.commit === null ? null : (
+                <div className="text-muted-foreground mt-1 font-mono text-[13px]">
+                  {say('project.validation.shipped.in', { commit: row.commit.slice(0, 8) })}
+                </div>
+              )}
+            </div>
+            <div className="flex items-start max-sm:justify-start">
+              <Checking root={project.root} id={row.id} />
+            </div>
+          </li>
+        ))}
+      </Entries>
+    </>
   )
 }
 

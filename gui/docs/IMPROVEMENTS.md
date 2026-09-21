@@ -130,28 +130,29 @@ skill actually describes: `npm run dev:inspect`, nothing touched, and the port a
 Done when a freshly started `npm run dev:inspect` answers on 9333 before any source
 changes.
 
-### §RG300 Why a kept gloss needs a picture of its own
+### §RG300 Why a kept answer needs a picture of its own
 
-`TASK_SHOTS` opens the explain dialog twice, and both times on a gloss the scripted
-agent has just answered. A fresh answer is neither stale nor written under an earlier
-shape, so the two notices that say a kept gloss is old are drawn by nothing any picture
-shows — the state exists only in jsdom, which lays nothing out, and that is the gap `npm
-run shots` was built to close.
+Two dialogs draw an answer somebody asked for, and no picture shows either in the state
+that matters. `TASK_SHOTS` opens the explain dialog on a gloss the scripted agent has
+just answered — neither stale nor written under an earlier shape, so its two notices are
+drawn by nothing. The walkthrough dialog (RG293) is worse off: the fixture declares no
+`[validation]`, so the tab photographs its empty sentence and the dialog is never opened
+at all.
 
-**A third state, not a third surface.** The shots harness already photographs the
-dialog; what it lacks is a run where the store holds something. The cheapest honest way
-is what RG287 keeps anyway: write a gloss into the machine's own file before the
-capture, with a shape this build has widened past and a line the fixture then leaves
-alone, and open the dialog on it. The capture is `explain-old` beside `explain` and
-`explain-where`, so one name covers both sentences and neither needs its own run.
+**A state each, not a surface each.** Both dialogs are already reachable; what is
+missing is a run where the store holds something. The cheapest honest way is what RG287
+and RG292 keep anyway: write the answer into the machine's own file before the capture —
+a gloss under a shape this build has widened past, a walkthrough for an entry the
+fixture's ledger carries — and open the dialog on it. The walkthrough tab needs the
+fixture governed and committed too, which is the arrangement `contract-live` already
+builds by hand.
 
-**Both sentences in one picture is the point.** They are two blocks stacked in the same
-place, each a border and a tinted panel, and the layout question is what they do to each
-other and to what follows at 400 wide. A state that showed one would answer half of it.
+**Both notices in one picture is the point**, for the gloss: they are two blocks stacked
+in the same place, and the layout question is what they do to each other at 400 wide.
 
-Done when a shots run writes `project-task.explain-old.*` in both grounds, both
-languages and both widths, its axe scan is clean, and the picture shows both notices
-above the reading they are about.
+Done when a shots run writes `project-task.explain-old.*` and a picture of the
+walkthrough dialog in both grounds, both languages and both widths, each scan is clean,
+and the gloss's picture shows both notices above the reading they are about.
 
 ## Block H — The look (a design system for governed prose)
 
@@ -185,29 +186,6 @@ That is a commit in somebody else's repository with a consequence for five other
 which is why it is written down here rather than made quietly.
 
 ## Block I — Validation (the list a person works through)
-
-### §RG293 The list, beside the ledger it comes from
-
-`ProjectTabs` already draws the four governed files beside the roadmap, the changelog
-among them as `list --role changelog`. What is shipped and unlooked-at is a narrowing of
-that same file, so it belongs there: one more tab reading `unvalidated`, not a second
-window and not a filter nobody finds.
-
-**Newest first**, against the block order every other tab uses. The reason is the
-deferred tab's: what somebody will actually validate is what they just shipped, while
-they still remember what it was for, and block order buries that under whatever Block A
-left behind.
-
-**A row is the id, the symptom and the block, and opening one is what asks.** Nothing is
-asked for a list being scrolled past — the same rule the improvements tab follows for
-its sections, and the reason a walkthrough costs tokens is the reason it is never
-speculative.
-
-An empty list is a state and says so: every entry since validation started has a
-verdict, which is the screen this whole block exists to produce.
-
-Done when the tab draws a fixture's unvalidated entries newest first, an empty one says
-so, and the shots read in both grounds, both languages and at both widths.
 
 ### §RG294 Saying what happened
 

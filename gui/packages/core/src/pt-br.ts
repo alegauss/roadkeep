@@ -133,6 +133,35 @@ export const PT_BR: Wording = {
   'project.read.failed': 'Este arquivo não respondeu: {reason}',
   'project.line.open': 'Abrir',
   'project.line.open.named': 'Abrir {id}',
+  'project.validation.tab': 'Esperando alguém',
+  'project.validation.ungoverned':
+    'Este projeto não pergunta se alguém experimentou o que ele entrega, então nada é listado.',
+  'project.validation.unplaced':
+    'Não há histórico para ler aqui, então não dá para situar onde a busca começa.',
+  'project.validation.none': 'Toda entrada desde o início da busca tem um veredito.',
+  'project.validation.newest': 'Mais recentes primeiro, que é o registro lido do fim.',
+  'project.validation.validated': '{count} já têm um',
+  'project.validation.validated.one': '{count} já tem um',
+  'project.validation.shipped.in': 'entregue em {commit}',
+  'project.validation.open': 'Como conferir',
+  'project.validation.title': 'Como conferir {id}',
+  'project.validation.about':
+    'O Claude Code leu o commit que entregou esta entrada e escreveu o que experimentar.',
+  'project.validation.asking': 'O Claude Code está lendo o commit que a entregou.',
+  'project.validation.before': 'O que ter pronto',
+  'project.validation.steps': 'O que fazer',
+  'project.validation.sees': 'Você deve ver',
+  'project.validation.where': 'Onde a mudança caiu',
+  'project.validation.nothing': 'Não há nada para abrir',
+  'project.validation.stale':
+    'Esta entrada agora vem de outro commit, então isto foi escrito sobre um diferente.',
+  'project.validation.again': 'Pedir outra leitura',
+  'project.validation.cancel': 'Parar de perguntar',
+  'project.validation.unavailable':
+    'Nenhum Claude Code respondeu nesta máquina, então nada leu o commit. Tentados: {tried}.',
+  'project.validation.failed': 'O Claude Code não respondeu com um roteiro: {reason}',
+  'project.validation.cancelled': 'A pergunta foi interrompida, então não há o que mostrar.',
+  'project.validation.withheld': 'Esta entrada não foi lida: {reason}',
 
   'task.opening': 'Abrindo a linha.',
   'task.refused': 'Esta linha não abriu: {reason}',

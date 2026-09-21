@@ -1,6 +1,7 @@
 import {
   filledRoute,
   LOCALE_TAGS,
+  PROJECT_ROUTE,
   routeParams,
   SESSION_ROUTE,
   SURFACE_ROUTES,
@@ -67,6 +68,17 @@ export type SessionShot = (typeof SESSION_SHOTS)[number]
 export const TASK_SHOTS = [null, 'explain', 'explain-where'] as const
 export type TaskShot = (typeof TASK_SHOTS)[number]
 
+/**
+ * The states the project surface is photographed in: at rest, and on the validation tab (RG293).
+ *
+ * The tab is its own picture because its content is nothing like the ledger beside it — a list of
+ * what awaits a person, or one of three sentences saying why there is none. The fixture declares
+ * no `[validation]`, so what this shows is the commonest of the three, which is the one a reader
+ * of somebody else's project meets first.
+ */
+export const PROJECT_SHOTS = [null, 'validation'] as const
+export type ProjectShot = (typeof PROJECT_SHOTS)[number]
+
 export const SHOT_GROUNDS: readonly Exclude<Theme, 'system'>[] = ['light', 'dark']
 
 /** The widths a surface is read at: a desktop window, and the phone width the contract names. */
@@ -92,7 +104,7 @@ export interface Capture {
    * Which state a surface is put in before the capture, null being at rest: a session has four
    * (RG210, RG282) and the task surface has the explanation open (RG285).
    */
-  readonly state: SessionShot | TaskShot
+  readonly state: SessionShot | TaskShot | ProjectShot
   /** The PNG's name under the output directory. */
   readonly file: string
 }
@@ -110,6 +122,18 @@ export function surfaceName(pattern: string): string {
  * @param only surface names to keep, as `--only` spells them. An unknown name is refused with
  *   the names that exist: a typo narrowed to nothing would be a run that says it succeeded.
  */
+/**
+ * Which states each surface is photographed in, by the route it is addressed at.
+ *
+ * A table and not a chain, since a third surface with states was where the chain became one:
+ * what a surface is shown doing belongs beside its route, and a pattern absent here is at rest.
+ */
+const STATES: Readonly<Record<string, readonly (SessionShot | TaskShot | ProjectShot)[]>> = {
+  [SESSION_ROUTE]: SESSION_SHOTS,
+  [TASK_ROUTE]: TASK_SHOTS,
+  [PROJECT_ROUTE]: PROJECT_SHOTS,
+}
+
 export function capturesFor(values: ShotValues, only: readonly string[] = []): Capture[] {
   const surfaces = SURFACE_ROUTES.map((pattern) => {
     // A session's line is the one handed over, not the one the task surface shows.
@@ -135,8 +159,7 @@ export function capturesFor(values: ShotValues, only: readonly string[] = []): C
   for (const ground of SHOT_GROUNDS) {
     for (const locale of LOCALE_TAGS) {
       for (const { surface, pattern, route } of kept) {
-        const states: readonly (SessionShot | TaskShot)[] =
-          pattern === SESSION_ROUTE ? SESSION_SHOTS : pattern === TASK_ROUTE ? TASK_SHOTS : [null]
+        const states: readonly (SessionShot | TaskShot | ProjectShot)[] = STATES[pattern] ?? [null]
         for (const state of states) {
           for (const { width, height } of SHOT_SIZES) {
             const named = state === null ? surface : `${surface}.${state}`

@@ -8,6 +8,7 @@ import {
   openedFrom,
   openProject,
   type ProjectCatalogue,
+  type RendererBridge,
   type Transport,
 } from '@rk/core'
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
@@ -153,7 +154,59 @@ function answer(argv: readonly string[]): string | undefined {
         ],
       })
     case 'commands':
-      return JSON.stringify({ version: '0.2.400', source: null, commands: [] })
+      // Empty unless a case asks for the validation verb (RG293): most projects on a machine
+      // run an engine older than the build that grew it, and the tab is withheld for those.
+      return JSON.stringify({
+        version: '0.2.400',
+        source: null,
+        commands: publishesUnvalidated
+          ? [
+              {
+                command: 'unvalidated',
+                family: 'shipping',
+                help: 'shipped entries no person has left a verdict on',
+                writes: false,
+                runs: true,
+                published: true,
+                needs: '',
+                description: '',
+                arguments: [
+                  { spelling: ['--block'], primary: '--block', takes: 'BLOCK' },
+                  { spelling: ['--json'], primary: '--json', takes: '' },
+                ],
+              },
+            ]
+          : [],
+      })
+    case 'unvalidated':
+      return JSON.stringify({
+        file: 'docs/CHANGELOG.md',
+        block: null,
+        governed: unvalidatedState !== 'ungoverned',
+        placed: unvalidatedState !== 'unplaced',
+        from: null,
+        validated: 2,
+        // The engine answers in the ledger's file order; the tab draws them reversed.
+        unvalidated:
+          unvalidatedState === 'awaiting'
+            ? [
+                {
+                  id: 'AL0',
+                  block: 'A',
+                  symptom: 'the first thing shipped',
+                  line: 9,
+                  commit: '216066b89561b6e9c68f9bab67fe9ffe9ae014a9',
+                },
+                {
+                  id: 'AL4',
+                  block: 'B',
+                  symptom: 'the newest thing shipped',
+                  line: 21,
+                  commit: null,
+                },
+              ]
+            : [],
+      })
     case 'stats':
       return JSON.stringify({
         file: 'docs/ROADMAP.md',
@@ -295,10 +348,23 @@ const CATALOGUE: ProjectCatalogue = { version: 1, roots: [], projects: [] }
 /** What this project declares it is called, or empty for one that declares nothing. */
 let declaredName = ''
 
+/** Whether this engine publishes `unvalidated`, which is what offers the tab (RG293). */
+let publishesUnvalidated = false
+
+/** Which of the four answers `unvalidated` gives, for the tab's four screens. */
+let unvalidatedState: 'awaiting' | 'none' | 'ungoverned' | 'unplaced' = 'awaiting'
+
 async function atProject(
-  over: { readiness?: string; name?: string } = {},
+  over: {
+    readiness?: string
+    name?: string
+    unvalidated?: 'awaiting' | 'none' | 'ungoverned' | 'unplaced'
+    walkthrough?: RendererBridge['walkthrough']
+  } = {},
 ): Promise<{ ran: string[][] }> {
   declaredName = over.name ?? ''
+  publishesUnvalidated = over.unvalidated !== undefined
+  unvalidatedState = over.unvalidated ?? 'awaiting'
   // A build that does not answer the field leaves it empty on every row, which is what the
   // reader falls back to (RG170).
   readinessOverride = over.readiness
@@ -310,6 +376,7 @@ async function atProject(
       open: () => Promise.resolve(opened),
       run: (root, request) => bridgedRun(() => transport.run({ ...request, root })),
       subscribe: () => () => undefined,
+      ...(over.walkthrough === undefined ? {} : { walkthrough: over.walkthrough }),
     }),
     configurable: true,
   })
@@ -612,5 +679,144 @@ describe('RG202: the name this screen shows', () => {
     await waitFor(() => {
       expect(screen.getByText('alpha')).toBeTruthy()
     })
+  })
+})
+
+describe('RG293: what is shipped and unlooked-at, beside the ledger', () => {
+  it('draws the entries awaiting a person, newest first', async () => {
+    await atProject({ unvalidated: 'awaiting' })
+
+    fireEvent.click(await screen.findByTestId('validation-tab'))
+
+    const rows = await screen.findAllByTestId('unvalidated')
+    // The engine answered in the ledger's file order; the tab reads it from the end, because
+    // what somebody will actually check is what they just shipped.
+    expect(rows.map((row) => row.dataset['id'])).toEqual(['AL4', 'AL0'])
+    expect(within(rows[1] as HTMLElement).getByText('the first thing shipped')).toBeTruthy()
+    // The shipping commit where the history could say, and nothing drawn where it could not.
+    expect(within(rows[1] as HTMLElement).getByText(/216066b8/)).toBeTruthy()
+    expect(within(rows[0] as HTMLElement).queryByText(/216066b8/)).toBeNull()
+    // The order said out loud, with the engine's own count of what already has a verdict.
+    expect(screen.getByTestId('validation-order').textContent).toContain(
+      BASE['project.validation.newest'],
+    )
+    expect(screen.getByTestId('validation-order').textContent).toContain(
+      fill(BASE['project.validation.validated'], { count: 2 }),
+    )
+  })
+
+  it('says which of the three ways the list is empty', async () => {
+    // Every entry answered, which is the screen this whole block exists to produce.
+    await atProject({ unvalidated: 'none' })
+    fireEvent.click(await screen.findByTestId('validation-tab'))
+    expect(await screen.findByText(BASE['project.validation.none'])).toBeTruthy()
+    expect(screen.queryAllByTestId('unvalidated')).toEqual([])
+  })
+
+  it('says a project that never asked the question is not asking it', async () => {
+    await atProject({ unvalidated: 'ungoverned' })
+    fireEvent.click(await screen.findByTestId('validation-tab'))
+
+    expect(await screen.findByText(BASE['project.validation.ungoverned'])).toBeTruthy()
+  })
+
+  it('says a history that cannot place where looking starts, which is not the same', async () => {
+    await atProject({ unvalidated: 'unplaced' })
+    fireEvent.click(await screen.findByTestId('validation-tab'))
+
+    expect(await screen.findByText(BASE['project.validation.unplaced'])).toBeTruthy()
+  })
+
+  it('withholds the whole tab where this engine cannot run the read', async () => {
+    // RG6's mechanism, and why nothing here waited on the upstream work: a project whose
+    // engine publishes no `unvalidated` is offered no door rather than one that is refused.
+    await atProject()
+
+    await waitFor(() => {
+      expect(screen.getAllByTestId('line')).toHaveLength(3)
+    })
+    expect(screen.queryByTestId('validation-tab')).toBeNull()
+  })
+
+  it('asks nothing of Claude Code for a list being scrolled past', async () => {
+    await atProject({ unvalidated: 'awaiting' })
+    fireEvent.click(await screen.findByTestId('validation-tab'))
+    await screen.findAllByTestId('unvalidated')
+
+    // The dialog is what asks, and nothing has opened one: a walkthrough costs a wait and
+    // somebody's tokens, so it is never speculative.
+    expect(screen.queryByTestId('check-dialog')).toBeNull()
+    expect(screen.getAllByTestId('check')).toHaveLength(2)
+  })
+})
+
+describe('RG293: how to check one entry, on asking', () => {
+  const WALKED = {
+    kind: 'said' as const,
+    walkthrough: {
+      before: ['a build of the app'],
+      steps: [{ does: 'open the entry', sees: 'the steps are drawn' }],
+      where: [{ path: 'packages/core/src/verbs.ts', said: 'the row lives here' }],
+      nothingToSee: '',
+    },
+    model: 'claude-opus-5',
+    version: '2.1.278',
+    kept: true,
+    stale: false,
+    commit: '216066b89561b6e9c68f9bab67fe9ffe9ae014a9',
+  }
+
+  /** Open the tab and press the button on the newest row. */
+  async function openCheck(walkthrough: RendererBridge['walkthrough']) {
+    await atProject({ unvalidated: 'awaiting', walkthrough })
+    fireEvent.click(await screen.findByTestId('validation-tab'))
+    const rows = await screen.findAllByTestId('unvalidated')
+    fireEvent.click(within(rows[0] as HTMLElement).getByTestId('check'))
+    return within(await screen.findByTestId('check-dialog'))
+  }
+
+  it('draws the steps as pairs, each with what it should produce', async () => {
+    const dialog = await openCheck(() => Promise.resolve(WALKED))
+
+    await dialog.findByTestId('check-said')
+    expect(dialog.getByText('open the entry')).toBeTruthy()
+    expect(dialog.getByText(/the steps are drawn/)).toBeTruthy()
+    expect(dialog.getByText('a build of the app')).toBeTruthy()
+    expect(dialog.getByText('packages/core/src/verbs.ts')).toBeTruthy()
+    // Who wrote it and what it was written about, which is what makes it checkable at all.
+    expect(dialog.getByTestId('check-commit').textContent).toContain('216066b8')
+    expect(dialog.queryByTestId('check-stale')).toBeNull()
+  })
+
+  it('draws a change nobody can open as that, with no steps beside it', async () => {
+    const dialog = await openCheck(() =>
+      Promise.resolve({
+        ...WALKED,
+        walkthrough: {
+          before: [],
+          steps: [],
+          where: [],
+          nothingToSee: 'Two rows in a verb table: nothing is drawn.',
+        },
+      }),
+    )
+
+    expect(await dialog.findByTestId('check-nothing')).toBeTruthy()
+    expect(dialog.queryByTestId('check-steps')).toBeNull()
+  })
+
+  it('says one written about another commit is old, and still draws it', async () => {
+    const dialog = await openCheck(() => Promise.resolve({ ...WALKED, stale: true }))
+
+    expect(await dialog.findByTestId('check-stale')).toBeTruthy()
+    expect(dialog.getByText('open the entry')).toBeTruthy()
+  })
+
+  it('says why there is none, in this app words for what the far side answered', async () => {
+    const dialog = await openCheck(() =>
+      Promise.resolve({ kind: 'unavailable', tried: [['claude'], ['claude.cmd']] }),
+    )
+
+    expect((await dialog.findByTestId('check-failed')).textContent).toContain('claude.cmd')
   })
 })

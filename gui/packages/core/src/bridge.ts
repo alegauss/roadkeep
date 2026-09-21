@@ -285,6 +285,22 @@ export interface RendererBridge {
    * nothing is running under does nothing.
    */
   cancelGloss(root: string, id: string): Promise<void>
+  /**
+   * How to check one shipped entry, asked of Claude Code as a read (RG291, RG293).
+   *
+   * `gloss`'s shape and its rules: the renderer names an entry and never a prompt, the far side
+   * reads the ledger and the history itself, and the language is the window's own. What it adds
+   * is what it is anchored on — the commit that wrote the entry — and what makes an answer old,
+   * which is that commit changing.
+   *
+   * **Asked when a row is opened and never before**: a list being scrolled past costs nothing,
+   * which is why a walkthrough is never speculative.
+   *
+   * @param again ask anew and replace what was kept, which is what Regenerate does
+   */
+  walkthrough(root: string, id: string, again?: boolean): Promise<WalkthroughAnswer>
+  /** Give up on a walkthrough that is still running. A name nothing runs under does nothing. */
+  cancelWalkthrough(root: string, id: string): Promise<void>
   /** Every session this process started, each with what it has written so far (RG153). */
   sessions(): Promise<readonly SessionRecord[]>
   /**
@@ -776,5 +792,7 @@ export const BRIDGE_CHANNELS = {
   stopSession: 'roadkeep:stop-session',
   gloss: 'roadkeep:gloss',
   cancelGloss: 'roadkeep:cancel-gloss',
+  walkthrough: 'roadkeep:walkthrough',
+  cancelWalkthrough: 'roadkeep:cancel-walkthrough',
   door: 'roadkeep:door',
 } as const satisfies Record<keyof RendererBridge, string>

@@ -128,6 +128,8 @@ export {
   WALKTHROUGH_SCHEMA,
 } from './walkthrough'
 export type { Walkthrough, WalkthroughStep } from './walkthrough'
+export { awaiting, validationFrom } from './validation'
+export type { Validation } from './validation'
 export {
   NOTHING_WALKED,
   WALKTHROUGHS_KEPT,

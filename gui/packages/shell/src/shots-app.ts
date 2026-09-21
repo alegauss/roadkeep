@@ -359,6 +359,9 @@ function opensExplain(state: string | null): boolean {
   return state !== null && state.startsWith('explain')
 }
 
+/** The validation tab, chosen as a reader chooses it (RG293). */
+const OPEN_VALIDATION = `(() => { const tab = document.querySelector('[data-testid="validation-tab"]'); if (tab) tab.click() })()`
+
 /** Where the work lands, scrolled to inside the dialog it is drawn in (RG288). */
 const SHOW_WHERE = `(() => { const where = document.querySelector('[data-testid="explain-where"]'); if (where) where.scrollIntoView({ block: 'start' }) })()`
 
@@ -448,6 +451,12 @@ export async function takeCapture(
     if (capture.state === 'explain-where') {
       await page.waitForSelector('[data-testid="explain-where"]', { timeout: SETTLE_CEILING_MS })
       await page.evaluate(SHOW_WHERE)
+      settled = await settle(page)
+    }
+    if (capture.state === 'validation') {
+      // The tab is offered only where this engine publishes `unvalidated` (RG6), so a fixture on
+      // an older build has nothing to click and the picture is the project surface at rest.
+      await page.evaluate(OPEN_VALIDATION)
       settled = await settle(page)
     }
     if (opensViewer(capture.state)) {

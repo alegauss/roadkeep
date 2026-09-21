@@ -5,6 +5,7 @@ import {
   capturesFor,
   isScanned,
   optionsFrom,
+  PROJECT_SHOTS,
   SESSION_SHOTS,
   TASK_SHOTS,
   settleScript,
@@ -32,9 +33,11 @@ describe('RG209: every surface the router serves', () => {
   it('is taken in both grounds, every language and both widths', () => {
     const captures = capturesFor(VALUES)
 
-    // The session surface once per state it is put in (RG210) and the task surface once per
-    // state of its own (RG285), every other surface once.
-    const pictured = SURFACE_ROUTES.length - 2 + SESSION_SHOTS.length + TASK_SHOTS.length
+    // The session surface once per state it is put in (RG210), the task surface once per
+    // state of its own (RG285) and the project surface once per tab it is shown on (RG293);
+    // every other surface once.
+    const pictured =
+      SURFACE_ROUTES.length - 3 + SESSION_SHOTS.length + TASK_SHOTS.length + PROJECT_SHOTS.length
     expect(captures).toHaveLength(
       pictured * SHOT_GROUNDS.length * LOCALE_TAGS.length * SHOT_SIZES.length,
     )
@@ -78,6 +81,13 @@ describe('RG210: the session, photographed in the states a reader puts it in', (
     expect(capturesFor(VALUES, ['settings']).every((one) => one.state === null)).toBe(true)
   })
 
+  it('RG293: takes the project surface on its validation tab as well as at rest', () => {
+    const project = capturesFor(VALUES, ['project'])
+
+    expect(new Set(project.map((one) => one.state))).toEqual(new Set(PROJECT_SHOTS))
+    expect(project.map((one) => one.file)).toContain('project.validation.dark.pt-BR.400.png')
+  })
+
   it('goes to the line that was handed over, and leaves the task surface on a line nobody holds', () => {
     const [session] = capturesFor(VALUES, ['project-task-session'])
     const [task] = capturesFor(VALUES, ['project-task'])
@@ -92,7 +102,8 @@ describe('RG210: the session, photographed in the states a reader puts it in', (
 describe('RG211: which pictures are scanned for accessibility', () => {
   it('scans each surface, state and ground once, at the desktop width in the base language', () => {
     const scanned = capturesFor(VALUES).filter(isScanned)
-    const pictured = SURFACE_ROUTES.length - 2 + SESSION_SHOTS.length + TASK_SHOTS.length
+    const pictured =
+      SURFACE_ROUTES.length - 3 + SESSION_SHOTS.length + TASK_SHOTS.length + PROJECT_SHOTS.length
 
     expect(scanned).toHaveLength(pictured * SHOT_GROUNDS.length)
     expect(scanned.every((one) => one.width === 1280 && one.locale === LOCALE_TAGS[0])).toBe(true)

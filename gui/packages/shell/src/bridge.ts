@@ -19,6 +19,7 @@ import {
   type GovernedFile,
   type AnsweredAsk,
   type GlossAnswer,
+  type WalkthroughAnswer,
   type HandedOver,
   type KnownRoot,
   type LaunchSettings,
@@ -36,6 +37,8 @@ import { loadReadings, saveReadings } from './readings-file'
 import { createCarrier, type Carrier } from './carrier'
 import { createGlosses } from './glosses'
 import { loadGlosses, saveGlosses } from './glosses-file'
+import { createWalkthroughs } from './walkthroughs'
+import { loadWalkthroughs, saveWalkthroughs } from './walkthroughs-file'
 import { editedAt } from './edited-at'
 import { fileText } from './file-text'
 import { governedAt } from './governed-at'
@@ -438,6 +441,49 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
     if (typeof root === 'string' && typeof id === 'string') glosses.cancel(root, id)
   })
 
+  // How to check one shipped entry (RG291), kept between openings (RG292). The agent and the
+  // environment are the gloss's, because it is the same machine answering the same way.
+  const walkthroughs = createWalkthroughs({
+    carrier,
+    agent: (root) =>
+      resolveAgent(
+        (command) =>
+          createProcessTransport({ command: command[0] ?? '', prefixArgs: command.slice(1) }),
+        root,
+        agentCandidates({ override: agentOverride(process.env[AGENT_VAR], app.isPackaged) }),
+      ),
+    environment: (agent, root) =>
+      sessionEnvironment(
+        (command, env) =>
+          createProcessTransport({ command: command[0] ?? '', prefixArgs: command.slice(1), env }),
+        agent.command,
+        root,
+      ),
+    tag: () => localeChoice(loadSettings(app.getPath('userData')).settings.locale, app.getLocale()),
+    kept: () => loadWalkthroughs(app.getPath('userData')),
+    keep: (written) => {
+      saveWalkthroughs(app.getPath('userData'), written)
+    },
+    // The same topic a gloss's stream goes out on: one screen watches one run at a time, and
+    // the id in the event is what tells them apart.
+    line: (root, id, index, line) => {
+      subscriptions.publish('gloss', root, { root, id, index, line })
+    },
+  })
+
+  ipcMain.handle(
+    BRIDGE_CHANNELS.walkthrough,
+    (_event, root: unknown, id: unknown, again: unknown): Promise<WalkthroughAnswer> => {
+      if (typeof root !== 'string' || typeof id !== 'string') {
+        return Promise.resolve({ kind: 'withheld', reason: 'no entry was named' })
+      }
+      return walkthroughs.walkthrough(root, id, again === true)
+    },
+  )
+  ipcMain.handle(BRIDGE_CHANNELS.cancelWalkthrough, (_event, root: unknown, id: unknown): void => {
+    if (typeof root === 'string' && typeof id === 'string') walkthroughs.cancel(root, id)
+  })
+
   ipcMain.handle(BRIDGE_CHANNELS.sessions, () => sessions.list())
   ipcMain.handle(BRIDGE_CHANNELS.stopSession, (_event, key: unknown): void => {
     if (typeof key === 'string') sessions.stop(key)
@@ -450,6 +496,7 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
       // A gloss is a read nobody is waiting on once the window is going: given up first, so
       // quitting never waits on a question whose answer has nowhere to land.
       glosses.close()
+      walkthroughs.close()
       await sessions.close()
       await carrier.close()
     },

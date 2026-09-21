@@ -152,6 +152,36 @@ export const EN = {
   'project.read.failed': 'This file did not answer: {reason}',
   'project.line.open': 'Open',
   'project.line.open.named': 'Open {id}',
+  'project.validation.tab': 'Awaiting a person',
+  // Three ways a list is empty, and only two payload fields tell them apart (RG293).
+  'project.validation.ungoverned':
+    'This project does not ask whether anybody tried what it ships, so no entry is listed.',
+  'project.validation.unplaced':
+    'There is no history to read here, so where looking starts cannot be placed.',
+  'project.validation.none': 'Every entry since looking started carries a verdict.',
+  'project.validation.newest': 'Newest first, which is the ledger read from its end.',
+  'project.validation.validated': '{count} already carry one',
+  'project.validation.validated.one': '{count} already carries one',
+  'project.validation.shipped.in': 'shipped in {commit}',
+  'project.validation.open': 'How to check it',
+  'project.validation.title': 'How to check {id}',
+  'project.validation.about':
+    'Claude Code read the commit that shipped this entry and wrote what to try.',
+  'project.validation.asking': 'Claude Code is reading the commit that shipped it.',
+  'project.validation.before': 'What to have ready',
+  'project.validation.steps': 'What to do',
+  'project.validation.sees': 'You should see',
+  'project.validation.where': 'Where the change landed',
+  'project.validation.nothing': 'There is nothing to open',
+  'project.validation.stale':
+    'This entry ships from a different commit now, so this was written about another one.',
+  'project.validation.again': 'Ask for another reading',
+  'project.validation.cancel': 'Stop asking',
+  'project.validation.unavailable':
+    'No Claude Code answered on this machine, so nothing read the commit. Tried: {tried}.',
+  'project.validation.failed': 'Claude Code did not answer with a walkthrough: {reason}',
+  'project.validation.cancelled': 'The asking was stopped, so there is nothing to show.',
+  'project.validation.withheld': 'This entry was not read: {reason}',
 
   'task.opening': 'Opening the line.',
   'task.refused': 'This line did not open: {reason}',

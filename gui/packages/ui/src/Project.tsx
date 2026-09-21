@@ -22,7 +22,13 @@ import { GateTab } from './Gate'
 import { useGateHealth } from './useGateHealth'
 import { HeroActions } from './hero'
 import { Glyph, Pill } from './marks'
-import { ChangelogTab, DecisionsTab, DeferredTab, ImprovementsTab } from './ProjectTabs'
+import {
+  ChangelogTab,
+  DecisionsTab,
+  DeferredTab,
+  ImprovementsTab,
+  ValidationTab,
+} from './ProjectTabs'
 import { useProject, type OpenedSurface } from './useProject'
 import { useWording } from './wording'
 
@@ -438,6 +444,53 @@ function GateTabButton({
 /** The name the gate's tab is addressed by, which is no governed role. */
 const GATE_TAB = 'gate'
 
+/**
+ * The name the validation tab is addressed by (RG293). No governed role either: what awaits a
+ * person is a narrowing of the changelog and not a file of its own.
+ */
+const VALIDATION_TAB = 'validation'
+
+/**
+ * A tab beside the ledger for what is shipped and unlooked-at (RG293).
+ *
+ * **Withheld where this engine cannot run `unvalidated`**, which is what `capabilities` is for
+ * (RG6): every project on this machine runs its own roadkeep, and most are older than the build
+ * that grew the verb. A door that would be refused is not offered — the whole surface is absent,
+ * which is a state and not a failure.
+ */
+function ValidationTabButton({
+  active,
+  onPick,
+}: {
+  readonly active: boolean
+  readonly onPick: (role: string) => void
+}) {
+  const say = useWording()
+  const choose = useCallback(() => {
+    onPick(VALIDATION_TAB)
+  }, [onPick])
+
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active ? 'true' : 'false'}
+      onClick={choose}
+      data-testid="validation-tab"
+      className={`-mb-px flex items-center gap-1.5 px-3 py-2 text-sm ${
+        active ? 'border-primary border-b-2 font-semibold' : 'text-muted-foreground'
+      }`}
+    >
+      {say('project.validation.tab')}
+    </button>
+  )
+}
+
+/** Whether this project's engine publishes the read the validation tab is made of. */
+function readsValidation(project: OpenProject): boolean {
+  return project.capabilities.kind === 'known' && project.capabilities.byVerb.unvalidated.callable
+}
+
 /** The surface once the project opened: a tab per governed file, the roadmap first. */
 function Opened({
   surface,
@@ -454,6 +507,7 @@ function Opened({
 }) {
   const say = useWording()
   const Tab = TABS[role]
+  const validation = readsValidation(surface.project)
 
   return (
     <>
@@ -471,12 +525,17 @@ function Opened({
             onPick={onRole}
           />
         ))}
+        {validation ? (
+          <ValidationTabButton active={role === VALIDATION_TAB} onPick={onRole} />
+        ) : null}
         {/* Last, and not one of the governed files: the gate is what those files say about
             themselves (RG255). */}
         <GateTabButton root={surface.project.root} active={role === GATE_TAB} onPick={onRole} />
       </div>
       {role === GATE_TAB ? <GateTab root={surface.project.root} /> : null}
-      {role === GATE_TAB ? null : role === 'roadmap' || Tab === undefined ? (
+      {role === VALIDATION_TAB && validation ? <ValidationTab project={surface.project} /> : null}
+      {role === GATE_TAB || (role === VALIDATION_TAB && validation) ? null : role === 'roadmap' ||
+        Tab === undefined ? (
         <Roadmap surface={surface} filter={filter} onFilter={onFilter} />
       ) : (
         <Tab project={surface.project} />

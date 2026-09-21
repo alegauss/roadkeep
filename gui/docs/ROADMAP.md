@@ -21,14 +21,13 @@
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49
 - 📋 **RG298** (deps: —) **npm run dev:inspect opens its first window without the debugging port, so Playwright MCP reaches it only after a restart** — The launcher starts the window before it declares the switches it passes, and the bundle reads them as undefined on that first call. → §RG298
-- 📋 **RG300** (deps: —) **no shot fixture ever keeps a gloss, so the two notices that say a kept one is old are drawn by no picture** — A shot state opens the dialog on a gloss kept under an earlier shape, so both notices are photographed in each ground and width like every other surface. → §RG300
+- 📋 **RG300** (deps: —) **no shot fixture keeps an answer, so a kept gloss's notices and the walkthrough dialog are drawn by no picture** — A state per dialog opens each on an answer written into the machine's own file first, so both are photographed in every ground and width. → §RG300
 
 ## Block H — The look (a design system for governed prose)
 
 ## Block I — Validation (the list a person works through)
 
-- 📋 **RG293** (deps: RG289 ✅) **nothing on a project surface says what is shipped and unlooked-at, so the list lives in a terminal** — A tab beside the changelog draws what awaits a person, newest first, and opening a row is what asks for its walkthrough. → §RG293
-- 📋 **RG294** (deps: RG293) **a person who followed a walkthrough has nowhere to say what happened, so the verdict never reaches the ledger** — Three answers under the steps — it worked, it did not, there is nothing to see — each take one sentence and send it through `validate`. → §RG294
+- 📋 **RG294** (deps: RG293 ✅) **a person who followed a walkthrough has nowhere to say what happened, so the verdict never reaches the ledger** — Three answers under the steps — it worked, it did not, there is nothing to see — each take one sentence and send it through `validate`. → §RG294
 - 📋 **RG295** (deps: RG294) **a validation that failed ends in a sentence nobody files, so the defect it found is lost at the dialog** — The sentence becomes the symptom of a line filed in the same call, so what a person saw goes back into the backlog without being typed twice. → §RG295
 - 📋 **RG296** (deps: RG289 ✅) **a project row says what is open and nothing about what shipped with nobody looking at it** — The row carries the count the engine already answers, so a machine of twenty backlogs shows at a glance where somebody is owed a walkthrough. → §RG296
 

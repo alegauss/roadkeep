@@ -46,11 +46,12 @@ describe('RG60: what the renderer was given', () => {
     // says when the disk last changed each file a session edited, RG245 the one that reads one
     // of those files, RG251 the one that answers what a verb printed at an earlier launch, and
     // RG252 the one that says whether that answer still stands. RG272 added the one that answers a
-    // question a running session is held on, and RG284 the two that ask what a line means and
-    // give up on the asking.
+    // question a running session is held on, RG284 the two that ask what a line means and
+    // give up on the asking, and RG293 the two that ask how to check a shipped entry.
     expect(methods).toEqual([
       'answerSession',
       'cancelGloss',
+      'cancelWalkthrough',
       'check',
       'chooseRoot',
       'door',
@@ -74,6 +75,7 @@ describe('RG60: what the renderer was given', () => {
       'settings',
       'stopSession',
       'subscribe',
+      'walkthrough',
     ])
   })
 
@@ -221,9 +223,10 @@ describe('RG60: what the renderer was not given', () => {
     // RG245 added the one that reads one of them, nineteen since RG251 added the one that
     // answers what a verb printed at an earlier launch, and twenty since RG252 added the one
     // that says whether it still stands. Twenty-three since RG272 added the one that answers a
-    // running session's question, and twenty-five since RG284 added the two that ask what a
-    // line means and give up on the asking.
-    expect(reachable).toHaveLength(25)
+    // running session's question, twenty-five since RG284 added the two that ask what a
+    // line means and give up on the asking, and twenty-seven since RG293 added the two that
+    // ask how to check a shipped entry.
+    expect(reachable).toHaveLength(27)
     expect(reachable.every((one) => one === 'function')).toBe(true)
   })
 })
