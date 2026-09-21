@@ -5,6 +5,7 @@ import { setTimeout as after } from 'node:timers/promises'
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { INSPECT_PORT } from './launch'
 import { startApp, type RunningApp } from './running-app'
 
 /**
@@ -19,6 +20,8 @@ import { startApp, type RunningApp } from './running-app'
 
 const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
 const CLI = path.join(REPO, 'node_modules', '@playwright', 'mcp', 'cli.js')
+/** The development launcher as `npm run dev:inspect` runs it, already built (RG298). */
+const DEV = path.join(REPO, 'packages', 'shell', 'dist', 'dev.js')
 
 let app: RunningApp
 let server: ChildProcess
@@ -97,4 +100,39 @@ describe('RG212: an agent reads the running window through Playwright MCP', () =
     expect(snapshot).toContain('banner')
     expect(snapshot).toContain('roadkeep')
   }, 40000)
+})
+
+describe('RG298: the first window a development run opens', () => {
+  it('answers on the debugging port with nothing touched, which is what the skill says to do', async () => {
+    // The whole defect, held where it was: the switches were declared below `start()`, so the
+    // first window opened with none of them and only a window the watcher restarted had a
+    // port. Anybody following the skill started `npm run dev:inspect`, reached for Playwright
+    // MCP, and found nothing listening — then edited a file and it worked.
+    const run = spawn(process.execPath, [DEV, '--inspect'], {
+      cwd: REPO,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      windowsHide: true,
+      // Electron started from an editor terminal runs as plain Node without this stripped,
+      // which `spawnElectron` does for the child — this is the launcher's own process.
+      env: { ...process.env, ELECTRON_RUN_AS_NODE: '' },
+    })
+    try {
+      const until = Date.now() + 120000
+      let answered = ''
+      while (Date.now() < until && answered === '') {
+        try {
+          const said = await fetch(`http://127.0.0.1:${String(INSPECT_PORT)}/json/version`)
+          if (said.ok) answered = await said.text()
+        } catch {
+          // Not up yet: Vite has to bind and Electron has to start before anything listens.
+        }
+        if (answered === '') await after(500)
+      }
+
+      // Chromium's own answer, which is the port being open rather than this test's guess.
+      expect(answered, `nothing answered on ${String(INSPECT_PORT)}`).toContain('Browser')
+    } finally {
+      run.kill()
+    }
+  }, 180000)
 })

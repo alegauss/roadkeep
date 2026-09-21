@@ -112,24 +112,6 @@ ready task forever. What can be built without it is the pipeline that would use 
 the about surface saying plainly that this build is unsigned — which is the honest half
 and is worth having on its own.
 
-### §RG298 The switches declared before the first start
-
-`dev.ts` starts the window with `let child = start()` and declares the switches `start`
-passes a few lines later. The bundle turns both into `var`, so the first call reads
-`switches` as `undefined` and Electron opens with no `--remote-debugging-port`. Only a
-window the watcher restarts gets it, which is why touching a source under
-`packages/shell/src` made port 9333 answer when RG297's waiting dialog was looked at.
-
-**Declared before the first start.** The switches move above `start()`, where the
-compiler holding source order is the whole fix.
-
-**Held by the test that already attaches.** `playwright-mcp-live.test.ts` holds that
-Playwright MCP reaches this app; it reaches a restarted window. It gains the case the
-skill actually describes: `npm run dev:inspect`, nothing touched, and the port answers.
-
-Done when a freshly started `npm run dev:inspect` answers on 9333 before any source
-changes.
-
 ### §RG300 Why a kept answer needs a picture of its own
 
 Two dialogs draw an answer somebody asked for, and no picture shows either in the state

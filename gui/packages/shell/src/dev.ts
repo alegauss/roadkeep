@@ -45,14 +45,20 @@ const url: string = bound
 const watching = createWatching(createSourceWatcher(), REAL_CLOCK, REBUILD_QUIET_MS)
 const watched = watching.hold(repoRoot, WATCHED)
 
-let closing = false
-let child: ChildProcess = start()
-
 // RG212: `--inspect` opens the window's debugging port, where Playwright MCP attaches so an
 // agent can drive the running window into a state no fixture reaches and read what it draws.
+//
+// RG298: **declared before the first start**, and the order is the whole of it. `start` is a
+// hoisted declaration and this is not, so a `let child = start()` written above this line read
+// `switches` as undefined and opened the first window with no port at all. Only a window the
+// watcher restarted had one — which is why touching a source made 9333 answer, and why the
+// skill's own instruction did not.
 const switches = process.argv.includes('--inspect')
   ? [`--remote-debugging-port=${String(INSPECT_PORT)}`]
   : []
+
+let closing = false
+let child: ChildProcess = start()
 
 function start(): ChildProcess {
   const started = spawnElectron({ ROADKEEP_GUI_RENDERER_URL: url }, switches)

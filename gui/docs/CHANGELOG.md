@@ -271,6 +271,7 @@
 - ✅ **RG212** **an agent checking a screen improvises its own harness, and nothing says what to look for once it has the pictures** — A screens skill says how to look and what to check, CLAUDE.md gates on npm run shots, and Playwright MCP attaches to dev:inspect (design recorded in `.claude/skills/screens/SKILL.md`).
 - ✅ **RG220** **a screenshot launch that fails before the window draws leaves its Electron process running** — A screenshot launch that fails before drawing ends its whole Electron tree, and close does the same past its ceiling (design recorded in `packages/shell/src/shots-app.ts`).
 - ✅ **RG236** **npm run dev and npm start open a window wearing Electron's atom, though build/icon.svg is the app's mark** — An unpackaged window names build/icon.png, the render of build/icon.svg, so npm run dev and npm start wear roadkeep's mark (design recorded in `packages/shell/src/window-icon.ts`).
+- ✅ **RG298** **npm run dev:inspect opens its first window without the debugging port, so Playwright MCP reaches it only after a restart** — The first window a development run opens carries the debugging port, so Playwright MCP reaches it with nothing touched.
 
 ## Block H — The look (a design system for governed prose)
 
