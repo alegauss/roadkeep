@@ -98,6 +98,7 @@ import { removeTree } from './scratch'
  */
 const SECOND_SHAPES = {
   'show --no-body': '`section.body`: the prose on the ordinary call, null under the flag',
+  'show on a shipped line': '`ref`: the pointer on an open line, null once shipping deleted it',
   'criterion list --task': '`empty` and `doors`, which the block form answers with neither',
   'delivered --near': '`near`: null unranked, and the sentence it ranked against when given',
   'reversals <id>': '`asked`: null over the whole ledger, the id when one was named',
@@ -358,6 +359,25 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect(payload.id).toBe(firstOpen)
     expect(payload.section?.body).not.toBe('')
     expect(payload.section?.words).toBeGreaterThan(0)
+  })
+
+  it('RG302: reads a shipped entry, whose pointer resolves to nothing at all', async () => {
+    // The second shape of this read and the one nothing ever asked for: shipping deletes the
+    // design, so a ledger entry carries no pointer and the engine answers null. Held to a
+    // string, this refused every shipped id — and a screen asking about one got
+    // `ref: expected a string, found null` where the entry should have been.
+    const shipped = listedTasks(await readVerb('list', { role: 'changelog' }))[0]?.id ?? ''
+    expect(shipped, 'the fixture ships one line, so there is an entry to ask about').not.toBe('')
+
+    const payload = await readVerb('show', { id: shipped })
+
+    expect(payload.id).toBe(shipped)
+    expect(payload.shipped).toBe(true)
+    expect(payload.ref).toBeNull()
+    // The sentence the ledger states, which is what a walkthrough is asked about.
+    expect(payload.why).not.toBe('')
+    expect(payload.rendered).toContain(shipped)
+    covers('show on a shipped line')
   })
 
   it('reads a task with its prose left out, which is a different answer', async () => {

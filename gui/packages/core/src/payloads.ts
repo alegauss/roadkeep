@@ -615,7 +615,14 @@ export interface ShowPayload {
   readonly why: string
   readonly deps: readonly string[]
   readonly requires: readonly string[]
-  readonly ref: string
+  /**
+   * The design this line points at, or **null** where it points at none (RG302).
+   *
+   * `TaskLine.ref` reads the same way and for the same reason: shipping deletes the design, so a
+   * ledger entry carries no pointer at all. Held to a string, this read refused every shipped id
+   * — which is where a walkthrough asks for the ledger's own sentence.
+   */
+  readonly ref: string | null
   /** Null for a line whose pointer resolves to nothing, which is a state and not an error. */
   readonly section: RationaleSection | null
   /** What the engine says about that absence, in its own words. */
@@ -635,7 +642,7 @@ export const readShowPayload: Reader<ShowPayload> = record<ShowPayload>(
     why: aString,
     deps: listOf(aString),
     requires: orMissing(listOf(aString), []),
-    ref: aString,
+    ref: orMissing(orNull(aString), null),
     section: orMissing(orNull(readSection), null),
     sectionAbsence: orMissing(aString, ''),
   },
