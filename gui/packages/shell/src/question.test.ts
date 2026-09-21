@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import { GLOSS_TOOLS, isGitRead, permitsGitRead, WALKTHROUGH_TOOLS } from './gloss-process'
+import { askQuestion, isGitRead, permitsGitRead, READ_TOOLS, WALKTHROUGH_TOOLS } from './question'
 
 /**
- * RG291: the one shell call a walkthrough may make.
+ * RG291: the one shell call a walkthrough may make, and RG301's name for the query it makes it in.
  *
  * The bound is here and not in the tool list, and that is the whole of what these hold: a
  * `Bash(git show:*)` entry in `allowedTools` grants the entire shell, which a captured run
@@ -58,7 +58,14 @@ describe('RG291: what a walkthrough may run', () => {
   it('grants no shell in the list a walkthrough is given', () => {
     // The failure this file exists to hold: a `Bash` entry here is a whole shell, whatever
     // specifier follows it.
-    expect(WALKTHROUGH_TOOLS).toEqual(GLOSS_TOOLS)
+    expect(WALKTHROUGH_TOOLS).toEqual(READ_TOOLS)
     expect(WALKTHROUGH_TOOLS.some((tool) => tool.startsWith('Bash'))).toBe(false)
+  })
+
+  it('RG301: is named for the query it runs, not for the first question that used it', () => {
+    // A walkthrough is asked through this module too, so a name saying gloss on the path it
+    // takes is a name about another question. The guard is the import above: this file cannot
+    // compile against `askGloss`, a `GlossCall` or a `GlossRun`, because none exists.
+    expect(typeof askQuestion).toBe('function')
   })
 })

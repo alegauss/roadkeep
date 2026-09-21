@@ -19,7 +19,7 @@ import {
 
 import type { Carrier } from './carrier'
 
-import { askGloss, permitsGitRead, WALKTHROUGH_TOOLS, type GlossRun } from './gloss-process'
+import { askQuestion, permitsGitRead, WALKTHROUGH_TOOLS, type Asking } from './question'
 
 /**
  * How to check a shipped entry, asked of Claude Code and kept (RG291, RG292).
@@ -50,8 +50,8 @@ export interface WalkthroughsOptions {
   readonly environment?: (agent: Agent, root: string) => Promise<NodeJS.ProcessEnv>
   /** The language every string comes back in. Main's, never the renderer's. */
   readonly tag: () => string
-  /** Start the query. `askGloss` unless a test says otherwise. */
-  readonly ask?: typeof askGloss
+  /** Start the query. `askQuestion` unless a test says otherwise. */
+  readonly ask?: typeof askQuestion
   /** What this machine has kept (RG292). Nothing kept unless a caller holds a file. */
   readonly kept?: () => KeptWalkthroughs
   /** Keep what was just answered. Nothing is kept unless a caller writes it somewhere. */
@@ -83,14 +83,14 @@ interface Anchored {
 }
 
 export function createWalkthroughs(options: WalkthroughsOptions): Walkthroughs {
-  const ask = options.ask ?? askGloss
+  const ask = options.ask ?? askQuestion
   const environment = options.environment ?? (() => Promise.resolve(process.env))
   const kept = options.kept ?? (() => NOTHING_WALKED)
   const keep = options.keep ?? (() => undefined)
   const now = options.now ?? (() => new Date())
   const running = new Map<
     string,
-    { readonly run: GlossRun; readonly answer: Promise<WalkthroughAnswer> }
+    { readonly run: Asking; readonly answer: Promise<WalkthroughAnswer> }
   >()
 
   const answer = async (root: string, id: string, again: boolean): Promise<WalkthroughAnswer> => {

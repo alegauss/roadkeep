@@ -10,7 +10,7 @@ import {
 } from '@rk/core'
 import { describe, expect, it } from 'vitest'
 
-import type { GlossCall, GlossRead, GlossRun } from './gloss-process'
+import type { Question, Answered, Asking } from './question'
 import { createWalkthroughs, type Walkthroughs } from './walkthroughs'
 
 /**
@@ -93,12 +93,12 @@ function engine(options: { shipped?: boolean; sha?: string | null } = {}): Trans
 
 /** One query, settled by hand: what was asked, and the answer whenever this test gives one. */
 function asking() {
-  const calls: GlossCall[] = []
-  let settle: (read: GlossRead) => void = () => undefined
-  const ask = (call: GlossCall): GlossRun => {
+  const calls: Question[] = []
+  let settle: (read: Answered) => void = () => undefined
+  const ask = (call: Question): Asking => {
     calls.push(call)
     return {
-      answered: new Promise<GlossRead>((resolve) => {
+      answered: new Promise<Answered>((resolve) => {
         settle = resolve
       }),
       cancel() {
@@ -109,7 +109,7 @@ function asking() {
   return {
     ask,
     calls,
-    say: (read: GlossRead) => {
+    say: (read: Answered) => {
       settle(read)
     },
   }

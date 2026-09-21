@@ -23,7 +23,7 @@ import {
 
 import type { Carrier } from './carrier'
 
-import { askGloss, type GlossCall, type GlossRun } from './gloss-process'
+import { askQuestion, type Question, type Asking } from './question'
 
 /**
  * What a task means, asked of Claude Code and answered once (RG284).
@@ -40,7 +40,8 @@ import { askGloss, type GlossCall, type GlossRun } from './gloss-process'
  * **What it is doing, while it does it** (RG297): each line of the run's stream is passed on as
  * it passes, so a window can draw the run as a session is drawn. Nothing of it is kept.
  *
- * The run itself is `gloss-process`, which is where no-tool, no-server, nothing-kept lives.
+ * The run itself is `question.ts`, which is where no-tool, no-server, nothing-kept lives — and
+ * which a walkthrough is asked through too (RG301), being the same read-only query.
  */
 
 export interface GlossesOptions {
@@ -57,8 +58,8 @@ export interface GlossesOptions {
    * (`localeChoice` over the settings and the desktop), so a page does not send one.
    */
   readonly tag: () => string
-  /** Start the query. `askGloss` unless a test says otherwise. */
-  readonly ask?: (call: GlossCall, env: NodeJS.ProcessEnv) => GlossRun
+  /** Start the query. `askQuestion` unless a test says otherwise. */
+  readonly ask?: (call: Question, env: NodeJS.ProcessEnv) => Asking
   /** What this machine has kept (RG287). Nothing kept unless a caller holds a file. */
   readonly kept?: () => KeptGlosses
   /** Keep what was just answered. Nothing is kept unless a caller writes it somewhere. */
@@ -101,16 +102,13 @@ function briefed(
 }
 
 export function createGlosses(options: GlossesOptions): Glosses {
-  const ask = options.ask ?? askGloss
+  const ask = options.ask ?? askQuestion
   const environment = options.environment ?? (() => Promise.resolve(process.env))
   const kept = options.kept ?? (() => NOTHING_GLOSSED)
   const keep = options.keep ?? (() => undefined)
   const now = options.now ?? (() => new Date())
   /** What is running, by the line it is about: the run to cancel and the answer to share. */
-  const running = new Map<
-    string,
-    { readonly run: GlossRun; readonly answer: Promise<GlossAnswer> }
-  >()
+  const running = new Map<string, { readonly run: Asking; readonly answer: Promise<GlossAnswer> }>()
 
   const answer = async (root: string, id: string, again: boolean): Promise<GlossAnswer> => {
     const reached = await openOver(options.carrier, root)

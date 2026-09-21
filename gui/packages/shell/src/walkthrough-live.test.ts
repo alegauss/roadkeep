@@ -11,7 +11,7 @@ import {
 } from '@rk/core'
 import { afterAll, describe, expect, it } from 'vitest'
 
-import { askGloss, isGitRead, permitsGitRead, WALKTHROUGH_TOOLS } from './gloss-process'
+import { askQuestion, isGitRead, permitsGitRead, WALKTHROUGH_TOOLS } from './question'
 import { read } from './live'
 import { removeTree } from './scratch'
 import { scriptedAgent } from './scripted-agent'
@@ -51,7 +51,7 @@ async function replay(stream: string) {
   const agent = scriptedAgent({ stream, ends: true, intervalMs: 1 })
   const root = where()
   try {
-    const said = await askGloss({
+    const said = await askQuestion({
       command: agent.command[0] ?? '',
       prefix: agent.command.slice(1),
       cwd: root,

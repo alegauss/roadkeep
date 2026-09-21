@@ -14,8 +14,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG301** (deps: —) **a walkthrough is asked through askGloss, so the module that runs every read-only question is named after one of them** — The names are the gloss's and the mechanism is not, so a reader meets GlossCall and GlossRun on a path that has nothing to do with a gloss. → §RG301
-
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49

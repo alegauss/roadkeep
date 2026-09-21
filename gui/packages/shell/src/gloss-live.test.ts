@@ -5,7 +5,7 @@ import path from 'node:path'
 import { actsIn, GLOSS_SCHEMA, hasGloss, lanesOf, readGloss, type BriefPayload } from '@rk/core'
 import { afterAll, describe, expect, it } from 'vitest'
 
-import { askGloss, GLOSS_TOOLS } from './gloss-process'
+import { askQuestion, READ_TOOLS } from './question'
 import { removeTree } from './scratch'
 import { scriptedAgent } from './scripted-agent'
 
@@ -49,7 +49,7 @@ describe('RG284: a gloss run to its end', () => {
     const agent = scriptedAgent({ stream: CAPTURED, ends: true, intervalMs: 1 })
     const root = where()
     try {
-      const said = await askGloss({
+      const said = await askQuestion({
         command: agent.command[0] ?? '',
         prefix: agent.command.slice(1),
         cwd: root,
@@ -76,7 +76,7 @@ describe('RG284: a gloss run to its end', () => {
     const agent = scriptedAgent({ stream: CAPTURED, ends: true, intervalMs: 1 })
     const root = where()
     try {
-      await askGloss({
+      await askQuestion({
         command: agent.command[0] ?? '',
         prefix: agent.command.slice(1),
         cwd: root,
@@ -95,7 +95,7 @@ describe('RG284: a gloss run to its end', () => {
     const agent = scriptedAgent({ stream: CAPTURED, ends: true, intervalMs: 400 })
     const root = where()
     try {
-      const run = askGloss({
+      const run = askQuestion({
         command: agent.command[0] ?? '',
         prefix: agent.command.slice(1),
         cwd: root,
@@ -112,7 +112,7 @@ describe('RG284: a gloss run to its end', () => {
   }, 30000)
 
   it('says the machine has none where nothing answers as Claude Code', async () => {
-    const said = await askGloss({
+    const said = await askQuestion({
       command: path.join(tmpdir(), 'rk-no-claude-here'),
       prefix: [],
       cwd: where(),
@@ -146,7 +146,7 @@ describe('RG288: a run that reads the files the design names', () => {
     const root = where()
     const lines: string[] = []
     try {
-      const said = await askGloss({
+      const said = await askQuestion({
         command: agent.command[0] ?? '',
         prefix: agent.command.slice(1),
         cwd: root,
@@ -177,6 +177,6 @@ describe('RG288: a run that reads the files the design names', () => {
   }, 30000)
 
   it('is given three tools and all of them read', () => {
-    expect(GLOSS_TOOLS).toEqual(['Read', 'Grep', 'Glob'])
+    expect(READ_TOOLS).toEqual(['Read', 'Grep', 'Glob'])
   })
 })

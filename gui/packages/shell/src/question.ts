@@ -13,6 +13,12 @@ import { asRecord } from '@rk/core'
  * One read-only query to Claude Code (RG284): a question about the project, and nothing it may
  * write.
  *
+ * **Named for the mechanism and not for the first question that used it** (RG301). This was
+ * `gloss-process.ts` when a gloss was the only thing asked through it, and a walkthrough arriving
+ * at `askGloss` with a `GlossCall` was a reader meeting a gloss on a path with none in it. A
+ * second module would have duplicated a hundred lines of spawn plumbing under Electron, which is
+ * the drift one call exists to prevent — so the file kept its shape and lost the name.
+ *
  * A session (RG153) is a turn that may write, held open, answered by a person. A question here is
  * none of those — asked once, answered against a schema, nobody to ask — so it is its own call
  * beside `startSession`, sharing what belongs to the machine and not to a session: the `claude`
@@ -33,7 +39,7 @@ import { asRecord } from '@rk/core'
  * the way, so its stream is the only progress there is: each message is handed to the caller as
  * the line it was — `startSession`'s spelling of it — and a screen draws it with a session's rows.
  *
- * **And nothing is kept.** `persistSession: false` keeps a gloss out of the sessions a person
+ * **And nothing is kept.** `persistSession: false` keeps a question out of the sessions a person
  * can resume, which is right for a read nobody named: what comes back is an answer, not a
  * conversation to continue.
  *
@@ -42,22 +48,27 @@ import { asRecord } from '@rk/core'
  * the line is written in. That is the whole reason this runs in the project at all.
  */
 
-/** The settings a gloss loads, which are the session's: the project's own words come from them. */
+/** The settings a question loads, which are the session's: the project's own words come from them. */
 const SETTING_SOURCES: Options['settingSources'] = ['user', 'project', 'local']
 
 /** Claude Code's own system prompt, as a `claude` started by hand runs with. */
 const CLAUDE_CODE_PROMPT: Options['systemPrompt'] = { type: 'preset', preset: 'claude_code' }
 
-/** The tools a gloss is given (RG288). Three, all reads, and the list is the whole permission. */
-export const GLOSS_TOOLS = ['Read', 'Grep', 'Glob']
+/**
+ * What a question may read (RG288). Three, all reads, and the list is the whole permission.
+ *
+ * The default every question runs under, which a gloss takes as it is: a call that names no tools
+ * is a call that reads the project and changes nothing.
+ */
+export const READ_TOOLS = ['Read', 'Grep', 'Glob']
 
 /**
- * The tools a walkthrough is allowed outright (RG291). The gloss's three, and no more.
+ * The tools a walkthrough is allowed outright (RG291). The three reads, and no more.
  *
  * `Bash` is deliberately absent: it is the one a walkthrough needs and the one nothing may have
  * unconditionally, so it is not granted here at all and reaches `permits` instead.
  */
-export const WALKTHROUGH_TOOLS = GLOSS_TOOLS
+export const WALKTHROUGH_TOOLS = READ_TOOLS
 
 /** A chained or redirected command, whatever it starts with. */
 const CHAINED = /[;&|`$<>\n\r]/
@@ -111,9 +122,9 @@ export function permitsGitRead(tool: string, input: Record<string, unknown>): Pe
  * answers nothing at all. Still bounded, because nothing here is a conversation and a run that
  * wanders is a run to stop.
  */
-export const GLOSS_TURNS = 24
+export const QUESTION_TURNS = 24
 
-export interface GlossCall {
+export interface Question {
   /** The executable Claude Code resolved to, and the rest of its command line. */
   readonly command: string
   readonly prefix: readonly string[]
@@ -123,7 +134,7 @@ export interface GlossCall {
   /** The shape the answer is held to: `GLOSS_SCHEMA`'s, or a walkthrough's. */
   readonly schema: Record<string, unknown>
   /**
-   * What this question may read outright. `GLOSS_TOOLS` unless a caller says, which is the list
+   * What this question may read outright. `READ_TOOLS` unless a caller says, which is the list
    * that was a constant here before a second question had a different one.
    */
   readonly tools?: readonly string[]
@@ -144,7 +155,7 @@ export interface GlossCall {
 }
 
 /** What one query came back with. Every way of not answering is its own kind. */
-export type GlossRead =
+export type Answered =
   | {
       readonly kind: 'said'
       /** The `structured_output` the result carried, unread: `readGloss` is `core`'s. */
@@ -158,8 +169,8 @@ export type GlossRead =
   | { readonly kind: 'failed'; readonly said: string }
   | { readonly kind: 'cancelled' }
 
-export interface GlossRun {
-  readonly answered: Promise<GlossRead>
+export interface Asking {
+  readonly answered: Promise<Answered>
   /** Give it up. Answering `cancelled` is what a reader who closed the screen gets. */
   cancel(): void
 }
@@ -213,7 +224,7 @@ function initOf(message: unknown): { readonly model: string; readonly version: s
  *
  * @param env the environment the run is given, as RG205 decided it
  */
-export function askGloss(call: GlossCall, env: NodeJS.ProcessEnv = process.env): GlossRun {
+export function askQuestion(call: Question, env: NodeJS.ProcessEnv = process.env): Asking {
   const abort = new AbortController()
   const standing = {
     cancelled: false,
@@ -246,7 +257,7 @@ export function askGloss(call: GlossCall, env: NodeJS.ProcessEnv = process.env):
     })
     const { stdin, stdout, stderr: errors } = child
     if (stdin === null || stdout === null || errors === null) {
-      throw new Error('the gloss was spawned without the pipes it is read over')
+      throw new Error('the question was spawned without the pipes it is read over')
     }
     stdin.on('error', () => undefined)
     errors.setEncoding('utf8')
@@ -257,7 +268,7 @@ export function askGloss(call: GlossCall, env: NodeJS.ProcessEnv = process.env):
     return Object.assign(child, { stdin, stdout })
   }
 
-  const answered = (async (): Promise<GlossRead> => {
+  const answered = (async (): Promise<Answered> => {
     let named = { model: '', version: '' }
     let structured: unknown
     let said = ''
@@ -275,7 +286,7 @@ export function askGloss(call: GlossCall, env: NodeJS.ProcessEnv = process.env):
           systemPrompt: CLAUDE_CODE_PROMPT,
           outputFormat: { type: 'json_schema', schema: call.schema },
           // Nothing to write with: this question's reads and no more, and no server configured.
-          allowedTools: [...(call.tools ?? GLOSS_TOOLS)],
+          allowedTools: [...(call.tools ?? READ_TOOLS)],
           disallowedTools: [],
           mcpServers: {},
           strictMcpConfig: true,
@@ -287,7 +298,7 @@ export function askGloss(call: GlossCall, env: NodeJS.ProcessEnv = process.env):
             ? {}
             : { hooks: { PreToolUse: [{ hooks: [gate(call.permits)] }] } }),
           persistSession: false,
-          maxTurns: GLOSS_TURNS,
+          maxTurns: QUESTION_TURNS,
         },
       })
       for await (const message of messages) {

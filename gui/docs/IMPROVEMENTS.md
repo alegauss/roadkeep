@@ -58,31 +58,6 @@ catalogue in both languages.
 Done when a test moves `handed` through the menu, resets from the palette, and sees the
 default drawn and written.
 
-### §RG301 The module that outgrew the question it was named for
-
-`gloss-process.ts` was one question asked of Claude Code and everything in it was named
-after that question. RG291 added a second — a walkthrough over a shipped commit — and it
-is asked through `askGloss`, with a `GlossCall`, answering a `GlossRead` over a
-`GlossRun`. Nothing about the mechanism is a gloss: it is one read-only query, a schema,
-a tool list and a gate.
-
-**The file is right and the words are wrong.** A second module would duplicate a hundred
-lines of spawn plumbing under Electron — the pipes, the `error` that means no `claude`,
-the abort a cancel turns into — which is the drift the one call exists to prevent. So
-this is a rename and not a split: the module keeps its shape and loses the name of the
-first question that used it.
-
-**What it becomes is the open half.** `askQuestion` over a `Question` is one reading;
-`ask` beside the existing `askGloss` is another, keeping the gloss's own door. Whatever
-it is, `GLOSS_TOOLS` and `GLOSS_TURNS` go with it, `gloss-live.test.ts` and
-`walkthrough-live.test.ts` both call it, and `glosses.ts` holds the one option typed as
-`GlossCall`. `ReadOutcome` is taken in `core`, so a `ReadCall` here would be a second
-meaning of one word a package over.
-
-Done when no name on the path a walkthrough takes says gloss, both live files and
-`glosses.ts` call it by that name, and the gloss's own module still reads as the one
-question it is.
-
 ## Block G — The shell (an executable now, a service later)
 
 ### §RG49 The signature, and what it needs that code cannot supply

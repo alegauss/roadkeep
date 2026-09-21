@@ -11,7 +11,7 @@ import {
 } from '@rk/core'
 import { describe, expect, it } from 'vitest'
 
-import type { GlossCall, GlossRead, GlossRun } from './gloss-process'
+import type { Question, Answered, Asking } from './question'
 import { createGlosses, type Glosses } from './glosses'
 
 /**
@@ -90,13 +90,13 @@ function engine(why = LINE.why): Transport {
 
 /** One query, settled by hand: what was asked, and the answer whenever this test gives one. */
 function asking() {
-  const calls: GlossCall[] = []
+  const calls: Question[] = []
   let cancels = 0
-  let settle: (read: GlossRead) => void = () => undefined
-  const ask = (call: GlossCall): GlossRun => {
+  let settle: (read: Answered) => void = () => undefined
+  const ask = (call: Question): Asking => {
     calls.push(call)
     return {
-      answered: new Promise<GlossRead>((resolve) => {
+      answered: new Promise<Answered>((resolve) => {
         settle = resolve
       }),
       cancel() {
@@ -108,7 +108,7 @@ function asking() {
   return {
     ask,
     calls,
-    say: (read: GlossRead) => {
+    say: (read: Answered) => {
       settle(read)
     },
     get cancels() {
