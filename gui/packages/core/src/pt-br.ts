@@ -173,6 +173,10 @@ export const PT_BR: Wording = {
   'project.validation.rewrote': 'Substituiu o veredito que esta entrada já tinha.',
   'project.validation.refused': 'O engine não aceitou: {said}',
   'project.validation.unwritable': 'O veredito não rodou: {reason}',
+  'project.validation.files': 'Registrar também como uma linha, na mesma chamada',
+  'project.validation.filed': 'Registrada {id}: {symptom}',
+  'project.validation.filed.open': 'Abrir {id}',
+  'project.validation.filed.owes': 'Ela ainda deve um design.',
 
   'task.opening': 'Abrindo a linha.',
   'task.refused': 'Esta linha não abriu: {reason}',

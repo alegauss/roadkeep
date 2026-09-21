@@ -195,6 +195,11 @@ export const EN = {
   'project.validation.rewrote': 'It replaced the verdict this entry already carried.',
   'project.validation.refused': 'The engine did not take it: {said}',
   'project.validation.unwritable': 'The verdict did not run: {reason}',
+  // The line a failure files in the same call (RG295): one call writes both or neither.
+  'project.validation.files': 'File this as a line too, in the same call',
+  'project.validation.filed': 'Filed {id}: {symptom}',
+  'project.validation.filed.open': 'Open {id}',
+  'project.validation.filed.owes': 'It still owes a design.',
 
   'task.opening': 'Opening the line.',
   'task.refused': 'This line did not open: {reason}',

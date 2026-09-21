@@ -214,6 +214,7 @@ function answer(argv: readonly string[]): string | undefined {
           about: '',
           said: 'roadkeep: refused, nothing written: saw too long',
         })
+      const symptom = argv.includes('--files') ? (argv[argv.indexOf('--files') + 1] ?? '') : ''
       return JSON.stringify({
         id,
         file: 'docs/CHANGELOG.md',
@@ -222,8 +223,19 @@ function answer(argv: readonly string[]): string | undefined {
         rendered: `  validated **${argv[4] ?? ''}** ${sentence}`,
         replaced: verdictReplaces ? 'worked' : null,
         changed: true,
-        filed: null,
-        wrote: ['docs/CHANGELOG.md'],
+        // The line the same call filed, where `--files` carried one (RG295).
+        filed:
+          symptom === ''
+            ? null
+            : {
+                id: 'AL7',
+                block: 'B',
+                line: 4,
+                rendered: `- 📋 **AL7** (deps: —) **${symptom}** — ${sentence} → §AL7`,
+                needs: 'AL7',
+                doors: [{ argv: ['section', 'add', 'AL7', '--title', '…'], what: 'the design' }],
+              },
+        wrote: symptom === '' ? ['docs/CHANGELOG.md'] : ['docs/CHANGELOG.md', 'docs/ROADMAP.md'],
       })
     }
     case 'unvalidated':
@@ -1023,16 +1035,120 @@ describe('RG294: saying what happened, under the steps', () => {
     expect(dialogTextarea(dialog).value).toBe('')
   })
 
-  it('asks the list again once a verdict lands, since the list is a query', async () => {
+  it('asks the list again once the sheet closes on a verdict, since the list is a query', async () => {
     const { dialog, ran } = await openForm()
     const before = ran.filter((argv) => argv.includes('unvalidated')).length
 
     fireEvent.click(dialog.getByText(BASE['project.validation.verdict.worked']))
     fireEvent.change(dialog.getByTestId('verdict-saw'), { target: { value: 'It worked.' } })
     fireEvent.click(dialog.getByTestId('verdict-send'))
+    await dialog.findByTestId('verdict-wrote')
 
+    // Not the moment it landed: the row leaves the list, and what the write answered would
+    // leave with it before anybody read it.
+    expect(ran.filter((argv) => argv.includes('unvalidated')).length).toBe(before)
+
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' })
     await waitFor(() => {
       expect(ran.filter((argv) => argv.includes('unvalidated')).length).toBeGreaterThan(before)
     })
+  })
+})
+
+describe('RG295: the defect a failure found', () => {
+  const WALKED = {
+    kind: 'said' as const,
+    walkthrough: {
+      before: [],
+      steps: [{ does: 'open the entry', sees: 'the steps are drawn' }],
+      where: [],
+      nothingToSee: '',
+    },
+    model: 'claude-opus-5',
+    version: '2.1.278',
+    kept: true,
+    stale: false,
+    commit: '216066b89561b6e9c68f9bab67fe9ffe9ae014a9',
+  }
+
+  async function openForm() {
+    const { ran } = await atProject({
+      unvalidated: 'awaiting',
+      walkthrough: () => Promise.resolve(WALKED),
+    })
+    fireEvent.click(await screen.findByTestId('validation-tab'))
+    const rows = await screen.findAllByTestId('unvalidated')
+    fireEvent.click(within(rows[0] as HTMLElement).getByTestId('check'))
+    const dialog = within(await screen.findByTestId('check-dialog'))
+    await dialog.findByTestId('verdict-form')
+    return { dialog, ran }
+  }
+
+  it('offers to file the defect only under the verdict whose flag it is', async () => {
+    const { dialog } = await openForm()
+
+    // Nothing chosen, and under a verdict the flag is refused beside: no offer at all.
+    expect(dialog.queryByTestId('verdict-files')).toBeNull()
+    fireEvent.click(dialog.getByText(BASE['project.validation.verdict.worked']))
+    expect(dialog.queryByTestId('verdict-files')).toBeNull()
+
+    fireEvent.click(dialog.getByText(BASE['project.validation.verdict.failed']))
+    expect(dialog.getByTestId('verdict-files')).toBeTruthy()
+  })
+
+  it('sends the sentence as the symptom, in the call that writes the verdict', async () => {
+    const { dialog, ran } = await openForm()
+
+    fireEvent.click(dialog.getByText(BASE['project.validation.verdict.failed']))
+    fireEvent.click(dialog.getByTestId('verdict-files'))
+    fireEvent.change(dialog.getByTestId('verdict-saw'), {
+      target: { value: 'The listing is empty where a line has shipped.' },
+    })
+    fireEvent.click(dialog.getByTestId('verdict-send'))
+
+    await waitFor(() => {
+      expect(ran.some((argv) => argv.includes('validate'))).toBe(true)
+    })
+    await waitFor(() => {
+      expect(dialog.queryByTestId('verdict-filed')).toBeTruthy()
+    })
+    // One call and not two: the engine writes both or neither, so nothing here simulates it.
+    const sent = ran.filter((argv) => argv.includes('validate'))
+    expect(sent).toHaveLength(1)
+    const argv = sent[0] ?? []
+    expect(argv).toContain('--files')
+    // The person's own sentence, unedited — it is both the symptom and the why the verb writes.
+    expect(argv[argv.indexOf('--files') + 1]).toBe('The listing is empty where a line has shipped.')
+  })
+
+  it('draws the line the call filed, and the way to it', async () => {
+    const { dialog } = await openForm()
+
+    fireEvent.click(dialog.getByText(BASE['project.validation.verdict.failed']))
+    fireEvent.click(dialog.getByTestId('verdict-files'))
+    fireEvent.change(dialog.getByTestId('verdict-saw'), { target: { value: 'It did not work.' } })
+    fireEvent.click(dialog.getByTestId('verdict-send'))
+
+    const shown = await dialog.findByTestId('verdict-filed')
+    // The line as the engine rendered it, never a sentence this app composed about it.
+    expect(shown.textContent).toContain('AL7')
+    expect(shown.textContent).toContain('It did not work.')
+    // Filing is offered afterwards to amend the line, never before to compose it.
+    expect(within(shown).getByTestId('verdict-filed-open').getAttribute('href')).toContain('AL7')
+    expect(shown.textContent).toContain(BASE['project.validation.filed.owes'])
+  })
+
+  it('records the verdict alone where the offer is not taken', async () => {
+    const { dialog, ran } = await openForm()
+
+    fireEvent.click(dialog.getByText(BASE['project.validation.verdict.failed']))
+    fireEvent.change(dialog.getByTestId('verdict-saw'), { target: { value: 'It did not work.' } })
+    fireEvent.click(dialog.getByTestId('verdict-send'))
+
+    await waitFor(() => {
+      expect(dialog.queryByTestId('verdict-wrote')).toBeTruthy()
+    })
+    expect(ran.find((argv) => argv.includes('validate'))).not.toContain('--files')
+    expect(dialog.queryByTestId('verdict-filed')).toBeNull()
   })
 })

@@ -43,8 +43,13 @@ export type Verdict =
 
 export interface Verdicting {
   readonly verdict: Verdict
-  /** Send one, which is the whole of what this hook does. */
-  readonly send: (word: string, saw: string) => void
+  /**
+   * Send one, which is the whole of what this hook does.
+   *
+   * @param files the symptom of the line a failure files in the same call (RG295). Absent
+   *   files nothing, which is every verdict but one and every build too old for the flag.
+   */
+  readonly send: (word: string, saw: string, files?: string) => void
   /** Forget what the last send answered, so reopening the form starts clean. */
   readonly forget: () => void
 }
@@ -53,11 +58,18 @@ export function useVerdict(root: string, id: string): Verdicting {
   const [verdict, setVerdict] = useState<Verdict>({ kind: 'none' })
 
   const send = useCallback(
-    (word: string, saw: string) => {
+    (word: string, saw: string, files?: string) => {
       const bridge = getBridge()
       if (bridge === undefined || word === '' || saw.trim() === '') return
       setVerdict({ kind: 'sending' })
-      const composed = composeWrite(root, 'validate', { id, verdict: word, saw })
+      // One call writes the verdict and the line, or neither: the engine's transaction, which
+      // is why nothing here sends a second write and calls the pair atomic (RG295).
+      const composed = composeWrite(root, 'validate', {
+        id,
+        verdict: word,
+        saw,
+        ...(files === undefined || files.trim() === '' ? {} : { files }),
+      })
       ran(bridge.run(root, { argv: composed.argv }), setVerdict)
     },
     [root, id],

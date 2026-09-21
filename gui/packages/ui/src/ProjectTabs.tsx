@@ -405,6 +405,12 @@ export function ValidationTab({ project }: { readonly project: OpenProject }) {
       capabilities.kind === 'known' ? (capabilities.byVerb.validate.choices['verdict'] ?? []) : [],
     [capabilities],
   )
+  // Whether a failure may file its defect in the same call (RG295): the flag this app would
+  // send, held against what this build accepts, which is what `missingFlags` already answers.
+  const files =
+    capabilities.kind === 'known' &&
+    capabilities.byVerb.validate.callable &&
+    !capabilities.byVerb.validate.missingFlags.includes('--files')
   if (listed === null || 'failed' in listed)
     return <Waiting answer={listed} empty="project.validation.none" />
 
@@ -447,7 +453,13 @@ export function ValidationTab({ project }: { readonly project: OpenProject }) {
               )}
             </div>
             <div className="flex items-start max-sm:justify-start">
-              <Checking root={project.root} id={row.id} choices={choices} onWrote={wrote} />
+              <Checking
+                root={project.root}
+                id={row.id}
+                choices={choices}
+                files={files}
+                onWrote={wrote}
+              />
             </div>
           </li>
         ))}

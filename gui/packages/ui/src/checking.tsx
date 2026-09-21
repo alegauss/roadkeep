@@ -24,6 +24,9 @@ import {
   type ReactNode,
 } from 'react'
 
+import { Link } from 'react-router-dom'
+
+import { taskPath } from './areas'
 import { getBridge } from './bridge'
 import { useVerdict } from './useVerdict'
 import { useWording } from './wording'
@@ -58,6 +61,15 @@ const CLOSED: Checking = { kind: 'closed' }
  * which is the right answer to *I do not know which of your verdicts this is*.
  */
 const NOTHING_VERDICT = 'nothing to see'
+
+/**
+ * The verdict that files a defect, as the engine spells it (RG295).
+ *
+ * `--files` is the failing verdict's flag and the engine refuses it beside any other, so the
+ * offer belongs to one word. Matched against the published set for `NOTHING_VERDICT`'s reason:
+ * an engine spelling failure otherwise offers nothing rather than a checkbox its verb refuses.
+ */
+const FAILED_VERDICT = 'failed'
 
 /** Why there is no walkthrough, in this app's words for what the far side answered. */
 function saidOfAnswer(answer: WalkthroughAnswer, say: Translate): string {
@@ -243,12 +255,15 @@ function Saying({
   root,
   id,
   choices,
+  files,
   suggested,
   onWrote,
 }: {
   readonly root: string
   readonly id: string
   readonly choices: readonly string[]
+  /** Whether this engine takes the flag that files a defect in the same call (RG295). */
+  readonly files: boolean
   /** The verdict the walkthrough proposes, and the sentence it proposes with it. */
   readonly suggested: { readonly word: string; readonly saw: string } | null
   readonly onWrote: () => void
@@ -257,7 +272,10 @@ function Saying({
   const { verdict, send } = useVerdict(root, id)
   const [chosen, setChosen] = useState(suggested?.word ?? '')
   const [saw, setSaw] = useState(suggested?.saw ?? '')
+  const [filing, setFiling] = useState(false)
   const wrote = verdict.kind === 'wrote'
+  // The offer belongs to the failing verdict and to an engine that takes the flag (RG295).
+  const offered = files && chosen === FAILED_VERDICT && choices.includes(FAILED_VERDICT)
 
   useEffect(() => {
     if (wrote) onWrote()
@@ -266,12 +284,17 @@ function Saying({
   const submit = useCallback(
     (event: FormEvent) => {
       event.preventDefault()
-      send(chosen, saw)
+      // The sentence itself, unedited: somebody who says it did not work has written the
+      // symptom of a task, and a form standing in front of it is a form that stops them.
+      send(chosen, saw, offered && filing ? saw : undefined)
     },
-    [send, chosen, saw],
+    [send, chosen, saw, offered, filing],
   )
   const type = useCallback((event: ChangeEvent<HTMLTextAreaElement>) => {
     setSaw(event.target.value)
+  }, [])
+  const toggle = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setFiling(event.target.checked)
   }, [])
 
   if (choices.length === 0) return null
@@ -290,6 +313,28 @@ function Saying({
           <p className="text-muted-foreground mt-1" data-testid="verdict-replaced">
             {say('project.validation.rewrote')}
           </p>
+        )}
+        {/* The line the same call filed (RG295), drawn as the engine rendered it — and the way
+            to it, since `Filing` is offered afterwards to amend the line and never before. */}
+        {verdict.written.filed === null ? null : (
+          <div className="mt-2" data-testid="verdict-filed">
+            <p>
+              {say('project.validation.filed', {
+                id: verdict.written.filed.id,
+                symptom: verdict.written.filed.rendered,
+              })}
+            </p>
+            {verdict.written.filed.needs === '' ? null : (
+              <p className="text-muted-foreground mt-1">{say('project.validation.filed.owes')}</p>
+            )}
+            <Link
+              to={taskPath(root, verdict.written.filed.id)}
+              className="text-primary mt-1 inline-block font-medium"
+              data-testid="verdict-filed-open"
+            >
+              {say('project.validation.filed.open', { id: verdict.written.filed.id })}
+            </Link>
+          </div>
         )}
       </div>
     )
@@ -314,6 +359,14 @@ function Saying({
           className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
         />
       </label>
+      {/* Only under the failing verdict, and only where this engine takes the flag: an offer
+          the verb would refuse is an offer withheld, never one drawn and then apologised for. */}
+      {offered ? (
+        <label className="mt-3 flex items-start gap-2 text-sm" data-testid="verdict-files">
+          <input type="checkbox" checked={filing} onChange={toggle} className="mt-0.5" />
+          <span>{say('project.validation.files')}</span>
+        </label>
+      ) : null}
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <Button
           type="submit"
@@ -378,18 +431,30 @@ export function Checking({
   root,
   id,
   choices,
+  files,
   onWrote,
 }: {
   readonly root: string
   readonly id: string
   /** The verdicts this engine publishes (RG294). Empty offers no form at all. */
   readonly choices: readonly string[]
+  /** Whether this engine takes the flag that files a defect in the same call (RG295). */
+  readonly files: boolean
   /** A verdict landed, so the list this row is in is a query whose answer has moved. */
   readonly onWrote: () => void
 }) {
   const say = useWording()
   const [checking, setChecking] = useState<Checking>(CLOSED)
   const onScreen = useRef(true)
+  /**
+   * Whether a verdict landed while this was open, told to the list when the dialog closes.
+   *
+   * **Not the moment it lands**, which is the arrangement this had first: the row leaves the
+   * list, and the dialog reporting the verdict goes with it — so what the write answered, and
+   * the line it filed (RG295), are drawn for as long as the read takes and no longer. The row
+   * leaves when the reader is done with it, which is when they close what they were reading.
+   */
+  const landed = useRef(false)
 
   useEffect(() => {
     onScreen.current = true
@@ -431,6 +496,10 @@ export function Checking({
     ask(true)
   }, [ask])
 
+  const wrote = useCallback(() => {
+    landed.current = true
+  }, [])
+
   const close = useCallback(
     (showing: boolean) => {
       if (showing) return
@@ -438,8 +507,12 @@ export function Checking({
       getBridge()
         ?.cancelWalkthrough(root, id)
         .catch(() => undefined)
+      if (landed.current) {
+        landed.current = false
+        onWrote()
+      }
     },
-    [root, id],
+    [root, id, onWrote],
   )
   const stop = useCallback(() => {
     close(false)
@@ -492,8 +565,9 @@ export function Checking({
                 root={root}
                 id={id}
                 choices={choices}
+                files={files}
                 suggested={suggestedBy(said, choices)}
-                onWrote={onWrote}
+                onWrote={wrote}
               />
             )}
           </div>

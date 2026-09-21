@@ -187,27 +187,6 @@ which is why it is written down here rather than made quietly.
 
 ## Block I — Validation (the list a person works through)
 
-### §RG295 The defect a failure found
-
-Somebody who says *it did not work* has just written the symptom of a task. Sending them
-to the filing form to type it again is how the finding gets lost: they are
-mid-procedure, not mid-backlog, and the sentence they already wrote is the one worth
-keeping.
-
-**One call files both.** The engine writes the verdict and the open line in a single
-transaction, so this app passes the sentence it already holds and composes nothing — no
-second call, no window where the verdict landed and the line did not. Where the
-project's engine is older than the flag, `capabilities` withholds the offer and the
-verdict is recorded alone; the app never simulates a transaction with two writes.
-
-**The symptom is the person's, unedited.** `Filing` is offered afterwards to amend the
-line, never before to compose it: a form standing in front of the sentence is a form
-that stops somebody reporting.
-
-Done when a failed verdict leaves both the verdict and a new open line under the same
-block in a fixture, and a project whose engine lacks the flag leaves only the verdict,
-with the offer absent rather than refused.
-
 ### §RG296 Where somebody is owed a walkthrough
 
 The portfolio is why this app exists: twenty backlogs, one view. A row says what is open
