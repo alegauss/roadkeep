@@ -14,7 +14,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG299** (deps: RG288 ✅) **an explanation nests a paragraph inside a paragraph, which React reports as invalid HTML on every answer** — Prose draws its own block of paragraphs, and three shapes wrap it in a paragraph where a block belongs. → §RG299
 - 📋 **RG301** (deps: —) **a walkthrough is asked through askGloss, so the module that runs every read-only question is named after one of them** — The names are the gloss's and the mechanism is not, so a reader meets GlossCall and GlossRun on a path that has nothing to do with a gloss. → §RG301
 
 ## Block G — The shell (an executable now, a service later)

@@ -204,6 +204,7 @@
 - ✅ **RG288** **an explanation answers from the brief alone, so it cannot say where in the code the work lands or what it will touch** — A gloss reads the files its design names and says where the work lands, a lane per folder (design recorded in `packages/shell/src/gloss-process.ts`).
 - ✅ **RG297** **an explanation being written shows only the last files read, so a slow run cannot be told from a stuck one** — The waiting explanation draws the run's own stream with the session's rows, beside a clock of how long it has been asked (design recorded in `packages/ui/src/stream.tsx`).
 - ✅ **RG290** **a gloss kept before an answer grew a slot says nothing under it, and reads as current** — A gloss written under an earlier shape reads as old under its own sentence, apart from one whose line moved (design recorded in `packages/core/src/glosses.ts`).
+- ✅ **RG299** **an explanation nests a paragraph inside a paragraph, which React reports as invalid HTML on every answer** — The explanation wraps prose in a block wherever it draws it, so no paragraph holds one and React reports no invalid nesting.
 
 ## Block G — The shell (an executable now, a service later)
 

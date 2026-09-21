@@ -58,24 +58,6 @@ catalogue in both languages.
 Done when a test moves `handed` through the menu, resets from the palette, and sees the
 default drawn and written.
 
-### §RG299 A block around Prose, not a paragraph
-
-`Prose` draws a `div` holding one `p` per paragraph. `explained.tsx` puts it inside a
-`p` in three places — the headline, each place under where the work lands, each
-non-goal's account — so the page holds a `div` and a `p` inside a `p`. React reports
-both as invalid HTML on every answer drawn, and a browser may close the outer paragraph
-early.
-
-**A block around a block.** The three wrappers become `div`s with the same classes: the
-wrapper carries the size and the colour, and `Prose` carries the paragraphs.
-
-**Caught where it can be.** jsdom builds the tree as React wrote it and says nothing, so
-the explanation's tests gain an assertion that no `p` in the dialog holds a `p` or a
-`div`.
-
-Done when that assertion holds for a gloss filling every slot, and the running window
-logs no nesting error when an answer is drawn.
-
 ### §RG301 The module that outgrew the question it was named for
 
 `gloss-process.ts` was one question asked of Claude Code and everything in it was named

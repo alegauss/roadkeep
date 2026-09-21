@@ -560,6 +560,24 @@ describe('RG285: what a task means, for somebody new', () => {
     expect(said.getByText('AL0')).toBeTruthy()
   })
 
+  it('RG299: puts no block inside a paragraph, which is invalid HTML on every answer', async () => {
+    // jsdom builds the tree as React wrote it and says nothing about nesting, so the tree is
+    // what this reads. A `Prose` inside a `p` is a `div` and a `p` inside a `p`: React reports
+    // both on every answer drawn, and a browser may close the outer paragraph early.
+    const dialog = await explaining({ gloss: () => Promise.resolve(SAID) })
+    const said = await dialog.findByTestId('explain-said')
+
+    const nested = [...said.querySelectorAll('p')].filter(
+      (paragraph) => paragraph.querySelector('p, div') !== null,
+    )
+    expect(
+      nested.map((paragraph) => paragraph.outerHTML.slice(0, 120)),
+      'a paragraph holds a block, which is what React reports as invalid nesting',
+    ).toEqual([])
+    // And the prose is still drawn, so this is not a tree that lost what it was wrapping.
+    expect(said.querySelectorAll('[data-testid="prose"]').length).toBeGreaterThan(0)
+  })
+
   it('names who wrote it, in which language and from which line', async () => {
     const dialog = await explaining({ gloss: () => Promise.resolve(SAID) })
 

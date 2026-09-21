@@ -238,9 +238,9 @@ function Where({ gloss }: { readonly gloss: Gloss }) {
                   data-testid="explain-place"
                 >
                   <p className="font-mono text-xs wrap-anywhere">{place.path}</p>
-                  <p className="text-muted-foreground mt-1 text-sm">
+                  <div className="text-muted-foreground mt-1 text-sm">
                     <Prose text={place.said} />
-                  </p>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -322,9 +322,9 @@ function Binds({ payload, gloss }: { readonly payload: BriefPayload; readonly gl
         {bound.map((lead) => (
           <div key={lead} className="bg-card rounded-lg border p-3">
             <p className="text-xs font-semibold wrap-anywhere">{lead}</p>
-            <p className="text-muted-foreground mt-1 text-sm">
+            <div className="text-muted-foreground mt-1 text-sm">
               <Prose text={gloss.binds[lead] ?? ''} />
-            </p>
+            </div>
           </div>
         ))}
       </div>
@@ -343,9 +343,9 @@ export function Explained({
   return (
     <div data-testid="explain-said">
       {gloss.headline === '' ? null : (
-        <p className="text-lg font-semibold wrap-anywhere">
+        <div className="text-lg font-semibold wrap-anywhere">
           <Prose text={gloss.headline} />
-        </p>
+        </div>
       )}
       <BeforeAfter gloss={gloss} />
       <Chain payload={payload} gloss={gloss} />
