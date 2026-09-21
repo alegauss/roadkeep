@@ -33,12 +33,15 @@ Five decisions, each because the opposite breaks a session rather than a rule:
   matched at all, on the argument that parsing shell to catch one `sed -i` is a tax on every
   command — but the refusal above says *roadkeep owns its writes*, and an agent told that will
   believe it, so silence there was the barrier claiming a side it did not hold. Nothing parses
-  shell: the one decidable question is whether a path this project declares appears in the
-  command at all, and where it does, what the command *does* to it is the harness's user to
-  answer. `deny` would refuse `git add docs/ROADMAP.md` and every `git log --` of a governed
+  shell to find the path: the one decidable question is whether a path this project declares
+  appears in the command at all, and where it does, what the command *does* to it is the
+  harness's user to answer. `deny` would refuse `git add docs/ROADMAP.md` and every `git log --` of a governed
   file; `allow` is not this hook's to give. So the third answer is the honest one, and the
   `Stop` hook still runs `lint` behind it — and, since RK175, :func:`attested`, because a
-  `sed` the user approves leaves a *conforming* line `lint` has no quarrel with.
+  `sed` the user approves leaves a *conforming* line `lint` has no quarrel with. **One reading
+  of the command is made** (RK1689): where every simple command naming the file is git
+  reading or staging it, the answer is known, and asking it once per commit was a prompt
+  no allow rule could pre-empt — so that is silence, and :func:`_staged_or_read` says which.
 * **The decision travels in the payload, never in the exit code.** The harness reads a
   non-zero exit as *the hook itself failed*, so this is the one command in the package that
   always exits 0 (see :func:`roadkeep.cli._guard`) and says everything in its output.
@@ -109,6 +112,22 @@ WRITE_TOOLS = ("Edit", "MultiEdit", "NotebookEdit", "Write")
 #: harness never resolves into a path, so the only thing knowable without parsing shell is
 #: whether a governed path is *mentioned* — which is why these are asked about, not denied.
 ASK_TOOLS = ("Bash",)
+
+#: The git subcommands that never write a working-tree file, whatever path they are handed
+#: (RK1689): each one reads the file, or copies it into the index and the object store.
+#: `checkout`, `restore`, `stash`, `mv`, `rm`, `apply` and `merge` are absent because every
+#: one of them does write one, and `grep` because `-O` runs a program of the caller's choosing.
+_GIT_LEAVES = frozenset({"add", "blame", "commit", "diff", "log", "ls-files", "show", "status"})
+
+#: What may stand between `git` and that subcommand. `-C` takes the next word; `-c`, the
+#: `--git-dir` family and every other option are absent, because a `-c core.pager=…` is a
+#: program run on the file this was about to wave through.
+_GIT_PREFIX = frozenset({"--no-pager", "-P"})
+
+#: The characters a shell reads as operators (RK1689), the newline among them: a command
+#: ends there, and a lexer that took it for whitespace would read the `sed` on the next
+#: line as one more argument to the `git add` above it.
+_OPERATORS = "();<>|&\n"
 
 #: Both, in the order the plugin's `PreToolUse` matcher lists them. Kept as one name because
 #: the matcher and this module have to agree or the hook never sees the payload it decides.
@@ -298,8 +317,8 @@ class Refusal:
 
         Derived from the tool and not stated, so the two cannot disagree (RK128). A tool that
         *names* the file it writes is certain, and the command table below is then the cheaper
-        path forward. A shell command only mentions the path — `sed -i` and `git log --` are
-        one payload shape — so the answer belongs to whoever owns the repository, which is the
+        path forward. A shell command only mentions the path — `sed -i` and `cat` are one
+        payload shape — so the answer belongs to whoever owns the repository, which is the
         one response that is neither a lie about the boundary nor a hole in it.
         """
         return "ask" if self.tool in ASK_TOOLS else "deny"
@@ -847,6 +866,10 @@ def _mentioned(raw: object, base: Path, tool: str) -> Refusal | None:
     Nothing is allowlisted, because nothing needs to be: roadkeep's own commands address a
     task by **id and role**, never by path, so the verbs this refusal recommends do not
     trip it — which is a fact `tests/test_guarding.py` holds rather than a hope.
+
+    **Except what a commit is made of** (RK1689). The substring still decides whether there is
+    a question; :func:`_staged_or_read` decides only whether its answer is already known, and
+    is asked after the match, so the lexer is paid for by the few commands that name a file.
     """
     if not isinstance(raw, Mapping):
         return None
@@ -860,19 +883,126 @@ def _mentioned(raw: object, base: Path, tool: str) -> Refusal | None:
     if config.source is None:
         return None
     spelled = _comparable_text(command)
+    # Both spellings, because a command may name the file either way and the substring is
+    # the whole test: `./docs/ROADMAP.md` and a quoted absolute path both contain one.
+    spellings = {
+        role: tuple(
+            _comparable_text(form) for form in (config.relative(declared), str(declared))
+        )
+        for role, declared in config.paths.items()
+    }
     for role, declared in config.paths.items():
-        relative = config.relative(declared)
-        # Both spellings, because a command may name the file either way and the substring is
-        # the whole test: `./docs/ROADMAP.md` and a quoted absolute path both contain one.
-        if any(_comparable_text(form) in spelled for form in (relative, str(declared))):
+        if any(form in spelled for form in spellings[role]):
+            # Every role's spellings and not this one's: a `sed` on the changelog chained
+            # behind a `git add` of the roadmap is still a `sed` on a governed file.
+            if _staged_or_read(command, [form for forms in spellings.values() for form in forms]):
+                return None
             return Refusal(
                 tool=tool,
-                path=relative,
+                path=config.relative(declared),
                 role=role,
                 exists=declared.is_file(),
                 served=served_by(config.root),
             )
     return None
+
+
+def _staged_or_read(command: str, spellings: list[str]) -> bool:
+    """Whether every simple command naming a governed path is git leaving the file as it is.
+
+    RK1689. A per-task commit stages what `ship` wrote **by path**, so every commit in a
+    governed project named the roadmap and was asked about — a question whose answer is
+    known, raised once per task, and the one prompt a user's allow rules cannot pre-empt,
+    because a hook's `ask` outranks them.
+
+    So this is a reading of the command, which RK128 declined to make, and it is narrow in the
+    one direction that matters: it can turn an `ask` into silence only for a command it reads
+    whole, and never into a `deny`. Anything it cannot read keeps the question —
+
+    * a backtick, a `$(…)`, a heredoc or a process substitution, whose text is not the
+      command that runs;
+    * an operator written as data, `';'` or `\\;`, which the lexer hands back spelled exactly
+      like the operator itself;
+    * a line that will not lex, and a governed path that survives in the raw text but in no
+      lexed command, which is a spelling this reading lost rather than one it cleared.
+
+    Each command that names a governed path must then be `git`, with nothing before it and
+    only :data:`_GIT_PREFIX` or `-C <dir>` before one of :data:`_GIT_LEAVES`, with no
+    `--output` and no redirection onto a governed path. An environment prefix, `-c` and every
+    unlisted subcommand keep the question. The `Stop` hook still runs `lint` and
+    :func:`attested` over whatever the commit carries: this only stops asking the user about
+    the staging.
+    """
+    import re
+    import shlex
+
+    if "`" in command or "$(" in command:
+        return False
+    if re.search(r"\\[();<>|&\n]|(['\"])[();<>|&\n]+\1", command):
+        return False
+    lexer = shlex.shlex(command, posix=True, punctuation_chars=_OPERATORS)
+    lexer.whitespace = " \t\r"  # a newline is an operator here, per `_OPERATORS`
+    lexer.commenters = ""  # a `#` read as a word keeps what follows it in a command
+    lexer.whitespace_split = True
+    try:
+        tokens = list(lexer)
+    except ValueError:
+        return False
+    commands: list[tuple[list[str], list[str]]] = []
+    words: list[str] = []
+    targets: list[str] = []
+    redirect: str | None = None
+    for token in tokens:
+        if token and not set(token) - set(_OPERATORS):
+            if redirect is not None:
+                return False  # an operator where a redirection's target was due
+            if "<" in token or ">" in token:
+                if "(" in token or token.startswith("<<"):
+                    return False  # a process substitution or a heredoc
+                redirect = token
+                continue
+            commands.append((words, targets))
+            words, targets = [], []
+            continue
+        if redirect is not None:
+            # `2>&1` duplicates a descriptor and names no file at all.
+            if not (redirect.endswith("&") and (token.isdigit() or token == "-")):
+                targets.append(token)
+            redirect = None
+            continue
+        words.append(token)
+    if redirect is not None:
+        return False
+    commands.append((words, targets))
+
+    def names(text: str) -> bool:
+        spelled = _comparable_text(text)
+        return any(form in spelled for form in spellings)
+
+    naming = [(words, targets) for words, targets in commands if names(" ".join(words + targets))]
+    return bool(naming) and all(
+        _leaves_the_file(words) and not any(names(target) for target in targets)
+        for words, targets in naming
+    )
+
+
+def _leaves_the_file(words: list[str]) -> bool:
+    """Whether one simple command is git running a subcommand that writes no tracked file."""
+    if not words or words[0] != "git":
+        return False
+    rest = iter(words[1:])
+    for word in rest:
+        if word == "-C":
+            if next(rest, None) is None:
+                return False
+            continue
+        if word in _GIT_PREFIX:
+            continue
+        if word not in _GIT_LEAVES:
+            return False
+        # `diff`, `log` and `show` take `--output=<file>`, the one way these write a file.
+        return not any(arg == "--output" or arg.startswith("--output=") for arg in rest)
+    return False  # `git` and its prefix alone
 
 
 def review(payload: Mapping[str, object], root: str | Path = ".") -> Review | None:

@@ -415,10 +415,10 @@ def test_a_shell_command_writing_a_governed_file_is_no_longer_silence(tmp_path):
 
 
 def test_the_shell_answer_is_ask_because_the_command_is_not_read(tmp_path):
-    # `deny` would refuse `git add docs/ROADMAP.md` and every `git log --` of a governed file,
-    # and `allow` is not this hook's to give: the third answer is the only honest one.
+    # `deny` would refuse every `cat` of a governed file, and `allow` is not this hook's to
+    # give: the third answer is the only honest one.
     root = project(tmp_path, wired=True)
-    refusal = guard(shell(f"git add {ROADMAP}", cwd=root), root)
+    refusal = guard(shell(f"cat {ROADMAP}", cwd=root), root)
     assert refusal is not None and refusal.decision == "ask"
     reason = str(refusal)
     assert "the decision is yours" in reason
@@ -468,6 +468,84 @@ def test_the_path_is_matched_however_the_command_spells_it(tmp_path):
         assert refusal is not None and refusal.role == "changelog", command
         # Still spelled as the project spells it: the reason is read on another machine.
         assert refusal.path == CHANGELOG
+
+
+# -- what a commit is made of (RK1689) -----------------------------------------
+
+
+def test_git_reading_or_staging_a_governed_file_is_not_asked_about(tmp_path):
+    # The defect: a per-task commit stages what `ship` wrote by path, so every commit asked,
+    # and a hook's `ask` outranks every allow rule the user wrote.
+    root = project(tmp_path)
+    absolute = (root / ROADMAP).resolve().as_posix()
+    for command in (
+        f"git add -- src/a.py {ROADMAP} {CHANGELOG}",
+        f"git add -- src/a.py {ROADMAP} && git commit -q -F msg.txt && git log --oneline -1",
+        f'cd "{root.as_posix()}" && git add -- {ROADMAP}; git status --short',
+        f'git commit -m "ship RK1, which {ROADMAP} no longer lists"',
+        f"git diff --cached --stat -- {ROADMAP}\ngit diff -- {CHANGELOG}",
+        f"git --no-pager log -p -- {ROADMAP} | head -40",
+        f"git -C {root.as_posix()} show HEAD:{ROADMAP}",
+        f"git blame {ROADMAP} 2>&1",
+        f"git ls-files -- {ROADMAP} > /dev/null",
+        f"git add {absolute}",
+        f"(git add {ROADMAP})",
+    ):
+        assert guard(shell(command, cwd=root), root) is None, command
+
+
+def test_a_git_command_that_writes_the_file_is_still_asked_about(tmp_path):
+    root = project(tmp_path)
+    for command in (
+        f"git checkout -- {ROADMAP}",
+        f"git restore {ROADMAP}",
+        f"git stash push -- {ROADMAP}",
+        f"git show HEAD:{ROADMAP} > {ROADMAP}",
+        f"git diff --output={ROADMAP}",
+        f"git diff --output {ROADMAP}",
+        f"git mv {ROADMAP} docs/OLD.md",
+        f"git rm {ROADMAP}",
+    ):
+        refusal = guard(shell(command, cwd=root), root)
+        assert refusal is not None and refusal.decision == "ask", command
+
+
+def test_a_write_chained_behind_a_git_add_is_still_asked_about(tmp_path):
+    # Every simple command naming a governed file is judged, and on every role's spelling:
+    # a `sed` on the changelog is not cleared by the roadmap's `git add` in front of it.
+    root = project(tmp_path)
+    for command in (
+        f"git add {ROADMAP} && sed -i s/a/b/ {ROADMAP}",
+        f"git add {ROADMAP}\nsed -i s/a/b/ {CHANGELOG}",
+        f"git add {ROADMAP} | tee {CHANGELOG}",
+        f"git add {ROADMAP} & echo x >> {CHANGELOG}",
+        f"git log -- {ROADMAP} > {CHANGELOG}",
+    ):
+        refusal = guard(shell(command, cwd=root), root)
+        assert refusal is not None and refusal.decision == "ask", command
+
+
+def test_a_git_command_this_does_not_read_whole_keeps_the_question(tmp_path):
+    # Silence only for a command read whole. Everything that could run something other than
+    # what the words say, or that the lexer could misread, answers as RK128 did.
+    root = project(tmp_path)
+    for command in (
+        f"git -c core.pager='sed -i s/a/b/ {ROADMAP}' log",
+        f"GIT_PAGER=cat git log -- {ROADMAP}",
+        f"git --git-dir=.git add {ROADMAP}",
+        f"git add $(echo {ROADMAP})",
+        f"git add `echo {ROADMAP}`",
+        f"git diff <(sed -i s/a/b/ {ROADMAP})",
+        f"git commit -F - <<'EOF'\nship {ROADMAP}\nEOF",
+        f"sed -i s/a/b/ ';' git add {ROADMAP}",
+        f"sed -i s/a/b/ \\; git add {ROADMAP}",
+        f'git add "{ROADMAP}',
+        f"git grep -Ofoo x -- {ROADMAP}",
+        f"git {ROADMAP}",
+        f"sudo git add {ROADMAP}",
+    ):
+        refusal = guard(shell(command, cwd=root), root)
+        assert refusal is not None and refusal.decision == "ask", command
 
 
 def test_a_shell_command_outside_a_project_is_silence(tmp_path):
