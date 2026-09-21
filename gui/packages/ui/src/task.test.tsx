@@ -634,3 +634,86 @@ describe('RG285: what a task means, for somebody new', () => {
     expect(await empty.findByText(BASE['explain.empty'])).toBeTruthy()
   })
 })
+
+describe('RG286: the gloss as shapes', () => {
+  /** A gloss that captions one dep and says nothing about the other, nor about what it frees. */
+  const PART = {
+    kind: 'said' as const,
+    gloss: {
+      headline: 'the shape of it',
+      today: 'what is true now',
+      after: 'what is true after',
+      steps: ['first this', 'then that'],
+      terms: [{ term: 'brief', said: 'what the engine answered about the line' }],
+      risks: ['the one thing to get wrong'],
+      done: ['the tests pass'],
+      deps: { AL0: 'the line it waits on' },
+      unblocks: {},
+      binds: { 'No write to a governed file': 'nothing here writes one' },
+    },
+    model: 'claude-opus-5',
+    version: '2.1.274',
+  }
+
+  async function shapes() {
+    await at(taskPath(ROOT, 'AL1'), [], { gloss: () => Promise.resolve(PART) })
+    fireEvent.click(await screen.findByTestId('explain'))
+    const dialog = within(await screen.findByTestId('explain-dialog'))
+    await dialog.findByTestId('explain-said')
+    return dialog
+  }
+
+  it('draws the chain off the brief, and a node the gloss never named', async () => {
+    const dialog = await shapes()
+
+    // Both deps the engine resolved, captioned or not: the nodes are the brief's.
+    const deps = dialog.getAllByTestId('explain-dep')
+    expect(deps.map((one) => one.dataset['id'])).toEqual(['AL0', 'roadkeep RK1'])
+    expect(deps[0]?.textContent).toContain('the line it waits on')
+    // The one the gloss skipped keeps its id and its standing, and says nothing more.
+    expect(deps[1]?.textContent).toContain('roadkeep RK1')
+    expect(deps[1]?.textContent).toContain('unresolvable')
+
+    // The line itself, with the marker and the readiness the engine answered.
+    const here = dialog.getByTestId('explain-this')
+    expect(here.dataset['id']).toBe('AL1')
+    expect(here.textContent).toContain('ready')
+
+    // And what shipping it frees, off `unblocks` and not off the answer.
+    expect(dialog.getAllByTestId('explain-unblocks').map((one) => one.dataset['id'])).toEqual([
+      'AL2',
+    ])
+  })
+
+  it('draws each part of the answer in its own shape', async () => {
+    const dialog = await shapes()
+
+    expect(dialog.getByTestId('explain-turn').textContent).toContain('what is true now')
+    expect(dialog.getByTestId('explain-steps').textContent).toContain('then that')
+    expect(dialog.getByTestId('explain-terms').textContent).toContain('brief')
+    expect(dialog.getByTestId('explain-risks').textContent).toContain('the one thing to get wrong')
+    expect(dialog.getByTestId('explain-done').textContent).toContain('the tests pass')
+    // A non-goal the brief carries and the gloss explained, over its lead as the file spells it.
+    expect(dialog.getByTestId('explain-binds').textContent).toContain('No write to a governed file')
+  })
+
+  it('leaves out a shape the answer said nothing for', async () => {
+    await at(taskPath(ROOT, 'AL1'), [], {
+      gloss: () =>
+        Promise.resolve({
+          ...PART,
+          gloss: { ...PART.gloss, steps: [], terms: [], risks: [], done: [], binds: {} },
+        }),
+    })
+    fireEvent.click(await screen.findByTestId('explain'))
+    const dialog = within(await screen.findByTestId('explain-dialog'))
+    await dialog.findByTestId('explain-said')
+
+    expect(dialog.queryByTestId('explain-steps')).toBeNull()
+    expect(dialog.queryByTestId('explain-terms')).toBeNull()
+    expect(dialog.queryByTestId('explain-risks')).toBeNull()
+    expect(dialog.queryByTestId('explain-binds')).toBeNull()
+    // The chain stands whatever the gloss said: its nodes are the engine's.
+    expect(dialog.getByTestId('explain-chain')).toBeTruthy()
+  })
+})

@@ -1,4 +1,4 @@
-import { hasGloss, type Gloss, type GlossAnswer, type Translate } from '@rk/core'
+import { hasGloss, type BriefPayload, type GlossAnswer, type Translate } from '@rk/core'
 import {
   Button,
   Dialog,
@@ -11,8 +11,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { getBridge } from './bridge'
-import { PanelTitle } from './forms'
-import { Prose } from './prose'
+import { Explained } from './explained'
 import { useSpokenLocale } from './speaking'
 import { useWording } from './wording'
 
@@ -61,100 +60,6 @@ function saidOfAnswer(answer: GlossAnswer, say: Translate): string {
   return say('explain.empty')
 }
 
-/** One part of the answer that is a list: drawn only where the answer filled it. */
-function Listed({ title, items }: { readonly title: string; readonly items: readonly string[] }) {
-  if (items.length === 0) return null
-  return (
-    <section className="mt-4">
-      <PanelTitle>{title}</PanelTitle>
-      <ul className="ml-5 flex list-outside list-disc flex-col gap-1.5 text-sm">
-        {items.map((item) => (
-          <li key={item}>
-            <Prose text={item} />
-          </li>
-        ))}
-      </ul>
-    </section>
-  )
-}
-
-/** What the gloss says, as a reader reads it: the headline first, then the rest in order. */
-function Said({ gloss }: { readonly gloss: Gloss }) {
-  const say = useWording()
-  const terms = gloss.terms
-  const keyed = [
-    { title: say('explain.deps'), rows: Object.entries(gloss.deps) },
-    { title: say('explain.unblocks'), rows: Object.entries(gloss.unblocks) },
-    { title: say('explain.binds'), rows: Object.entries(gloss.binds) },
-  ]
-
-  return (
-    <div data-testid="explain-said">
-      <p className="text-lg font-semibold wrap-anywhere">
-        <Prose text={gloss.headline} />
-      </p>
-      {gloss.today === '' ? null : (
-        <section className="mt-4">
-          <PanelTitle>{say('explain.today')}</PanelTitle>
-          <Prose text={gloss.today} />
-        </section>
-      )}
-      {gloss.after === '' ? null : (
-        <section className="mt-4">
-          <PanelTitle>{say('explain.after')}</PanelTitle>
-          <Prose text={gloss.after} />
-        </section>
-      )}
-      {gloss.steps.length === 0 ? null : (
-        <section className="mt-4">
-          <PanelTitle>{say('explain.steps')}</PanelTitle>
-          <ol className="ml-5 flex list-outside list-decimal flex-col gap-1.5 text-sm">
-            {gloss.steps.map((step) => (
-              <li key={step}>
-                <Prose text={step} />
-              </li>
-            ))}
-          </ol>
-        </section>
-      )}
-      {terms.length === 0 ? null : (
-        <section className="mt-4">
-          <PanelTitle>{say('explain.terms')}</PanelTitle>
-          <dl className="flex flex-col gap-1.5 text-sm">
-            {terms.map((term) => (
-              <div key={term.term} className="flex flex-col">
-                <dt className="font-mono text-xs font-semibold wrap-anywhere">{term.term}</dt>
-                <dd className="text-muted-foreground">
-                  <Prose text={term.said} />
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </section>
-      )}
-      <Listed title={say('explain.risks')} items={gloss.risks} />
-      <Listed title={say('explain.done')} items={gloss.done} />
-      {keyed.map(({ title, rows }) =>
-        rows.length === 0 ? null : (
-          <section className="mt-4" key={title}>
-            <PanelTitle>{title}</PanelTitle>
-            <dl className="flex flex-col gap-1.5 text-sm">
-              {rows.map(([key, said]) => (
-                <div key={key} className="flex flex-col">
-                  <dt className="font-mono text-xs font-semibold wrap-anywhere">{key}</dt>
-                  <dd className="text-muted-foreground">
-                    <Prose text={said} />
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </section>
-        ),
-      )}
-    </div>
-  )
-}
-
 /** The answer's shape while it is still being written, so the dialog does not jump when it lands. */
 function Asking() {
   return (
@@ -169,7 +74,15 @@ function Asking() {
   )
 }
 
-export function Explain({ root, id }: { readonly root: string; readonly id: string }) {
+export function Explain({
+  root,
+  payload,
+}: {
+  readonly root: string
+  /** The line as the engine briefed it: what the chain is drawn from (RG286). */
+  readonly payload: BriefPayload
+}) {
+  const id = payload.id
   const say = useWording()
   const spoken = useSpokenLocale()
   const [explaining, setExplaining] = useState<Explaining>(CLOSED)
@@ -239,7 +152,7 @@ export function Explain({ root, id }: { readonly root: string; readonly id: stri
           </DialogHeader>
           <div className="mt-4">
             {explaining.kind === 'asking' ? <Asking /> : null}
-            {said === null ? null : <Said gloss={said} />}
+            {said === null ? null : <Explained payload={payload} gloss={said} />}
             {answer === null || said !== null ? null : (
               <div className="flex flex-col items-start gap-3" data-testid="explain-failed">
                 <p className="text-sm">{saidOfAnswer(answer, say)}</p>

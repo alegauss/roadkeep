@@ -579,6 +579,10 @@ export const EN = {
   'explain.deps': 'What it waits on',
   'explain.unblocks': 'What finishing it frees',
   'explain.binds': 'What bounds it',
+  // The chain the gloss captions (RG286): its nodes are the brief's, never the answer's.
+  'explain.chain': 'Where it sits',
+  'explain.chain.this': 'This line',
+  'explain.chain.none': 'nothing',
   'explain.cancel': 'Stop asking',
   'explain.again': 'Ask again',
   'explain.unavailable':

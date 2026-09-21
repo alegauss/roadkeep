@@ -558,6 +558,9 @@ export const PT_BR: Wording = {
   'explain.deps': 'Do que ela depende',
   'explain.unblocks': 'O que terminá-la libera',
   'explain.binds': 'O que a limita',
+  'explain.chain': 'Onde ela fica',
+  'explain.chain.this': 'Esta linha',
+  'explain.chain.none': 'nada',
   'explain.cancel': 'Parar de perguntar',
   'explain.again': 'Perguntar de novo',
   'explain.unavailable':

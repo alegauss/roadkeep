@@ -58,34 +58,6 @@ catalogue in both languages.
 Done when a test moves `handed` through the menu, resets from the palette, and sees the
 default drawn and written.
 
-### §RG286 The picture: facts off the brief, captions off the gloss
-
-Drawn as paragraphs, a gloss is a longer design. A task is grasped at a glance by its
-shape: what it waits on and what waits on it, before against after, the path of steps.
-
-**Facts off the brief, words off the gloss.** The chain `deps → this line → unblocks` is
-drawn from `depsResolved` and `unblocks`, each node with its marker and readiness; the
-gloss's keyed items caption the nodes, and one it skipped keeps its symptom. The binding
-leads are cards over their meanings. No node is the agent's: `readGloss` dropped what
-the brief lacks.
-
-**The rest are shapes this app owns.** Today and after as two panels and an arrow; the
-steps as a numbered path, across when wide and down when narrow; the terms as a glossary
-grid; each risk a callout. React and inline SVG over the design system's tokens, so both
-grounds hold without a second palette.
-
-**No diagram the agent writes.** Mermaid or SVG in the answer is a program the window
-would run, which `skipHtml` (RG271) and the script policy refuse; fixed slots keep every
-gloss legible.
-
-Each shape has its words beside it, and the chain reads as a list to a screen reader.
-
-Done when the shots and their accessibility report are clean, and a test draws a node
-the gloss never named.
-
-On ship: --decides "A gloss is drawn in shapes this app owns, never in a diagram an
-agent wrote"
-
 ### §RG287 Kept per brief and language, reused, and regenerated on demand
 
 A gloss costs a wait and the person's tokens, and closing the dialog throws it away.

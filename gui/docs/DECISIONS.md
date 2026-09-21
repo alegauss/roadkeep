@@ -55,6 +55,7 @@ and CJK byte for byte. A failure there is the reason to reopen this.
 ## Block F — The agent surface (handing one task to Claude Code)
 
 - ✅ **RG279** **the session screen's side bars are 18rem whatever they hold, so a long path is cut and the stream cannot be widened** — A width somebody drags is kept in settings.json, never in the browser's storage.
+- ✅ **RG286** **an explanation reads as a column of paragraphs, while a task's chain, its before and after and its steps are shapes** — A gloss is drawn in shapes this app owns, never in a diagram an agent wrote.
 
 ### §RG279 A dragged width is a choice, so it goes in the settings file
 
@@ -71,6 +72,22 @@ lost.
 
 It outlives this line too. Every panel state a later screen keeps takes the same route:
 a `PREFERENCES` row whose check is the reader's, and a write through the bridge.
+
+### §RG286 Fixed shapes, because a diagram would be a program the window runs
+
+An agent asked for a picture answers with one: Mermaid, an SVG document, a diagram
+described in Markdown. Rendering any of those means running a program a model handed the
+window — what `skipHtml` refuses for a session's stream (RG271) and the content policy
+refuses for the page.
+
+So the shapes are fixed and this app's. The chain, the two panels, the numbered path,
+the glossary and the callouts are React over the design system's tokens, and the gloss
+fills their slots. Beside safety, that keeps every explanation legible: a fixed shape
+cannot come back cramped, unreadable in one ground, or three dialogs tall because a
+model felt expansive.
+
+What is given up is a picture no slot anticipates. Where one is wanted, the answer is a
+slot for it here, written and tested like the others.
 
 ## Block G — The shell (an executable now, a service later)
 

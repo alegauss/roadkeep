@@ -585,7 +585,7 @@ export function Task() {
         <HeroActions>
           {/* Beside the brief and the hand-over (RG285): the same line, said for somebody who
               has never worked on this project. */}
-          <Explain root={root} id={task.detail.payload.id} />
+          <Explain root={root} payload={task.detail.payload} />
           <CopyBrief detail={task.detail} />
           <HandOver root={root} task={task} />
         </HeroActions>
