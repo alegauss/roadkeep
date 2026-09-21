@@ -58,32 +58,6 @@ catalogue in both languages.
 Done when a test moves `handed` through the menu, resets from the palette, and sees the
 default drawn and written.
 
-### §RG285 An Explain button, and a dialog written for somebody new
-
-**Where it is.** An Explain action in the task hero's `HeroActions`, beside Copy the
-brief and Hand over, opening the design system's `Dialog`, wide and scrolling. Disabled,
-with its reason, where RG43 found no `claude`.
-
-**Its states.** Asking: a `Skeleton` in the answer's shape, and Cancel. Answered: the
-headline large, then today and after, the steps as an ordered list, the terms, the risks
-and what done looks like, each string through `Prose` (RG271). Failed: the failure's own
-sentence, and Try again. Every word of the frame in both catalogues.
-
-**Its author, named.** The footer says Claude Code {version} and {model} wrote this, in
-{language}, from the brief of {id}, and that it is not part of the backlog. `No engine
-the reader cannot name` is about roadkeep's copy, and its reason holds here too: two
-models may explain one task two ways.
-
-`No field this app composes` bounds this: the gloss is Claude Code's, shown and never
-written, and nothing copies it into a symptom, a why or a section. `No write to a
-governed file` holds with it.
-
-**Its screens.** A task-surface state in `shots-plan.ts` opens the dialog, as the
-session's `file` state opens its sheet, and the scripted agent answers it.
-
-Done when `task.test.tsx` draws each state off the stub bridge and `npm run shots` shows
-the dialog in both grounds, both languages and both widths.
-
 ### §RG286 The picture: facts off the brief, captions off the gloss
 
 Drawn as paragraphs, a gloss is a longer design. A task is grasped at a glance by its

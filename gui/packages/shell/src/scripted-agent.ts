@@ -35,6 +35,15 @@ export const CAPTURED_STREAM = path.resolve(
   'session-stream.jsonl',
 )
 
+/** The captured read this answers a gloss with (RG285), reached the way the run's stream is. */
+export const CAPTURED_GLOSS = path.resolve(
+  import.meta.dirname,
+  '..',
+  'src',
+  'captured',
+  'gloss-stream.jsonl',
+)
+
 export interface ScriptedAgentOptions {
   /** A `stream-json` file to replay. The captured run unless a caller has another. */
   readonly stream?: string
@@ -56,6 +65,11 @@ export interface ScriptedAgentOptions {
    * session's doing, and a gloss has no tool to do it with.
    */
   readonly ends?: boolean
+  /**
+   * A `stream-json` file to answer a read with (RG285): a query carrying a schema is a gloss and
+   * not a session, so it is answered with this and the process ends. None unless a caller has one.
+   */
+  readonly gloss?: string
 }
 
 /**
@@ -248,7 +262,7 @@ export function scriptedLines(captured: string, tail: number, ends = false): str
  */
 const SCRIPTED_WRITE = 'src/scripted-generated.txt'
 
-function script(linesFile: string, intervalMs: number, ends: boolean): string {
+function script(linesFile: string, glossFile: string, intervalMs: number, ends: boolean): string {
   return [
     "import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'",
     'const argv = process.argv.slice(2)',
@@ -266,6 +280,9 @@ function script(linesFile: string, intervalMs: number, ends: boolean): string {
     '    try { message = JSON.parse(line) } catch { return }',
     "    if (message?.type !== 'control_request' || message.request?.subtype !== 'initialize') return",
     "    process.stdout.write(JSON.stringify({ type: 'control_response', response: { subtype: 'success', request_id: message.request_id, response: {} } }) + '\\n')",
+    // A query that carries a schema is a read and not a session (RG284, RG285): it is answered
+    // with the gloss a real one wrote, and the process ends, since a read answers once.
+    '    if (gloss.length > 0 && message.request?.jsonSchema) { lines = gloss; ending = true }',
     '  })',
     '})',
     // Written as the run starts, the way a command a session runs writes one: no edit call
@@ -276,17 +293,24 @@ function script(linesFile: string, intervalMs: number, ends: boolean): string {
       ? ''
       : `  writeFileSync(${JSON.stringify(SCRIPTED_WRITE)}, 'built by the scripted run\\n')`,
     ends ? '' : '} catch {}',
-    `const lines = JSON.parse(readFileSync(${JSON.stringify(linesFile)}, 'utf8'))`,
+    `let lines = JSON.parse(readFileSync(${JSON.stringify(linesFile)}, 'utf8'))`,
+    glossFile === ''
+      ? 'const gloss = []'
+      : `const gloss = JSON.parse(readFileSync(${JSON.stringify(glossFile)}, 'utf8'))`,
+    `let ending = ${String(ends)}`,
     'let at = 0',
     'const next = () => {',
-    ends
-      ? '  if (at === lines.length) { process.exit(0) }'
-      : '  if (at === lines.length) { setInterval(() => undefined, 1 << 30); return }',
+    '  if (at === lines.length) {',
+    '    if (ending) { process.exit(0) }',
+    '    setInterval(() => undefined, 1 << 30)',
+    '    return',
+    '  }',
     "  process.stdout.write(lines[at] + '\\n')",
     '  at += 1',
     `  setTimeout(next, ${String(intervalMs)})`,
     '}',
-    'next()',
+    // A beat before the first line, so the handshake has said which run this is.
+    `setTimeout(next, ${String(intervalMs)})`,
   ].join('\n')
 }
 
@@ -303,9 +327,17 @@ export function scriptedAgent(options: ScriptedAgentOptions = {}): ScriptedAgent
   ]
   const home = mkdtempSync(path.join(tmpdir(), 'rk-scripted-agent-'))
   const linesFile = path.join(home, 'lines.json')
+  const glossFile = options.gloss === undefined ? '' : path.join(home, 'gloss.json')
   const file = path.join(home, 'claude.mjs')
   writeFileSync(linesFile, JSON.stringify(lines), 'utf8')
-  writeFileSync(file, script(linesFile, options.intervalMs ?? 15, ends), 'utf8')
+  if (options.gloss !== undefined && glossFile !== '') {
+    writeFileSync(
+      glossFile,
+      JSON.stringify(scriptedLines(readFileSync(options.gloss, 'utf8'), 0, true)),
+      'utf8',
+    )
+  }
+  writeFileSync(file, script(linesFile, glossFile, options.intervalMs ?? 15, ends), 'utf8')
 
   return {
     command: [process.execPath, file],

@@ -351,6 +351,9 @@ function opensViewer(state: string | null): boolean {
   return state !== null && state.startsWith('file')
 }
 
+/** The task surface's explanation, opened as a reader opens it (RG285). */
+const OPEN_EXPLAIN = `(() => { const button = document.querySelector('[data-testid="explain"]'); if (button) button.click() })()`
+
 /** How long the viewer takes to slide in, which a quiet document does not wait for: CSS moves it. */
 const SHEET_OPENS_MS = 600
 
@@ -428,6 +431,12 @@ export async function takeCapture(
       await page.evaluate(SCROLL_STREAM_UP)
       settled = await settle(page)
     }
+    if (capture.state === 'explain') {
+      await page.evaluate(OPEN_EXPLAIN)
+      await page.waitForSelector('[data-testid="explain-dialog"]', { timeout: SETTLE_CEILING_MS })
+      await page.waitForTimeout(SHEET_OPENS_MS)
+      settled = await settle(page)
+    }
     if (opensViewer(capture.state)) {
       const named = VIEWER_FILES[capture.state ?? '']
       await page.evaluate(named === undefined ? OPEN_EDITED_FILE : openEdited(named))
@@ -452,7 +461,11 @@ export async function takeCapture(
     if (capture.state === 'folded') await prefer(shot, 'sessionNotes', 'shown')
     // The viewer is the screen's own state and survives a hash set to the same route, so it is
     // closed as a reader closes it before the next capture draws the session without it.
-    if (opensViewer(capture.state)) await page.keyboard.press('Escape')
+    // Both are the screen's own state and survive a hash set to the same route, so each is
+    // closed as a reader closes it before the next capture draws the surface without it.
+    if (opensViewer(capture.state) || capture.state === 'explain') {
+      await page.keyboard.press('Escape')
+    }
   }
 }
 

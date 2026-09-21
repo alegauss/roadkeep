@@ -14,9 +14,8 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG285** (deps: RG284 ✅) **the task screen offers no plain account of a task, only the line and a design written for whoever builds it** — A person new to a project reads a symptom, a why and a design full of module names, and nothing on the screen is written for them. → §RG285
-- 📋 **RG286** (deps: RG285) **an explanation reads as a column of paragraphs, while a task's chain, its before and after and its steps are shapes** — The brief already holds the facts a picture needs, deps, unblocks, marker and binding leads, so the gloss only captions what the brief draws. → §RG286
-- 📋 **RG287** (deps: RG285) **an explanation is lost when its dialog closes, so reopening a task pays the whole wait and the tokens again** — A gloss answers one brief in one language, so it is reused until that brief moves, and Regenerate asks again whenever the person wants. → §RG287
+- 📋 **RG286** (deps: RG285 ✅) **an explanation reads as a column of paragraphs, while a task's chain, its before and after and its steps are shapes** — The brief already holds the facts a picture needs, deps, unblocks, marker and binding leads, so the gloss only captions what the brief draws. → §RG286
+- 📋 **RG287** (deps: RG285 ✅) **an explanation is lost when its dialog closes, so reopening a task pays the whole wait and the tokens again** — A gloss answers one brief in one language, so it is reused until that brief moves, and Regenerate asks again whenever the person wants. → §RG287
 - 📋 **RG288** (deps: RG286, RG287) **an explanation answers from the brief alone, so it cannot say where in the code the work lands or what it will touch** — The design names the files, and reading them turns a restated design into an account of the change; Read, Grep and Glob change nothing. → §RG288
 
 ## Block G — The shell (an executable now, a service later)

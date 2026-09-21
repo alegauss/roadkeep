@@ -1,5 +1,6 @@
 import {
   BASE,
+  BASE_LOCALE,
   bridgedRun,
   EngineCallFailed,
   fill,
@@ -7,6 +8,7 @@ import {
   openProject,
   readBriefPayload,
   type ProjectCatalogue,
+  type RendererBridge,
   type SessionRecord,
   type SessionOutcome,
   type Transport,
@@ -224,7 +226,12 @@ function engine(): Transport {
 
 const CATALOGUE: ProjectCatalogue = { version: 1, roots: [], projects: [] }
 
-async function at(path: string, sessions: readonly SessionRecord[] = []): Promise<void> {
+async function at(
+  path: string,
+  sessions: readonly SessionRecord[] = [],
+  /** What else this window's bridge answers: a gloss (RG285) unless a case says otherwise. */
+  over: Partial<RendererBridge> = {},
+): Promise<void> {
   const transport = engine()
   const opened = openedFrom(await openProject(ROOT, [['python', 'launch.py']], () => transport))
   Object.defineProperty(window, 'roadkeep', {
@@ -236,6 +243,8 @@ async function at(path: string, sessions: readonly SessionRecord[] = []): Promis
       // The line's own sessions (RG153): none unless a case says otherwise, which is what a
       // window holds until one is handed over.
       sessions: () => Promise.resolve(sessions),
+      cancelGloss: () => Promise.resolve(),
+      ...over,
     }),
     configurable: true,
   })
@@ -485,5 +494,143 @@ describe('RG242: which project a line is in', () => {
     expect(chip.getAttribute('aria-hidden')).toBe('true')
     // A line is under its project and nothing else, so the trail has one crumb.
     expect(within(trail).queryByTestId('trail-task')).toBeNull()
+  })
+})
+
+describe('RG285: what a task means, for somebody new', () => {
+  const GLOSS = {
+    headline: 'This line makes the screen say what a file was before',
+    today: 'The file opens as it is now, with nothing to compare it against.',
+    after: 'The file opens beside what it was before the session touched it.',
+    steps: ['read the original off the answer', 'compare the two line by line'],
+    terms: [
+      { term: 'hunk', said: 'a run of lines that differ, with the unchanged ones around it' },
+    ],
+    risks: ['a file too long to compare'],
+    done: ['the viewer draws a created, a changed and a deleted file'],
+    deps: { AL0: 'the line that reads the original' },
+    unblocks: {},
+    binds: { 'No Markdown parsed in this app': 'the lines are drawn as they are' },
+  }
+
+  const SAID = {
+    kind: 'said' as const,
+    gloss: GLOSS,
+    model: 'claude-opus-5',
+    version: '2.1.274',
+  }
+
+  /** The dialog, once the Explain action has been pressed. */
+  async function explaining(over: Partial<RendererBridge>) {
+    await at(taskPath(ROOT, 'AL1'), [], over)
+    fireEvent.click(await screen.findByTestId('explain'))
+    return within(await screen.findByTestId('explain-dialog'))
+  }
+
+  it('offers Explain beside the brief, and opens on the answer it was given', async () => {
+    const asked: [string, string][] = []
+    const dialog = await explaining({
+      gloss: (root, id) => {
+        asked.push([root, id])
+        return Promise.resolve(SAID)
+      },
+    })
+
+    // The renderer names the line and nothing else: the prompt is the far side's (RG284).
+    await waitFor(() => {
+      expect(asked).toEqual([[ROOT, 'AL1']])
+    })
+    const said = within(await dialog.findByTestId('explain-said'))
+    expect(said.getByText(GLOSS.headline)).toBeTruthy()
+    expect(said.getByText(GLOSS.today)).toBeTruthy()
+    expect(said.getByText(GLOSS.steps[0] ?? '')).toBeTruthy()
+    expect(said.getByText('hunk')).toBeTruthy()
+    expect(said.getByText('AL0')).toBeTruthy()
+  })
+
+  it('names who wrote it, in which language and from which line', async () => {
+    const dialog = await explaining({ gloss: () => Promise.resolve(SAID) })
+
+    const by = await dialog.findByTestId('explain-by')
+    expect(by.textContent).toBe(
+      fill(BASE['explain.by'], {
+        version: '2.1.274',
+        model: 'claude-opus-5',
+        language: BASE_LOCALE,
+        id: 'AL1',
+      }),
+    )
+    // And that it is nobody's backlog entry, which is what bounds the whole dialog.
+    expect(dialog.getByText(BASE['explain.not-backlog'])).toBeTruthy()
+  })
+
+  it('draws the answer’s shape while it is being written, and stops on asking', async () => {
+    const cancelled: [string, string][] = []
+    const dialog = await explaining({
+      // Never answers: what the screen looks like while a run is going.
+      gloss: () => new Promise(() => undefined),
+      cancelGloss: (root, id) => {
+        cancelled.push([root, id])
+        return Promise.resolve()
+      },
+    })
+
+    expect(await dialog.findByTestId('explain-asking')).toBeTruthy()
+    fireEvent.click(dialog.getByRole('button', { name: BASE['explain.cancel'] }))
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('explain-dialog')).toBeNull()
+    })
+    expect(cancelled).toEqual([[ROOT, 'AL1']])
+  })
+
+  it('says a machine with no Claude Code cannot explain it, and offers to ask again', async () => {
+    let asks = 0
+    const dialog = await explaining({
+      gloss: () => {
+        asks += 1
+        return Promise.resolve({ kind: 'unavailable', tried: [['claude'], ['claude.cmd']] })
+      },
+    })
+
+    const failed = within(await dialog.findByTestId('explain-failed'))
+    expect(
+      failed.getByText(fill(BASE['explain.unavailable'], { tried: 'claude, claude.cmd' })),
+    ).toBeTruthy()
+
+    fireEvent.click(failed.getByRole('button', { name: BASE['explain.again'] }))
+
+    await waitFor(() => {
+      expect(asks).toBe(2)
+    })
+  })
+
+  it('says a run that failed in its own words, and an answer that said nothing', async () => {
+    const failing = await explaining({
+      gloss: () => Promise.resolve({ kind: 'failed', said: 'not signed in' }),
+    })
+    expect(
+      await failing.findByText(fill(BASE['explain.failed'], { reason: 'not signed in' })),
+    ).toBeTruthy()
+
+    const empty = await explaining({
+      gloss: () =>
+        Promise.resolve({
+          kind: 'said',
+          gloss: {
+            ...GLOSS,
+            headline: '',
+            today: '',
+            after: '',
+            steps: [],
+            terms: [],
+            risks: [],
+            done: [],
+          },
+          model: '',
+          version: '',
+        }),
+    })
+    expect(await empty.findByText(BASE['explain.empty'])).toBeTruthy()
   })
 })

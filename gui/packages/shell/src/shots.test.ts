@@ -6,6 +6,7 @@ import {
   isScanned,
   optionsFrom,
   SESSION_SHOTS,
+  TASK_SHOTS,
   settleScript,
   SHOT_GROUNDS,
   SHOT_SIZES,
@@ -31,8 +32,9 @@ describe('RG209: every surface the router serves', () => {
   it('is taken in both grounds, every language and both widths', () => {
     const captures = capturesFor(VALUES)
 
-    // The session surface once per state it is put in (RG210), every other surface once.
-    const pictured = SURFACE_ROUTES.length - 1 + SESSION_SHOTS.length
+    // The session surface once per state it is put in (RG210) and the task surface once per
+    // state of its own (RG285), every other surface once.
+    const pictured = SURFACE_ROUTES.length - 2 + SESSION_SHOTS.length + TASK_SHOTS.length
     expect(captures).toHaveLength(
       pictured * SHOT_GROUNDS.length * LOCALE_TAGS.length * SHOT_SIZES.length,
     )
@@ -90,7 +92,7 @@ describe('RG210: the session, photographed in the states a reader puts it in', (
 describe('RG211: which pictures are scanned for accessibility', () => {
   it('scans each surface, state and ground once, at the desktop width in the base language', () => {
     const scanned = capturesFor(VALUES).filter(isScanned)
-    const pictured = SURFACE_ROUTES.length - 1 + SESSION_SHOTS.length
+    const pictured = SURFACE_ROUTES.length - 2 + SESSION_SHOTS.length + TASK_SHOTS.length
 
     expect(scanned).toHaveLength(pictured * SHOT_GROUNDS.length)
     expect(scanned.every((one) => one.width === 1280 && one.locale === LOCALE_TAGS[0])).toBe(true)

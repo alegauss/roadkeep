@@ -19,7 +19,7 @@ import { buildFixture } from './fixture'
 import { liveEngine, liveHeld, read, REPO } from './live'
 import { removeTree } from './scratch'
 import { saveSettings } from './settings-file'
-import { scriptedAgent } from './scripted-agent'
+import { CAPTURED_GLOSS, scriptedAgent } from './scripted-agent'
 import {
   buildOf,
   launchForShots,
@@ -142,8 +142,9 @@ async function main(): Promise<number> {
 
   const fixture = await buildFixture(liveEngine, { open: 3, shipped: 1, deferred: 1 })
   const userData = mkdtempSync(path.join(tmpdir(), 'rk-shots-'))
-  // The session surface is photographed mid-run against an agent that replays one (RG210).
-  const agent = scriptedAgent()
+  // The session surface is photographed mid-run against an agent that replays one (RG210), and
+  // the task surface's explanation against the gloss a real read wrote (RG285).
+  const agent = scriptedAgent({ gloss: CAPTURED_GLOSS })
   let failed = 0
   try {
     const [first, second] = listedTasks(await read(fixture.root, 'list', {}))

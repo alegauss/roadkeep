@@ -565,6 +565,33 @@ export const EN = {
   'settings.lost.sidesClamped':
     'a session side bar was set outside {min} to {max} per cent of the row, so it is held at the nearest',
 
+  // What a task means, said for somebody new to the project (RG285).
+  'explain.ask': 'Explain',
+  'explain.title': 'What {id} means',
+  'explain.about':
+    'Claude Code read this line’s brief and wrote this for somebody new to the project.',
+  'explain.today': 'What is true now',
+  'explain.after': 'What is true once it is done',
+  'explain.steps': 'What the work involves',
+  'explain.terms': 'The words it uses',
+  'explain.risks': 'What is easy to get wrong',
+  'explain.done': 'How anybody would know it is finished',
+  'explain.deps': 'What it waits on',
+  'explain.unblocks': 'What finishing it frees',
+  'explain.binds': 'What bounds it',
+  'explain.cancel': 'Stop asking',
+  'explain.again': 'Ask again',
+  'explain.unavailable':
+    'No Claude Code answered on this machine, so nothing explained it. Tried: {tried}.',
+  'explain.failed': 'Claude Code did not answer with an explanation: {reason}',
+  'explain.cancelled': 'The asking was stopped, so there is nothing to show.',
+  'explain.withheld': 'This line was not read: {reason}',
+  'explain.empty': 'Claude Code answered without saying anything about the line.',
+  'explain.by':
+    'Claude Code {version} and {model} wrote this in {language}, from the brief of {id}.',
+  'explain.not-backlog':
+    'It is not part of the backlog: nothing here is written to a governed file.',
+
   'shell.home': 'Home',
   'shell.palette': 'Find a line in every backlog',
   'shell.shortcuts': 'Keyboard shortcuts',

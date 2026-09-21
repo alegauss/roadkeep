@@ -545,6 +545,31 @@ export const PT_BR: Wording = {
   'settings.lost.sidesClamped':
     'uma barra lateral da sessão estava fora de {min} a {max} por cento da linha, então ficou no limite mais próximo',
 
+  'explain.ask': 'Explicar',
+  'explain.title': 'O que {id} significa',
+  'explain.about':
+    'O Claude Code leu o brief desta linha e escreveu isto para quem é novo no projeto.',
+  'explain.today': 'O que é verdade agora',
+  'explain.after': 'O que é verdade quando estiver pronto',
+  'explain.steps': 'O que o trabalho envolve',
+  'explain.terms': 'As palavras que ela usa',
+  'explain.risks': 'O que é fácil errar',
+  'explain.done': 'Como qualquer um saberia que terminou',
+  'explain.deps': 'Do que ela depende',
+  'explain.unblocks': 'O que terminá-la libera',
+  'explain.binds': 'O que a limita',
+  'explain.cancel': 'Parar de perguntar',
+  'explain.again': 'Perguntar de novo',
+  'explain.unavailable':
+    'Nenhum Claude Code respondeu nesta máquina, então nada explicou. Tentados: {tried}.',
+  'explain.failed': 'O Claude Code não respondeu com uma explicação: {reason}',
+  'explain.cancelled': 'A pergunta foi interrompida, então não há o que mostrar.',
+  'explain.withheld': 'Esta linha não foi lida: {reason}',
+  'explain.empty': 'O Claude Code respondeu sem dizer nada sobre a linha.',
+  'explain.by': 'Claude Code {version} e {model} escreveram isto em {language}, do brief de {id}.',
+  'explain.not-backlog':
+    'Isto não faz parte do backlog: nada aqui é escrito em um arquivo governado.',
+
   'shell.home': 'Início',
   'shell.palette': 'Encontre uma linha em qualquer backlog',
   'shell.shortcuts': 'Atalhos de teclado',

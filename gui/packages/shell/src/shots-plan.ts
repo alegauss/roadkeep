@@ -4,6 +4,7 @@ import {
   routeParams,
   SESSION_ROUTE,
   SURFACE_ROUTES,
+  TASK_ROUTE,
   type Theme,
 } from '@rk/core'
 
@@ -56,6 +57,13 @@ export const SESSION_SHOTS = [
 ] as const
 export type SessionShot = (typeof SESSION_SHOTS)[number]
 
+/**
+ * The states the task surface is photographed in: at rest, and with the explanation open
+ * (RG285), which is a dialog a reader opens and the one state that surface has.
+ */
+export const TASK_SHOTS = [null, 'explain'] as const
+export type TaskShot = (typeof TASK_SHOTS)[number]
+
 export const SHOT_GROUNDS: readonly Exclude<Theme, 'system'>[] = ['light', 'dark']
 
 /** The widths a surface is read at: a desktop window, and the phone width the contract names. */
@@ -77,8 +85,11 @@ export interface Capture {
   readonly locale: string
   readonly width: number
   readonly height: number
-  /** Which state a session surface is put in before the capture; null for every other surface. */
-  readonly state: SessionShot | null
+  /**
+   * Which state a surface is put in before the capture, null being at rest: a session has four
+   * (RG210, RG282) and the task surface has the explanation open (RG285).
+   */
+  readonly state: SessionShot | TaskShot
   /** The PNG's name under the output directory. */
   readonly file: string
 }
@@ -121,7 +132,8 @@ export function capturesFor(values: ShotValues, only: readonly string[] = []): C
   for (const ground of SHOT_GROUNDS) {
     for (const locale of LOCALE_TAGS) {
       for (const { surface, pattern, route } of kept) {
-        const states = pattern === SESSION_ROUTE ? SESSION_SHOTS : [null]
+        const states: readonly (SessionShot | TaskShot)[] =
+          pattern === SESSION_ROUTE ? SESSION_SHOTS : pattern === TASK_ROUTE ? TASK_SHOTS : [null]
         for (const state of states) {
           for (const { width, height } of SHOT_SIZES) {
             const named = state === null ? surface : `${surface}.${state}`

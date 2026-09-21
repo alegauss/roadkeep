@@ -26,6 +26,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { sessionPath, taskPath } from './areas'
 import { getBridge } from './bridge'
 import { PanelTitle } from './forms'
+import { Explain } from './explain'
 import { HeroActions } from './hero'
 import { Glyph, Pill, type Intent } from './marks'
 import { ProjectTrail } from './trail'
@@ -582,6 +583,9 @@ export function Task() {
     () =>
       task === null ? undefined : (
         <HeroActions>
+          {/* Beside the brief and the hand-over (RG285): the same line, said for somebody who
+              has never worked on this project. */}
+          <Explain root={root} id={task.detail.payload.id} />
           <CopyBrief detail={task.detail} />
           <HandOver root={root} task={task} />
         </HeroActions>

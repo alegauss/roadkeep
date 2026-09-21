@@ -454,7 +454,7 @@ describe('RG216: which form a count chooses', () => {
 const AGREES = /\{(\w+)\}\s+\p{Ll}/gu
 
 /** Holes carrying text: a path, a name, an id, a version. No number, so nothing to agree with. */
-const TEXT: readonly string[] = ['block', 'by', 'file', 'found', 'id', 'path', 'version']
+const TEXT: readonly string[] = ['block', 'by', 'file', 'found', 'id', 'model', 'path', 'version']
 
 /**
  * Numbers no word agrees with.
