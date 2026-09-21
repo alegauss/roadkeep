@@ -58,31 +58,6 @@ catalogue in both languages.
 Done when a test moves `handed` through the menu, resets from the palette, and sees the
 default drawn and written.
 
-### §RG283 A gloss: the brief framed for a newcomer, and the answer's shape
-
-A line is written for whoever builds it: a symptom, one why, and a design that names
-modules and non-goals. A person new to the project reads all three and still asks what
-the task *is*. Claude Code can say so, and the brief is already the read that says what
-to explain.
-
-**The prompt is `promptFor`'s shape.** `promptForGloss(payload, tag)` in `core/gloss.ts`
-frames the brief payload verbatim, as the hand-over does, and adds what a session does
-not need: the reader knows neither the project nor roadkeep's words, every string is
-written in the language `tag` names, and nothing is changed.
-
-**The answer is a shape, not a page.** `GLOSS_SCHEMA` is the JSON Schema Claude Code
-answers against: `headline`, `today`, `after`, `steps`, `terms`, `risks`, `done`, and
-three lists keyed by what the brief carries — `deps` and `unblocks` by id, `binds` by
-lead. `readGloss(answer, payload)` reads it as every payload reader does: a missing slot
-is empty, and an item keyed by an id or a lead the payload lacks is dropped, so no fact
-on screen is the agent's.
-
-`No Markdown parsed in this app` reaches this: every string is drawn and read for
-nothing, and the keys are matched against the brief, never parsed out of prose.
-
-Done when `gloss.test.ts` reads a captured answer, drops a foreign id, and holds a
-missing slot as empty.
-
 ### §RG284 One read-only query, through the SDK the session already uses
 
 A session (RG273) is a turn that may write, answered by a person. A gloss is neither:

@@ -108,6 +108,8 @@ export type {
 } from './acts'
 export { COMPARE_CEILING, COMPARE_CONTEXT, linesBetween, linesOf } from './compare'
 export type { Comparison, CompareHunk, CompareLine, CompareMark } from './compare'
+export { GLOSS_SCHEMA, hasGloss, NO_GLOSS, promptForGloss, readGloss } from './gloss'
+export type { Gloss, GlossTerm } from './gloss'
 export { loggedIn, resolveAgent, saidOfAgent, versionIn } from './agent'
 export type {
   Agent,

@@ -1,0 +1,94 @@
+{
+  "headline": "RG282 — \"The file against its original, line by line\": give an edited file one comparison against what it was before the session, instead of only per-call blocks.",
+  "today": "The symptom the payload records: \"an edited file opens as it is now, with no view of it against what it was before the session\". The viewer (RG245) shows the file as the disk has it, and above it each call's two halves (RG246). So ten edits are ten blocks, each answering what changed one call at a time, and a formatter run after them is in none of them. The payload's \"why\" names where this is different: VS Code shows the original beside the file.",
+  "after": "One comparison, the original beside the file now, compared by line with numbers. The original side is RG280's answer; it is empty for a created file. The file-now side is the read the viewer already makes, so what changed the file after the last call counts too, and a deleted file is an empty side with every line removed. The comparison is drawn inline first, with side by side as a toggle. Past a ceiling on lines, no comparison is made and the viewer says so. Status in the payload is 📋 and shipped is false, so none of this is true yet.",
+  "steps": [
+    "Get the before side from RG280: a reader beside originOf hands that answer's originalFile, empty for a created file.",
+    "Get the after side from the read the viewer (RG245) already makes, so changes made to the file after the last call are included; for a deleted file that side is empty, every line removed.",
+    "Compare in core: linesBetween(before, after), a pure line comparison returning hunks that carry both sides' numbers, with three unchanged lines around each hunk and the rest folded.",
+    "Apply a ceiling on lines: past it no comparison is made, and the viewer says so.",
+    "Draw it in this app rather than with BentoDiff: a file compares by line, with numbers.",
+    "Present it inline first, with side by side offered as a toggle."
+  ],
+  "terms": [
+    {
+      "term": "roadkeep",
+      "said": "The thing that answered this payload: it holds the backlog line, its design section, its deps, its criteria and its non-goals, and picks what is ready. The payload's own fields (status, block, readiness, picked, unblocks) are its vocabulary."
+    },
+    {
+      "term": "📋 / shipped: false",
+      "said": "The line's status in the payload. RG282 has not shipped; RG280, its one dep, has."
+    },
+    {
+      "term": "block F",
+      "said": "The grouping the payload files RG282 under. The payload says nothing else about it."
+    },
+    {
+      "term": "readiness \"ready\" / picked \"lowest ready id\"",
+      "said": "The payload reports RG282 as ready, and says it was picked as the lowest ready id — that is, by id order among the ready lines, not by any judgement about it."
+    },
+    {
+      "term": "the viewer (RG245)",
+      "said": "Named in the design section as what shows the file as the disk has it, and what makes the read that supplies the after side. The payload cites it only as a reference, not as a dep of RG282."
+    },
+    {
+      "term": "each call's two halves (RG246)",
+      "said": "The existing per-call blocks above the viewer — one block per call, answering what that one call changed. Also cited as a reference, not a dep."
+    },
+    {
+      "term": "originOf / originalFile",
+      "said": "RG280's answer and the field of it that carries the file's original content. RG282 reads it through \"a reader beside originOf\"."
+    },
+    {
+      "term": "core",
+      "said": "Where the comparison is computed, as opposed to the drawing, which happens \"here\" — in this app."
+    },
+    {
+      "term": "linesBetween(before, after)",
+      "said": "The pure line comparison to be done in core, returning the hunks."
+    },
+    {
+      "term": "hunks",
+      "said": "The comparison's output pieces, each carrying both sides' line numbers, each padded with three unchanged lines, with everything else folded away."
+    },
+    {
+      "term": "folded",
+      "said": "What happens to the unchanged lines that are not among the three kept around each hunk."
+    },
+    {
+      "term": "ceiling on lines",
+      "said": "A limit above which no comparison is produced at all; the viewer reports that instead."
+    },
+    {
+      "term": "BentoDiff",
+      "said": "Something the payload names only to exclude: the comparison is \"Drawn here, not with BentoDiff\"."
+    },
+    {
+      "term": "governed file",
+      "said": "The kind of file the second non-goal forbids writing to. The payload does not define it further."
+    },
+    {
+      "term": "the backlog / the task",
+      "said": "In the done-when line, the backlog is what the session acted on and the task is the place the result has to be visible from without leaving it."
+    }
+  ],
+  "risks": [
+    "The payload states a hard limit rather than a best effort: past the ceiling on lines, no comparison is made — the viewer only says so.",
+    "Two sides can legitimately be empty: the before side for a created file, the after side for a deleted file (every line removed).",
+    "Correctness of the after side depends on it being the read the viewer already makes, which is what makes post-last-call changes — the formatter case in the \"why\" — count."
+  ],
+  "done": [
+    "The payload's one criterion: \"What the session did to the backlog is visible without leaving the task\".",
+    "The payload lists no criteria of its own beyond that one (doneWhenOwn is empty) and nothing elided, so that line is the whole bar it records."
+  ],
+  "deps": {
+    "RG280": "RG282's only dep, and the payload resolves it: kind task, status shipped, detail \"in the changelog\". It supplies the before side — \"The original is RG280's: a reader beside originOf hands that answer's originalFile, empty for a created file.\" Because it has shipped, RG282's readiness is \"ready\" and nothing is held. The payload lists no further requires and no chains."
+  },
+  "unblocks": {
+    "RG285": "Shipping RG282 unblocks RG285 — the one line it unblocks, both directly and transitively, out of 7, with none elided."
+  },
+  "binds": {
+    "No Markdown parsed in this app": "A non-goal, and the payload also carries it verbatim as a quote. The comparison is a line comparison of file text; nothing here is to parse Markdown in this app.",
+    "No write to a governed file": "A non-goal. RG282 reads — RG280's originalFile for the before side, the viewer's read for the after side — and draws; it writes to no governed file."
+  }
+}

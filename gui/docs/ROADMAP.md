@@ -14,8 +14,7 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG283** (deps: —) **nothing asks Claude Code what a task means in plain words, so a line and its design are read in their own terse terms** — The brief already holds the line, its design and what binds it, so an explanation is one more frame around that payload, as the hand-over is. → §RG283
-- 📋 **RG284** (deps: RG283) **the only door that puts a task before Claude Code is a session that may write, too much to ask what a task means** — An explanation is a read: one query with no tool that writes, no session kept and a schema for its answer, where a session is a turn that may edit. → §RG284
+- 📋 **RG284** (deps: RG283 ✅) **the only door that puts a task before Claude Code is a session that may write, too much to ask what a task means** — An explanation is a read: one query with no tool that writes, no session kept and a schema for its answer, where a session is a turn that may edit. → §RG284
 - 📋 **RG285** (deps: RG284) **the task screen offers no plain account of a task, only the line and a design written for whoever builds it** — A person new to a project reads a symptom, a why and a design full of module names, and nothing on the screen is written for them. → §RG285
 - 📋 **RG286** (deps: RG285) **an explanation reads as a column of paragraphs, while a task's chain, its before and after and its steps are shapes** — The brief already holds the facts a picture needs, deps, unblocks, marker and binding leads, so the gloss only captions what the brief draws. → §RG286
 - 📋 **RG287** (deps: RG285) **an explanation is lost when its dialog closes, so reopening a task pays the whole wait and the tokens again** — A gloss answers one brief in one language, so it is reused until that brief moves, and Regenerate asks again whenever the person wants. → §RG287
