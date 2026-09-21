@@ -197,6 +197,7 @@
 - ✅ **RG281** **a file that moved on disk while the session ran never says whether it appeared, changed or went away** — Each file that moved on disk says whether it appeared, changed, went away or came and went, off the stat the watch already made (design recorded in `packages/core/src/watching.ts`).
 - ✅ **RG282** **an edited file opens as it is now, with no view of it against what it was before the session** — An edited file opens on itself against what it was before the session, line by line, inline or side by side (design recorded in `packages/core/src/compare.ts`).
 - ✅ **RG283** **nothing asks Claude Code what a task means in plain words, so a line and its design are read in their own terse terms** — A brief can be asked of Claude Code as a gloss for a newcomer, read back keyed by the ids and leads the brief carries (design recorded in `packages/core/src/gloss.ts`).
+- ✅ **RG284** **the only door that puts a task before Claude Code is a session that may write, too much to ask what a task means** — A task can be asked of Claude Code as a read: one query with no tool, nothing kept, answered against a schema (design recorded in `packages/shell/src/gloss-process.ts`).
 
 ## Block G — The shell (an executable now, a service later)
 

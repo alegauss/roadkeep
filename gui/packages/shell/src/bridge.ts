@@ -18,6 +18,7 @@ import {
   type FileText,
   type GovernedFile,
   type AnsweredAsk,
+  type GlossAnswer,
   type HandedOver,
   type KnownRoot,
   type LaunchSettings,
@@ -33,6 +34,7 @@ import { AGENT_VAR, agentCandidates, agentOverride } from './agent-candidates'
 import { loadCatalogue, saveCatalogue } from './catalogue-file'
 import { loadReadings, saveReadings } from './readings-file'
 import { createCarrier, type Carrier } from './carrier'
+import { createGlosses } from './glosses'
 import { editedAt } from './edited-at'
 import { fileText } from './file-text'
 import { governedAt } from './governed-at'
@@ -390,6 +392,40 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
     if (typeof root !== 'string') return Promise.resolve('nothing-remembered')
     return carrier.check(root)
   })
+  // What a line means, asked of Claude Code as a read (RG284): one query with no tool, nothing
+  // kept, and the window's own language — resolved here, as every locale question is.
+  const glosses = createGlosses({
+    carrier,
+    agent: (root) =>
+      resolveAgent(
+        (command) =>
+          createProcessTransport({ command: command[0] ?? '', prefixArgs: command.slice(1) }),
+        root,
+        agentCandidates({ override: agentOverride(process.env[AGENT_VAR], app.isPackaged) }),
+      ),
+    environment: (agent, root) =>
+      sessionEnvironment(
+        (command, env) =>
+          createProcessTransport({ command: command[0] ?? '', prefixArgs: command.slice(1), env }),
+        agent.command,
+        root,
+      ),
+    tag: () => localeChoice(loadSettings(app.getPath('userData')).settings.locale, app.getLocale()),
+  })
+
+  ipcMain.handle(
+    BRIDGE_CHANNELS.gloss,
+    (_event, root: unknown, id: unknown): Promise<GlossAnswer> => {
+      if (typeof root !== 'string' || typeof id !== 'string') {
+        return Promise.resolve({ kind: 'withheld', reason: 'no line was named' })
+      }
+      return glosses.gloss(root, id)
+    },
+  )
+  ipcMain.handle(BRIDGE_CHANNELS.cancelGloss, (_event, root: unknown, id: unknown): void => {
+    if (typeof root === 'string' && typeof id === 'string') glosses.cancel(root, id)
+  })
+
   ipcMain.handle(BRIDGE_CHANNELS.sessions, () => sessions.list())
   ipcMain.handle(BRIDGE_CHANNELS.stopSession, (_event, key: unknown): void => {
     if (typeof key === 'string') sessions.stop(key)
@@ -399,6 +435,9 @@ export function registerBridge(hooks: BridgeHooks = {}): Pick<Carrier, 'close'> 
     // The sessions first: each one stands in its project, and the engines it reads through
     // are the carrier's.
     close: async () => {
+      // A gloss is a read nobody is waiting on once the window is going: given up first, so
+      // quitting never waits on a question whose answer has nowhere to land.
+      glosses.close()
       await sessions.close()
       await carrier.close()
     },

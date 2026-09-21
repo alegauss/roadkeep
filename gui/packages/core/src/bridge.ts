@@ -20,6 +20,7 @@ import type { CapabilityReport } from './capabilities'
 import type { ProjectCatalogue } from './catalogue'
 import type { ResolvedEngine } from './engine-resolution'
 import type { GateHealth } from './gate'
+import type { Gloss } from './gloss'
 import type { Opening } from './opening'
 import type { BriefPayload, Declared, HeldClaim } from './payloads'
 import type { Actionable } from './repairing'
@@ -261,6 +262,23 @@ export interface RendererBridge {
    * else is a project to read in full.
    */
   check(root: string): Promise<ReadingStands>
+  /**
+   * Ask Claude Code what one task means, in plain words (RG284).
+   *
+   * **A read and not a session.** One query with no tool, nothing kept and a schema for its
+   * answer: a session (RG153) is a turn that may write and that somebody answers questions for,
+   * and asking what a line means is neither. Nothing about it joins `sessions`.
+   *
+   * **The renderer names a line, never a prompt.** The far side briefs the id itself and frames
+   * that payload, for `handOver`'s reason — a page cannot put words of its own to an agent — and
+   * the language is the one the window already runs in, which main resolved at launch.
+   */
+  gloss(root: string, id: string): Promise<GlossAnswer>
+  /**
+   * Give up on a gloss that is still running (RG284). Nothing is kept either way, and a name
+   * nothing is running under does nothing.
+   */
+  cancelGloss(root: string, id: string): Promise<void>
   /** Every session this process started, each with what it has written so far (RG153). */
   sessions(): Promise<readonly SessionRecord[]>
   /**
@@ -440,6 +458,30 @@ export type HandedOver =
   | { readonly kind: 'refused'; readonly said: string }
   /** No Claude Code answered on this machine, so nothing was taken. Every command tried. */
   | { readonly kind: 'unavailable'; readonly tried: readonly (readonly string[])[] }
+  /** Not a project the carrier opens, or not a line id. */
+  | { readonly kind: 'withheld'; readonly reason: string }
+
+/**
+ * What asking for a gloss did (RG284).
+ *
+ * Every way of not answering is its own kind, as a hand-over's is: no Claude Code on the machine,
+ * one that is not signed in, a run that failed with what it said, and one the reader gave up on.
+ * A screen says a different thing about each, and none of them is the gloss being wrong.
+ */
+export type GlossAnswer =
+  | {
+      readonly kind: 'said'
+      readonly gloss: Gloss
+      /** The model that answered and the Claude Code it ran under, as the run named them. */
+      readonly model: string
+      readonly version: string
+    }
+  /** No Claude Code answered on this machine. Every command tried, as a hand-over reports it. */
+  | { readonly kind: 'unavailable'; readonly tried: readonly (readonly string[])[] }
+  /** It ran and said nothing usable: its own words, quoted. */
+  | { readonly kind: 'failed'; readonly said: string }
+  /** The reader gave up on it, or the window closed under it. */
+  | { readonly kind: 'cancelled' }
   /** Not a project the carrier opens, or not a line id. */
   | { readonly kind: 'withheld'; readonly reason: string }
 
@@ -670,5 +712,7 @@ export const BRIDGE_CHANNELS = {
   check: 'roadkeep:check',
   sessions: 'roadkeep:sessions',
   stopSession: 'roadkeep:stop-session',
+  gloss: 'roadkeep:gloss',
+  cancelGloss: 'roadkeep:cancel-gloss',
   door: 'roadkeep:door',
 } as const satisfies Record<keyof RendererBridge, string>

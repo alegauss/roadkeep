@@ -47,6 +47,15 @@ export interface ScriptedAgentOptions {
    * a person. True unless a caller wants a run that only runs.
    */
   readonly asking?: boolean
+  /**
+   * Play the run to its end and exit, its `result` line included (RG284).
+   *
+   * A session's replay stays up on purpose — a window watches one run — and a read that answers
+   * once is the other shape: the caller waits on the result, and a process that never ends is a
+   * question that never answers. Nothing is written to the project either: writing a file is a
+   * session's doing, and a gloss has no tool to do it with.
+   */
+  readonly ends?: boolean
 }
 
 /**
@@ -202,12 +211,14 @@ function tailCycle(at: number): string[] {
  * Pure over the file's text, so which lines a session will hold is a fact a test reads without
  * starting anything.
  */
-export function scriptedLines(captured: string, tail: number): string[] {
+export function scriptedLines(captured: string, tail: number, ends = false): string[] {
   const kept = captured
     .split('\n')
     .map((line) => line.trim())
     .filter((line) => line !== '')
     .filter((line) => {
+      // A replay that ends keeps the result, which is the line its caller is waiting for.
+      if (ends) return true
       try {
         const parsed: unknown = JSON.parse(line)
         return !(
@@ -237,7 +248,7 @@ export function scriptedLines(captured: string, tail: number): string[] {
  */
 const SCRIPTED_WRITE = 'src/scripted-generated.txt'
 
-function script(linesFile: string, intervalMs: number): string {
+function script(linesFile: string, intervalMs: number, ends: boolean): string {
   return [
     "import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'",
     'const argv = process.argv.slice(2)',
@@ -259,14 +270,18 @@ function script(linesFile: string, intervalMs: number): string {
     '})',
     // Written as the run starts, the way a command a session runs writes one: no edit call
     // names it, so only a watch on the root can report it.
-    'try {',
-    "  mkdirSync('src', { recursive: true })",
-    `  writeFileSync(${JSON.stringify(SCRIPTED_WRITE)}, 'built by the scripted run\\n')`,
-    '} catch {}',
+    ends ? '// a read writes nothing' : 'try {',
+    ends ? '' : "  mkdirSync('src', { recursive: true })",
+    ends
+      ? ''
+      : `  writeFileSync(${JSON.stringify(SCRIPTED_WRITE)}, 'built by the scripted run\\n')`,
+    ends ? '' : '} catch {}',
     `const lines = JSON.parse(readFileSync(${JSON.stringify(linesFile)}, 'utf8'))`,
     'let at = 0',
     'const next = () => {',
-    '  if (at === lines.length) { setInterval(() => undefined, 1 << 30); return }',
+    ends
+      ? '  if (at === lines.length) { process.exit(0) }'
+      : '  if (at === lines.length) { setInterval(() => undefined, 1 << 30); return }',
     "  process.stdout.write(lines[at] + '\\n')",
     '  at += 1',
     `  setTimeout(next, ${String(intervalMs)})`,
@@ -276,15 +291,21 @@ function script(linesFile: string, intervalMs: number): string {
 }
 
 export function scriptedAgent(options: ScriptedAgentOptions = {}): ScriptedAgent {
+  const ends = options.ends ?? false
   const lines = [
-    ...scriptedLines(readFileSync(options.stream ?? CAPTURED_STREAM, 'utf8'), options.tail ?? 40),
-    ...(options.asking === false ? [] : [SCRIPTED_ASK]),
+    ...scriptedLines(
+      readFileSync(options.stream ?? CAPTURED_STREAM, 'utf8'),
+      options.tail ?? (ends ? 0 : 40),
+      ends,
+    ),
+    // A run that ends waits on nobody, so it has no question to wait on either.
+    ...(options.asking === false || ends ? [] : [SCRIPTED_ASK]),
   ]
   const home = mkdtempSync(path.join(tmpdir(), 'rk-scripted-agent-'))
   const linesFile = path.join(home, 'lines.json')
   const file = path.join(home, 'claude.mjs')
   writeFileSync(linesFile, JSON.stringify(lines), 'utf8')
-  writeFileSync(file, script(linesFile, options.intervalMs ?? 15), 'utf8')
+  writeFileSync(file, script(linesFile, options.intervalMs ?? 15, ends), 'utf8')
 
   return {
     command: [process.execPath, file],

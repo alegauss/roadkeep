@@ -58,33 +58,6 @@ catalogue in both languages.
 Done when a test moves `handed` through the menu, resets from the palette, and sees the
 default drawn and written.
 
-### §RG284 One read-only query, through the SDK the session already uses
-
-A session (RG273) is a turn that may write, answered by a person. A gloss is neither:
-one question, no tool that changes anything, nobody to ask. So it is its own call beside
-`startSession`, sharing what is the machine's — the `claude` RG43 resolved, the RG205
-environment, `spawnAgent` — and nothing that is a session's.
-
-**What `shell/gloss-process.ts` hands `query()`.** `cwd` the root, with the session's
-`settingSources` and preset prompt, so the project's `CLAUDE.md` supplies its
-vocabulary. `outputFormat` the RG283 schema, read back from the result's
-`structured_output`. `tools: []`, `strictMcpConfig` with no servers and `permissionMode:
-'dontAsk'`, so no tool exists and none is asked about. `persistSession: false`, so a
-gloss never joins the person's resumable sessions. A small `maxTurns`. No model: the
-person's default answers, and the `init` line names it.
-
-**The tag is main's.** `localeChoice(settings.locale, app.getLocale())` already answers
-the window's language, so the renderer never sends it.
-
-**Over the bridge** as `roadkeep:gloss` and `roadkeep:cancel-gloss`, answering the gloss
-with its model and Claude Code version, or one failure: no `claude`, signed out, failed
-with its stderr, cancelled. `explain` is roadkeep's verb for a lint code, hence another
-name.
-
-Done when a live test runs the scripted agent against `captured/gloss-stream.jsonl`,
-taken from a real run as `session-stream.jsonl` was, and a cancelled gloss leaves no
-process.
-
 ### §RG285 An Explain button, and a dialog written for somebody new
 
 **Where it is.** An Explain action in the task hero's `HeroActions`, beside Copy the

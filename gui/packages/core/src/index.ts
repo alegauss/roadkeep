@@ -15,6 +15,7 @@ export type {
   FileRefusal,
   FileText,
   GovernedFile,
+  GlossAnswer,
   Handed,
   AnsweredAsk,
   HandedOver,

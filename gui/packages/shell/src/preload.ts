@@ -64,6 +64,8 @@ const bridge: RendererBridge = {
   check: (root) => ipcRenderer.invoke(BRIDGE_CHANNELS.check, root),
   sessions: () => ipcRenderer.invoke(BRIDGE_CHANNELS.sessions),
   stopSession: (key) => ipcRenderer.invoke(BRIDGE_CHANNELS.stopSession, key),
+  gloss: (root, id) => ipcRenderer.invoke(BRIDGE_CHANNELS.gloss, root, id),
+  cancelGloss: (root, id) => ipcRenderer.invoke(BRIDGE_CHANNELS.cancelGloss, root, id),
   door: (root, offered, which, words) =>
     ipcRenderer.invoke(BRIDGE_CHANNELS.door, root, offered, which, words),
 }
