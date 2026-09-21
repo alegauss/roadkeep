@@ -152,6 +152,13 @@ INSIDE = {
         # hundred tasks.
         ("fixed", ("name", "at", "sample", "percentile", "reading", "why")),
     ),
+    # What a dep resolved to and the walk to where it ends — what an editor draws beside a
+    # blocked line. Unpromised while this repository's lines carried no deps, so the derived
+    # reading could not see either; found the day a filed block gave them some.
+    "deps": (
+        ("deps", ("dep", "kind", "status", "detail")),
+        ("chains", ("path", "via", "end", "detail")),
+    ),
 }
 
 
@@ -400,6 +407,10 @@ def test_the_keys_inside_a_row_are_there_too(verb, field, keys, dirty, populated
         where, code = claimed, EXIT_OK
     elif (verb, field) == ("engines", "gates"):
         where, code = gated, EXIT_OK
+    elif verb == "deps":
+        # A fifth: a line with a dep, which `docs/` has only while its open lines carry one.
+        # `dirty`'s single line waits on an id nothing holds, so both lists come back filled.
+        where, code = dirty, EXIT_OK
     else:
         where, code = (dirty, EXIT_GATE) if verb == "lint" else (populated, EXIT_OK)
     rows = payload(*_argv(verb, where), root=where, expected=code)[field]
