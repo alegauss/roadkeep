@@ -187,28 +187,6 @@ which is why it is written down here rather than made quietly.
 
 ## Block I — Validation (the list a person works through)
 
-### §RG294 Saying what happened
-
-The walkthrough is a read; this is the write it exists for. Under the steps, three
-answers — **it worked**, **it did not**, **there is nothing to see** — each opening the
-same small form for one sentence: what the person did and what they saw.
-
-**The sentence is required.** A verdict with no account is a tick box, and a ledger full
-of bare verdicts is the thing this block was meant to replace. The engine holds the
-limit and this app does not copy it: a refused sentence comes back as its code and
-field, and the door marks it, which is RG5 working exactly as it was built to.
-
-**`nothingToSee` pre-selects the third**, with the agent's own sentence already in the
-box to accept or rewrite. That is the only place this app suggests an answer, and it
-suggests the one that costs least to be wrong about — a walkthrough that was wrongly
-skipped is a row somebody re-opens, not a false claim in the ledger.
-
-On success the row leaves the list, because the list is a query and not a state this app
-keeps.
-
-Done when each of the three verdicts reaches a fixture ledger, and a sentence the engine
-refuses marks the field rather than closing the sheet.
-
 ### §RG295 The defect a failure found
 
 Somebody who says *it did not work* has just written the symptom of a task. Sending them

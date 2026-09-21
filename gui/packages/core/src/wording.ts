@@ -182,6 +182,19 @@ export const EN = {
   'project.validation.failed': 'Claude Code did not answer with a walkthrough: {reason}',
   'project.validation.cancelled': 'The asking was stopped, so there is nothing to show.',
   'project.validation.withheld': 'This entry was not read: {reason}',
+  // The verdicts the engine publishes (RG294). A label per word this build knows; a word it
+  // does not know is drawn as itself, because the set is the engine's and not this app's.
+  'project.validation.verdict.worked': 'It worked',
+  'project.validation.verdict.failed': 'It did not',
+  'project.validation.verdict.nothing-to-see': 'There is nothing to see',
+  'project.validation.saw': 'What you did, and what you saw',
+  'project.validation.saw.placeholder': 'One sentence, in your own words.',
+  'project.validation.send': 'Record the verdict',
+  'project.validation.sending': 'Recording it.',
+  'project.validation.sent': 'Recorded under {id}: {verdict}.',
+  'project.validation.rewrote': 'It replaced the verdict this entry already carried.',
+  'project.validation.refused': 'The engine did not take it: {said}',
+  'project.validation.unwritable': 'The verdict did not run: {reason}',
 
   'task.opening': 'Opening the line.',
   'task.refused': 'This line did not open: {reason}',

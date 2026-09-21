@@ -19,6 +19,7 @@ import { BentoEmptyState, BentoPanel } from '@viglet/viglet-design-system/bento'
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -386,9 +387,23 @@ const NOTHING_AWAITS = {
 
 export function ValidationTab({ project }: { readonly project: OpenProject }) {
   const say = useWording()
+  // A verdict lands and the list is a different list: this is a query and not a state this app
+  // keeps, so what changes is the question, and `useAnswer` asks it again (RG294).
+  const [written, setWritten] = useState(0)
+  const wrote = useCallback(() => {
+    setWritten((count) => count + 1)
+  }, [])
   const listed = useAnswer(
     () => project.client.call(project.root, 'unvalidated', {}),
-    `${project.root} unvalidated`,
+    `${project.root} unvalidated ${String(written)}`,
+  )
+  // The verdicts this engine publishes (RG294), off the capability record the opening read.
+  // Held rather than built per render: a fresh array every render is a fresh prop on every row.
+  const capabilities = project.capabilities
+  const choices = useMemo(
+    () =>
+      capabilities.kind === 'known' ? (capabilities.byVerb.validate.choices['verdict'] ?? []) : [],
+    [capabilities],
   )
   if (listed === null || 'failed' in listed)
     return <Waiting answer={listed} empty="project.validation.none" />
@@ -432,7 +447,7 @@ export function ValidationTab({ project }: { readonly project: OpenProject }) {
               )}
             </div>
             <div className="flex items-start max-sm:justify-start">
-              <Checking root={project.root} id={row.id} />
+              <Checking root={project.root} id={row.id} choices={choices} onWrote={wrote} />
             </div>
           </li>
         ))}

@@ -27,8 +27,7 @@
 
 ## Block I — Validation (the list a person works through)
 
-- 📋 **RG294** (deps: RG293 ✅) **a person who followed a walkthrough has nowhere to say what happened, so the verdict never reaches the ledger** — Three answers under the steps — it worked, it did not, there is nothing to see — each take one sentence and send it through `validate`. → §RG294
-- 📋 **RG295** (deps: RG294) **a validation that failed ends in a sentence nobody files, so the defect it found is lost at the dialog** — The sentence becomes the symptom of a line filed in the same call, so what a person saw goes back into the backlog without being typed twice. → §RG295
+- 📋 **RG295** (deps: RG294 ✅) **a validation that failed ends in a sentence nobody files, so the defect it found is lost at the dialog** — The sentence becomes the symptom of a line filed in the same call, so what a person saw goes back into the backlog without being typed twice. → §RG295
 - 📋 **RG296** (deps: RG289 ✅) **a project row says what is open and nothing about what shipped with nobody looking at it** — The row carries the count the engine already answers, so a machine of twenty backlogs shows at a glance where somebody is owed a walkthrough. → §RG296
 
 ## Done when — Block A

@@ -175,9 +175,57 @@ function answer(argv: readonly string[]): string | undefined {
                   { spelling: ['--json'], primary: '--json', takes: '' },
                 ],
               },
+              {
+                command: 'validate',
+                family: 'shipping',
+                help: 'say what a person saw when they tried a shipped entry',
+                writes: true,
+                runs: true,
+                published: true,
+                needs: '',
+                description: '',
+                // The verdicts are the engine's, published here and nowhere spelled in the
+                // client (RG294): what a screen offers is exactly this list.
+                arguments: [
+                  { spelling: ['id'], primary: 'id', positional: true, takes: 'id' },
+                  {
+                    spelling: ['verdict'],
+                    primary: 'verdict',
+                    positional: true,
+                    takes: 'verdict',
+                    choices: ['worked', 'failed', 'nothing to see'],
+                  },
+                  { spelling: ['--saw'], primary: '--saw', takes: 'SAW' },
+                  { spelling: ['--files'], primary: '--files', takes: 'SYMPTOM' },
+                  { spelling: ['--json'], primary: '--json', takes: '' },
+                ],
+              },
             ]
           : [],
       })
+    case 'validate': {
+      // The engine's own refusal when a case asks for one: nothing written, and the field it
+      // named is what the form marks (RG5).
+      const sentence = argv[argv.indexOf('--saw') + 1] ?? ''
+      if (verdictRefuses)
+        return JSON.stringify({
+          refused: [{ code: 'saw.too-long', field: 'saw', bound: '', message: 'too long' }],
+          beside: '',
+          about: '',
+          said: 'roadkeep: refused, nothing written: saw too long',
+        })
+      return JSON.stringify({
+        id,
+        file: 'docs/CHANGELOG.md',
+        line: 12,
+        verdict: argv[4] ?? '',
+        rendered: `  validated **${argv[4] ?? ''}** ${sentence}`,
+        replaced: verdictReplaces ? 'worked' : null,
+        changed: true,
+        filed: null,
+        wrote: ['docs/CHANGELOG.md'],
+      })
+    }
     case 'unvalidated':
       return JSON.stringify({
         file: 'docs/CHANGELOG.md',
@@ -354,17 +402,27 @@ let publishesUnvalidated = false
 /** Which of the four answers `unvalidated` gives, for the tab's four screens. */
 let unvalidatedState: 'awaiting' | 'none' | 'ungoverned' | 'unplaced' = 'awaiting'
 
+/** Whether the engine refuses the sentence a verdict carries (RG294). */
+let verdictRefuses = false
+
+/** Whether the entry already carried a verdict this one writes over. */
+let verdictReplaces = false
+
 async function atProject(
   over: {
     readiness?: string
     name?: string
     unvalidated?: 'awaiting' | 'none' | 'ungoverned' | 'unplaced'
     walkthrough?: RendererBridge['walkthrough']
+    verdictRefuses?: boolean
+    verdictReplaces?: boolean
   } = {},
 ): Promise<{ ran: string[][] }> {
   declaredName = over.name ?? ''
   publishesUnvalidated = over.unvalidated !== undefined
   unvalidatedState = over.unvalidated ?? 'awaiting'
+  verdictRefuses = over.verdictRefuses === true
+  verdictReplaces = over.verdictReplaces === true
   // A build that does not answer the field leaves it empty on every row, which is what the
   // reader falls back to (RG170).
   readinessOverride = over.readiness
@@ -818,5 +876,163 @@ describe('RG293: how to check one entry, on asking', () => {
     )
 
     expect((await dialog.findByTestId('check-failed')).textContent).toContain('claude.cmd')
+  })
+})
+
+/** The verdict radios, typed as what they are: inputs a test reads the checked state of. */
+function radios(dialog: ReturnType<typeof within>): HTMLInputElement[] {
+  return dialog.getAllByRole('radio').map((one: HTMLElement) => {
+    if (!(one instanceof HTMLInputElement)) throw new Error('a verdict is not a radio input')
+    return one
+  })
+}
+
+/** The sentence box, typed as what it is: a textarea a test reads the value of. */
+function dialogTextarea(dialog: ReturnType<typeof within>): HTMLTextAreaElement {
+  const box = dialog.getByTestId('verdict-saw')
+  if (!(box instanceof HTMLTextAreaElement)) throw new Error('the sentence box is not a textarea')
+  return box
+}
+
+describe('RG294: saying what happened, under the steps', () => {
+  const WALKED = {
+    kind: 'said' as const,
+    walkthrough: {
+      before: [],
+      steps: [{ does: 'open the entry', sees: 'the steps are drawn' }],
+      where: [],
+      nothingToSee: '',
+    },
+    model: 'claude-opus-5',
+    version: '2.1.278',
+    kept: true,
+    stale: false,
+    commit: '216066b89561b6e9c68f9bab67fe9ffe9ae014a9',
+  }
+
+  async function openForm(
+    over: {
+      walkthrough?: RendererBridge['walkthrough']
+      verdictRefuses?: boolean
+      verdictReplaces?: boolean
+    } = {},
+  ) {
+    const { ran } = await atProject({
+      unvalidated: 'awaiting',
+      walkthrough: over.walkthrough ?? (() => Promise.resolve(WALKED)),
+      ...(over.verdictRefuses === undefined ? {} : { verdictRefuses: over.verdictRefuses }),
+      ...(over.verdictReplaces === undefined ? {} : { verdictReplaces: over.verdictReplaces }),
+    })
+    fireEvent.click(await screen.findByTestId('validation-tab'))
+    const rows = await screen.findAllByTestId('unvalidated')
+    fireEvent.click(within(rows[0] as HTMLElement).getByTestId('check'))
+    const dialog = within(await screen.findByTestId('check-dialog'))
+    await dialog.findByTestId('verdict-form')
+    return { dialog, ran }
+  }
+
+  it('offers exactly the verdicts the engine published, and none of its own', async () => {
+    const { dialog } = await openForm()
+
+    const chips = dialog.getAllByTestId('verdict-choice')
+    expect(chips.map((chip) => chip.dataset['verdict'])).toEqual([
+      'worked',
+      'failed',
+      'nothing to see',
+    ])
+    // Each said in this window's language, which is a label and not the set.
+    expect(dialog.getByText(BASE['project.validation.verdict.worked'])).toBeTruthy()
+  })
+
+  it('sends the verdict and the sentence through validate, as the write table spells it', async () => {
+    const { dialog, ran } = await openForm()
+
+    fireEvent.click(dialog.getByText(BASE['project.validation.verdict.worked']))
+    fireEvent.change(dialog.getByTestId('verdict-saw'), {
+      target: { value: 'Opened it and the listing came back.' },
+    })
+    fireEvent.click(dialog.getByTestId('verdict-send'))
+
+    await waitFor(() => {
+      expect(dialog.queryByTestId('verdict-wrote')).toBeTruthy()
+    })
+    const sent = ran.find((argv) => argv.includes('validate'))
+    // Two positionals in the verb's order, then the sentence as one argument.
+    expect(sent?.slice(sent.indexOf('validate') + 1, sent.indexOf('validate') + 3)).toEqual([
+      'AL4',
+      'worked',
+    ])
+    expect(sent).toContain('Opened it and the listing came back.')
+  })
+
+  it('will not send a verdict with no account of it, which is a tick box', async () => {
+    const { dialog, ran } = await openForm()
+
+    fireEvent.click(dialog.getByText(BASE['project.validation.verdict.failed']))
+    fireEvent.click(dialog.getByTestId('verdict-send'))
+
+    expect(ran.some((argv) => argv.includes('validate'))).toBe(false)
+  })
+
+  it('marks a sentence the engine refused, rather than closing the sheet', async () => {
+    const { dialog } = await openForm({ verdictRefuses: true })
+
+    fireEvent.click(dialog.getByText(BASE['project.validation.verdict.worked']))
+    fireEvent.change(dialog.getByTestId('verdict-saw'), { target: { value: 'far too much' } })
+    fireEvent.click(dialog.getByTestId('verdict-send'))
+
+    // The engine's own sentence, quoted, and the form still there to correct.
+    expect((await dialog.findByTestId('verdict-refused')).textContent).toContain('saw too long')
+    expect(dialog.getByTestId('verdict-form')).toBeTruthy()
+  })
+
+  it('says a second verdict wrote over the first, since the last one wins', async () => {
+    const { dialog } = await openForm({ verdictReplaces: true })
+
+    fireEvent.click(dialog.getByText(BASE['project.validation.verdict.worked']))
+    fireEvent.change(dialog.getByTestId('verdict-saw'), { target: { value: 'It worked.' } })
+    fireEvent.click(dialog.getByTestId('verdict-send'))
+
+    expect(await dialog.findByTestId('verdict-replaced')).toBeTruthy()
+  })
+
+  it('pre-selects the one answer it suggests, with the run own sentence in the box', async () => {
+    const { dialog } = await openForm({
+      walkthrough: () =>
+        Promise.resolve({
+          ...WALKED,
+          walkthrough: {
+            before: [],
+            steps: [],
+            where: [],
+            nothingToSee: 'Two rows in a verb table: nothing is drawn.',
+          },
+        }),
+    })
+
+    const chosen = radios(dialog).find((radio) => radio.checked)
+    expect(chosen?.value).toBe('nothing to see')
+    // The agent's own words, to accept or rewrite — the only answer this app ever suggests.
+    expect(dialogTextarea(dialog).value).toBe('Two rows in a verb table: nothing is drawn.')
+  })
+
+  it('suggests nothing where the run found something to open', async () => {
+    const { dialog } = await openForm()
+
+    expect(radios(dialog).every((radio) => !radio.checked)).toBe(true)
+    expect(dialogTextarea(dialog).value).toBe('')
+  })
+
+  it('asks the list again once a verdict lands, since the list is a query', async () => {
+    const { dialog, ran } = await openForm()
+    const before = ran.filter((argv) => argv.includes('unvalidated')).length
+
+    fireEvent.click(dialog.getByText(BASE['project.validation.verdict.worked']))
+    fireEvent.change(dialog.getByTestId('verdict-saw'), { target: { value: 'It worked.' } })
+    fireEvent.click(dialog.getByTestId('verdict-send'))
+
+    await waitFor(() => {
+      expect(ran.filter((argv) => argv.includes('unvalidated')).length).toBeGreaterThan(before)
+    })
   })
 })

@@ -44,6 +44,16 @@ export interface CommandArgument {
   readonly takes: string
   readonly repeatable: boolean
   readonly required: boolean
+  /**
+   * The values this argument accepts, where the engine bounds them. Empty for most (RG294).
+   *
+   * Read rather than written, and the reason is *no rule compiled into the client*: `validate`
+   * takes one of a set of verdicts, and a screen offering buttons for a set spelled here would
+   * offer the wrong ones the day the engine grows a fourth — or go on offering one it dropped.
+   * What is spelled on this side is a label per word it knows, and a word it does not know is
+   * drawn as itself.
+   */
+  readonly choices: readonly string[]
   readonly help: string
 }
 
@@ -54,6 +64,7 @@ export const readCommandArgument: Reader<CommandArgument> = record<CommandArgume
   takes: orMissing(aString, ''),
   repeatable: orMissing(aBoolean, false),
   required: orMissing(aBoolean, false),
+  choices: orMissing(listOf(aString), []),
   help: orMissing(aString, ''),
 })
 
@@ -180,6 +191,15 @@ export interface Capability {
   readonly writes: boolean
   /** Flags this app would send that this build does not accept. Empty is the good case. */
   readonly missingFlags: readonly string[]
+  /**
+   * What each bounded argument accepts, by the name the engine spells it with (RG294).
+   *
+   * Carried here because a screen holds the capability record and not the payload it was read
+   * from, and because the alternative is a set spelled on this side: *no rule compiled into the
+   * client*, and `validate`'s verdicts are exactly such a set. An argument the engine bounds by
+   * nothing is absent rather than empty, so there is one question and not two.
+   */
+  readonly choices: Readonly<Record<string, readonly string[]>>
 }
 
 export type CapabilityReport =
@@ -267,6 +287,7 @@ function capabilityOf(verb: CalledName, command: PublishedCommand | undefined): 
       onToolSurface: command?.published ?? false,
       writes: false,
       missingFlags: [],
+      choices: {},
     }
   }
 
@@ -277,6 +298,11 @@ function capabilityOf(verb: CalledName, command: PublishedCommand | undefined): 
     onToolSurface: command.published,
     writes: command.writes,
     missingFlags: flagsFor(verb).filter((flag) => !accepted.has(flag)),
+    choices: Object.fromEntries(
+      command.arguments
+        .filter((argument) => argument.choices.length > 0)
+        .map((argument) => [argument.primary, argument.choices]),
+    ),
   }
 }
 
