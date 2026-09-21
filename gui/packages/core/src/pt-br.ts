@@ -221,6 +221,11 @@ export const PT_BR: Wording = {
   'session.card.dropped.right':
     'Cartão “{card}” solto na barra lateral direita, na posição {place}.',
   'session.card.back': 'O cartão “{card}” voltou para onde estava.',
+  'session.card.menu': 'Organizar o cartão “{card}”',
+  'session.card.toLeft': 'Mover para a barra lateral esquerda',
+  'session.card.toRight': 'Mover para a barra lateral direita',
+  'session.card.up': 'Mover para cima',
+  'session.card.down': 'Mover para baixo',
   'session.stream': 'O fluxo',
   'session.stream.empty': 'Nada foi escrito ainda.',
   'session.follow': 'Ir para o fim',
@@ -483,6 +488,9 @@ export const PT_BR: Wording = {
   'settings.notes': 'Notas de sistema',
   'settings.notes.shown': 'Mostrar cada uma',
   'settings.notes.hidden': 'Agrupar e contar',
+  'settings.cards': 'Cartões da sessão',
+  'settings.cards.reset': 'Devolver ao lugar de origem',
+  'settings.cards.default': 'No lugar de origem',
 
   'settings.lost.unparsable': '{file} não pode ser lido como JSON, então ele fica intacto',
   'settings.lost.file':

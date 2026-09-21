@@ -26,7 +26,13 @@ import {
   type SessionLayout,
   type SessionSide,
 } from '@rk/core'
-import { IconGripVertical } from '@tabler/icons-react'
+import { IconDotsVertical, IconGripVertical } from '@tabler/icons-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@viglet/viglet-design-system'
 import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react'
 
 import { chooseSessionLayout, useSessionLayout } from './preferring'
@@ -54,7 +60,8 @@ import { useWording } from './wording'
  *
  * **The grip is drawn from `xl`**, where two side bars exist. A key moves a card by places, not
  * by pixels: Space picks it up, the arrows choose a place, Space drops it and Escape puts it
- * back, each said in the window's language.
+ * back, each said in the window's language. Beside the grip, a menu makes the same moves with no
+ * drag at all (RG278), one arrow key's step per entry.
  */
 
 const SIDES: readonly SessionSide[] = ['left', 'right']
@@ -205,17 +212,102 @@ function Lifted({ card }: { readonly card: SessionCard }) {
   )
 }
 
+/**
+ * The same moves without a drag (RG278), as VS Code's Move View is beside its drag: to the other
+ * side bar, up and down. An entry that would move nothing is not offered — up on the first card,
+ * down on the last — and each is the step an arrow key takes, so a menu and a key agree.
+ */
+function CardMenu({
+  card,
+  side,
+  first,
+  last,
+  onStep,
+  onTrigger,
+  refocus,
+}: {
+  readonly card: SessionCard
+  readonly side: SessionSide
+  readonly first: boolean
+  readonly last: boolean
+  readonly onStep: (card: SessionCard, step: CardStep) => void
+  readonly onTrigger: (card: SessionCard, node: HTMLButtonElement | null) => void
+  readonly refocus: (card: SessionCard) => void
+}) {
+  const say = useWording()
+  const across = useCallback(() => {
+    onStep(card, side === 'left' ? 'right' : 'left')
+  }, [card, side, onStep])
+  const up = useCallback(() => {
+    onStep(card, 'up')
+  }, [card, onStep])
+  const down = useCallback(() => {
+    onStep(card, 'down')
+  }, [card, onStep])
+  const kept = useCallback(
+    (node: HTMLButtonElement | null) => {
+      onTrigger(card, node)
+    },
+    [card, onTrigger],
+  )
+  // A card moved to the other side bar is drawn anew there, so the trigger the menu would hand
+  // focus back to is gone: focus goes to this card's trigger wherever it is drawn now.
+  const closed = useCallback(
+    (event: Event) => {
+      event.preventDefault()
+      refocus(card)
+    },
+    [card, refocus],
+  )
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          ref={kept}
+          type="button"
+          aria-label={say('session.card.menu', { card: say(CARD_TEXT[card]) })}
+          className="text-muted-foreground hover:text-foreground inline-flex rounded p-0.5 opacity-0 group-hover/card:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
+        >
+          <IconDotsVertical size={14} aria-hidden="true" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" onCloseAutoFocus={closed}>
+        <DropdownMenuItem onSelect={across}>
+          {say(side === 'left' ? 'session.card.toRight' : 'session.card.toLeft')}
+        </DropdownMenuItem>
+        {first ? null : <DropdownMenuItem onSelect={up}>{say('session.card.up')}</DropdownMenuItem>}
+        {last ? null : (
+          <DropdownMenuItem onSelect={down}>{say('session.card.down')}</DropdownMenuItem>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
 function MovableCard({
   card,
+  side,
+  first,
+  last,
   lifted,
   line,
   onNode,
+  onStep,
+  onTrigger,
+  refocus,
   children,
 }: {
   readonly card: SessionCard
+  readonly side: SessionSide
+  readonly first: boolean
+  readonly last: boolean
   readonly lifted: boolean
   readonly line: 'before' | 'after' | null
   readonly onNode: (card: SessionCard, node: HTMLDivElement | null) => void
+  readonly onStep: (card: SessionCard, step: CardStep) => void
+  readonly onTrigger: (card: SessionCard, node: HTMLButtonElement | null) => void
+  readonly refocus: (card: SessionCard) => void
   readonly children: ReactNode
 }) {
   const say = useWording()
@@ -243,17 +335,29 @@ function MovableCard({
           data-testid="card-line"
         />
       ) : null}
-      {/* Before the card in the document, so Tab reaches the grip at the card's title. */}
-      <button
-        ref={setNodeRef}
-        type="button"
-        {...attributes}
-        {...listeners}
-        aria-label={say('session.card.grip', { card: say(CARD_TEXT[card]) })}
-        className="text-muted-foreground hover:text-foreground absolute top-4 right-4 z-10 inline-flex cursor-grab rounded p-0.5 opacity-0 group-hover/card:opacity-100 focus-visible:opacity-100 max-xl:invisible"
-      >
-        <IconGripVertical size={14} aria-hidden="true" />
-      </button>
+      {/* Before the card in the document, so Tab reaches the grip and then the menu at the
+          card's title. */}
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-0.5 max-xl:invisible">
+        <button
+          ref={setNodeRef}
+          type="button"
+          {...attributes}
+          {...listeners}
+          aria-label={say('session.card.grip', { card: say(CARD_TEXT[card]) })}
+          className="text-muted-foreground hover:text-foreground inline-flex cursor-grab rounded p-0.5 opacity-0 group-hover/card:opacity-100 focus-visible:opacity-100"
+        >
+          <IconGripVertical size={14} aria-hidden="true" />
+        </button>
+        <CardMenu
+          card={card}
+          side={side}
+          first={first}
+          last={last}
+          onStep={onStep}
+          onTrigger={onTrigger}
+          refocus={refocus}
+        />
+      </div>
       {children}
       {line === 'after' ? (
         <span
@@ -405,6 +509,32 @@ export function SessionCards({
     if (now !== null) setSaid(say('session.card.back', { card: say(CARD_TEXT[now.card]) }))
   }, [say, settle])
 
+  // A menu entry: the step an arrow key takes, kept as a drop is (RG278).
+  const stepped = useCallback(
+    (card: SessionCard, step: CardStep) => {
+      const from = placeOf(layout, card)
+      if (from === null) return
+      const to = steppedPlace(layout, card, from, step)
+      const lands = moveCard(layout, card, to.side, to.index)
+      if (sameLayout(lands, layout)) return
+      setSaid(say(DROPPED_TEXT[to.side], { card: say(CARD_TEXT[card]), place: to.index + 1 }))
+      chooseSessionLayout(lands)
+    },
+    [layout, say],
+  )
+
+  const triggers = useRef(new Map<SessionCard, HTMLButtonElement>())
+  const menuHeld = useCallback((card: SessionCard, node: HTMLButtonElement | null) => {
+    if (node === null) triggers.current.delete(card)
+    else triggers.current.set(card, node)
+  }, [])
+  // After the frame the move is drawn in, so the trigger found is the one drawn now.
+  const refocus = useCallback((card: SessionCard) => {
+    requestAnimationFrame(() => {
+      triggers.current.get(card)?.focus()
+    })
+  }, [])
+
   const keys = useMemo(() => {
     const coordinateGetter: KeyboardCoordinateGetter = (event) => {
       const step = STEPS.get(event.code)
@@ -454,13 +584,19 @@ export function SessionCards({
             moving={lifted !== null}
             aimed={line?.kind === 'strip' && line.side === side}
           >
-            {layout[side].map((card) => (
+            {layout[side].map((card, index, all) => (
               <MovableCard
                 key={card}
                 card={card}
+                side={side}
+                first={index === 0}
+                last={index === all.length - 1}
                 lifted={lifted === card}
                 line={line?.kind === 'card' && line.card === card ? line.edge : null}
                 onNode={held}
+                onStep={stepped}
+                onTrigger={menuHeld}
+                refocus={refocus}
               >
                 {cards[card]}
               </MovableCard>

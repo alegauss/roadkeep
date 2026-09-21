@@ -38,30 +38,25 @@ screen's stream does not show them.
 **What a resume asks first.** Why the panel never opened, which window answers a link,
 and whether the session's own folder has to be open in it.
 
-### §RG278 Moving a card without dragging it, and putting them all back
+### §RG278 Resetting the session cards from the command palette
 
-A drag is not every person's way to move something, and VS Code does not rely on it
-alone: a view's title menu has Move View, and the palette has View: Reset View
-Locations. The session screen needs both beside the drag RG277 builds.
+VS Code offers View: Reset View Locations from its command palette. The session screen's
+cards have the title menu and the Settings button that part of this line built
+(`session-cards.tsx`, `Settings.tsx`), and no palette command.
 
-Each side card's title gets a menu, the design system's `DropdownMenu`, with three
-entries: move to the other side bar, move up, move down. An entry that would do nothing,
-up on the first card, is not offered. Each is a `steppedPlace` step, as an arrow key in
-`session-cards.tsx` is, then the `moveCard` RG276 adds, and is written as a drop is, so
-one path reaches the file.
+The palette cannot hold one yet. `BentoCommandPalette` takes the nav surfaces and one
+product `group`, and the line search already fills that group: a command put in it would
+be listed under the heading that counts the backlogs searched. A nav item is a route and
+not an action.
 
-Resetting writes `DEFAULT_SETTINGS.sessionLayout` back, so the default lives in one
-place. It is offered twice: as a command in the shell's `BentoCommandPalette`, where VS
-Code puts it, and as a button on the Settings screen beside how a session draws its
-notes, where a person looks for what they changed. Neither is offered while the
-arrangement already is the default.
+So this half waits on the design system: a second group, or a list of commands the
+palette matches like its surfaces. When that ships, the command calls the `putCardsBack`
+in `Settings.tsx`, which writes `DEFAULT_SETTINGS.sessionLayout` back whole, and is not
+offered while `sameLayout` says the arrangement is the default. Its name comes from the
+catalogue in both languages.
 
-The entries, the command and the button come from the catalogue in both languages, and
-the menu is reached by Tab from the card's title.
-
-Done when a test moves `handed` to the right side bar through the menu, resets from the
-palette, and sees the default drawn and written; and when the accessibility report
-beside `npm run shots` names the menu.
+Done when a test moves `handed` through the menu, resets from the palette, and sees the
+default drawn and written.
 
 ### §RG279 Side bars that keep the width they were dragged to
 

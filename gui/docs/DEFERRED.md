@@ -13,6 +13,7 @@
 ## Block F — The agent surface (handing one task to Claude Code)
 
 - ⏸ **RG274** (deps: —) **a session that stopped in the window cannot be picked up in VS Code, where the person reads the code it changed** — set aside (no panel opened): The Claude Code extension opens a session by id from a link, and every record here already holds that id with no way to hand it over. → §RG274
+- ⏸ **RG278** (deps: RG277 ✅) **a session card moves only under a pointer drag, and an arrangement nobody wants is undone one card at a time** — set aside (Waits on a design system release.): Reset from the command palette waits on BentoCommandPalette taking a second group; the line search holds its only one. → §RG278
 
 ## Block G — The shell (an executable now, a service later)
 

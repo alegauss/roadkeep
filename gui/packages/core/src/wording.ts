@@ -240,6 +240,12 @@ export const EN = {
   'session.card.dropped.right':
     'Dropped the “{card}” card in the right side bar, at place {place}.',
   'session.card.back': 'The “{card}” card is back where it was.',
+  // The same moves without a drag, from a menu on the card's title (RG278).
+  'session.card.menu': 'Arrange the “{card}” card',
+  'session.card.toLeft': 'Move to the left side bar',
+  'session.card.toRight': 'Move to the right side bar',
+  'session.card.up': 'Move up',
+  'session.card.down': 'Move down',
   'session.stream': 'The stream',
   'session.stream.empty': 'Nothing has been written yet.',
   'session.follow': 'Jump to latest',
@@ -498,6 +504,9 @@ export const EN = {
   'settings.notes': 'System notes',
   'settings.notes.shown': 'Show each one',
   'settings.notes.hidden': 'Fold and count them',
+  'settings.cards': 'Session cards',
+  'settings.cards.reset': 'Put them back where they started',
+  'settings.cards.default': 'Where they started',
 
   'settings.lost.unparsable': '{file} is not readable as JSON, so it is left alone',
   'settings.lost.file':

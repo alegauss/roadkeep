@@ -38,6 +38,26 @@ function grip(card: SessionCard): HTMLElement {
   })
 }
 
+function menu(card: SessionCard): HTMLElement {
+  return screen.getByRole('button', {
+    name: fill(BASE['session.card.menu'], { card: TITLE[card] }),
+  })
+}
+
+/** The entries a card's open menu offers, by name. */
+async function offered(): Promise<string[]> {
+  await screen.findByRole('menu')
+  return screen.getAllByRole('menuitem').map((item) => item.textContent)
+}
+
+/** Close the open menu, and wait for the page it hid from the reader to come back. */
+async function dismissed(): Promise<void> {
+  await userEvent.keyboard('{Escape}')
+  await waitFor(() => {
+    expect(screen.queryByRole('menu')).toBeNull()
+  })
+}
+
 function said(): string {
   return screen.getByTestId('card-said').textContent
 }
@@ -182,5 +202,63 @@ describe('RG277: a card moved with the keys alone', () => {
     })
     expect(screen.queryByTestId('card-strip')).toBeNull()
     expect(box('moved').right).toBeLessThanOrEqual(box('stream').left)
+  })
+})
+
+describe('RG278: a card moved from the menu on its title', () => {
+  it('moves what was handed over to the right side bar, and hands focus back to its menu', async () => {
+    const wired = await opened()
+
+    await userEvent.click(menu('handed'))
+    await userEvent.click(
+      await screen.findByRole('menuitem', { name: BASE['session.card.toRight'] }),
+    )
+
+    await waitFor(() => {
+      expect(wired.preferred).toEqual([
+        { key: 'sessionLayout', value: { left: [], right: ['handed', 'moved', 'files'] } },
+      ])
+    })
+    // Drawn anew on the right, the stream taking the left column, and focus where it was.
+    expect(box('stream').right).toBeLessThanOrEqual(box('handed').left)
+    expect(said()).toBe(fill(BASE['session.card.dropped.right'], { card: TITLE.handed, place: 1 }))
+    await waitFor(() => {
+      expect(document.activeElement).toBe(menu('handed'))
+    })
+  })
+
+  it('offers only the entries that would move the card', async () => {
+    await opened()
+
+    // What moved is first of two on the right: nothing above it.
+    await userEvent.click(menu('moved'))
+    expect(await offered()).toEqual([BASE['session.card.toLeft'], BASE['session.card.down']])
+    await dismissed()
+
+    // The files are last: nothing below them.
+    await userEvent.click(menu('files'))
+    expect(await offered()).toEqual([BASE['session.card.toLeft'], BASE['session.card.up']])
+    await dismissed()
+
+    // What was handed over is alone on the left: only the other side bar.
+    await userEvent.click(menu('handed'))
+    expect(await offered()).toEqual([BASE['session.card.toRight']])
+  })
+
+  it('reorders along a side bar, and is reached by Tab from the card grip', async () => {
+    const wired = await opened()
+
+    grip('files').focus()
+    await userEvent.tab()
+    expect(document.activeElement).toBe(menu('files'))
+    await userEvent.keyboard('{Enter}')
+    await userEvent.click(await screen.findByRole('menuitem', { name: BASE['session.card.up'] }))
+
+    await waitFor(() => {
+      expect(wired.preferred).toEqual([
+        { key: 'sessionLayout', value: { left: ['handed'], right: ['files', 'moved'] } },
+      ])
+    })
+    expect(box('files').bottom).toBeLessThanOrEqual(box('moved').top)
   })
 })

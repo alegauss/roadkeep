@@ -12,7 +12,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { SETTINGS_ROUTE } from './areas'
 import { drawWindow } from './harness'
-import { holdSessionNotes } from './preferring'
+import { holdSessionLayout, holdSessionNotes } from './preferring'
 import { startSpeaking } from './speaking'
 import { stubBridge } from './stub-bridge'
 
@@ -50,6 +50,7 @@ afterEach(async () => {
   Reflect.deleteProperty(window, 'roadkeep')
   // One value for the window's life, so a choice one test made is the next test's start.
   holdSessionNotes('shown')
+  holdSessionLayout(DEFAULT_SETTINGS.sessionLayout)
   if (i18next.isInitialized) await changeLanguage('en')
 })
 
@@ -138,6 +139,31 @@ describe('RG207: the settings screen', () => {
         .getByRole('radio', { name: BASE['settings.notes.hidden'] })
         .getAttribute('aria-checked'),
     ).toBe('true')
+  })
+
+  it('puts moved session cards back where they started, as the sessionLayout row (RG278)', async () => {
+    const kept = recording()
+    holdSessionLayout({ left: [], right: ['handed', 'moved', 'files'] })
+    drawWindow({ initial: 'light', at: SETTINGS_ROUTE })
+
+    const sessions = within(await screen.findByTestId('sessions-settings'))
+    fireEvent.click(sessions.getByRole('button', { name: BASE['settings.cards.reset'] }))
+
+    // The default itself, written whole: there is one of it, and it is the settings file's.
+    await waitFor(() => {
+      expect(kept).toEqual([['sessionLayout', DEFAULT_SETTINGS.sessionLayout]])
+    })
+    expect(sessions.queryByRole('button', { name: BASE['settings.cards.reset'] })).toBeNull()
+    expect(sessions.getByText(BASE['settings.cards.default'])).toBeTruthy()
+  })
+
+  it('offers no way back while the session cards are where they started (RG278)', async () => {
+    recording()
+    drawWindow({ initial: 'light', at: SETTINGS_ROUTE })
+
+    const sessions = within(await screen.findByTestId('sessions-settings'))
+    expect(sessions.getByText(BASE['settings.cards.default'])).toBeTruthy()
+    expect(sessions.queryByRole('button', { name: BASE['settings.cards.reset'] })).toBeNull()
   })
 
   it('says a refused write was not kept, rather than looking kept until the next launch', async () => {

@@ -1,19 +1,26 @@
 import {
+  DEFAULT_SETTINGS,
   isSessionNotes,
   isTheme,
+  sameLayout,
   THEME_ORDER,
   type MessageKey,
   type SessionNotes,
   type Theme,
 } from '@rk/core'
 import { IconCheck, IconPalette, IconTerminal2 } from '@tabler/icons-react'
-import { ToggleGroup, ToggleGroupItem } from '@viglet/viglet-design-system'
+import { Button, ToggleGroup, ToggleGroupItem } from '@viglet/viglet-design-system'
 import { BentoFormSection, BentoHero } from '@viglet/viglet-design-system/bento'
 import { changeLanguage } from 'i18next'
 import { useCallback, useId, useMemo } from 'react'
 
 import { useGround } from './ground'
-import { chooseSessionNotes, useSessionNotes } from './preferring'
+import {
+  chooseSessionLayout,
+  chooseSessionNotes,
+  useSessionLayout,
+  useSessionNotes,
+} from './preferring'
 import { SPOKEN_LOCALES, useSpokenLocale } from './speaking'
 import { useWording } from './wording'
 
@@ -117,6 +124,36 @@ function Choice({
   )
 }
 
+/** The default arrangement, written back whole: the default lives in one place (RG278). */
+function putCardsBack(): void {
+  chooseSessionLayout(DEFAULT_SETTINGS.sessionLayout)
+}
+
+/**
+ * Where a session's cards sit, and the way back to where they started (RG278).
+ *
+ * The cards are moved on the session screen and not here; this is where a person looks for what
+ * they changed, which is why putting them back is offered beside how a session draws its notes.
+ * Nothing to put back while they are where they started, so the row says so instead.
+ */
+function CardsBack() {
+  const say = useWording()
+  const moved = !sameLayout(useSessionLayout(), DEFAULT_SETTINGS.sessionLayout)
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <span className="text-sm font-medium">{say('settings.cards')}</span>
+      {moved ? (
+        <Button variant="outline" size="sm" onClick={putCardsBack}>
+          {say('settings.cards.reset')}
+        </Button>
+      ) : (
+        <span className="text-muted-foreground text-sm">{say('settings.cards.default')}</span>
+      )}
+    </div>
+  )
+}
+
 export function Settings() {
   const say = useWording()
   const { theme, setTheme } = useGround()
@@ -187,6 +224,7 @@ export function Settings() {
             options={noteChoices}
             onChoose={chooseNotes}
           />
+          <CardsBack />
         </div>
       </BentoFormSection>
     </>

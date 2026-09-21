@@ -191,6 +191,7 @@
 - ✅ **RG275** **a session a task hands over grows the page with every act, where one the gate hands over scrolls in its stream** — A task's session scrolls inside its stream like the gate's: the region mounts with its first act and is measured then (design recorded in `packages/ui/src/Session.tsx`).
 - ✅ **RG276** **the settings file has nowhere to keep how the session screen's cards are arranged, so none outlives the window** — settings.json keeps the session cards as sessionLayout, repaired card by card on read, with a pure moveCard and a strict preference row (design recorded in `packages/core/src/settings.ts`).
 - ✅ **RG277** **the session screen's side cards stay where the grid puts them, and cannot be dragged to the other side or reordered** — A session card moves by its title grip, by pointer or keys, to a place drawn as an insertion line, and settings keep the move (design recorded in `packages/ui/src/session-cards.tsx`).
+- ✅ **RG278 (title menu and Settings reset)** **a session card moves only under a pointer drag, and an arrangement nobody wants is undone one card at a time** — Each session card's title menu moves it across or along without a drag, and Settings puts every card back where it started.
 
 ## Block G — The shell (an executable now, a service later)
 
