@@ -1,9 +1,12 @@
 import {
+  actsOf,
   bridgedRun,
   DECLINED,
   EngineCallFailed,
   openedFrom,
   openProject,
+  replyLine,
+  replyOf,
   type AgentResolution,
   type MoveSeen,
   type OpenedProject,
@@ -632,9 +635,10 @@ describe('RG269: answering a session that stopped', () => {
 
     expect(replied.kind).toBe('started')
     if (replied.kind !== 'started') return
-    // The same key and the same record: its lines are where they were, and it runs again.
+    // The same key and the same record: its lines are where they were, with the reply on the
+    // end of them (RG303), and it runs again.
     expect(replied.session.key).toBe(key)
-    expect(replied.session.lines).toHaveLength(1)
+    expect(replied.session.lines).toHaveLength(2)
     expect(replied.session.outcome).toBeNull()
     // The reply goes as it was typed, continuing the session by its own id.
     const [, resumed] = fake.calls
@@ -651,8 +655,9 @@ describe('RG269: answering a session that stopped', () => {
 
     fake.write('{"type":"assistant"}')
 
-    expect(published).toContainEqual({ session: key, index: 1, line: '{"type":"assistant"}' })
-    expect(made.list().find((one) => one.key === key)?.lines).toHaveLength(2)
+    // Place 1 is the reply's (RG303), so the turn it started begins at 2.
+    expect(published).toContainEqual({ session: key, index: 2, line: '{"type":"assistant"}' })
+    expect(made.list().find((one) => one.key === key)?.lines).toHaveLength(3)
   })
 
   it('refuses a key it holds nothing under, an empty reply and a session still running', async () => {
@@ -686,6 +691,44 @@ describe('RG269: answering a session that stopped', () => {
 
     expect(replied).toEqual({ kind: 'held', held: [HOLDER] })
     expect(fake.calls).toHaveLength(1)
+  })
+})
+
+describe('RG303: the reply on the record it was sent to', () => {
+  async function stopped() {
+    const made = await sessions()
+    const handed = await made.made.handOver(ROOT, 'FX1')
+    if (handed.kind !== 'started') throw new Error('not started')
+    made.fake.write('{"type":"system","subtype":"init","session_id":"s-42"}')
+    made.fake.end({ ...DONE, sessionId: 's-42', result: 'Which of the two remedies?' })
+    await Promise.resolve()
+    await Promise.resolve()
+    return { ...made, key: handed.session.key }
+  }
+
+  it('keeps the words as a line of the stream, published with their place', async () => {
+    const { made, published, key } = await stopped()
+
+    await made.reply(key, 'The first one.')
+
+    const wrote = replyLine('The first one.')
+    expect(made.list().find((one) => one.key === key)?.lines[1]).toBe(wrote)
+    expect(published).toContainEqual({ session: key, index: 1, line: wrote })
+    // Read back the way a window reads it: the person's own act, not a turn of the session's.
+    const [act] = actsOf(wrote, 1)
+    expect(act).toEqual({ kind: 'replied', seq: 1, text: 'The first one.', line: wrote })
+  })
+
+  it('writes nothing for a reply that resumed nothing', async () => {
+    const { made, published, taken, key } = await stopped()
+
+    // Somebody else took the line while it sat stopped, so no turn starts — and a record
+    // carrying a reply the session never read would be a record of a turn that never happened.
+    taken.add('FX1')
+    expect((await made.reply(key, 'The first one.')).kind).toBe('held')
+
+    expect(made.list().find((one) => one.key === key)?.lines).toHaveLength(1)
+    expect(published.some((event) => 'line' in event && replyOf(event.line) !== null)).toBe(false)
   })
 })
 

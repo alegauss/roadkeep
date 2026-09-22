@@ -308,6 +308,7 @@ export const EN = {
   'session.act.roadkeep': 'roadkeep call',
   'session.act.governed': 'touches {files}',
   'session.act.failed': 'failed',
+  'session.act.replied': 'you replied',
   'session.act.raw': 'the raw line',
   'session.moved': 'What moved',
   'session.moved.none': 'Nothing about the line has moved yet.',

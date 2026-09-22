@@ -15,6 +15,7 @@ import {
   promptFor,
   promptForDoor,
   readLintPayload,
+  replyLine,
   resumeCall,
   sessionCall,
   MOVES_QUIET_MS,
@@ -357,6 +358,13 @@ export function createSessions(options: SessionsOptions): Sessions {
       const inherits = await env
 
       const [command = ''] = found.agent.command
+      // The words go on the record before anything else moves (RG303), published with their place
+      // exactly as `onLine` publishes the session's own: one path, so what the record carries and
+      // what a live window hears cannot disagree, and a window that hears the resume already holds
+      // what caused it.
+      const wrote = replyLine(text)
+      session.lines.push(wrote)
+      options.publish({ session: session.key, index: session.lines.length - 1, line: wrote })
       // The outcome goes before the process starts, and every window watching is told: what it
       // holds is over, and the lines that follow are a turn still going.
       session.outcome = null

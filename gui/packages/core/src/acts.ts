@@ -23,6 +23,7 @@
 import { askOf, type PermissionAsk } from './asking'
 import type { EditedFile } from './bridge'
 import { asRecord } from './reading'
+import { replyOf } from './session'
 
 /**
  * What this project counts as its own, so nothing here is a literal.
@@ -132,6 +133,13 @@ export type Act =
       readonly on: string
       readonly line: string
     }
+  /**
+   * What the person typed as a reply to the session (RG303), on the record where they sent it.
+   *
+   * An act of its own kind rather than something the session said: the words are not the agent's,
+   * and folding them into the notes (RG208) would hide the half of the turn a reader came for.
+   */
+  | { readonly kind: 'replied'; readonly seq: number; readonly text: string; readonly line: string }
   /** Read and drawn as nothing more: thinking, rate limits, accounting. */
   | { readonly kind: 'note'; readonly seq: number; readonly about: string; readonly line: string }
 
@@ -192,6 +200,11 @@ export function actsOf(line: string, from: number, marks: Marks = NOTHING_MARKED
   const ask = askOf(trimmed)
   if (ask !== null)
     return [{ kind: 'asked', seq: next(), ask, on: subjectOf(ask.input), line: trimmed }]
+
+  // The one line in the stream this app wrote itself (RG303). Read before the type is looked at,
+  // since it carries a type no branch below claims.
+  const reply = replyOf(trimmed)
+  if (reply !== null) return [{ kind: 'replied', seq: next(), text: reply, line: trimmed }]
 
   if (type === 'assistant') {
     return contentOf(object).flatMap((part): Act[] => {
@@ -645,6 +658,7 @@ function standingOf(at: EditedFile | undefined, started: string): DiskStanding {
 export function actLine(act: Act): string {
   switch (act.kind) {
     case 'said':
+    case 'replied':
       return act.text
     case 'used': {
       const mark = act.roadkeep ? 'roadkeep ' : ''

@@ -1,7 +1,16 @@
 import { describe, expect, it } from 'vitest'
 
+import { askOf } from './asking'
 import { readBriefPayload, type BriefPayload } from './payloads'
-import { outcomeOf, promptFor, readSessionLine, resumeCall, sessionCall } from './session'
+import {
+  outcomeOf,
+  promptFor,
+  readSessionLine,
+  replyLine,
+  replyOf,
+  resumeCall,
+  sessionCall,
+} from './session'
 
 /** Captured from a real `brief --json`, trimmed to the keys the shape declares. */
 const RAW = {
@@ -355,6 +364,40 @@ describe('RG269: the call that answers a session', () => {
     expect(resumeCall('claude', '/w/proj', 's-42', '--no, the second').prompt).toBe(
       '--no, the second',
     )
+  })
+})
+
+describe('RG303: the reply, kept as a line of the stream', () => {
+  it('writes the words under a type of this app’s own, and reads them back', () => {
+    const line = replyLine('The first one, and use **bold** as typed.')
+
+    expect(JSON.parse(line)).toEqual({
+      type: 'roadkeep_reply',
+      text: 'The first one, and use **bold** as typed.',
+    })
+    expect(replyOf(line)).toBe('The first one, and use **bold** as typed.')
+  })
+
+  it('reads no reply out of a line the engine wrote, or out of one that is not JSON', () => {
+    expect(replyOf('{"type":"assistant","message":{"content":[]}}')).toBeNull()
+    expect(replyOf('{"type":"user","message":{"content":[]}}')).toBeNull()
+    // The type alone is not enough: a line carrying no words is not somebody's reply.
+    expect(replyOf('{"type":"roadkeep_reply"}')).toBeNull()
+    expect(replyOf('not json at all')).toBeNull()
+    expect(replyOf('')).toBeNull()
+  })
+
+  it('is read as a line the engine has no meaning for, never as one it wrote', () => {
+    const event = readSessionLine(replyLine('Go on.'))
+
+    // `other` and not null: this app read the line and the session's reader has no use for it.
+    expect(event).toEqual({
+      kind: 'other',
+      type: 'roadkeep_reply',
+      line: replyLine('Go on.'),
+    })
+    // Nothing a person types can forge a question, whatever it says.
+    expect(askOf(replyLine('{"type":"control_request"}'))).toBeNull()
   })
 })
 

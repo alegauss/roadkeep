@@ -207,6 +207,7 @@
 - ✅ **RG290** **a gloss kept before an answer grew a slot says nothing under it, and reads as current** — A gloss written under an earlier shape reads as old under its own sentence, apart from one whose line moved (design recorded in `packages/core/src/glosses.ts`).
 - ✅ **RG299** **an explanation nests a paragraph inside a paragraph, which React reports as invalid HTML on every answer** — The explanation wraps prose in a block wherever it draws it, so no paragraph holds one and React reports no invalid nesting.
 - ✅ **RG301** **a walkthrough is asked through askGloss, so the module that runs every read-only question is named after one of them** — The read-only query is named for what it is, so no name on the path a walkthrough takes says gloss (design recorded in `packages/shell/src/question.ts`).
+- ✅ **RG303** **a reply typed into a session is never drawn in its stream, so what was asked of it is gone once sent** — A reply typed into a session is kept as a line of its stream, drawn as the person's own words wherever that session is read (design recorded in `packages/core/src/session.ts`).
 
 ## Block G — The shell (an executable now, a service later)
 

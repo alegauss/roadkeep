@@ -355,6 +355,8 @@ export {
   promptFor,
   promptForDoor,
   readSessionLine,
+  replyLine,
+  replyOf,
   resumeCall,
   sessionCall,
 } from './session'

@@ -15,6 +15,7 @@ import {
   folderName,
   PT_BR,
   PT_BR_LOCALE,
+  replyLine,
   translator,
   type EditedFile,
   type FileText,
@@ -1235,6 +1236,55 @@ describe('RG269: answering a session that stopped, from the window', () => {
       expect(screen.queryByTestId('reply')).toBeNull()
     })
     expect(screen.getByText(BASE['session.state.running'])).toBeTruthy()
+  })
+})
+
+describe('RG303: the reply drawn in the stream it was sent to', () => {
+  /** The stream as it stands after the far side kept a reply on the record. */
+  async function replied(text: string) {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
+    await screen.findByText(BASE['session.handed'])
+    hear(wired, 'session', { session: KEY, index: 1, line: replyLine(text) })
+    return waitFor(() => {
+      const row = screen.getAllByTestId('act').find((one) => one.dataset['kind'] === 'replied')
+      if (row === undefined) throw new Error('no replied act')
+      return row
+    })
+  }
+
+  it('draws the person’s words as a row of the stream, said to be theirs', async () => {
+    const row = await replied('The first one.')
+
+    expect(within(row).getByText(BASE['session.act.replied'])).toBeTruthy()
+    expect(within(row).getByText('The first one.')).toBeTruthy()
+    // The raw line is one disclosure away, like every other act's.
+    expect(within(row).getByText(BASE['session.act.raw'])).toBeTruthy()
+  })
+
+  it('draws them as they were typed, never as Markdown somebody did not write', async () => {
+    const row = await replied('Use **two** asterisks')
+
+    expect(within(row).queryByText('two')).toBeNull()
+    expect(within(row).getAllByText(/Use \*\*two\*\* asterisks/).length).toBeGreaterThan(0)
+  })
+
+  it('leaves it out of the folded notes, whatever the reader chose to hide', async () => {
+    holdSessionNotes('hidden')
+    try {
+      const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
+      await screen.findByText(BASE['session.handed'])
+      hear(wired, 'session', { session: KEY, index: 1, line: '{"type":"rate_limit_event"}' })
+      hear(wired, 'session', { session: KEY, index: 2, line: replyLine('Go on.') })
+
+      // The record's init and the rate limit fold; the reply stands, drawn as its own row.
+      const folded = await screen.findByTestId('folded')
+      expect(folded.dataset['count']).toBe('2')
+      const row = screen.getAllByTestId('act').find((one) => one.dataset['kind'] === 'replied')
+      expect(row).not.toBeUndefined()
+      expect(row?.closest('[data-testid="folded"]')).toBeNull()
+    } finally {
+      holdSessionNotes('shown')
+    }
   })
 })
 

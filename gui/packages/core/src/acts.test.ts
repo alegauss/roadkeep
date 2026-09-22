@@ -25,6 +25,7 @@ import type { EditedFile } from './bridge'
 // The captured run, as text: `core` has no filesystem in scope, so the fixture is imported
 // the way `boundaries.test.ts` imports this package's own sources.
 import EDIT_LINES from './captured/session-edits.jsonl?raw'
+import { replyLine } from './session'
 
 /** What this project's `config` and engine resolution would supply. */
 const MARKS: Marks = {
@@ -609,6 +610,37 @@ describe('RG208: notes folded where they stand', () => {
 
   it('draws nothing for a stream that wrote nothing', () => {
     expect(foldedNotes([])).toEqual([])
+  })
+
+  it('never folds the person’s own reply, which is the half a reader came for (RG303)', () => {
+    expect(shape([SAID, replyLine('Go on.'), LIMIT])).toEqual(['said', 'replied', 'folded:1'])
+  })
+})
+
+describe('RG303: the reply a person typed, as an act of the stream', () => {
+  it('reads it as its own kind, with the words as they were typed', () => {
+    const line = replyLine('The first one.\n\nAnd **as typed**.')
+
+    expect(actsOf(line, 1)).toEqual([
+      { kind: 'replied', seq: 1, text: 'The first one.\n\nAnd **as typed**.', line },
+    ])
+  })
+
+  it('numbers it among the session’s own acts, in the place it was sent', () => {
+    const acts = actsIn([SAID, replyLine('Go on.'), TOOL_USE])
+
+    expect(acts.map((act) => act.kind)).toEqual(['said', 'replied', 'used'])
+    expect(acts.map((act) => act.seq)).toEqual([1, 2, 3])
+  })
+
+  it('reads a line of that type carrying no words as a note, never as a silent reply', () => {
+    expect(actsOf('{"type":"roadkeep_reply"}', 1).map((act) => act.kind)).toEqual(['note'])
+  })
+
+  it('is the person’s words in a log read down', () => {
+    const [act] = actsOf(replyLine('Go on.'), 1)
+
+    expect(act === undefined ? '' : actLine(act)).toBe('Go on.')
   })
 })
 

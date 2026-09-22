@@ -284,6 +284,7 @@ export const PT_BR: Wording = {
   'session.act.roadkeep': 'chamada ao roadkeep',
   'session.act.governed': 'toca {files}',
   'session.act.failed': 'falhou',
+  'session.act.replied': 'você respondeu',
   'session.act.raw': 'a linha crua',
   'session.moved': 'O que mudou',
   'session.moved.none': 'Nada na linha mudou ainda.',

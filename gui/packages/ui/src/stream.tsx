@@ -88,6 +88,18 @@ function Spoken({ act, standing }: { readonly act: Act; readonly standing?: Stan
   // Its words are written for a person, so they are rendered (RG271); what a tool was called on
   // and what it gave back are measured, so they stay raw.
   if (act.kind === 'said') return <Prose text={act.text} />
+  // The person's own words, drawn as they were typed (RG303): rendering is for what an agent
+  // wrote as Markdown for a terminal, and somebody typing a sentence with an asterisk in it did
+  // not ask for half of it to disappear. Said whose words they are, since the stream is otherwise
+  // the session's alone.
+  if (act.kind === 'replied') {
+    return (
+      <div className="flex flex-col gap-1">
+        <Pill intent={null}>{say('session.act.replied')}</Pill>
+        <p className="text-sm whitespace-pre-wrap">{act.text}</p>
+      </div>
+    )
+  }
   if (act.kind === 'used') {
     return (
       <div className="flex flex-col gap-1">

@@ -146,6 +146,46 @@ export function resumeCall(
 }
 
 /**
+ * The type this app writes its own lines under, which nothing the engine emits carries.
+ *
+ * A forged `user` line would be indistinguishable from the engine's own echo of the prompt and
+ * drawn twice. A type this app owns cannot collide, and everything that reads the stream already
+ * has an answer for a line it does not know: `readSessionLine` calls it `other` and `askOf` does
+ * not match it, so nothing had to be taught about it to stay right.
+ */
+const REPLY_TYPE = 'roadkeep_reply'
+
+/**
+ * The line that keeps a person's reply in the stream it was sent to (RG303).
+ *
+ * **The record is the lines, so the reply has to be one.** A reply that left as the next turn's
+ * prompt and nowhere else made the stream read as an answer to a question the page never carried
+ * — and a reload, a second window and the reader after the fact all met the same gap, since they
+ * read the session off these lines and not off a box's own state.
+ *
+ * Written here rather than composed where it is pushed, so one function decides the shape both
+ * the side that writes it and the side that draws it read.
+ */
+export function replyLine(text: string): string {
+  return JSON.stringify({ type: REPLY_TYPE, text })
+}
+
+/** The reply a line carries, or null where it is not one this app wrote. */
+export function replyOf(line: string): string | null {
+  let source: unknown
+  try {
+    source = JSON.parse(line.trim())
+  } catch {
+    return null
+  }
+  const object = asRecord(source)
+  if (object === null) return null
+  if (object['type'] !== REPLY_TYPE) return null
+  const text = object['text']
+  return typeof text === 'string' ? text : null
+}
+
+/**
  * One line of the stream, read into something a screen can use.
  *
  * `other` is deliberate: the stream carries kinds this app has no use for today — rate

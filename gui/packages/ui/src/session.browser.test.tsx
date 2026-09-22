@@ -286,3 +286,49 @@ describe('RG225: the session at phone width opens on its own words', () => {
     expect(Math.abs(stream.top - moved.top)).toBeLessThanOrEqual(1)
   })
 })
+
+/**
+ * RG303: the person's own reply, in the layout it is drawn in.
+ *
+ * Here rather than in jsdom because what is in question is a paragraph of somebody's prose in a
+ * region 400 pixels wide: whether it wraps or pushes the stream sideways is the stylesheet's
+ * answer, and jsdom lays nothing out to give one.
+ */
+describe('RG303: the reply drawn in the stream', () => {
+  /** A reply as the far side keeps one, which is the only way this row is reached. */
+  const REPLIED = JSON.stringify({
+    type: 'roadkeep_reply',
+    text: 'The first one, and keep the suggested-permissions-for-this-session wording as it is.',
+  })
+
+  async function drawn(): Promise<HTMLElement> {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), { sessions: [RECORD] })
+    hear(wired, 'session', { session: KEY, index: 1, line: REPLIED })
+    return waitFor(() => {
+      const row = screen.getAllByTestId('act').find((one) => one.dataset['kind'] === 'replied')
+      if (row === undefined) throw new Error('no replied act')
+      return row
+    })
+  }
+
+  it('wraps inside the stream at phone width rather than pushing it sideways', async () => {
+    await page.viewport(400, 800)
+    const row = await drawn()
+    const region = screen.getByTestId('stream')
+
+    // Inside the region it was written into, at its width and not past it.
+    expect(row.getBoundingClientRect().right).toBeLessThanOrEqual(
+      region.getBoundingClientRect().right + 1,
+    )
+    expect(region.scrollWidth).toBeLessThanOrEqual(region.clientWidth + 1)
+    // Wrapped: a single line of that sentence would not fit in 400 pixels.
+    expect(row.getBoundingClientRect().height).toBeGreaterThan(40)
+  })
+
+  it('says whose words they are, and keeps them as typed', async () => {
+    const row = await drawn()
+
+    expect(row.textContent).toContain(BASE['session.act.replied'])
+    expect(row.textContent).toContain('keep the suggested-permissions-for-this-session wording')
+  })
+})
