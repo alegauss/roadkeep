@@ -16,6 +16,8 @@
 
 - 📋 **RG303** (deps: —) **a reply typed into a session is never drawn in its stream, so what was asked of it is gone once sent** — The stream is the record of the turn, and a resumed session reads as an answer to a question the page never carried. → §RG303
 - 📋 **RG304** (deps: —) **Enter in a session's reply box never sends it, so every answer takes a trip to the button** — Answering is the move that screen exists for, and the key every message box sends on is the one this box ignores. → §RG304
+- 📋 **RG305** (deps: —) **closing the window kills the session it was running, and reopening offers no way back to it** — The agent keeps the transcript, so all that is lost is this app's record of the session, and `reply` already resumes by the id that record holds. → §RG305
+- 📋 **RG306** (deps: RG305) **a line the quit left claimed reads as another worker's, so the window will not hand it back** — A claim names nobody, and the one fact that told this window's own claim from a stranger's went with the record the quit dropped. → §RG306
 
 ## Block G — The shell (an executable now, a service later)
 

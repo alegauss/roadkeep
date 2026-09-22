@@ -109,6 +109,47 @@ filling in.
 Asserted with a real key press in the browser suite rather than in jsdom: what is in
 question is the key reaching a focused box, which is the half jsdom does not have.
 
+### §RG305 What is lost when the window closes, and what is not
+
+`will-quit` waits for every session to exit, and that is right: on Windows a process
+killed but not yet gone still holds its project as a working directory. The loss is not
+the kill. It is that `createSessions` keeps its sessions in a `Map` and writes nothing,
+so the key, the root, the line, every line the stream read and the `sessionId` the
+outcome carried go with the process.
+
+The agent's own transcript does not. A session runs the person's `claude` in the
+environment RG205 composed, so Claude Code writes its record where it always does and
+resuming from that root still reads it. What this app cannot do is name the session,
+having never kept the id.
+
+So the work is a store beside the settings, the readings and the glosses — this app's
+own file, in the same shape — holding one record per session: the key, the root, the id,
+what it was handed, when it started, the lines and the outcome. Read at start-up,
+offered as sessions that stopped. `reply` already continues one by its `sessionId`, so
+what is owed here is the record surviving and not a second way to carry on.
+
+A local file, like every other one this app keeps: nothing is sent anywhere.
+
+### §RG306 Telling your own claim from a stranger's, after a restart
+
+A claim names nobody, and RG175 closed exactly this gap while the window lives: `held`
+stays empty for a line this very window claimed a minute ago, so `alreadyRunning` reads
+the session record instead, and the offer returns when the session ends rather than on a
+timer kept here.
+
+A quit takes that record. `close` kills the process and leaves the claim standing on
+purpose — the session may have moved the line, and releasing it would undo a state
+nobody reviewed — so the claim outlives the one thing that knew whose it was. Reopening,
+`handOver` reads `held` and says the line is held by another worker, which is what it
+truthfully says about a second session in the same checkout. The two read alike, and the
+person waits out the expiry on a line nobody else ever touched.
+
+Releasing a claim at the quit is the wrong answer and stays refused. What is missing is
+the recognition: with RG305's record on disk, a held line whose claim came from this
+machine's own stopped session is named as that, with what it was doing and how it ended
+beside it. Handing it over again is then a judgement somebody makes, not a guess — and
+nothing re-dates the claim, which stays an expiry the engine owns.
+
 ## Block G — The shell (an executable now, a service later)
 
 ### §RG49 The signature, and what it needs that code cannot supply
