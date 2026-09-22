@@ -14,6 +14,9 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
+- 📋 **RG303** (deps: —) **a reply typed into a session is never drawn in its stream, so what was asked of it is gone once sent** — The stream is the record of the turn, and a resumed session reads as an answer to a question the page never carried. → §RG303
+- 📋 **RG304** (deps: —) **Enter in a session's reply box never sends it, so every answer takes a trip to the button** — Answering is the move that screen exists for, and the key every message box sends on is the one this box ignores. → §RG304
+
 ## Block G — The shell (an executable now, a service later)
 
 - ⏳ **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — The certificate itself, chosen from docs/SIGNING.md, and the build wired to sign with it. → §RG49

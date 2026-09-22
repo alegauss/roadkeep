@@ -58,6 +58,57 @@ catalogue in both languages.
 Done when a test moves `handed` through the menu, resets from the palette, and sees the
 default drawn and written.
 
+### §RG303 The reply, kept in the stream it was sent to
+
+**The record is the lines, so the reply has to be one.** `Reply` clears its box on a
+started resume (RG269) and nothing else happens: the words go out as argv to `--resume`,
+and the next act in the stream is the agent answering something the page never carried.
+A reload, a second window and the reader after the fact all meet the same gap.
+
+Drawn from the component's own state it would not be a record — it would die on reload
+and never reach the other windows, which read this session off the same published lines.
+
+**So the shell writes it where every other line goes.** `reply` pushes a line onto
+`session.lines` and publishes it with its index, exactly as `onLine` does, before the
+turn spawns. One path, so what the record carries and what a live window hears cannot
+disagree.
+
+**A line of this app's own type, never a forged `user` one.** The agent may echo the
+prompt itself, and a synthetic `user` line would be indistinguishable from it and drawn
+twice. A type this app owns cannot collide: `readSessionLine` answers `other` for one it
+does not know, `askOf` does not match it, and `actsOf` reads it as an act of its own
+kind — the person's words, drawn as what somebody typed and never folded into the notes
+(RG208).
+
+Not a chat log. The first turn's brief belongs to the handed-over card and stays there,
+and a permission answer is drawn on its question (RG272).
+
+### §RG304 Enter sends the reply, Shift+Enter breaks the line
+
+**The box is a `Textarea` with no keys of its own.** Every answer costs a reach for the
+mouse, in the one place where somebody is mid-sentence and a stopped session waits on
+them — the box takes focus for that reason when a turn ended waiting (RG268).
+
+Enter sends and Shift+Enter writes a newline, which is what every message box and the
+terminal this window replaces already teach. The newline is not lost, it moves to the
+modifier, where somebody writing a paragraph looks for it.
+
+**Sending from the key is sending from the button, not a second path.** `send` stays the
+one function, and the handler holds the conditions the button is disabled by — empty
+after a trim, or already sending — so a held Enter cannot start two turns.
+
+**A composing key is not a send.** `isComposing` on the native event is the one check
+that keeps an IME's own Enter from committing a half-written word as a reply; a
+`keydown` mid-composition carries it, and nothing else this app draws has to know about
+it.
+
+The rule is this box's alone. A door's prose blank (RG261) is one blank of several with
+a take button of its own, and Enter there would hand over a form somebody is still
+filling in.
+
+Asserted with a real key press in the browser suite rather than in jsdom: what is in
+question is the key reaching a focused box, which is the half jsdom does not have.
+
 ## Block G — The shell (an executable now, a service later)
 
 ### §RG49 The signature, and what it needs that code cannot supply
