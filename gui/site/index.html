@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/roadkeep-gui/logo.svg" />
+
+    <!--
+      The theme follows the OS, and a stored choice wins over it. This runs before first
+      paint: the tokens the body background reads are keyed off data-theme, so a class
+      applied after hydration is a visible flash of the wrong theme. Kept inline and
+      dependency-free for that reason.
+    -->
+    <script>
+      ;(function () {
+        try {
+          var stored = localStorage.getItem('rkg-theme')
+          if (stored === 'dark' || stored === 'light') {
+            document.documentElement.setAttribute('data-theme', stored)
+          }
+        } catch (e) {
+          /* private mode, or no storage: fall through to the OS preference */
+        }
+      })()
+    </script>
+
+    <title>roadkeep-gui</title>
+    <meta name="description" content="A desktop reader for roadkeep-governed backlogs." />
+
+    <!--
+      scripts/prerender.mjs patches the title, description, canonical and og tags per route by
+      replace-or-throw, and inlines the rendered body into the root element. No closing head
+      or script token may appear in a comment here, or the Vite asset injection and the
+      prerender both anchor to it instead of the real one.
+    -->
+
+    <!-- Reveal-on-scroll starts at opacity 0 and is lifted by the client observer. With no
+         JavaScript the prerendered text is still in the DOM; this makes it visible too. -->
+    <noscript>
+      <style>
+        .reveal {
+          opacity: 1 !important;
+          transform: none !important;
+        }
+      </style>
+    </noscript>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

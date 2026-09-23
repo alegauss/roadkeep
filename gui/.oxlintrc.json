@@ -273,6 +273,26 @@
       "rules": {
         "typescript/no-unsafe-type-assertion": "off"
       }
+    },
+    {
+      // The public site (site/), a prerendered page and not the app. Its lists are the copy
+      // module's arrays, rendered once on the build machine and hydrated unchanged: nothing ever
+      // reorders, inserts into or removes from one, which is the only case an index key breaks.
+      // A key made up from the content instead would collide on the repeated fragments (", ")
+      // the copy is built from.
+      "files": ["site/src/**/*.tsx"],
+      "rules": {
+        "react/no-array-index-key": "off"
+      }
+    },
+    {
+      // node:test's `test()` returns a promise the runner already tracks. Awaiting it at the top
+      // of a file would serialise nothing that is not serial already, and `void` on every call
+      // would be noise with no reader.
+      "files": ["site/scripts/*.test.mjs"],
+      "rules": {
+        "typescript/no-floating-promises": "off"
+      }
     }
   ]
 }

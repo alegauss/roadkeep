@@ -362,3 +362,7 @@
 - ✅ **RG294** **a person who followed a walkthrough has nowhere to say what happened, so the verdict never reaches the ledger** — Three answers under the steps send a verdict and a sentence through validate, and the list is asked again once one lands (design recorded in `packages/ui/src/checking.tsx`).
 - ✅ **RG295** **a validation that failed ends in a sentence nobody files, so the defect it found is lost at the dialog** — A failed verdict files the sentence as an open line in the same call, and the offer is absent where the engine lacks the flag (design recorded in `packages/ui/src/useVerdict.ts`).
 - ✅ **RG296** **a project row says what is open and nothing about what shipped with nobody looking at it** — A project row carries how many shipped entries await a person, off the count stats already answers, and none where the engine does not say (design recorded in `packages/core/src/portfolio.ts`).
+
+## Block J — The public site (what a reader meets before the app)
+
+- ✅ **RG307** **the app has no public page, so a release is reachable only by somebody who already knows the repository** — A prerendered site in site/ with a Markdown twin per route, every count read from the source at build time, and a Pages deploy that runs only when started.

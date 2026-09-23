@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="roadkeep-gui: every roadkeep backlog on this machine, in one window">
+  <defs>
+    <linearGradient id="rk-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0f1b"/>
+      <stop offset="1" stop-color="#0e1526"/>
+    </linearGradient>
+    <radialGradient id="rk-glow" cx="0.85" cy="0.05" r="0.7">
+      <stop offset="0" stop-color="#f59e0b" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#rk-bg)"/>
+  <rect width="1200" height="630" fill="url(#rk-glow)"/>
+  <rect x="0" y="0" width="1200" height="8" fill="#f59e0b"/>
+
+  <!-- The mark. og-image.mjs substitutes public/logo.svg here, positioned and scaled by the
+       constants it holds, so the card carries no copy of the artwork to fall behind it. -->
+  {{mark}}
+
+  <text x="248" y="168" font-family="DejaVu Sans, sans-serif" font-size="52" font-weight="bold" fill="#f2f6fb">roadkeep-gui</text>
+  <text x="250" y="206" font-family="DejaVu Sans Mono, monospace" font-size="20" fill="#7c8aa3">part of alegauss</text>
+
+  <text x="90" y="350" font-family="DejaVu Sans, sans-serif" font-size="58" font-weight="bold" fill="#f2f6fb">Every roadkeep backlog</text>
+  <text x="90" y="420" font-family="DejaVu Sans, sans-serif" font-size="58" font-weight="bold" fill="#fbbf24">in one window.</text>
+
+  <text x="92" y="484" font-family="DejaVu Sans, sans-serif" font-size="25" fill="#98a5bb">Read off what the command prints. Written only by the command.</text>
+
+  <!-- The pill has no width of its own: og-image.mjs measures the text and fits it, because a
+       width typed here is a width measured against whichever font the typing machine had. -->
+  <rect x="90" y="530" width="{{chip-width}}" height="46" rx="23" fill="#131b2d" stroke="#232f49"/>
+  <circle cx="118" cy="553" r="6" fill="#f59e0b"/>
+  <text id="chip" x="136" y="561" font-family="DejaVu Sans, sans-serif" font-size="20" fill="#98a5bb">Windows and Linux · Free · Hands a line to Claude Code</text>
+
+  <text x="1110" y="561" text-anchor="end" font-family="DejaVu Sans Mono, monospace" font-size="20" fill="#7c8aa3">alegauss.github.io/roadkeep-gui</text>
+</svg>

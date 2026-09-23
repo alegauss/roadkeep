@@ -23,3 +23,5 @@
 
 ## Block I — Validation (the list a person works through)
 
+## Block J — The public site (what a reader meets before the app)
+

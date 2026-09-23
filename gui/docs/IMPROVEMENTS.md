@@ -168,3 +168,5 @@ That is a commit in somebody else's repository with a consequence for five other
 which is why it is written down here rather than made quietly.
 
 ## Block I — Validation (the list a person works through)
+
+## Block J — The public site (what a reader meets before the app)

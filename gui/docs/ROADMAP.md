@@ -26,6 +26,8 @@
 
 ## Block I — Validation (the list a person works through)
 
+## Block J — The public site (what a reader meets before the app)
+
 ## Done when — Block A
 
 - **The client runs with no Electron and no React** The transport is one interface, so

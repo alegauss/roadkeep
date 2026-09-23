@@ -230,3 +230,7 @@ permits never reaches it.
 rather than a string another program parses. It answers three ways and not two: a gate
 that decided every call denied `StructuredOutput`, which is how a schema is answered,
 and the run came back with nothing.
+
+## Block J — The public site (what a reader meets before the app)
+
+- ✅ **RG307** **the app has no public page, so a release is reachable only by somebody who already knows the repository** — A figure the site states about the app is generated from the source by site/scripts/product.mjs, and a verb the copy names must be one of the two tables.

@@ -31,6 +31,12 @@ packages/core/src/captured/
 # `white-space: pre-wrap` block, so reindenting it changes what the drawing demonstrates.
 docs/design/*.dc.html
 
+# The site's generated facts: `npm run generate` in site/ rewrites this on every build, and a
+# formatter's version of it would differ from the generator's after the next one. The build
+# output beside it is already ignored by **/dist/.
+site/src/lib/product.generated.ts
+site/dist-server/
+
 # roadkeep owns these five and refuses a hand edit; a formatter is a hand edit.
 docs/ROADMAP.md
 docs/CHANGELOG.md

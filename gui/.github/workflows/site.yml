@@ -1,0 +1,114 @@
+# The public site (site/), separate from the app's own build.
+#
+# Publishing is deliberate: the deploy fires on workflow_dispatch only. A deploy on every push is
+# one nobody can hold still while reviewing it, and the site is the one artefact where a defect
+# is public immediately.
+#
+# The gate is the build, and it runs on every push. `npm run build` generates the product facts
+# from this repository's source, type-checks, builds the client, draws the social card, builds
+# the SSR bundle and prerenders every route, and the prerender's replace-or-throw head patch and
+# the route-pair assertion are the route and head gates. `npm test` then holds the built output
+# and the generated facts to the sources. Running it on every push is what makes a verb renamed
+# in packages/core a red build here the same day, rather than on the day somebody publishes.
+#
+# ┌───────────────────────────────────────────────────────────────────────────────────────┐
+# │ ONE-TIME REPOSITORY SETTING: the deploy is inert until it is changed.                  │
+# │   Settings → Pages → Build and deployment → Source: "GitHub Actions"                   │
+# │ The site is served at alegauss.github.io/roadkeep-gui/, which Pages derives from the   │
+# │ repository name rather than from anything in this file.                                │
+# └───────────────────────────────────────────────────────────────────────────────────────┘
+
+name: site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      [
+        'site/**',
+        'packages/core/src/**',
+        'packages/shell/src/**',
+        'package.json',
+        'electron-builder.yml',
+        'docs/ROADMAP.md',
+        'build/icon.svg',
+        '.github/workflows/site.yml',
+      ]
+  pull_request:
+    paths:
+      [
+        'site/**',
+        'packages/core/src/**',
+        'packages/shell/src/**',
+        'package.json',
+        'electron-builder.yml',
+        'docs/ROADMAP.md',
+        'build/icon.svg',
+        '.github/workflows/site.yml',
+      ]
+  workflow_dispatch:
+
+# Least privilege by default. The Pages grants live on the job that publishes, so a push is never
+# handed the token that can deploy.
+permissions:
+  contents: read
+
+# A publish must not overlap another publish, and two gate runs on two branches have nothing to
+# do with each other. Keying the group on the event keeps a push from cancelling a deploy.
+concurrency:
+  group: ${{ github.event_name == 'workflow_dispatch' && 'pages' || format('site-gate-{0}', github.ref) }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: build (the gate)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The sitemap's lastmod is the last commit that touched the authored site, read from git.
+          fetch-depth: 0
+
+      # The social card rasterises SVG text with resvg, which needs a font on disk.
+      - name: fonts for the social card
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends fonts-dejavu-core
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: build
+        working-directory: site
+        run: |
+          npm ci
+          npm run build
+
+      - name: test
+        working-directory: site
+        run: npm test
+
+      # Only what is about to be published is kept.
+      - name: keep the built site for the deploy
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/dist
+
+  deploy:
+    name: deploy to Pages
+    needs: build
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      # The bytes the gate already built and tested, rather than a second build: two builds of
+      # one commit are two answers about it, and the published one would be the untested one.
+      - id: deploy
+        uses: actions/deploy-pages@v4
