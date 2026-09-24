@@ -128,10 +128,6 @@ called unbuilt were already in the ledger.
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 5 | 4 | 0 |
 | **Total** | 5 | 1173 | 24 |
-
-**Next ready:**
-
-- 📋 **RK1704** (deps: RK1697 ✅) **The reader's public site builds here but deploys nowhere, since this repository's one Pages site is roadkeep's** — Moving the app in kept the site's build gate and dropped its deploy, so the page at alegauss.github.io/roadkeep-gui/ stops changing. → §RK1704
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
