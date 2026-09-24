@@ -95,20 +95,6 @@ already written, not authorship.
 
 ## Block K — The desktop app (one installer for the reader and the plugin)
 
-### §RK1696 A desktop reader under the web-UI non-goal
-
-The non-goal says "No web UI and no server. Files and a CLI." roadkeep-gui is neither:
-it is an Electron reader that spawns the CLI or the MCP server a project already names,
-keeps no store of its own and bundles no engine (its `engine-resolution.ts` refuses to
-guess one). L2 survives it. The sentence as written does not say so, and a desktop app
-landing in this tree under it reads as the non-goal quietly dropped.
-
-So the wording is settled before anything moves: a reader that goes through the CLI is
-allowed; a service, a database, or a second writer of the line format is not. If the
-answer is that the app stays out, this block retires whole and roadkeep-gui ships the
-installer from its own repository, which the user's goal (one installer, both halves
-installed) does not rule out.
-
 ### §RK1697 Moving roadkeep-gui into gui/ with its history
 
 roadkeep-gui (prefix RG, ~400 commits, Node 26, three npm workspaces) reads what the CLI

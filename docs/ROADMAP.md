@@ -44,8 +44,7 @@
 
 ## Block K — The desktop app (one installer for the reader and the plugin)
 
-- 💭 **RK1696** (deps: —) **The non-goal against a web UI does not say whether a desktop reader that only spawns the CLI may live here** — An Electron app moving in under that sentence as written reads as the non-goal dropped, so its wording is settled before anything moves. → §RK1696
-- 💭 **RK1697** (deps: RK1696) **roadkeep-gui is a second repository, so a CLI change reaches its CI only through a separate checkout of this one** — One tree lets a single commit change a verb and its reader, and makes the engine the app's own checkout instead of @main fetched a push later. → §RK1697
+- 💭 **RK1697** (deps: RK1696 ✅) **roadkeep-gui is a second repository, so a CLI change reaches its CI only through a separate checkout of this one** — One tree lets a single commit change a verb and its reader, and makes the engine the app's own checkout instead of @main fetched a push later. → §RK1697
 - 💭 **RK1698** (deps: RK1697) **With gui/ in the tree, lint, the guard hook and MCP started at the root govern RK only, so gui/docs goes unguarded** — A hand-edit to the RG roadmap would pass every surface this repo runs, which is the drift the tool exists to refuse. → §RK1698
 - 💭 **RK1699** (deps: RK1697) **The plugin's source is the repository root, so installing it would copy the Electron app into every adopter's cache** — An adopter who wanted only the hook and the MCP tools should not pay for a desktop app's sources and lockfile. → §RK1699
 - 💭 **RK1700** (deps: RK1697, RK1699) **Installing the reader and the Claude Code plugin takes two separate procedures on each of three platforms** — One installer that places the app and then runs the claude plugin install gives a person the CLI and the reader together. → §RK1700
@@ -141,7 +140,9 @@
 
 Deliberately **not** built — check this list before proposing work:
 
-- **No web UI and no server.** Files and a CLI. The store is the repository.
+- **No web UI and no server.** Files and a CLI; the store is the repository. A desktop
+  reader that only spawns the CLI or MCP server may live here; a service, a database or
+  a second writer of the line format may not.
 - **No model and no prompts.** The tool validates and renders; it never writes the
   symptom or the rationale. A generator would reintroduce exactly the prose drift
   this exists to stop.

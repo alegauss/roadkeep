@@ -126,12 +126,12 @@ called unbuilt were already in the ledger.
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
-| K — The desktop app (one installer for the reader and the plugin) | 8 | 0 | 0 |
-| **Total** | 8 | 1169 | 24 |
+| K — The desktop app (one installer for the reader and the plugin) | 7 | 1 | 0 |
+| **Total** | 7 | 1170 | 24 |
 
 **Next ready:**
 
-- 💭 **RK1696** (deps: —) **The non-goal against a web UI does not say whether a desktop reader that only spawns the CLI may live here** — An Electron app moving in under that sentence as written reads as the non-goal dropped, so its wording is settled before anything moves. → §RK1696
+- 💭 **RK1697** (deps: RK1696 ✅) **roadkeep-gui is a second repository, so a CLI change reaches its CI only through a separate checkout of this one** — One tree lets a single commit change a verb and its reader, and makes the engine the app's own checkout instead of @main fetched a push later. → §RK1697
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
@@ -425,7 +425,9 @@ hook answers the narrower question it was installed to answer (RK60).
 These are binding, and half the point. Check before proposing work:
 
 - **No web UI and no server.** Files and a CLI — the MCP server above is one stdio process
-  speaking JSON-RPC to the CLI, which binds nothing and stores nothing.
+  speaking JSON-RPC to the CLI, which binds nothing and stores nothing. A desktop reader
+  that only spawns the CLI or that server may live here; a service, a database or a second
+  writer of the line format may not.
 - **No issue-tracker sync.** A backlog that lives in a service is one an agent cannot `grep`.
 - **No model and no prompts inside the tool.** It validates and renders; it never writes
   the symptom or the rationale.

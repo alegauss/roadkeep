@@ -1235,3 +1235,4 @@
 
 ## Block K — The desktop app (one installer for the reader and the plugin)
 
+- ✅ **RK1696** **The non-goal against a web UI does not say whether a desktop reader that only spawns the CLI may live here** — The web-UI non-goal now allows a desktop reader that only spawns the CLI or MCP server, and still refuses a service, a database or a second line writer.
