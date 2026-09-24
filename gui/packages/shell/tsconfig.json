@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Node, and no DOM: this is the main process, and a `document` in scope here is a
+    // mistake worth catching in the compiler rather than in review.
+    "lib": ["ES2023"],
+    "types": ["node"],
+    "rootDir": ".",
+    "outDir": "dist-types",
+    "tsBuildInfoFile": "dist-types/.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts", "vite.main.config.ts", "vite.preload.config.ts"],
+  "references": [{ "path": "../core" }]
+}

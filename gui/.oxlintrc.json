@@ -1,0 +1,294 @@
+{
+  // The gate a typecheck is not (RG58).
+  //
+  // `tsc` says the code compiles and `vitest` says it behaves. Neither says anything about
+  // an import nobody uses, a hook whose dependency list is wrong, or — the part worth the
+  // setup — a package importing something its half of the split may not know.
+  //
+  // **This is oxlint and not ESLint, which is what the design asked for.** No released
+  // `typescript-eslint` accepts TypeScript 7: its peer range is `>=4.8.4 <6.1.0` and this
+  // repository is on 7.0.2, so `npm install` refuses the tree outright. oxlint has no
+  // TypeScript peer at all, uses ESLint-compatible rule names, and its type-aware half is
+  // built on TypeScript-Go — which is TypeScript 7 itself. Formatting stays Prettier's, as
+  // designed; that half had no conflict.
+  //
+  // Comments are allowed here, oxlint reading JSONC. A rule switched off without a reason
+  // beside it is the drift this file exists to stop, so every "off" below says why.
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "typescript",
+    "unicorn",
+    "oxc",
+    "import",
+    "react",
+    "react-perf",
+    "jsx-a11y",
+    "vitest"
+  ],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "error"
+  },
+  "env": { "es2024": true },
+  "ignorePatterns": [
+    "**/dist/**",
+    "release/**",
+    "node_modules/**",
+    // Captured engine and session output, kept verbatim so a test reads what a real run
+    // printed. Linting it would be linting somebody else's bytes.
+    "packages/shell/src/captured/**",
+    "packages/core/src/captured/**"
+  ],
+  "rules": {
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+    "typescript/no-unused-vars": [
+      "error",
+      { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
+    ],
+    "typescript/no-explicit-any": "error",
+    "import/no-duplicates": "error",
+    "import/no-self-import": "error",
+    "import/no-cycle": "error",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "error",
+    "unicorn/prefer-node-protocol": "error",
+
+    // The type-aware half, which `npm run lint` turns on with `--type-aware` (RG94). It is
+    // what catches a floating promise, a misused one and a condition that cannot be false —
+    // none of which is decidable from syntax, and all of which matter here, where the
+    // transport is asynchronous everywhere and `void` is used deliberately to say *this
+    // promise is not awaited on purpose*. Requires the `oxlint-tsgolint` peer, which is
+    // built on TypeScript-Go and is why this works on TypeScript 7 at all.
+    //
+    // The rules below the first four are on by category; these four are named so that the
+    // ones the design asked for cannot be lost to a category being retuned upstream.
+    "typescript/no-floating-promises": "error",
+    "typescript/no-misused-promises": "error",
+    "typescript/await-thenable": "error",
+    "typescript/no-unnecessary-condition": "error",
+
+    // On everywhere, and off in the files named at the bottom of this config (RG121).
+    //
+    // It was off project-wide, for a real reason — `reading.ts` checks a value and asserts
+    // the type it just proved, which is what a reader *is*, and a run made green by
+    // suppressing fifty deliberate assertions says less than no rule at all — but the
+    // reason did not reach every file the switch did. Turning it back on reported 62, and
+    // reading each one closed twelve of them: `asRecord` and `keysOf` in `reading.ts` now
+    // hold the two idioms that were being written out per call site, and three files stop
+    // asserting anything at all. What is left is named, per file, in `overrides`.
+    "typescript/no-unsafe-type-assertion": "error",
+
+    // The dev run and the build steps print to a terminal on purpose.
+    "no-console": "off",
+    // A live test that walks candidates in order is sequential by nature.
+    "no-await-in-loop": "off",
+
+    // The automatic JSX runtime: React is not a name any of these files needs in scope.
+    "react/react-in-jsx-scope": "off",
+    // `import './index.css'` is the side effect, and there is nothing to assign.
+    "import/no-unassigned-import": "off",
+    // A helper defined beside its one caller reads better than the same helper hoisted to
+    // the top of a file, and these are tests.
+    "unicorn/consistent-function-scoping": "off",
+    // Assertions live in named helpers here — `painted('dark')`, `must(...)` — which this
+    // rule cannot see into, so it reports every test that reads well.
+    "vitest/expect-expect": "off",
+    "vitest/require-mock-type-parameters": "off",
+    // A trailing underscore is how `require_`, `record_` and `before_` avoid shadowing the
+    // import or the parameter they are derived from. Deliberate in every case.
+    "eslint/no-underscore-dangle": "off",
+    // Every occurrence is `[...x].sort()`, which sorts a copy. `toSorted` is newer and no
+    // safer here, and rewriting twenty call sites across other tasks' files to satisfy a
+    // preference is not what a gate is for.
+    "unicorn/no-array-sort": "off",
+    // `[...listeners]` before calling them is a snapshot and not a conversion: a listener
+    // that removes itself while being called would otherwise mutate the set being iterated.
+    "unicorn/no-useless-spread": "off",
+    // A loop whose condition is changed by a callback registered outside it, which this
+    // rule reads as never modified.
+    "eslint/no-unmodified-loop-condition": "off",
+    // vitest's `expect(value, message)` takes two arguments by design, and the message is
+    // what makes a red suite readable.
+    "vitest/valid-expect": "off",
+    // `agent-live` asserts a different answer depending on whether the machine has Claude
+    // Code installed. Both branches are real machines, which is the point (RG55).
+    "vitest/no-conditional-expect": "off",
+    // `useTransport` sets state in an effect because it is synchronising with an external
+    // system — the preload bridge — which is the case this rule's own advice allows for.
+    "react/set-state-in-effect": "off",
+    // `{ path, ...gitSite(project) }` builds an object out of a call's result. The rule is
+    // about accumulating a spread, not composing one.
+    "oxc/no-map-spread": "off",
+
+    // A `section` that scrolls takes a tab stop, which this rule reads as a tab stop on
+    // something that does nothing (RG245). It is the opposite: axe fails a scrollable region
+    // with no focusable content in it — `scrollable-region-focusable`, serious — because a
+    // reader on a keyboard cannot reach it, and the file viewer's text is exactly that. The
+    // narrowing is to `section`, which is a labelled region and not a `div`, so the rule
+    // still reports a tab stop put on a wrapper.
+    "jsx-a11y/no-noninteractive-tabindex": [
+      "error",
+      { "tags": ["section"], "roles": ["region"], "allowExpressionValues": true }
+    ]
+  },
+  "overrides": [
+    {
+      // `core` is the half a web service would keep.
+      "files": ["packages/core/src/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "electron",
+                "message": "core is the half a web service keeps. It has no Electron in scope and must not acquire one."
+              },
+              {
+                "name": "react",
+                "message": "core is rendered by nothing. A React import here is a rule a browser or a server could not reuse."
+              },
+              { "name": "react-dom", "message": "core is rendered by nothing." }
+            ],
+            "patterns": [
+              {
+                "group": ["node:*"],
+                "message": "core has no Node in scope: a path, a timer or a process type here is a dependency on the thing being swapped out. State the interface instead, as `Clock` and `Transport` do."
+              },
+              {
+                "group": ["@rk/ui", "@rk/shell"],
+                "message": "core is imported by the other two and imports neither: a cycle here is the package split undone."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      // `ui` is the half a service would serve to a browser. Its Vite config is not part of
+      // that — it runs in Node — which is why this covers `src` and not the package.
+      "files": ["packages/ui/src/**/*.ts", "packages/ui/src/**/*.tsx"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "electron",
+                "message": "the renderer is a browser page. It reaches the outside through the bridge and through nothing else."
+              }
+            ],
+            "patterns": [
+              {
+                "group": ["node:*"],
+                "message": "a browser cannot provide this. The shell owns paths and processes, and the bridge is how the renderer asks for one."
+              },
+              {
+                "group": ["@rk/shell"],
+                "message": "the renderer never imports the shell: that is the seam a service replaces."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      // `shell` is the half a service would throw away. It may have Node and Electron; what
+      // it may not have is the renderer.
+      "files": ["packages/shell/src/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@rk/ui"],
+                "message": "the main process does not import the renderer: it serves it a URL or a file."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      // A test may reach for whatever it is testing against — `ui`'s own read the stylesheet
+      // off disk, and `core`'s drive fakes that stand in for Node.
+      //
+      // `no-unsafe-type-assertion` joins them for a reason of its own (RG121). Twenty of
+      // these assert the shape of something the test itself just produced — `JSON.parse` of
+      // a command's stdout, an evaluate's answer, a bundle the design system ships — and in
+      // a test a wrong assertion is a red test, which is the check the rule would be adding.
+      // Held here rather than exempted file by file, the list otherwise being most of them.
+      //
+      // `session-harness.ts` is no test's name and every test's code: the session screen's
+      // fixtures, moved out of `session.test.tsx` so the jsdom file and the browser one share
+      // them (RG213). What held for them in a test file holds for them here.
+      "files": ["**/*.test.ts", "**/*.test.tsx", "packages/ui/src/session-harness.ts"],
+      "rules": {
+        "no-restricted-imports": "off",
+        "typescript/no-explicit-any": "off",
+        "typescript/no-unsafe-type-assertion": "off"
+      }
+    },
+    {
+      // Where asserting a type just proved is the work (RG121).
+      //
+      // Two families, and every file here was read once to decide it belonged:
+      //
+      //   `reading.ts` is the validator itself — it checks a value and narrows it, which
+      //   is the whole of what it does, and `asRecord`, `keysOf` and `tableOf` are the
+      //   narrowings the rest of the project was writing out by hand until they moved here.
+      //
+      //   The readers of an outside shape: a wire frame, a command's JSON, a file this app
+      //   did not write, or whatever a `catch` was handed. `settings.ts` and
+      //   `cold-start.ts` in `core`; in `shell`, the transports and the two harnesses that
+      //   read a CDP or an npm payload. Each checks before it narrows.
+      //
+      // There was a third, of one file: `capabilities.ts` narrowed the keys of a table declared
+      // `Record<string, …>`. It came off at RG129 — the table is declared by its key type, so
+      // `keysOf` answers for it, and its accumulator is `tableOf`'s.
+      //
+      // A file added here is a file somebody read. The point of the rule being on
+      // everywhere else is that an assertion in a screen, a hook or a pure rule is a
+      // finding, and none of those is on this list.
+      "files": [
+        "packages/core/src/reading.ts",
+        "packages/core/src/settings.ts",
+        "packages/core/src/cold-start.ts",
+        "packages/shell/src/advisories.ts",
+        "packages/shell/src/engine-handler.ts",
+        "packages/shell/src/fixture.ts",
+        "packages/shell/src/http-transport.ts",
+        "packages/shell/src/live.ts",
+        "packages/shell/src/mcp-transport.ts",
+        "packages/shell/src/running-app.ts",
+        "packages/shell/src/scratch.ts",
+        "packages/shell/src/stamp.ts"
+      ],
+      "rules": {
+        "typescript/no-unsafe-type-assertion": "off"
+      }
+    },
+    {
+      // The public site (site/), a prerendered page and not the app. Its lists are the copy
+      // module's arrays, rendered once on the build machine and hydrated unchanged: nothing ever
+      // reorders, inserts into or removes from one, which is the only case an index key breaks.
+      // A key made up from the content instead would collide on the repeated fragments (", ")
+      // the copy is built from.
+      "files": ["site/src/**/*.tsx"],
+      "rules": {
+        "react/no-array-index-key": "off"
+      }
+    },
+    {
+      // node:test's `test()` returns a promise the runner already tracks. Awaiting it at the top
+      // of a file would serialise nothing that is not serial already, and `void` on every call
+      // would be noise with no reader.
+      "files": ["site/scripts/*.test.mjs"],
+      "rules": {
+        "typescript/no-floating-promises": "off"
+      }
+    }
+  ]
+}

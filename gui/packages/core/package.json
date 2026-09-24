@@ -1,0 +1,12 @@
+{
+  "name": "@rk/core",
+  "private": true,
+  "version": "0.0.0",
+  "description": "The half a web service would keep: the transport interface, the verb table and the payload shapes. No Electron and no React.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./dist-types/index.d.ts",
+  "scripts": {
+    "test": "vitest run"
+  }
+}

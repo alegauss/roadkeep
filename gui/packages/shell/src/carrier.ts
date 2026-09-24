@@ -1,0 +1,850 @@
+import {
+  bridgedRun,
+  createGateLedger,
+  createLimiter,
+  type Declared,
+  createWatching,
+  EMPTY_CATALOGUE,
+  NOTHING_REMEMBERED,
+  READINGS_VERSION,
+  readingOf,
+  readingStands,
+  readPickPayload,
+  readStatsPayload,
+  remembering,
+  buildArgv,
+  openedFrom,
+  readLintPayload,
+  recordGate,
+  watchedFiles,
+  withLimits,
+  composeDoor,
+  filledArgv,
+  withheldBecause,
+  withheldResult,
+  type BridgedRequest,
+  type BridgedResult,
+  type GateLedger,
+  type OpenProject,
+  type Opening,
+  type OpenedProject,
+  type ProjectCatalogue,
+  type ProjectGate,
+  type EnginesPayload,
+  type EngineResolution,
+  type GateRecord,
+  type ProjectReading,
+  type ReadingStands,
+  type ReadLimits,
+  type RememberedReadings,
+  type Reconciled,
+  type SamePart,
+  type ScanRoot,
+  type Watching,
+} from '@rk/core'
+
+import { createDoorKeep, type DoorKeep } from './door-keep'
+import { createGovernedWatcher, REAL_CLOCK } from './governed-watch'
+import { stampGoverned } from './governed-stamp'
+import { openHere, resolveHere } from './open-here'
+import { rescan } from './rescan'
+import { rootKey } from './root-paths'
+import { logoOf } from './project-logo'
+
+/**
+ * The main-process end of every read a window makes (RG143).
+ *
+ * The renderer has no process, so this is where its projects are found, opened and kept.
+ * Three questions, and each is one method of the bridge: which projects are there, open one,
+ * run one request against it. Nothing here names Electron, so a test drives it with a fake
+ * opening and nothing spawns.
+ *
+ * **It keeps the catalogue, because the catalogue is the refusal.** A root the last scan did
+ * not find present is not opened and not run against, and nothing looks at what the path
+ * says — §RG85's first refusal, which rejected validating a path as a rule somebody spells
+ * around. The scan is folded into the one before it, so a project that went away is marked
+ * missing rather than forgotten, for as long as this process runs.
+ *
+ * **It keeps the engines, because it is the process that can close them.** One open project
+ * per root, held from the first `open` or `run` until `close`. A way of not opening is not
+ * kept: it has already given back what it started, and remembering it would answer a
+ * problem somebody has since fixed with the reason it had before.
+ */
+
+/** Where to look and how widely to read, as the person's settings say today. */
+export interface Looking {
+  readonly roots: readonly ScanRoot[]
+  readonly skip: readonly string[]
+  /** How many engine calls one project may have in flight. */
+  readonly width: number
+}
+
+export interface CarrierOptions {
+  /** Read per call: the settings file is the person's to edit while the app runs. */
+  readonly looking: () => Looking
+  /**
+   * Open one project, under the limits the settings give (RG249). `openHere` unless a test
+   * says otherwise.
+   */
+  readonly open?: (root: string, limits: ReadLimits) => Promise<Opening>
+  /**
+   * Resolve one project's engine and nothing else (RG252). `resolveHere` unless a test says
+   * otherwise: checking a remembered row is one process, and an opening is four.
+   */
+  readonly resolve?: (root: string, limits: ReadLimits) => Promise<EngineResolution>
+  /** Walk and fold. `rescan` unless a test says otherwise. */
+  readonly rescan?: (
+    previous: ProjectCatalogue,
+    roots: readonly ScanRoot[],
+    now: string,
+    skip: readonly string[],
+  ) => Promise<Reconciled>
+  readonly now?: () => string
+  /** Watch governed files. Real handles and a real clock unless a test says otherwise. */
+  readonly watching?: Watching
+  /**
+   * The record this machine last wrote, read once as this carrier is made (RG164). Absent,
+   * the carrier starts from nothing and the first walk is what a screen waits on.
+   */
+  readonly remembered?: () => ProjectCatalogue
+  /** What a verb printed at some earlier launch (RG251). Nothing unless a caller keeps it. */
+  readonly readings?: () => RememberedReadings
+  /** Keep what a verb printed for the next launch (RG251). */
+  readonly rememberReadings?: (readings: RememberedReadings) => void
+  /** Keep the folded record. Called after every walk; a write that fails costs the next one. */
+  readonly remember?: (catalogue: ProjectCatalogue) => void
+  /** Where the doors an answer carried are kept (RG165). Its own unless a test says otherwise. */
+  readonly doors?: DoorKeep
+  /** Where gate verdicts are kept (RG152). Its own unless a test says otherwise. */
+  readonly gate?: GateLedger
+  /**
+   * Told when a gate this carrier ran left a verdict (RG166), so a window hears it without
+   * asking. Absent — a test, or a carrier nobody is watching — the verdict is still on record
+   * and `gates` answers it.
+   */
+  readonly onGate?: (gate: ProjectGate) => void
+  /**
+   * How many projects may be gated at once (RG187). One by default: a cold start opens every
+   * project the walk found, and the gate is the most expensive read there is, so a launch
+   * spends one engine on verdicts and the rest on what the reader is looking at.
+   */
+  readonly gatesAtOnce?: number
+  /**
+   * Told when a walk behind the record changed something (RG180) — never when it found
+   * exactly what the record held, since a window that redrew on every walk would redraw on
+   * a timer nobody set.
+   */
+  readonly onCatalogue?: (changed: number) => void
+}
+
+export interface Carrier {
+  /**
+   * The doors this carrier has on offer (RG263).
+   *
+   * Exposed because starting a session about a finding needs the same batch running a door
+   * does — the same name, the same staleness — and a second keep beside this one would be two
+   * tables disagreeing about what is still offered. Read by the sessions and by nothing else.
+   */
+  readonly doors: DoorKeep
+  projects(): Promise<ProjectCatalogue>
+  open(root: string): Promise<OpenedProject>
+  run(root: string, request: BridgedRequest): Promise<BridgedResult>
+  /**
+   * Be told when a project's governed files move, for as long as the answer is not called
+   * (RG144) — or null where the root is not one this carrier would open.
+   *
+   * The files are the ones the project's own `config` declared, read off the opening, so
+   * watching one opens it. Each move also drops what the cache held for it: an answer keyed
+   * on a stamp is never stale, and one nobody will ask for again is only memory.
+   */
+  follow(root: string, moved: () => void): Promise<(() => void) | null>
+  /**
+   * Take one door an answer carried (RG165), by the name `run` gave that answer.
+   *
+   * The argv is the engine's and is never sent: what a caller names is which answer, which
+   * door in it, and the prose for the blanks the engine left.
+   */
+  door(
+    root: string,
+    offered: string,
+    which: number,
+    words: readonly string[],
+  ): Promise<BridgedResult>
+  /**
+   * What the gate last said about each project it has run for (RG152).
+   *
+   * Read off the ledger and dated against the files as they are now, so a verdict taken
+   * before a write says it is stale rather than being thrown away. A project nothing has
+   * gated is absent from the answer: `unknown` is the caller's word for that, and this side
+   * inventing a clean row is the one thing `gate.ts` refuses to do.
+   */
+  gates(): Promise<readonly ProjectGate[]>
+  /**
+   * What a verb printed at some earlier launch, for the projects whose files have not moved
+   * since (RG251).
+   *
+   * Every entry is checked here rather than trusted: the stamp is retaken over the governed
+   * files the entry names, which is a few `stat` calls and no interpreter, and one that no
+   * longer matches is left out. So a caller cannot draw an answer read off files that have
+   * changed, and never has to know how that is decided.
+   */
+  readings(): Promise<RememberedReadings>
+  /**
+   * Whether what was remembered about a project still answers for it (RG252), without
+   * opening it.
+   *
+   * One process: the engine is resolved, which is the read that says which copy would answer,
+   * and the stamp is retaken over the files the entry names. A project that stands has cost
+   * nothing else — no held server, no `config`, no `stats` — and a caller that hears anything
+   * else reads it in full.
+   */
+  check(root: string): Promise<ReadingStands>
+  /**
+   * Resolve once every gate this carrier started has finished, including one started while
+   * waiting (RG226).
+   *
+   * An opening and a move each start a gate nobody awaits, which is right for a screen and
+   * wrong for anything asking what that gate did: the tests slept twenty milliseconds and
+   * hoped, and a loaded machine is one where `stat` and a spawn take longer than that. This
+   * is the fact they wait on — including the case where the gate decided not to run, which
+   * no event announces. Quitting does not wait on it, for the reason opening does not.
+   */
+  gatesSettled(): Promise<void>
+  /** Give back every engine held, awaited to the last exit. What quitting waits on. */
+  close(): Promise<void>
+}
+
+/** Two spellings of one folder, compared the way the catalogue compares them. */
+const sameRoot: SamePart = (left, right) => rootKey(left) === rootKey(right)
+
+/**
+ * Why a door did not run (RG165). Neither says which door or what was sent: a name that
+ * names nothing and a name whose batch has been dropped are one answer to a caller, and the
+ * only thing to do about either is to read again and take the door that answer offers.
+ */
+const NO_SUCH_DOOR =
+  'no door by that name is on offer for this project: read again and take one the answer carries'
+const NOT_THE_WORDS = 'that is not one word for each blank the door has'
+
+function notCatalogued(root: string): string {
+  return `${root} is not a project the scan of the person's roots found`
+}
+
+/** The sentence a way of not opening carries, for a request that needed it open. */
+function whyNotOpen(opening: Exclude<Opening, { readonly kind: 'open' }>): string {
+  if (opening.kind === 'unresolved') return opening.reason
+  if (opening.kind === 'unreadable') return opening.unreadable.message
+  return 'no roadkeep project governs it'
+}
+
+export function createCarrier(options: CarrierOptions): Carrier {
+  // The deadline `limits.ts` declares, applied (RG249): resolution, the reads behind an
+  // opening and the gate all spawn a process, and one that never answers held every row's
+  // next line pending for as long as it hung. A read that runs out is a state on that
+  // project, which is what the limit was written for.
+  const limits = (): ReadLimits => withLimits(options.looking())
+  const open = options.open ?? ((root, under) => openHere(root, under))
+  const resolve =
+    options.resolve ?? ((root, under) => resolveHere(root, { timeoutMs: under.timeoutMs }))
+  const fold = options.rescan ?? rescan
+  const now = options.now ?? (() => new Date().toISOString())
+  const watching = options.watching ?? createWatching(createGovernedWatcher(), REAL_CLOCK)
+  const following = new Set<() => void>()
+
+  /**
+   * What this project's governed files look like now, as one string.
+   *
+   * The one place either ledger dates anything from: a door offered against a state that has
+   * gone and a verdict taken before a write are the same question asked twice, so they are
+   * asked of the same answer.
+   */
+  const stampOf = async (root: string): Promise<string> => {
+    const answer = await opening(root).catch(() => null)
+    return answer?.kind === 'open'
+      ? stampGoverned(root, Object.values(answer.project.governed))
+      : ''
+  }
+
+  // What the engine offered, kept here rather than crossing (RG165).
+  const doors = options.doors ?? createDoorKeep({ stampOf })
+
+  // What a verb printed at some earlier launch (RG251), held here as the record is: a launch
+  // draws these while the reads behind them run, and every entry is checked against the files
+  // it came off before it is offered.
+  let readings: RememberedReadings = options.readings?.() ?? NOTHING_REMEMBERED
+
+  // What the gate last said, per project (RG152). In memory, and seeded from what was kept
+  // (RG253): a verdict is about a working tree at a moment, so it comes back only where the
+  // stamp over that tree and the copy of roadkeep that took it are both the ones it was taken
+  // with — `seedGate` below, at the opening, where the engine is finally known.
+  const gate: GateLedger = options.gate ?? createGateLedger(rootKey)
+  // Which roots it holds one for: the ledger answers about a root it is asked about, and
+  // `gates` has to know which to ask about without walking every project on the machine.
+  const gated = new Map<string, string>()
+
+  /**
+   * Note what the gate said, when a gate is what ran (RG152).
+   *
+   * The verdict is taken off the answer a screen asked for rather than from a run of this
+   * side's own: `lint` is the most expensive read there is, and running a second one to
+   * date a row would double the cost of the only read that answers the question. So every
+   * `lint` through this bridge dates the ledger, whoever asked for it and whatever screen
+   * they were on.
+   *
+   * The stamp is read after the answer, which is the honest order: a file written while the
+   * gate was running makes the verdict stale immediately, and the row says so.
+   */
+  const noting = async (root: string, argv: readonly string[], parsed: unknown): Promise<void> => {
+    if (!argv.includes('lint')) return
+    const read = readLintPayload(parsed, '')
+    if (!read.ok) return
+    const stamp = await stampOf(root)
+    const record = recordGate(read.value, stamp, now())
+    gate.note(root, record)
+    gated.set(rootKey(root), root)
+    const answer = await opening(root).catch(() => null)
+    keepGate(root, record, stamp, answer?.kind === 'open' ? answer.project.engine.payload : null)
+  }
+
+  /**
+   * Keep a verdict for the next launch, beside what the verbs printed (RG253).
+   *
+   * With the engine that ran it, because a stamp cannot see which copy of roadkeep answered
+   * and an upgrade changes what `lint` finds without moving a file.
+   */
+  const keepGate = (
+    root: string,
+    record: GateRecord,
+    stamp: string,
+    engines: EnginesPayload | null,
+  ): void => {
+    const was = readingOf(readings, root, rootKey)
+    readings = remembering(
+      readings,
+      {
+        root,
+        stamp,
+        read: was?.read ?? now(),
+        governed: was?.governed ?? [],
+        stats: null,
+        pick: null,
+        // The copy that ran it, so the next launch can ask whether the same one would answer
+        // — a stamp cannot see an upgrade.
+        engines: engines ?? was?.engines ?? null,
+        declares: null,
+        gate: record,
+      },
+      rootKey,
+    )
+    options.rememberReadings?.(readings)
+  }
+
+  /**
+   * Put a remembered verdict back on the ledger, where it is about these files and this copy
+   * of roadkeep (RG253).
+   *
+   * Never as stale: a verdict taken against another tree, or by another engine, is not an old
+   * verdict about this one — it is dropped, and the gate runs as it would have.
+   */
+  const seedGate = (root: string, stamp: string, engines: EnginesPayload | null): void => {
+    const reading = readingOf(readings, root, rootKey)
+    if (reading?.gate == null) return
+    if (readingStands(reading, engines, stamp) !== 'stands') return
+    gate.note(root, reading.gate)
+    gated.set(rootKey(root), root)
+  }
+
+  /**
+   * Keep what `stats` and `pick` printed, for the launch after this one (RG251).
+   *
+   * `noting`'s arrangement and its reason: the answer a screen asked for is the one kept, so
+   * nothing is read twice to fill a cache. What is kept is the payload — a row is rebuilt
+   * from it by `readRow` — with the stamp over the files it came off and the governed set it
+   * was stamped on, which is what lets the next launch check it without an interpreter.
+   */
+  const rememberingRead = async (
+    root: string,
+    argv: readonly string[],
+    parsed: unknown,
+  ): Promise<void> => {
+    const wanted = argv.includes('stats') ? 'stats' : argv.includes('pick') ? 'pick' : ''
+    if (wanted === '') return
+    const stats = wanted === 'stats' ? readStatsPayload(parsed, '') : null
+    const pick = wanted === 'pick' ? readPickPayload(parsed, '') : null
+    if (stats !== null && !stats.ok) return
+    if (pick !== null && !pick.ok) return
+
+    const answer = await opening(root).catch(() => null)
+    if (answer?.kind !== 'open') return
+    const governed = Object.values(answer.project.governed)
+    const stamp = await stampGoverned(root, governed)
+    readings = remembering(
+      readings,
+      {
+        root,
+        stamp,
+        read: now(),
+        governed,
+        stats: stats?.ok === true ? stats.value : null,
+        pick: pick?.ok === true ? pick.value : null,
+        engines: answer.project.engine.payload,
+        declares: answer.project.declares,
+        // Whatever verdict this project already has, carried rather than dropped: this write
+        // is about `stats` and `pick`, and folding it must not forget the gate (RG253).
+        gate: readingOf(readings, root, rootKey)?.gate ?? null,
+      },
+      rootKey,
+    )
+    options.rememberReadings?.(readings)
+  }
+
+  /**
+   * Keep whatever doors an answer carried, and name them on the way back (RG165).
+   *
+   * Every read goes through here, because a door arrives on a refusal as readily as on a
+   * gate finding — and an answer that carries none is the ordinary case and costs a walk of
+   * the document it already parsed.
+   */
+  const keeping = async (
+    root: string,
+    argv: readonly string[],
+    answered: BridgedResult,
+  ): Promise<BridgedResult> => {
+    if (answered.kind !== 'ran') return answered
+    let parsed: unknown
+    try {
+      parsed = JSON.parse(answered.result.stdout)
+    } catch {
+      // Not JSON at all, which is an answer this side does not read for anything else either.
+      return answered
+    }
+    await noting(root, argv, parsed)
+    await rememberingRead(root, argv, parsed)
+    const offered = await doors.keep(root, parsed)
+    return offered === null ? answered : { ...answered, offered }
+  }
+
+  // What was written last time, if anything (RG164). A record read here is a list every
+  // question below can answer from while the walk behind it runs.
+  const remembered = options.remembered?.()
+  let catalogue: ProjectCatalogue | null =
+    remembered === undefined || remembered.projects.length === 0 ? null : remembered
+  let scanning: Promise<ProjectCatalogue> | null = null
+  const held = new Map<string, Promise<Opening>>()
+
+  // One walk at a time: two folded against the same record at once would each fold the
+  // other's result away, so a second caller waits on the walk already under way.
+  const walk = (): Promise<ProjectCatalogue> => {
+    scanning ??= (async () => {
+      const looking = options.looking()
+      const folded = await fold(catalogue ?? EMPTY_CATALOGUE, looking.roots, now(), looking.skip)
+      catalogue = folded.catalogue
+      // Kept as it is folded, so a project that went missing is remembered as missing rather
+      // than forgotten at the quit that follows.
+      options.remember?.(folded.catalogue)
+      // And said, where the fold moved something: `reconcile` already answers what changed,
+      // so a walk that found what the record held is one nobody needs to hear about (RG180).
+      if (folded.changes.length > 0) options.onCatalogue?.(folded.changes.length)
+      return folded.catalogue
+    })().finally(() => {
+      scanning = null
+    })
+    return scanning
+  }
+
+  /**
+   * The record, and a walk (RG164).
+   *
+   * **The record answers first where there is one**: a launch that remembers eleven projects
+   * draws them while the disk is still being read, and the walk it started lands in the next
+   * call. With no record this waits, because a list of nothing is not an answer worth having.
+   */
+  const projects = (): Promise<ProjectCatalogue> => {
+    const known = catalogue
+    if (known === null) return walk()
+    // Nobody is waiting on this one, so a walk that throws must not become an unhandled
+    // rejection: the record stands, and the next call starts another walk.
+    void walk().catch(() => undefined)
+    return Promise.resolve(known)
+  }
+
+  // Asked of the record, scanning first where there is none yet: a window can open a project
+  // it remembers before it asks for the list, and the answer is the same list either way.
+  const catalogued = async (root: string): Promise<boolean> => {
+    const known = catalogue ?? (await projects())
+    const key = rootKey(root)
+    return known.projects.some(
+      (project) => project.presence === 'present' && rootKey(project.path) === key,
+    )
+  }
+
+  /**
+   * Watch a project's files without holding its engine (RG252).
+   *
+   * What a stood row needs: the files an entry names are watched, and a change is told to
+   * whoever is following. Nothing is invalidated, because nothing is held — the read that
+   * answers the change is what opens the project, which is the cost that change is worth.
+   */
+  const watchingAlone = (
+    root: string,
+    governed: readonly string[],
+    moved: () => void,
+  ): (() => void) => {
+    const interest = watching.hold(root, watchedFiles([...governed]))
+    const key = rootKey(root)
+    const stopHearing = watching.onChanged((changed) => {
+      if (rootKey(changed) === key) moved()
+    })
+
+    let stopped = false
+    const stop = (): void => {
+      if (stopped) return
+      stopped = true
+      following.delete(stop)
+      stopHearing()
+      interest.release()
+    }
+    following.add(stop)
+    return stop
+  }
+
+  const opening = (root: string): Promise<Opening> => {
+    const key = rootKey(root)
+    const kept = held.get(key)
+    if (kept !== undefined) return kept
+
+    const started = open(root, limits()).then(
+      (answer) => {
+        if (answer.kind !== 'open') held.delete(key)
+        return answer
+      },
+      (cause: unknown) => {
+        held.delete(key)
+        throw cause
+      },
+    )
+    held.set(key, started)
+    return started
+  }
+
+  /**
+   * Run the gate for one project, where running it would say anything new (RG166).
+   *
+   * **Driven by the files, never by a draw.** `needsGate` compares what is on record against
+   * the stamp the governed files have now, so this is at most one `lint` per project per
+   * change — a window redrawing its list seventeen times runs none. It goes through the
+   * project's own pooled transport, so it queues behind whatever that project is doing rather
+   * than competing with it.
+   *
+   * Nothing awaits it: a verdict arrives on the `gate` topic when it arrives, and an opening
+   * that waited for one would make every project's first draw cost the most expensive read
+   * there is. A gate that will not run is a project that stays `unknown`, which is a state a
+   * row draws.
+   */
+  const gating = new Set<string>()
+  // Across projects, not within one: each project's own pool bounds what it runs at once,
+  // and what was unbounded is how many projects run a gate together (RG187).
+  const gateLimit = createLimiter(options.gatesAtOnce ?? 1)
+
+  /**
+   * Keep what a project declared, where it changed what the record holds.
+   *
+   * A memory and never an override: a returning project takes whatever it now declares,
+   * including nothing, because the next fold writes what the open said.
+   */
+  function recordDeclared(root: string, declares: Declared): void {
+    if (catalogue === null) return
+    const key = rootKey(root)
+    const recorded = catalogue.projects.map((one) =>
+      rootKey(one.path) !== key || one.declared.name === declares.name
+        ? one
+        : { ...one, declared: { ...one.declared, name: declares.name } },
+    )
+    // Unchanged entries come back as the same objects, so this says whether anything moved
+    // without a flag the compiler cannot see being set.
+    if (recorded.every((one, at) => one === catalogue?.projects[at])) return
+    const next = { ...catalogue, projects: recorded }
+    catalogue = next
+    options.remember?.(next)
+  }
+  const gateIfStale = async (root: string, project: OpenProject): Promise<void> => {
+    const key = rootKey(root)
+    // One at a time per project: two runs against one tree answer the same thing twice.
+    if (gating.has(key)) return
+    const stamped = await stampOf(root)
+    // What an earlier launch found, where it is about these files and this engine (RG253):
+    // the opening is the moment the copy that would answer is known, so it is the moment a
+    // kept verdict can be trusted — and a project nobody has touched runs no `lint` at all.
+    seedGate(root, stamped, project.engine.payload)
+    if (!gate.stale(root, stamped)) return
+
+    gating.add(key)
+    try {
+      const ran = await gateLimit.hold(() =>
+        project.transport.run({
+          root,
+          argv: buildArgv(root, 'lint', {}),
+          timeoutMs: limits().timeoutMs,
+        }),
+      )
+      const read = readLintPayload(JSON.parse(ran.stdout), '')
+      if (!read.ok) return
+      // Stamped after the run, like every other verdict: a file written while the gate ran
+      // makes it stale at once, and the row says so rather than claiming the tree is clean.
+      const stamp = await stampOf(root)
+      const record = recordGate(read.value, stamp, now())
+      gate.note(root, record)
+      gated.set(key, root)
+      keepGate(root, record, stamp, project.engine.payload)
+      options.onGate?.({ root, health: gate.healthOf(root, stamp) })
+    } catch {
+      // A gate that would not run says nothing. The project keeps whatever it had, which
+      // where nothing has run is `unknown` — never a verdict this side made up.
+    } finally {
+      gating.delete(key)
+    }
+  }
+
+  /** The gates started and not yet finished, which `gatesSettled` waits on. */
+  const gatesRunning = new Set<Promise<void>>()
+
+  /** Start a gate nobody awaits, and keep it where `gatesSettled` can find it. */
+  const startGate = (root: string, project: OpenProject): void => {
+    const running = gateIfStale(root, project).catch(() => undefined)
+    gatesRunning.add(running)
+    void running.then(() => gatesRunning.delete(running))
+  }
+
+  return {
+    doors,
+    projects,
+
+    async open(root) {
+      try {
+        if (!(await catalogued(root))) {
+          return { kind: 'withheld', root, reason: notCatalogued(root) }
+        }
+        const reached = await opening(root)
+        // A project that just opened is one whose verdict may be older than its files, and
+        // this is the moment the engine to ask with exists. Never awaited: the opening is
+        // what a screen is waiting for, and it is handed the project this call already has
+        // rather than opening one of its own (RG166).
+        if (reached.kind === 'open') {
+          startGate(root, reached.project)
+          // And the record remembers what it declared (RG203). A declared name is read out
+          // of the checkout that declares it, so a project the next scan does not find would
+          // fall back to its folder at exactly the moment it goes grey — and *last seen on
+          // Tuesday* about a name nobody recognises is not the sentence this was built to
+          // say. A fact about a machine's folders that has to outlive the folder, like the
+          // aliases and the common directory already recorded beside it.
+          recordDeclared(root, reached.project.declares)
+        }
+        const handing = openedFrom(reached)
+        if (handing.kind !== 'open') return handing
+        // The declared logo, resolved and read here: the renderer is handed a picture or
+        // nothing, and never a path into a repository on this machine (RG204).
+        const mark = await logoOf(root, handing.declares.logo)
+        return { ...handing, mark, declares: { ...handing.declares, logo: '' } }
+      } catch (cause) {
+        // `openProject` answers its failures as states, so reaching here is the scan or the
+        // candidates throwing — still an answer a screen draws, and never a rejected call.
+        return {
+          kind: 'unresolved',
+          root,
+          reason: cause instanceof Error ? cause.message : String(cause),
+          // Nothing was tried, because the throw came from the scan or the candidates
+          // before any command line was asked (RG168).
+          code: 'nothing-offered',
+          tried: [],
+        }
+      }
+    },
+
+    async run(root, request) {
+      try {
+        if (!(await catalogued(root))) {
+          return withheldResult(notCatalogued(root), 'not-catalogued', { root })
+        }
+
+        const full = { ...request, root }
+        const why = withheldBecause(full, sameRoot)
+        // No code, so the sentence is drawn as it was written (RG192). This one names a verb
+        // and a flag in an argv *this app* composed, which makes it a defect report rather
+        // than a state a person can act on — and a translation of it would say the same
+        // English identifiers inside a Portuguese sentence, costing the reader the only part
+        // that says which call was wrong.
+        if (why !== null) return withheldResult(why)
+
+        const answer = await opening(root)
+        if (answer.kind !== 'open') {
+          const whyNot = whyNotOpen(answer)
+          return withheldResult(`${root} did not open: ${whyNot}`, 'not-open', {
+            root,
+            why: whyNot,
+          })
+        }
+        return keeping(root, full.argv, await bridgedRun(() => answer.project.transport.run(full)))
+      } catch (cause) {
+        return bridgedRun(() => Promise.reject(cause))
+      }
+    },
+
+    async door(root, offered, which, words) {
+      try {
+        if (!(await catalogued(root))) {
+          return withheldResult(notCatalogued(root), 'not-catalogued', { root })
+        }
+
+        const kept = await doors.taken(root, offered, which)
+        if (kept === null) return withheldResult(NO_SUCH_DOOR, 'no-such-door')
+
+        // The engine's own argv, with the person's prose where the engine left a blank and
+        // nowhere else. A caller who sent more words than the door has blanks, or fewer, is
+        // refused rather than helped: what runs is what came back. A `-` among those blanks
+        // takes its word on standard input instead of into the argv (RG261).
+        const filled = filledArgv(kept.argv, words)
+        if (filled === null) return withheldResult(NOT_THE_WORDS, 'not-the-words')
+
+        const answer = await opening(root)
+        if (answer.kind !== 'open') {
+          const whyNot = whyNotOpen(answer)
+          return withheldResult(`${root} did not open: ${whyNot}`, 'not-open', {
+            root,
+            why: whyNot,
+          })
+        }
+        // Wrapped by `composeDoor`, which adds where to run it and the request for a
+        // machine-readable answer and nothing else — and with no tool call beside it, since
+        // the held surface answers only the tools its own schema publishes.
+        const composed = composeDoor(root, { argv: filled.argv })
+        return keeping(
+          root,
+          composed.argv,
+          // Bounded like every other call (RG260). Having no tool call is what sends this to
+          // the spawning fallback, where an absent deadline is no ceiling at all — and this
+          // is a call a person pressed a button for and is watching a screen wait on.
+          await bridgedRun(() =>
+            answer.project.transport.run({
+              root,
+              argv: composed.argv,
+              stdin: filled.stdin,
+              timeoutMs: limits().timeoutMs,
+            }),
+          ),
+        )
+      } catch (cause) {
+        return bridgedRun(() => Promise.reject(cause))
+      }
+    },
+
+    async gates() {
+      // The catalogue's spelling of each root, so a caller matches these against its own
+      // list by the path it was given rather than by guessing this platform's path rules.
+      const known = catalogue ?? (await projects())
+      const spelled = new Map(
+        known.projects.map((project) => [rootKey(project.path), project.path]),
+      )
+      // One stamp read per project on record, and none for the rest: a machine with
+      // seventeen projects and one gated answers with one file read, not seventeen.
+      return Promise.all(
+        [...gated].map(async ([key, root]) => ({
+          root: spelled.get(key) ?? root,
+          health: gate.healthOf(root, await stampOf(root)),
+        })),
+      )
+    },
+
+    async readings() {
+      // The stamp is retaken over the files each entry names — a few `stat` calls, no
+      // interpreter — so an entry read off files that have since moved is left out rather
+      // than drawn. An entry nothing stamped is one nothing can check, and goes the same way.
+      const checked = await Promise.all(
+        readings.projects.map(async (one) => {
+          if (one.stamp === '' || one.governed.length === 0) return null
+          const now_ = await stampGoverned(one.root, one.governed)
+          return now_ === one.stamp ? one : null
+        }),
+      )
+      return {
+        version: READINGS_VERSION,
+        projects: checked.filter((one): one is ProjectReading => one !== null),
+      }
+    },
+
+    async check(root) {
+      if (!(await catalogued(root))) return 'nothing-remembered'
+      const reading = readingOf(readings, root, rootKey)
+      if (reading === null || reading.governed.length === 0) return 'nothing-remembered'
+
+      // The files first, because it needs no process at all: an entry read off a tree that
+      // has moved is out whatever the engine says.
+      const stamp = await stampGoverned(root, reading.governed)
+      if (stamp !== reading.stamp) return 'files-moved'
+
+      const resolved = await resolve(root, limits()).catch(() => null)
+      const engines = resolved?.kind === 'resolved' ? resolved.engine.payload : null
+      const stands = readingStands(reading, engines, stamp)
+      // A row that stands brings its verdict back with it (RG253), so the launch runs no
+      // `lint` for a project nobody has touched.
+      if (stands === 'stands') seedGate(root, stamp, engines)
+      return stands
+    },
+
+    async follow(root, moved) {
+      if (!(await catalogued(root))) return null
+
+      // A project whose remembered row stood is not open, and opening it to learn which files
+      // to watch would spend exactly the interpreters the check saved (RG252). The entry names
+      // them, so the watch is taken on those and the project stays closed until something
+      // needs it. What a change costs then is the read that change is about.
+      const reading = held.has(rootKey(root)) ? null : readingOf(readings, root, rootKey)
+      if (reading !== null && reading.governed.length > 0) {
+        return watchingAlone(root, reading.governed, moved)
+      }
+
+      const answer = await opening(root).catch(() => null)
+      if (answer?.kind !== 'open') return null
+
+      const { project } = answer
+      const interest = watching.hold(root, watchedFiles(Object.values(project.governed)))
+      const key = rootKey(root)
+      const stopHearing = watching.onChanged((changed) => {
+        if (rootKey(changed) !== key) return
+        project.invalidate()
+        moved()
+        // The files moved, so the verdict on record is about a tree that has gone (RG166).
+        startGate(root, project)
+      })
+
+      let stopped = false
+      const stop = (): void => {
+        if (stopped) return
+        stopped = true
+        following.delete(stop)
+        stopHearing()
+        interest.release()
+      }
+      following.add(stop)
+      return stop
+    },
+
+    async gatesSettled() {
+      // Again until none is left: a gate that finishes can be followed by one a move started.
+      while (gatesRunning.size > 0) await Promise.all([...gatesRunning])
+    },
+
+    async close() {
+      // The watches first: a handle held on a folder is the same trouble on Windows as an
+      // engine standing in it.
+      for (const stop of [...following]) stop()
+      const openings = [...held.values()]
+      held.clear()
+      await Promise.all(
+        openings.map(async (pending) => {
+          const answer = await pending.catch(() => null)
+          if (answer?.kind === 'open') await answer.project.close()
+        }),
+      )
+    },
+  }
+}

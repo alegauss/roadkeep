@@ -1,0 +1,205 @@
+# The desktop reader's suite and installers (gui/, RG55), moved here with the app (RK1697).
+#
+# GitHub runs only the workflows at the repository root, so the `ci.yml` gui/ carried as its
+# own repository came here rather than staying where nothing reads it. The jobs, gates and
+# reasons are the ones it had there; the jobs that build run in gui/, and
+# `packages/shell/src/workflow.ts` reads this file for the promises RG50 and RG157 hold.
+#
+# **The engine is this tree.** In its own repository the suite checked roadkeep out beside it
+# at `@main`, so a verb renamed here went red there a push later, in another repository. Now
+# the commit that changes a verb is the commit whose reader is tested against it: `pip install
+# ..` puts this checkout on PATH, and `ROADKEEP_HOME` hands the same one to the launcher.
+#
+# No `paths:` filter, on purpose: a change under src/ is exactly the change this suite exists
+# to judge, and a filter naming gui/ alone would skip it.
+#
+# **The `v*` tag is shared and not yet reconciled.** In this repository a `v*` tag is the
+# CLI's release, and its version is not gui/package.json's — so the package job's tag check
+# refuses it and nothing is drafted. Which tag builds the app is RK1702's to decide.
+name: gui
+
+on:
+  push:
+    branches: [main]
+    # A tag is what asks for an installer (RG91).
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: gui-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  suite:
+    name: suite on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: gui
+    strategy:
+      # Which platform failed is the useful half of a failure in a desktop app.
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: npm
+          cache-dependency-path: gui/package-lock.json
+
+      # roadkeep declares no dependencies, so the interpreter is the whole install; 3.11 is
+      # its floor.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # The engine as a command (RG113): a live fixture has no `.claude/`, so PATH is the only
+      # candidate it gets. Installed from this checkout, so the command and `ROADKEEP_HOME`
+      # are one commit.
+      - name: put this tree's engine on PATH
+        run: pip install ..
+        shell: bash
+
+      - run: npm ci
+
+      # RG213: the layout tests run in headless Chromium through Vitest Browser Mode.
+      - name: install the browser the layout tests run in
+        run: npx playwright install --with-deps chromium
+        shell: bash
+
+      - name: typecheck
+        run: npm run typecheck
+
+      - name: lint
+        run: npm run lint
+
+      # RG120: the skill, the guard and the launcher gui/ commits are copies, and `--check`
+      # exits non-zero on any the engine would rewrite. `--source` is the repository root,
+      # where the surfaces it copies live beside the package.
+      - name: the wired surfaces are the engine's own
+        run: roadkeep install --check --source ..
+        shell: bash
+
+      # RG114: Ubuntu 24.04 keeps Chromium out of its sandbox without this, and switching the
+      # sandbox off instead would report a pass about a posture nobody ships.
+      - name: let Chromium enter its sandbox
+        if: runner.os == 'Linux'
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
+      # RG60 starts the built app, so the bundle exists before the suite.
+      - name: build
+        run: npm run build
+
+      # Both halves (RG64); `xvfb-run` is the display a Linux runner lacks.
+      - name: test
+        run: ${{ runner.os == 'Linux' && 'xvfb-run -a npm run test:all' || 'npm run test:all' }}
+        shell: bash
+        env:
+          ROADKEEP_HOME: ${{ github.workspace }}
+
+      # RG91: the stamp is where packaging refuses a renderer that gained a power.
+      - name: stamp, which is where packaging refuses
+        run: npm run stamp
+
+      # RG95: advisories against the list this project has read.
+      - name: advisories
+        run: node packages/shell/dist/audit.js
+
+  # The artefact somebody would install (RG91), on a tag or on demand, never on a push.
+  # macOS is absent on purpose: RG119 was retired, nobody with a Mac is making one.
+  package:
+    name: package on ${{ matrix.os }}
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    needs: [suite]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: gui
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The stamp reads `git rev-parse`; a build stamped `unstamped` is the one thing this
+          # job exists to get right.
+          fetch-depth: 0
+
+      # RG50: a tag naming another version than the manifest would draft a release whose
+      # files disagree with its title. Refused before anything is built.
+      - name: the tag names the version the manifest carries
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          manifest=$(node -p "require('./package.json').version")
+          if [ "${GITHUB_REF_NAME#v}" != "$manifest" ]; then
+            echo "tag $GITHUB_REF_NAME, but package.json says $manifest"
+            exit 1
+          fi
+
+      # The gate over gui/'s governed files, from the action this tree ships.
+      - uses: ./
+        with:
+          directory: gui
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: npm
+          cache-dependency-path: gui/package-lock.json
+
+      - run: npm ci
+
+      # Build, stamp and electron-builder in one command; the script carries
+      # `--publish never`.
+      - name: package
+        run: npm run package
+
+      - name: keep it
+        uses: actions/upload-artifact@v4
+        with:
+          name: roadkeep-${{ matrix.os }}
+          path: |
+            gui/release/*.exe
+            gui/release/*.AppImage
+          if-no-files-found: error
+          retention-days: 14
+
+  # The installers on a release page, and **a draft** (RG50): a release is a decision somebody
+  # makes, not a side effect of pushing a tag.
+  release:
+    name: draft the release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [package]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # The one job that writes to the repository, so the one that asks to.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: installers
+          merge-multiple: true
+
+      - name: draft it, with both installers attached
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" installers/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --draft \
+            --verify-tag \
+            --title "roadkeep $GITHUB_REF_NAME" \
+            --generate-notes

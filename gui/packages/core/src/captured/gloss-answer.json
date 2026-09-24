@@ -1,0 +1,124 @@
+{
+  "headline": "Give the file window a second view: the file as it is now against the file as it was before the session started, matched up line by line.",
+  "today": "The app watches automated coding runs and lets you open any file one of those runs edited. Opening a file shows you the file as it sits on disk right now, and above it one block per edit the run made — each block showing the text that edit replaced and the text it put in. Ten edits give you ten blocks, and anything that changed the file afterwards without being one of those edits — a formatter tidying the whole file at the end, say — appears in none of them. There is no view of the whole file against the version that existed before the run began. (The four files the design names already hold code written for this line and marked with its id, while the backlog still lists the line as designed and not shipped.)",
+  "after": "Opening an edited file gives you a second view beside the file itself: its text from before the run on one side and its text now on the other, lined up row by row, with three unchanged lines of context kept around every stretch that differs and the rest folded away and counted. It answers \"what is different about this file overall\", whoever or whatever made the difference, instead of \"what did each individual edit do\". A file whose earlier text is known opens on that view; a file where nothing said what it was before says so rather than comparing against a guess.",
+  "steps": [
+    "Take the file's earlier text out of what the run itself reported. The first successful, answered editing call on that path carries the file as it stood before that call; a file the run created has an empty earlier side, and where nothing reported it the answer is 'not known' rather than a guess.",
+    "Compare that earlier text against the file as it is now, line by line, in the pure core package: which lines are the same, which arrived, which left, and how many of each.",
+    "Keep three unchanged lines around each run of differing lines, join up two changes that fall close together so no line is drawn twice, and fold the untouched stretches in between into a count.",
+    "Refuse the comparison outright when either side is longer than 2000 lines, and say that it was refused — which is a different answer from 'nothing differs'.",
+    "Draw the result in the interface package: both sides' line numbers on every row, a plus, a minus or a space at the head of each line as well as a background tint, the added and removed totals, and a button that switches between one column and two side-by-side columns.",
+    "Hang it in the existing file viewer as another tab next to the file and the per-edit blocks: a file with a known earlier text opens on the comparison, the two-column shape widens the panel, and a file without one is told so."
+  ],
+  "done": [
+    "The payload's own condition: what the run did to the backlog can be seen without leaving the task.",
+    "Opening a file the run edited shows a comparison view alongside the file, and lands on it by default when the earlier text is known.",
+    "The comparison shows both sides' line numbers, counts of lines added and removed, three lines of context around each difference, and a count standing in for each folded stretch.",
+    "Every changed line is readable without colour, because each row leads with a plus, a minus or a space.",
+    "The view switches between one column and two, and the panel widens for the two-column shape.",
+    "A file longer than the ceiling says it was not compared; a file whose earlier text nobody reported says it has none; a file identical to its earlier text says so."
+  ],
+  "where": [
+    {
+      "path": "packages/core/src/acts.ts",
+      "said": "Reads the run's output stream — one JSON object per line — into a sequence of 'acts': things said, tools called, results returned, questions asked. It already works out, for each edited file, whether the run created it or changed something that was there. This task reads the file's earlier text out of that same reported answer: empty for a file the run created, and nothing at all where no call answered for the path or the answer was too large to carry the old text back."
+    },
+    {
+      "path": "packages/core/src/compare.ts",
+      "said": "Holds the comparison itself, with no dependency on anything outside the package: it takes two strings and answers which lines are the same, which arrived and which left, grouped into runs with three unchanged lines of context around each. It counts added and removed lines, reports when the two sides are identical, and refuses to compare at all past 2000 lines a side — a separate answer from 'no difference'. Whole lines only; words inside a line are not compared. This is the file the task's comparison rule lives in."
+    },
+    {
+      "path": "packages/ui/src/compared.tsx",
+      "said": "Draws that comparison. Each row carries both sides' line numbers, a plus, minus or space, and a background tint saying the same thing a second time; folded stretches appear as a count; the totals sit in a bar with a button switching between inline and two columns. Nothing is syntax-highlighted and no Markdown is rendered. This is where the task's view is drawn, deliberately rather than with the design system's own field-by-field difference component, which does not draw file lines with both sides' numbers."
+    },
+    {
+      "path": "packages/ui/src/file-sheet.tsx",
+      "said": "The viewer the design calls `viewer.tsx`: the panel that slides over the screen showing one edited file as the disk has it now, with line numbers, plus a tab of the run's individual edits checked against the text. It reads the file when it opens and again whenever the run touches the same path, and keeps nothing when closed. This task adds the comparison as a further tab here — opened by default when the earlier text is known, widening the panel in two-column mode, and saying plainly that there is no comparison when nothing reported what the file was before."
+    }
+  ],
+  "terms": [
+    {
+      "term": "roadkeep",
+      "said": "The tool that owns this project's backlog and history files; every task is a line it writes, never a hand edit."
+    },
+    {
+      "term": "📋",
+      "said": "The marker on a line whose design has already been written, as against 💭 for one still to be designed."
+    },
+    {
+      "term": "RG282",
+      "said": "The line's id, and also the anchor of its design section (§RG282) in the improvements file."
+    },
+    {
+      "term": "block F",
+      "said": "The group of related backlog lines this one sits in."
+    },
+    {
+      "term": "deps",
+      "said": "Other lines that had to ship before this one could start; here just RG280, already shipped."
+    },
+    {
+      "term": "unblocks",
+      "said": "The lines waiting on this one — one of the seven still open, RG285, directly."
+    },
+    {
+      "term": "non-goal",
+      "said": "A standing rule of the project that binds this line; the payload quotes the ones that apply."
+    },
+    {
+      "term": "done-when",
+      "said": "The condition the line is judged finished against."
+    },
+    {
+      "term": "readiness / picked",
+      "said": "The payload's note that nothing blocks the line and that it was chosen as the lowest-numbered ready one."
+    },
+    {
+      "term": "session",
+      "said": "One automated coding run this app watches, which streams out what it is doing as it goes."
+    },
+    {
+      "term": "act",
+      "said": "One entry read out of that stream — a tool call, its result, something the run said."
+    },
+    {
+      "term": "the viewer",
+      "said": "The panel in this app that shows one file the run edited; the design calls it viewer.tsx, the checkout calls it file-sheet.tsx."
+    },
+    {
+      "term": "hunk",
+      "said": "One run of differing lines together with the unchanged lines kept around it."
+    },
+    {
+      "term": "the original",
+      "said": "The file's text as it stood before the run first touched it, taken from what the run itself reported and never from version control."
+    },
+    {
+      "term": "refused",
+      "said": "The comparison's word for 'I did not compare this', used when a file is longer than the ceiling — not a claim that nothing changed."
+    },
+    {
+      "term": "governed file",
+      "said": "A file the open project declares as owned by its backlog tool, which this app marks in the stream and reads but does not write."
+    },
+    {
+      "term": "core / ui",
+      "said": "Two separate packages: core holds pure rules and knows nothing of the screen, ui holds React and knows nothing of files or processes."
+    }
+  ],
+  "deps": {
+    "RG280": "The line that made the run's own report say what a file was before it was touched — whether the run created the file or changed one that was already there, read off the first successful editing call on that path. It is shipped and in the changelog. This task reads the earlier text out of that very same reported answer, so it could not be written until RG280 was."
+  },
+  "unblocks": {
+    "RG285": "One of the seven lines still open waits on this one, directly and with nothing in between."
+  },
+  "binds": {
+    "No Markdown parsed in this app": "The comparison shows characters, not formatting. A Markdown file is compared and drawn as its literal lines; nothing is rendered and nothing is syntax-highlighted, because a grammar per language would be a second parser answering a question nobody asked here.",
+    "No write to a governed file": "This view only reads. The files the open project declares as owned by its backlog tool are read, marked in the stream and drawn; nothing in this task writes to one."
+  },
+  "risks": [
+    "Comparing whole files can cost a great deal when a great deal differs, which is why anything over 2000 lines a side is not compared at all and says so — a window that hangs on a generated file would be worse than one that declines to read it.",
+    "The earlier text comes only from what the run reported about itself. Where no call answered for the path, or the answer was too large to carry the old text back, there is no comparison to draw and the panel has to say that rather than treat an empty side as 'every line is new'.",
+    "The difference between an added and a removed line must survive without colour — in the other ground, printed, or for a reader who does not tell the two tints apart — so the plus, minus or space at the head of each line is the primary telling and the tint is the second."
+  ]
+}

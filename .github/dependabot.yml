@@ -1,0 +1,75 @@
+version: 2
+
+# Moved here with the desktop reader (RK1697): Dependabot reads only the repository root's
+# `.github/`, so the file gui/ carried as its own repository would have updated nothing.
+# roadkeep itself declares no runtime dependencies, so gui/ is the only npm tree to watch.
+
+updates:
+  # npm workspaces: gui/'s root manifest covers packages/core, packages/ui and
+  # packages/shell, so a single entry is enough.
+  - package-ecosystem: npm
+    directory: /gui
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: America/Sao_Paulo
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+    commit-message:
+      prefix: chore
+      prefix-development: chore
+      include: scope
+    # A dependency lands in the first group whose patterns match it, so the
+    # catch-all stays last.
+    groups:
+      electron:
+        patterns:
+          - electron
+          - electron-*
+          - '@electron/*'
+      react:
+        patterns:
+          - react
+          - react-dom
+          - '@types/react'
+          - '@types/react-dom'
+          - '@testing-library/react'
+          - '@vitejs/plugin-react'
+      vite:
+        patterns:
+          - vite
+          - vitest
+          - '@vitest/*'
+          - jsdom
+      tailwind:
+        patterns:
+          - tailwindcss
+          - '@tailwindcss/*'
+      typescript:
+        patterns:
+          - typescript
+          - '@types/node'
+      minor-and-patch:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
+
+  # The workflows at the root, gui/'s two among them: a pinned action goes stale the way a
+  # pinned package does.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: America/Sao_Paulo
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+    commit-message:
+      prefix: chore
+      include: scope

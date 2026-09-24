@@ -1,0 +1,137 @@
+import { BASE, DEFAULT_SETTINGS, fill, type RendererBridge, type Reset } from '@rk/core'
+import { toast } from '@viglet/viglet-design-system'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+
+import { drawWindow } from './harness'
+import { choicesAtLaunch } from './launch'
+import { stubBridge } from './stub-bridge'
+
+/**
+ * RG115: what a person is told when a setting did not stick.
+ *
+ * Two halves of one gap. `readSettings` composes a sentence for every field it had to reset
+ * and `LaunchSettings` has carried them since RG47 — and nothing read them, so somebody
+ * whose roots were dropped found out by noticing the list was short. The mirror is RG87's
+ * write back: a ground that could not be saved looked saved until the next launch.
+ *
+ * Asserted through the window rather than against `toast`, because what is being held is
+ * that a person sees it: the surface is the design system's and it is mounted in the chrome.
+ */
+function bridge(over: Partial<RendererBridge> = {}): RendererBridge {
+  return stubBridge({
+    settings: () =>
+      Promise.resolve({ settings: DEFAULT_SETTINGS, reset: [], locale: 'en', projectsAtOnce: 0 }),
+    savePreference: () => Promise.resolve(),
+    ...over,
+  })
+}
+
+function withBridge(one: RendererBridge): void {
+  Object.defineProperty(window, 'roadkeep', { value: one, configurable: true })
+}
+
+/** The launch is what fills the notice list, so a test that wants one has to run it. */
+async function launched(reset: readonly Reset[]): Promise<void> {
+  withBridge(
+    bridge({
+      settings: () =>
+        Promise.resolve({ settings: DEFAULT_SETTINGS, reset, locale: 'en', projectsAtOnce: 0 }),
+    }),
+  )
+  await choicesAtLaunch()
+}
+
+beforeEach(() => {
+  localStorage.clear()
+  // Sonner's store outlives a render, so a notice one test raised is one the next test's
+  // Toaster would draw again. Cleared here rather than asserted around.
+  toast.dismiss()
+})
+
+afterEach(async () => {
+  // The list lives with the launch, so the next test's launch is what clears it.
+  await launched([])
+  Reflect.deleteProperty(window, 'roadkeep')
+  document.documentElement.className = ''
+})
+
+describe('RG115: a settings file that lost a field', () => {
+  it('says so, in the app`s own voice, with the detail in the same voice', async () => {
+    await launched([{ lost: 'dropped', fields: { count: 2 } }])
+
+    drawWindow({ initial: 'light' })
+
+    expect(await screen.findByText(BASE['settings.reset'])).toBeTruthy()
+    // The frame and the detail are both catalogue values now (RG123), and the number the
+    // reader counted is filled into the second — which is what it could not carry when the
+    // sentence was composed where the file is read.
+    expect(await screen.findByText(fill(BASE['settings.lost.dropped'], { count: 2 }))).toBeTruthy()
+  })
+
+  it('says one thing per field, because two losses are two things to act on', async () => {
+    await launched([{ lost: 'roots' }, { lost: 'width', fields: { width: 4 } }])
+
+    drawWindow({ initial: 'light' })
+
+    await waitFor(() => {
+      expect(screen.getAllByText(BASE['settings.reset'])).toHaveLength(2)
+    })
+  })
+
+  it('says nothing at all on a clean read, which is every other launch', async () => {
+    await launched([])
+
+    drawWindow({ initial: 'light' })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('ground')).toBeTruthy()
+    })
+    await waitFor(() => {
+      expect(screen.queryByText(BASE['settings.reset'])).toBeNull()
+    })
+  })
+})
+
+/** Choose dark from the header's menu, which opens on a key (RG238). */
+async function chooseDark(): Promise<void> {
+  fireEvent.keyDown(within(screen.getByTestId('ground')).getByRole('button'), { key: 'Enter' })
+  const dark = await screen.findByRole('menuitem', { name: BASE['settings.ground.dark'] })
+
+  await act(async () => {
+    fireEvent.click(dark)
+    await Promise.resolve()
+  })
+}
+
+describe('RG115: a choice that could not be saved', () => {
+  it('says so rather than letting it look kept until the next launch', async () => {
+    withBridge(bridge({ savePreference: () => Promise.reject(new Error('the disk is full')) }))
+    drawWindow({ initial: 'light' })
+
+    await chooseDark()
+
+    expect(await screen.findByText(BASE['settings.unsaved'])).toBeTruthy()
+  })
+
+  it('says nothing when the write lands, which is every ordinary click', async () => {
+    const saved: unknown[] = []
+    withBridge(
+      bridge({
+        savePreference: (_, value) => {
+          saved.push(value)
+          return Promise.resolve()
+        },
+      }),
+    )
+    drawWindow({ initial: 'light' })
+
+    await chooseDark()
+
+    // The write is what this is about, so it is waited for rather than assumed.
+    await waitFor(() => {
+      expect(saved).toEqual(['dark'])
+    })
+    expect(screen.queryByText(BASE['settings.unsaved'])).toBeNull()
+  })
+})

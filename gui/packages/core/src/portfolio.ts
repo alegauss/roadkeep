@@ -1,0 +1,537 @@
+import type { RecordedProject } from './catalogue'
+import type { EnginesPayload } from './engines'
+import type { GateHealth } from './gate'
+import type { Unreadable } from './limits'
+import type { Declared, PickPayload, StatsPayload } from './payloads'
+
+/**
+ * One row per project, and what it is allowed to hold.
+ *
+ * Seventeen governed checkouts are seventeen terminals today, and the count each one holds
+ * is unreachable from any one place. This is the row that fixes that, and the discipline
+ * is in what it refuses.
+ *
+ * **Every number on a row came off a payload.** Nothing is computed *across* projects: a
+ * total open count over seventeen backlogs is a number no single repository could
+ * reproduce, so nobody could audit it and nobody should trust it. `tally` below counts
+ * rows, which is a fact about this screen rather than a claim about anybody's backlog.
+ *
+ * **A project still being read is pending, never a row of zeroes.** Zero open tasks and
+ * not-yet-known look identical on a screen and mean opposite things, and the one that gets
+ * believed is the wrong one. So every payload field is null until it arrives.
+ *
+ * Ordering and grouping are the only things here derived rather than read, and an order
+ * compares rows without adding anything up across them (RG239, RG240). The name is the
+ * folder's own, which is a fact about a path and not a field this app composed.
+ */
+
+export type RowState =
+  /** Being read. Every payload field is still null. */
+  | 'pending'
+  /** Read. What arrived is on the row; what was not asked for is still null. */
+  | 'read'
+  /**
+   * What a verb printed at some earlier launch, drawn while this one reads again (RG251).
+   *
+   * Every field on it is still a payload's, which is what separates it from `pending`: the
+   * row says something true about the last time anybody asked, and `read` says when.
+   */
+  | 'remembered'
+  /** The read did not come back, and the row says why. */
+  | 'unreadable'
+
+/** What `stats` printed, kept per project and never added up across them. */
+export interface RowCounts {
+  readonly total: number
+  readonly markers: Readonly<Record<string, number>>
+  readonly startable: number
+  readonly waiting: number
+  /** Marker-bearing lines the count could not read. Above zero the row is narrower than the file. */
+  readonly uncounted: number
+  /**
+   * How many shipped entries await somebody trying them (RG296), or **null** where this
+   * project's engine does not answer the question.
+   *
+   * Withheld and not zeroed: a blank reads as *this build does not say*, and a `0` would be a
+   * claim — that everything shipped has been looked at — which is the opposite of what an
+   * engine with no way to record a verdict means.
+   */
+  readonly unvalidated: number | null
+}
+
+export interface RowNext {
+  readonly id: string | null
+  readonly symptom: string
+  readonly block: string
+  readonly status: string
+  /** Which of roadkeep's three tiers answered. Its word, carried and never interpreted. */
+  readonly tier: string
+  readonly ready: number
+  readonly blocked: number
+}
+
+/**
+ * The gate is not a read this screen makes. It is the last verdict on record, dated, and
+ * `unknown` until something has actually run — see `gate.ts` for why clean has to be
+ * earned rather than assumed.
+ */
+export type RowGate = GateHealth
+
+export interface RowEngine {
+  readonly version: string
+  readonly home: string
+  readonly verdict: string
+  /** The answers are a working tree's, which `lint` says out loud and a row repeats. */
+  readonly modified: boolean
+  readonly agree: boolean
+}
+
+export interface ProjectRow {
+  readonly path: string
+  /** The folder's own name. A fact about the path, not a field this app made up. */
+  readonly name: string
+  /**
+   * One emoji the project declared to stand for itself, or empty (RG200).
+   *
+   * **Text and never parsed**: no grapheme splitting, no codepoint arithmetic, no attempt to
+   * decide whether a ZWJ sequence counts as one emoji. What the file said is what is drawn,
+   * and a project declaring nothing keeps the folder glyph.
+   */
+  readonly icon: string
+  /**
+   * What the project says it is for, or empty (RG201).
+   *
+   * Drawn as it was given: the limit is the engine's, declared in `[limits]` and refused
+   * where the description is written — a screen that silently shortens prose is a screen
+   * that disagrees with the file it is reading.
+   */
+  readonly description: string
+  /**
+   * The declared logo as a data URL, or empty (RG204). Never a path: it is resolved, refused
+   * and read by the side that has the disk, and what reaches a row is a picture or nothing.
+   */
+  readonly mark: string
+  readonly aliases: readonly string[]
+  readonly commonDir: string | null
+  /** Which branch this member is on (RG199) — a fact about the checkout, off git's files. */
+  readonly branch: string
+  readonly state: RowState
+  readonly counts: RowCounts | null
+  readonly next: RowNext | null
+  readonly gate: RowGate | null
+  readonly engine: RowEngine | null
+  readonly unreadable: Unreadable | null
+  /**
+   * When these answers were read, as an ISO time, or empty where they were read just now
+   * (RG251).
+   *
+   * Only a `remembered` row carries one: a row this launch read is current by construction,
+   * and a time on it would be a clock where a fact belongs.
+   */
+  readonly read: string
+}
+
+/** The last segment of a path, whichever separator it uses. */
+export function folderName(path: string): string {
+  const parts = path.split(/[/\\]/).filter((part) => part !== '')
+  return parts.at(-1) ?? path
+}
+
+/**
+ * What to call a project: what it declares, or its folder (RG202).
+ *
+ * One function, because five screens each recomputed the folder name and so agreed with
+ * each other and with nothing else — and the disagreement landed on navigation, where a
+ * label's whole job is to say where the back arrow goes. `folderName` stays: it is still
+ * the fallback, still correct about paths, and still the only thing that can answer for a
+ * folder nothing has read.
+ */
+export function nameOf(declares: Declared | null | undefined, path: string): string {
+  return declares?.name || folderName(path)
+}
+
+function shell(project: RecordedProject): Omit<ProjectRow, 'state'> {
+  return {
+    path: project.path,
+    // What it last declared, which is what a project the scan cannot reach still is
+    // (RG203): falling back to the folder at the moment a row goes grey changes its
+    // identity exactly when that is least useful.
+    name: nameOf(project.declared, project.path),
+    icon: project.declared.icon,
+    description: project.declared.description,
+    // Not recorded: a picture is bytes off a checkout, and a record that held one would be
+    // a store of somebody else's file. A project the scan cannot reach falls back to its
+    // emoji, which is why that stays worth declaring beside a logo.
+    mark: '',
+    aliases: project.aliases,
+    commonDir: project.commonDir,
+    branch: project.branch,
+    counts: null,
+    next: null,
+    gate: null,
+    engine: null,
+    unreadable: null,
+    read: '',
+  }
+}
+
+/** A project on the list and not yet read. Draw it as waiting, never as empty. */
+export function pendingRow(project: RecordedProject): ProjectRow {
+  return { ...shell(project), state: 'pending' }
+}
+
+/**
+ * The rows to draw over again when the catalogue's own walk lands (RG248).
+ *
+ * **What is on screen survives a fold.** The walk behind the remembered record finishes after
+ * the first screen is drawn, and answering it by rebuilding every row from `pendingRow` sends
+ * a list that is about to come back mostly the same through its skeleton twice.
+ *
+ * So a project already drawn keeps what a read filled — its counts, its next line, its gate,
+ * its engine, its logo — and takes what the record owns from the new record: the branch, the
+ * aliases, the worktree, and whatever it declares. A project the walk added is pending, one it
+ * dropped is gone, and the order is the new list's.
+ */
+export function keepRows(
+  previous: readonly ProjectRow[],
+  projects: readonly RecordedProject[],
+): ProjectRow[] {
+  const drawn = new Map(previous.map((row) => [row.path, row]))
+  return projects.map((project) => {
+    const kept = drawn.get(project.path)
+    if (kept === undefined) return pendingRow(project)
+    return {
+      ...kept,
+      aliases: project.aliases,
+      commonDir: project.commonDir,
+      branch: project.branch,
+      // Declared where the record declares it, and what was drawn where it does not: the
+      // record's blank is "nothing was read", not "this project declares nothing".
+      name: project.declared.name || kept.name,
+      icon: project.declared.icon || kept.icon,
+      description: project.declared.description || kept.description,
+    }
+  })
+}
+
+export function unreadableRow(project: RecordedProject, unreadable: Unreadable): ProjectRow {
+  return { ...shell(project), state: 'unreadable', unreadable }
+}
+
+/** What a row can be filled from. Each is optional: a read that has not happened is null. */
+export interface RowReads {
+  readonly stats?: StatsPayload | null
+  readonly pick?: PickPayload | null
+  readonly engines?: EnginesPayload | null
+  /**
+   * What the project declares about itself (RG198). The name is the one fact a folder gets
+   * wrong: two worktrees of one product are `2026.3` and `2026.2`, and neither says which
+   * product.
+   */
+  readonly declares?: Declared | null
+  /** The declared logo as a data URL, resolved by the shell (RG204). */
+  readonly mark?: string
+  /**
+   * Not a read. The gate's last verdict comes off the ledger, because running `lint`
+   * seventeen times to draw a list is the cost this whole arrangement avoids.
+   */
+  readonly gate?: GateHealth | null
+}
+
+export function readRow(project: RecordedProject, reads: RowReads): ProjectRow {
+  return fillRow({ ...shell(project), state: 'read' }, reads)
+}
+
+/**
+ * The same row with whatever has since been read put onto it.
+ *
+ * A row is filled in more than one moment (RG73): the counts are what a list is scanned
+ * for and the next line arrives after, so what a screen already drew has to survive the
+ * second pass. A read that has not happened leaves the field it would have filled exactly
+ * as it was, which is what makes it safe to call twice.
+ */
+export function fillRow(row: ProjectRow, reads: RowReads): ProjectRow {
+  return {
+    ...row,
+    state: 'read',
+    // A declared name replaces the folder's; nothing declared leaves what was there, which
+    // is the folder — so this is safe to call twice, like every other field here.
+    name: reads.declares?.name || row.name,
+    icon: reads.declares?.icon || row.icon,
+    description: reads.declares?.description || row.description,
+    mark: reads.mark ?? row.mark,
+    counts: reads.stats ? countsFrom(reads.stats) : row.counts,
+    next: reads.pick ? nextFrom(reads.pick) : row.next,
+    gate: reads.gate ?? row.gate,
+    engine: reads.engines ? engineFrom(reads.engines) : row.engine,
+  }
+}
+
+/**
+ * Put the verdicts on record onto the rows they belong to (RG152).
+ *
+ * Applied to every list a screen draws rather than once, because the reads that fill a row
+ * land at their own pace and a merge done once would be undone by the next stage to finish.
+ * A row no verdict names keeps the one it had, which is `null` — and a row drawn with `null`
+ * says unknown, never clean.
+ *
+ * The paths are compared as they are given: both sides of this got theirs from the same
+ * catalogue, and a key this side made up would be this side deciding a platform's path rules.
+ */
+export function gatedRows(
+  rows: readonly ProjectRow[],
+  verdicts: readonly { readonly root: string; readonly health: GateHealth }[],
+): readonly ProjectRow[] {
+  if (verdicts.length === 0) return rows
+  const byRoot = new Map(verdicts.map((one) => [one.root, one.health]))
+  return rows.map((row) => {
+    const health = byRoot.get(row.path)
+    return health === undefined ? row : { ...row, gate: health }
+  })
+}
+
+function countsFrom(stats: StatsPayload): RowCounts {
+  return {
+    total: stats.total,
+    markers: stats.markers,
+    startable: stats.startable?.startable ?? 0,
+    waiting: stats.startable?.waiting ?? 0,
+    uncounted: stats.uncounted,
+    // Null carried as null, which is the whole of RG296's reading: the engine says nothing
+    // about a question it is not asked, and a number here would be this app answering it.
+    unvalidated: stats.validation?.unvalidated ?? null,
+  }
+}
+
+function nextFrom(pick: PickPayload): RowNext {
+  return {
+    id: pick.pick?.id ?? null,
+    symptom: pick.pick?.symptom ?? '',
+    block: pick.pick?.block ?? '',
+    status: pick.pick?.status ?? '',
+    // Null beside a null pick, and a row with no next line has no tier to show either.
+    tier: pick.tier ?? '',
+    ready: pick.ready,
+    blocked: pick.blocked,
+  }
+}
+
+function engineFrom(engines: EnginesPayload): RowEngine {
+  return {
+    version: engines.writing.version,
+    home: engines.writing.home,
+    verdict: engines.verdict,
+    modified: engines.writing.revision.includes('modified'),
+    agree: engines.agree && !engines.split && !engines.swapped,
+  }
+}
+
+/**
+ * How the screen stands, counted in rows.
+ *
+ * Deliberately only rows. There is no open-task total here and there must not be one: it
+ * would be the one number on the screen that no `roadkeep` command could print, which is
+ * exactly the number somebody would quote in a meeting.
+ */
+export interface PortfolioTally {
+  readonly projects: number
+  readonly read: number
+  readonly pending: number
+  /** Drawn from what a verb printed at an earlier launch, and being read again (RG251). */
+  readonly remembered: number
+  readonly unreadable: number
+}
+
+export function tally(rows: readonly ProjectRow[]): PortfolioTally {
+  return {
+    projects: rows.length,
+    read: rows.filter((row) => row.state === 'read').length,
+    pending: rows.filter((row) => row.state === 'pending').length,
+    remembered: rows.filter((row) => row.state === 'remembered').length,
+    unreadable: rows.filter((row) => row.state === 'unreadable').length,
+  }
+}
+
+/**
+ * The narrowings the portfolio offers (RG145), each a question about rows already read.
+ *
+ * Nothing here asks a project anything: a chip narrows what is loaded, and what it counts is
+ * rows — the same kind of fact `tally` keeps, and never a sum across backlogs. A row that has
+ * not answered yet matches none of the three, since not knowing is not drifting.
+ */
+export type RowFilter = 'all' | 'drifted' | 'disagrees' | 'unreadable'
+
+/** The chips, in the order the screen draws them. */
+export const ROW_FILTERS: readonly RowFilter[] = ['all', 'drifted', 'disagrees', 'unreadable']
+
+export function matchesFilter(row: ProjectRow, filter: RowFilter): boolean {
+  if (filter === 'drifted') return row.gate?.verdict === 'drifted'
+  if (filter === 'disagrees') return row.engine !== null && !row.engine.agree
+  if (filter === 'unreadable') return row.state === 'unreadable'
+  return true
+}
+
+/** How many rows each chip would leave, which is the number drawn on it. */
+export function filterCounts(rows: readonly ProjectRow[]): Readonly<Record<RowFilter, number>> {
+  const count = (filter: RowFilter) => rows.filter((row) => matchesFilter(row, filter)).length
+  return {
+    all: rows.length,
+    drifted: count('drifted'),
+    disagrees: count('disagrees'),
+    unreadable: count('unreadable'),
+  }
+}
+
+/**
+ * The orders the portfolio offers (RG239). Each value names its direction as well as its
+ * column, so a choice is one word from one closed set and never a pair to keep in step.
+ *
+ * `record` is the order the roots were added in, which is what a cold start draws and what
+ * every other order falls back to. `open-*` ranks by the open count `stats` printed for each
+ * row (RG240): it compares rows and adds nothing up across them.
+ */
+export type RowOrder =
+  'record' | 'name-ascending' | 'name-descending' | 'open-descending' | 'open-ascending'
+
+/** A column head an order is chosen from: the Project head, and the Backlog head. */
+export type OrderColumn = 'name' | 'open'
+
+/** What `aria-sort` says of a column head, spelled as the attribute spells it. */
+export type OrderDirection = 'ascending' | 'descending'
+
+const ORDERED_BY: Readonly<
+  Record<RowOrder, { readonly column: OrderColumn; readonly direction: OrderDirection } | null>
+> = {
+  record: null,
+  'name-ascending': { column: 'name', direction: 'ascending' },
+  'name-descending': { column: 'name', direction: 'descending' },
+  'open-descending': { column: 'open', direction: 'descending' },
+  'open-ascending': { column: 'open', direction: 'ascending' },
+}
+
+/**
+ * Whether a value is an order this build offers (RG241).
+ *
+ * The one spelling of the set, since two callers have to agree on it: the settings reader,
+ * and the preference table a page writes through. A second copy would be a build that saves
+ * an order its own reader resets at the next launch.
+ */
+export function isRowOrder(value: unknown): value is RowOrder {
+  return typeof value === 'string' && Object.hasOwn(ORDERED_BY, value)
+}
+
+/**
+ * What one click on a column head moves through, before it hands back the record's order.
+ * Names start at A; counts start at the most open, which is the backlog a day starts from.
+ */
+const CYCLES: Readonly<Record<OrderColumn, readonly RowOrder[]>> = {
+  name: ['name-ascending', 'name-descending'],
+  open: ['open-descending', 'open-ascending'],
+}
+
+/** The order a click on `column` chooses, from the one in force. */
+export function nextOrder(current: RowOrder, column: OrderColumn): RowOrder {
+  const cycle = CYCLES[column]
+  const at = cycle.indexOf(current)
+  return (at === -1 ? cycle[0] : cycle[at + 1]) ?? 'record'
+}
+
+/** Which way `column` is ordered under `order`, or `none` where another column decides. */
+export function sortOf(order: RowOrder, column: OrderColumn): OrderDirection | 'none' {
+  const by = ORDERED_BY[order]
+  return by?.column === column ? by.direction : 'none'
+}
+
+function collatorFor(locale: string): Intl.Collator {
+  const options: Intl.CollatorOptions = { numeric: true, sensitivity: 'base' }
+  // A tag the runtime will not take is not worth failing a list over, as `timeIn` reasons.
+  try {
+    return new Intl.Collator(locale === '' ? undefined : locale, options)
+  } catch {
+    return new Intl.Collator(undefined, options)
+  }
+}
+
+/**
+ * The rows in `order`, as a person reads them in `locale`.
+ *
+ * **Names compared as a person reads them**: numbers as numbers, as `orderMembers` chose, so
+ * `2026.10` follows `2026.2`; and case and accents do not split one name in two.
+ *
+ * **Ties keep the record's order, whichever way.** Rows sharing a declared name are one
+ * family's worktrees, current version first, and that order is worth keeping. So the sort
+ * is stable and a descending order negates the comparison rather than reversing the list.
+ *
+ * **A row with no count follows every row with one (RG240)**, in the record's order,
+ * whichever way the ranking runs. A pending row placed as zero would be block C's second
+ * criterion broken as an order, and an unreadable row has no count to rank.
+ *
+ * `record` hands the rows back as they came. Nothing here filters: a chip narrows first, and
+ * the two compose because neither rule knows the other.
+ */
+export function orderRows(
+  rows: readonly ProjectRow[],
+  order: RowOrder,
+  locale: string,
+): readonly ProjectRow[] {
+  const by = ORDERED_BY[order]
+  if (by === null) return rows
+  const sign = by.direction === 'ascending' ? 1 : -1
+  if (by.column === 'open') {
+    return rows.toSorted((left, right) => {
+      if (left.counts === null || right.counts === null) {
+        return Number(left.counts === null) - Number(right.counts === null)
+      }
+      return sign * (left.counts.total - right.counts.total)
+    })
+  }
+  const names = collatorFor(locale)
+  return rows.toSorted((left, right) => sign * names.compare(left.name, right.name))
+}
+
+/**
+ * The places an order that ranks by counts keeps while reads land (RG240).
+ *
+ * `coldStart` refuses completion order because the row about to be clicked moves, and a count
+ * landing would move it the same way. So a ranking is a list of paths, taken when the order
+ * is chosen and again when every read has settled, and between those two moments each row
+ * keeps the place the list gave it. A cold start draws the record's order and re-ranks once,
+ * as the progress line leaves; a rescan and a reread keep the last ranking.
+ *
+ * A name is on the record before any read (RG203), so ordering by name holds no places.
+ */
+export interface Ranking {
+  readonly order: RowOrder
+  /** Whether every read had landed when this was last looked at. */
+  readonly settled: boolean
+  readonly paths: readonly string[]
+}
+
+/**
+ * The ranking to draw with, from the one kept, or null where `order` holds no places.
+ *
+ * Handed back as the same object where nothing moved it, so a caller holding it in state
+ * can tell a change by identity.
+ */
+export function keptRanking(
+  kept: Ranking | null,
+  rows: readonly ProjectRow[],
+  order: RowOrder,
+  settled: boolean,
+): Ranking | null {
+  if (ORDERED_BY[order]?.column !== 'open') return null
+  if (kept === null || kept.order !== order || (settled && !kept.settled)) {
+    return { order, settled, paths: orderRows(rows, order, '').map((row) => row.path) }
+  }
+  return kept.settled === settled ? kept : { ...kept, settled }
+}
+
+/** The rows in the places `paths` gives them, and a row it does not name after, as recorded. */
+export function placeRows(
+  rows: readonly ProjectRow[],
+  paths: readonly string[],
+): readonly ProjectRow[] {
+  const place = new Map(paths.map((path, index) => [path, index]))
+  const of = (row: ProjectRow): number => place.get(row.path) ?? paths.length
+  return rows.toSorted((left, right) => of(left) - of(right))
+}

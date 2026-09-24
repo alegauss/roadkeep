@@ -1,0 +1,624 @@
+import {
+  counted,
+  nameOf,
+  NO_FILTER,
+  narrowedBy,
+  NARROWED_TEXT,
+  withField,
+  reasonOf,
+  type BacklogFilter,
+  type BlockStanding,
+  type OpenProject,
+  type TaskLine,
+  type Underway,
+} from '@rk/core'
+import { Button } from '@viglet/viglet-design-system'
+import { BentoEmptyState, BentoHero, BentoPanel } from '@viglet/viglet-design-system/bento'
+import { useCallback, useMemo, useState, type ReactNode } from 'react'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+
+import { filePath, gatePath, HOME_ROUTE, projectPath, taskPath } from './areas'
+import { GateTab } from './Gate'
+import { useGateHealth } from './useGateHealth'
+import { HeroActions } from './hero'
+import { Glyph, Pill } from './marks'
+import {
+  ChangelogTab,
+  DecisionsTab,
+  DeferredTab,
+  ImprovementsTab,
+  ValidationTab,
+} from './ProjectTabs'
+import { useProject, type OpenedSurface } from './useProject'
+import { useWording } from './wording'
+
+/**
+ * One backlog, as rows (RG148). `docs/design/Projeto.dc.html` is the drawing, reached from
+ * a portfolio row.
+ *
+ * **Every narrowing is the verb's.** A block chip, a marker and a requirement each become an
+ * argument `list` takes, through `filterAsInput`, so the rows are what `roadkeep list`
+ * returned for that narrowing and never a filter run in React. Choosing the same chip again
+ * clears it.
+ *
+ * **A row keeps the symptom and the why whole**, since a symptom is what a reader scans and
+ * §RG63 chose rows to keep it at full length. Its deps are drawn as the engine spells them,
+ * with their own marks, and whether a design is written is the line's pointer.
+ *
+ * **Readiness is the engine's word** — `deps` for each line, never worked out here. A line
+ * carrying the working marker says, beside it, whether anybody holds it (RG74): the marker
+ * and the claim are two facts, and where they disagree that is drawn and not resolved.
+ *
+ * Open on a row leads to the line as brief joins it (RG150), File a line composes one (RG151)
+ * and Run the gate opens the gate as a surface (RG152) — each offered only once the project
+ * opened, since all three are about a project whose engine answered. The other governed files
+ * are tabs of their own (RG149), and a role this window does not read is a tab drawn disabled
+ * rather than left out.
+ */
+
+/**
+ * The governed roles as tabs, the roadmap first: it is the one this surface reads, and the
+ * others follow in the order `config` gave them.
+ */
+function tabsOf(roles: readonly string[]): string[] {
+  return [
+    ...roles.filter((role) => role === 'roadmap'),
+    ...roles.filter((role) => role !== 'roadmap'),
+  ]
+}
+
+/** A chip in a group of narrowings, pressed where it is the one in force. */
+function Choice({
+  value,
+  active,
+  onPick,
+  children,
+}: {
+  readonly value: string
+  readonly active: boolean
+  readonly onPick: (value: string) => void
+  readonly children: ReactNode
+}) {
+  const choose = useCallback(() => {
+    onPick(value)
+  }, [value, onPick])
+
+  return (
+    <Button
+      variant={active ? 'default' : 'outline'}
+      size="sm"
+      className="rounded-full"
+      aria-pressed={active ? 'true' : 'false'}
+      onClick={choose}
+    >
+      {children}
+    </Button>
+  )
+}
+
+function BlockLabel({ block }: { readonly block: BlockStanding }) {
+  const say = useWording()
+  const finished = block.open === 0 && block.state === 'finished'
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span className="font-semibold">{block.block}</span>
+      {block.title === '' ? null : (
+        <span className="max-w-48 truncate font-normal" title={block.title}>
+          {block.title}
+        </span>
+      )}
+      <span className={finished ? 'text-muted-foreground' : 'tabular-nums'}>
+        {finished ? say('project.block.finished') : block.open}
+      </span>
+    </span>
+  )
+}
+
+/** Readiness in the engine's words, and what the engine says holds it back. */
+function Readiness({
+  readiness,
+  state,
+}: {
+  readonly readiness: string
+  readonly state: Underway | undefined
+}) {
+  const say = useWording()
+
+  return (
+    <div className="flex flex-col items-start gap-1">
+      {/* The engine's own word, off the listing (RG170). Empty is a build that does not
+          answer it — a state, not a failure — and nothing is drawn rather than a word this
+          app worked out. What is waiting on what is the task screen's, which reads `deps`
+          for the one line somebody opened instead of for every row. */}
+      {readiness === '' ? null : (
+        <Pill intent={readiness === 'ready' ? 'on' : 'warn'}>{readiness}</Pill>
+      )}
+      {state?.disagree === true && state.held === null ? (
+        <>
+          <Pill intent="warn">{say('project.unheld')}</Pill>
+          <span className="text-muted-foreground text-xs">{say('project.unheld.why')}</span>
+        </>
+      ) : null}
+      {state?.held === null || state === undefined ? null : (
+        <span className="text-muted-foreground text-xs">
+          {say('project.held', { by: state.held.by })}
+        </span>
+      )}
+    </div>
+  )
+}
+
+function Line({
+  root,
+  line,
+  state,
+}: {
+  readonly root: string
+  readonly line: TaskLine
+  readonly state: Underway | undefined
+}) {
+  const say = useWording()
+  return (
+    <li
+      // Three columns, and one below `sm` (RG223) — written as the desktop grid with a
+      // `max-sm:` override, never `grid-cols-1` with an `sm:` one (RG229). The design system's
+      // stylesheet ships `grid-cols-1` and `gap-2` in the utilities layer after this app's, so
+      // a base class it also holds beats a responsive one at every width: RG223's rows were
+      // stacked at 1280. The arbitrary grid is a class it cannot hold, and the gap needs no
+      // variant — a stacked row has only vertical gaps and a gridded one only horizontal.
+      className="grid grid-cols-[6rem_minmax(0,1fr)_11rem] gap-x-4 gap-y-2 border-t px-5 py-3 first:border-t-0 max-sm:grid-cols-1"
+      data-testid="line"
+      data-id={line.id}
+    >
+      <div className="flex items-start gap-2 pt-0.5">
+        <Glyph>{line.status}</Glyph>
+        <span className="font-mono text-xs font-semibold">{line.id}</span>
+      </div>
+      <div className="min-w-0">
+        <div className="text-sm font-medium [overflow-wrap:anywhere]">{line.symptom}</div>
+        <div className="text-muted-foreground mt-1 text-[13px] [overflow-wrap:anywhere]">
+          {line.why}
+        </div>
+        <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
+          <span className="bg-muted text-muted-foreground rounded px-1.5 font-semibold">
+            {line.block}
+          </span>
+          {line.deps.length === 0 ? (
+            <span className="text-muted-foreground">{say('project.deps.none')}</span>
+          ) : (
+            line.deps.map((dep) => (
+              <span key={dep} className="font-mono">
+                {dep}
+              </span>
+            ))
+          )}
+          <span className="text-muted-foreground">
+            {line.ref === null
+              ? say('project.design.none')
+              : say('project.design.written', { ref: line.ref })}
+          </span>
+        </div>
+      </div>
+      <div className="flex flex-col items-start gap-2">
+        <Readiness readiness={line.readiness} state={state} />
+        <Button asChild size="sm">
+          <Link
+            to={taskPath(root, line.id)}
+            aria-label={say('project.line.open.named', { id: line.id })}
+            data-testid="open-line"
+          >
+            {say('project.line.open')}
+          </Link>
+        </Button>
+      </div>
+    </li>
+  )
+}
+
+/** The roadmap tab: the three narrowings, and the rows `list` answered for them. */
+function Roadmap({
+  surface,
+  filter,
+  onFilter,
+}: {
+  readonly surface: OpenedSurface
+  readonly filter: BacklogFilter
+  readonly onFilter: (next: BacklogFilter) => void
+}) {
+  const say = useWording()
+  const pickBlock = useCallback(
+    (block: string) => {
+      onFilter(withField(filter, 'block', filter.block === block ? undefined : block))
+    },
+    [filter, onFilter],
+  )
+  const pickMarker = useCallback(
+    (marker: string) => {
+      onFilter(withField(filter, 'marker', filter.marker === marker ? undefined : marker))
+    },
+    [filter, onFilter],
+  )
+  // The narrowing `list` itself does (RG170). A chip and not a predicate here: readiness is
+  // the engine's word, so the filter is its flag — and a line this app decided was startable
+  // is a line that can disagree with `pick` without anyone noticing.
+  const pickStartable = useCallback(() => {
+    onFilter(withField(filter, 'startable', filter.startable === true ? undefined : true))
+  }, [filter, onFilter])
+  const pickRequirement = useCallback(
+    (requirement: string) => {
+      const held = filter.have?.[0] === requirement
+      onFilter(withField(filter, 'have', held ? undefined : [requirement]))
+    },
+    [filter, onFilter],
+  )
+
+  const { backlog } = surface
+  const lines = backlog === null ? [] : backlog.blocks.flatMap((block) => block.lines)
+  const narrower = backlog === null ? null : narrowedBy(backlog)
+
+  return (
+    <>
+      <fieldset className="m-0 flex flex-wrap items-center gap-2 border-0 p-0">
+        <legend className="sr-only">{say('project.blocks')}</legend>
+        {surface.blocks.map((block) => (
+          <Choice
+            key={block.block}
+            value={block.block}
+            active={filter.block === block.block}
+            onPick={pickBlock}
+          >
+            <BlockLabel block={block} />
+          </Choice>
+        ))}
+      </fieldset>
+
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <fieldset className="m-0 flex flex-wrap items-center gap-2 border-0 p-0">
+          <legend className="text-muted-foreground float-left mr-1 text-xs">
+            {say('project.filter.marker')}
+          </legend>
+          {surface.markers.map((marker) => (
+            <Choice
+              key={marker}
+              value={marker}
+              active={filter.marker === marker}
+              onPick={pickMarker}
+            >
+              <Glyph>{marker}</Glyph>
+            </Choice>
+          ))}
+        </fieldset>
+        <fieldset className="m-0 flex flex-wrap items-center gap-2 border-0 p-0">
+          <legend className="text-muted-foreground float-left mr-1 text-xs">
+            {say('project.filter.readiness')}
+          </legend>
+          <Choice value="startable" active={filter.startable === true} onPick={pickStartable}>
+            {say('project.filter.startable')}
+          </Choice>
+        </fieldset>
+        {surface.choices.requirements.length === 0 ? null : (
+          <fieldset className="m-0 flex flex-wrap items-center gap-2 border-0 p-0">
+            <legend className="text-muted-foreground float-left mr-1 text-xs">
+              {say('project.filter.requirement')}
+            </legend>
+            {surface.choices.requirements.map((requirement) => (
+              <Choice
+                key={requirement}
+                value={requirement}
+                active={filter.have?.[0] === requirement}
+                onPick={pickRequirement}
+              >
+                {requirement}
+              </Choice>
+            ))}
+          </fieldset>
+        )}
+        <span className="text-muted-foreground ml-auto text-xs">{say('project.filter.note')}</span>
+      </div>
+
+      {narrower === null ? null : (
+        <p className="text-muted-foreground text-xs" data-testid="narrowed">
+          {say(NARROWED_TEXT[narrower.code], narrower.fields)}
+          {/* The gate's own reasons after this app's sentence, quoted rather than reworded. */}
+          {narrower.fields['reasons'] === undefined
+            ? null
+            : ` ${say('backlog.refused.reasons', { reasons: narrower.fields['reasons'] })}`}
+        </p>
+      )}
+
+      {backlog === null ? (
+        <p className="text-muted-foreground text-sm">{say('project.listing')}</p>
+      ) : lines.length === 0 ? (
+        <BentoEmptyState title={say('project.none')} />
+      ) : (
+        <BentoPanel className="overflow-hidden" contentClassName="p-0">
+          <ul>
+            {lines.map((line) => (
+              <Line
+                key={line.id}
+                root={surface.project.root}
+                line={line}
+                state={surface.underway[line.id]}
+              />
+            ))}
+          </ul>
+        </BentoPanel>
+      )}
+    </>
+  )
+}
+
+/** The governed roles this window reads, each with the tab that draws it. */
+const TABS: Readonly<Record<string, (props: { readonly project: OpenProject }) => ReactNode>> = {
+  changelog: ChangelogTab,
+  decisions: DecisionsTab,
+  deferred: DeferredTab,
+  improvements: ImprovementsTab,
+}
+
+function RoleTab({
+  role,
+  active,
+  readable,
+  onPick,
+}: {
+  readonly role: string
+  readonly active: boolean
+  readonly readable: boolean
+  readonly onPick: (role: string) => void
+}) {
+  const say = useWording()
+  const choose = useCallback(() => {
+    onPick(role)
+  }, [role, onPick])
+
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active ? 'true' : 'false'}
+      disabled={!readable}
+      title={readable ? undefined : say('project.tab.unread')}
+      onClick={choose}
+      className={`-mb-px px-3 py-2 text-sm disabled:opacity-50 ${
+        active ? 'border-primary border-b-2 font-semibold' : 'text-muted-foreground'
+      }`}
+    >
+      {role}
+    </button>
+  )
+}
+
+/**
+ * The gate's own tab, labelled as the portfolio's column is and counted off the ledger
+ * (RG255).
+ *
+ * Heard rather than polled, the way a row hears one (RG166): the carrier runs the gate for a
+ * project whose files moved, and the count beside this tab follows without the tab being open.
+ */
+function GateTabButton({
+  root,
+  active,
+  onPick,
+}: {
+  readonly root: string
+  readonly active: boolean
+  readonly onPick: (role: string) => void
+}) {
+  const say = useWording()
+  const health = useGateHealth(root)
+  const choose = useCallback(() => {
+    onPick(GATE_TAB)
+  }, [onPick])
+
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active ? 'true' : 'false'}
+      onClick={choose}
+      data-testid="gate-tab"
+      className={`-mb-px flex items-center gap-1.5 px-3 py-2 text-sm ${
+        active ? 'border-primary border-b-2 font-semibold' : 'text-muted-foreground'
+      }`}
+    >
+      {say('portfolio.column.gate')}
+      {health === null || health.verdict === 'unknown' ? null : (
+        <span
+          className={
+            health.verdict === 'drifted'
+              ? 'bento-status bento-status-error rounded-full border px-1.5 text-[10.5px] font-semibold'
+              : 'text-muted-foreground text-[10.5px]'
+          }
+          data-testid="gate-tab-count"
+        >
+          {health.verdict === 'drifted'
+            ? say('portfolio.gate.findings', { count: health.problems })
+            : say('portfolio.gate.clean')}
+        </span>
+      )}
+    </button>
+  )
+}
+
+/** The name the gate's tab is addressed by, which is no governed role. */
+const GATE_TAB = 'gate'
+
+/**
+ * The name the validation tab is addressed by (RG293). No governed role either: what awaits a
+ * person is a narrowing of the changelog and not a file of its own.
+ */
+const VALIDATION_TAB = 'validation'
+
+/**
+ * A tab beside the ledger for what is shipped and unlooked-at (RG293).
+ *
+ * **Withheld where this engine cannot run `unvalidated`**, which is what `capabilities` is for
+ * (RG6): every project on this machine runs its own roadkeep, and most are older than the build
+ * that grew the verb. A door that would be refused is not offered — the whole surface is absent,
+ * which is a state and not a failure.
+ */
+function ValidationTabButton({
+  active,
+  onPick,
+}: {
+  readonly active: boolean
+  readonly onPick: (role: string) => void
+}) {
+  const say = useWording()
+  const choose = useCallback(() => {
+    onPick(VALIDATION_TAB)
+  }, [onPick])
+
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active ? 'true' : 'false'}
+      onClick={choose}
+      data-testid="validation-tab"
+      className={`-mb-px flex items-center gap-1.5 px-3 py-2 text-sm ${
+        active ? 'border-primary border-b-2 font-semibold' : 'text-muted-foreground'
+      }`}
+    >
+      {say('project.validation.tab')}
+    </button>
+  )
+}
+
+/** Whether this project's engine publishes the read the validation tab is made of. */
+function readsValidation(project: OpenProject): boolean {
+  return project.capabilities.kind === 'known' && project.capabilities.byVerb.unvalidated.callable
+}
+
+/** The surface once the project opened: a tab per governed file, the roadmap first. */
+function Opened({
+  surface,
+  filter,
+  onFilter,
+  role,
+  onRole,
+}: {
+  readonly surface: OpenedSurface
+  readonly filter: BacklogFilter
+  readonly onFilter: (next: BacklogFilter) => void
+  readonly role: string
+  readonly onRole: (role: string) => void
+}) {
+  const say = useWording()
+  const Tab = TABS[role]
+  const validation = readsValidation(surface.project)
+
+  return (
+    <>
+      <div
+        role="tablist"
+        aria-label={say('project.tabs')}
+        className="flex flex-wrap gap-1 border-b"
+      >
+        {tabsOf(surface.choices.roles).map((one) => (
+          <RoleTab
+            key={one}
+            role={one}
+            active={one === role}
+            readable={one === 'roadmap' || Object.hasOwn(TABS, one)}
+            onPick={onRole}
+          />
+        ))}
+        {validation ? (
+          <ValidationTabButton active={role === VALIDATION_TAB} onPick={onRole} />
+        ) : null}
+        {/* Last, and not one of the governed files: the gate is what those files say about
+            themselves (RG255). */}
+        <GateTabButton root={surface.project.root} active={role === GATE_TAB} onPick={onRole} />
+      </div>
+      {role === GATE_TAB ? <GateTab root={surface.project.root} /> : null}
+      {role === VALIDATION_TAB && validation ? <ValidationTab project={surface.project} /> : null}
+      {role === GATE_TAB || (role === VALIDATION_TAB && validation) ? null : role === 'roadmap' ||
+        Tab === undefined ? (
+        <Roadmap surface={surface} filter={filter} onFilter={onFilter} />
+      ) : (
+        <Tab project={surface.project} />
+      )}
+    </>
+  )
+}
+
+export function Project() {
+  const say = useWording()
+  const params = useParams()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const root = decodeURIComponent(params['root'] ?? '')
+  const [filter, setFilter] = useState<BacklogFilter>(NO_FILTER)
+  const view = useProject(root, filter)
+
+  // `GATE_ROUTE` stays the gate's address and opens this screen on that tab (RG255), so a
+  // link from a portfolio row and the screenshot run keep one path.
+  const atGate = location.pathname === gatePath(root)
+  const [chosen, setChosen] = useState('roadmap')
+  const role = atGate ? GATE_TAB : chosen
+  const pickRole = useCallback(
+    (next: string) => {
+      setChosen(next === GATE_TAB ? 'roadmap' : next)
+      // Replaced and never pushed: stepping through tabs is not somewhere a reader went, and
+      // Back should leave the project rather than walk back along them.
+      void navigate(next === GATE_TAB ? gatePath(root) : projectPath(root), { replace: true })
+    },
+    [navigate, root],
+  )
+
+  let subtitle: ReactNode = say('project.opening')
+  if (view.kind === 'absent') subtitle = say('transport.absent')
+  if (view.kind === 'refused')
+    subtitle = say('project.refused', { reason: reasonOf(view.unreadable, say) })
+  if (view.kind === 'open') {
+    const stats = view.stats
+    subtitle = (
+      <span className="flex flex-col gap-0.5">
+        <span className="font-mono text-xs">{root}</span>
+        {stats === null ? null : (
+          <span>
+            {counted(say, [
+              ['counts.open', stats.total],
+              ['counts.startable', stats.startable?.startable ?? 0],
+              ['counts.requirement', stats.startable?.waiting ?? 0],
+              ['counts.uncounted', stats.uncounted],
+            ])}
+          </span>
+        )}
+      </span>
+    )
+  }
+
+  // Offered only once the project opened: a form composing a write against a project that
+  // did not open is a command nothing could run (RG151). Built once per answer, so the hero
+  // is not redrawn for an element that did not change.
+  const opened = view.kind === 'open'
+  const filing = useMemo(
+    () =>
+      opened ? (
+        <HeroActions>
+          <Button asChild size="sm">
+            <Link to={filePath(root)}>{say('filing.title')}</Link>
+          </Button>
+        </HeroActions>
+      ) : undefined,
+    [opened, root, say],
+  )
+
+  return (
+    <>
+      <BentoHero
+        backTo={HOME_ROUTE}
+        backLabel={say('project.back')}
+        title={nameOf(view.kind === 'open' ? view.project.declares : null, root)}
+        subtitle={subtitle}
+        trailing={filing}
+      />
+      {view.kind === 'open' ? (
+        <Opened surface={view} filter={filter} onFilter={setFilter} role={role} onRole={pickRole} />
+      ) : null}
+    </>
+  )
+}

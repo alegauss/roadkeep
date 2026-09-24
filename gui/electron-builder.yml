@@ -1,0 +1,82 @@
+# What goes into the executable, and what does not.
+#
+# `files` is a list of what to include rather than what to exclude, because an exclude list
+# is one somebody has to remember to extend. The three packages' built output and their
+# manifests are what the app runs on; nothing else is.
+#
+# Signing is absent on purpose. The certificate is RG49's and it is a thing somebody buys,
+# so this produces an honestly unsigned build rather than a configuration pretending to be
+# one signature away. `docs/SIGNING.md` is how one is obtained, and where it plugs in here.
+appId: dev.alegauss.roadkeep-gui
+productName: roadkeep
+copyright: ''
+
+directories:
+  output: release
+  # Where `icon.png` is found, by name and without a line naming it (RG138): electron-builder
+  # makes the Windows .ico, the macOS .icns and the Linux PNGs from that one 1024 file.
+  # It is roadkeep's mark on a dark tile, rendered from `build/icon.svg` by `npm run icon`.
+  buildResources: build
+
+files:
+  - package.json
+  - packages/core/package.json
+  - packages/core/dist-types/**
+  - packages/shell/package.json
+  - packages/shell/dist/**
+  - packages/ui/package.json
+  - packages/ui/dist/**
+  - '!**/*.map'
+  - '!**/*.test.*'
+
+# Nothing is fetched at package time that was not already installed: a build that reaches
+# the network is a build whose contents depend on when it ran.
+npmRebuild: false
+buildDependenciesFromSource: false
+
+# A note for whoever tests the built app, because it cost an hour here.
+#
+# `ELECTRON_RUN_AS_NODE=1` is exported by VS Code and by agent sessions started from it.
+# A packaged Electron inheriting it runs as plain Node, fails on `import { BrowserWindow }
+# from 'electron'` and exits with nothing on either stream — which looks exactly like a
+# broken package. Clear the variable before running the executable. `spawnElectron` strips
+# it for `npm run dev` and `npm start`; nothing can strip it for a .exe somebody launches.
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  # Edited, and still unsigned (RG138). This switch is two things under one name: the icon
+  # and the version resources written into the .exe, and signtool signing it. Off, it was an
+  # honest unsigned build that also wore Electron's icon and named no version — the edit is
+  # the only way an icon reaches the executable. On, the edit happens and the signing does
+  # not, because nothing here names a certificate. Turning signing on is still RG49's edit,
+  # somewhere a certificate is named.
+  #
+  # **The skip is not in the build log** (RG161). `no signing info identified, signing is
+  # skipped` is written at debug level, so an ordinary `npm run package` says nothing about
+  # it at all: what says this build is unsigned is the build line in the app, and this file.
+  #
+  # And the edit needs nothing fetched: this electron-builder writes the resources in
+  # process through its `resedit` dependency, which npm already installed. The downloaded
+  # `rcedit` is a legacy path this build does not take — NSIS is the thing that arrives in
+  # electron-builder's own cache, and it is not this switch's.
+  signAndEditExecutable: true
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+
+linux:
+  target:
+    - AppImage
+  category: Development
+
+# Declared and never run. RG119, which would have made the first macOS build, was retired:
+# nobody with a Mac is making one, and CI packages Windows and Linux only.
+mac:
+  target:
+    - dmg
+  category: public.app-category.developer-tools

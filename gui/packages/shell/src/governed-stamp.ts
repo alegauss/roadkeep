@@ -1,0 +1,64 @@
+import { stat } from 'node:fs/promises'
+import path from 'node:path'
+
+import { CONFIG_FILE } from '@rk/core'
+
+import { probing } from './probing'
+
+/**
+ * The half of the cache key that needs a filesystem: a short string that changes when a
+ * project's governed files do.
+ *
+ * Which files those are comes from the engine (`config --json`), not from reading
+ * `roadkeep.toml` here — that is a rule the tool owns. What this adds is the part the
+ * engine cannot answer without being run, which is the whole point: stamping five files
+ * costs a millisecond and the process start it avoids costs three hundred and sixty.
+ *
+ * `roadkeep.toml` is stamped alongside them, because editing it changes *which* files are
+ * governed and a stamp that missed that would hold an answer about the wrong set.
+ */
+
+/**
+ * The config file itself, always part of the stamp.
+ *
+ * Re-exported rather than declared twice: RG45 watches the same set, and the two would
+ * eventually disagree about which file decides what is governed.
+ */
+export { CONFIG_FILE }
+
+/**
+ * What joins one file's stamp to the next.
+ *
+ * A NUL, because no path or number can contain one, so two different sets of files can
+ * never key the same string. Spelled rather than typed: a raw control character in source
+ * makes the whole file read as binary to a tool that scans text.
+ */
+const SEPARATOR = '\u0000'
+
+async function stampOne(absolute: string): Promise<string> {
+  try {
+    const entry = await probing(async () => stat(absolute))
+    return `${String(entry.mtimeMs)}:${String(entry.size)}`
+  } catch {
+    // A governed file that is not there is a real state — a project half scaffolded, or
+    // one whose deferred store has never been written. `absent` is a value like any
+    // other, and it changes the moment the file appears.
+    return 'absent'
+  }
+}
+
+/**
+ * Stamp a project.
+ *
+ * @param root the project.
+ * @param files the governed files, relative to the root, as `config` reported them.
+ */
+export async function stampGoverned(root: string, files: readonly string[]): Promise<string> {
+  const named = [CONFIG_FILE, ...[...files].sort()]
+  // Six stats per project, asked together under one bound (RG102). One at a time would make
+  // a cache key six waits deep, in the process the window's IPC goes through.
+  const stamped = await Promise.all(
+    named.map(async (relative) => stampOne(path.resolve(root, relative))),
+  )
+  return named.map((relative, at) => `${relative}=${stamped[at] ?? 'absent'}`).join(SEPARATOR)
+}

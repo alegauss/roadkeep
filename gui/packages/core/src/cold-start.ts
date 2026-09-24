@@ -1,0 +1,162 @@
+import type { RecordedProject } from './catalogue'
+import { createLimiter } from './limiting'
+import type { Unreadable } from './limits'
+import { EngineCallFailed } from './transport'
+import { fillRow, pendingRow, unreadableRow, type ProjectRow, type RowReads } from './portfolio'
+
+/**
+ * The first screen, and what it costs.
+ *
+ * A cold start is the only moment every project is read at once, and the one with no cache
+ * to answer from. Three things make it bearable and each is a decision rather than an
+ * optimisation.
+ *
+ * **The fan-out is bounded**, by the pool the transport already goes through. Nothing here
+ * counts processes: it hands every project to the transport at once and the pool decides
+ * how many run, which is the same ceiling every other read obeys.
+ *
+ * **Results stream in as they arrive.** A screen that waited for the last project would be
+ * blank for as long as the slowest one takes, and the slowest one is usually the broken
+ * one.
+ *
+ * **The order is the recorded list, never completion order.** A list that reorders while
+ * somebody is reading it is worse than one that fills in slowly — the row they were about
+ * to click moves, for a reason they cannot see.
+ *
+ * And the reads are staged: the cheapest one that fills a row goes first, so the shape of
+ * the screen exists before its detail does. A project that fails a stage is not put through
+ * the later ones — three more calls to a project that already could not answer is time
+ * taken from the projects that can.
+ */
+
+export interface ColdStartStage {
+  /** What this stage is doing, in words a screen can show. */
+  readonly name: string
+  /** Read one project's part of a row. Rejecting is how a project becomes unreadable. */
+  read(project: RecordedProject): Promise<RowReads>
+}
+
+export interface ColdStartOptions {
+  /**
+   * The rows already on screen, by path (RG248). A project among them begins from what it was
+   * drawn as rather than from pending, and each read that lands fills that row — so a rescan
+   * never takes a filled row back to a skeleton. Empty on a real cold start.
+   */
+  readonly start?: readonly ProjectRow[]
+  /**
+   * How many projects may be read at once (RG250).
+   *
+   * Every project where this is missing or not a positive number: the bound is a fact about a
+   * machine — its core count, or a number somebody wrote in the settings — and a caller that
+   * has not been told one is not a caller that should invent it.
+   */
+  readonly projectsAtOnce?: number
+}
+
+export interface ColdStartProgress {
+  /** The stage now running. */
+  readonly stage: string
+  /** Projects finished in this stage, out of how many it was given. */
+  readonly done: number
+  readonly total: number
+  /** Every row as it currently stands, in the recorded order. */
+  readonly rows: readonly ProjectRow[]
+}
+
+/**
+ * Turn whatever a stage threw into the state a row carries.
+ *
+ * Two shapes arrive here and they spell the elapsed time differently: `EngineCallFailed`
+ * calls it `durationMs`, an `Unreadable` calls it `elapsedMs`. Reading the wrong one is a
+ * silent zero on the row, which is why this matches on the class rather than on a field.
+ */
+function asUnreadable(cause: unknown, stage: string): Unreadable {
+  if (cause instanceof EngineCallFailed) {
+    return {
+      reason: cause.reason,
+      message: cause.message,
+      // The transport's own sentence, so no code and no translation (RG168).
+      code: '',
+      fields: {},
+      elapsedMs: cause.durationMs,
+      argv: [],
+      said: '',
+    }
+  }
+
+  const thrown = cause as Partial<Unreadable> | undefined
+  if (typeof thrown?.reason === 'string' && typeof thrown.message === 'string') {
+    return {
+      reason: thrown.reason,
+      message: thrown.message,
+      // Carried through: what was thrown already decided whether the prose is this app's.
+      code: thrown.code ?? '',
+      fields: thrown.fields ?? {},
+      elapsedMs: thrown.elapsedMs ?? 0,
+      argv: thrown.argv ?? [],
+      said: thrown.said ?? '',
+    }
+  }
+
+  return {
+    reason: 'unreadable-payload',
+    message: `${stage} failed: ${cause instanceof Error ? cause.message : String(cause)}`,
+    // Whatever was thrown, said as it arrived: this app did not write the half that matters.
+    code: '',
+    fields: {},
+    elapsedMs: 0,
+    argv: [],
+    said: '',
+  }
+}
+
+/**
+ * Read every project, in stages, reporting as it goes.
+ *
+ * @param onProgress called once per project per stage, with every row as it stands. A
+ *   screen redraws from this; nothing here decides how often that is worth doing.
+ */
+export async function coldStart(
+  projects: readonly RecordedProject[],
+  stages: readonly ColdStartStage[],
+  onProgress: (progress: ColdStartProgress) => void = () => undefined,
+  options: ColdStartOptions = {},
+): Promise<ProjectRow[]> {
+  const drawn = new Map((options.start ?? []).map((row) => [row.path, row]))
+  // One ceiling across projects (RG250), beside each project's own pool: without it a launch
+  // resolves an engine, holds a server and spawns two reads for every project at once, and
+  // the machine has nothing left for the window that is drawing them.
+  const asked = options.projectsAtOnce ?? 0
+  const atOnce = createLimiter(asked > 0 ? asked : Math.max(projects.length, 1))
+  const rows = projects.map((project) => drawn.get(project.path) ?? pendingRow(project))
+  const reads = projects.map((): RowReads => ({}))
+  const broken = new Set<number>()
+
+  for (const stage of stages) {
+    const live = projects
+      .map((project, index) => ({ project, index }))
+      .filter(({ index }) => !broken.has(index))
+
+    let done = 0
+    await Promise.all(
+      live.map(async ({ project, index }) =>
+        // Held in the order the screen draws them, so the rows a person sees first fill first.
+        atOnce.hold(async () => {
+          try {
+            const part = await stage.read(project)
+            reads[index] = { ...reads[index], ...part }
+            // Filled in place, so a stage that answers nothing leaves what the row already had.
+            rows[index] = fillRow(rows[index] ?? pendingRow(project), reads[index] ?? {})
+          } catch (cause) {
+            broken.add(index)
+            rows[index] = unreadableRow(project, asUnreadable(cause, stage.name))
+          }
+          done += 1
+          onProgress({ stage: stage.name, done, total: live.length, rows: [...rows] })
+        }),
+      ),
+    )
+  }
+
+  return rows
+}

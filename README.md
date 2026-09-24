@@ -126,12 +126,12 @@ called unbuilt were already in the ledger.
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
-| K — The desktop app (one installer for the reader and the plugin) | 7 | 1 | 0 |
-| **Total** | 7 | 1170 | 24 |
+| K — The desktop app (one installer for the reader and the plugin) | 7 | 2 | 0 |
+| **Total** | 7 | 1171 | 24 |
 
 **Next ready:**
 
-- 💭 **RK1697** (deps: RK1696 ✅) **roadkeep-gui is a second repository, so a CLI change reaches its CI only through a separate checkout of this one** — One tree lets a single commit change a verb and its reader, and makes the engine the app's own checkout instead of @main fetched a push later. → §RK1697
+- 💭 **RK1698** (deps: RK1697 ✅) **With gui/ in the tree, lint, the guard hook and MCP started at the root govern RK only, so gui/docs goes unguarded** — A hand-edit to the RG roadmap would pass every surface this repo runs, which is the drift the tool exists to refuse. → §RK1698
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

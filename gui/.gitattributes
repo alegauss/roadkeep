@@ -1,0 +1,12 @@
+# One line ending, stated where git reads it (RG112).
+#
+# Prettier's `endOfLine` default is `lf` and `.prettierrc.json` does not override it. With
+# no rule here, what lands in a working tree is whatever that machine's `core.autocrlf`
+# says — `input` on the developer's, `true` on a GitHub windows runner — so one commit
+# passed `npm run lint` locally and failed it on CI with all 252 text files reported, none
+# of which had anything wrong with its formatting.
+#
+# Every file this repository tracks is text: .ts, .tsx, .json, .md, .html, .yml, .css, .py,
+# .toml and the dotfiles. `text=auto` still lets git detect a binary should one arrive, and
+# `eol=lf` is what makes the checked-out bytes the same on both platforms the suite runs on.
+* text=auto eol=lf

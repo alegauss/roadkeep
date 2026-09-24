@@ -1,0 +1,162 @@
+import { BASE } from '@rk/core'
+import { screen, within } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+
+import { drawWindow, FOCUSABLE } from './harness'
+
+/**
+ * RG54: the half a screenshot cannot show.
+ *
+ * A dialog that cannot be closed from a keyboard looks correct in every screenshot ever
+ * taken of it. What is asserted here is the shape that keeps that from happening — real
+ * controls, named, in document order — against the screen there is now, so the screens
+ * after it inherit the assertion rather than each having to remember.
+ *
+ * **Document order is not reading order**, which is what this cannot see: jsdom lays nothing
+ * out, so a toolbar tabbing right to left passes every assertion below. `surfaces.browser.test.tsx`
+ * walks the same controls with a real Tab in a browser (RG214).
+ */
+
+/**
+ * The whole window since RG63, chrome included: the rail, the palette trigger and the
+ * ground control are the shell's, and a run against the page alone would be a run that
+ * stopped seeing most of the controls the moment they moved.
+ */
+function drawScreen() {
+  return drawWindow({ initial: 'light' })
+}
+
+/** The accessible name, as far as a DOM without a full accname implementation gives it. */
+function nameOf(element: Element): string {
+  const label = element.getAttribute('aria-label')?.trim()
+  if (label !== undefined && label !== '') return label
+
+  const described = element.getAttribute('aria-labelledby')
+  if (described !== null) {
+    const target = element.ownerDocument.getElementById(described)
+    const text = target?.textContent.trim() ?? ''
+    if (text !== '') return text
+  }
+
+  return element.textContent.trim()
+}
+
+beforeEach(() => {
+  localStorage.clear()
+})
+
+afterEach(() => {
+  document.documentElement.className = ''
+  localStorage.clear()
+})
+
+describe('RG54: what a keyboard can reach', () => {
+  it('has controls at all, so the assertions below are about something', () => {
+    const { container } = drawScreen()
+
+    expect(container.querySelectorAll(FOCUSABLE).length).toBeGreaterThan(0)
+  })
+
+  it('gives every control a name a person hears', () => {
+    // An unnamed button is announced as "button", which is a screen with two of them and
+    // no way to tell which is which.
+    const { container } = drawScreen()
+
+    const unnamed = [...container.querySelectorAll(FOCUSABLE)]
+      .filter((element) => nameOf(element) === '')
+      .map((element) => element.outerHTML.slice(0, 120))
+
+    expect(unnamed).toEqual([])
+  })
+
+  it('makes every control a real one, not a div that listens', () => {
+    // A `div` with an `onClick` is not in the tab order and does not answer Enter or
+    // Space; the browser gives all three away free to an element that is a control.
+    const { container } = drawScreen()
+
+    const pretenders = [...container.querySelectorAll('[onclick], [role="button"]')]
+      .filter((element) => element.tagName !== 'BUTTON' && element.tagName !== 'A')
+      .map((element) => element.tagName)
+
+    expect(pretenders).toEqual([])
+  })
+
+  it('invents no tab order of its own', () => {
+    // A positive `tabindex` moves an element ahead of everything the document already
+    // ordered, and the next control added lands in a sequence nobody intended.
+    const { container } = drawScreen()
+
+    const jumped = [...container.querySelectorAll('[tabindex]')]
+      .map((element) => element.getAttribute('tabindex') ?? '')
+      .filter((value) => Number(value) > 0)
+
+    expect(jumped).toEqual([])
+  })
+
+  it('takes nothing out of the tab order that a person has to use', () => {
+    // A control out of the tab order has to be out of everybody's reach, not just a
+    // keyboard's. `BentoBackToTop` is the case that makes the distinction worth drawing: it
+    // is `tabindex="-1"` and `pointer-events-none` together while the page has not scrolled,
+    // which is one control that is not being offered rather than one a mouse can use and a
+    // keyboard cannot. That second thing is what this is looking for.
+    const { container } = drawScreen()
+
+    const unreachable = [...container.querySelectorAll('button, a[href]')]
+      .filter((element) => element.getAttribute('tabindex') === '-1')
+      .filter(
+        (element) =>
+          !element.classList.contains('pointer-events-none') &&
+          element.getAttribute('aria-hidden') !== 'true' &&
+          !element.hasAttribute('hidden'),
+      )
+      .map((element) => element.outerHTML.slice(0, 120))
+
+    expect(unreachable).toEqual([])
+  })
+
+  it('leaves a control enabled unless it says why it is not', () => {
+    // A disabled control is unreachable, so one with no explanation beside it is a dead
+    // end a keyboard finds and a mouse does not.
+    const { container } = drawScreen()
+
+    const disabled = [
+      ...container.querySelectorAll('button[disabled], button[aria-disabled="true"]'),
+    ]
+
+    for (const element of disabled) {
+      expect(
+        element.getAttribute('aria-describedby') ?? element.getAttribute('title'),
+      ).not.toBeNull()
+    }
+  })
+})
+
+describe('RG54: what is announced', () => {
+  it('hides no text behind an image of it', () => {
+    // Text as an image is text nobody can select, resize, translate or read aloud.
+    const { container } = drawScreen()
+
+    expect(container.querySelectorAll('img').length).toBe(0)
+  })
+
+  it('names the ground menu by what it does, not by the ground in force', () => {
+    // The icon changes with the ground; the accessible name must not, or a person listening
+    // hears the state where they expected the action. Since RG238 the menu is the package's,
+    // and the name is this app's sentence, in whichever ground.
+    const light = drawScreen()
+    const inLight = nameOf(within(screen.getByTestId('ground')).getByRole('button'))
+    light.unmount()
+
+    drawWindow({ initial: 'dark' })
+    const inDark = nameOf(within(screen.getByTestId('ground')).getByRole('button'))
+
+    expect(inLight).toBe(BASE['ground.action'])
+    expect(inDark).toBe(inLight)
+  })
+
+  it('gives the heading a level rather than a size', () => {
+    drawScreen()
+
+    expect(screen.getAllByRole('heading').length).toBeGreaterThan(0)
+  })
+})

@@ -1,0 +1,57 @@
+# roadkeep-gui
+
+> A free desktop app for Windows and Linux that reads the backlogs roadkeep governs in every
+> repository you point it at, one row per project, and hands a single line to Claude Code
+> with the `brief` roadkeep printed for it. It never writes a governed file: every change is
+> a `roadkeep` command the app composes as an argument list, shows, and leaves the engine to
+> run. Built with Electron and React, in a sandboxed renderer. MIT, in `LICENSE`.
+
+There is an installer to download, from
+[the release page](https://github.com/alegauss/roadkeep-gui/releases/latest): a per-user
+Windows installer and a Linux AppImage, both unsigned for now. No macOS build has been made.
+Neither carries roadkeep: each project answers through its own committed launcher or the
+`roadkeep` on PATH (`pip install roadkeep`). Claude Code is needed only to hand a line over.
+
+roadkeep itself is at [alegauss.github.io/roadkeep](https://alegauss.github.io/roadkeep/).
+This app is an unofficial companion by the same author, not affiliated with Anthropic.
+
+## For agents
+
+Every route of this site has a Markdown twin beside it, the same page converted from the
+same render with the navigation, the footer and the calls to action dropped. Read
+`<route>/index.md` instead of the HTML: the landing page is
+[`/index.md`](https://alegauss.github.io/roadkeep-gui/index.md). The routes, their twins and
+their byte sizes are in
+[`manifest.json`](https://alegauss.github.io/roadkeep-gui/manifest.json).
+
+Every count those pages state (the verbs, the languages, the non-goals, the scan depth) is
+generated at build time from this repository's source, so the twin is the place to read a
+number rather than this file.
+
+## What it does
+
+- **The portfolio**: one row per governed project under the folders you named, with its open
+  and startable lines, the next ready line, the last gate verdict and which roadkeep answered.
+  Nothing is summed across projects.
+- **Discovery**: no default root. You name folders and a depth; the scan looks for
+  `roadkeep.toml`, skips hidden and build directories, and groups worktrees by reading git's
+  files without running git.
+- **One project**: its lines filtered by `list` arguments, a tab per governed file, the gate
+  with the fix command roadkeep offers per finding, and a task screen joined by `brief`.
+- **Filing a line**: a form measured against roadkeep's `budget`, the block's existing lines
+  beside it, and the exact `roadkeep add` command shown before it runs.
+- **Hand to Claude Code**: `brief --claim`, then your own `claude` in the project root with the
+  brief verbatim; the window carries the stream, the permission questions, the edited files
+  and what moved according to the files. It sets no model, no permission mode and writes no
+  `.claude` settings.
+- **Explain / How to check it**: read-only one-shot questions to Claude Code, limited to read
+  tools, with nothing kept in session history.
+- **Live refresh**: the governed files are watched, and one `ship` arrives as one refresh.
+
+## What it refuses
+
+The non-goals live in
+[`docs/ROADMAP.md`](https://github.com/alegauss/roadkeep-gui/blob/main/docs/ROADMAP.md) and
+are rendered on the landing page from there. In short: no Markdown parsed by the app, no
+write to a governed file, no rule compiled in, no engine it cannot name, no field it
+composes, no dates or burndown, no git, no account, no issue tracker.

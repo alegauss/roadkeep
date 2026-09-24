@@ -95,19 +95,6 @@ already written, not authorship.
 
 ## Block K — The desktop app (one installer for the reader and the plugin)
 
-### §RK1697 Moving roadkeep-gui into gui/ with its history
-
-roadkeep-gui (prefix RG, ~400 commits, Node 26, three npm workspaces) reads what the CLI
-prints, so every verb change here is a contract change there. Today its CI checks this
-repository out beside it (`ROADKEEP_CHECKOUT`) and tracks `@main`, which means a break
-is found a push later, in the other repository.
-
-The move is `git subtree add --prefix=gui` (or a merge of unrelated histories into
-`gui/`), keeping its history and its RG ids. Nothing under `src/roadkeep` imports from
-`gui/`, and `gui/` still reaches the engine only as a command line: the boundary stays a
-process, not an import. The checkout step in its CI becomes the tree itself. What stays
-open: roadkeep-gui's GitHub repository is archived with a pointer, not deleted.
-
 ### §RK1698 Two governed projects in one tree
 
 `find_config` walks up to the nearest `roadkeep.toml`, so inside `gui/` the RG project
@@ -120,6 +107,10 @@ Two answers. Keep two projects and make each root surface visit every `roadkeep.
 under the tree, which is a general feature (a monorepo adopter has the same need). Or
 fold RG into RK with `renumber`/`merge` and keep one backlog, which loses the RG ids the
 gui's commits cite. The first is the one this tool owes other adopters anyway.
+
+The CI half is already one step: RK1697 dropped the gui's `roadkeep.yml` (a checkout and
+`alegauss/roadkeep@main`, inert under gui/), so `uses: ./` with `directory: gui` in
+`gate.yml` restores it. Only the `package` job in `gui.yml` gates gui/ today.
 
 ### §RK1699 Keeping the plugin payload free of the app
 
@@ -175,6 +166,12 @@ the dmg), and the installers attach to the tag's GitHub release. Unsigned builds
 unsigned and say so, as the gui's own `electron-builder.yml` already does; signing is a
 certificate somebody buys and stays out of this block.
 
+RK1697 moved the gui's `ci.yml` to `.github/workflows/gui.yml` unchanged, `v*` tag and
+all, because RG50 and RG157 read its tag check and draft release. So today a roadkeep
+`v*` tag also starts the gui's package job, whose check refuses a tag that is not
+gui/package.json's version (0.1.0 against 0.2.x): the job goes red and nothing is
+drafted. Settling which version a tag names settles that check too.
+
 ### §RK1703 Build, test and commit rules for gui/
 
 The two halves commit differently. Here `run-commit.cmd -m` stages everything; the gui
@@ -186,3 +183,19 @@ Node 26. A session under `gui/` loads this repository's `agents.md` and its
 The dev skill gains a section for `gui/` (or a sibling skill that triggers on it), and
 the CI suite runs the npm gates only on a change under `gui/`, so a Python-only commit
 does not wait on an Electron build.
+
+### §RK1704 Where the reader's site is served from
+
+In its own repository the reader's site (gui/site/) was built on every push and deployed
+to GitHub Pages on demand, served at alegauss.github.io/roadkeep-gui/ because Pages
+derives the path from the repository name. Moving the app in (RK1697) kept the build
+gate as `.github/workflows/gui-site.yml` and dropped the deploy: a repository publishes
+one Pages site, and this one's is roadkeep's own (`site.yml`,
+alegauss.github.io/roadkeep/).
+
+Two answers. Serve it as a path of roadkeep's site, building gui/site into
+`site/dist/gui/` the way `site/docs/` builds into `site/dist/docs/`, which changes its
+`base` and every canonical URL its prerender writes. Or keep publishing from the
+archived roadkeep-gui repository, which then has to be fed a build from here. The first
+keeps one deploy and one tree; the URLs the old site put in the sitemap and in social
+cards then need a redirect there.

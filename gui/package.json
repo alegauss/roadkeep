@@ -1,0 +1,63 @@
+{
+  "name": "roadkeep-gui",
+  "private": true,
+  "version": "0.1.0",
+  "description": "A desktop reader for roadkeep-governed backlogs. Three packages: core reads what the command prints, ui renders it, shell is the Electron process that owns every path.",
+  "license": "MIT",
+  "author": "Alexandre Oliveira",
+  "type": "module",
+  "main": "packages/shell/dist/main.js",
+  "engines": {
+    "node": ">=26"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run build:app && node packages/shell/dist/dev.js",
+    "dev:inspect": "npm run build:app && node packages/shell/dist/dev.js --inspect",
+    "build": "npm run build:app && npm run build --workspace @rk/ui",
+    "build:app": "tsc -b && npm run build --workspace @rk/shell",
+    "start": "npm run build && node packages/shell/dist/start.js",
+    "typecheck": "tsc -b",
+    "lint": "oxlint --type-aware && prettier --check . && npm run lint:duplicates && npm run lint:bento && npm run lint:screen-prose && npm run lint:class-pairs",
+    "lint:duplicates": "viglet-ds-check-duplicates packages/ui/src packages/core/src packages/shell/src",
+    "lint:bento": "viglet-ds-page-reference --check",
+    "lint:screen-prose": "node packages/shell/src/screen-prose.ts",
+    "lint:class-pairs": "node packages/shell/src/class-pairs.ts",
+    "format": "prettier --write .",
+    "test": "vitest run --project core --project shell --project ui",
+    "test:live": "vitest run --project shell-live --project ui-live --project ui-browser",
+    "test:all": "vitest run",
+    "test:watch": "vitest --project core --project shell --project ui",
+    "clean": "tsc -b --clean",
+    "stamp": "node packages/shell/dist/stamp-build.js",
+    "audit": "npm run build:app && node packages/shell/dist/audit.js",
+    "shots": "npm run build && node packages/shell/dist/shots.js",
+    "package": "npm run build && npm run stamp && electron-builder --config electron-builder.yml --publish never",
+    "icon": "electron build/render-icon.cjs"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/mcp": "^0.0.80",
+    "@tailwindcss/vite": "^4.3.3",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^26.5.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "@vitest/browser-playwright": "^5.0.0",
+    "electron": "^44.2.0",
+    "electron-builder": "^26.15.3",
+    "jsdom": "^30.0.1",
+    "oxlint": "^1.82.0",
+    "oxlint-tsgolint": "^7.0.2001",
+    "playwright": "^1.63.0",
+    "playwright-core": "^1.63.0",
+    "prettier": "^3.9.6",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "vitest": "^5.0.0"
+  }
+}

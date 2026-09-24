@@ -1,0 +1,199 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+/*
+ * The design system is not this app's. `@viglet/viglet-design-system` is the same
+ * package Turing, Shio and Dumont render with, and this line is the whole of what
+ * roadkeep-gui declares about colour, radius and type: every token arrives here, and
+ * no component in this repository names a value of its own.
+ *
+ * The import order is the one the sibling consoles use and it matters: Tailwind first,
+ * because the package's `@theme inline` block extends it; the animation utilities next;
+ * the design system after both; and this app's accent last, so it overrides rather than
+ * being overridden.
+ *
+ * Light and dark both arrive with this import — the package re-points the same `--vg-*`
+ * variables under `.dark, [data-theme="dark"]`. Nothing switches between them yet: that
+ * is RG52, and it is a provider and a toggle rather than a stylesheet.
+ */
+@import '@viglet/viglet-design-system/styles';
+
+/*
+ * The brand faces, a separate entry because they are most of the package's weight and a
+ * consumer that does not want them should not carry them. This one does: a desktop build
+ * ships its fonts, so the type is the type the catalogue shows on a machine that has
+ * never seen the internet. Without this line `--font-brand` falls back to `system-ui` -
+ * a real look, but not this one.
+ */
+@import '@viglet/viglet-design-system/fonts';
+
+/*
+ * The bento layer's stylesheet, a separate entry from the tokens so that a consumer taking
+ * only the layout maths does not carry CSS it never renders. This one renders it: RG63
+ * adopted the shell, and the rail's gutter, the frosted surfaces, the tile motion and the
+ * save-bar morph are all defined here rather than in any component.
+ */
+@import '@viglet/viglet-design-system/bento.css';
+
+/*
+ * roadkeep's accent, and not a new one. The public site is keyed to amber and spells
+ * three of them (`--amber`, `--amber-bright`, `--amber-deep`); these are those three in
+ * OKLCH, so the app and the site cannot drift into two ambers. `--vg-accent-text` is the
+ * deep one because amber at full chroma does not carry text on a light ground.
+ *
+ * On `:root` rather than a wrapper, which is what the package requires: the tokens are
+ * read by fixed and portalled elements that are not inside any wrapper this app renders.
+ */
+:root {
+  --vg-accent-from: oklch(82.8% 0.189 84.429); /* #fbbf24 — amber-bright */
+  --vg-accent-to: oklch(76.9% 0.188 70.08); /* #f59e0b — amber */
+  --vg-accent-text: oklch(55.5% 0.163 48.998); /* #b45309 — amber-deep, readable on light */
+  --vg-accent-text-dark: oklch(82.8% 0.189 84.429); /* #fbbf24 — readable on dark */
+
+  /*
+   * RG105: `--primary`, claimed, which is the token that says *you are here*.
+   *
+   * The bento layer draws the rail's active mark from it and its own notes say why a shared
+   * component must not pick that colour itself — Turing is blue and Shio is orange because
+   * each product keyed this. Keying only the accent left the mark the package's neutral
+   * grey, which is what another product's console looks like.
+   *
+   * **The token is not the rail's alone**, and that is the point rather than the cost. It
+   * is the default `Button` fill, the progress bar and the slider track, and `bento.css`
+   * reads it again for the tile's hover glow, the inline-edit border, the new-tile hover
+   * and the focus ring. Those are the places a product is supposed to look like itself, and
+   * they move together.
+   *
+   * **Through the four inputs and never `--vg-primary` itself.** This stylesheet imports
+   * the package and then opens its own `:root`, which lands after the package's dark block
+   * at the same specificity and in no layer — so one value set on `--vg-primary` would win
+   * on *both* grounds and the dark ground would silently get the light one. The inputs are
+   * read per ground, which is why there is no dark block here.
+   *
+   * The fill and its foreground swap roles between grounds: amber-deep under near-white on
+   * light, amber-bright under near-black on dark. The contrast test asserts that pair in
+   * both, so a value that moves is caught by a run rather than by somebody looking.
+   */
+  --vg-primary-base: oklch(55.5% 0.163 48.998); /* #b45309 — amber-deep */
+  --vg-primary-base-dark: oklch(82.8% 0.189 84.429); /* #fbbf24 — amber-bright */
+  --vg-primary-foreground-base: oklch(98.5% 0 0);
+  --vg-primary-foreground-base-dark: oklch(20.5% 0 0);
+
+  /*
+   * RG54: the focus ring, overridden because the package's light one does not clear.
+   *
+   * `--vg-ring` is `oklch(70.8% 0 0)` on `:root`, which is 2.59:1 against the light ground
+   * and fails WCAG 1.4.11 — a focus indicator has to reach 3:1, and this app is a keyboard
+   * tool. The package already makes the ring the accent in dark, so this is that decision
+   * applied to the ground where it was left as a grey, not a new one.
+   *
+   * **And it reaches the dark ground too, which RG107 is** — this block is written after the
+   * package's dark one and is equally specific, so what is set here wins on both. The dark
+   * ring rendered at `#b45309` on `#171717`: 3.57:1, legal and not the colour anybody chose.
+   * The block below is what gives the ground its own value back. The contrast test models
+   * the cascade in source order now, and holds the two apart by name.
+   */
+  --vg-ring: var(--vg-accent-text);
+
+  /*
+   * RG53: the face a marker is drawn in, and the second value this repository names for
+   * itself. The design system ships no emoji face — `--font-sans`, `--font-brand` and
+   * `--font-mono` are all text — and a status set left to whatever the platform picked is
+   * one where four markers come from four fonts and look like four different apps.
+   *
+   * Named per platform rather than bundled: an emoji font is megabytes, the codepoints are
+   * the project's and not knowable ahead of time, and every desktop this ships to has one.
+   * The text faces trail it so a project whose markers are letters still gets the app's own
+   * type, and `sans-serif` is last because a stack with no end is a stack the browser ends.
+   */
+  --font-marker:
+    'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Segoe UI Symbol', 'Noto Emoji',
+    var(--font-sans), sans-serif;
+}
+
+/*
+ * What this app overrides that the package re-points in dark (RG107).
+ *
+ * One entry, and the list is meant to stay short. Anything set at `:root` above that the
+ * package also sets under this selector needs a line here, because the block above is later
+ * in this sheet and equally specific — so without one the light value wins on both grounds.
+ *
+ * `--primary` is not here and does not need to be: the package reads it per ground through
+ * the four `*-base` inputs, which is exactly the arrangement this block exists to stand in
+ * for where a token has none.
+ *
+ * The selector is the package's own, spelled the same way, so a theme attribute and a class
+ * both reach it.
+ */
+.dark,
+[data-theme='dark'] {
+  --vg-ring: var(--vg-accent-text-dark);
+}
+
+/*
+ * The document is the scroller, and RG63 is why.
+ *
+ * This used to read the other way — `overflow: hidden` on the body, the frame fixed, and
+ * the scrolling given to a panel inside it, on the argument that a desktop window is not a
+ * page. Adopting the bento shell settles it the other way, because the layer is built for a
+ * scrolling document and says so in three places: `BentoBackToTop` reads `window.scrollY`
+ * and calls `window.scrollTo`, the save-bar morph is driven by the document's own scroll,
+ * and `AppFooter` is written `mt-auto`. Keeping an inner scroller would have left all three
+ * inert — which is the shell half-adopted, and a page that looks bento inside a console that
+ * does not is the first mistake its own guidance names.
+ *
+ * The window still reads as a window: the rail is `fixed` and the header is `sticky`, so
+ * neither moves while the content under them does.
+ */
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+/*
+ * RG118: the column the footer is measured against.
+ *
+ * `AppFooter` is written `mt-auto`, which is the last of the three reasons named above and
+ * the one that stayed inert until something mounted it. A flex column is what gives that
+ * margin room to push against, so the footer sits at the bottom of a short page and after
+ * the content of a long one, with no fixed position and no height anybody wrote down.
+ *
+ * **`100dvh` and not the `100%` above, which does not reach here.** A percentage
+ * `min-height` resolves against the parent's *height*, and `body`'s height is `auto` — so
+ * the rule above leaves `#root` as tall as its content and the window measured 66px of
+ * ground below the footer. The viewport unit asks the window directly, which is the
+ * question being asked.
+ */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+body {
+  margin: 0;
+}
+
+/*
+ * RG215: a hero whose actions do not fit beside its title puts them under it.
+ *
+ * `BentoHero` lays its row out as the title block and then a trailing slot written
+ * `ml-auto flex shrink-0`, which is the package's own contract and right at desktop width.
+ * At 400 it is why every surface scrolled sideways: the slot keeps its full width, the
+ * title shrinks to its longest word, and what is left runs past the edge.
+ *
+ * Two properties, and both belong to the slot rather than to what a page put in it — which
+ * is the reason this is a stylesheet rule and not a class on `HeroActions`: a flex item
+ * cannot tell its own parent to wrap. So the row may run onto a second line, and the slot
+ * may give way when a single line is all there is. `:has` keys both on `data-region`, which
+ * `HeroActions` writes and this app owns, rather than on a package class name.
+ */
+div:has(> div > [data-region='hero-actions']) {
+  flex-wrap: wrap;
+}
+
+div:has(> [data-region='hero-actions']) {
+  min-width: 0;
+  flex-shrink: 1;
+}

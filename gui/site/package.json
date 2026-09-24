@@ -1,0 +1,30 @@
+{
+  "name": "roadkeep-gui-site",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "The public site for roadkeep-gui. The copy lives in one module and the sections only render it.",
+  "scripts": {
+    "dev": "vite",
+    "generate": "node scripts/product.mjs",
+    "build": "npm run generate && tsc -b && vite build && node scripts/og-image.mjs && vite build --ssr src/entry-server.tsx --outDir dist-server && node scripts/prerender.mjs",
+    "build:client": "vite build",
+    "prerender": "vite build --ssr src/entry-server.tsx --outDir dist-server && node scripts/prerender.mjs",
+    "typecheck": "tsc -b",
+    "test": "node --test scripts/*.test.mjs",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "node-html-parser": "^9.0.4",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2"
+  }
+}

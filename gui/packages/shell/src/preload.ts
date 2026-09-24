@@ -1,0 +1,76 @@
+// The only code that runs on both sides of the isolation boundary, and therefore the
+// only file where a mistake hands the renderer something a browser would not have.
+//
+// It exposes one frozen object built from `core`'s interface and nothing else: no
+// `ipcRenderer`, no module, no path. `contextBridge` copies values across, so the renderer
+// receives a structured clone and never a live reference into this context.
+//
+// This file is bundled to CommonJS by `vite.preload.config.ts` because the preload runs
+// sandboxed, where `require` reaches Electron's own modules and nothing else — an import
+// of `core` has to already be inside the file by the time Electron loads it.
+import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
+
+import {
+  BRIDGE_CHANNELS,
+  BRIDGE_KEY,
+  BRIDGE_TOPICS,
+  BRIDGE_UNSUBSCRIBE,
+  heardBy,
+  type RendererBridge,
+  type TopicEvents,
+} from '@rk/core'
+
+const bridge: RendererBridge = {
+  identify: () => ipcRenderer.invoke(BRIDGE_CHANNELS.identify),
+  settings: () => ipcRenderer.invoke(BRIDGE_CHANNELS.settings),
+  savePreference: (key, value) => ipcRenderer.invoke(BRIDGE_CHANNELS.savePreference, key, value),
+  projects: () => ipcRenderer.invoke(BRIDGE_CHANNELS.projects),
+  open: (root) => ipcRenderer.invoke(BRIDGE_CHANNELS.open, root),
+  run: (root, request) => ipcRenderer.invoke(BRIDGE_CHANNELS.run, root, request),
+  // A listener on the topic's one channel, keeping its own key's events, and main told so it
+  // starts hearing that source (RG144). The answer takes both back, once: a screen's cleanup
+  // and a second call from somewhere else are the same give-up.
+  subscribe: (topic, key, listener) => {
+    const channel = BRIDGE_TOPICS[topic]
+    const heard = (_sent: IpcRendererEvent, event: TopicEvents[typeof topic]): void => {
+      if (heardBy(topic, event, key)) listener(event)
+    }
+    ipcRenderer.on(channel, heard)
+    ipcRenderer.send(BRIDGE_CHANNELS.subscribe, topic, key)
+
+    let given = false
+    return () => {
+      if (given) return
+      given = true
+      ipcRenderer.removeListener(channel, heard)
+      ipcRenderer.send(BRIDGE_UNSUBSCRIBE, topic, key)
+    }
+  },
+  roots: () => ipcRenderer.invoke(BRIDGE_CHANNELS.roots),
+  chooseRoot: () => ipcRenderer.invoke(BRIDGE_CHANNELS.chooseRoot),
+  saveRoots: (roots) => ipcRenderer.invoke(BRIDGE_CHANNELS.saveRoots, roots),
+  handOver: (root, id) => ipcRenderer.invoke(BRIDGE_CHANNELS.handOver, root, id),
+  replySession: (key, text, allowed) =>
+    ipcRenderer.invoke(BRIDGE_CHANNELS.replySession, key, text, allowed),
+  answerSession: (key, requestId, answer) =>
+    ipcRenderer.invoke(BRIDGE_CHANNELS.answerSession, key, requestId, answer),
+  handOverDoor: (root, offered, which) =>
+    ipcRenderer.invoke(BRIDGE_CHANNELS.handOverDoor, root, offered, which),
+  governedAt: (root) => ipcRenderer.invoke(BRIDGE_CHANNELS.governedAt, root),
+  editedAt: (key, paths) => ipcRenderer.invoke(BRIDGE_CHANNELS.editedAt, key, paths),
+  fileText: (key, path) => ipcRenderer.invoke(BRIDGE_CHANNELS.fileText, key, path),
+  gates: () => ipcRenderer.invoke(BRIDGE_CHANNELS.gates),
+  readings: () => ipcRenderer.invoke(BRIDGE_CHANNELS.readings),
+  check: (root) => ipcRenderer.invoke(BRIDGE_CHANNELS.check, root),
+  sessions: () => ipcRenderer.invoke(BRIDGE_CHANNELS.sessions),
+  stopSession: (key) => ipcRenderer.invoke(BRIDGE_CHANNELS.stopSession, key),
+  gloss: (root, id, again) => ipcRenderer.invoke(BRIDGE_CHANNELS.gloss, root, id, again),
+  cancelGloss: (root, id) => ipcRenderer.invoke(BRIDGE_CHANNELS.cancelGloss, root, id),
+  walkthrough: (root, id, again) =>
+    ipcRenderer.invoke(BRIDGE_CHANNELS.walkthrough, root, id, again),
+  cancelWalkthrough: (root, id) => ipcRenderer.invoke(BRIDGE_CHANNELS.cancelWalkthrough, root, id),
+  door: (root, offered, which, words) =>
+    ipcRenderer.invoke(BRIDGE_CHANNELS.door, root, offered, which, words),
+}
+
+contextBridge.exposeInMainWorld(BRIDGE_KEY, Object.freeze(bridge))

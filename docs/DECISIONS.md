@@ -943,3 +943,4 @@ deriving the anchor, which is how they came apart.
 ## Block K — The desktop app (one installer for the reader and the plugin)
 
 - ✅ **RK1696** **The non-goal against a web UI does not say whether a desktop reader that only spawns the CLI may live here** — The reader moves in under the non-goal, not by dropping it: a desktop app is allowed only while it writes nothing and stores nothing.
+- ✅ **RK1697** **roadkeep-gui is a second repository, so a CLI change reaches its CI only through a separate checkout of this one** — The gui history was rewritten into gui/ before merging, since a plain subtree merge leaves its ledger at docs/ and every history read in gui/ answers null.
