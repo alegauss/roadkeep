@@ -42,7 +42,7 @@
     "@playwright/mcp": "^0.0.80",
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/react": "^16.3.3",
-    "@types/node": "^26.5.0",
+    "@types/node": "^26.6.2",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
