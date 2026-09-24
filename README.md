@@ -126,7 +126,12 @@ called unbuilt were already in the ledger.
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
-| **Total** | 0 | 1169 | 24 |
+| K — The desktop app (one installer for the reader and the plugin) | 8 | 0 | 0 |
+| **Total** | 8 | 1169 | 24 |
+
+**Next ready:**
+
+- 💭 **RK1696** (deps: —) **The non-goal against a web UI does not say whether a desktop reader that only spawns the CLI may live here** — An Electron app moving in under that sentence as written reads as the non-goal dropped, so its wording is settled before anything moves. → §RK1696
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

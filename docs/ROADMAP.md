@@ -42,6 +42,17 @@
 
 ## Block J — Validation (whether a person ever tried it)
 
+## Block K — The desktop app (one installer for the reader and the plugin)
+
+- 💭 **RK1696** (deps: —) **The non-goal against a web UI does not say whether a desktop reader that only spawns the CLI may live here** — An Electron app moving in under that sentence as written reads as the non-goal dropped, so its wording is settled before anything moves. → §RK1696
+- 💭 **RK1697** (deps: RK1696) **roadkeep-gui is a second repository, so a CLI change reaches its CI only through a separate checkout of this one** — One tree lets a single commit change a verb and its reader, and makes the engine the app's own checkout instead of @main fetched a push later. → §RK1697
+- 💭 **RK1698** (deps: RK1697) **With gui/ in the tree, lint, the guard hook and MCP started at the root govern RK only, so gui/docs goes unguarded** — A hand-edit to the RG roadmap would pass every surface this repo runs, which is the drift the tool exists to refuse. → §RK1698
+- 💭 **RK1699** (deps: RK1697) **The plugin's source is the repository root, so installing it would copy the Electron app into every adopter's cache** — An adopter who wanted only the hook and the MCP tools should not pay for a desktop app's sources and lockfile. → §RK1699
+- 💭 **RK1700** (deps: RK1697, RK1699) **Installing the reader and the Claude Code plugin takes two separate procedures on each of three platforms** — One installer that places the app and then runs the claude plugin install gives a person the CLI and the reader together. → §RK1700
+- 💭 **RK1701** (deps: RK1700) **The installer cannot tell a machine without Python 3.11 or the claude CLI from one where the plugin installed** — Without the check the install reports success and the first MCP call fails, far from the missing prerequisite. → §RK1701
+- 💭 **RK1702** (deps: RK1697, RK1700) **A release tag here publishes the CLI and builds no installer, so the app ships from a different commit** — An installer built from the same tag as the engine is the only one tested against the engine it installs beside. → §RK1702
+- 💭 **RK1703** (deps: RK1697) **A session under gui/ loads a dev skill that knows pytest and run-commit.cmd, not npm gates or staging by path** — The gui's gates and commit rules would be lost in the move unless the dev skill and CI name them for gui/. → §RK1703
+
 ## Done when — Block D
 
 - **The gate passes on this repository's own docs** the format is proven by the artefact

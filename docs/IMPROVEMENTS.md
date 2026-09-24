@@ -92,3 +92,111 @@ already written, not authorship.
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
 ## Block J — Validation (whether a person ever tried it)
+
+## Block K — The desktop app (one installer for the reader and the plugin)
+
+### §RK1696 A desktop reader under the web-UI non-goal
+
+The non-goal says "No web UI and no server. Files and a CLI." roadkeep-gui is neither:
+it is an Electron reader that spawns the CLI or the MCP server a project already names,
+keeps no store of its own and bundles no engine (its `engine-resolution.ts` refuses to
+guess one). L2 survives it. The sentence as written does not say so, and a desktop app
+landing in this tree under it reads as the non-goal quietly dropped.
+
+So the wording is settled before anything moves: a reader that goes through the CLI is
+allowed; a service, a database, or a second writer of the line format is not. If the
+answer is that the app stays out, this block retires whole and roadkeep-gui ships the
+installer from its own repository, which the user's goal (one installer, both halves
+installed) does not rule out.
+
+### §RK1697 Moving roadkeep-gui into gui/ with its history
+
+roadkeep-gui (prefix RG, ~400 commits, Node 26, three npm workspaces) reads what the CLI
+prints, so every verb change here is a contract change there. Today its CI checks this
+repository out beside it (`ROADKEEP_CHECKOUT`) and tracks `@main`, which means a break
+is found a push later, in the other repository.
+
+The move is `git subtree add --prefix=gui` (or a merge of unrelated histories into
+`gui/`), keeping its history and its RG ids. Nothing under `src/roadkeep` imports from
+`gui/`, and `gui/` still reaches the engine only as a command line: the boundary stays a
+process, not an import. The checkout step in its CI becomes the tree itself. What stays
+open: roadkeep-gui's GitHub repository is archived with a pointer, not deleted.
+
+### §RK1698 Two governed projects in one tree
+
+`find_config` walks up to the nearest `roadkeep.toml`, so inside `gui/` the RG project
+answers and at the root the RK one does. Three surfaces are started from the root
+instead: `lint` in CI, the guard hook (which decides whether an edit touches a governed
+file) and the MCP server `.mcp.json` launches. Each would judge `gui/docs/ROADMAP.md`
+against nothing, which means a hand-edit there goes through unguarded.
+
+Two answers. Keep two projects and make each root surface visit every `roadkeep.toml`
+under the tree, which is a general feature (a monorepo adopter has the same need). Or
+fold RG into RK with `renumber`/`merge` and keep one backlog, which loses the RG ids the
+gui's commits cite. The first is the one this tool owes other adopters anyway.
+
+### §RK1699 Keeping the plugin payload free of the app
+
+`marketplace.json` declares the plugin with `"source": "./"`, so an install takes the
+repository root. With `gui/` in it, every adopter who only wanted the hook and the MCP
+tools would carry the Electron sources, the site and the npm lockfile into their plugin
+cache.
+
+Measure first: what an install copies today and with `gui/` present. Then move the
+plugin's payload (`hooks/`, `skills/`, `commands/`, `scripts/roadkeep.py`, `src/`) to a
+directory the marketplace names, or confirm an ignore mechanism the plugin loader
+honours. A test holds the payload's size, the way `tests/test_plugin.py` holds its
+shape.
+
+### §RK1700 One installer: the app, then the plugin
+
+electron-builder already produces NSIS on Windows and an AppImage on Linux; the dmg is
+declared and has never been built. None of them touches Claude Code, so a person gets
+the reader and still has to run `claude plugin marketplace add alegauss/roadkeep` and
+`claude plugin install roadkeep@alegauss` by hand.
+
+The installer runs those two commands after placing the app: an NSIS `customInstall`
+macro on Windows, a postinstall step in the dmg flow on macOS, and a first-run step in
+the app for the AppImage, which has no install phase. It installs through the `claude`
+CLI and never copies plugin files itself, so an update to the plugin is Claude Code's
+and not the installer's. Declining the step leaves the app working as a reader of
+projects whose engine is already present.
+
+### §RK1701 Prerequisites the installer names
+
+The plugin's MCP server is `python scripts/roadkeep.py mcp`, so it needs Python 3.11 or
+newer on PATH, and the install step needs the `claude` executable. A machine missing
+either gets an installer that reports success and a plugin that fails on its first call,
+far from the cause.
+
+Before the plugin step, the installer checks both and names what is missing and how to
+get it; it does not install Python or Claude Code itself. The app repeats the check on
+start, since either can be removed later. The resolution already has a place to say
+this: an unresolved engine carries its reason.
+
+"No supported Python API." does not bind this: the check runs the interpreter and reads
+its version, and imports nothing from the package.
+
+### §RK1702 One tag, the CLI and the installers
+
+Here a release is a version bump and PyPI; in roadkeep-gui a `v*` tag packages Windows
+and Linux. Once they share a tree, one tag should give the CLI and an installer built
+against that same commit, so the app a person downloads was tested against the engine it
+ships beside.
+
+The `package` job moves in with its matrix (Windows, Linux, and macOS if a runner builds
+the dmg), and the installers attach to the tag's GitHub release. Unsigned builds stay
+unsigned and say so, as the gui's own `electron-builder.yml` already does; signing is a
+certificate somebody buys and stays out of this block.
+
+### §RK1703 Build, test and commit rules for gui/
+
+The two halves commit differently. Here `run-commit.cmd -m` stages everything; the gui
+stages by path because parallel sessions share its checkout. Here the gate is pytest and
+`roadkeep lint`; there it is typecheck, vitest, oxlint, prettier and `roadkeep lint`, on
+Node 26. A session under `gui/` loads this repository's `agents.md` and its
+`roadkeep-dev` skill, which describe none of that.
+
+The dev skill gains a section for `gui/` (or a sibling skill that triggers on it), and
+the CI suite runs the npm gates only on a change under `gui/`, so a Python-only commit
+does not wait on an Electron build.
