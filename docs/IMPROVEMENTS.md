@@ -95,23 +95,6 @@ already written, not authorship.
 
 ## Block K — The desktop app (one installer for the reader and the plugin)
 
-### §RK1698 Two governed projects in one tree
-
-`find_config` walks up to the nearest `roadkeep.toml`, so inside `gui/` the RG project
-answers and at the root the RK one does. Three surfaces are started from the root
-instead: `lint` in CI, the guard hook (which decides whether an edit touches a governed
-file) and the MCP server `.mcp.json` launches. Each would judge `gui/docs/ROADMAP.md`
-against nothing, which means a hand-edit there goes through unguarded.
-
-Two answers. Keep two projects and make each root surface visit every `roadkeep.toml`
-under the tree, which is a general feature (a monorepo adopter has the same need). Or
-fold RG into RK with `renumber`/`merge` and keep one backlog, which loses the RG ids the
-gui's commits cite. The first is the one this tool owes other adopters anyway.
-
-The CI half is already one step: RK1697 dropped the gui's `roadkeep.yml` (a checkout and
-`alegauss/roadkeep@main`, inert under gui/), so `uses: ./` with `directory: gui` in
-`gate.yml` restores it. Only the `package` job in `gui.yml` gates gui/ today.
-
 ### §RK1699 Keeping the plugin payload free of the app
 
 `marketplace.json` declares the plugin with `"source": "./"`, so an install takes the

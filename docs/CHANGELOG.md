@@ -1237,3 +1237,4 @@
 
 - ✅ **RK1696** **The non-goal against a web UI does not say whether a desktop reader that only spawns the CLI may live here** — The web-UI non-goal now allows a desktop reader that only spawns the CLI or MCP server, and still refuses a service, a database or a second line writer.
 - ✅ **RK1697** **roadkeep-gui is a second repository, so a CLI change reaches its CI only through a separate checkout of this one** — roadkeep-gui lives in gui/ with its 402 commits and RG ids, and its suite runs from the root against this tree's own engine instead of a checkout of @main.
+- ✅ **RK1698** **With gui/ in the tree, lint, the guard hook and MCP started at the root govern RK only, so gui/docs goes unguarded** — CI lints gui/ as its own project, and the guard names a nested project's file and its directory instead of offering tools that would write the root backlog.

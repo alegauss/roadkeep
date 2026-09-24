@@ -126,12 +126,12 @@ called unbuilt were already in the ledger.
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
-| K — The desktop app (one installer for the reader and the plugin) | 7 | 2 | 0 |
-| **Total** | 7 | 1171 | 24 |
+| K — The desktop app (one installer for the reader and the plugin) | 6 | 3 | 0 |
+| **Total** | 6 | 1172 | 24 |
 
 **Next ready:**
 
-- 💭 **RK1698** (deps: RK1697 ✅) **With gui/ in the tree, lint, the guard hook and MCP started at the root govern RK only, so gui/docs goes unguarded** — A hand-edit to the RG roadmap would pass every surface this repo runs, which is the drift the tool exists to refuse. → §RK1698
+- 💭 **RK1699** (deps: RK1697 ✅) **The plugin's source is the repository root, so installing it would copy the Electron app into every adopter's cache** — An adopter who wanted only the hook and the MCP tools should not pay for a desktop app's sources and lockfile. → §RK1699
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

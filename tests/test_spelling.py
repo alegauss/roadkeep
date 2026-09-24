@@ -131,6 +131,15 @@ def shapes(root: Path) -> dict[str, tuple[object, object]]:
                 tool="Edit", path=ROADMAP, role="roadmap", served=served, exists=False
             )
         ),
+        # RK1698: a file in a project nested under the session's. Swept for the fields, and kept
+        # out of the served-against-shell sweep on purpose: withholding the tools is what this
+        # rendering is for, since the session's server answers for the other project —
+        # `tests/test_guarding.py` holds that it names none.
+        "Refusal.nested": both(
+            lambda served: Refusal(
+                tool="Edit", path=f"gui/{ROADMAP}", role="roadmap", served=served, elsewhere="gui"
+            )
+        ),
         "Review": both(
             lambda served: Review(report=report, served=served, config=config)
         ),

@@ -89,10 +89,10 @@ from __future__ import annotations
 
 import os
 import tomllib
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from roadkeep.config import Config, ConfigError, find_config
 from roadkeep.provenance import WIRED, invocation, served_by
@@ -310,6 +310,19 @@ class Refusal:
     #: what the default reaches is every caller building one without the field, and each of
     #: those was getting the answer RK447 argued against. The four carriers now say one thing.
     served: str = ""
+    #: The root of the project the file belongs to, as the session spells it, where that is
+    #: not the session's own project (RK1698) — `gui` for `gui/docs/ROADMAP.md` edited from a
+    #: session at the repository root. `""` is the ordinary case, the file being the
+    #: session's. Set, the tools are withheld whatever ``served`` says: this session's server
+    #: answers for the project it was started in, so following a tool door here would write
+    #: the *other* backlog — and `path` alone, spelled from its own project, reads as that one.
+    elsewhere: str = ""
+
+    @property
+    def reachable(self) -> str:
+        """The prefix every table here renders with: ``served``, or `""` where the file is
+        another project's (RK1698) — so no paragraph offers a tool that answers for this one."""
+        return "" if self.elsewhere else self.served
 
     @property
     def decision(self) -> str:
@@ -345,12 +358,12 @@ class Refusal:
         would give this project the tools is true and is the notice's to say (RK444); a
         refusal is a bad place to advertise.
         """
-        if not self.served:
+        if not self.reachable:
             return ()
         # A door whose served spelling is its shell one is a command this session does not
         # serve, which is the renderer's answer rather than a second lookup here (RK488).
         return tuple(
-            door for door in self.commands if door.named(self.served) != door.command
+            door for door in self.commands if door.named(self.reachable) != door.command
         )
 
     @property
@@ -362,16 +375,16 @@ class Refusal:
         differs is only the claim being made: one states that the write was refused, the other
         that this hook cannot tell a read from a write and is not going to pretend.
         """
+        whose = f"the {self.role} of the project at {self.elsewhere}/" if self.elsewhere else (
+            f"this project's {self.role}"
+        )
         if self.decision == "ask":
             return (
-                f"{self.tool} names {self.path}, this project's {self.role}, and roadkeep "
+                f"{self.tool} names {self.path}, {whose}, and roadkeep "
                 f"owns its writes. A shell command is not read to see which it does, so the "
                 f"decision is yours: reading it is fine, and writing it wants a verb below."
             )
-        return (
-            f"{self.tool} refused: {self.path} is this project's {self.role}, and "
-            f"roadkeep owns its writes."
-        )
+        return f"{self.tool} refused: {self.path} is {whose}, and roadkeep owns its writes."
 
     @property
     def _repairing(self) -> list[str]:
@@ -412,7 +425,7 @@ class Refusal:
         return [
             "If this edit was repairing something `lint` reported, it already named the "
             "command that closes each finding — so none of them has to be inferred:",
-            *offered(doors, self.served),
+            *offered(doors, self.reachable),
             "",
         ]
 
@@ -430,8 +443,15 @@ class Refusal:
         lines += self._repairing
         if self.tools:
             lines.append("Call instead — this session's tools, where the fields are a schema:")
-            lines += offered(self.tools, self.served)
+            lines += offered(self.tools, self.reachable)
             lines += ["", "Or the same engine in a shell, from the project root:"]
+        elif self.elsewhere:
+            # RK1698: the one table that reaches this file, and the directory it has to run in
+            # — this session's tools answer for the project the session was started in.
+            lines.append(
+                f"Call instead, from {self.elsewhere}/ — this session's tools answer for "
+                f"another project, so they would write that one's {self.role}:"
+            )
         else:
             lines.append("Call instead, from the project root:")
         # The shell table, rendered by the same function and therefore with the invocation
@@ -476,9 +496,9 @@ class Refusal:
                 Door(("show", "<id>"), ""),
                 Door(("list", "--block", "<x>"), ""),
             ),
-            self.served,
+            self.reachable,
         )
-        if self.served:
+        if self.reachable:
             return (
                 f"No barrier stands in front of a read: `{brief}` starts a task in one call "
                 f"and `{show}` joins the line to its rationale, both taking the id; "
@@ -817,13 +837,15 @@ def decide(payload: Mapping[str, object], root: str | Path = ".") -> Barrier:
             continue
         role = role_at(config, path)
         if role is not None:
+            elsewhere = _nested(config, base)
             return Barrier(
                 refusal=Refusal(
                     tool=tool,
-                    path=config.relative(path),
+                    path=_spelled_from(base, path) if elsewhere else config.relative(path),
                     role=role,
                     exists=path.is_file(),
                     served=served_by(config.root),
+                    elsewhere=elsewhere,
                 )
             )
         if config.source is not None and _comparable(path) == _comparable(config.source):
@@ -897,6 +919,9 @@ def _mentioned(raw: object, base: Path, tool: str) -> Refusal | None:
             # behind a `git add` of the roadmap is still a `sed` on a governed file.
             if _staged_or_read(command, [form for forms in spellings.values() for form in forms]):
                 return None
+            nested = _nested_mention(spelled, spellings[role], base, config)
+            if nested is not None:
+                return Refusal(tool=tool, **nested)
             return Refusal(
                 tool=tool,
                 path=config.relative(declared),
@@ -905,6 +930,50 @@ def _mentioned(raw: object, base: Path, tool: str) -> Refusal | None:
                 served=served_by(config.root),
             )
     return None
+
+
+def _nested_mention(
+    spelled: str, forms: Sequence[str], base: Path, config: Config
+) -> dict[str, Any] | None:
+    """The nested project a command's mention really names, where every mention is one (RK1698).
+
+    The substring test is the session project's, so `gui/docs/ROADMAP.md` contains the root's
+    `docs/ROADMAP.md` and the question was asked about the wrong file. Each occurrence is widened
+    to the word around it and resolved to the project that owns it: where one of them is the
+    session's own file, the ordinary answer stands; where all of them belong to one nested
+    project, that project is the one named.
+    """
+    found: dict[str, Any] | None = None
+    for form in forms:
+        start = spelled.find(form)
+        while start != -1:
+            word = _word_at(spelled, start, start + len(form))
+            target = Path(word) if Path(word).is_absolute() else base / word
+            owner = owning(target)
+            role = role_at(owner, target) if owner is not None else None
+            if owner is None or role is None:
+                return None
+            if _comparable(owner.root) == _comparable(config.root):
+                return None
+            found = {
+                "path": _spelled_from(base, target),
+                "role": role,
+                "exists": target.is_file(),
+                "served": served_by(owner.root),
+                "elsewhere": _spelled_from(base, owner.root),
+            }
+            start = spelled.find(form, start + 1)
+    return found
+
+
+def _word_at(text: str, start: int, end: int) -> str:
+    """The run of path characters around ``text[start:end]``: a shell word, quotes excluded."""
+    stops = " \t\r\n'\";|&<>()`"
+    while start > 0 and text[start - 1] not in stops:
+        start -= 1
+    while end < len(text) and text[end] not in stops:
+        end += 1
+    return text[start:end]
 
 
 def _staged_or_read(command: str, spellings: list[str]) -> bool:
@@ -1107,6 +1176,30 @@ def owning(path: str | Path) -> Config | None:
         return Config.load(found)
     except (ConfigError, OSError, tomllib.TOMLDecodeError):
         return None
+
+
+def _nested(config: Config, base: Path) -> str:
+    """Where ``config``'s project sits from the session's, or `""` where it is that one (RK1698).
+
+    One tree may hold two governed projects — this repository holds the reader's RG backlog in
+    `gui/` — and the file decides which config applies (:func:`owning`), while the session's
+    server answers for the project the session was started in. Only asked on a refusal, so the
+    second `find_config` walk is paid by the one call that prints a message and never by an
+    allowed write. A session outside every project is left as it was: it has no server of its
+    own to mistake for this one.
+    """
+    session = find_config(base)
+    if session is None or _comparable(session.parent) == _comparable(config.root):
+        return ""
+    return _spelled_from(base, config.root)
+
+
+def _spelled_from(base: Path, path: Path) -> str:
+    """``path`` as a session in ``base`` spells it: relative where it is under it, else whole."""
+    try:
+        return Path(path).resolve().relative_to(Path(base).resolve()).as_posix()
+    except ValueError:
+        return Path(path).resolve().as_posix()
 
 
 def role_at(config: Config, path: str | Path) -> str | None:

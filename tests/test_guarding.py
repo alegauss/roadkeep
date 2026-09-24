@@ -351,6 +351,50 @@ def test_a_role_with_no_tool_behind_it_names_only_the_commands():
     assert f"{invocation()} init" in reason
 
 
+def test_a_nested_project_is_named_and_its_session_is_sent_to_it(tmp_path):
+    """RK1698. This repository holds the reader's backlog in `gui/`, under a `roadkeep.toml` of
+    its own. The file decides which config applies, so the edit was already refused — but the
+    reason spelled the path from the nested project (`docs/ROADMAP.md`, which from the root is
+    the *root's* roadmap) and offered this session's tools, which answer for the root: the
+    door the refusal named would have written the other backlog."""
+    root = project(tmp_path, wired=True)
+    nested = project(tmp_path / "gui", wired=True)
+    refusal = guard(write(str(nested / ROADMAP), cwd=root), root)
+    assert refusal is not None and refusal.role == "roadmap"
+    assert refusal.elsewhere == "gui"
+    assert refusal.path == f"gui/{ROADMAP}"
+    reason = str(refusal)
+    assert f"gui/{ROADMAP} is the roadmap of the project at gui/" in reason
+    assert "Call instead, from gui/" in reason
+    assert f"{invocation()} add --block" in reason
+    # Not one tool, in any paragraph: each of them is served by the root's server.
+    assert "mcp__" not in reason
+
+
+def test_a_shell_command_naming_the_nested_file_asks_about_that_file(tmp_path):
+    # The substring test is the session project's, and `gui/docs/ROADMAP.md` contains the
+    # root's `docs/ROADMAP.md` — so the question was asked, rightly, about the wrong file.
+    root = project(tmp_path, wired=True)
+    project(tmp_path / "gui", wired=True)
+    refusal = guard(shell(f"sed -i s/a/b/ gui/{ROADMAP}", cwd=root), root)
+    assert refusal is not None and refusal.decision == "ask"
+    assert refusal.elsewhere == "gui" and refusal.path == f"gui/{ROADMAP}"
+    assert "mcp__" not in str(refusal)
+    # Naming the session's own file too, the ordinary answer stands: that one is the root's.
+    both = guard(shell(f"sed -i s/a/b/ gui/{ROADMAP} {ROADMAP}", cwd=root), root)
+    assert both is not None and both.elsewhere == "" and both.path == ROADMAP
+
+
+def test_a_session_inside_the_nested_project_is_the_ordinary_case(tmp_path):
+    # Started in `gui/`, the session's server is the nested one, so its tools are the door.
+    project(tmp_path, wired=True)
+    nested = project(tmp_path / "gui", wired=True)
+    refusal = guard(write(str(nested / ROADMAP), cwd=nested), nested)
+    assert refusal is not None and refusal.elsewhere == ""
+    assert refusal.path == ROADMAP
+    assert "mcp__roadkeep__add" in str(refusal)
+
+
 def test_every_writing_tool_is_matched(tmp_path):
     root = project(tmp_path)
     for tool in ("Edit", "MultiEdit", "Write"):

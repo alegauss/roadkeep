@@ -44,7 +44,6 @@
 
 ## Block K — The desktop app (one installer for the reader and the plugin)
 
-- 💭 **RK1698** (deps: RK1697 ✅) **With gui/ in the tree, lint, the guard hook and MCP started at the root govern RK only, so gui/docs goes unguarded** — A hand-edit to the RG roadmap would pass every surface this repo runs, which is the drift the tool exists to refuse. → §RK1698
 - 💭 **RK1699** (deps: RK1697 ✅) **The plugin's source is the repository root, so installing it would copy the Electron app into every adopter's cache** — An adopter who wanted only the hook and the MCP tools should not pay for a desktop app's sources and lockfile. → §RK1699
 - 💭 **RK1700** (deps: RK1697 ✅, RK1699) **Installing the reader and the Claude Code plugin takes two separate procedures on each of three platforms** — One installer that places the app and then runs the claude plugin install gives a person the CLI and the reader together. → §RK1700
 - 💭 **RK1701** (deps: RK1700) **The installer cannot tell a machine without Python 3.11 or the claude CLI from one where the plugin installed** — Without the check the install reports success and the first MCP call fails, far from the missing prerequisite. → §RK1701

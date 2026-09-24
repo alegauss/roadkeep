@@ -31,6 +31,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./
+      # The reader's RG backlog in gui/ is a second governed project in this tree (RK1698), and
+      # `roadkeep lint` answers for the nearest `roadkeep.toml` only — so without this step a
+      # hand-edit to gui/docs passed every gate here. Its own repository ran this same action.
+      - uses: ./
+        with:
+          directory: gui
 
   tests:
     name: pytest (${{ matrix.python-version }})
