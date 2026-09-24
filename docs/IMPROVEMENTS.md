@@ -163,18 +163,6 @@ all, because RG50 and RG157 read its tag check and draft release. So today a roa
 gui/package.json's version (0.1.0 against 0.2.x): the job goes red and nothing is
 drafted. Settling which version a tag names settles that check too.
 
-### §RK1703 Build, test and commit rules for gui/
-
-The two halves commit differently. Here `run-commit.cmd -m` stages everything; the gui
-stages by path because parallel sessions share its checkout. Here the gate is pytest and
-`roadkeep lint`; there it is typecheck, vitest, oxlint, prettier and `roadkeep lint`, on
-Node 26. A session under `gui/` loads this repository's `agents.md` and its
-`roadkeep-dev` skill, which describe none of that.
-
-The dev skill gains a section for `gui/` (or a sibling skill that triggers on it), and
-the CI suite runs the npm gates only on a change under `gui/`, so a Python-only commit
-does not wait on an Electron build.
-
 ### §RK1704 Where the reader's site is served from
 
 In its own repository the reader's site (gui/site/) was built on every push and deployed

@@ -34,8 +34,8 @@ fallback is `python .claude/hooks/roadkeep-launch.py`.
 
 `git add -- <its paths>` then `git commit -F <file>`: a parallel session shares this
 checkout, and `run-commit.cmd`'s `git add *` would commit its work under your title. It
-wrote the body from the diff, so that is yours now. A stager taking paths would settle it,
-outside this repo in `D:\Dev\bin`. Doc sync in the same commit, never two tasks.
+wrote the body from the diff, so that is yours now. The root's `agents.md` and
+`roadkeep-dev` skill are the engine's rules, not these. Doc sync in one commit, one task.
 
 ## The gates, before that commit
 

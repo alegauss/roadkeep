@@ -63,7 +63,7 @@ hooks/, skills/, commands/, .claude-plugin/, .mcp.json   the plugin's five, how 
 site/   the two builds that make one site — the pitch, whose copy is one module, and site/docs/,
                 the area building into its dist/; joins held in tests/test_area.py
 editor/, gui/, scripts/, tests/   the editor host (RK1011-13), the desktop reader — its own RG
-                project, reaching the CLI as a process — the three commands, and pytest
+                project and rules, gui/CLAUDE.md — the three commands, and pytest
 ```
 
 `Schema.render` is the only writer of the line format, `Schema.validate` the only reader of the

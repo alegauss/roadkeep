@@ -126,12 +126,12 @@ called unbuilt were already in the ledger.
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
-| K — The desktop app (one installer for the reader and the plugin) | 6 | 3 | 0 |
-| **Total** | 6 | 1172 | 24 |
+| K — The desktop app (one installer for the reader and the plugin) | 5 | 4 | 0 |
+| **Total** | 5 | 1173 | 24 |
 
 **Next ready:**
 
-- 💭 **RK1703** (deps: RK1697 ✅) **A session under gui/ loads a dev skill that knows pytest and run-commit.cmd, not npm gates or staging by path** — The gui's gates and commit rules would be lost in the move unless the dev skill and CI name them for gui/. → §RK1703
+- 📋 **RK1704** (deps: RK1697 ✅) **The reader's public site builds here but deploys nowhere, since this repository's one Pages site is roadkeep's** — Moving the app in kept the site's build gate and dropped its deploy, so the page at alegauss.github.io/roadkeep-gui/ stops changing. → §RK1704
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

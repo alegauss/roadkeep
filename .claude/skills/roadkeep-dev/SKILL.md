@@ -74,3 +74,19 @@ what it wrote, projections included (RK298, RK1129, RK1130). Run that line, then
 
 **Every commit bumps the patch version** (RK153). `.githooks/pre-commit` does it and never
 blocks; it is wired by `git config core.hooksPath .githooks`, which a fresh clone has to run.
+
+## gui/ is another project in this tree
+
+`gui/` is the desktop reader, moved in with its history (RK1697): its own RG backlog under
+`gui/roadkeep.toml`, its own gates (typecheck, vitest, oxlint, prettier on Node 26) and its own
+rules in `gui/CLAUDE.md` — none of the above applies there. It stages by path, never through
+`run-commit.cmd`, because parallel sessions share this checkout. Two things cross the line:
+
+- **A commit here stages `gui/` too.** `run-commit.cmd` adds everything, so a `gui/` path in
+  `git status` that is not this task's is somebody's work in progress. Stage by path then.
+- **A verb change is a reader change.** `gui/` reads what the CLI prints, and
+  `.github/workflows/gui.yml` runs its suite on every change under `src/` for that reason. Run
+  `npm test` in `gui/` before committing a payload rename, not after CI reports it.
+
+Its roadkeep verbs run from `gui/` or with `-C gui`: the tools this session serves answer for
+the RK backlog, and the guard says so when a write is aimed at the other one (RK1698).
