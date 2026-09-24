@@ -332,3 +332,79 @@ describe('RG303: the reply drawn in the stream', () => {
     expect(row.textContent).toContain('keep the suggested-permissions-for-this-session wording')
   })
 })
+
+/**
+ * RG304: the key that sends, held where the key really reaches the box.
+ *
+ * Asserted here and not in jsdom for the reason the rest of this file is asserted here: what is
+ * in question is a keystroke arriving at a focused textarea and what the browser does with it by
+ * default, and jsdom has neither half.
+ */
+describe('RG304: Enter sends the reply, Shift+Enter breaks the line', () => {
+  /** A session that stopped, named, with a question of its own to be answered. */
+  const STOPPED = {
+    state: 'done' as const,
+    sessionId: 's-42',
+    code: 0,
+    said: '',
+    result: 'Which of the two remedies do you want?',
+    denials: [],
+  }
+
+  async function box(): Promise<{ wired: Wired; field: HTMLTextAreaElement }> {
+    const wired = await at(sessionPath(ROOT, 'AL1', KEY), {
+      sessions: [{ ...RECORD, outcome: STOPPED }],
+    })
+    const field = await screen.findByLabelText(BASE['session.reply'])
+    return { wired, field: field as HTMLTextAreaElement }
+  }
+
+  it('sends the words on Enter, without a trip to the button', async () => {
+    const { wired, field } = await box()
+
+    await userEvent.click(field)
+    await userEvent.fill(field, 'The first one.')
+    await userEvent.keyboard('{Enter}')
+
+    await waitFor(() => {
+      expect(wired.replied).toEqual([{ key: KEY, text: 'The first one.', allowed: [] }])
+    })
+    // The newline moved to the modifier, so plain Enter left none behind.
+    expect(field.value).toBe('')
+  })
+
+  it('writes a newline on Shift+Enter, and sends nothing', async () => {
+    const { wired, field } = await box()
+
+    await userEvent.click(field)
+    await userEvent.fill(field, 'The first one,')
+    await userEvent.keyboard('{Shift>}{Enter}{/Shift}')
+    await userEvent.keyboard('and the second after it.')
+
+    expect(field.value).toBe('The first one,\nand the second after it.')
+    expect(wired.replied).toEqual([])
+  })
+
+  it('sends nothing for an Enter on a box with nothing in it, and writes no newline either', async () => {
+    const { wired, field } = await box()
+
+    await userEvent.click(field)
+    await userEvent.keyboard('   {Enter}')
+
+    expect(wired.replied).toEqual([])
+    expect(field.value).toBe('   ')
+  })
+
+  it('starts one turn on a held Enter, never two', async () => {
+    const { wired, field } = await box()
+
+    await userEvent.click(field)
+    await userEvent.fill(field, 'The first one.')
+    await userEvent.keyboard('{Enter}{Enter}{Enter}')
+
+    await waitFor(() => {
+      expect(wired.replied).toHaveLength(1)
+    })
+    expect(wired.replied).toHaveLength(1)
+  })
+})

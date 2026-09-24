@@ -58,32 +58,6 @@ catalogue in both languages.
 Done when a test moves `handed` through the menu, resets from the palette, and sees the
 default drawn and written.
 
-### §RG304 Enter sends the reply, Shift+Enter breaks the line
-
-**The box is a `Textarea` with no keys of its own.** Every answer costs a reach for the
-mouse, in the one place where somebody is mid-sentence and a stopped session waits on
-them — the box takes focus for that reason when a turn ended waiting (RG268).
-
-Enter sends and Shift+Enter writes a newline, which is what every message box and the
-terminal this window replaces already teach. The newline is not lost, it moves to the
-modifier, where somebody writing a paragraph looks for it.
-
-**Sending from the key is sending from the button, not a second path.** `send` stays the
-one function, and the handler holds the conditions the button is disabled by — empty
-after a trim, or already sending — so a held Enter cannot start two turns.
-
-**A composing key is not a send.** `isComposing` on the native event is the one check
-that keeps an IME's own Enter from committing a half-written word as a reply; a
-`keydown` mid-composition carries it, and nothing else this app draws has to know about
-it.
-
-The rule is this box's alone. A door's prose blank (RG261) is one blank of several with
-a take button of its own, and Enter there would hand over a form somebody is still
-filling in.
-
-Asserted with a real key press in the browser suite rather than in jsdom: what is in
-question is the key reaching a focused box, which is the half jsdom does not have.
-
 ### §RG305 What is lost when the window closes, and what is not
 
 `will-quit` waits for every session to exit, and that is right: on Windows a process

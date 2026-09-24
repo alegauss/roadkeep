@@ -51,6 +51,7 @@ import {
   useRef,
   useState,
   type ChangeEvent,
+  type KeyboardEvent,
   type MouseEvent,
   type ReactNode,
 } from 'react'
@@ -1126,6 +1127,8 @@ function Reply({
     },
     [allowed, say, text],
   )
+  // What the button is disabled by, named once so the key cannot send what the button refuses.
+  const nothingToSend = text.trim() === '' || replying.kind === 'sending'
   const send = useCallback(() => {
     const bridge = getBridge()
     if (bridge === undefined) return
@@ -1149,6 +1152,33 @@ function Reply({
       },
     )
   }, [sessionKey, text, allowed])
+
+  /**
+   * Enter sends, Shift+Enter writes the newline (RG304).
+   *
+   * What every message box and the terminal this window replaces already teach. The newline is
+   * not lost, it moves to the modifier — so plain Enter never writes one, whether or not there is
+   * anything to send.
+   *
+   * **Sending from the key is sending from the button, not a second path**: `send` stays the one
+   * function and this holds the same conditions the button is disabled by, so a held Enter cannot
+   * start two turns.
+   *
+   * **A composing key is not a send.** A `keydown` mid-composition carries `isComposing`, which
+   * is what keeps an IME's own Enter from committing a half-written word as a reply.
+   *
+   * The rule is this box's alone: a door's prose blank (RG261) is one blank of several with a take
+   * button of its own, and Enter there would hand over a form somebody is still filling in.
+   */
+  const keyed = useCallback(
+    (event: KeyboardEvent<HTMLTextAreaElement>) => {
+      if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) return
+      event.preventDefault()
+      if (nothingToSend) return
+      send()
+    },
+    [nothingToSend, send],
+  )
 
   return (
     <section className="border-t px-5 py-4" data-testid="reply">
@@ -1181,13 +1211,10 @@ function Reply({
         aria-label={say('session.reply')}
         value={text}
         onChange={typed}
+        onKeyDown={keyed}
       />
       <div className="mt-2 flex flex-wrap items-center gap-2">
-        <Button
-          size="sm"
-          onClick={send}
-          disabled={text.trim() === '' || replying.kind === 'sending'}
-        >
+        <Button size="sm" onClick={send} disabled={nothingToSend}>
           {say('session.reply.send')}
         </Button>
         {replying.kind === 'sending' ? (

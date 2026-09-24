@@ -14,7 +14,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG304** (deps: —) **Enter in a session's reply box never sends it, so every answer takes a trip to the button** — Answering is the move that screen exists for, and the key every message box sends on is the one this box ignores. → §RG304
 - 📋 **RG305** (deps: —) **closing the window kills the session it was running, and reopening offers no way back to it** — The agent keeps the transcript, so all that is lost is this app's record of the session, and `reply` already resumes by the id that record holds. → §RG305
 - 📋 **RG306** (deps: RG305) **a line the quit left claimed reads as another worker's, so the window will not hand it back** — A claim names nobody, and the one fact that told this window's own claim from a stranger's went with the record the quit dropped. → §RG306
 
