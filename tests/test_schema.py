@@ -119,9 +119,16 @@ def test_corpus_is_not_empty():
 
 
 def test_every_corpus_line_conforms():
+    # With this repository's own `[requirements]` vocabulary (RK1699 is the first line here to
+    # wait on one): the default schema declares no words, so any `(requires: …)` group reads as
+    # `requires.unknown` against it — a verdict about the fixture's config, not its lines.
+    from roadkeep.config import Config
+
+    declared = Config.discover(ROADMAP.parents[1]).schema.requirements
+    configured = replace(SCHEMA, requirements=declared)
     offenders = {
         t.id: schema.validate(t)
-        for schema, corpus in ((SCHEMA, read_corpus()), (LEDGER, read_ledger()))
+        for schema, corpus in ((configured, read_corpus()), (LEDGER, read_ledger()))
         for t in corpus
         if schema.validate(t)
     }

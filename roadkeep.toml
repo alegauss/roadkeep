@@ -280,6 +280,12 @@ retired = "🗑"
 # expiry exists not to be.
 held = 60
 
+# What a line may wait on that no commit here can supply (RK1297), declared when the first
+# line needed it (RK1699): a choice between designs that changes how adopters install, which
+# `pick` should hand to a person rather than to the next agent that asks.
+[requirements]
+declared = { decision = "a choice a person makes between written designs; no code in this tree settles it" }
+
 [headings]
 # the seven blocks are the shape of this backlog and outlive every line filed under them, so
 # an emptied one is finished work and never a heading to withdraw (RK1121). Measured before

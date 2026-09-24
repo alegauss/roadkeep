@@ -131,7 +131,7 @@ called unbuilt were already in the ledger.
 
 **Next ready:**
 
-- 💭 **RK1699** (deps: RK1697 ✅) **The plugin's source is the repository root, so installing it would copy the Electron app into every adopter's cache** — An adopter who wanted only the hook and the MCP tools should not pay for a desktop app's sources and lockfile. → §RK1699
+- 💭 **RK1703** (deps: RK1697 ✅) **A session under gui/ loads a dev skill that knows pytest and run-commit.cmd, not npm gates or staging by path** — The gui's gates and commit rules would be lost in the move unless the dev skill and CI name them for gui/. → §RK1703
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

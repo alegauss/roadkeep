@@ -111,7 +111,14 @@ INSIDE = {
     # session reads before it takes a line. Unpromised until a run of this suite happened to
     # have a live claim — the derived population is what found it, and the rows are empty on
     # every checkout nobody is working in, which is why a maintained list never named it.
-    "pick": (("held", ("id", "age", "since")),),
+    #
+    # `lacking` is the same kind of list, found the same way (RK1699): the lines set aside for a
+    # requirement the caller did not say it has, each with the words it is missing — what an
+    # editor lists as "waits on" and nothing had promised until this repository declared one.
+    "pick": (
+        ("held", ("id", "age", "since")),
+        ("lacking", ("id", "missing", "symptom")),
+    ),
     # The second list the derived reading found (RK1645): every workflow step calling the
     # action, and the ref each pins it at — which is what an editor shows when it says a
     # checkout gates on a copy other than the one answering, and what nothing here promised.
