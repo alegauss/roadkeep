@@ -687,6 +687,15 @@ export const EN = {
   'plugin.done': 'The roadkeep plugin is installed in Claude Code.',
   'plugin.failed':
     '{command} exited {code}. The app works without the plugin; the command can be run again by hand.',
+  // What the plugin needs and this machine lacks, each with where to get it (RK1701).
+  'plugin.missing':
+    'The roadkeep plugin for Claude Code was not installed, because this machine lacks:',
+  'plugin.missing.python':
+    'Python 3.11 or newer on PATH, which the plugin’s server runs on — from https://www.python.org/downloads/',
+  'plugin.missing.claude':
+    'The claude CLI, which installs the plugin — set up as https://docs.claude.com/en/docs/claude-code/setup describes',
+  'plugin.missing.later':
+    'The app works without it. With both in place, the plugin is:\n{commands}',
 
   // The header's ground menu is the design system's `ModeToggle` since RG238, and it names
   // itself with this through `AREA_WORDING`: the action, never the ground in force.

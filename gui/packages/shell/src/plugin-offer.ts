@@ -14,8 +14,9 @@ import { agentCandidates } from './agent-candidates'
  *
  * **Asked once, and only where it can work.** Nothing is offered on Windows, whose installer
  * already asked, nor from a checkout, which is a developer's and wired by hand. Nothing is
- * offered where no `claude` answers `--version`: a question whose only answer is an error is
- * not a question. And the answer is recorded whichever it was, so a person who declined is not
+ * offered where no `claude` answers `--version` or no Python 3.11 answers on PATH (RK1701): a
+ * question whose only answer is an error is not a question, so what is missing is named instead,
+ * with where to get it. And the answer is recorded whichever it was, so a person who declined is not
  * asked on every launch — the commands are the ones `claude plugin --help` documents, and the
  * dialog names them, so running them later is theirs to do.
  *
@@ -86,6 +87,42 @@ export interface Offering extends OfferedWhere {
   readonly home?: string
 }
 
+/**
+ * The check the plugin's server needs to pass (RK1701): it is `python scripts/roadkeep.py mcp`,
+ * and roadkeep's floor is 3.11. Run and never imported — nothing of the package is read, so the
+ * "no supported Python API" non-goal is not what this touches.
+ */
+export const PYTHON_FLOOR = 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)'
+
+/** The names a Python goes by, in the order a Unix PATH is likelier to answer. */
+const PYTHONS = ['python3', 'python']
+
+/** Whether some Python on PATH is 3.11 or newer. */
+export async function pythonAnswers(offering: Offering): Promise<boolean> {
+  for (const python of PYTHONS) {
+    if ((await offering.run([python, '-c', PYTHON_FLOOR])) === 0) return true
+  }
+  return false
+}
+
+/** What is missing, each with where to get it, in the words the window speaks. */
+export function missingDialog(
+  missing: readonly ('python' | 'claude')[],
+  say: Translate,
+): OfferDialog {
+  return {
+    title: say('plugin.title'),
+    message: [
+      say('plugin.missing'),
+      ...missing.map((one) =>
+        say(one === 'python' ? 'plugin.missing.python' : 'plugin.missing.claude'),
+      ),
+      say('plugin.missing.later', { commands: TYPED.join('\n') }),
+    ].join('\n\n'),
+    buttons: [say('update.close')],
+  }
+}
+
 /** The `claude` that answers `--version`, first of the candidates the sessions use, or null. */
 export async function answeringClaude(offering: Offering): Promise<readonly string[] | null> {
   for (const candidate of agentCandidates(
@@ -104,12 +141,21 @@ export async function answeringClaude(offering: Offering): Promise<readonly stri
  */
 export async function offerPlugin(
   offering: Offering,
-): Promise<'not-wanted' | 'no-claude' | 'declined' | 'installed' | 'failed'> {
+): Promise<'not-wanted' | 'missing' | 'declined' | 'installed' | 'failed'> {
   if (!offerWanted(offering)) return 'not-wanted'
   const claude = await answeringClaude(offering)
-  if (claude === null) {
+  const python = await pythonAnswers(offering)
+  // Named rather than skipped in silence (RK1701): a plugin installed on a machine with no
+  // Python fails on its first call, far from the cause, and one never offered because the CLI
+  // is absent leaves a person not knowing there was anything to offer. Said once, like the ask.
+  const missing = [
+    ...(python ? [] : ['python' as const]),
+    ...(claude === null ? ['claude' as const] : []),
+  ]
+  if (claude === null || missing.length > 0) {
     record(offering.userData)
-    return 'no-claude'
+    await offering.show(missingDialog(missing, offering.say))
+    return 'missing'
   }
   const chosen = await offering.show(askDialog(offering.say))
   record(offering.userData)

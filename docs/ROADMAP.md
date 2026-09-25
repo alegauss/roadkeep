@@ -44,7 +44,7 @@
 
 ## Block K — The desktop app (one installer for the reader and the plugin)
 
-- 💭 **RK1701** (deps: RK1700 ✅) **The installer cannot tell a machine without Python 3.11 or the claude CLI from one where the plugin installed** — Without the check the install reports success and the first MCP call fails, far from the missing prerequisite. → §RK1701
+- ⏳ **RK1701** (deps: RK1700 ✅) **The installer cannot tell a machine without Python 3.11 or the claude CLI from one where the plugin installed** — The app on every start still reads a project with no Python as an engine that did not answer, naming neither cause. → §RK1701
 - 💭 **RK1702** (deps: RK1697 ✅, RK1700 ✅) **A release tag here publishes the CLI and builds no installer, so the app ships from a different commit** — An installer built from the same tag as the engine is the only one tested against the engine it installs beside. → §RK1702
 
 ## Done when — Block D
@@ -130,6 +130,11 @@
 - **No page restates prose another file owns** an area with room on every page invites
   the accretion this tool refuses, so a page renders the file that owns the words or
   carries no version of them.
+
+## Done when — RK1701
+
+- **An unresolved engine says when Python is missing** With no Python 3.11 on PATH, a
+  project that cannot open reads as that, in both languages.
 
 ## Non-goals
 

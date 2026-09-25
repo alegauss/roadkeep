@@ -44,6 +44,15 @@ describe('RK1700: the plugin step the Windows installer runs', () => {
     expect(macro).toMatch(/where claude/)
   })
 
+  it('RK1701: checks Python 3.11 before offering, and names what is missing', () => {
+    // The plugin's server is `python scripts/roadkeep.py mcp`, so a plugin installed without
+    // one fails on its first call, far from the cause.
+    expect(macro).toContain('sys.version_info >= (3, 11)')
+    expect(macro.indexOf('sys.version_info')).toBeLessThan(macro.indexOf('MB_YESNO'))
+    expect(macro).toContain('https://www.python.org/downloads/')
+    expect(macro).toContain('https://docs.claude.com/en/docs/claude-code/setup')
+  })
+
   it('never aborts the install over the plugin', () => {
     expect(macro).not.toMatch(/^\s*Abort\b/m)
     expect(macro).not.toMatch(/^\s*Quit\b/m)

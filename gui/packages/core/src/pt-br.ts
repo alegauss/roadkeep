@@ -656,6 +656,13 @@ export const PT_BR: Wording = {
   'plugin.done': 'O plugin roadkeep está instalado no Claude Code.',
   'plugin.failed':
     '{command} saiu com {code}. O app funciona sem o plugin; o comando pode ser rodado de novo à mão.',
+  'plugin.missing':
+    'O plugin roadkeep para o Claude Code não foi instalado, porque falta nesta máquina:',
+  'plugin.missing.python':
+    'Python 3.11 ou mais novo no PATH, onde roda o servidor do plugin — em https://www.python.org/downloads/',
+  'plugin.missing.claude':
+    'A CLI claude, que instala o plugin — configurada como descreve https://docs.claude.com/en/docs/claude-code/setup',
+  'plugin.missing.later': 'O app funciona sem ele. Com os dois no lugar, o plugin é:\n{commands}',
 
   'ground.action': 'Mudar o fundo',
 }

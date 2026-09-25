@@ -126,12 +126,12 @@ called unbuilt were already in the ledger.
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
-| K — The desktop app (one installer for the reader and the plugin) | 2 | 7 | 0 |
-| **Total** | 2 | 1176 | 24 |
+| K — The desktop app (one installer for the reader and the plugin) | 2 | 8 | 0 |
+| **Total** | 2 | 1177 | 24 |
 
 **Next ready:**
 
-- 💭 **RK1701** (deps: RK1700 ✅) **The installer cannot tell a machine without Python 3.11 or the claude CLI from one where the plugin installed** — Without the check the install reports success and the first MCP call fails, far from the missing prerequisite. → §RK1701
+- ⏳ **RK1701** (deps: RK1700 ✅) **The installer cannot tell a machine without Python 3.11 or the claude CLI from one where the plugin installed** — The app on every start still reads a project with no Python as an engine that did not answer, naming neither cause. → §RK1701
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

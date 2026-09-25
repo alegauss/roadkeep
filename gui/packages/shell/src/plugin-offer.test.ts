@@ -8,6 +8,7 @@ import { afterAll, describe, expect, it } from 'vitest'
 import {
   OFFERED_FILE,
   PLUGIN_COMMANDS,
+  PYTHON_FLOOR,
   askDialog,
   offerPlugin,
   offerWanted,
@@ -84,11 +85,39 @@ describe('RK1700: when the first launch asks', () => {
     expect(await offerPlugin(first)).toBe('not-wanted')
   })
 
-  it('does not ask where no claude answers, and does not ask again', async () => {
-    const { offering: none, seen } = offering({ exits: () => 127 })
-    expect(await offerPlugin(none)).toBe('no-claude')
-    expect(seen.shown).toEqual([])
+  it('does not ask where no claude answers, names it instead, and only once', async () => {
+    const { offering: none, seen } = offering({ exits: (argv) => (argv[0] === 'claude' ? 127 : 0) })
+    expect(await offerPlugin(none)).toBe('missing')
+    expect(seen.shown).toHaveLength(1)
+    expect(seen.shown[0]).toContain(say('plugin.missing.claude'))
+    expect(seen.shown[0]).not.toContain(say('plugin.missing.python'))
     expect(await offerPlugin(none)).toBe('not-wanted')
+  })
+})
+
+describe('RK1701: what the plugin needs is named before it is offered', () => {
+  it('names a missing Python 3.11 and runs no install', async () => {
+    const { offering: bare, seen } = offering({
+      exits: (argv) => (argv[1] === '-c' && argv[2] === PYTHON_FLOOR ? 1 : 0),
+    })
+    expect(await offerPlugin(bare)).toBe('missing')
+    expect(seen.shown).toHaveLength(1)
+    expect(seen.shown[0]).toContain(say('plugin.missing.python'))
+    expect(seen.shown[0]).toContain('claude plugin install roadkeep@alegauss')
+    expect(seen.ran.some((argv) => argv.includes('install'))).toBe(false)
+  })
+
+  it('names both where both are missing', async () => {
+    const { offering: bare, seen } = offering({ exits: () => 127 })
+    expect(await offerPlugin(bare)).toBe('missing')
+    expect(seen.shown[0]).toContain(say('plugin.missing.python'))
+    expect(seen.shown[0]).toContain(say('plugin.missing.claude'))
+  })
+
+  it('asks the version floor of python3 and then python, and never imports the package', () => {
+    // Run and read, not imported: the "no supported Python API" non-goal is untouched.
+    expect(PYTHON_FLOOR).toContain('sys.version_info >= (3, 11)')
+    expect(PYTHON_FLOOR).not.toContain('roadkeep')
   })
 })
 
@@ -102,13 +131,16 @@ describe('RK1700: what it runs', () => {
   it('runs nothing past the probe when declined', async () => {
     const { offering: asked, seen } = offering({ answers: [1] })
     await offerPlugin(asked)
-    expect(seen.ran).toEqual([['claude', '--version']])
+    expect(seen.ran).toEqual([
+      ['claude', '--version'],
+      ['python3', '-c', PYTHON_FLOOR],
+    ])
   })
 
   it('runs both through the claude that answered, and says it worked', async () => {
     const { offering: asked, seen } = offering({})
     expect(await offerPlugin(asked)).toBe('installed')
-    expect(seen.ran.slice(1)).toEqual(PLUGIN_COMMANDS.map((argv) => ['claude', ...argv]))
+    expect(seen.ran.slice(2)).toEqual(PLUGIN_COMMANDS.map((argv) => ['claude', ...argv]))
     expect(seen.shown.at(-1)).toBe(say('plugin.done'))
   })
 
