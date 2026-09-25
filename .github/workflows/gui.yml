@@ -87,7 +87,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # The tag's commit when called, which is the bump commit and not the one dispatched.
           ref: ${{ inputs.tag || '' }}
@@ -172,7 +172,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # The stamp reads `git rev-parse`; a build stamped `unstamped` is the one thing this
           # job exists to get right.
