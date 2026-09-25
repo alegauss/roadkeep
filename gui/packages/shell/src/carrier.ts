@@ -4,6 +4,7 @@ import {
   createLimiter,
   type Declared,
   createWatching,
+  namingPython,
   EMPTY_CATALOGUE,
   NOTHING_REMEMBERED,
   READINGS_VERSION,
@@ -50,6 +51,7 @@ import { openHere, resolveHere } from './open-here'
 import { rescan } from './rescan'
 import { rootKey } from './root-paths'
 import { logoOf } from './project-logo'
+import { pythonHere } from './python-here'
 
 /**
  * The main-process end of every read a window makes (RG143).
@@ -243,7 +245,14 @@ export function createCarrier(options: CarrierOptions): Carrier {
   // next line pending for as long as it hung. A read that runs out is a state on that
   // project, which is what the limit was written for.
   const limits = (): ReadLimits => withLimits(options.looking())
-  const open = options.open ?? ((root, under) => openHere(root, under))
+  // An engine nobody reached says why where the machine has no Python (RK1701): asked only
+  // once an opening is unresolved, so the openings that succeed never wait on the question.
+  const open =
+    options.open ??
+    (async (root, under) => {
+      const opened = await openHere(root, under)
+      return opened.kind === 'unresolved' ? namingPython(opened, await pythonHere()) : opened
+    })
   const resolve =
     options.resolve ?? ((root, under) => resolveHere(root, { timeoutMs: under.timeoutMs }))
   const fold = options.rescan ?? rescan

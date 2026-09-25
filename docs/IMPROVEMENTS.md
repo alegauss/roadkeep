@@ -95,21 +95,6 @@ already written, not authorship.
 
 ## Block K — The desktop app (one installer for the reader and the plugin)
 
-### §RK1701 Prerequisites the installer names
-
-The plugin's MCP server is `python scripts/roadkeep.py mcp`, so it needs Python 3.11 or
-newer on PATH, and the install step needs the `claude` executable. A machine missing
-either gets an installer that reports success and a plugin that fails on its first call,
-far from the cause.
-
-Before the plugin step, the installer checks both and names what is missing and how to
-get it; it does not install Python or Claude Code itself. The app repeats the check on
-start, since either can be removed later. The resolution already has a place to say
-this: an unresolved engine carries its reason.
-
-"No supported Python API." does not bind this: the check runs the interpreter and reads
-its version, and imports nothing from the package.
-
 ### §RK1702 One tag, the CLI and the installers
 
 Here a release is a version bump and PyPI; in roadkeep-gui a `v*` tag packages Windows

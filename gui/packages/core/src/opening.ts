@@ -121,7 +121,7 @@ export type Opening =
        * @notForScreen `code`, looked up in the catalogue with `say`
        */
       readonly reason: string
-      readonly code: 'nothing-offered' | 'none-answered'
+      readonly code: 'nothing-offered' | 'none-answered' | 'no-python'
       readonly tried: readonly (readonly string[])[]
     }
   /**
@@ -216,6 +216,28 @@ export function readsOnly(argv: readonly string[]): boolean {
  *   needs a filesystem, so it belongs to whoever has one.
  * @param transportFor a transport for one command line. Making one needs a process.
  */
+/**
+ * An opening nobody answered, said as *no Python* where the machine has none (RK1701).
+ *
+ * Every launcher is a Python script and roadkeep's floor is 3.11, so on a machine without one
+ * every candidate fails and *none answered* names neither cause. Applied after the fact and
+ * only to that one state, so the question costs nothing on the openings that succeeded: the
+ * caller asks the machine when it has an unresolved opening in hand, and an answer of yes, or
+ * any other state, comes back unchanged. Nothing offered stays nothing offered — there was no
+ * candidate for Python to fail.
+ */
+export function namingPython(opening: Opening, pythonAnswers: boolean): Opening {
+  if (pythonAnswers || opening.kind !== 'unresolved' || opening.code !== 'none-answered') {
+    return opening
+  }
+  return {
+    ...opening,
+    reason:
+      'no candidate answered `engines --json`, and no Python 3.11 or newer answers on PATH, which roadkeep runs on',
+    code: 'no-python',
+  }
+}
+
 export async function openProject(
   root: string,
   candidates: readonly (readonly string[])[],

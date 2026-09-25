@@ -545,6 +545,8 @@ export const EN = {
     'Nothing was offered as an engine for this project, so nothing was asked.',
   'unreadable.none-answered':
     'No candidate answered `engines --json`, so which roadkeep governs this project is unknown.',
+  'unreadable.no-python':
+    'No Python 3.11 or newer answers on PATH, and roadkeep runs on one, so no engine could be asked. Python is at https://www.python.org/downloads/',
   'unreadable.withheld': 'This folder is not one the scan of your roots found.',
 
   'withheld.not-carried': 'That is not a request this app carries to the engine.',
@@ -765,6 +767,7 @@ export const UNREADABLE_TEXT: Readonly<Record<Exclude<UnreadableCode, ''>, Messa
   ungoverned: 'unreadable.ungoverned',
   'nothing-offered': 'unreadable.nothing-offered',
   'none-answered': 'unreadable.none-answered',
+  'no-python': 'unreadable.no-python',
   withheld: 'unreadable.withheld',
 }
 

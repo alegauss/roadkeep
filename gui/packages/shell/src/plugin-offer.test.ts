@@ -8,12 +8,12 @@ import { afterAll, describe, expect, it } from 'vitest'
 import {
   OFFERED_FILE,
   PLUGIN_COMMANDS,
-  PYTHON_FLOOR,
   askDialog,
   offerPlugin,
   offerWanted,
   type Offering,
 } from './plugin-offer'
+import { PYTHON_FLOOR } from './python-here'
 import { removeTree } from './scratch'
 
 /**

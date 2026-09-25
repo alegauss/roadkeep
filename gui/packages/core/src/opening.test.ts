@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { openProject, readsOnly } from './opening'
+import { namingPython, openProject, readsOnly, type Opening } from './opening'
+import { BASE, translator, UNREADABLE_TEXT } from './wording'
 import { EngineCallFailed, type EngineResult, type Transport } from './transport'
 
 /**
@@ -512,5 +513,32 @@ describe('RG193: a refused config names the build, not its usage', () => {
     // A build that cannot answer `commands` is a build behind this app too, and the version
     // is what a reader needs either way.
     expect(opened.unreadable.fields['version']).toBe('0.2.400')
+  })
+})
+
+describe('RK1701: an engine nobody reached, on a machine with no Python', () => {
+  const unresolved = (code: 'nothing-offered' | 'none-answered'): Opening => ({
+    kind: 'unresolved',
+    root: '/proj',
+    reason: 'said in English',
+    code,
+    tried: code === 'none-answered' ? [['roadkeep']] : [],
+  })
+
+  it('says no Python where none answered and the machine has none', () => {
+    const named = namingPython(unresolved('none-answered'), false)
+    expect(named.kind === 'unresolved' && named.code).toBe('no-python')
+    // In the window's language, from the catalogue, like every other reason.
+    const said = translator()(UNREADABLE_TEXT['no-python'])
+    expect(said).toBe(BASE['unreadable.no-python'])
+    expect(said).toContain('https://www.python.org/downloads/')
+  })
+
+  it('leaves every other state as it was', () => {
+    const answered = unresolved('none-answered')
+    expect(namingPython(answered, true)).toBe(answered)
+    // Nothing offered: there was no candidate for Python to fail.
+    const empty = unresolved('nothing-offered')
+    expect(namingPython(empty, false)).toBe(empty)
   })
 })

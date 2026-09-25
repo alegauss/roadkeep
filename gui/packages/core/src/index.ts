@@ -499,7 +499,7 @@ export type { EngineCall } from './tools'
 export type { CallOptions, Client, ReadOutcome } from './client'
 export { ANSWERS } from './answers'
 export type { VerbAnswers } from './answers'
-export { openProject, readsOnly } from './opening'
+export { namingPython, openProject, readsOnly } from './opening'
 export type { Opening, OpenOptions, OpenProject } from './opening'
 export {
   bridgedRun,

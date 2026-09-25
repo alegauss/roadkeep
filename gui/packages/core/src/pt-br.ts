@@ -519,6 +519,8 @@ export const PT_BR: Wording = {
     'Nada foi oferecido como engine para este projeto, então nada foi perguntado.',
   'unreadable.none-answered':
     'Nenhum candidato respondeu `engines --json`, então não se sabe qual roadkeep governa este projeto.',
+  'unreadable.no-python':
+    'Nenhum Python 3.11 ou mais novo responde no PATH, e o roadkeep roda sobre um, então nenhum engine pôde ser consultado. O Python está em https://www.python.org/downloads/',
   'unreadable.withheld': 'Esta pasta não é uma que a varredura das suas raízes encontrou.',
 
   'withheld.not-carried': 'Essa não é uma requisição que este app leva até o engine.',

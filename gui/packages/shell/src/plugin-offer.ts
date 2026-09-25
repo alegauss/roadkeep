@@ -4,6 +4,7 @@ import path from 'node:path'
 import type { Translate } from '@rk/core'
 
 import { agentCandidates } from './agent-candidates'
+import { pythonAnswers } from './python-here'
 
 /**
  * The Claude Code plugin, offered on the first launch of a build with no install phase (RK1700).
@@ -87,24 +88,6 @@ export interface Offering extends OfferedWhere {
   readonly home?: string
 }
 
-/**
- * The check the plugin's server needs to pass (RK1701): it is `python scripts/roadkeep.py mcp`,
- * and roadkeep's floor is 3.11. Run and never imported — nothing of the package is read, so the
- * "no supported Python API" non-goal is not what this touches.
- */
-export const PYTHON_FLOOR = 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)'
-
-/** The names a Python goes by, in the order a Unix PATH is likelier to answer. */
-const PYTHONS = ['python3', 'python']
-
-/** Whether some Python on PATH is 3.11 or newer. */
-export async function pythonAnswers(offering: Offering): Promise<boolean> {
-  for (const python of PYTHONS) {
-    if ((await offering.run([python, '-c', PYTHON_FLOOR])) === 0) return true
-  }
-  return false
-}
-
 /** What is missing, each with where to get it, in the words the window speaks. */
 export function missingDialog(
   missing: readonly ('python' | 'claude')[],
@@ -144,7 +127,7 @@ export async function offerPlugin(
 ): Promise<'not-wanted' | 'missing' | 'declined' | 'installed' | 'failed'> {
   if (!offerWanted(offering)) return 'not-wanted'
   const claude = await answeringClaude(offering)
-  const python = await pythonAnswers(offering)
+  const python = await pythonAnswers(offering.run)
   // Named rather than skipped in silence (RK1701): a plugin installed on a machine with no
   // Python fails on its first call, far from the cause, and one never offered because the CLI
   // is absent leaves a person not knowing there was anything to offer. Said once, like the ask.

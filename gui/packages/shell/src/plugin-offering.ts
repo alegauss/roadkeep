@@ -1,8 +1,7 @@
-import { spawn } from 'node:child_process'
-
 import { translator, wordingFor } from '@rk/core'
 import { app, BrowserWindow, dialog } from 'electron'
 
+import { exitOf } from './exit-code'
 import { localeChoice } from './locale'
 import { offerPlugin, type OfferDialog } from './plugin-offer'
 import { loadSettings } from './settings-file'
@@ -23,25 +22,11 @@ export function offerPluginOnFirstLaunch(): void {
     packaged: app.isPackaged,
     userData,
     say: translator(wordingFor(tag), tag),
-    run,
+    run: exitOf,
     show,
   }).catch(() => {
     // Nothing here may take the app down: the reader works without the plugin, and a desktop
     // that refused a dialog has left nothing on screen to say so with.
-  })
-}
-
-/** Run one argv to its exit, with no shell and no window, answering -1 where it cannot start. */
-function run(argv: readonly string[]): Promise<number> {
-  return new Promise((resolve) => {
-    const [command, ...rest] = argv
-    if (command === undefined) {
-      resolve(-1)
-      return
-    }
-    const child = spawn(command, rest, { stdio: 'ignore', windowsHide: true, shell: false })
-    child.once('error', () => resolve(-1))
-    child.once('exit', (code) => resolve(code ?? -1))
   })
 }
 

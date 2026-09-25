@@ -135,6 +135,8 @@ export type UnreadableCode =
   | 'nothing-offered'
   /** Candidates were asked and none answered. */
   | 'none-answered'
+  /** None answered, and no Python 3.11 answers on this machine, which they all run on (RK1701). */
+  | 'no-python'
   /** The carrier would not open it: not a project the scan of the roots found. */
   | 'withheld'
   /** The message is somebody else's prose — the engine's, or a transport's. */

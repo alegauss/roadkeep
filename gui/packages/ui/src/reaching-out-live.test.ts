@@ -97,6 +97,16 @@ const ACCOUNTED: readonly { readonly host: string; readonly kind: string; readon
     },
     { host: 'api.simplesvg.com', kind: 'fetched', why: "The second of Iconify's three, same." },
     { host: 'api.unisvg.com', kind: 'fetched', why: "The third of Iconify's three, same." },
+    {
+      host: 'www.python.org',
+      kind: 'message',
+      why: 'Where to get Python, in the sentence for an engine nobody reached on a machine with none (RK1701). Read, never requested.',
+    },
+    {
+      host: 'docs.claude.com',
+      kind: 'message',
+      why: 'Where Claude Code is set up, in the sentence naming a missing `claude` CLI (RK1701). Read, never requested.',
+    },
   ]
 
 const ACCOUNTED_FOR = new Set(ACCOUNTED.map((one) => one.host))
