@@ -126,12 +126,8 @@ called unbuilt were already in the ledger.
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
-| K — The desktop app (one installer for the reader and the plugin) | 1 | 8 | 0 |
-| **Total** | 1 | 1177 | 24 |
-
-**Next ready:**
-
-- 💭 **RK1702** (deps: RK1697 ✅, RK1700 ✅) **A release tag here publishes the CLI and builds no installer, so the app ships from a different commit** — An installer built from the same tag as the engine is the only one tested against the engine it installs beside. → §RK1702
+| K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
+| **Total** | 0 | 1178 | 24 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

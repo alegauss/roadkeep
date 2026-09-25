@@ -44,8 +44,6 @@
 
 ## Block K — The desktop app (one installer for the reader and the plugin)
 
-- 💭 **RK1702** (deps: RK1697 ✅, RK1700 ✅) **A release tag here publishes the CLI and builds no installer, so the app ships from a different commit** — An installer built from the same tag as the engine is the only one tested against the engine it installs beside. → §RK1702
-
 ## Done when — Block D
 
 - **The gate passes on this repository's own docs** the format is proven by the artefact

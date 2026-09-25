@@ -8,8 +8,11 @@ import { readLatestRelease, verdictOf, type UpdateCheck } from '@rk/core'
  * renderer's content policy names no host for it: the window never learns this call exists.
  */
 
-/** The repository the releases come from. The same one `ci.yml` drafts them into. */
-export const RELEASES_OF = 'alegauss/roadkeep-gui'
+/**
+ * The repository the releases come from: roadkeep's own since the app moved into its tree, whose
+ * release for a tag carries the installers `gui.yml` attached to it (RK1702).
+ */
+export const RELEASES_OF = 'alegauss/roadkeep'
 
 const LATEST = `https://api.github.com/repos/${RELEASES_OF}/releases/latest`
 

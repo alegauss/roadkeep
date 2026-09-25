@@ -119,7 +119,7 @@ jobs:
           version="${{ steps.version.outputs.version }}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add plugin/src/roadkeep/__init__.py plugin/.claude-plugin/plugin.json editor/package.json
+          git add plugin/src/roadkeep/__init__.py plugin/.claude-plugin/plugin.json editor/package.json gui/package.json
           git commit -m "chore: release v${version}"
           git tag -a "v${version}" -m "v${version}"
           git push origin "HEAD:${GITHUB_REF_NAME}"
@@ -201,3 +201,18 @@ jobs:
             --repo "${{ github.repository }}" \
             --title "v${{ needs.build.outputs.version }}" \
             --generate-notes
+
+  # The desktop reader's installers, from the same tag (RK1702). One tag names the CLI and the
+  # app, and an installer built from any other commit is one never tested against the engine it
+  # installs beside. `gui.yml` builds both platforms from the tag and attaches them to this
+  # release; it is called rather than triggered, because the tag above was pushed with the
+  # built-in token, which starts no workflow. A release published by hand arrives here too.
+  installers:
+    name: the reader's installers
+    if: ${{ !failure() && !cancelled() && (github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.target == 'pypi')) }}
+    needs: [build, publish-pypi, github-release]
+    permissions:
+      contents: write
+    uses: ./.github/workflows/gui.yml
+    with:
+      tag: v${{ needs.build.outputs.version }}

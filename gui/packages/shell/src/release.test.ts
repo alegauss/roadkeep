@@ -38,12 +38,25 @@ describe('RG50: the release a tag drafts', () => {
     const packaging = job('package')
 
     expect(packaging).toContain('the tag names the version the manifest carries')
-    expect(packaging).toMatch(/GITHUB_REF_NAME#v/)
+    // The tag handed over by `publish.yml` when called, the pushed ref's own name otherwise.
+    expect(packaging).toContain('tag="${RELEASE_TAG:-$GITHUB_REF_NAME}"')
+    expect(packaging).toMatch(/\$\{tag#v\}/)
     expect(packaging).toMatch(/require\('\.\/package\.json'\)\.version/)
   })
 
   it('runs that check only on a tag, since every other push has no version to match', () => {
     expect(job('package')).toMatch(/if: startsWith\(github\.ref, 'refs\/tags\/v'\)/)
+  })
+
+  it('RK1702: is called with the tag a release cut, and attaches to that release', () => {
+    // The tag `publish.yml` pushes is pushed with the built-in token, which starts no workflow,
+    // so the release path is a call — and the release it made is the one the installers join.
+    expect(WORKFLOW).toMatch(/workflow_call:\n\s+inputs:\n\s+tag:/)
+    expect(job('suite')).toContain("ref: ${{ inputs.tag || '' }}")
+    expect(job('package')).toContain("ref: ${{ inputs.tag || '' }}")
+    expect(job('release')).toContain('gh release upload "$RELEASE_TAG"')
+    // Still a draft for a tag pushed by hand, which no release was made for.
+    expect(job('release')).toMatch(/if: inputs\.tag == ''/)
   })
 
   it('RG157: finds a script under the step, which is what the live half executes', () => {

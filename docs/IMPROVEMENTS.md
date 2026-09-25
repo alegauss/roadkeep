@@ -94,21 +94,3 @@ already written, not authorship.
 ## Block J — Validation (whether a person ever tried it)
 
 ## Block K — The desktop app (one installer for the reader and the plugin)
-
-### §RK1702 One tag, the CLI and the installers
-
-Here a release is a version bump and PyPI; in roadkeep-gui a `v*` tag packages Windows
-and Linux. Once they share a tree, one tag should give the CLI and an installer built
-against that same commit, so the app a person downloads was tested against the engine it
-ships beside.
-
-The `package` job moves in with its matrix (Windows, Linux, and macOS if a runner builds
-the dmg), and the installers attach to the tag's GitHub release. Unsigned builds stay
-unsigned and say so, as the gui's own `electron-builder.yml` already does; signing is a
-certificate somebody buys and stays out of this block.
-
-RK1697 moved the gui's `ci.yml` to `.github/workflows/gui.yml` unchanged, `v*` tag and
-all, because RG50 and RG157 read its tag check and draft release. So today a roadkeep
-`v*` tag also starts the gui's package job, whose check refuses a tag that is not
-gui/package.json's version (0.1.0 against 0.2.x): the job goes red and nothing is
-drafted. Settling which version a tag names settles that check too.

@@ -58,15 +58,25 @@ MANIFEST = ROOT / "plugin" / ".claude-plugin" / "plugin.json"
 #: The editor host's manifest (RK1011), which carries the number for `plugin.json`'s reason:
 #: a reader reporting a version this package never released is one nobody can diagnose.
 EDITOR = ROOT / "editor" / "package.json"
+#: The desktop reader's manifest (RK1702), for the reason the editor's carries it: one tag
+#: names the CLI and the installers built beside it, so the installer's own number is this one.
+GUI = ROOT / "gui" / "package.json"
+#: Every JSON manifest stating the number, each rewritten by the one `"version"` substitution.
+JSONS = (MANIFEST, EDITOR, GUI)
 
-#: What the three files are called from the repository root, for `git show :<path>`.
+#: What the four files are called from the repository root, for `git show :<path>`.
 #:
 #: **And what two callers stage** (RK1427). This script writes them; `.githooks/pre-commit`
 #: and `.github/workflows/publish.yml` each name them again in a `git add`, because a shell
 #: cannot import a tuple. That pair coming apart released v0.2.0 with the editor at the
 #: number before it, so `test_packaging` reads both back against this. A fourth file added
 #: here is a red in that test and never a release with one number stale.
-TRACKED = ("plugin/src/roadkeep/__init__.py", "plugin/.claude-plugin/plugin.json", "editor/package.json")
+TRACKED = (
+    "plugin/src/roadkeep/__init__.py",
+    "plugin/.claude-plugin/plugin.json",
+    "editor/package.json",
+    "gui/package.json",
+)
 
 #: The exit code that says the number was written and may **not** be staged (RK398). Not 1,
 #: which the hook reads as "nothing was written" and reports as a failure to bump.
@@ -158,14 +168,10 @@ def _for_commit(level: str) -> tuple[str, bool]:
         # still moves, because RK153 is about the plugin the running session loads.
         return bump(read_version(MODULE.read_text(encoding="utf-8")), level), False
 
-    module_blob, manifest_blob, editor_blob = blobs
+    module_blob = blobs[0]
     ours = all(
         masked(path.read_text(encoding="utf-8")) == masked(blob)
-        for path, blob in (
-            (MODULE, module_blob),
-            (MANIFEST, manifest_blob),
-            (EDITOR, editor_blob),
-        )
+        for path, blob in zip((MODULE, *JSONS), blobs, strict=True)
     )
     if not ours:
         return bump(read_version(MODULE.read_text(encoding="utf-8")), level), False
@@ -194,8 +200,7 @@ def main() -> int:
     args = parser.parse_args()
 
     module_text = MODULE.read_text(encoding="utf-8")
-    manifest_text = MANIFEST.read_text(encoding="utf-8")
-    editor_text = EDITOR.read_text(encoding="utf-8")
+    json_texts = [path.read_text(encoding="utf-8") for path in JSONS]
 
     current = read_version(module_text)
     stageable = True
@@ -212,17 +217,14 @@ def main() -> int:
 
     write(MODULE, _VERSION_RE.sub(f'__version__ = "{written}"', module_text, count=1))
 
-    manifest_new, count = _MANIFEST_RE.subn(rf"\g<lead>{written}\g<tail>", manifest_text, count=1)
-    if count == 0:
-        raise SystemExit(f'Could not find a `"version": "…"` entry in {MANIFEST}.')
-    write(MANIFEST, manifest_new)
-
-    # The same substitution, because both are `"version": "…"` in JSON and a second regex
-    # would be a second grammar for one field.
-    editor_new, count = _MANIFEST_RE.subn(rf"\g<lead>{written}\g<tail>", editor_text, count=1)
-    if count == 0:
-        raise SystemExit(f'Could not find a `"version": "…"` entry in {EDITOR}.')
-    write(EDITOR, editor_new)
+    # One substitution for every manifest, because each is `"version": "…"` in JSON and a
+    # second regex would be a second grammar for one field. The first such line is the
+    # manifest's own: none of the three nests a `"version"` above it.
+    for path, text in zip(JSONS, json_texts, strict=True):
+        rewritten, count = _MANIFEST_RE.subn(rf"\g<lead>{written}\g<tail>", text, count=1)
+        if count == 0:
+            raise SystemExit(f'Could not find a `"version": "…"` entry in {path}.')
+        write(path, rewritten)
 
     output = os.environ.get("GITHUB_OUTPUT")
     if output:

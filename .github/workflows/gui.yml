@@ -16,9 +16,12 @@
 # calls. A commit touching none of them — the ledger, a Python test, the site — does not wait
 # on an Electron build. GitHub skips `paths:` for a tag push, so a tag still packages.
 #
-# **The `v*` tag is shared and not yet reconciled.** In this repository a `v*` tag is the
-# CLI's release, and its version is not gui/package.json's — so the package job's tag check
-# refuses it and nothing is drafted. Which tag builds the app is RK1702's to decide.
+# **One tag, the CLI and the installers** (RK1702). gui/package.json carries roadkeep's own
+# number, stamped with the other three on every commit, so a `v*` tag names both. `publish.yml`
+# calls this workflow with the tag it just cut: the suite and the installers are built from
+# that commit and attached to the release it made. That call is the release path, because the
+# tag `publish.yml` pushes is pushed with the built-in token and starts no workflow on its own.
+# A tag pushed by hand still arrives as a push, and still drafts a release of its own.
 name: gui
 
 on:
@@ -34,6 +37,7 @@ on:
         # matched, they would make this filter match every commit.
         '!plugin/src/roadkeep/__init__.py',
         '!plugin/.claude-plugin/plugin.json',
+        '!gui/package.json',
         'pyproject.toml',
         'action.yml',
         '.github/workflows/gui.yml',
@@ -47,14 +51,23 @@ on:
         # matched, they would make this filter match every commit.
         '!plugin/src/roadkeep/__init__.py',
         '!plugin/.claude-plugin/plugin.json',
+        '!gui/package.json',
         'pyproject.toml',
         'action.yml',
         '.github/workflows/gui.yml',
       ]
   workflow_dispatch:
+  # The release path (RK1702): `publish.yml` hands over the tag it cut and the release it made.
+  workflow_call:
+    inputs:
+      tag:
+        description: The release tag to build from and attach the installers to
+        type: string
+        required: true
 
 concurrency:
-  group: gui-${{ github.ref }}
+  # Keyed on the tag when called, so a release's build is never cancelled by a push to main.
+  group: gui-${{ inputs.tag || github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -75,6 +88,9 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The tag's commit when called, which is the bump commit and not the one dispatched.
+          ref: ${{ inputs.tag || '' }}
 
       - uses: actions/setup-node@v4
         with:
@@ -144,7 +160,7 @@ jobs:
   # macOS is absent on purpose: RG119 was retired, nobody with a Mac is making one.
   package:
     name: package on ${{ matrix.os }}
-    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch' || inputs.tag != ''
     needs: [suite]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
@@ -161,16 +177,21 @@ jobs:
           # The stamp reads `git rev-parse`; a build stamped `unstamped` is the one thing this
           # job exists to get right.
           fetch-depth: 0
+          ref: ${{ inputs.tag || '' }}
 
       # RG50: a tag naming another version than the manifest would draft a release whose
       # files disagree with its title. Refused before anything is built.
       - name: the tag names the version the manifest carries
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || inputs.tag != ''
         shell: bash
+        env:
+          # The tag handed over when called; the ref's own name when a tag was pushed.
+          RELEASE_TAG: ${{ inputs.tag }}
         run: |
+          tag="${RELEASE_TAG:-$GITHUB_REF_NAME}"
           manifest=$(node -p "require('./package.json').version")
-          if [ "${GITHUB_REF_NAME#v}" != "$manifest" ]; then
-            echo "tag $GITHUB_REF_NAME, but package.json says $manifest"
+          if [ "${tag#v}" != "$manifest" ]; then
+            echo "tag $tag, but package.json says $manifest"
             exit 1
           fi
 
@@ -202,11 +223,12 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  # The installers on a release page, and **a draft** (RG50): a release is a decision somebody
-  # makes, not a side effect of pushing a tag.
+  # The installers on a release page (RG50). Called from `publish.yml`, the release already
+  # exists — the CLI's — and they are attached to it (RK1702). A tag pushed by hand gets **a
+  # draft**: a release is a decision somebody makes, not a side effect of pushing a tag.
   release:
-    name: draft the release
-    if: startsWith(github.ref, 'refs/tags/v')
+    name: attach the installers to the release
+    if: startsWith(github.ref, 'refs/tags/v') || inputs.tag != ''
     needs: [package]
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -219,7 +241,16 @@ jobs:
           path: installers
           merge-multiple: true
 
+      - name: attach them to the release the tag already has
+        if: inputs.tag != ''
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: gh release upload "$RELEASE_TAG" installers/* --repo "$GITHUB_REPOSITORY" --clobber
+
       - name: draft it, with both installers attached
+        if: inputs.tag == ''
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}

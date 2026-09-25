@@ -37,13 +37,10 @@ beforeAll(async () => {
   // The same endpoint again only where the first call worked, so the reader can be held
   // against the raw body. Skipped entirely when there is nothing to hold it against.
   if (checked.kind === 'newer' || checked.kind === 'current' || checked.kind === 'ahead') {
-    const answered = await fetch(
-      'https://api.github.com/repos/alegauss/roadkeep-gui/releases/latest',
-      {
-        headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'roadkeep-gui' },
-        signal: AbortSignal.timeout(15000),
-      },
-    )
+    const answered = await fetch('https://api.github.com/repos/alegauss/roadkeep/releases/latest', {
+      headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'roadkeep-gui' },
+      signal: AbortSignal.timeout(15000),
+    })
     if (answered.ok) body = await answered.json()
   }
 }, 40000)
