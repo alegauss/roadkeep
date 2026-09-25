@@ -126,12 +126,12 @@ called unbuilt were already in the ledger.
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
-| K — The desktop app (one installer for the reader and the plugin) | 3 | 6 | 0 |
-| **Total** | 3 | 1175 | 24 |
+| K — The desktop app (one installer for the reader and the plugin) | 3 | 7 | 0 |
+| **Total** | 3 | 1176 | 24 |
 
 **Next ready:**
 
-- 💭 **RK1700** (deps: RK1697 ✅, RK1699 ✅) **Installing the reader and the Claude Code plugin takes two separate procedures on each of three platforms** — One installer that places the app and then runs the claude plugin install gives a person the CLI and the reader together. → §RK1700
+- ⏳ **RK1700** (deps: RK1697 ✅, RK1699 ✅) **Installing the reader and the Claude Code plugin takes two separate procedures on each of three platforms** — AppImage and macOS have no install phase, so the app itself has to offer the plugin step on first run. → §RK1700
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -2,7 +2,9 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 *.egg-info/
-build/
+# setuptools' own output, at the root only (RK1700): unanchored it also hid every new file
+# under gui/build/, which is the desktop app's installer resources and is committed.
+/build/
 dist/
 .roadkeep/
 # The site's build output is ignored in site/.gitignore, beside the two builds that write it

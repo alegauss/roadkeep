@@ -68,6 +68,10 @@ nsis:
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true
+  # The Claude Code half (RK1700): after the app is placed, the installer offers to run the
+  # two `claude plugin` commands a person otherwise types. Asked, skipped under `/S`, and
+  # never fatal — the macro says why in its own header.
+  include: build/installer.nsh
 
 linux:
   target:
