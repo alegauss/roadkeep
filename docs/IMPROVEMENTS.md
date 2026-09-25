@@ -95,20 +95,6 @@ already written, not authorship.
 
 ## Block K — The desktop app (one installer for the reader and the plugin)
 
-### §RK1700 One installer: the app, then the plugin
-
-electron-builder already produces NSIS on Windows and an AppImage on Linux; the dmg is
-declared and has never been built. None of them touches Claude Code, so a person gets
-the reader and still has to run `claude plugin marketplace add alegauss/roadkeep` and
-`claude plugin install roadkeep@alegauss` by hand.
-
-The installer runs those two commands after placing the app: an NSIS `customInstall`
-macro on Windows, a postinstall step in the dmg flow on macOS, and a first-run step in
-the app for the AppImage, which has no install phase. It installs through the `claude`
-CLI and never copies plugin files itself, so an update to the plugin is Claude Code's
-and not the installer's. Declining the step leaves the app working as a reader of
-projects whose engine is already present.
-
 ### §RK1701 Prerequisites the installer names
 
 The plugin's MCP server is `python scripts/roadkeep.py mcp`, so it needs Python 3.11 or

@@ -4,6 +4,7 @@ import { registerBridge } from './bridge'
 import { attachDefaultPolicy } from './content-policy'
 import { guardNavigation } from './guard'
 import { installMenu } from './menu'
+import { offerPluginOnFirstLaunch } from './plugin-offering'
 import { appUrl, createWindow } from './window'
 
 /**
@@ -26,6 +27,9 @@ void app.whenReady().then(() => {
   const holding = registerBridge({ localeSaved: installMenu })
   installMenu()
   createWindow()
+  // An AppImage or a dmg has no installer to offer the Claude Code plugin, so the first
+  // launch does, once (RK1700). Asked over the window, never blocking it.
+  offerPluginOnFirstLaunch()
 
   // Quitting waits for every session and every held engine to exit, once. On Windows a
   // process killed but not yet gone still holds its project as a working directory, and a

@@ -678,6 +678,16 @@ export const EN = {
   'update.open': 'Open the release page',
   'update.close': 'Close',
 
+  // The first-launch offer of an AppImage or a dmg, which have no installer to ask it (RK1700).
+  'plugin.title': 'Claude Code plugin',
+  'plugin.ask':
+    'Also install the roadkeep plugin into Claude Code? This runs, once:\n{commands}\nYou can run them yourself later instead.',
+  'plugin.install': 'Install the plugin',
+  'plugin.decline': 'Not now',
+  'plugin.done': 'The roadkeep plugin is installed in Claude Code.',
+  'plugin.failed':
+    '{command} exited {code}. The app works without the plugin; the command can be run again by hand.',
+
   // The header's ground menu is the design system's `ModeToggle` since RG238, and it names
   // itself with this through `AREA_WORDING`: the action, never the ground in force.
   'ground.action': 'Change the ground',

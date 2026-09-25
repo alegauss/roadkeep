@@ -44,9 +44,8 @@
 
 ## Block K — The desktop app (one installer for the reader and the plugin)
 
-- ⏳ **RK1700** (deps: RK1697 ✅, RK1699 ✅) **Installing the reader and the Claude Code plugin takes two separate procedures on each of three platforms** — AppImage and macOS have no install phase, so the app itself has to offer the plugin step on first run. → §RK1700
-- 💭 **RK1701** (deps: RK1700 ⏳) **The installer cannot tell a machine without Python 3.11 or the claude CLI from one where the plugin installed** — Without the check the install reports success and the first MCP call fails, far from the missing prerequisite. → §RK1701
-- 💭 **RK1702** (deps: RK1697 ✅, RK1700 ⏳) **A release tag here publishes the CLI and builds no installer, so the app ships from a different commit** — An installer built from the same tag as the engine is the only one tested against the engine it installs beside. → §RK1702
+- 💭 **RK1701** (deps: RK1700 ✅) **The installer cannot tell a machine without Python 3.11 or the claude CLI from one where the plugin installed** — Without the check the install reports success and the first MCP call fails, far from the missing prerequisite. → §RK1701
+- 💭 **RK1702** (deps: RK1697 ✅, RK1700 ✅) **A release tag here publishes the CLI and builds no installer, so the app ships from a different commit** — An installer built from the same tag as the engine is the only one tested against the engine it installs beside. → §RK1702
 
 ## Done when — Block D
 
@@ -131,13 +130,6 @@
 - **No page restates prose another file owns** an area with room on every page invites
   the accretion this tool refuses, so a page renders the file that owns the words or
   carries no version of them.
-
-## Done when — RK1700
-
-- **The AppImage offers the plugin on first run** Launched once with claude on PATH, the
-  app asks before running the two commands and says what they did.
-- **The macOS build offers it the same way** Needs a Mac to verify, since no macOS build
-  has been attempted (RG119).
 
 ## Non-goals
 

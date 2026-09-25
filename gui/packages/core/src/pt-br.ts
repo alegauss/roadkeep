@@ -648,5 +648,14 @@ export const PT_BR: Wording = {
   'update.open': 'Abrir a página da versão',
   'update.close': 'Fechar',
 
+  'plugin.title': 'Plugin do Claude Code',
+  'plugin.ask':
+    'Instalar também o plugin roadkeep no Claude Code? Isto roda, uma vez:\n{commands}\nVocê pode rodá-los depois, por conta própria.',
+  'plugin.install': 'Instalar o plugin',
+  'plugin.decline': 'Agora não',
+  'plugin.done': 'O plugin roadkeep está instalado no Claude Code.',
+  'plugin.failed':
+    '{command} saiu com {code}. O app funciona sem o plugin; o comando pode ser rodado de novo à mão.',
+
   'ground.action': 'Mudar o fundo',
 }
