@@ -55,6 +55,14 @@ on:
       - "plugin/skills/**"
       - "roadkeep.toml"
       - ".github/workflows/site.yml"
+      # The reader's pages (RK1704): what its build reads to generate them.
+      - "gui/site/**"
+      - "gui/packages/core/src/**"
+      - "gui/packages/shell/src/**"
+      - "gui/package.json"
+      - "gui/electron-builder.yml"
+      - "gui/docs/ROADMAP.md"
+      - "gui/build/icon.svg"
   pull_request:
     paths:
       - "site/**"
@@ -63,6 +71,14 @@ on:
       - "plugin/skills/**"
       - "roadkeep.toml"
       - ".github/workflows/site.yml"
+      # The reader's pages (RK1704): what its build reads to generate them.
+      - "gui/site/**"
+      - "gui/packages/core/src/**"
+      - "gui/packages/shell/src/**"
+      - "gui/package.json"
+      - "gui/electron-builder.yml"
+      - "gui/docs/ROADMAP.md"
+      - "gui/build/icon.svg"
   workflow_dispatch:
 
 # Least privilege by default. The Pages grants live on the job that publishes, so a push is
@@ -84,14 +100,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # The reader's social card rasterises SVG text with resvg, which needs a font on disk.
+      - name: fonts for the reader's social card
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends fonts-dejavu-core
+
+      # 26 for the reader's build (RK1704), which is the version gui/ develops on; the pitch
+      # and the area build on it as well.
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "26"
           cache: npm
-          # Two npm projects: the pitch, and the documentation area it builds into its dist/.
+          # Three npm projects: the pitch, the documentation area it builds into its dist/, and
+          # the desktop reader's pages it copies into dist/gui/.
           cache-dependency-path: |
             site/package-lock.json
             site/docs/package-lock.json
+            gui/site/package-lock.json
 
       # The area's reference pages are generated from the tool's own parser (RK1402), so its
       # prebuild runs `roadkeep commands --json` before Astro sees anything. No install and no
@@ -115,6 +139,7 @@ jobs:
         run: |
           npm ci
           npm --prefix docs ci
+          npm --prefix ../gui/site ci
           npm run build
 
       # The site's own claims — the route pair, the twin per route, the sitemap, the social card

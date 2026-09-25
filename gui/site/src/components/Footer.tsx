@@ -18,8 +18,8 @@ function FooterChrome() {
     <footer>
       <div className="wrap">
         <div className="foot-grid">
-          <a className="foot-brand" href="/roadkeep-gui/">
-            <img src="/roadkeep-gui/logo.svg" alt="" />
+          <a className="foot-brand" href="/roadkeep/gui/">
+            <img src="/roadkeep/gui/logo.svg" alt="" />
             roadkeep-gui
           </a>
           <div className="foot-links">

@@ -6,8 +6,8 @@ export function Nav() {
     <nav>
       <div className="wrap">
         <div className="nav-left">
-          <a className="brand" href="/roadkeep-gui/">
-            <img src="/roadkeep-gui/logo.svg" alt="" />
+          <a className="brand" href="/roadkeep/gui/">
+            <img src="/roadkeep/gui/logo.svg" alt="" />
             roadkeep-gui
           </a>
           <a className="parent" href={parentUrl} title="alegauss: small developer tools">

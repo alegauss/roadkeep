@@ -6,11 +6,11 @@ import { FeaturePage } from './pages/Feature'
 import { claudeCode, compare, meta } from './lib/site-content'
 import { features } from './lib/features'
 
-// GitHub Pages derives the base from the repository name: the site is served at
-// https://alegauss.github.io/roadkeep-gui/, so canonical, og:url, the sitemap and every output
+// A path of roadkeep's Pages site (RK1704): the site is served at
+// https://alegauss.github.io/roadkeep/gui/, so canonical, og:url, the sitemap and every output
 // path carry it. Written here and in vite.config.ts, and nowhere else.
 export const SITE_ORIGIN = 'https://alegauss.github.io'
-export const BASE = '/roadkeep-gui/'
+export const BASE = '/roadkeep/gui/'
 
 // The social card, rasterised to dist/og.png. Absolute, because a platform fetching the card is
 // not on this origin.

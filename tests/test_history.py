@@ -97,6 +97,37 @@ def ship(config: Config, task_id: str, message: str) -> str:
 # -- resolving ---------------------------------------------------------------
 
 
+def test_a_line_that_arrived_in_a_merge_is_added_by_that_merge(tmp_path):
+    """RK1704, met on this repository: RK1697 shipped in the commit that merged a second
+    repository's history in, and `log -p` shows a merge no diff by default — so its ledger line
+    was added by no commit, and `weigh` counted it among the entries nothing accounts for."""
+    from roadkeep.history import added_ids
+
+    config = repo(tmp_path)
+    git(tmp_path, "checkout", "-q", "-b", "other")
+    (tmp_path / "elsewhere.txt").write_text("another history\n", encoding="utf-8")
+    git_commit(tmp_path, "feat: the other side")
+    git(tmp_path, "checkout", "-q", "-")
+    git(tmp_path, "merge", "--no-ff", "--no-commit", "other")
+    append(config.path("changelog"), f"- {SHIPPED} **RK1** **A symptom** — a reason.\n")
+    merged = git_commit(tmp_path, "feat: merge the other side (RK1)")
+    assert added_ids(config, "changelog")["RK1"] == merged
+
+
+def test_a_line_a_merged_branch_added_is_the_branch_commit_s(tmp_path):
+    # The ordinary merge the flag must not disturb: the branch's own commit is the earlier of
+    # the two that show the line, and the earliest is the one kept.
+    from roadkeep.history import added_ids
+
+    config = repo(tmp_path)
+    git(tmp_path, "checkout", "-q", "-b", "feature")
+    shipped = ship(config, "RK1", "feat: the work (RK1)")
+    git(tmp_path, "checkout", "-q", "-")
+    git(tmp_path, "merge", "--no-ff", "--no-commit", "feature")
+    git_commit(tmp_path, "merge: feature")
+    assert added_ids(config, "changelog")["RK1"] == shipped
+
+
 def test_a_task_resolves_to_the_commits_that_proposed_and_shipped_it(tmp_path):
     config = repo(tmp_path)
     proposed = propose(config, "RK1", "docs: add RK1")

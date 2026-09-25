@@ -141,19 +141,3 @@ all, because RG50 and RG157 read its tag check and draft release. So today a roa
 `v*` tag also starts the gui's package job, whose check refuses a tag that is not
 gui/package.json's version (0.1.0 against 0.2.x): the job goes red and nothing is
 drafted. Settling which version a tag names settles that check too.
-
-### §RK1704 Where the reader's site is served from
-
-In its own repository the reader's site (gui/site/) was built on every push and deployed
-to GitHub Pages on demand, served at alegauss.github.io/roadkeep-gui/ because Pages
-derives the path from the repository name. Moving the app in (RK1697) kept the build
-gate as `.github/workflows/gui-site.yml` and dropped the deploy: a repository publishes
-one Pages site, and this one's is roadkeep's own (`site.yml`,
-alegauss.github.io/roadkeep/).
-
-Two answers. Serve it as a path of roadkeep's site, building gui/site into
-`site/dist/gui/` the way `site/docs/` builds into `site/dist/docs/`, which changes its
-`base` and every canonical URL its prerender writes. Or keep publishing from the
-archived roadkeep-gui repository, which then has to be fed a build from here. The first
-keeps one deploy and one tree; the URLs the old site put in the sitemap and in social
-cards then need a redirect there.

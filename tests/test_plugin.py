@@ -435,11 +435,7 @@ def test_what_an_install_copies_is_the_payload_and_nothing_else():
     Read off git and not the disk, because an install copies a clone and a clone carries what
     is tracked — a `__pycache__` here is this machine's. The bound is loose on purpose: it is
     here to catch a directory coming back into the payload, not to price one more module."""
-    tracked = subprocess.run(
-        ["git", "-C", str(PLUGIN), "ls-files", "-z", "--", "."],
-        capture_output=True,
-        check=True,
-    ).stdout.decode("utf-8").split("\0")
+    tracked = conftest.git(PLUGIN, "ls-files", "-z", "--", ".").split("\0")
     files = [PLUGIN / one for one in tracked if one]
     assert files, "git lists nothing under plugin/, so this measures nothing"
     tops = {Path(one).parts[0] for one in tracked if one}

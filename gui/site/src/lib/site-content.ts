@@ -36,7 +36,7 @@ export const meta = {
   },
 } as const
 
-export const repoUrl = 'https://github.com/alegauss/roadkeep-gui'
+export const repoUrl = 'https://github.com/alegauss/roadkeep'
 export const parentUrl = 'https://alegauss.github.io/'
 export const roadkeepUrl = 'https://alegauss.github.io/roadkeep/'
 
@@ -48,16 +48,16 @@ export const releasesUrl = `${repoUrl}/releases/latest`
 // Section anchors act on the landing page; the page links are base-absolute so they resolve
 // the same from every route.
 export const navLinks = [
-  { href: '/roadkeep-gui/#how', label: 'How it reads' },
-  { href: '/roadkeep-gui/#rules', label: 'Rules' },
-  { href: '/roadkeep-gui/claude-code/', label: 'Claude Code' },
-  { href: '/roadkeep-gui/compare/', label: 'Compare' },
+  { href: '/roadkeep/gui/#how', label: 'How it reads' },
+  { href: '/roadkeep/gui/#rules', label: 'Rules' },
+  { href: '/roadkeep/gui/claude-code/', label: 'Claude Code' },
+  { href: '/roadkeep/gui/compare/', label: 'Compare' },
 ] as const
 
 export const footer = {
   links: [
-    { href: '/roadkeep-gui/claude-code/', label: 'Claude Code' },
-    { href: '/roadkeep-gui/compare/', label: 'Compare' },
+    { href: '/roadkeep/gui/claude-code/', label: 'Claude Code' },
+    { href: '/roadkeep/gui/compare/', label: 'Compare' },
     { href: roadkeepUrl, label: 'roadkeep' },
     { href: repoUrl, label: 'GitHub' },
     { href: releasesUrl, label: 'Releases' },
@@ -79,21 +79,21 @@ export const sponsor = {
   name: 'Viglet',
   url: 'https://www.viglet.org',
   siteLabel: 'viglet.org',
-  logo: '/roadkeep-gui/viglet/viglet-logo.png',
+  logo: '/roadkeep/gui/viglet/viglet-logo.png',
   summary:
     'Open source search and content tools for organisations with a lot to publish. Run on your own servers, with no per-user licence.',
   products: [
     {
       name: 'Viglet Turing ES',
       url: 'https://turing.viglet.org',
-      logo: '/roadkeep-gui/viglet/turing-logo.png',
+      logo: '/roadkeep/gui/viglet/turing-logo.png',
       inline:
         'so visitors find what they came for, with AI answers drawn only from your own content',
     },
     {
       name: 'Viglet Shio CMS',
       url: 'https://shio.viglet.org',
-      logo: '/roadkeep-gui/viglet/shio-logo.png',
+      logo: '/roadkeep/gui/viglet/shio-logo.png',
       inline: 'so a new page goes live the same day, reviewed and approved by your own team',
     },
   ],

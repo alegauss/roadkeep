@@ -47,7 +47,6 @@
 - 💭 **RK1700** (deps: RK1697 ✅, RK1699 ✅) **Installing the reader and the Claude Code plugin takes two separate procedures on each of three platforms** — One installer that places the app and then runs the claude plugin install gives a person the CLI and the reader together. → §RK1700
 - 💭 **RK1701** (deps: RK1700) **The installer cannot tell a machine without Python 3.11 or the claude CLI from one where the plugin installed** — Without the check the install reports success and the first MCP call fails, far from the missing prerequisite. → §RK1701
 - 💭 **RK1702** (deps: RK1697 ✅, RK1700) **A release tag here publishes the CLI and builds no installer, so the app ships from a different commit** — An installer built from the same tag as the engine is the only one tested against the engine it installs beside. → §RK1702
-- 📋 **RK1704** (deps: RK1697 ✅) **The reader's public site builds here but deploys nowhere, since this repository's one Pages site is roadkeep's** — Moving the app in kept the site's build gate and dropped its deploy, so the page at alegauss.github.io/roadkeep-gui/ stops changing. → §RK1704
 
 ## Done when — Block D
 

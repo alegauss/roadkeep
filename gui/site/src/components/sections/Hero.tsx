@@ -6,7 +6,7 @@ export function Hero() {
   return (
     <header className="hero" id="top">
       <div className="wrap">
-        <img className="hero-icon" src="/roadkeep-gui/logo.svg" alt="roadkeep-gui logo" />
+        <img className="hero-icon" src="/roadkeep/gui/logo.svg" alt="roadkeep-gui logo" />
         <div className="badge">
           <span className="dot" /> {hero.badge}
         </div>

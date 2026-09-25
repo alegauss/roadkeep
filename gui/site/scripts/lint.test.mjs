@@ -50,7 +50,7 @@ test('no page links a route without the base prefix', () => {
   // A bare "/compare/" resolves against the domain root on GitHub Pages and 404s there. Both
   // spellings are read: the JSX attribute and the `href:` of a link in the content module.
   const offenders = sourceFiles.filter((f) =>
-    /href(?:=|:\s*)["'`{]*["'`]\/(?!roadkeep-gui\/)[a-z]/.test(readFileSync(f, 'utf8')),
+    /href(?:=|:\s*)["'`{]*["'`]\/(?!roadkeep\/gui\/)[a-z]/.test(readFileSync(f, 'utf8')),
   )
   assert.deepEqual(offenders.map(rel), [])
 })

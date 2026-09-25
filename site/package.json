@@ -6,9 +6,10 @@
   "description": "The public site for roadkeep. The copy lives in one module and the sections only render it.",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && vite build --ssr src/entry-server.tsx --outDir dist-server && node scripts/prerender.mjs && npm run build:docs",
+    "build": "tsc -b && vite build && vite build --ssr src/entry-server.tsx --outDir dist-server && node scripts/prerender.mjs && npm run build:docs && npm run build:gui",
     "build:client": "vite build",
     "build:docs": "npm --prefix docs run build",
+    "build:gui": "npm --prefix ../gui/site run build && node scripts/gui.mjs",
     "dev:docs": "npm --prefix docs run dev",
     "prerender": "vite build --ssr src/entry-server.tsx --outDir dist-server && node scripts/prerender.mjs",
     "typecheck": "tsc -b",

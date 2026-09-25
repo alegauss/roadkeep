@@ -32,5 +32,5 @@
   <circle cx="118" cy="553" r="6" fill="#f59e0b"/>
   <text id="chip" x="136" y="561" font-family="DejaVu Sans, sans-serif" font-size="20" fill="#98a5bb">Windows and Linux · Free · Hands a line to Claude Code</text>
 
-  <text x="1110" y="561" text-anchor="end" font-family="DejaVu Sans Mono, monospace" font-size="20" fill="#7c8aa3">alegauss.github.io/roadkeep-gui</text>
+  <text x="1110" y="561" text-anchor="end" font-family="DejaVu Sans Mono, monospace" font-size="20" fill="#7c8aa3">alegauss.github.io/roadkeep/gui</text>
 </svg>

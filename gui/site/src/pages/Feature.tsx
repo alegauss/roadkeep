@@ -13,7 +13,7 @@ export function FeaturePage({ record }: { record: FeatureRecord }) {
       <Nav />
       <header className="hero page-hero" id="top">
         <div className="wrap">
-          <a className="feature-back" href="/roadkeep-gui/#features">
+          <a className="feature-back" href="/roadkeep/gui/#features">
             ← The window
           </a>
           <div className="eyebrow">{record.eyebrow}</div>
@@ -51,7 +51,7 @@ export function FeaturePage({ record }: { record: FeatureRecord }) {
             ))}
             {record.slug === 'sessions' && (
               <p className="reveal">
-                <a className="feature-link" href="/roadkeep-gui/claude-code/">
+                <a className="feature-link" href="/roadkeep/gui/claude-code/">
                   How the hand-over works, and what it refuses to decide →
                 </a>
               </p>
@@ -60,14 +60,14 @@ export function FeaturePage({ record }: { record: FeatureRecord }) {
 
           <div className="feature-nav reveal">
             {prev ? (
-              <a className="feature-nav-link" href={`/roadkeep-gui/features/${prev.slug}/`}>
+              <a className="feature-nav-link" href={`/roadkeep/gui/features/${prev.slug}/`}>
                 ← {prev.heading}
               </a>
             ) : (
               <span />
             )}
             {next ? (
-              <a className="feature-nav-link next" href={`/roadkeep-gui/features/${next.slug}/`}>
+              <a className="feature-nav-link next" href={`/roadkeep/gui/features/${next.slug}/`}>
                 {next.heading} →
               </a>
             ) : (

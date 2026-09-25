@@ -1,6 +1,6 @@
 # roadkeep-gui site
 
-The public site, at <https://alegauss.github.io/roadkeep-gui/>: a self-contained Vite +
+The public site, at <https://alegauss.github.io/roadkeep/gui/>: a self-contained Vite +
 React 19 + TypeScript workspace, prerendered to static files with a Markdown twin beside every
 route. It is standalone: the app's own `npm run build` neither builds nor needs it, and it never
 writes into `docs/`, which is roadkeep's.
@@ -12,7 +12,7 @@ below are shared rather than invented here.
 
 ```
 npm install        # once
-npm run dev        # dev server at /roadkeep-gui/
+npm run dev        # dev server at /roadkeep/gui/
 npm run build      # generate → tsc → client → social card → SSR → prerender
 npm test           # the site's own claims, against the sources and the built output
 npm run typecheck  # tsc -b, no emit
@@ -50,6 +50,7 @@ builds the SSR bundle and prerenders every route with its Markdown twin, `manife
 - **The mark is the app's.** `public/logo.svg` is `build/icon.svg`, byte for byte, and a test
   holds them equal.
 
-The gate is `gui-site.yml` in the repository root's `.github/workflows/`: the build and tests
-run on every push that touches what the site reads. It has no deploy since the app moved into
-roadkeep's tree, whose Pages site is roadkeep's own; where this one is served is RK1704.
+It publishes as a path of roadkeep's own site (RK1704): roadkeep's `npm run build` in `site/`
+runs this build last and copies `dist/` to its `dist/gui/`, and `site.yml` in the repository
+root's `.github/workflows/` is the gate on every push that touches what this site reads, and
+the one deploy.

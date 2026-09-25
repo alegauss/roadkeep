@@ -700,6 +700,11 @@ def added_ids(config: Config, role: str) -> dict[str, str]:
         f"--format={_RECORD}%H",
         "--no-color",
         "-U0",
+        # A merge's own change, against its first parent (RK1704): `log -p` shows none for a
+        # merge by default, so a line that arrived in one — RK1697's, where a second
+        # repository's history was merged in — was added by no commit at all. Safe for an
+        # ordinary branch merge, where the branch's own commit comes first and is kept.
+        "--diff-merges=first-parent",
         "--",
         str(relative),
     )
