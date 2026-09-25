@@ -50,7 +50,7 @@ import pytest
 from roadkeep.cli import EXIT_OK, EXIT_USAGE
 from roadkeep.verbs.reading import _force_utf8
 
-PACKAGE = Path(__file__).resolve().parents[1] / "src"
+PACKAGE = Path(__file__).resolve().parents[1] / "plugin" / "src"
 
 #: The two codepoints every assertion here is about, as the bytes a UTF-8 stream writes: the
 #: marker, which no single-byte codec can encode at all, and the em dash, which cp1252 *can* —

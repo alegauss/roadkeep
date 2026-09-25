@@ -1126,7 +1126,7 @@ def _wired(tmp_path: Path) -> Path:
     """A checkout of this tool beside a project, which is what `install` needs to run."""
     from roadkeep.installing import CARRIED
 
-    here = Path(__file__).resolve().parents[1]
+    here = Path(__file__).resolve().parents[1] / "plugin"  # the plugin root (RK1699)
     source = tmp_path / "roadkeep"
     for part in CARRIED:
         target = source / part

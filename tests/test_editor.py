@@ -231,7 +231,7 @@ def _harness(
         "ROADKEEP_COMMAND": "python -m roadkeep.cli" if declared is None else declared,
         # Absolute: the child runs with the *workspace* as its cwd, so a relative entry here
         # would resolve against a directory that has no package in it.
-        "PYTHONPATH": str(HERE / "src"),
+        "PYTHONPATH": str(HERE / "plugin" / "src"),
     }
     if typed is not None:
         env["ROADKEEP_TYPED"] = json.dumps(typed)
@@ -257,7 +257,7 @@ def _harness(
     if "engine" in report:
         # The home `engines` derived, against this checkout — as a path and not a suffix: two
         # trees ending in the same two segments is exactly the state RK79 exists to separate.
-        assert report["engine"]["detail"] == (HERE / "src" / "roadkeep").as_posix(), (
+        assert report["engine"]["detail"] == (HERE / "plugin" / "src" / "roadkeep").as_posix(), (
             f"the harness answered from {report['engine']['detail']}, which is not this tree"
         )
     return report

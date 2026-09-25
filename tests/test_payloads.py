@@ -179,6 +179,34 @@ def payload(*argv: str, root: Path | None = None, expected: int = EXIT_OK) -> di
 
 
 @pytest.fixture(scope="module")
+def lacking() -> Path:
+    """A project with a line waiting on a requirement, for the list `docs/` publishes empty.
+
+    Its own root for :func:`claimed`'s reason: `docs/` carries a `(requires: …)` line only
+    while one waits on a person, and the row is about the keys, not about that wait (RK1699).
+    """
+    root = Path(tempfile.mkdtemp())
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    toml = root / "roadkeep.toml"
+    toml.write_text(
+        toml.read_text(encoding="utf-8") + '\n[requirements]\ndeclared = ["decision"]\n',
+        encoding="utf-8",
+    )
+    assert (
+        main(
+            [
+                "-C", str(root), "add", "--block", "A", "--requires", "decision",
+                "--symptom", "a symptom plainly long enough to read",
+                "--why", "Because a line waiting on a person is what the list names.",
+            ]
+        )
+        == EXIT_OK
+    )
+    yield root
+    shutil.rmtree(root, ignore_errors=True)
+
+
+@pytest.fixture(scope="module")
 def claimed() -> Path:
     """A project with a line somebody is holding, for the list `docs/` publishes empty.
 
@@ -385,7 +413,7 @@ def test_a_list_payload_is_handed_back_as_the_list_it_is(populated):
     "verb, field, keys",
     [(verb, field, keys) for verb, lists in sorted(INSIDE.items()) for field, keys in lists],
 )
-def test_the_keys_inside_a_row_are_there_too(verb, field, keys, dirty, populated, claimed, gated):
+def test_the_keys_inside_a_row_are_there_too(verb, field, keys, dirty, populated, claimed, gated, lacking):
     """A client walks into `tasks` and `findings`, so a rename one level down breaks it just
     as hard — and one level is where it stops: nothing here reads a remedy's doors, so those
     stay free to move until something outside says otherwise.
@@ -412,6 +440,8 @@ def test_the_keys_inside_a_row_are_there_too(verb, field, keys, dirty, populated
     """
     if (verb, field) == ("pick", "held"):
         where, code = claimed, EXIT_OK
+    elif (verb, field) == ("pick", "lacking"):
+        where, code = lacking, EXIT_OK
     elif (verb, field) == ("engines", "gates"):
         where, code = gated, EXIT_OK
     elif verb == "deps":

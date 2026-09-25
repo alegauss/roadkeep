@@ -224,7 +224,7 @@ def test_a_denial_loads_only_what_a_denial_needs():
         [
             sys.executable,
             "-c",
-            "import sys; sys.path.insert(0, 'src'); import roadkeep.guarding; "
+            "import sys; sys.path.insert(0, 'plugin/src'); import roadkeep.guarding; "
             "print('\\n'.join(m for m in sys.modules if m.startswith('roadkeep.')))",
         ],
         cwd=Path(__file__).parents[1],
@@ -312,7 +312,7 @@ def test_the_plugin_name_is_read_from_the_manifest_and_not_from_the_directory(tm
     from roadkeep.provenance import _plugin_name
 
     assert _plugin_name() == json.loads(
-        (HERE / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8")
+        (HERE / "plugin" / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8")
     )["name"]
 
 

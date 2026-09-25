@@ -2693,7 +2693,7 @@ def test_this_repository_can_now_exercise_the_rule_it_proves(tmp_path):
     config = Config.discover(HERE)
     ours = _governed_paths(config)
     # The three the hook stamps, declared; and the projection, found the way the gate finds it.
-    assert {"src/roadkeep/__init__.py", ".claude-plugin/plugin.json"} <= ours
+    assert {"plugin/src/roadkeep/__init__.py", "plugin/.claude-plugin/plugin.json"} <= ours
     assert "README.md" in ours
     # And nothing has swallowed the source tree: a commit touching code is still reported.
     assert "src/roadkeep/history.py" not in ours

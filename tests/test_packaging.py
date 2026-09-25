@@ -41,7 +41,7 @@ from roadkeep.history import git_available
 
 HERE = Path(__file__).resolve().parents[1]
 PYPROJECT = HERE / "pyproject.toml"
-PACKAGE = HERE / "src" / "roadkeep"
+PACKAGE = HERE / "plugin" / "src" / "roadkeep"
 
 #: Spelled rather than written, since a literal one here is what the check below reports.
 BACKSLASH = chr(92)
@@ -76,7 +76,7 @@ def test_the_version_is_one_pypi_would_take() -> None:
 
 def test_the_builder_reads_the_same_number_the_module_states(checkout) -> None:
     """The `attr` above resolved statically, which is the only way it is read at build."""
-    checkout.steady("src/roadkeep/__init__.py")
+    checkout.steady("plugin/src/roadkeep/__init__.py")
     source = (PACKAGE / "__init__.py").read_text(encoding="utf-8")
     found = re.findall(r'^__version__ = "([^"]+)"$', source, flags=re.MULTILINE)
     assert found == [roadkeep.__version__]
@@ -169,8 +169,8 @@ def test_the_bump_is_not_staged_over_an_edit_the_hook_did_not_write(tmp_path) ->
     import subprocess
 
     clone_of_the_hook(tmp_path)
-    manifest = tmp_path / ".claude-plugin" / "plugin.json"
-    at_head = json.loads(git(tmp_path, "show", "HEAD:.claude-plugin/plugin.json"))["version"]
+    manifest = tmp_path / "plugin" / ".claude-plugin" / "plugin.json"
+    at_head = json.loads(git(tmp_path, "show", "HEAD:plugin/.claude-plugin/plugin.json"))["version"]
     foreign = manifest.read_text(encoding="utf-8").replace('"version"', '"foreign-marker"', 1)
     manifest.write_text(foreign, encoding="utf-8")
 
@@ -178,7 +178,7 @@ def test_the_bump_is_not_staged_over_an_edit_the_hook_did_not_write(tmp_path) ->
     git(tmp_path, "add", "--", "unrelated.txt")
     git(tmp_path, "commit", "--quiet", "-m", "fix: something else")
 
-    committed = git(tmp_path, "show", "HEAD:.claude-plugin/plugin.json")
+    committed = git(tmp_path, "show", "HEAD:plugin/.claude-plugin/plugin.json")
     assert "foreign-marker" not in committed, "the hook staged an edit nobody declared"
     # And the bump still reached the working tree: the plugin a session loads is the point.
     assert "foreign-marker" in manifest.read_text(encoding="utf-8")
@@ -194,13 +194,13 @@ def test_a_clean_tree_still_carries_the_bump_into_the_commit(tmp_path) -> None:
     import subprocess
 
     clone_of_the_hook(tmp_path)
-    before = json.loads((tmp_path / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
+    before = json.loads((tmp_path / "plugin" / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
 
     (tmp_path / "unrelated.txt").write_text("a commit of its own\n", encoding="utf-8")
     git(tmp_path, "add", "--", "unrelated.txt")
     git(tmp_path, "commit", "--quiet", "-m", "feat: a change")
 
-    for relative in (".claude-plugin/plugin.json", "src/roadkeep/__init__.py"):
+    for relative in ("plugin/.claude-plugin/plugin.json", "plugin/src/roadkeep/__init__.py"):
         shown = git(tmp_path, "show", f"HEAD:{relative}")
         assert before["version"] not in shown, relative
 
@@ -209,7 +209,7 @@ def _version_at_head(root: Path) -> str:
     import json
     import subprocess
 
-    return json.loads(git(root, "show", "HEAD:.claude-plugin/plugin.json"))["version"]
+    return json.loads(git(root, "show", "HEAD:plugin/.claude-plugin/plugin.json"))["version"]
 
 
 def _commit(root: Path, name: str) -> None:
@@ -276,7 +276,7 @@ def test_the_bumper_moves_both_files_and_nothing_else(tmp_path, checkout) -> Non
 
     # The script reads the module off disk and this compares against the imported constant, so
     # a bump landing mid-run makes both readings right and the comparison meaningless (RK263).
-    checkout.steady("src/roadkeep/__init__.py")
+    checkout.steady("plugin/src/roadkeep/__init__.py")
 
     finished = subprocess.run(
         [sys.executable, str(HERE / "scripts" / "bump_version.py"), "--level", "patch", "--dry-run"],
@@ -355,7 +355,7 @@ def test_every_supported_interpreter_is_claimed() -> None:
 
 def test_every_module_is_inside_a_package_find_would_collect() -> None:
     """A module in a directory with no `__init__.py` imports here and is absent there."""
-    assert metadata()["tool"]["setuptools"]["packages"]["find"]["where"] == ["src"]
+    assert metadata()["tool"]["setuptools"]["packages"]["find"]["where"] == ["plugin/src"]
     for module in modules():
         assert (module.path.parent / "__init__.py").is_file(), module.where
 
@@ -465,7 +465,7 @@ def test_importing_the_package_does_not_import_the_schema():
             sys.executable,
             "-c",
             "import sys; sys.path.insert(0, r'"
-            + str(Path(__file__).parents[1] / "src")
+            + str(Path(__file__).parents[1] / "plugin" / "src")
             + "'); import roadkeep; print('roadkeep.kernel.schema' in sys.modules)",
         ],
         capture_output=True,

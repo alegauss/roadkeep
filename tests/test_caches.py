@@ -25,7 +25,7 @@ from conftest import VOLATILE
 from surface import address, modules
 
 HERE = Path(__file__).resolve().parents[1]
-PACKAGE = HERE / "src" / "roadkeep"
+PACKAGE = HERE / "plugin" / "src" / "roadkeep"
 
 #: `(module, function)` → why it is cleared around every test, or why it is not. The reason is
 #: the deliverable: "cached" says nothing about whether a test can leave a lie in it.

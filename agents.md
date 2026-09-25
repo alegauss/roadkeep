@@ -33,7 +33,7 @@ docs/ROADMAP.md        active backlog, one line per task (RK<n>)
 docs/CHANGELOG.md      shipped ledger, indexed by block
 docs/IMPROVEMENTS.md   design rationale for UNSHIPPED sections only
 agents.md, roadkeep.toml   this file, and this project's own configuration
-src/roadkeep/   the package. **Each module's docstring is the authority**; this only locates,
+plugin/src/roadkeep/   the package. **Each module's docstring is the authority**; this only locates,
 so it carries no task numbers — `origin <id>` answers where a rule came from:
   kernel/{schema,document}  one template, and the file it round-trips; imports nothing
                           above it (tests/test_kernel.py)
@@ -57,9 +57,9 @@ so it carries no task numbers — `origin <id>` answers where a rule came from:
                 the ledger answers for them
   cli.py verbs/ rendering  the parser and dispatch, a module per verb family, every answer
 action.yml, .pre-commit-hooks.yaml, .github/   the gate's three surfaces (RK17)
-hooks/, skills/, commands/, .claude-plugin/, .mcp.json   the plugin's five, how it is installed
-                (RK22-26), and the launcher an adopter commits where no plugin can be (RK1108);
-                reasoned in tests/test_{plugin,skill,serving,commands,launching}.py
+plugin/{hooks,skills,commands,.claude-plugin}/, .mcp.json   the plugin's five; plugin/ is what
+                .claude-plugin/'s listing installs (RK22-26, RK1699), with the launcher adopters
+                commit (RK1108); reasoned in tests/test_{plugin,skill,serving,commands,launching}.py
 site/   the two builds that make one site — the pitch, whose copy is one module, and site/docs/,
                 the area building into its dist/; joins held in tests/test_area.py
 editor/, gui/, scripts/, tests/   the editor host (RK1011-13), the desktop reader — its own RG
@@ -88,13 +88,13 @@ heading (RK16).
 
 ## The write path is a skill, not a preamble
 
-[skills/roadkeep/SKILL.md](skills/roadkeep/SKILL.md) is the authority on which command to call,
+[plugin/skills/roadkeep/SKILL.md](plugin/skills/roadkeep/SKILL.md) is the authority on which command to call,
 what it derives, the rules a schema cannot check and how work is picked — loaded when a
 governed file is in play, free on turns that touch none (RK23). It is an **orientation**, and
 `writing.md` and `asking.md` beside it are the reference the turn that needs one opens: RK23's
 argument again, one cadence in (RK1437). It ships in the
 plugin, so it is one text everywhere and **nothing here repeats it**. The package is not
-installed here: read its every command as `PYTHONPATH=src python -m roadkeep.cli <…>`.
+installed here: read its every command as `PYTHONPATH=plugin/src python -m roadkeep.cli <…>`.
 
 ## Building and committing is a skill too
 

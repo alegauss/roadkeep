@@ -104,7 +104,7 @@ def _environment() -> dict[str, str]:
     out = {
         name: value for name, value in os.environ.items() if name not in _DROPPED
     }
-    out["PYTHONPATH"] = str(HERE / "src")
+    out["PYTHONPATH"] = str(HERE / "plugin" / "src")
     out["PYTHONIOENCODING"] = "utf-8"
     return out
 

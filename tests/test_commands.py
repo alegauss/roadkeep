@@ -42,8 +42,8 @@ from roadkeep.cli import build_parser
 from roadkeep.serving import TOOLS
 
 HERE = Path(__file__).resolve().parents[1]
-COMMANDS = HERE / "commands"
-MANIFEST = HERE / ".claude-plugin" / "plugin.json"
+COMMANDS = HERE / "plugin" / "commands"
+MANIFEST = HERE / "plugin" / ".claude-plugin" / "plugin.json"
 
 #: The four the roadmap names, and the four `TOOLS` exposes — the same operations by design.
 EXPECTED = {"add", "ship", "pick", "lint"}

@@ -55,7 +55,7 @@ def test_the_engine_names_the_directory_its_modules_were_imported_from():
     # The half that separates a plugin cache from a checkout, and the half that is always
     # available: `__file__` needs no subprocess and no repository.
     assert engine().home == Path(roadkeep.__file__).resolve().parent
-    assert engine().home == HERE / "src" / "roadkeep"
+    assert engine().home == HERE / "plugin" / "src" / "roadkeep"
 
 
 def test_the_version_is_the_packages_and_not_a_second_literal():
@@ -337,7 +337,7 @@ def test_a_copy_under_someone_elses_repository_borrows_no_commit_from_it(tmp_pat
     # The whole package, as a wheel would land it: nothing about this copy is special
     # except that the repository around it has never heard of it.
     shutil.copytree(
-        HERE / "src" / "roadkeep",
+        HERE / "plugin" / "src" / "roadkeep",
         tmp_path / "roadkeep",
         ignore=shutil.ignore_patterns("__pycache__"),
     )
@@ -673,7 +673,7 @@ def test_the_placement_question_is_bounded_by_one_budget_and_not_by_three(monkey
 
     monkeypatch.setattr("roadkeep.history._run", slow)
     started = time.monotonic()
-    unplaced = provenance._placed(HERE / "src" / "roadkeep")
+    unplaced = provenance._placed(HERE / "plugin" / "src" / "roadkeep")
     spent = time.monotonic() - started
 
     # One call spent the whole allowance, so the second is never made — the difference
@@ -694,7 +694,7 @@ def test_a_git_that_never_answers_leaves_the_engine_unplaced_rather_than_raising
         raise HistoryUnavailable("timed out")
 
     monkeypatch.setattr("roadkeep.history._run", never)
-    assert _placed(HERE / "src" / "roadkeep") == (None, False)
+    assert _placed(HERE / "plugin" / "src" / "roadkeep") == (None, False)
 
 
 def test_every_other_caller_keeps_the_ceiling_that_answers_a_real_question(monkeypatch):

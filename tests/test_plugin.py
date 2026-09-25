@@ -70,14 +70,15 @@ from roadkeep.cli import build_parser
 from roadkeep.guarding import ASK_TOOLS, GUARDED_TOOLS, STOP_EVENTS, WRITE_TOOLS
 
 HERE = Path(__file__).resolve().parents[1]
-MANIFEST = HERE / ".claude-plugin" / "plugin.json"
-HOOKS = HERE / "hooks" / "hooks.json"
+PLUGIN = HERE / "plugin"
+MANIFEST = PLUGIN / ".claude-plugin" / "plugin.json"
+HOOKS = HERE / "plugin" / "hooks" / "hooks.json"
 #: The plugin's declaration, read by whoever installed it, and the one this repository
 #: starts for itself (RK81). Two files because one placeholder cannot be both: a project
 #: `.mcp.json` must live at the root under that exact name, and `${CLAUDE_PLUGIN_ROOT}` is
 #: defined only for a plugin-provided config — left at the root, the declaration named a
 #: variable nothing set here and the server was never launched in its own repository.
-MCP = HERE / ".claude-plugin" / "mcp.json"
+MCP = HERE / "plugin" / ".claude-plugin" / "mcp.json"
 PROJECT_MCP = HERE / ".mcp.json"
 SETTINGS = HERE / ".claude" / "settings.json"
 MARKETPLACE = HERE / ".claude-plugin" / "marketplace.json"
@@ -122,7 +123,7 @@ def test_the_manifest_names_the_plugin_and_leaves_its_hooks_to_the_convention():
 
 
 def test_the_plugin_states_the_version_the_package_states(checkout):
-    checkout.steady(".claude-plugin/plugin.json", "src/roadkeep/__init__.py")
+    checkout.steady("plugin/.claude-plugin/plugin.json", "plugin/src/roadkeep/__init__.py")
     assert read(MANIFEST)["version"] == roadkeep.__version__
 
 
@@ -206,7 +207,7 @@ def test_the_write_path_is_announced_before_the_first_read(tmp_path):
     """
     assert declarations("SessionStart"), "the rule is then learned by breaking it again"
     finished = subprocess.run(
-        [sys.executable, str(HERE / "scripts" / "roadkeep.py"), "-C", str(HERE), "guard"],
+        [sys.executable, str(HERE / "plugin" / "scripts" / "roadkeep.py"), "-C", str(HERE), "guard"],
         input=json.dumps({"hook_event_name": "SessionStart", "cwd": str(HERE)}),
         cwd=tmp_path,
         capture_output=True,
@@ -233,7 +234,7 @@ def test_every_hook_bounds_how_long_it_may_block_the_write():
 
 
 def test_the_manifest_points_at_the_server_it_ships():
-    declared = HERE / read(MANIFEST)["mcpServers"].removeprefix("./")
+    declared = PLUGIN / read(MANIFEST)["mcpServers"].removeprefix("./")
     assert declared == MCP and declared.is_file()
 
 
@@ -293,7 +294,7 @@ def test_this_repository_declares_the_server_for_itself_too():
     which only a plugin-provided config defines, so nothing could have started it.
     """
     server = read(PROJECT_MCP)["mcpServers"]["roadkeep"]
-    assert server["args"][0] == "${CLAUDE_PROJECT_DIR:-.}/scripts/roadkeep.py"
+    assert server["args"][0] == "${CLAUDE_PROJECT_DIR:-.}/plugin/scripts/roadkeep.py"
     assert build_parser().parse_args(server["args"][1:]).command == "mcp"
 
 
@@ -301,7 +302,7 @@ def test_the_two_declarations_differ_only_in_where_the_launcher_is():
     """One engine, two roots. Anything else that drifts apart is a second server."""
     plugin = read(MCP)["mcpServers"]
     project = read(PROJECT_MCP)["mcpServers"]
-    rooted = json.dumps(project).replace("${CLAUDE_PROJECT_DIR:-.}", "${CLAUDE_PLUGIN_ROOT}")
+    rooted = json.dumps(project).replace("${CLAUDE_PROJECT_DIR:-.}/plugin", "${CLAUDE_PLUGIN_ROOT}")
     assert json.loads(rooted) == plugin
 
 
@@ -321,7 +322,7 @@ def test_the_declared_command_starts_and_offers_the_tools(tmp_path):
     server = read(MCP)["mcpServers"]["roadkeep"]
     argv = [
         sys.executable if server["command"] == "python" else server["command"],
-        *(part.replace("${CLAUDE_PLUGIN_ROOT}", str(HERE)) for part in server["args"]),
+        *(part.replace("${CLAUDE_PLUGIN_ROOT}", str(PLUGIN)) for part in server["args"]),
     ]
     conversation = "\n".join(
         json.dumps(message)
@@ -350,7 +351,7 @@ def test_both_surfaces_run_the_launcher_the_plugin_ships():
     substitutes, and asserted to exist because a plugin whose hook points at a missing file
     installs cleanly and then does nothing at all — which is how this was found.
     """
-    launcher = HERE / "scripts" / "roadkeep.py"
+    launcher = HERE / "plugin" / "scripts" / "roadkeep.py"
     assert launcher.is_file()
     assert LAUNCHER[1].endswith("/scripts/roadkeep.py")
     declared = [hook["command"] for hook in every_hook()]
@@ -363,7 +364,7 @@ def test_both_surfaces_run_the_launcher_the_plugin_ships():
 def test_the_launcher_prefers_the_source_it_ships_over_anything_installed():
     # Position 0, not `append`: a plugin that silently ran an older installed copy would
     # report this version through `/plugin` while another one answered.
-    source = (HERE / "scripts" / "roadkeep.py").read_text(encoding="utf-8")
+    source = (HERE / "plugin" / "scripts" / "roadkeep.py").read_text(encoding="utf-8")
     assert "sys.path.insert(0," in source
     assert '"src"' in source
 
@@ -372,9 +373,9 @@ def test_the_launcher_runs_from_any_directory(tmp_path, checkout):
     """A subprocess, because the whole claim is about a process the harness starts."""
     # Which is the reading that makes this one drift: the child imports the tree as it is now
     # and this compares against what the parent imported at collection (RK263).
-    checkout.steady("src/roadkeep/__init__.py")
+    checkout.steady("plugin/src/roadkeep/__init__.py")
     finished = subprocess.run(
-        [sys.executable, str(HERE / "scripts" / "roadkeep.py"), "--version"],
+        [sys.executable, str(HERE / "plugin" / "scripts" / "roadkeep.py"), "--version"],
         cwd=tmp_path,
         capture_output=True,
         text=True,
@@ -392,14 +393,14 @@ def test_the_launcher_names_the_tree_it_ran_and_not_only_its_number(tmp_path):
     printed is the `src/` it put first on `sys.path`, and not whatever else was importable.
     """
     finished = subprocess.run(
-        [sys.executable, str(HERE / "scripts" / "roadkeep.py"), "--version"],
+        [sys.executable, str(HERE / "plugin" / "scripts" / "roadkeep.py"), "--version"],
         cwd=tmp_path,
         capture_output=True,
         text=True,
         check=False,
     )
     assert finished.returncode == 0, finished.stderr
-    assert str(HERE / "src" / "roadkeep") in finished.stdout
+    assert str(HERE / "plugin" / "src" / "roadkeep") in finished.stdout
 
 
 # -- the marketplace that installs it (RK26) ---------------------------------
@@ -416,14 +417,35 @@ def test_the_marketplace_offers_this_plugin_and_nothing_else():
 
 
 def test_the_source_resolves_to_the_directory_holding_the_manifest():
-    """`./` and not a subdirectory: the components sit at the repository root beside the
-    package they run, so the plugin root *is* the checkout."""
+    """`./plugin` and not the checkout (RK1699): an install copies the source directory whole,
+    honours no ignore file and may read nothing above it, so the payload has its own directory
+    and the rest of the tree — the desktop app, the tests, the site — stays behind."""
     entry, = read(MARKETPLACE)["plugins"]
     # Relative to the marketplace *root* — the checkout — and not to `.claude-plugin/`,
     # which is where the file happens to sit.
     root = (HERE / entry["source"]).resolve()
-    assert root == HERE
+    assert root == PLUGIN
     assert (root / ".claude-plugin" / "plugin.json").is_file()
+
+
+def test_what_an_install_copies_is_the_payload_and_nothing_else():
+    """RK1699's measurement, held: the tracked tree was 14.7 MiB with `gui/` at 4.8 of it, and
+    the cache copy of `./` was all of that. `plugin/` measured 4.07 MiB when it moved.
+
+    Read off git and not the disk, because an install copies a clone and a clone carries what
+    is tracked — a `__pycache__` here is this machine's. The bound is loose on purpose: it is
+    here to catch a directory coming back into the payload, not to price one more module."""
+    tracked = subprocess.run(
+        ["git", "-C", str(PLUGIN), "ls-files", "-z", "--", "."],
+        capture_output=True,
+        check=True,
+    ).stdout.decode("utf-8").split("\0")
+    files = [PLUGIN / one for one in tracked if one]
+    assert files, "git lists nothing under plugin/, so this measures nothing"
+    tops = {Path(one).parts[0] for one in tracked if one}
+    assert tops <= {".claude-plugin", "commands", "hooks", "scripts", "skills", "src"}, tops
+    written = sum(one.stat().st_size for one in files)
+    assert written < 6 * 1024 * 1024, f"{written / 1048576:.2f} MiB"
 
 
 def test_every_surface_the_payload_ships_has_frontmatter_a_parser_accepts():
@@ -440,7 +462,7 @@ def test_every_surface_the_payload_ships_has_frontmatter_a_parser_accepts():
     every test that reads a description, so a machine without the parser still refuses.
     """
     yaml = pytest.importorskip("yaml", reason="pyyaml is not installed")
-    surfaces = sorted(HERE.glob("skills/*/SKILL.md")) + sorted(HERE.glob("commands/*.md"))
+    surfaces = sorted(PLUGIN.glob("skills/*/SKILL.md")) + sorted(PLUGIN.glob("commands/*.md"))
     assert len(surfaces) >= 5, surfaces
     for path in surfaces:
         head = path.read_text(encoding="utf-8").split("---\n", 2)[1]
@@ -501,12 +523,12 @@ def test_the_payload_passes_the_loaders_own_validator(tmp_path):
     on this checkout reports *"Validating marketplace manifest"* and passes without walking a
     single component: `marketplace.json` is found first and the listing is all it checks.
     That is why nobody had run it on the payload — the obvious command on the obvious path
-    validates the wrong artefact. An install resolves `source: "./"` to the plugin, so the
-    copy below drops the listing and leaves the tree a session actually loads.
+    validates the wrong artefact. An install resolves `source: "./plugin"` to the plugin, so
+    the copy below is that directory, the tree a session actually loads.
 
     `--strict` because the warnings are the half that names the payload boundary (RK323), and
-    the copy is the whole tree because that is what the payload is: no manifest field excludes
-    a path, so a surface added anywhere is one this validates without being told about it.
+    the copy is the whole of `plugin/` because that is what the payload is: no manifest field
+    excludes a path, so a surface added there is one this validates without being told.
 
     Skipped where the CLI is absent, which is every adopting project's CI and possibly this
     one. A check that skips there and holds on the machine that publishes the plugin is worth
@@ -535,12 +557,14 @@ def test_the_payload_passes_the_loaders_own_validator(tmp_path):
         return finished.returncode, finished.stdout + finished.stderr
 
     payload = tmp_path / "payload"
+    # `plugin/` and nothing above it, which is what an install copies since RK1699 — and it
+    # carries no listing, which is the root's.
     shutil.copytree(
-        HERE,
+        PLUGIN,
         payload,
-        ignore=shutil.ignore_patterns(".git", "__pycache__", ".pytest_cache", ".ruff_cache"),
+        ignore=shutil.ignore_patterns("__pycache__", ".pytest_cache", ".ruff_cache"),
     )
-    (payload / ".claude-plugin" / "marketplace.json").unlink()
+    assert not (payload / ".claude-plugin" / "marketplace.json").exists()
     code, reported = validate(payload)
     assert code == 0, reported
 

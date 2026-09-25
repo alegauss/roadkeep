@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "roadkeep",
-      "source": "./",
+      "source": "./plugin",
       "category": "productivity"
     }
   ]

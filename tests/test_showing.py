@@ -503,7 +503,7 @@ def test_the_paths_come_from_the_line_and_the_section(tmp_path):
         # Really there, so worth reporting even without a slash.
         ("see `roadkeep.toml`", ["roadkeep.toml"]),
         # A filename under a directory that exists: a claim the repository fails (RK55).
-        ("see `src/roadkeep/nope.md`", ["src/roadkeep/nope.md"]),
+        ("see `plugin/src/roadkeep/nope.md`", ["plugin/src/roadkeep/nope.md"]),
         # The same name where no such directory exists — undecidable from prose, and 60 of
         # Shio's 61 findings. `app/api/route.ts` is a path in a template, not in the repo.
         ("see `nowhere/at/all/nope.md`", []),
@@ -515,7 +515,7 @@ def test_the_paths_come_from_the_line_and_the_section(tmp_path):
         ("`Config.load` and `Schema.render`", []),
         # A URL is not a path in this repository.
         ("`https://example.com/a.md` and [x](https://example.com/b.md)", []),
-        ("a [link](src/roadkeep/linked.md) counts", ["src/roadkeep/linked.md"]),
+        ("a [link](plugin/src/roadkeep/linked.md) counts", ["plugin/src/roadkeep/linked.md"]),
         # Slash-shaped and not this repository: a slash command, and an absolute path
         # that `roadkeep.toml` refuses for the same reason. RK25's line names four.
         ("`/roadkeep:add` and `/etc/hosts`", []),
@@ -529,7 +529,7 @@ def test_the_paths_come_from_the_line_and_the_section(tmp_path):
         ("`template/widget/<name>.html` is a placeholder", []),
         ("`@graphiql/react` is an npm package", []),
         # A leading `@` only: `node_modules/@types/node` names a directory, not a scope.
-        ("`src/roadkeep/@kept.md`", ["src/roadkeep/@kept.md"]),
+        ("`plugin/src/roadkeep/@kept.md`", ["plugin/src/roadkeep/@kept.md"]),
     ],
 )
 def test_what_counts_as_a_path(text, expected):

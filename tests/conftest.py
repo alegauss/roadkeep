@@ -186,8 +186,8 @@ HERE = Path(__file__).resolve().parents[1]
 #: number is written (RK19). `pyproject.toml` is not one — it reads the module by AST, so it
 #: states no number of its own to disagree.
 WATCHED = (
-    "src/roadkeep/__init__.py",
-    ".claude-plugin/plugin.json",
+    "plugin/src/roadkeep/__init__.py",
+    "plugin/.claude-plugin/plugin.json",
 )
 
 #: This repository's own governed files, which are the format's conformance fixture — the set

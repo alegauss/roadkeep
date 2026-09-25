@@ -21,13 +21,13 @@ const ROOT = join(HERE, "..", "..", "..");
 const OUT = join(HERE, "..", "src", "data", "commands.generated.json");
 
 // The package is not installed in this checkout — `agents.md` says to read every command as
-// `PYTHONPATH=src python -m roadkeep.cli`, and this is that, from the repository root so the
+// `PYTHONPATH=plugin/src python -m roadkeep.cli`, and this is that, from the repository root so the
 // verb finds `roadkeep.toml`. Both spellings of the interpreter are tried because Windows
 // ships `python` and most CI images ship `python3`.
 function ask(interpreter) {
   return execFileSync(interpreter, ["-m", "roadkeep.cli", "commands", "--json"], {
     cwd: ROOT,
-    env: { ...process.env, PYTHONPATH: join(ROOT, "src"), PYTHONIOENCODING: "utf-8" },
+    env: { ...process.env, PYTHONPATH: join(ROOT, "plugin", "src"), PYTHONIOENCODING: "utf-8" },
     encoding: "utf-8",
     maxBuffer: 32 * 1024 * 1024,
   });

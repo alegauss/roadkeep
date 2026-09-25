@@ -548,8 +548,8 @@ HERE = Path(__file__).resolve().parents[1]
 STATED = (
     ("agents.md", "`--fix` repairs only the **derived**"),
     ("README.md", "`--fix` repairs only what the format"),
-    ("commands/lint.md", "Whitespace, a marker's codepoint"),
-    ("skills/roadkeep/SKILL.md", "`--fix` repairs only"),
+    ("plugin/commands/lint.md", "Whitespace, a marker's codepoint"),
+    ("plugin/skills/roadkeep/SKILL.md", "`--fix` repairs only"),
 )
 
 

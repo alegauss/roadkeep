@@ -95,27 +95,6 @@ already written, not authorship.
 
 ## Block K — The desktop app (one installer for the reader and the plugin)
 
-### §RK1699 Keeping the plugin payload free of the app
-
-`marketplace.json` declares the plugin with `"source": "./"`, so an install takes the
-repository root. With `gui/` in it, every adopter who only wanted the hook and the MCP
-tools would carry the Electron sources, the site and the npm lockfile into their plugin
-cache.
-
-Measured at 5c8529a8, tracked bytes: the whole tree 14.7 MB, of which `gui/` is 4.8,
-`tests/` 4.4, `src/` 3.9, `site/` 0.8, `docs/` 0.4, and `skills/`, `hooks/`,
-`commands/`, `scripts/` 0.2 together. The cached 0.2.489 is 15 MB, so the payload proper
-was already a third of the copy before `gui/` arrived.
-
-What the loader allows, from the plugin docs: a relative source copies that directory
-whole, `.gitignore` is not honoured (anthropics/claude-code#93423), and nothing may
-resolve outside the plugin root. Two doors remain, and each changes how the payload is
-built: move the payload, `src/` included, under one directory that `source` names, which
-moves `PYTHONPATH=src`, `pyproject.toml`, `action.yml` and every test path; or have CI
-publish the payload to a branch of its own and point `source` at that ref, which is a
-release mechanism writing to the repository. A person picks one; then a test holds the
-payload's size, the way `tests/test_plugin.py` holds its shape.
-
 ### §RK1700 One installer: the app, then the plugin
 
 electron-builder already produces NSIS on Windows and an AppImage on Linux; the dmg is

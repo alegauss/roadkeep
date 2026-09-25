@@ -17,8 +17,8 @@ budget these sentences were squeezed against is not this file's.
   `argparse` + `tomllib`, never `click` + `pydantic` — a tool meant to run as `uvx roadkeep`
   in someone else's CI pays for every dependency it takes.
 - `uv` is **not** installed here. Run `python -m pytest` from the repo root, where
-  `pythonpath = ["src"]` is already declared; the package is not installed, so every command
-  in the plugin's own skill reads as `PYTHONPATH=src python -m roadkeep.cli <…>`.
+  `pythonpath = ["plugin/src"]` is already declared; the package is not installed, so every command
+  in the plugin's own skill reads as `PYTHONPATH=plugin/src python -m roadkeep.cli <…>`.
 - Test dependencies are `pip install --user pytest pytest-xdist`. `-n auto` is on by default
   and `-n0` undoes it, which is what a test reading captured output wants.
 - Round-trip (L3) is a **property test over real files**: this repository's `docs/`, plus

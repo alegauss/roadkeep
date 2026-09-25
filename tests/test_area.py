@@ -223,7 +223,7 @@ def test_the_trigger_names_every_input_the_pages_are_generated_from():
     yaml = pytest.importorskip("yaml", reason="pyyaml is not installed")
     workflow = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
     triggers = workflow.get("on", workflow.get(True))
-    generated_from = {"src/**", "skills/**", "roadkeep.toml"}
+    generated_from = {"plugin/src/**", "plugin/skills/**", "roadkeep.toml"}
     for event in ("push", "pull_request"):
         paths = set(triggers[event]["paths"])
         assert generated_from <= paths, f"{event} does not rebuild the area when the package moves"

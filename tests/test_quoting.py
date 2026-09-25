@@ -40,8 +40,8 @@ QUOTED = (
     # allowed to ask the filesystem what this package holds, and a survey deriving a second
     # view agrees with it right up to the moment the layout moves (RK496).
     *(one.path for one in modules()),
-    *sorted((HERE / "skills").rglob("*.md")),
-    *sorted((HERE / "commands").glob("*.md")),
+    *sorted((HERE / "plugin" / "skills").rglob("*.md")),
+    *sorted((HERE / "plugin" / "commands").glob("*.md")),
     HERE / "agents.md",
     HERE / "README.md",
 )

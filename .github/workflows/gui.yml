@@ -11,7 +11,7 @@
 # ..` puts this checkout on PATH, and `ROADKEEP_HOME` hands the same one to the launcher.
 #
 # **The filter names what the reader depends on, not gui/ alone** (RK1703). A change under
-# src/ is exactly the change this suite exists to judge; the plugin surfaces are what
+# plugin/src/ is exactly the change this suite exists to judge; the plugin surfaces are what
 # `install --check` compares gui/'s copies against; `action.yml` is the gate the package job
 # calls. A commit touching none of them — the ledger, a Python test, the site — does not wait
 # on an Electron build. GitHub skips `paths:` for a tag push, so a tag still packages.
@@ -29,30 +29,26 @@ on:
     paths:
       [
         'gui/**',
-        'src/**',
-        # The version the pre-commit hook stamps on every commit ([history] incidental):
-        # matched, it would make this filter match every commit.
-        '!src/roadkeep/__init__.py',
+        'plugin/**',
+        # The versions the pre-commit hook stamps on every commit ([history] incidental):
+        # matched, they would make this filter match every commit.
+        '!plugin/src/roadkeep/__init__.py',
+        '!plugin/.claude-plugin/plugin.json',
         'pyproject.toml',
         'action.yml',
-        'skills/**',
-        'hooks/**',
-        'commands/**',
         '.github/workflows/gui.yml',
       ]
   pull_request:
     paths:
       [
         'gui/**',
-        'src/**',
-        # The version the pre-commit hook stamps on every commit ([history] incidental):
-        # matched, it would make this filter match every commit.
-        '!src/roadkeep/__init__.py',
+        'plugin/**',
+        # The versions the pre-commit hook stamps on every commit ([history] incidental):
+        # matched, they would make this filter match every commit.
+        '!plugin/src/roadkeep/__init__.py',
+        '!plugin/.claude-plugin/plugin.json',
         'pyproject.toml',
         'action.yml',
-        'skills/**',
-        'hooks/**',
-        'commands/**',
         '.github/workflows/gui.yml',
       ]
   workflow_dispatch:

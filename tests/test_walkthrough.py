@@ -47,7 +47,7 @@ def steps() -> list[dict]:
         capture_output=True,
         text=True,
         encoding="utf-8",
-        env={**os.environ, "PYTHONPATH": str(HERE / "src"), "PYTHONIOENCODING": "utf-8"},
+        env={**os.environ, "PYTHONPATH": str(HERE / "plugin" / "src"), "PYTHONIOENCODING": "utf-8"},
     )
     assert found.returncode == 0, found.stderr
     return json.loads(found.stdout)

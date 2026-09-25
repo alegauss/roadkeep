@@ -5,8 +5,8 @@ Used by `.github/workflows/publish.yml` so that every release run derives its ow
 number instead of asking a human to type one — and, more to the point, instead of
 asking a human to *remember* that the number lives in two places:
 
-    src/roadkeep/__init__.py    __version__, which `pyproject.toml` reads by AST
-    .claude-plugin/plugin.json  the version `/plugin install` shows
+    plugin/src/roadkeep/__init__.py    __version__, which `pyproject.toml` reads by AST
+    plugin/.claude-plugin/plugin.json  the version `/plugin install` shows
 
 `tests/test_plugin.py` asserts those two agree, so bumping one is a failing build,
 not a wrong release. Both are rewritten by a targeted substitution rather than by a
@@ -53,8 +53,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-MODULE = ROOT / "src" / "roadkeep" / "__init__.py"
-MANIFEST = ROOT / ".claude-plugin" / "plugin.json"
+MODULE = ROOT / "plugin" / "src" / "roadkeep" / "__init__.py"
+MANIFEST = ROOT / "plugin" / ".claude-plugin" / "plugin.json"
 #: The editor host's manifest (RK1011), which carries the number for `plugin.json`'s reason:
 #: a reader reporting a version this package never released is one nobody can diagnose.
 EDITOR = ROOT / "editor" / "package.json"
@@ -66,7 +66,7 @@ EDITOR = ROOT / "editor" / "package.json"
 #: cannot import a tuple. That pair coming apart released v0.2.0 with the editor at the
 #: number before it, so `test_packaging` reads both back against this. A fourth file added
 #: here is a red in that test and never a release with one number stale.
-TRACKED = ("src/roadkeep/__init__.py", ".claude-plugin/plugin.json", "editor/package.json")
+TRACKED = ("plugin/src/roadkeep/__init__.py", "plugin/.claude-plugin/plugin.json", "editor/package.json")
 
 #: The exit code that says the number was written and may **not** be staged (RK398). Not 1,
 #: which the hook reads as "nothing was written" and reports as a failure to bump.

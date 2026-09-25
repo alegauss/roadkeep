@@ -93,7 +93,7 @@ held = 60
 declared = ["signing-cert", "macos-machine", "published-artifact", "maintainer-release"]
 
 [install]
-wired = "0.2.489"
+wired = "0.2.496"
 
 [project]
 name = "roadkeep desktop"

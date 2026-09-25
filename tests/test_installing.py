@@ -87,7 +87,7 @@ def source(tmp_path: Path) -> Path:
     for part in COPIED:
         target = root / part
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(HERE / part, target)
+        shutil.copyfile(HERE / "plugin" / part, target)
     return root
 
 
@@ -131,7 +131,7 @@ def test_the_pages_the_orientation_points_at_are_copied_verbatim(project, source
     and it lives in `SKILL.md`, so a page is bytes and any difference is drift."""
     install(project, source=source)
     for page, landed in zip(PLUGIN_PAGES, PROJECT_PAGES, strict=True):
-        assert read(project / landed) == read(HERE / page), landed
+        assert read(project / landed) == read(HERE / "plugin" / page), landed
 
 
 def test_the_skill_is_the_shipped_file_with_its_entry_point_re_addressed(project, source):
@@ -143,7 +143,7 @@ def test_the_skill_is_the_shipped_file_with_its_entry_point_re_addressed(project
     """
     install(project, source=source)
     copied = read(project / PROJECT_SKILL)
-    shipped = read(HERE / PLUGIN_SKILL)
+    shipped = read(HERE / "plugin" / PLUGIN_SKILL)
     assert "`roadkeep` is the installed entry point" in shipped
     assert "`roadkeep` is the installed entry point" not in copied
     assert '`python "../roadkeep/scripts/roadkeep.py"` is this project\'s entry point' in copied
@@ -171,7 +171,7 @@ def test_the_hooks_are_the_plugin_s_own_with_the_launcher_re_addressed(project, 
     """
     install(project, source=source)
     written = json.dumps(loaded(project / PROJECT_SETTINGS)["hooks"])
-    shipped = json.dumps(loaded(HERE / PLUGIN_HOOKS)["hooks"])
+    shipped = json.dumps(loaded(HERE / "plugin" / PLUGIN_HOOKS)["hooks"])
     assert written == shipped.replace(PLUGIN_ROOT, "${CLAUDE_PROJECT_DIR}/../roadkeep")
 
 
@@ -447,7 +447,7 @@ def test_the_workflow_it_writes_is_valid_yaml_calling_the_action_this_repo_publi
     install(project, source=source)
     workflow = yaml.safe_load(read(project / PROJECT_WORKFLOW))
     step = workflow["jobs"]["lint"]["steps"][-1]
-    repository = loaded(HERE / PLUGIN_MANIFEST)["repository"]
+    repository = loaded(HERE / "plugin" / PLUGIN_MANIFEST)["repository"]
     assert step["uses"].split("@")[0] == repository.removeprefix("https://github.com/")
 
 
@@ -1461,7 +1461,7 @@ def _plugin_tree(root: Path) -> Path:
     for part in COPIED:
         target = root / part
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(HERE / part, target)
+        shutil.copyfile(HERE / "plugin" / part, target)
     (root / "roadkeep.toml").write_text('prefix = "DX"\n', encoding="utf-8")
     for name in (PLUGIN_MANIFEST, PLUGIN_HOOKS):
         path = root / name
@@ -1621,7 +1621,7 @@ def _engine_copy(into: Path, version: str, mark: str) -> Path:
     import shutil
 
     for part in ("hooks", "skills", "scripts", ".claude-plugin", "src"):
-        source, target = HERE / part, into / part
+        source, target = HERE / "plugin" / part, into / part
         if source.is_dir():
             shutil.copytree(source, target, dirs_exist_ok=True)
     init = into / "src" / "roadkeep" / "__init__.py"
@@ -1720,7 +1720,7 @@ def test_a_plan_keeps_the_engine_the_project_pinned(tmp_path, monkeypatch):
     assert _pinned_engine(project) == project / ".roadkeep"
     assert plan(project).source == project / ".roadkeep"
     # And a caller who named a tree still wins: that is an answer they gave.
-    assert plan(project, source=HERE).source == HERE
+    assert plan(project, source=HERE).source == HERE / "plugin"
 
 
 def test_a_half_copied_pin_is_not_a_source(tmp_path, monkeypatch):
@@ -1788,7 +1788,7 @@ def test_vendoring_this_repository_copies_the_engine_and_leaves_the_rest():
 
     from roadkeep.installing import CARRIED, PLUGIN_BRIDGE, _outside
 
-    home = Path(__file__).resolve().parents[1]
+    home = Path(__file__).resolve().parents[1] / "plugin"
     into = Path(tempfile.mkdtemp()) / "copy"
     shutil.copytree(home, into, ignore=_outside(home))
     try:
@@ -1800,8 +1800,12 @@ def test_vendoring_this_repository_copies_the_engine_and_leaves_the_rest():
         for one in ("site", "tests", "build", "docs"):
             assert not (into / one).exists(), f"{one} is still being copied"
         assert not (into / ".git").exists()
-        # Root files are kept whole — `pyproject.toml` is what makes the package importable.
-        assert (into / "pyproject.toml").is_file()
+        # The engine's home is `plugin/` since RK1699, so the copy is that directory: its
+        # manifest lands, and the repository's own root files (`pyproject.toml`) are not the
+        # engine's — the launcher puts `src/` on `sys.path`, which is what makes it importable,
+        # and the test below holds that the copy runs.
+        assert (into / ".claude-plugin" / "plugin.json").is_file()
+        assert not (into / "pyproject.toml").exists()
         written = sum(p.stat().st_size for p in into.rglob("*") if p.is_file())
         # Measured at 3.89 MiB against 22.46 before; the bound is loose because the source
         # grows, and it is here to catch a directory coming back rather than to price one.
@@ -1823,7 +1827,7 @@ def test_the_vendored_copy_of_this_repository_runs(tmp_path):
 
     from roadkeep.installing import _outside
 
-    home = Path(__file__).resolve().parents[1]
+    home = Path(__file__).resolve().parents[1] / "plugin"
     into = tmp_path / "copy"
     shutil.copytree(home, into, ignore=_outside(home))
     project = tmp_path / "adopter"
@@ -1860,7 +1864,7 @@ def test_asking_a_tree_its_version_writes_nothing_into_it(tmp_path):
     too when picking among candidates, where the same write has a worse subject."""
     from roadkeep.installing import LAUNCHER, _asked, _outside
 
-    home = Path(__file__).resolve().parents[1]
+    home = Path(__file__).resolve().parents[1] / "plugin"
     into = tmp_path / "copy"
     shutil.copytree(home, into, ignore=_outside(home))
     before = {one for one in into.rglob("*") if one.is_file()}
@@ -2582,7 +2586,7 @@ def test_the_version_is_never_read_because_reading_it_would_run_it():
     import ast
     from pathlib import Path as _Path
 
-    source = (_Path(__file__).resolve().parents[1] / "src" / "roadkeep" / "installing.py")
+    source = (_Path(__file__).resolve().parents[1] / "plugin" / "src" / "roadkeep" / "installing.py")
     (driver,) = [
         node
         for node in ast.walk(ast.parse(source.read_text(encoding="utf-8")))
@@ -2849,7 +2853,7 @@ def test_the_vendored_row_is_read_and_never_run(tmp_path):
     import ast
     from pathlib import Path as _Path
 
-    source = _Path(__file__).resolve().parents[1] / "src" / "roadkeep" / "installing.py"
+    source = _Path(__file__).resolve().parents[1] / "plugin" / "src" / "roadkeep" / "installing.py"
     (reader,) = [
         node
         for node in ast.walk(ast.parse(source.read_text(encoding="utf-8")))
@@ -3442,9 +3446,15 @@ def test_the_check_dates_the_committed_bridge_where_no_record_does(project, caps
     from roadkeep.installing import PLUGIN_BRIDGE, plan
 
     install(wired(project), source=HERE, committed=True)
-    try:
-        committed = git(HERE, "show", f"HEAD:{PLUGIN_BRIDGE}")
-    except subprocess.CalledProcessError:
+    # Under `plugin/` since RK1699, at the root before it: whichever HEAD carries.
+    committed = None
+    for spelled in (f"plugin/{PLUGIN_BRIDGE}", PLUGIN_BRIDGE):
+        try:
+            committed = git(HERE, "show", f"HEAD:{spelled}")
+            break
+        except subprocess.CalledProcessError:
+            continue
+    if committed is None:
         pytest.skip("no history of the shipped bridge to date a copy against")
     (project / PROJECT_BRIDGE).write_bytes(committed.encode("utf-8"))
     source = project / "roadkeep.toml"
@@ -3491,7 +3501,7 @@ def test_the_skill_is_not_dated_because_it_is_not_a_copy(project):
 
     install(wired(project), source=HERE, committed=True)
     written = (project / PROJECT_SKILL).read_text(encoding="utf-8")
-    shipped = (HERE / PLUGIN_SKILL).read_text(encoding="utf-8")
+    shipped = (HERE / "plugin" / PLUGIN_SKILL).read_text(encoding="utf-8")
     assert written != shipped
     assert "roadkeep-launch.py" in written
 

@@ -32,8 +32,8 @@ upstream = "alegauss/roadkeep"
 # paths — 37 sprites and the sidecar an engine writes beside each is not a list anybody keeps.
 [history]
 incidental = [
-  "src/roadkeep/__init__.py",
-  ".claude-plugin/plugin.json",
+  "plugin/src/roadkeep/__init__.py",
+  "plugin/.claude-plugin/plugin.json",
   "editor/package.json",
 ]
 
@@ -244,7 +244,7 @@ session = 69665
 # `budget --file` reads the index at 36%, nearly three times the next section, because every
 # task that adds a module adds an entry while the prose was compressed twice. So the index is
 # the cheap cut, and it is the safe one: `tests/test_linting.py` holds it against
-# `src/roadkeep/`, which says what may not be dropped. Re-read it before cutting, never
+# `plugin/src/roadkeep/`, which says what may not be dropped. Re-read it before cutting, never
 # re-derive it here — a percentage in a comment is what went stale the first time.
 "agents.md" = { lines = 125, bytes = 8400 }
 # The Claude Code entry point only points at agents.md, and a pointer that grew a second

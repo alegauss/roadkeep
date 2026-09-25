@@ -204,7 +204,7 @@ def test_the_screened_set_is_the_guards_own(tmp_path):
 
 def test_the_screen_imports_nothing_from_the_package():
     # The cost it saves *is* the absence of these imports, so the absence is the assertion.
-    source = Path(__file__).parents[1] / "src" / "roadkeep" / "screening.py"
+    source = Path(__file__).parents[1] / "plugin" / "src" / "roadkeep" / "screening.py"
     tree = ast.parse(source.read_text(encoding="utf-8"))
     named = set()
     for node in ast.walk(tree):
@@ -240,7 +240,7 @@ def _launcher():
     """`scripts/roadkeep.py`, loaded by path: it is not on the import path and must not be."""
     import importlib.util
 
-    path = Path(__file__).parents[1] / "scripts" / "roadkeep.py"
+    path = Path(__file__).parents[1] / "plugin" / "scripts" / "roadkeep.py"
     spec = importlib.util.spec_from_file_location("roadkeep_launcher", path)
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)

@@ -126,8 +126,12 @@ called unbuilt were already in the ledger.
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
-| K — The desktop app (one installer for the reader and the plugin) | 5 | 4 | 0 |
-| **Total** | 5 | 1173 | 24 |
+| K — The desktop app (one installer for the reader and the plugin) | 4 | 5 | 0 |
+| **Total** | 4 | 1174 | 24 |
+
+**Next ready:**
+
+- 💭 **RK1700** (deps: RK1697 ✅, RK1699 ✅) **Installing the reader and the Claude Code plugin takes two separate procedures on each of three platforms** — One installer that places the app and then runs the claude plugin install gives a person the CLI and the reader together. → §RK1700
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
@@ -175,7 +179,7 @@ are the one thing that wants a shell — the plugin's own copy answers, with no 
 
 ```sh
 # the plugin's launcher, wherever the marketplace was cloned
-R=~/.claude/plugins/marketplaces/alegauss/scripts/roadkeep.py
+R=~/.claude/plugins/marketplaces/alegauss/plugin/scripts/roadkeep.py
 
 python $R adopt docs/ROADMAP.md --prefix SH   # measures first: what would change, and where
 python $R adopt docs/IMPROVEMENTS.md --sections --with docs/STRATEGY.md   # the other half
@@ -214,8 +218,8 @@ with the plugin. `install` writes them itself, translated from the files the plu
 with the launcher's path as the only substituted fact:
 
 ```sh
-python ../roadkeep/scripts/roadkeep.py -C . install
-python ../roadkeep/scripts/roadkeep.py -C . install --check   # in CI: still in step?
+python ../roadkeep/plugin/scripts/roadkeep.py -C . install
+python ../roadkeep/plugin/scripts/roadkeep.py -C . install --check   # in CI: still in step?
 ```
 
 `.mcp.json`, the guard on its three hook events in `.claude/settings.json`, a verbatim
@@ -389,7 +393,7 @@ prohibition, because a prompt that said "write a concise symptom" would have mov
 generation one file to the left while keeping L4's letter. That is asserted, not intended —
 `tests/test_commands.py` refuses the phrasing.
 
-The fourth is a **skill**, `skills/roadkeep/SKILL.md`, holding which command to call, what it
+The fourth is a **skill**, `plugin/skills/roadkeep/SKILL.md`, holding which command to call, what it
 derives, the two rules a schema cannot check, and how work is picked. It is a skill and not a
 paragraph in the
 project's instruction file because instructions are loaded on *every* turn, including the ones

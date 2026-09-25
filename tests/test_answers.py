@@ -441,7 +441,7 @@ def test_a_note_lands_under_the_answer_it_is_about_off_a_terminal(tmp_path):
             text=True,
             encoding="utf-8",
             errors="replace",
-            env={**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src")},
+            env={**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[1] / "plugin" / "src")},
         )
         return out.stdout
 
@@ -610,7 +610,7 @@ def test_the_note_lands_under_the_answer_in_a_verb_that_writes_both(tmp_path):
         text=True,
         encoding="utf-8",
         errors="replace",
-        env={**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src")},
+        env={**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[1] / "plugin" / "src")},
     )
     said = ran.stdout
     assert "RK1" in said, said

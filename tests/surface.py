@@ -33,7 +33,7 @@ from pathlib import Path
 #: The package's source tree. Read from this file's location rather than from an import, for
 #: the reason `test_caches` gives about its own read: importing the package to enumerate it
 #: finds only what happens to have been imported.
-PACKAGE = Path(__file__).resolve().parents[1] / "src" / "roadkeep"
+PACKAGE = Path(__file__).resolve().parents[1] / "plugin" / "src" / "roadkeep"
 
 
 # No `slots`: :func:`cached_property` writes the read into the instance dictionary, which a

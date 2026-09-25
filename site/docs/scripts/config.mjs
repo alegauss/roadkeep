@@ -25,7 +25,7 @@ const OUT = join(HERE, "..", "src", "data", "config.generated.json");
 function ask(interpreter) {
   return execFileSync(interpreter, ["-m", "roadkeep.cli", "config", "--json"], {
     cwd: ROOT,
-    env: { ...process.env, PYTHONPATH: join(ROOT, "src"), PYTHONIOENCODING: "utf-8" },
+    env: { ...process.env, PYTHONPATH: join(ROOT, "plugin", "src"), PYTHONIOENCODING: "utf-8" },
     encoding: "utf-8",
     maxBuffer: 32 * 1024 * 1024,
   });

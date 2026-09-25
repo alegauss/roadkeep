@@ -4493,7 +4493,7 @@ def test_a_page_says_what_of_it_is_addressed_to_the_gate(tmp_path, capsys):
     from roadkeep.installing import PLUGIN_PAGES
 
     here = Path(__file__).resolve().parents[1]
-    pages = _pages(here / "skills" / "roadkeep", PLUGIN_PAGES)
+    pages = _pages(here / "plugin" / "skills" / "roadkeep", PLUGIN_PAGES)
     assert pages, "no reference page reached: this measurement is about nothing"
     for page in pages:
         assert page.declared, page.heading

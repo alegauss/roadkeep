@@ -299,7 +299,7 @@ def _source(root: Path) -> Path:
     for part in CARRIED:
         target = into / part
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(HERE / part, target)
+        shutil.copyfile(HERE / "plugin" / part, target)
     return into
 
 

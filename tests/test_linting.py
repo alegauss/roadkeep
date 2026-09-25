@@ -3060,7 +3060,7 @@ def test_a_method_resolves_once_its_class_is_there(tmp_path):
     a name that is **gone**, and `Plan` being there is that answer."""
     from roadkeep.linting import _symbols
 
-    here = Path(__file__).resolve().parents[1] / "src" / "roadkeep"
+    here = Path(__file__).resolve().parents[1] / "plugin" / "src" / "roadkeep"
     known = _symbols(here)
     assert "Plan" in known["installing"]
     assert "_settled_rows" not in known["rendering"]

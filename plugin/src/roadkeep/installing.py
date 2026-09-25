@@ -536,7 +536,7 @@ class Plan:
         # hook runs months later lives in the engine's tree, so which one that is stays worth
         # a row — beside the project rather than in its place.
         rows = [f"{self.root.as_posix()}  →  {self.launcher}"]
-        if self.source != self.root:
+        if self.source not in (self.root, _plugin_root(self.root)):
             rows.append(
                 f"  engine         {self.source.as_posix()} — the checkout that launcher "
                 f"runs from, which is not this project"
@@ -886,7 +886,7 @@ def plan(
     # the half RK1464 leaves without it: the run that vendors is clean and the `--check` that
     # follows is not. The caller's `--source` still wins, being an answer they gave.
     origin = (
-        Path(source).resolve()
+        _plugin_root(Path(source).resolve())
         if source is not None
         else (_pinned_engine(base) or _source())
     )
@@ -904,7 +904,9 @@ def plan(
     # what they mean — point a session at this checkout's tools and its guard, which is what
     # this repository declares by hand (RK81) — and the two copies do not, both being copies
     # of files already in the tree.
-    own = base == origin
+    # Or carries it one level down, which is this repository since RK1699: the root is the
+    # checkout a person names, and the plugin the marketplace copies is its `plugin/`.
+    own = base == origin or _plugin_root(base) == origin
     # RK1581, and it is two questions rather than one flag: whether this tree declares its own
     # config, and — only where it does not — what governs it from above. Asked here with every
     # other fact, so `--check` and the write answer from one computation.
@@ -1240,24 +1242,35 @@ def written_by(root: str | Path = ".") -> str:
         return ""
     try:
         blob = _run(engine, "hash-object", "--", str(here)).strip()
-        revisions = _run(engine, "log", "--format=%H", "--", shipped).split()
+        # Where the plugin sits in its repository, which a `<rev>:<path>` is relative to: the
+        # root until RK1699 moved it into `plugin/`, so both spellings are candidates and a
+        # revision from either side of the move is found by the one it carried.
+        prefix = _run(engine, "rev-parse", "--show-prefix").strip()
+        spellings = (f"{prefix}{shipped}", *((shipped,) if prefix else ()))
+        revisions = _run(
+            engine, "log", "--format=%H", "--", *(f":/{one}" for one in spellings)
+        ).split()
         if not blob or not revisions:
             return ""
+        asked = [(one, where) for one in revisions for where in spellings]
         # One batch and never one call per revision: `SKILL.md` has 193 of them, and a process
         # each is the 30-second probe `vendored_at` refuses to be (RK1451).
         found = _run(
             engine,
             "cat-file",
-            "--batch-check",
-            fed=[f"{one}:{shipped}" for one in revisions],
-        ).split()
-        # `<blob> blob <size>` per row, in the order asked, so the newest match is the first.
-        at = next(
-            (revisions[index] for index, one in enumerate(found[::3]) if one == blob), ""
+            "--batch-check=%(objectname)",
+            fed=[f"{one}:{where}" for one, where in asked],
+        ).splitlines()
+        # One row per question, in the order asked — the object, or `<query> missing` — so the
+        # newest match is the first.
+        at, where = next(
+            (pair for pair, row in zip(asked, found, strict=False) if row.strip() == blob),
+            ("", ""),
         )
         if not at:
             return ""
-        stated = _run(engine, "show", f"{at}:src/roadkeep/__init__.py")
+        package = where.removesuffix(shipped)
+        stated = _run(engine, "show", f"{at}:{package}src/roadkeep/__init__.py")
     except (HistoryUnavailable, OSError, IndexError):
         return ""
     match = re.search(r'__version__\s*=\s*"([^"]+)"', stated)
@@ -2090,7 +2103,8 @@ def _provides_plugin(base: Path) -> bool:
     nothing that runs, and a hooks file no manifest names is a file the harness never loads —
     and in both of those the project settings are still the only place the guard could live.
     """
-    return (base / PLUGIN_MANIFEST).is_file() and (base / PLUGIN_HOOKS).is_file()
+    plugin = _plugin_root(base)  # this repository carries it under `plugin/` (RK1699)
+    return (plugin / PLUGIN_MANIFEST).is_file() and (plugin / PLUGIN_HOOKS).is_file()
 
 
 def gated_at(root: str | Path = ".") -> tuple[tuple[str, str], ...]:
@@ -2172,6 +2186,21 @@ def _source() -> Path:
     return engine().home.parent.parent
 
 
+def _plugin_root(tree: Path) -> Path:
+    """The plugin root inside a tree a caller named: itself, or its `plugin/` (RK1699).
+
+    Since RK1699 a checkout of this repository carries the plugin under `plugin/`, so the
+    marketplace can copy the payload and leave the rest of the tree behind. `--source` is still
+    answered with the checkout's root, the tree a person clones and names, so the payload is
+    looked for one level down where the root itself does not carry it. An older checkout, or a
+    plugin root named directly, carries it at the top and is taken as it is.
+    """
+    if all((tree / part).is_file() for part in CARRIED):
+        return tree
+    nested = tree / "plugin"
+    return nested if all((nested / part).is_file() for part in CARRIED) else tree
+
+
 def _pinned_engine(base: Path) -> Path | None:
     """The engine this project vendored, where it is one this command could wire from (RK1464).
 
@@ -2211,7 +2240,9 @@ def _ships_the_plugin(root: Path) -> bool:
     lets it run after the tree it pointed at is gone. Where a source *is* known,
     :func:`plan` compares the two roots instead, that being the exact statement.
     """
-    return all((root / part).is_file() for part in CARRIED)
+    # At the top, or under `plugin/`, which is where this repository carries it (RK1699).
+    plugin = _plugin_root(root)
+    return all((plugin / part).is_file() for part in CARRIED)
 
 
 def _standing(base: Path) -> int | None:

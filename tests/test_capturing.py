@@ -77,7 +77,7 @@ from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.provenance import engine
 
 #: `src/`, for the subprocesses that read the codecs an interpreter settled at startup.
-PACKAGE = Path(__file__).resolve().parents[1] / "src"
+PACKAGE = Path(__file__).resolve().parents[1] / "plugin" / "src"
 
 ROADMAP = "docs/ROADMAP.md"
 
@@ -362,7 +362,7 @@ def test_nothing_leaves_the_machine():
     never executes it.
     """
     tree = ast.parse(
-        (Path(__file__).resolve().parents[1] / "src" / "roadkeep" / "capturing.py").read_text(
+        (Path(__file__).resolve().parents[1] / "plugin" / "src" / "roadkeep" / "capturing.py").read_text(
             encoding="utf-8"
         )
     )

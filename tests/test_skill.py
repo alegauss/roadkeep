@@ -42,11 +42,11 @@ def _plugin_pages() -> tuple[str, ...]:
 
 
 HERE = Path(__file__).resolve().parents[1]
-SKILL = HERE / "skills" / "roadkeep" / "SKILL.md"
+SKILL = HERE / "plugin" / "skills" / "roadkeep" / "SKILL.md"
 #: The two pages the orientation points at (RK1437). Read off `installing.PLUGIN_PAGES`
 #: rather than named again here: what the plugin carries is that list, and a second one
 #: would let a page be dropped from the install and stay green in the tests.
-PAGES = tuple(HERE / page for page in _plugin_pages())
+PAGES = tuple(HERE / "plugin" / page for page in _plugin_pages())
 AGENTS = HERE / "agents.md"
 
 #: The write path, as the skill spells it. Each is a command an agent would otherwise guess.
@@ -115,8 +115,8 @@ def test_the_skill_sits_where_the_plugin_loader_looks():
     # Beside hooks/, one directory per skill, the file named SKILL.md: the convention is the
     # declaration, which is why the manifest carries no path that could go stale.
     assert SKILL.is_file()
-    assert SKILL.parent.parent == HERE / "skills"
-    assert (HERE / "hooks" / "hooks.json").is_file()
+    assert SKILL.parent.parent == HERE / "plugin" / "skills"
+    assert (HERE / "plugin" / "hooks" / "hooks.json").is_file()
 
 
 def test_the_skill_is_named_for_the_plugin_and_its_own_directory():
@@ -335,7 +335,7 @@ def test_no_copy_of_the_duplicate_claim_prices_it_at_a_rank_nobody_can_reproduce
     """
     copies = {
         "skill": flowed(),
-        "guard": (HERE / "src" / "roadkeep" / "guarding.py").read_text(encoding="utf-8"),
+        "guard": (HERE / "plugin" / "src" / "roadkeep" / "guarding.py").read_text(encoding="utf-8"),
         "delivered": _subparser("delivered").description or "",
     }
     for name, body in copies.items():

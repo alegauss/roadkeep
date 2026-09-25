@@ -989,7 +989,7 @@ export const install = {
           "No ",
           { code: "uv" },
           " on the machine? The plugin you just installed carries the same engine, so nothing has to be fetched: ",
-          { code: "python ~/.claude/plugins/marketplaces/alegauss/scripts/roadkeep.py adopt …" },
+          { code: "python ~/.claude/plugins/marketplaces/alegauss/plugin/scripts/roadkeep.py adopt …" },
           ".",
         ],
       ] as Rich[],

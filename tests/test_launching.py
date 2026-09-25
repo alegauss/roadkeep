@@ -31,7 +31,7 @@ import pytest
 from roadkeep.installing import PLUGIN_BRIDGE, PROJECT_BRIDGE
 
 ROOT = Path(__file__).resolve().parents[1]
-BRIDGE = ROOT / PLUGIN_BRIDGE
+BRIDGE = ROOT / "plugin" / PLUGIN_BRIDGE
 
 
 def load():
@@ -464,13 +464,23 @@ def nowhere(cwd: Path) -> dict[str, str]:
 
 
 def bridged(argv: list[str], home: Path | None, cwd: Path) -> subprocess.CompletedProcess:
-    """The shipped file, run as the agent runs it: an engine named, and a project to answer in."""
+    """The shipped file, run as the agent runs it: an engine named, and a project to answer in.
+
+    From where an adopter commits it, `<project>/.claude/hooks/`, and not from the source tree
+    (RK1699): the file reads its own place as the project's root, two levels up, and in the
+    source tree that is now this repository — whose sibling-checkout route then finds the very
+    engine a *nothing to find* case exists to be without.
+    """
+    placed = cwd / ".claude" / "hooks" / BRIDGE.name
+    if not placed.is_file():
+        placed.parent.mkdir(parents=True, exist_ok=True)
+        placed.write_bytes(BRIDGE.read_bytes())
     env = {**os.environ, "ROADKEEP_HOME": "" if home is None else str(home)}
     env.pop(POPPED, None)
     if home is None:
         env.update(nowhere(cwd))
     return subprocess.run(
-        [sys.executable, str(BRIDGE), *argv],
+        [sys.executable, str(placed), *argv],
         capture_output=True,
         check=False,
         cwd=str(cwd),
@@ -771,7 +781,7 @@ def test_a_source_that_predates_the_bridge_is_refused_by_name(tmp_path):
     older = tmp_path / "older-roadkeep"
     for part in CARRIED:  # the real five, copied — and not the bridge
         (older / part).parent.mkdir(parents=True, exist_ok=True)
-        (older / part).write_bytes((ROOT / part).read_bytes())
+        (older / part).write_bytes((ROOT / "plugin" / part).read_bytes())
     # Without the flag it translates fine: the bridge is not one of the five.
     assert plan(tmp_path, source=older, gauging=False) is not None
     with pytest.raises(NotShipped) as refusal:
@@ -876,8 +886,8 @@ def unparsable(tmp_path: Path) -> Path:
     """A copy of the engine whose `backlog.py` has one stray indent in it — an edit in progress,
     which is the state this was met in from another repository."""
     engine = tmp_path / "roadkeep"
-    shutil.copytree(ROOT / "src", engine / "src")
-    shutil.copytree(ROOT / "scripts", engine / "scripts")
+    shutil.copytree(ROOT / "plugin" / "src", engine / "src")
+    shutil.copytree(ROOT / "plugin" / "scripts", engine / "scripts")
     broken = engine / "src" / "roadkeep" / "backlog.py"
     lines = broken.read_text(encoding="utf-8").split("\n")
     at = next(i for i, line in enumerate(lines) if line.startswith(("def ", "class ")))

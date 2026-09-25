@@ -27,8 +27,8 @@ from roadkeep.provenance import Engine
 
 from conftest import GOVERNED, HERE, RECORDED, WATCHED, Checkout, _stamp, since_import
 
-MODULE = "src/roadkeep/__init__.py"
-MANIFEST = ".claude-plugin/plugin.json"
+MODULE = "plugin/src/roadkeep/__init__.py"
+MANIFEST = "plugin/.claude-plugin/plugin.json"
 
 
 def half_stale() -> Checkout:

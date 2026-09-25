@@ -27,7 +27,7 @@ function ask(argv) {
     try {
       return execFileSync(interpreter, ["-m", "roadkeep.cli", ...argv, "--json"], {
         cwd: ROOT,
-        env: { ...process.env, PYTHONPATH: join(ROOT, "src"), PYTHONIOENCODING: "utf-8" },
+        env: { ...process.env, PYTHONPATH: join(ROOT, "plugin", "src"), PYTHONIOENCODING: "utf-8" },
         encoding: "utf-8",
         maxBuffer: 32 * 1024 * 1024,
       });

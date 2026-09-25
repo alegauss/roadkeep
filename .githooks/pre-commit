@@ -30,7 +30,7 @@
 
 root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
 
-versioned="src/roadkeep/__init__.py .claude-plugin/plugin.json editor/package.json"
+versioned="plugin/src/roadkeep/__init__.py plugin/.claude-plugin/plugin.json editor/package.json"
 
 for interpreter in python python3 py; do
 	if command -v "$interpreter" >/dev/null 2>&1; then

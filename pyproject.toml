@@ -70,10 +70,10 @@ roadkeep = "roadkeep.cli:main"
 version = { attr = "roadkeep.__version__" }
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["plugin/src"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+pythonpath = ["plugin/src"]
 testpaths = ["tests"]
 # RK457. A full run was 2865 tests in 5m07s, paid before an edit is known to hold and paid
 # again by an agent that edits, runs and edits. The time is not one hot spot — 272 s of 300

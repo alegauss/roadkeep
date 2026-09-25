@@ -24,7 +24,7 @@ from asking import ANSWERS_NO_QUESTION, QUESTIONS, read_only, verb_of, verbs
 
 from roadkeep.cli import build_parser
 
-SKILL = Path(__file__).resolve().parents[1] / "skills" / "roadkeep" / "SKILL.md"
+SKILL = Path(__file__).resolve().parents[1] / "plugin" / "skills" / "roadkeep" / "SKILL.md"
 
 
 def _skill() -> str:
