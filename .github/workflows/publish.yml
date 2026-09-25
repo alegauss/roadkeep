@@ -74,7 +74,7 @@ jobs:
     steps:
       # Full history for the same reason the gate needs it: the suite this job runs
       # derives task origins from commit subjects, so a shallow clone fails a release.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: actions/setup-python@v5
