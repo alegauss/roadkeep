@@ -32,6 +32,8 @@
 
 ## Block E — Adoption
 
+- 📋 **RK1705** (deps: —) **a launcher committed before RK1699 finds no engine in a roadkeep checkout, and its guard then stands down unsaid** — Measured on 2026-09-25, two adopters lost server and guard for hours, and nothing told the session that hand edits of the governed files were no longer refused. → §RK1705
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)
