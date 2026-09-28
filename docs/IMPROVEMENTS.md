@@ -77,9 +77,60 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1708 An address for a ledger entry with an ungrammatical id
+
+Shio's `docs/CHANGELOG.md` carries adopted entries whose ids predate the id grammar,
+such as `**SH-0f**`. One of them is among the six false `code.renamed` findings (see the
+rule's own line), and rewording it is the documented remedy. It cannot be applied:
+`record amend SH-0f` answers "SH-0f is not in docs/CHANGELOG.md", because the id pattern
+does not accept it. The guard also refuses the hand-edit. So the one entry is correct by
+no verb, and the finding the gate shows for it names a verb that refuses it.
+
+The ledger reader already parses the entry, since lint reports its line and column. What is
+missing is an address for an entry whose id the grammar rejects. Two shapes:
+- `record amend --line <n>` on the ledger, taking the line the finding printed. A lint finding
+  already names `docs/CHANGELOG.md:1290`, so the address is in hand.
+- `renumber` accepting a legacy id as its source, so the entry gets a grammatical id first.
+  That changes history, and `renumber`'s own rules may forbid it.
+
+The first is smaller and matches how a finding is read. Either way, the finding's remedy
+text for an id-less or ungrammatical entry should print the verb that will actually
+accept it. At the moment it prints `roadkeep record amend … --why -` with an ellipsis
+where the id would go.
+
+Fixture: a ledger with one `**XX-0f**` entry, a finding against it, and the remedy the
+finding prints applied successfully.
+
 ## Block C — Query
 
 ## Block D — The gate
+
+### §RK1707 code.renamed tells a vendored engine from the project's own source
+
+`code.renamed` resolves a backticked dotted name against the engine's own modules, and
+it runs only when the engine sits inside the project (`linting.py`, `config.root not in
+home.parents`). The condition is meant to mean "this checkout is roadkeep's source". An
+adopter that vendors the engine meets it too. Shio installs `.roadkeep/` the way
+`node_modules` is filled, so `ROADKEEP_HOME` points at a directory inside the project
+root.
+
+Measured in Shio with 0.2.505, vendored from this repository: `lint` exits 1 with six
+`code.renamed` findings, and all six are false. Ledger entries cite document.fonts,
+document.referrer and schema.graphqls, which are browser and GraphQL names (spelled bare
+here, because backticked this rule would fire on them in this repository, correctly).
+They match roadkeep's own `document.py` and `schema.py`, so the rule reports a rename
+that never happened. Shio has held this as SH1102 since 0.2.473. The same six reproduce
+on 0.2.489 and 0.2.505, so the docs gate there can only pass with `--baseline`.
+
+The engine directory needs to prove it is the project's own source, not merely sit under its
+root. Candidates, cheapest first:
+- the engine's `pyproject.toml`/package root is the project root;
+- the project's `roadkeep.toml` prefix is roadkeep's own;
+- a vendored copy carries a marker the installer writes, and the rule skips it.
+
+Whichever is chosen, the vendored layout needs a fixture: an adopter tree with the
+engine under `.roadkeep/` and prose citing document.x must lint clean. The existing
+fixture of this repository citing a renamed symbol must still report it.
 
 ## Block E — Adoption
 

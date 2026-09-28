@@ -26,9 +26,13 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1708** (deps: —) **a ledger entry whose id the grammar rejects has no verb that corrects it, and its finding names one that refuses** — record amend SH-0f answers not in the ledger, the guard refuses the hand-edit, and lint still prints that verb as the remedy. → §RK1708
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
+
+- 📋 **RK1707** (deps: —) **code.renamed fires in an adopter that vendors the engine, so its gate reports renames that never happened** — The rule runs whenever the engine sits under the project root, which a vendored .roadkeep/ does; Shio shows six false findings on 0.2.505. → §RK1707
 
 ## Block E — Adoption
 
