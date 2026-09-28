@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1708** (deps: —) **a ledger entry whose id the grammar rejects has no verb that corrects it, and its finding names one that refuses** — record amend SH-0f answers not in the ledger, the guard refuses the hand-edit, and lint still prints that verb as the remedy. → §RK1708
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

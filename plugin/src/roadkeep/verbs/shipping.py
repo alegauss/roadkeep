@@ -29,6 +29,8 @@ from roadkeep.shipping import (
     Partial,
     amend as amend_record,
     drop as drop_record,
+    entry_at,
+    reline,
     move as move_record,
     readdress as readdress_record,
     record,
@@ -130,11 +132,44 @@ def _record(config: Config, args: argparse.Namespace) -> Result | int:
 
 
 def _record_amend(config: Config, args: argparse.Namespace) -> Result | int:
-    if args.why is None and args.part is None and args.symptom is None:
+    fields = args.why is not None or args.part is not None or args.symptom is not None
+    if (args.id is None) == (args.line is None):
+        print("roadkeep: record amend takes an id or --line, and one of them", file=sys.stderr)
+        return EXIT_USAGE
+    if args.body is not None:
+        # RK1708: the one door onto a ledger line no entry grammar reads, which has no fields
+        # to name — so it is the whole line, and a field beside it is a second answer.
+        if args.line is None or fields:
+            print(
+                "roadkeep: --body rewrites the line --line names, and takes no --why, --part "
+                "or --symptom beside it",
+                file=sys.stderr,
+            )
+            return EXIT_USAGE
+        try:
+            relined = reline(config, args.line, _piped(args.body))
+            wrote = relined.save()
+        except REFUSALS as error:
+            return _refused(error)
+        return Result(relined.payload(config, wrote), relined.stated(config, wrote))
+    if not fields:
         print(
-            "roadkeep: nothing to amend: pass --why, --part or --symptom", file=sys.stderr
+            "roadkeep: nothing to amend: pass --why, --part or --symptom, or --line with "
+            "--body for a ledger line no entry grammar reads",
+            file=sys.stderr,
         )
         return EXIT_USAGE
+    if args.line is not None:
+        # The address a finding printed, for an entry that has an id: the id is read off it.
+        held = entry_at(config, args.line)
+        if held is None:
+            print(
+                f"roadkeep: no ledger entry starts on line {args.line}: a line the grammar "
+                "does not read is rewritten whole, with --body -",
+                file=sys.stderr,
+            )
+            return EXIT_USAGE
+        args.id = held.task.id
     try:
         # One read joined to the listing, not a second parse: `reversals` walks the same
         # entries for the same clause, so asking it here is what keeps the two answers one
@@ -692,16 +727,21 @@ def declare_departures(subcommands: argparse._SubParsersAction) -> None:
         "amend",
         help="correct a ledger entry's sentence where it stands",
         description=(
-            "Rewrite one entry's `why`, or a partial's qualifier, without moving the line. "
-            "`drop` and `add` are not equivalent to this: they would remove the entry and "
-            "append a new one under its block, so a ledger read in the order work landed "
-            "stops being one and a reviewer sees a deletion where a word changed. The "
-            "`symptom` is the claim, so it is respellable and never rewordable; the id is "
-            "not a field here and is `renumber`'s; and the block is not offered because "
-            "filing an entry elsewhere is a move."
+            "Rewrite one entry's `why`, or a partial's qualifier, without moving the line: "
+            "`drop` plus `add` would re-append it, and a reviewer sees a deletion where a word "
+            "changed. The `symptom` is respellable and never rewordable; the id is not a field "
+            "here and is `renumber`'s, the block `record move`'s. `--line` addresses an entry by "
+            "number, and with `--body` rewrites a line whose id the grammar refuses."
         ),
     )
-    record_amend.add_argument("id", help="the recorded id, e.g. RK41")
+    record_amend.add_argument("id", nargs="?", help="the recorded id, e.g. RK41")
+    # RK1708: the address a finding prints, for a line whose id the grammar refuses.
+    record_amend.add_argument(
+        "--line", type=int, help="the ledger line, as a finding printed it, in place of an id"
+    )
+    record_amend.add_argument(
+        "--body", help="the whole line, for one no entry grammar reads" + _PIPE
+    )
     record_amend.add_argument(
         "--why",
         help=(
@@ -727,14 +767,14 @@ def declare_departures(subcommands: argparse._SubParsersAction) -> None:
         "--lines",
         type=int,
         help=(
-            "how many lines this correction replaces; required where the entry wraps, "
-            "because there the sentence runs past the line the parse holds — and above "
-            "one it is also what lets --why carry that span back"
+            "how many lines this replaces; required where the entry wraps, and above one it "
+            "lets --why carry that span back"
         ),
     )
     record_amend.add_argument("--json", action="store_true", help=_JSON_HELP)
     record_amend.set_defaults(
-        handler=_record_amend, reads_stdin=(Prose(dest="why", omitted=False),)
+        handler=_record_amend,
+        reads_stdin=(Prose(dest="why", omitted=False), Prose(dest="body", omitted=False)),
     )
 
     record_move = entries.add_parser(

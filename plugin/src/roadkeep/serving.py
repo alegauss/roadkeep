@@ -551,7 +551,9 @@ TOOLS: tuple[Tool, ...] = (
     # caller saying they read it — a door the agent this ships for has to be able to reach.
     # `symptom` for `revise`'s reason, one file over (RK1474): the ledger holds the same
     # copied claim and `record amend` declined it, so a respelling had nowhere to go.
-    Tool("record amend", ("id", "why", "part", "symptom", "lines")),
+    # And `line` with `text` (RK1708): the address a finding prints, for a line whose id the
+    # grammar refuses — the one ledger line no other served door reaches.
+    Tool("record amend", ("id", "line", "body", "why", "part", "symptom", "lines")),
     # The move `record amend` refuses to spell as a correction (RK143). Exposed beside it
     # because an entry filed under the wrong block is what `ship` writes from a line filed
     # under the wrong block — an agent's own slip, and the hand-edit that repaired it is the
@@ -1201,6 +1203,26 @@ _SPAN_BOUNDS = {
     },
 }
 
+#: `record amend`'s own, for the one field `ship` does not take (RK1708): a ledger line no entry
+#: grammar reads, rewritten whole, so the bound is the line's and never a section's word count.
+_LEDGER_LINE_BOUNDS = {
+    **_SPAN_BOUNDS,
+    # The span note's substance in fewer words, bought back for the two fields this verb grew:
+    # `ship` keeps the long one, being the tool `budget` must stay under (RK1059).
+    "why": lambda config: {
+        "note": (
+            f"Aim for {words(config.schema.why_max)} words. **No `maxLength`, the limit being "
+            f"per line**: {config.schema.why_max} UTF-16 code units refuses a one-line field "
+            f"and the rendered line ({config.schema.line_max}) binds; a `--lines` span is "
+            f"measured on its first line alone."
+        )
+    },
+    "body": lambda config: {
+        "maxLength": config.schema.line_max,
+        "note": f"{config.schema.line_max} UTF-16 code units, the ledger line's own ceiling.",
+    },
+}
+
 
 #: The one verb whose prose fields are **drafts to measure** and not fields to write (RK1190).
 #: Every other table above publishes `maxLength`, and here that number is the defect: a client
@@ -1256,7 +1278,7 @@ _DIVERGENT: Mapping[str, Mapping[str, Any]] = {
     "non-goal": _SCOPE_BOUNDS,
     "list": _FILE_BOUNDS,
     "ship": _SPAN_BOUNDS,
-    "record amend": _SPAN_BOUNDS,
+    "record amend": _LEDGER_LINE_BOUNDS,
     "budget": _DRAFT_BOUNDS,
     "declare": _ABSENT_BOUNDS,
     "criterion": _CRITERIA_BOUNDS,

@@ -359,7 +359,8 @@ differ are two deliveries under one id, not one recorded twice: `record drop <id
 <n>` if you have read both, or `record renumber <id> --line <n> --to <new>` to give one its
 own address — the new id derived, one past the highest in its family, where you pass none.
 To *fix* an entry use `record amend <id> --why "…"` (or `record amend <id> --part "<which
-half>"` on a partial) —
+half>"` on a partial), and a line whose id the grammar refuses — an adopted `**SH-0f**` —
+by the number a finding printed, `record amend --line <n> --body -`, the whole line on stdin —
 never drop-and-re-add, which moves the line to the end of its block and shows a reviewer a
 deletion where a word changed. On a ledger written before the tool, where a bullet
 **wraps**, that correction is refused until `record amend <id> --lines <n>` says how many

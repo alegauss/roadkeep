@@ -1478,3 +1478,80 @@ def test_the_command_carries_the_superseded_entry_in_json(tmp_path, capsys):
     answer = json.loads(capsys.readouterr().out)
     assert answer["superseded"]["id"] == "RK9"
     assert "(superseded by RK10)" in answer["superseded"]["rendered"]
+
+
+# -- a line whose id the grammar refuses (RK1708) ----------------------------
+
+#: Shio's shape: an adopted entry whose id predates the grammar, beside one that has an id.
+ADOPTED = """# Shipped
+
+## Block A — The model
+
+- ✅ **RK1** **A first symptom** — Because of a reason.
+
+- **XX-0f** — **Scaffold** — wired, with `document.fonts` in place.
+"""
+
+
+def test_a_line_the_grammar_refuses_is_rewritten_by_the_number_a_finding_printed(
+    tmp_path, capsys
+):
+    """`record amend XX-0f` answered *not in the ledger* and the guard refused the hand edit,
+    so the line was correct by no verb — and the finding on it named the verb that refused."""
+    config = project(tmp_path, ledger=ADOPTED)
+    assert "XX-0f" not in config.document("changelog").by_id()
+    fixed = "- **XX-0f** — **Scaffold** — wired, with the font list in place."
+    argv = ["-C", str(tmp_path), "record", "amend", "--line", "7", "--body", fixed, "--json"]
+    assert main(argv) == EXIT_OK
+    answer = json.loads(capsys.readouterr().out)
+    assert answer["line"] == 7
+    assert answer["rendered"] == fixed
+    assert read(tmp_path, "CHANGELOG.md") == ADOPTED.replace(ADOPTED.splitlines()[6], fixed)
+
+
+def test_the_remedy_a_finding_on_that_line_prints_is_one_that_runs(tmp_path, capsys):
+    from roadkeep.linting import Finding
+    from roadkeep.remedying import remedy
+
+    config = project(tmp_path, ledger=ADOPTED)
+    found = Finding("code.renamed", "CHANGELOG.md", "cites `document.fonts`", 7, "", column=30)
+    (door,) = [
+        one for one in remedy(found, config).doors if "--line" in one.argv
+    ]
+    assert door.argv == ("record", "amend", "--line", "7", "--body", "-")
+    assert main(["-C", str(tmp_path), *door.argv[:-1], "- **XX-0f** — **Scaffold** — wired."]) == 0
+
+
+def test_an_entry_line_is_corrected_by_its_fields_and_not_rewritten_whole(tmp_path, capsys):
+    config = project(tmp_path, ledger=ADOPTED)
+    before = read(tmp_path, "CHANGELOG.md")
+    assert main(["-C", str(tmp_path), "record", "amend", "--line", "5", "--body", "x"]) != 0
+    assert "record amend RK1 --why -" in capsys.readouterr().err
+    assert read(tmp_path, "CHANGELOG.md") == before
+    # And `--line` with a field reads the id off the entry, which is the address it printed.
+    argv = ["-C", str(tmp_path), "record", "amend", "--line", "5", "--why", "Because of two."]
+    assert main(argv) == EXIT_OK
+    assert "- ✅ **RK1** **A first symptom** — Because of two." in read(tmp_path, "CHANGELOG.md")
+
+
+@pytest.mark.parametrize(
+    "line, text",
+    [(7, "```"), (3, "## Block Z — Elsewhere"), (4, "prose"), (9, "prose"), (7, "one\ntwo")],
+)
+def test_a_rewrite_that_reaches_past_its_line_is_refused_over_an_untouched_file(
+    tmp_path, capsys, line, text
+):
+    # A fence swallows every entry under it, a heading is a block's, a blank line and a line
+    # past the end are not lines of prose, and two lines are not one.
+    config = project(tmp_path, ledger=ADOPTED + "- ✅ **RK2** **B** — Because.\n")
+    before = read(tmp_path, "CHANGELOG.md")
+    argv = ["-C", str(tmp_path), "record", "amend", "--line", str(line), "--body", text]
+    assert main(argv) != EXIT_OK
+    assert read(tmp_path, "CHANGELOG.md") == before
+
+
+def test_an_id_and_a_line_together_are_two_addresses(tmp_path, capsys):
+    project(tmp_path, ledger=ADOPTED)
+    argv = ["-C", str(tmp_path), "record", "amend", "RK1", "--line", "5", "--why", "B."]
+    assert main(argv) == EXIT_USAGE
+    assert main(["-C", str(tmp_path), "record", "amend", "--why", "B."]) == EXIT_USAGE

@@ -1324,6 +1324,10 @@ _TABLE: Mapping[str, _Rule] = {
             ("record", "amend", "{id}", "--why", "-"),
             "where it is in a ledger entry, which is the third prose a law is cited from",
         ),
+        (
+            ("record", "amend", "--line", "{line}", "--body", "-"),
+            "where it is in a ledger line no entry grammar reads, the whole line on stdin",
+        ),
     ),
     # RK1550, and `law.unknown`'s shape one citation over: which verb corrects it is decided
     # by where the sentence sits, and the sentence itself is the author's — a rename has no
@@ -1342,6 +1346,11 @@ _TABLE: Mapping[str, _Rule] = {
         (
             ("amend", "{id}", "--why", "-"),
             "where it is in a roadmap line's why",
+        ),
+        # RK1708: an adopted entry whose id predates the grammar has no `{id}` to fill.
+        (
+            ("record", "amend", "--line", "{line}", "--body", "-"),
+            "where it is in a ledger line no entry grammar reads, the whole line on stdin",
         ),
     ),
     "section.too-long": _compose(

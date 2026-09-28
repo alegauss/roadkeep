@@ -2410,6 +2410,107 @@ def amend(
     )
 
 
+class NotALine(ValueError):
+    """A `record amend --line` that addresses nothing it may rewrite (RK1708)."""
+
+
+@dataclass(frozen=True, slots=True)
+class Relined:
+    """One ledger line that no entry grammar reads, rewritten where it stands (RK1708).
+
+    The address an entry whose id predates the grammar never had: Shio carries `**SH-0f**`,
+    which the id pattern refuses, so `record amend SH-0f` answered *not in the ledger*, the
+    guard refused the hand edit, and the finding on that line named the verb that refused it.
+    The line number is the address the finding already printed.
+    """
+
+    ledger: Document
+    lineno: int
+    before: str
+    after: str
+
+    def save(self) -> tuple[Path, ...]:
+        return self.ledger.save() if self.before != self.after else ()
+
+    def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
+
+        where = config.relative(config.path("changelog"))
+        if self.before == self.after:
+            return f"{where}:{self.lineno} unchanged: the line already reads that way"
+        rows = [f"{where}:{self.lineno} rewritten", f"  {self.after}"]
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        return "\n".join(rows)
+
+    def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            "id": None,
+            "file": config.relative(config.path("changelog")),
+            "line": self.lineno,
+            **_wrote_json(config, wrote),
+            "was": self.before,
+            "rendered": self.after,
+        }
+
+
+def entry_at(config: Config, lineno: int) -> Entry | None:
+    """The ledger entry whose first line is `lineno`, or None where no entry starts there."""
+    ledger = config.document("changelog")
+    return next((one for one in ledger.entries if one.lineno == lineno), None)
+
+
+def reline(config: Config, lineno: int, text: str) -> Relined:
+    """Rewrite one ledger line the entry grammar does not read, by its number (RK1708).
+
+    Only such a line: an entry is corrected through its fields, which is `amend`, and a
+    heading is a block's, which is `block amend`. The text is the author's and arrives whole
+    (L4), so what is checked is that it stays one line and that the file around it still reads
+    the same — **every entry still there, byte for byte**, because one line can open a fence
+    and swallow the entries under it.
+    """
+    ledger = config.document("changelog")
+    where = config.relative(config.path("changelog"))
+    schema = ledger.schema
+    if width(text) > schema.line_max:
+        # First, so a line past the ledger's own ceiling is refused before anything else is
+        # read about it (L1): what bounds prose with no fields is the line it is.
+        raise NotALine(
+            "--body is "
+            + over_by(
+                width(text), schema.line_max, measured=text, source=schema.source_of("line_max")
+            )
+        )
+    if not 1 <= lineno <= len(ledger.lines):
+        raise NotALine(f"{where} has {len(ledger.lines)} line(s), so there is no line {lineno}")
+    held = entry_at(config, lineno)
+    if held is not None:
+        raise NotALine(
+            f"{where}:{lineno} is {held.task.id}'s entry, which is corrected by its fields: "
+            f"`record amend {held.task.id} --why -`"
+        )
+    before = ledger.lines[lineno - 1].rstrip("\r\n")
+    if not before.strip() or before.lstrip().startswith("#"):
+        raise NotALine(
+            f"{where}:{lineno} is {'blank' if not before.strip() else 'a heading'}, and --body "
+            f"rewrites a line of the ledger's own prose"
+        )
+    if not text.strip() or "\n" in text or "\r" in text:
+        raise NotALine("--body is the one line that replaces it, and cannot be empty")
+    if text == before:
+        return Relined(ledger, lineno, before, text)
+    document = ledger.replace_line(lineno - 1, text)
+    kept = {(one.task.id, one.raw) for one in document.entries}
+    lost = [one.task.id for one in ledger.entries if (one.task.id, one.raw) not in kept]
+    if lost or len(document.headings) != len(ledger.headings):
+        raise NotALine(
+            f"that text changes how {where} reads beyond line {lineno}"
+            + (f" — {', '.join(lost)} would no longer parse" if lost else "")
+        )
+    return Relined(document, lineno, before, text)
+
+
 def _derived_tail(ledger: Document, entry: Entry) -> tuple[str, ...] | None:
     """The lines under this entry where **every one of them is this tool's** (RK1484).
 

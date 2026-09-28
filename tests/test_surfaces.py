@@ -472,7 +472,11 @@ MEASURING_FILES = {
 
 - **The gate passes** It passes on this project's own docs.
 """,
-    "CHANGELOG.md": "# Shipped\n\n## Block A\n\n- ✅ **RK9** **A shipped symptom** — It works now.\n",
+    # And a line no entry grammar reads (RK1708), which `record amend --line` rewrites whole.
+    "CHANGELOG.md": (
+        "# Shipped\n\n## Block A\n\n- ✅ **RK9** **A shipped symptom** — It works now.\n\n"
+        "- **RK-0f** — adopted history.\n"
+    ),
     "IMPROVEMENTS.md": (
         "# Improvements\n\n## Block A\n\n### §RK1 A first design\n\nThe reasoning.\n\n"
         "### §RK3 A third design\n\nThe other reasoning.\n"
@@ -531,6 +535,8 @@ MEASURED: dict[tuple[str, str], list[str]] = {
         "record", "add", "--block", "A", "--symptom", "A symptom", "--why", OVER,
     ],
     ("record amend", "why"): ["record", "amend", "RK9", "--why", OVER],
+    # RK1708. The whole line, measured against the ledger's own line ceiling.
+    ("record amend", "body"): ["record", "amend", "--line", "7", "--body", OVER],
     ("revise", "decides"): ["revise", "RK9", "--decides", OVER],
     # RK1690. What a person saw, measured against the ledger's own `why` limit before the line
     # under the entry is composed.
