@@ -110,17 +110,14 @@ finding prints applied successfully.
 `code.renamed` resolves a backticked dotted name against the engine's own modules, and
 it runs only when the engine sits inside the project (`linting.py`, `config.root not in
 home.parents`). The condition is meant to mean "this checkout is roadkeep's source". An
-adopter that vendors the engine meets it too. Shio installs `.roadkeep/` the way
-`node_modules` is filled, so `ROADKEEP_HOME` points at a directory inside the project
-root.
+adopter that vendors the engine meets it too: Shio fills `.roadkeep/` the way
+`node_modules` is filled, so `ROADKEEP_HOME` names a directory inside the project root.
 
-Measured in Shio with 0.2.505, vendored from this repository: `lint` exits 1 with six
-`code.renamed` findings, and all six are false. Ledger entries cite document.fonts,
-document.referrer and schema.graphqls, which are browser and GraphQL names (spelled bare
-here, because backticked this rule would fire on them in this repository, correctly).
-They match roadkeep's own `document.py` and `schema.py`, so the rule reports a rename
-that never happened. Shio has held this as SH1102 since 0.2.473. The same six reproduce
-on 0.2.489 and 0.2.505, so the docs gate there can only pass with `--baseline`.
+Measured in Shio on 0.2.489 and 0.2.505: `lint` exits 1 on six `code.renamed` findings,
+all false. Ledger entries cite document.fonts, document.referrer and schema.graphqls
+(browser and GraphQL names, bare here because backticked this rule fires on them in this
+repository, correctly), which match roadkeep's `document.py` and `schema.py`. Held there
+as SH1102 since 0.2.473, so its docs gate passes only with `--baseline`.
 
 The engine directory needs to prove it is the project's own source, not merely sit under its
 root. Candidates, cheapest first:
