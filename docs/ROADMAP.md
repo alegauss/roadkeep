@@ -38,8 +38,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1706** (deps: —) **a line's requires can be replaced but never cleared, so a need a person met stays on the line** — Once the owner gave the verdict a line waited on, nothing removed (requires: artdirector), and pick keeps setting the line aside. → §RK1706
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

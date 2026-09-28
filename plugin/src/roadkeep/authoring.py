@@ -187,6 +187,25 @@ class DepNotCarried(ValueError):
         )
 
 
+class RequirementNotCarried(ValueError):
+    """A `--drop-requires` naming a word this line does not carry (RK1706).
+
+    :class:`DepNotCarried`'s rule for the other group: a caller who says *this need is met*
+    about a word the line never had believes the line will be offered again, and it will not
+    have changed.
+    """
+
+    def __init__(self, task_id: str, wanted: Sequence[str], carried: Sequence[str]) -> None:
+        self.task_id = task_id
+        self.wanted = tuple(wanted)
+        named = ", ".join(self.wanted)
+        held = ", ".join(carried) or "no requirement at all"
+        super().__init__(
+            f"{task_id} does not require {named}: it carries {held} — a drop names one of "
+            f"those, and `show {task_id}` prints them"
+        )
+
+
 class DepAlreadyCarried(ValueError):
     """An `--add-dep` naming something this line already waits on (RK1480).
 
@@ -1920,6 +1939,7 @@ def amend(
     add_deps: Sequence[str] = (),
     drop_deps: Sequence[str] = (),
     requires: Sequence[str] | None = None,
+    drop_requires: Sequence[str] = (),
     ref: str | None = None,
     lines: int | None = None,
 ) -> Amendment:
@@ -1962,6 +1982,22 @@ def amend(
         # one path: what the two flags buy is that the caller names what changed, and the
         # group the write validates is still one group composed once (RK1480).
         deps = _regrouped(task_id, entry.task.deps, add_deps, drop_deps)
+    if drop_requires:
+        # The narrow door on the other group (RK1706). The whole-group one needs a word to
+        # state, so a line whose last need was met had no call that took it off: measured in
+        # Starship, where a verdict the owner had given kept the line set aside as lacking one.
+        # Refused beside the group it would edit, for `--dep`'s reason with `--drop-dep`: a
+        # caller passing both believes each took effect. Here and not in `answers`, which holds
+        # one exclusive set per verb and would make `--requires` exclude `--dep`.
+        if requires is not None:
+            raise ValueError(
+                f"{task_id}: --requires states the whole group and --drop-requires edits it — "
+                "pass one of them"
+            )
+        missing =[one for one in drop_requires if one not in entry.task.requires]
+        if missing:
+            raise RequirementNotCarried(task_id, missing, entry.task.requires)
+        requires = [one for one in entry.task.requires if one not in drop_requires]
 
     wanted = replace(
         entry.task,

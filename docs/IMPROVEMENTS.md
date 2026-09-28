@@ -133,22 +133,6 @@ fixture of this repository citing a renamed symbol must still report it.
 
 ## Block F — The plugin
 
-### §RK1706 Clearing a line's requirements
-
-Found in Starship (2026-09-27). RK136 carried `(requires: artdirector)` while it waited
-on the owner's verdict on seven trails. The owner gave it, so the line now waits only on
-outside work, and the requirement had to go. `amend --requires` replaces the whole group
-and needs at least one word: `--requires ""` is refused by the argument parser, and the
-MCP tool's `requires: []` writes nothing. So the line keeps a need that was met, and
-`pick` keeps setting it aside as lacking an art director.
-
-`amend` should clear the group: `--requires` given with nothing (or a `--no-requires`,
-as the pair `add_deps`/`drop_deps` already has for deps), and the MCP tool's empty list
-read as "none" rather than "unchanged". A `drop_requires` beside `drop_deps` would read
-the same way. The rendered line then loses its `(requires: ...)` group.
-
-Done when Starship's RK136 can drop its artdirector requirement in one call.
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

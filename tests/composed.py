@@ -185,6 +185,7 @@ FIELDS: dict[str, Composed] = {
     "add_deps": _address("one dep to add, read by the same parser the group is"),
     "drop_deps": _address("one dep to remove, matched against the group already there"),
     "requires": _address("a requirement word, refused unless `[requirements]` declares it"),
+    "drop_requires": _address("one requirement to remove, matched against the group there"),
     "token": _address("a queue entry, which is an id or a `Block X` and nothing else"),
     "task": _address("the line a criterion is scoped to, resolved against the roadmap"),
     "checked": _address("a criterion of this task by its lead — its own sentence is what lands"),

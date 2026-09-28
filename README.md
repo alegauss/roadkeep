@@ -121,17 +121,17 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 202 | 7 |
 | D — The gate | 1 | 318 | 7 |
 | E — Adoption | 0 | 123 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 164 | 4 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 165 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
-| **Total** | 3 | 1179 | 24 |
+| **Total** | 2 | 1180 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1706** (deps: —) **a line's requires can be replaced but never cleared, so a need a person met stays on the line** — Once the owner gave the verdict a line waited on, nothing removed (requires: artdirector), and pick keeps setting the line aside. → §RK1706
+- 📋 **RK1707** (deps: —) **code.renamed fires in an adopter that vendors the engine, so its gate reports renames that never happened** — The rule runs whenever the engine sits under the project root, which a vendored .roadkeep/ does; Shio shows six false findings on 0.2.505. → §RK1707
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

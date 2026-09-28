@@ -426,7 +426,10 @@ TOOLS: tuple[Tool, ...] = (
     # agent restating a group it read out of an earlier answer is the exact population.
     Tool(
         "amend",
-        ("id", "why", "deps", "add_deps", "drop_deps", "requires", "ref", "lines"),
+        (
+            "id", "why", "deps", "add_deps", "drop_deps", "requires", "drop_requires", "ref",
+            "lines",
+        ),
     ),
     # The field `amend` excludes, at its own door (RK178). Exposed beside it because the agent
     # that discovers a premise is false is the one executing the line, and the exit designed

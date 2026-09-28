@@ -152,13 +152,14 @@ def _amend(config: Config, args: argparse.Namespace) -> Result | int:
         and not args.drop_deps
         and args.ref is None
         and not args.requires
+        and not args.drop_requires
     ):
         # Named only where the project declares a vocabulary (L6): a flag offered here and
         # refused by `requires.unknown` one call later is the detour RK16 keeps out of a
         # remedy, and a project that declared none has no requirement to attach.
         fields = "--why, --dep, --add-dep, --drop-dep or --ref"
         if config.schema.requirements:
-            fields = "--why, --dep, --add-dep, --drop-dep, --requires or --ref"
+            fields = "--why, --dep, --add-dep, --drop-dep, --requires, --drop-requires or --ref"
         print(f"roadkeep: nothing to amend: pass {fields}", file=sys.stderr)
         return EXIT_USAGE
     try:
@@ -170,6 +171,7 @@ def _amend(config: Config, args: argparse.Namespace) -> Result | int:
             add_deps=args.add_deps,
             drop_deps=args.drop_deps,
             requires=args.requires,
+            drop_requires=args.drop_requires,
             ref=args.ref,
             lines=args.lines,
         )
@@ -520,6 +522,16 @@ def declare_lines(subcommands: argparse._SubParsersAction) -> None:
         dest="requires",
         metavar="REQUIREMENT",
         help="a requirement, repeatable: given at all, it replaces the whole group",
+    )
+    # RK1706. `--requires` states the group and needs a word to state, so a line whose last
+    # need was met had no call that emptied it.
+    amend_parser.add_argument(
+        "--drop-requires",
+        action="append",
+        default=[],
+        dest="drop_requires",
+        metavar="REQUIREMENT",
+        help="remove one requirement, repeatable",
     )
     amend_parser.add_argument(
         "--ref", help="the rationale anchor, for ref_scheme = 'outline'"

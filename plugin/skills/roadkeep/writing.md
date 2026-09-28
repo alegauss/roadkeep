@@ -221,6 +221,8 @@ spelling the file shows or the bare id — the `✅` is derived and is not yours
 — and one of the two forms per call, never both. A dep renders *into* the line and the
 line's ceiling is shared with the `why`, so an addition that does not fit is refused
 **naming the dep** rather than the sentence that did not move.
+`amend <id> --drop-requires <word>` takes off a need that was met, and dropping the last
+clears the group — `--requires` states one and cannot state none.
 **The `symptom` is not one of `amend`'s fields** — it is the falsifiable claim the
 line is, so a different one is a different task — and where the premise itself turned out
 false, `restate <id> --symptom "…"` is that correction and the only door to it: the id,

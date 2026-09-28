@@ -27,6 +27,7 @@ from roadkeep.authoring import (
     NoAnchor,
     NoProseFile,
     RepeatedHeading,
+    RequirementNotCarried,
     UnknownBlock,
     add,
     amend,
@@ -164,6 +165,24 @@ def test_amend_can_take_the_group_away_entirely(tmp_path):
     task(config, requires=["ps5"])
     amended = amend(config, "RK2", requires=[])
     assert "(requires:" not in amended.entry.raw
+
+
+def test_a_met_requirement_is_dropped_and_the_rest_stay(tmp_path):
+    # RK1706: the whole-group door needs a word to state, so over the CLI and the tools a
+    # line whose last need was met had no call that took it off.
+    config = project(tmp_path, declares=EQUIPPED)
+    task(config, requires=["ps5", "dualsense"])
+    assert "(requires: dualsense) **" in amend(config, "RK2", drop_requires=["ps5"]).entry.raw
+    assert "(requires:" not in amend(config, "RK2", drop_requires=["dualsense"]).entry.raw
+
+
+def test_dropping_a_requirement_the_line_never_carried_is_refused(tmp_path):
+    config = project(tmp_path, declares=EQUIPPED)
+    task(config, requires=["ps5"])
+    before = source(config)
+    with pytest.raises(RequirementNotCarried, match="does not require dualsense"):
+        amend(config, "RK2", drop_requires=["dualsense"])
+    assert source(config) == before
 
 
 def test_a_line_that_requires_nothing_is_byte_identical_to_one_written_before(tmp_path):
@@ -2708,12 +2727,28 @@ def test_the_confirmation_does_not_call_a_written_field_unchanged(tmp_path, caps
     assert "unchanged" in capsys.readouterr().out
 
 
+def test_drop_requires_alone_clears_the_group_from_the_command_line(tmp_path, capsys):
+    """RK1706, measured in Starship: `--requires ""` is refused by the parser, so a verdict the
+    owner had given kept the line set aside as lacking one."""
+    root = _requiring(tmp_path)
+    assert main(["-C", str(root), "amend", "RK1", "--requires", "console"]) == EXIT_OK
+    assert main(["-C", str(root), "amend", "RK1", "--drop-requires", "console"]) == EXIT_OK
+    assert "(requires:" not in (root / "docs" / "ROADMAP.md").read_text(encoding="utf-8")
+    capsys.readouterr()
+    assert main([
+        "-C", str(root), "amend", "RK1", "--requires", "console", "--drop-requires", "console",
+    ]) != EXIT_OK
+
+
 def test_the_refusal_names_the_flag_only_where_a_vocabulary_declares_one(tmp_path, capsys):
     # A flag offered here and refused by `requires.unknown` one call later is the detour RK16
     # keeps out of a remedy, and a project that declared none has no requirement to attach.
     root = _requiring(tmp_path)
     assert main(["-C", str(root), "amend", "RK1"]) == EXIT_USAGE
-    assert "--why, --dep, --add-dep, --drop-dep, --requires or --ref" in capsys.readouterr().err
+    assert (
+        "--why, --dep, --add-dep, --drop-dep, --requires, --drop-requires or --ref"
+        in capsys.readouterr().err
+    )
 
     bare = tmp_path / "bare"
     bare.mkdir()
