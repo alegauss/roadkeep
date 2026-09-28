@@ -131,25 +131,6 @@ fixture of this repository citing a renamed symbol must still report it.
 
 ## Block E — Adoption
 
-### §RK1705 An engine move strands every committed launcher, in silence
-
-RK1699 moved the engine to `plugin/scripts/roadkeep.py` and refreshed `plugin/hooks/`,
-but each adopter keeps the launcher `install --committed` wrote, which looks only at the
-root.
-
-Measured on 2026-09-25 across twenty adopters: starship (`ROADKEEP_HOME` naming this
-checkout) and roadkeep-gui (`../roadkeep`) resolved nothing. The server exited 2, shown
-as `CONNECTION_CLOSED`, and was noticed. The guard exited 0 in silence and was not: for
-hours no hand edit of a governed file was refused. Six adopters already reach no engine
-at all (a `.roadkeep/` holding only `reports/`, no sibling, no plugin row), in the same
-silence.
-
-Two things are missing. An engine move breaks every committed launcher unannounced: a
-shim at the old path for a release, or `lint` comparing the committed launcher with the
-engine's and naming `install --committed`, makes it a finding. And "unenforced beats
-broken" need not mean unsaid: SessionStart can exit 0 and still print one line saying
-the governed files are unguarded.
-
 ## Block F — The plugin
 
 ### §RK1706 Clearing a line's requirements

@@ -1122,6 +1122,48 @@ def test_the_guard_is_still_zero_where_nothing_runs(tmp_path, monkeypatch):
     assert bridge._guard([], b"{}") == 0
 
 
+def test_a_session_whose_guard_found_no_engine_is_told_so_once(tmp_path, monkeypatch, capsys):
+    """RK1705: two adopters lost the guard for hours and nothing said so. Still exit 0, and
+    the line is `SessionStart`'s alone, whose stdout the harness hands the session."""
+    bridge = load()
+    repo = tmp_path / "repo"
+    (repo / ".claude").mkdir(parents=True)
+    broken(repo / bridge.VENDORED)
+    monkeypatch.setenv("CLAUDE_PROJECT_DIR", str(repo))
+    sealed(monkeypatch, tmp_path)
+    monkeypatch.setattr(bridge, "_plugin_is_wired", lambda _root: False)
+
+    started = json.dumps({"hook_event_name": "SessionStart"}).encode()
+    assert bridge._guard([], started) == 0
+    assert capsys.readouterr().out == bridge.UNGUARDED
+    assert bridge.UNGUARDED.isascii()
+
+    for payload in (json.dumps({"hook_event_name": "PreToolUse"}).encode(), b"{}", b"not json"):
+        assert bridge._guard([], payload) == 0
+        assert capsys.readouterr().out == "", payload
+
+
+def test_the_engine_s_old_address_still_answers_a_launcher_that_predates_the_move():
+    """RK1705: a launcher committed before RK1699 looks for `scripts/roadkeep.py` at the top
+    of a checkout and nowhere else, so that path runs the engine that moved into `plugin/`."""
+    shim, engine = ROOT / "scripts" / "roadkeep.py", ROOT / "plugin" / "scripts" / "roadkeep.py"
+    asked = [
+        subprocess.run([sys.executable, str(one), "--version"], capture_output=True, check=False)
+        for one in (shim, engine)
+    ]
+    assert asked[0].returncode == asked[1].returncode == 0
+    assert asked[0].stdout == asked[1].stdout and asked[0].stdout.strip()
+
+
+def test_a_checkout_is_vendored_from_its_plugin_and_not_whole():
+    """The top of a checkout answers through that shim, so `install --vendor` would otherwise
+    copy the repository; a plugin root, carrying the engine at its top, is its own payload."""
+    from roadkeep.installing import _payload
+
+    assert _payload(ROOT) == ROOT / "plugin"
+    assert _payload(ROOT / "plugin") == ROOT / "plugin"
+
+
 def test_a_forwarded_verb_asks_before_it_runs_and_never_retries(tmp_path, monkeypatch, capfd):
     """The split this task turns on: a forwarded verb may **write**, so running one and trying
     the next on failure could repeat a half-done write — the one hazard `guard` does not have.

@@ -2776,7 +2776,7 @@ def candidates(root: Path) -> tuple[Candidate, ...]:
     found: list[Candidate] = []
     seen: set[Path] = set()
     for home, why, working in _places(root, named):
-        resolved = home.resolve()
+        resolved = _payload(home.resolve())
         if resolved in seen or not (resolved / LAUNCHER).is_file():
             continue
         seen.add(resolved)
@@ -2784,6 +2784,18 @@ def candidates(root: Path) -> tuple[Candidate, ...]:
         if version:
             found.append(Candidate(resolved, version, why, working=working))
     return tuple(sorted(found, key=lambda one: one.ordered, reverse=True))
+
+
+def _payload(home: Path) -> Path:
+    """The engine's own tree inside a checkout of roadkeep — its `plugin/` since RK1699 (RK1705).
+
+    A sibling checkout and the cache clone are whole repositories, which carry the engine one
+    level down; a plugin root and a vendored copy carry it at the top. The top of a checkout
+    still answers `--version` through the shim left at the old path, so without this a
+    checkout would be copied whole by `install --vendor`, repository and all.
+    """
+    inner = home / "plugin"
+    return inner if (inner / LAUNCHER).is_file() else home
 
 
 def _places(root: Path, named: str | None) -> list[tuple[Path, str, bool]]:

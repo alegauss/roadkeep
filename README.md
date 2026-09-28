@@ -117,21 +117,21 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 235 | 2 |
+| B — Authoring (insert, never hand-edit) | 1 | 235 | 2 |
 | C — Query (consult without reading the file) | 0 | 202 | 7 |
-| D — The gate | 0 | 318 | 7 |
-| E — Adoption | 1 | 122 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 164 | 4 |
+| D — The gate | 1 | 318 | 7 |
+| E — Adoption | 0 | 123 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 164 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
-| **Total** | 1 | 1178 | 24 |
+| **Total** | 3 | 1179 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1705** (deps: —) **a launcher committed before RK1699 finds no engine in a roadkeep checkout, and its guard then stands down unsaid** — Measured on 2026-09-25, two adopters lost server and guard for hours, and nothing told the session that hand edits of the governed files were no longer refused. → §RK1705
+- 📋 **RK1706** (deps: —) **a line's requires can be replaced but never cleared, so a need a person met stays on the line** — Once the owner gave the verdict a line waited on, nothing removed (requires: artdirector), and pick keeps setting the line aside. → §RK1706
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
