@@ -105,30 +105,6 @@ finding prints applied successfully.
 
 ## Block D — The gate
 
-### §RK1707 code.renamed tells a vendored engine from the project's own source
-
-`code.renamed` resolves a backticked dotted name against the engine's own modules, and
-it runs only when the engine sits inside the project (`linting.py`, `config.root not in
-home.parents`). The condition is meant to mean "this checkout is roadkeep's source". An
-adopter that vendors the engine meets it too: Shio fills `.roadkeep/` the way
-`node_modules` is filled, so `ROADKEEP_HOME` names a directory inside the project root.
-
-Measured in Shio on 0.2.489 and 0.2.505: `lint` exits 1 on six `code.renamed` findings,
-all false. Ledger entries cite document.fonts, document.referrer and schema.graphqls
-(browser and GraphQL names, bare here because backticked this rule fires on them in this
-repository, correctly), which match roadkeep's `document.py` and `schema.py`. Held there
-as SH1102 since 0.2.473, so its docs gate passes only with `--baseline`.
-
-The engine directory needs to prove it is the project's own source, not merely sit under its
-root. Candidates, cheapest first:
-- the engine's `pyproject.toml`/package root is the project root;
-- the project's `roadkeep.toml` prefix is roadkeep's own;
-- a vendored copy carries a marker the installer writes, and the rule skips it.
-
-Whichever is chosen, the vendored layout needs a fixture: an adopter tree with the
-engine under `.roadkeep/` and prose citing document.x must lint clean. The existing
-fixture of this repository citing a renamed symbol must still report it.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

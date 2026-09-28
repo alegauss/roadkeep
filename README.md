@@ -119,7 +119,7 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 235 | 2 |
 | C — Query (consult without reading the file) | 0 | 202 | 7 |
-| D — The gate | 1 | 318 | 7 |
+| D — The gate | 0 | 319 | 7 |
 | E — Adoption | 0 | 123 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 165 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
@@ -127,11 +127,11 @@ called unbuilt were already in the ledger.
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
-| **Total** | 2 | 1180 | 24 |
+| **Total** | 1 | 1181 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1707** (deps: —) **code.renamed fires in an adopter that vendors the engine, so its gate reports renames that never happened** — The rule runs whenever the engine sits under the project root, which a vendored .roadkeep/ does; Shio shows six false findings on 0.2.505. → §RK1707
+- 📋 **RK1708** (deps: —) **a ledger entry whose id the grammar rejects has no verb that corrects it, and its finding names one that refuses** — record amend SH-0f answers not in the ledger, the guard refuses the hand-edit, and lint still prints that verb as the remedy. → §RK1708
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

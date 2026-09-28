@@ -837,6 +837,7 @@
 - ✅ **RK1672** **the retry a refusal hands back carries a token no shell delivers, one line above the door that does not** — The retry row replaces a token no shell delivers and names the field to retype, one rule with the capture offer; the payload keeps it verbatim.
 - ✅ **RK1675** **The door file.missing names is init, which refuses on the configured project that emits the finding** — declare writes a declared role's missing file at the path its key names, so file.missing names a door repair runs and the gate closes.
 - ✅ **RK1681** **a refusal on the decisions role hands back a budget door that measures the draft against the improvements limit** — A body refusal's preventive read now names the file that refused, so a draft over the decisions limit is priced against 150 and not against the improvements 250.
+- ✅ **RK1707** **code.renamed fires in an adopter that vendors the engine, so its gate reports renames that never happened** — code.renamed runs only where the project's pyproject.toml names the engine's package, so a vendored .roadkeep/ no longer fails an adopter's gate on renames that never happened.
 
 ## Block E — Adoption
 

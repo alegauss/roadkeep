@@ -108,7 +108,7 @@ from roadkeep import criteria, queueing, scoping, validating
 from roadkeep.backlog import Backlog, DepStatus, Stage, id_order
 from roadkeep.blocking import removable
 from roadkeep.config import LINE_ROLES as _LINE_ROLES
-from roadkeep.config import DESIGN_ROLES, PROSE_ROLES, ROLES, Config, spent, translated
+from roadkeep.config import DESIGN_ROLES, PROSE_ROLES, PYPROJECT, ROLES, Config, spent, translated
 from roadkeep.config import _IDENTITY_KEYS
 from roadkeep.kernel.document import Document, Entry, Heading, ending
 from roadkeep.exporting import (
@@ -3983,6 +3983,29 @@ def _symbols(home: Path) -> dict[str, set[str]]:
     return out
 
 
+def _own_source(root: Path, home: Path) -> bool:
+    """Whether the engine answering is this project's **own source**, not a copy it holds (RK1707).
+
+    Inside the root was the whole test, and it was meant to say *this checkout is roadkeep*. A
+    vendored engine is inside the root too: Shio fills `.roadkeep/` the way `node_modules` is
+    filled, and there six ledger entries citing browser and GraphQL names (`document.…`,
+    `schema.…`) matched this package's own modules and failed its gate on renames that never
+    happened. So the project also has to be the package: its `pyproject.toml` names the
+    distribution the engine's directory is, which no vendoring layout makes true, wherever it
+    puts the copy.
+    """
+    import tomllib  # noqa: PLC0415 - RK260
+
+    if not home.is_dir() or root not in home.parents:
+        return False
+    try:
+        declared = tomllib.loads((root / PYPROJECT).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return False
+    project = declared.get("project")
+    return isinstance(project, dict) and project.get("name") == home.name
+
+
 def _cited_code(
     config: Config, documents: dict[str, Document], prose: dict[str, Document]
 ) -> list[Finding]:
@@ -4008,7 +4031,7 @@ def _cited_code(
     from roadkeep.provenance import engine  # noqa: PLC0415 - RK260
 
     home = engine().home
-    if not home.is_dir() or config.root not in home.parents:
+    if not _own_source(config.root, home):
         # The engine inside this project, and never a plugin cache or an installed copy: a
         # design here is prose about *this* checkout, and resolving it against somebody else's
         # tree would report a rename that has not happened to the reader it is shown to.

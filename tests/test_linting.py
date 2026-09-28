@@ -3085,6 +3085,35 @@ def test_the_check_is_silent_where_the_package_is_not_here(tmp_path):
     assert _cited_code(config, {}, {"improvements": config.document("improvements")}) == []
 
 
+def test_an_engine_the_project_vendored_is_not_its_own_source(tmp_path, monkeypatch):
+    """RK1707, measured in Shio: `.roadkeep/` sits inside the root, so ledger entries citing
+    browser and GraphQL names matched this package's `document.py` and `schema.py` and failed
+    the gate six times on renames that never happened."""
+    from types import SimpleNamespace
+
+    import roadkeep.provenance
+    from roadkeep.linting import _cited_code, _own_source
+
+    config = project(
+        tmp_path,
+        improvements=LAWFUL.replace(
+            "The reasoning the second line has no room for.",
+            "The reasoning, which `document.fonts` settles.",
+        ),
+    )
+    home = tmp_path / ".roadkeep" / "src" / "roadkeep"
+    home.mkdir(parents=True)
+    (home / "document.py").write_text("def parse():\n    pass\n", encoding="utf-8")
+    monkeypatch.setattr(roadkeep.provenance, "engine", lambda: SimpleNamespace(home=home))
+    assert _cited_code(config, {}, {"improvements": config.document("improvements")}) == []
+
+    # And the one population the rule is for still meets it: the project is the package.
+    (tmp_path / "pyproject.toml").write_text('[project]\nname = "roadkeep"\n', encoding="utf-8")
+    assert _own_source(tmp_path, home)
+    (found,) = _cited_code(config, {}, {"improvements": config.document("improvements")})
+    assert found.code == "code.renamed"
+
+
 # -- what a project calls itself (RK1682) -------------------------------------
 
 

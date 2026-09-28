@@ -32,8 +32,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1707** (deps: —) **code.renamed fires in an adopter that vendors the engine, so its gate reports renames that never happened** — The rule runs whenever the engine sits under the project root, which a vendored .roadkeep/ does; Shio shows six false findings on 0.2.505. → §RK1707
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
