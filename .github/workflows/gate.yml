@@ -29,7 +29,7 @@ jobs:
     name: roadkeep lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./
       # The reader's RG backlog in gui/ is a second governed project in this tree (RK1698), and
       # `roadkeep lint` answers for the nearest `roadkeep.toml` only — so without this step a
@@ -52,7 +52,7 @@ jobs:
       # origin by *searching commit subjects* (RK39), and this repository's own past is
       # their fixture. Under `fetch-depth: 1` they resolve every id to the one commit
       # present, which fails as a wrong answer rather than as a missing corpus.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: actions/setup-python@v5
@@ -76,7 +76,7 @@ jobs:
       # `tests/test_plugin.py` failing against a newer validator is the signal to pay it.
       CLAUDE_VERSION: "2.1.220"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
@@ -130,7 +130,7 @@ jobs:
     env:
       DISABLE_AUTOUPDATER: "1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
@@ -176,7 +176,7 @@ jobs:
       # client uses no API newer than this, and the manifest says which editor it targets.
       NODE_VERSION: "20"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
