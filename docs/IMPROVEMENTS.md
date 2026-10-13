@@ -79,11 +79,67 @@ already written, not authorship.
 
 ## Block C — Query
 
+### §RK1710 The non-goals a listing leaves out
+
+Found in quickshell (QS225), whose roadmap carries 21 non-goals. `non-goal list` prints
+twelve and ends `... and 9 more under Non-goals`; `--json` carries the same twelve and
+`non_goals_elided: 9`, with no lead and no reason for the nine. No flag asks for the
+rest, so a non-goal that binds the task at hand can only be read by grepping the
+governed file, which is the thing the tool exists to make unnecessary.
+
+The task needed one of the nine: QS225's design says that a monitor-covering chain
+reaching independent flip names an exception in the non-goal about windowed latency, and
+that non-goal is not among the twelve printed.
+
+What to build: `non-goal list --all` prints every entry, and `--json` always carries
+every lead and reason (the elision is a terminal convenience, not a data limit). Where a
+filter is wanted, `--near "<text>"` ranks the leads the way `delivered --near` does, so
+a caller can find the one non-goal about a subject without reading all of them.
+
+Falsified when a project's twenty-first non-goal can be read through `non-goal list`.
+
 ## Block D — The gate
 
 ## Block E — Adoption
 
 ## Block F — The plugin
+
+### §RK1709 anchors --next answers nothing where a new block needs a top-level
+
+Seen in Shio, an outline-ref project whose IMPROVEMENTS.md mixes numbering families
+(VI.2, VI.3, VI.4, VII and the roman top-levels up to LXXV). A session reopened a
+finished block, so its first task needed a fresh top-level family. Neither answer the
+tool offers helped: `anchors --next` printed 'not one numbering, so none derives' for
+the default namespace and for every family, and `anchors --block U --next` refused
+because no open line in the block carries a pointer yet. The only way to find LXXVI was
+to grep the governed prose file for headings, which the project's rules forbid, since
+those files are read only through roadkeep.
+
+Once LXXVI was known, `add --ref LXXVI.1` accepted it and opened the family, so the
+write side works (RK1140). The gap is on the read side. When the families are not one
+numbering, `anchors --next` should still name the next free top-level of the main
+sequence, which here is the roman numerals past the highest one used. If it cannot, it
+should name the families it compared and how to pick one, instead of printing the same
+refusal once for each. A caller should never have to read the file to learn an address
+the tool is about to validate.
+
+The capture attached to the line is the failing call as it ran, with the project's
+roadkeep.toml.
+
+### §RK1711 The first strategy section of a fresh scaffold
+
+Found adopting roadkeep in a new private repository (alegauss/visibility) on 2026-10-13.
+`init --prefix VS --block A --block B --block C --strategy --deferred` wrote
+docs/STRATEGY.md with the three block headings and no section. Every attempt to write
+the first strategy section was refused with "no section §<x> extends (docs/STRATEGY.md
+declares: none)": the anchors tried were B, B.1, I and S:I. The refusal's own remedy
+reads "`roadkeep section add B --title … --role strategy` opens what it extends", which
+is the first call that was refused. A task id is refused too, correctly, since no line
+points there. So a project that asked init for a strategy file has no door to its first
+paragraph except a hand edit, which the guard denies. The fix decides what anchor opens
+the first section under an outline or id scheme, accepts it, and makes the refusal's
+remedy a call that succeeds; a test runs init --strategy and writes one section through
+the CLI. The report captured with `roadkeep report` holds the environment.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
