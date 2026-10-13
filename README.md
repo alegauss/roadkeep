@@ -439,3 +439,19 @@ These are binding, and half the point. Check before proposing work:
 than asserted in a README — including this one. A limit that cannot express these lines
 is the wrong limit, not a set of wrong lines, and the test suite asserts it against
 `docs/ROADMAP.md` under this repository's own `roadkeep.toml`.
+
+## More tools by alegauss
+
+For Claude Code:
+
+- **[Claude Code Tray](https://alegauss.github.io/claude-tray/)**: your rate-limit usage as a Windows tray icon that turns red before you run out.
+- **[commitclerk](https://alegauss.github.io/commitclerk/)**: Conventional Commits messages from your staged diff, in a single-file Python CLI.
+- **[polyweave](https://alegauss.github.io/polyweave/)**: a Claude Code plugin that makes a game's 3D assets, sounds and names by declaring what each has to satisfy.
+
+For Windows developers:
+
+- **[winwright](https://alegauss.github.io/winwright/)**: drives a Windows desktop app from a test and reports what was actually observed.
+- **[FreeWilly](https://alegauss.github.io/freewilly/)**: Docker on Windows without Docker Desktop, with no admin prompt and no telemetry.
+- **[Quickshell](https://alegauss.github.io/quickshell/)**: an SSH client for Windows with sessions, keys, SFTP and tunnels, and without the rest of the suite.
+
+All of them: [alegauss.github.io](https://alegauss.github.io/)
