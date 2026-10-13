@@ -91,6 +91,25 @@ export default defineConfig({
         { icon: "github", label: "GitHub", href: "https://github.com/alegauss/roadkeep" },
       ],
       customCss: ["./src/styles/area.css"],
+      // The Google tag, the same one the pitch's and the reader's index.html carry, so every
+      // page of the one deploy reports to the same property. Starlight sorts these just under
+      // the charset, viewport and title.
+      head: [
+        {
+          tag: "script",
+          attrs: { async: true, src: "https://www.googletagmanager.com/gtag/js?id=G-6HG45Q9BHP" },
+        },
+        {
+          tag: "script",
+          content: `
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-6HG45Q9BHP');
+`,
+        },
+      ],
       // JOIN 5 — the contents list (RK1431). Half these pages are a component, and Astro
       // extracts headings from the MDX it compiles rather than from what a component renders,
       // so "On this page" was empty on every generated one. `starlightRouteData.ts` puts them
