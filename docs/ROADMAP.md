@@ -26,9 +26,12 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1713** (deps: —) **no writing verb can be asked what it would write, so an agent probes a replace with a real write** — A probe that matches is applied, and the agent repairs the section it only meant to test. → §RK1713
+
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1710** (deps: —) **non-goal list elides entries past twelve, and neither --json nor any flag prints the rest** — A non-goal binding the task at hand can then be read only by grepping the governed file the tool exists to replace. → §RK1710
+- 📋 **RK1712** (deps: —) **show refuses a deferred id and only names where it sits, so a paused line's section is read by grep** — Reading is never refused, yet a set-aside line cannot be read through the verb meant for it. → §RK1712
 
 ## Block D — The gate
 

@@ -77,6 +77,25 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1713 An edit that can be asked before it is made
+
+Met in polyweave on 2026-10-15. `section amend PW79 --replace "<a sentence>" --with "<a
+longer one>"` was refused, and the agent, to learn whether the sentence matched at all,
+ran the same call with `--with "x"`. That one was accepted and written: the section then
+read "x written to be read rather than admired", and the agent rewrote the whole body
+from a file to repair it. The first refusal had been the section's word limit, which the
+agent had cut out of its view.
+
+Nothing lets an agent ask what an edit would do. `budget` foresees a symptom or a why
+against its limit, but not a section's body after a replace; every other verb that
+writes writes on success. An agent probing a match or a count has only the real write to
+probe with.
+
+What roadkeep should do: a `--check` (or `--dry-run`) on the writing verbs, `section
+amend` first, that runs every validation and prints what would be written — the matched
+span, the word count against the limit, the diff — and writes nothing. `budget` could
+take a section anchor and a replace for the same answer.
+
 ## Block C — Query
 
 ### §RK1710 The non-goals a listing leaves out
@@ -97,6 +116,25 @@ filter is wanted, `--near "<text>"` ranks the leads the way `delivered --near` d
 a caller can find the one non-goal about a subject without reading all of them.
 
 Falsified when a project's twenty-first non-goal can be read through `non-goal list`.
+
+### §RK1712 A paused line is still a line to show
+
+Met in polyweave on 2026-10-15 (roadkeep 0.2.511), asking for three set-aside lines
+before putting them to the owner: `roadkeep show PW443` answered with exit 2 and "no
+task PW443 in docs/ROADMAP.md or docs/CHANGELOG.md: PW443 is paused in
+docs/DEFERRED.md:40 — `roadkeep list --role deferred` prints it with the reason it was
+set aside, and `roadkeep resume PW443` returns it to its block". The same for PW311 and
+PW192. Their sections were still in IMPROVEMENTS.md, so the agent had to grep the file
+for `### §PW443` to read them: the read L5 says a command answers.
+
+The refusal knew exactly where the line was, and the store keeps the same id, deps and
+section. RK1650 states that reading is never refused, and this read is refused. Several
+ids in one call also fail whole when one of them is deferred, so asking for an open line
+and a paused one together answers neither.
+
+What roadkeep should do: `show` joins a deferred line like any other, from DEFERRED.md,
+with its reason for being set aside and its section, marked as paused, and names
+`resume` as the door back. The refusal stays only for an id no file holds.
 
 ## Block D — The gate
 
