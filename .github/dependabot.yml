@@ -2,13 +2,20 @@ version: 2
 
 # Moved here with the desktop reader (RK1697): Dependabot reads only the repository root's
 # `.github/`, so the file gui/ carried as its own repository would have updated nothing.
-# roadkeep itself declares no runtime dependencies, so gui/ is the only npm tree to watch.
+# roadkeep itself declares no runtime dependencies; the npm trees are the four lockfiles below.
+#
+# One PR per group, not per package: `directories` makes each group span every tree, and a
+# security update is grouped only by a group that says `applies-to: security-updates` — without
+# one, every advisory opened its own PR in every tree that pinned the package.
 
 updates:
-  # npm workspaces: gui/'s root manifest covers packages/core, packages/ui and
-  # packages/shell, so a single entry is enough.
+  # gui/'s root manifest covers packages/core, packages/ui and packages/shell as workspaces.
   - package-ecosystem: npm
-    directory: /gui
+    directories:
+      - /gui
+      - /gui/site
+      - /site
+      - /site/docs
     schedule:
       interval: weekly
       day: monday
@@ -21,37 +28,20 @@ updates:
       prefix: chore
       prefix-development: chore
       include: scope
-    # A dependency lands in the first group whose patterns match it, so the
-    # catch-all stays last.
     groups:
-      electron:
+      npm-security:
+        applies-to: security-updates
         patterns:
-          - electron
-          - electron-*
-          - '@electron/*'
-      react:
+          - '*'
+      # A major lands alone in its group so a breaking bump never holds the safe ones back.
+      npm-major:
+        applies-to: version-updates
         patterns:
-          - react
-          - react-dom
-          - '@types/react'
-          - '@types/react-dom'
-          - '@testing-library/react'
-          - '@vitejs/plugin-react'
-      vite:
-        patterns:
-          - vite
-          - vitest
-          - '@vitest/*'
-          - jsdom
-      tailwind:
-        patterns:
-          - tailwindcss
-          - '@tailwindcss/*'
-      typescript:
-        patterns:
-          - typescript
-          - '@types/node'
-      minor-and-patch:
+          - '*'
+        update-types:
+          - major
+      npm-minor-and-patch:
+        applies-to: version-updates
         patterns:
           - '*'
         update-types:
@@ -73,3 +63,7 @@ updates:
     commit-message:
       prefix: chore
       include: scope
+    groups:
+      actions:
+        patterns:
+          - '*'
