@@ -42,10 +42,12 @@ and the palette is the mobile one, and a second eats the width the content needs
 not a home for one surface's controls: a switcher or a pending count belongs to the surface
 that owns it, not to every page that renders beneath it.
 
-**The corner is the shell's.** The assistant dock, passed as `dock`, takes it, and
-`BentoBackToTop` stacks above the dock. Neither is fixed to the viewport inside the shell:
-two components each pinning themselves to one corner is how the dock came to cover the
-button.
+**The corner and the dock's place are the shell's.** Pass the assistant as `dock`. With a
+rail it rests at the rail's foot and opens beside the rail; on a phone it sits at the
+header's trailing edge; with neither it takes the corner. `BentoBackToTop` keeps the
+corner. Nothing is fixed to the viewport inside the shell. Two components each pinning
+themselves to one corner is how the dock came to cover the button, and a corner that
+reserves no room is how it came to cover the column's last row actions.
 
 **The shell owns the reading column.** `main` sets the max width, the gutters and the
 vertical rhythm once, so every page begins and ends on the same line; a page sets none of
@@ -75,7 +77,7 @@ Anything past them — a tenant, a review count — belongs to the surface that 
 
 ## 2. Structure — thin config, not bespoke pages
 
-There are three page shapes. Almost every screen is one of them plus data.
+There are four page shapes. Almost every screen is one of them plus data.
 
 **A detail screen** is `BentoEntityShell` wrapping a form. The shell owns the
 identity hero, the save-bar morph and the delete flow; the form is a render prop
@@ -83,12 +85,18 @@ receiving `{ staged, onStateChange }` and groups its fields in
 `BentoFormSection`s. Wire the query hooks in the page and put no shell mechanics
 there.
 
-**A list screen** is one `BentoListPage` call with a `renderTile`. Use
-`BentoEntityTile` for the common icon-chip + status-pill + title + meta shape;
-hand-roll a tile only when the entity genuinely needs a different layout.
+**A list screen** is one `BentoListPage` call, and by default it is a table. Ask
+first whether the reader arrives to **compare many** or to **pick one**. Comparing
+is rows: users, roles, tokens, webhooks, providers, anything a reader scans down a
+column. Pass `columns` (and `rowActions`, `onRowOpen`), and the page renders a
+`BentoDataTable` under its hero with the create action as the hero's one primary.
+An empty list is one inline card. Picking is tiles: media, blueprints, a hub, or a
+handful of things a reader tells apart by sight. Pass `renderTile` to ask for the
+mosaic, and use `BentoEntityTile` for the common tile shape. Hand-roll a tile only
+when the entity genuinely needs a different layout.
 
-A list a reader sorts, selects a range of and acts on in bulk, or one that runs
-to thousands of rows, is `BentoDataTable` instead. It mounts only the visible rows,
+A table with selection and bulk actions, or one inside a page that already has its
+own hero, is `BentoDataTable` on its own. It mounts only the visible rows,
 its headers sort and say how, a row is reachable and selectable from the keyboard,
 and row actions are a menu of named items. Pass the rows, the columns and the
 actions, and store the column layout it reports. Never build a table from `Table`
@@ -102,15 +110,30 @@ table as `selectionScope`, so a selection never outlives the rows it was made on
 **A form screen with its own hero** is `BentoFormHero` as the first child inside
 the `<form>` it submits. It renders both halves of the morph itself.
 
-**A frosted box with arbitrary content** — a stats strip, a toolbar, a listing,
+**A two-pane screen**, such as a form beside its live preview or a source beside its
+translation, is `BentoSplitPage` under the page's one hero, on a route that passes
+`column="wide"`. Pass the two panes and a label for each. Each pane scrolls on its own,
+so the fields and what they change stay in view together, and the hero and the save bar
+span both. The reader drags the ratio, and `storageKey` remembers it per viewer. At
+phone width the panes become one with a labelled switch, and neither unmounts, so a form
+keeps what was typed while its preview is shown. Never lay two panes out with a grid of
+your own: who scrolls, the reading width and the phone fallback are what this shape
+decides once.
+
+**A box with arbitrary content** — a stats strip, a toolbar, a listing,
 a message — is `BentoPanel`. It is the one container in this layer with **no
 heading**, which is the point rather than an omission: those surfaces sit under a
 hero that already names the page, and a heading on them is noise that also puts a
 section in the document outline the page does not have. Two class slots,
-`className` on the frosted container and `contentClassName` on the inner wrapper,
+`className` on the card and `contentClassName` on the inner wrapper,
 and no padding of its own — a table wants `p-0` and a toolbar wants `py-2`.
 Never hand-roll `bento-glass rounded-2xl border`: the moment two call sites pick
 different radii the product is inconsistent for a reason no diff shows.
+
+`bento-glass` draws a solid card on its border. It was frosted glass, and a page
+where every panel frosts what sits behind it reads as a collage. Frost is
+`bento-frost`, and it belongs only on a surface content scrolls under, which in
+this layer is the save bar.
 
 Three rules that outrank convenience:
 
@@ -174,6 +197,16 @@ No component in the layer names a colour. A tone is
 `--vg-bento-tone-<name>-from` / `-to` in the preset, and the chip reads them, so
 you re-key the palette by redefining variables rather than forking a component.
 The status intents (`on`, `warn`, `error`, `danger`) work the same way.
+
+**The chip names one thing, and colour on a list is a state.** The gradient chip
+is drawn where one thing is named: an entity's hero (`BentoHeroIconPicker`) and a
+hub's tiles (`BentoTile`, `BentoCountTile`). A list's hero, its New tile, a
+record's tile, a form section and an empty state put their icon in a neutral
+well (`bento-well`) instead, and the `tone` they still accept is ignored. A
+product area gets no tone of its own. What a row or a list tile colours is the
+record's state, one of five, drawn by `BentoStatusMarker state="…"` or
+`BentoEntityTile state="…"` as a dot and a word: `published`, `draft`,
+`scheduled`, `changed` and `archived`, keyed by `--vg-bento-state-<name>`.
 
 Accents — a focus border, the rail's active marker, a hover ring — take your
 `--primary`. A shared component marking "you are here" in a colour of its own is
@@ -262,7 +295,8 @@ push, and a violation fails the build.
 ## 7. Responsive
 
 - The grid is `grid-cols-2 md:grid-cols-4 lg:grid-cols-6` with `col-span-2`
-  tiles and `row-span-2` for a featured one. **Keep spans in multiples of two**
+  tiles and `row-span-2` for one a reader chose to feature. No tile is featured by
+  default: being first in a list says nothing about a record. **Keep spans in multiples of two**
   so tiles reflow cleanly at every breakpoint — this is what keeps two consoles'
   grids aligned.
 - The nav rail is desktop-only. `BentoShell` reserves its gutter; a shell that is
@@ -290,6 +324,7 @@ push, and a violation fails the build.
 Which components are the shared layer and which stay in a product is
 [docs/BENTO-BOUNDARY.md](BENTO-BOUNDARY.md).
 
-Every rule above, drawn rather than stated, is [docs/reference/](reference/) — eight
+Every rule above, drawn rather than stated, is [docs/reference/]
+
 artboards, one per decision. Look there when a sentence here is clear and you still cannot
 picture the page it describes.
