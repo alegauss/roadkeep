@@ -717,7 +717,13 @@ def test_the_narrow_payload_keeps_what_makes_the_answer_readable(tmp_path, capsy
     # `opens` joined with RK1140: the address alone sent a client at `add --ref III.1`, which
     # refuses until a heading declares `III` — so the row names the command that makes it one.
     assert payload["next_families"] == [
-        {"namespace": None, "next": "III", "opens": "section add III --title …"}
+        {
+            "namespace": None,
+            "next": "III",
+            "opens": "section add III --title …",
+            "numberings": [{"system": "roman", "next": "III", "families": 2}],
+            "unnumbered": [],
+        }
     ]
     assert "anchors" not in payload and "retired" not in payload
 

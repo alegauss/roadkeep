@@ -1893,7 +1893,7 @@ def _spent_by_departure(
     for anchor, sha in _pointed_at(config).items():
         if anchor in seen:
             continue
-        namespace, _ = split_ref(anchor)
+        namespace, _ = _spaced(anchor)
         role = next(
             (name for name in declared if config.schema_for(name).ref_prefix == namespace),
             declared[0],
@@ -2057,7 +2057,66 @@ def namespaces(taken: Sequence[Anchor]) -> tuple[str, ...]:
     Sorted with the unprefixed first, because it is the one a project has before it declares
     any and the one every listing had until this existed.
     """
-    return tuple(sorted({split_ref(one.anchor)[0] for one in taken}))
+    return tuple(sorted({_spaced(one.anchor)[0] for one in taken}))
+
+
+def numberings(
+    taken: Sequence[Anchor], namespace: str = ""
+) -> tuple[list[dict[str, object]], list[str]]:
+    """Each numbering system's free top-level in one namespace, and the families in none.
+
+    What :func:`next_family` declines to collapse, stated instead of withheld (RK1709). A
+    file holding `0` beside `I`…`LXXV` is two numberings, and None was the right answer to
+    *which one continues* — but it left the caller nothing to act on, so a new block's address
+    was read off the governed file by hand. Each system continuing itself is no guess: it is
+    the same derivation run once per sequence, and the count beside each says which one the
+    file is mostly written in. The choice between them stays the caller's (L4).
+
+    **Nothing is offered where a family is no numeral at all.** `C` and `D` read as roman
+    beside `A` and `B` (RK1210's letter case), so a roman row there would continue letters —
+    the families are named instead, which is what the caller has to choose from.
+    """
+    tops = sorted(
+        {_family_of(one.anchor) for one in taken if _spaced(one.anchor)[0] == namespace}
+    )
+    systems: dict[str, list[int]] = {}
+    unnumbered: list[str] = []
+    for top in tops:
+        read = numeral(top)
+        if read is None:
+            unnumbered.append(top)
+        else:
+            systems.setdefault(read[0], []).append(read[1])
+    if unnumbered:
+        return [], unnumbered
+    rows: list[dict[str, object]] = [
+        {
+            "system": system,
+            "next": f"{namespace}{REF_SEPARATOR}{spell(max(values) + 1, system)}"
+            if namespace
+            else spell(max(values) + 1, system),
+            "families": len(values),
+        }
+        for system, values in systems.items()
+    ]
+    rows.sort(key=lambda row: (-int(row["families"]), str(row["system"])))  # type: ignore[call-overload]
+    return rows, []
+
+
+def undecided(taken: Sequence[Anchor], namespace: str = "") -> str:
+    """What a namespace with no one numbering offers instead of an address (RK1709)."""
+    rows, unnumbered = numberings(taken, namespace)
+    if rows:
+        listed = ", ".join(
+            f"§{row['next']} continues the {row['families']} {row['system']} "
+            + ("family" if row["families"] == 1 else "families")
+            for row in rows
+        )
+        return f"{listed} — the sequence this block continues is yours to pick"
+    shown = ", ".join(unnumbered[:6]) + (
+        f" and {len(unnumbered) - 6} more" if len(unnumbered) > 6 else ""
+    )
+    return f"{shown} spell no numeral, so none derives and the address is yours to choose"
 
 
 def next_family(taken: Sequence[Anchor], namespace: str = "") -> str | None:
@@ -2096,19 +2155,14 @@ def next_family(taken: Sequence[Anchor], namespace: str = "") -> str | None:
     systems is two numberings, so it is None, exactly as `A`, `B`, `C` is; every caller
     already has an answer for None, `_where_a_top_level_is` naming `anchors` in place of an
     address for the undecidables it already knew about.
+
+    One reading with :func:`numberings`, which answers per system (RK1709): an address exists
+    here only where exactly one system does and every family is a numeral. Roman in one family
+    and decimal in another is not a sequence to continue, and continuing it silently would pick
+    which of two conventions the project has.
     """
-    own = [one for one in taken if split_ref(one.anchor)[0] == namespace]
-    read = {top: numeral(top) for top in {_family_of(one.anchor) for one in own}}
-    if not read or any(value is None for value in read.values()):
-        return None
-    counted = [value for value in read.values() if value]
-    if len({system for system, _ in counted}) > 1:
-        # Roman in one family and decimal in another. Not a sequence to continue, and the one
-        # shape where continuing it silently picked which of two conventions the project has.
-        return None
-    system, highest = max(counted, key=lambda one: one[1])
-    top = spell(highest + 1, system)
-    return f"{namespace}{REF_SEPARATOR}{top}" if namespace else top
+    rows, unnumbered = numberings(taken, namespace)
+    return str(rows[0]["next"]) if len(rows) == 1 and not unnumbered else None
 
 
 def left_the_repository(root: Path, token: str) -> bool:
@@ -2243,7 +2297,20 @@ def _family_of(anchor: str) -> str:
 
 def _unprefixed(anchor: str) -> str:
     """The address without the namespace `[refs]` put in front of it (RK340)."""
-    return split_ref(anchor)[1]
+    return _spaced(anchor)[1]
+
+
+def _spaced(anchor: str) -> tuple[str, str]:
+    """:func:`split_ref` for an address read back, where a trailing separator is punctuation.
+
+    A pointer once written `§VII:` before its prose comes back from history as the address
+    `VII:` (RK1709), which `split_ref` reads as the namespace `VII` holding nothing. Measured on
+    Shio: four such retired addresses made four namespaces no `[refs]` declares, and `anchors
+    --next` printed its refusal once for each. An empty remainder addresses nothing, so the
+    text before the separator is the address and the namespace is the default one.
+    """
+    prefix, bare = split_ref(anchor)
+    return (prefix, bare) if bare else ("", prefix)
 
 
 @dataclass(frozen=True, slots=True)
@@ -2502,10 +2569,13 @@ class Addresses:
         for space in namespaces(self.spread):
             fresh = next_family(self.spread, space)
             named = f"  {space}" if space else ""
-            # The same refusal the wide read gives, in one line: a namespace whose top-levels
-            # are not one numbering derives nothing, and a blank row would read as an address.
+            # The same answer the wide read gives, in one line: a namespace whose top-levels
+            # are not one numbering derives no one address, and a blank row would read as one.
+            # So the row opens on a dash and says what each numbering continues at (RK1709).
             out.append(
-                f"§{fresh}{named}" if fresh else f"—{named}  not one numbering, so none derives"
+                f"§{fresh}{named}"
+                if fresh
+                else f"—{named}  not one numbering: {undecided(self.spread, space)}"
             )
             if fresh:
                 notes.append(f"roadkeep: {opens(fresh)}")
@@ -2534,6 +2604,7 @@ class Addresses:
                     "opens": None
                     if not (fresh := next_family(self.spread, space))
                     else f"section add {fresh} --title …",
+                    **_sequences(self.spread, space),
                 }
                 for space in namespaces(self.spread)
             ],
@@ -2659,7 +2730,8 @@ class Addresses:
             said.append(
                 f"  next     §{fresh} — no family{named} ever used it"
                 if fresh
-                else f"  next     — these families{named} are not one numbering, so none derives"
+                else f"  next     — these families{named} are not one numbering: "
+                f"{undecided(self.spread, space)}"
             )
         for family in self.families():
             # The files only where there is more than one to name (RK297): on the single-file
@@ -2755,7 +2827,11 @@ class Addresses:
             "next_families": []
             if self.family
             else [
-                {"namespace": space or None, "next": next_family(self.spread, space)}
+                {
+                    "namespace": space or None,
+                    "next": next_family(self.spread, space),
+                    **_sequences(self.spread, space),
+                }
                 for space in namespaces(self.spread)
             ],
             # What no question asked and only the gate said (RK297): an address two headings
@@ -2765,6 +2841,16 @@ class Addresses:
                 for anchor, roles in doubled(self.whole)
             ],
         }
+
+
+def _sequences(taken: Sequence[Anchor], namespace: str) -> dict[str, object]:
+    """The payload's half of :func:`undecided`, in both shapes of `next_families` (RK1709).
+
+    Present on every row and not only where `next` is null, so a client reads one shape: where
+    one numbering continues, `numberings` holds that one and agrees with `next`.
+    """
+    rows, unnumbered = numberings(taken, namespace)
+    return {"numberings": rows, "unnumbered": unnumbered}
 
 
 def _anchor_row(one: Anchor) -> dict[str, object]:

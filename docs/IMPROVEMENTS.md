@@ -142,28 +142,6 @@ with its reason for being set aside and its section, marked as paused, and names
 
 ## Block F — The plugin
 
-### §RK1709 anchors --next answers nothing where a new block needs a top-level
-
-Seen in Shio, an outline-ref project whose IMPROVEMENTS.md mixes numbering families
-(VI.2, VI.3, VI.4, VII and the roman top-levels up to LXXV). A session reopened a
-finished block, so its first task needed a fresh top-level family. Neither answer the
-tool offers helped: `anchors --next` printed 'not one numbering, so none derives' for
-the default namespace and for every family, and `anchors --block U --next` refused
-because no open line in the block carries a pointer yet. The only way to find LXXVI was
-to grep the governed prose file for headings, which the project's rules forbid, since
-those files are read only through roadkeep.
-
-Once LXXVI was known, `add --ref LXXVI.1` accepted it and opened the family, so the
-write side works (RK1140). The gap is on the read side. When the families are not one
-numbering, `anchors --next` should still name the next free top-level of the main
-sequence, which here is the roman numerals past the highest one used. If it cannot, it
-should name the families it compared and how to pick one, instead of printing the same
-refusal once for each. A caller should never have to read the file to learn an address
-the tool is about to validate.
-
-The capture attached to the line is the failing call as it ran, with the project's
-roadkeep.toml.
-
 ### §RK1711 The first strategy section of a fresh scaffold
 
 Found adopting roadkeep in a new private repository (alegauss/visibility) on 2026-10-13.

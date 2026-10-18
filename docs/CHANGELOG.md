@@ -1138,6 +1138,7 @@
 - ✅ **RK1648** **verifying a vendored engine runs it, so Python writes three megabytes of bytecode into an artefact just measured at four** — The read runs with -B, so asking a tree its version leaves it as written and the reported count is the rule's.
 - ✅ **RK1689** **The guard asks about every commit that stages a governed file, though git add and git commit never write it** — Git staging or reading a governed file passes the guard in silence; any other command naming one, or chained with it, is still asked about (design recorded in `src/roadkeep/guarding.py`).
 - ✅ **RK1706** **a line's requires can be replaced but never cleared, so a need a person met stays on the line** — amend --drop-requires takes a met need off a line, over the CLI and the tools alike, and dropping the last word clears the group so pick offers the line again.
+- ✅ **RK1709** **anchors --next names no free top-level when a family is not one numbering** — anchors names each numbering's free top-level with its family count where they differ, and a trailing colon no longer reads as a namespace (design recorded in `plugin/src/roadkeep/history.py`).
 
 ## Block G — The editor surface (the backlog where the file is open)
 

@@ -39,7 +39,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1709** (deps: —) **anchors --next names no free top-level when a family is not one numbering** — A new block needs a fresh top-level section, and with no answer the caller greps the governed prose file by hand. → §RK1709
 - 📋 **RK1711** (deps: —) **section add --role strategy refuses every anchor on a fresh init --strategy scaffold, and its remedy is the refused call** — A project scaffolded with a strategy file cannot write its first strategy section, so the role init declared is unusable. → §RK1711
 
 ## Block G — The editor surface (the backlog where the file is open)

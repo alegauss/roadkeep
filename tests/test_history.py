@@ -33,6 +33,9 @@ from roadkeep.history import (
     git_available,
     next_child,
     next_family,
+    Anchor,
+    namespaces,
+    numberings,
     numeral,
     origin_of,
     searchable,
@@ -929,6 +932,49 @@ def test_two_numbering_systems_on_one_file_derive_no_next_either(tmp_path):
     assert len({next_family(found) for _ in range(8)}) == 1
 
 
+def test_two_numberings_each_name_what_they_continue_at(tmp_path, capsys):
+    """RK1709. Shio holds `0` beside `I`…`XCI`, and None left a new block's caller reading the
+    governed file for the address. Each system continuing itself is the same derivation run
+    once per sequence, so both are named with their counts and the choice stays the caller's."""
+    config = outlined(tmp_path)
+    for family in ("0", "I", "II"):
+        design(config, f"### {family}.1 A design", f"docs: file {family}")
+    found = anchors(config, "improvements")
+    assert next_family(found) is None
+    assert numberings(found) == (
+        [
+            {"system": "roman", "next": "III", "families": 2},
+            {"system": "decimal", "next": "1", "families": 1},
+        ],
+        [],
+    )
+    assert main(["-C", str(tmp_path), "anchors", "--next"]) == EXIT_OK
+    said = capsys.readouterr().out
+    # Still opening on a dash: a shell capturing this must not read it as one address.
+    assert said.startswith("—") and "§III continues the 2 roman families" in said
+    assert "§1 continues the 1 decimal family" in said
+
+
+def test_letters_are_named_and_never_continued_as_roman(tmp_path):
+    # `C` reads as 100 beside `A`: a roman row here would continue letters, so the families
+    # are what the caller is handed.
+    config = outlined(tmp_path)
+    for family in ("A", "C"):
+        design(config, f"### {family}.1 A design", f"docs: file {family}")
+    assert numberings(anchors(config, "improvements")) == ([], ["A"])
+
+
+def test_a_trailing_separator_is_punctuation_and_not_a_namespace():
+    # RK1709: `§VII:` written before prose came back as the address `VII:`, read as a
+    # namespace `VII` holding nothing — four of those printed the refusal four more times.
+    taken = [
+        Anchor(anchor=one, role="improvements", live=False, written_in="")
+        for one in ("VI.4:", "VII:", "V.1")
+    ]
+    assert namespaces(taken) == ("",)
+    assert next_family(taken) == "VIII"
+
+
 def test_one_system_still_derives_where_the_families_are_a_sequence(tmp_path):
     """The half RK1210's rule must not take: two *families* is not two numberings."""
     config = outlined(tmp_path)
@@ -977,7 +1023,14 @@ def test_the_json_carries_the_next_family_beside_the_next_child(tmp_path, capsys
     payload = json.loads(capsys.readouterr().out)
     # One field and not two (RK346): the free top-level is asked per namespace, and a project
     # declaring no `[refs]` is the one row whose namespace is null.
-    assert payload["next_families"] == [{"namespace": None, "next": "X"}]
+    assert payload["next_families"] == [
+        {
+            "namespace": None,
+            "next": "X",
+            "numberings": [{"system": "roman", "next": "X", "families": 2}],
+            "unnumbered": [],
+        }
+    ]
     assert "next_family" not in payload and payload["next"] is None
     assert [one["family"] for one in payload["families"]] == ["IV", "IX"]
     # Narrowed to one family, the question is the child's again and the top-level is not asked.
@@ -997,7 +1050,9 @@ def test_the_json_states_the_namespace_of_every_free_top_level_it_answers(tmp_pa
     payload = json.loads(capsys.readouterr().out)
     # `next` is null *inside* the row, which says which namespace derives nothing — where the
     # older field's null said only that something, somewhere, did not derive.
-    assert payload["next_families"] == [{"namespace": None, "next": None}]
+    assert payload["next_families"] == [
+        {"namespace": None, "next": None, "numberings": [], "unnumbered": ["A"]}
+    ]
 
 
 # -- the address book that read half the addresses (RK297) ---------------------
