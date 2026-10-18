@@ -1140,6 +1140,7 @@
 - ✅ **RK1689** **The guard asks about every commit that stages a governed file, though git add and git commit never write it** — Git staging or reading a governed file passes the guard in silence; any other command naming one, or chained with it, is still asked about (design recorded in `src/roadkeep/guarding.py`).
 - ✅ **RK1706** **a line's requires can be replaced but never cleared, so a need a person met stays on the line** — amend --drop-requires takes a met need off a line, over the CLI and the tools alike, and dropping the last word clears the group so pick offers the line again.
 - ✅ **RK1709** **anchors --next names no free top-level when a family is not one numbering** — anchors names each numbering's free top-level with its family count where they differ, and a trailing colon no longer reads as a namespace (design recorded in `plugin/src/roadkeep/history.py`).
+- ✅ **RK1711** **section add --role strategy refuses every anchor on a fresh init --strategy scaffold, and its remedy is the refused call** — An id project's prose takes a non-id top-level anchor before the first block, so a scaffolded strategy file opens (design recorded in `plugin/src/roadkeep/sections.py`).
 
 ## Block G — The editor surface (the backlog where the file is open)
 

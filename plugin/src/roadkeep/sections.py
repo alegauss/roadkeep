@@ -3961,9 +3961,15 @@ def _extended(
     parent = _extends(document, anchor)
     if parent is None:
         if _top_level(document, anchor):
-            tops = [s for s in anchored(document) if _is_top(s.anchor)]
+            tops = _tops(document)
             if not tops:
-                return len(document.lines)
+                # The preface and never the tail (RK1711): a file `init` scaffolds holds its
+                # block headings and nothing else, and the end of it is the last block — so a
+                # first section appended there reads as Block C's, the mistake this function
+                # refuses everywhere else. Before the first block is the one place it is no
+                # block's, which is where this repository's own `§0` sits.
+                blocks = [h for h in document.headings if h.label]
+                return blocks[0].lineno - 1 if blocks else len(document.lines)
             span = _span(document, tops[-1].anchor)
             assert span is not None  # read out of this document a line ago
             return span[1]
@@ -4036,7 +4042,7 @@ def _depth(document: Document, anchor: str, level: int | None) -> int:
     if level is not None:
         return level
     if _top_level(document, anchor):
-        tops = [s.level for s in anchored(document) if _is_top(s.anchor)]
+        tops = [s.level for s in _tops(document)]
         if tops:
             return tops[0]
         levels = [h.level for h in document.headings]
@@ -4077,12 +4083,37 @@ def _is_top(anchor: str) -> bool:
 def _top_level(document: Document, anchor: str) -> bool:
     """May this anchor open a new top level of the file? (RK166)
 
-    Only under an outline, and only for a one-segment anchor. Under the id scheme the anchor
-    *is* the id, so it carries no place and no level: a `§RK9` that extends nothing is a
-    section for a task, placed under that task's block, and reaching here with one means the
-    id names no open line — which stays the refusal it was.
+    Only a one-segment anchor, and under the id scheme only one that is **not shaped like an
+    id**. There a `§RK9` is the id, so it carries no place and no level: a section for a task,
+    placed under that task's block, and reaching here with one means the id names no open line
+    — which stays the refusal it was.
+
+    Any other one-segment anchor is prose that belongs to no task (RK1711), which is what
+    this repository's `§0` is, and until this it was refused on every id project: a strategy
+    file `init --strategy` scaffolded took no first section at all, every anchor tried
+    refused, and the remedy the refusal named was the call it had just refused.
     """
-    return document.schema.ref_scheme != "id" and _is_top(anchor)
+    if not _is_top(anchor):
+        return False
+    return document.schema.ref_scheme != "id" or not _id_shaped(document, anchor)
+
+
+def _id_shaped(document: Document, anchor: str) -> bool:
+    return bool(document.schema.id_pattern().match(anchor))
+
+
+def _tops(document: Document) -> list[Section]:
+    """The top-level sections a new one is placed after, in file order (RK166, RK1711).
+
+    Under the id scheme a task's section is one segment too, and it sits under its block: the
+    last of those is the last block's, so placing after it files the new prose there.
+    """
+    return [
+        s
+        for s in anchored(document)
+        if _is_top(s.anchor)
+        and not (document.schema.ref_scheme == "id" and _id_shaped(document, s.anchor))
+    ]
 
 
 def _extends(document: Document, anchor: str) -> str | None:

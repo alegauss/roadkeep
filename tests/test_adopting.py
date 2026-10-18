@@ -121,6 +121,29 @@ def test_the_strategy_file_is_scaffolded_only_where_it_is_asked_for(tmp_path: Pa
     assert 'strategy = "docs/STRATEGY.md"' in asked.config.read_text(encoding="utf-8")
 
 
+def test_a_scaffolded_strategy_file_takes_its_first_section(tmp_path: Path, capsys) -> None:
+    """RK1711. `init --strategy` wrote block headings and no section, every anchor tried was
+    refused, and the refusal's remedy was the call it had refused — so the role init declared
+    had no door but the hand edit the guard denies. Run through the CLI, as it was met."""
+    from roadkeep.cli import EXIT_OK, main
+
+    root = str(tmp_path)
+    args = ["-C", root, "init", "--prefix", "VS", "--block", "A", "--block", "B", "--strategy"]
+    assert main(args) == EXIT_OK
+    capsys.readouterr()
+    add = ["-C", root, "section", "add"]
+    # The child first, as the report met it: refused, naming the call that opens its parent.
+    assert main([*add, "B.1", "--title", "A child", "--body", "Prose.", "--role", "strategy"]) != EXIT_OK
+    assert "section add B --title … --role strategy" in capsys.readouterr().err
+    # And that call now succeeds, so the remedy is a step and not the wall again.
+    assert main([*add, "B", "--title", "A theme", "--body", "Prose.", "--role", "strategy"]) == EXIT_OK
+    assert main([*add, "B.1", "--title", "A child", "--body", "Prose.", "--role", "strategy"]) == EXIT_OK
+    text = (tmp_path / "docs" / "STRATEGY.md").read_text(encoding="utf-8")
+    # In the preface and never under the last block, where it would read as that block's.
+    assert text.index("§B A theme") < text.index("§B.1 A child") < text.index("## Block A")
+    assert main(["-C", root, "lint"]) == EXIT_OK
+
+
 def test_the_deferred_store_is_scaffolded_only_where_it_is_asked_for(tmp_path: Path) -> None:
     """RK1259, and the same two halves one role over.
 

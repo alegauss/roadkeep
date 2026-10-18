@@ -1591,13 +1591,22 @@ def test_a_task_s_own_design_still_takes_the_nested_depth(tmp_path):
     assert "### §RK3 A third design" in read(config)
 
 
-def test_the_id_scheme_refuses_a_top_level_anchor_as_it_always_did(tmp_path):
-    # Under `id` the anchor *is* the id, so it carries no place and no level: reaching the
-    # top level with one means the id names no open line, which stays a refusal.
+def test_the_id_scheme_refuses_an_id_shaped_top_level_anchor_as_it_always_did(tmp_path):
+    # Under `id` an id-shaped anchor *is* the id, so it carries no place and no level: one
+    # naming no open line stays a refusal.
     config = project(tmp_path)
-    with pytest.raises(UnknownParent):
-        add(config, "improvements", "9", "A reading nothing precedes", "Prose.")
+    with pytest.raises((UnknownParent, ValueError)):
+        add(config, "improvements", "RK9", "A reading nothing precedes", "Prose.")
     assert read(config) == RATIONALE
+
+
+def test_the_id_scheme_takes_a_top_level_anchor_that_is_no_id(tmp_path):
+    """RK1711. `9` names no task, so it is prose for none — this repository's `§0` shape —
+    and was refused on every id project, a scaffolded strategy file's first section included."""
+    config = project(tmp_path)
+    out = add(config, "improvements", "9", "A reading nothing precedes", "Prose.")
+    out.document.save()
+    assert out.section.anchor == "9"
 
 
 def test_a_new_top_level_section_in_a_file_with_none_goes_last(tmp_path):

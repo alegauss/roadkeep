@@ -123,21 +123,6 @@ with its reason for being set aside and its section, marked as paused, and names
 
 ## Block F — The plugin
 
-### §RK1711 The first strategy section of a fresh scaffold
-
-Found adopting roadkeep in a new private repository (alegauss/visibility) on 2026-10-13.
-`init --prefix VS --block A --block B --block C --strategy --deferred` wrote
-docs/STRATEGY.md with the three block headings and no section. Every attempt to write
-the first strategy section was refused with "no section §<x> extends (docs/STRATEGY.md
-declares: none)": the anchors tried were B, B.1, I and S:I. The refusal's own remedy
-reads "`roadkeep section add B --title … --role strategy` opens what it extends", which
-is the first call that was refused. A task id is refused too, correctly, since no line
-points there. So a project that asked init for a strategy file has no door to its first
-paragraph except a hand edit, which the guard denies. The fix decides what anchor opens
-the first section under an outline or id scheme, accepts it, and makes the refusal's
-remedy a call that succeeds; a test runs init --strategy and writes one section through
-the CLI. The report captured with `roadkeep report` holds the environment.
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

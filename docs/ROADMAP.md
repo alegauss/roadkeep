@@ -38,8 +38,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1711** (deps: —) **section add --role strategy refuses every anchor on a fresh init --strategy scaffold, and its remedy is the refused call** — A project scaffolded with a strategy file cannot write its first strategy section, so the role init declared is unusable. → §RK1711
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

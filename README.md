@@ -121,17 +121,17 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 1 | 203 | 7 |
 | D — The gate | 0 | 319 | 7 |
 | E — Adoption | 0 | 123 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 166 | 4 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 167 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
-| **Total** | 3 | 1184 | 24 |
+| **Total** | 2 | 1185 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1711** (deps: —) **section add --role strategy refuses every anchor on a fresh init --strategy scaffold, and its remedy is the refused call** — A project scaffolded with a strategy file cannot write its first strategy section, so the role init declared is unusable. → §RK1711
+- 📋 **RK1712** (deps: —) **show refuses a deferred id and only names where it sits, so a paused line's section is read by grep** — Reading is never refused, yet a set-aside line cannot be read through the verb meant for it. → §RK1712
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
