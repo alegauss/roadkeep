@@ -30,8 +30,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1712** (deps: —) **show refuses a deferred id and only names where it sits, so a paused line's section is read by grep** — Reading is never refused, yet a set-aside line cannot be read through the verb meant for it. → §RK1712
-
 ## Block D — The gate
 
 ## Block E — Adoption

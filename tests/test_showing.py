@@ -961,6 +961,43 @@ def test_a_paused_id_is_told_where_it_went_and_not_that_it_never_was(tmp_path):
     assert NoSuchTask.ABSENT in absent.value.args[0]
 
 
+def test_the_show_verb_joins_a_paused_line_with_its_reason_and_the_door_back(tmp_path, capsys):
+    """RK1712. The refusal above knew the file and the line and still refused, so a paused
+    line's section was read by grep — and a join of an open id with a paused one answered
+    neither. Reading is never refused (RK1650); `brief` keeps the refusal, being the start of
+    work on a line somebody set aside."""
+    project(tmp_path, improvements=RATIONALE + "\n### §RK9 A parked design\n\nThe reasoning.\n")
+    (tmp_path / "roadkeep.toml").write_text(
+        (tmp_path / "roadkeep.toml").read_text(encoding="utf-8").rstrip("\n")
+        + '\ndeferred = "DEFERRED.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "DEFERRED.md").write_text(
+        "# Deferred\n\n## Block A — The model\n\n"
+        "- ⏸ **RK9** (deps: —) **A symptom plainly long enough to read** — "
+        "set aside (Waiting on a decision.): Because of a reason. → §RK9\n",
+        encoding="utf-8",
+    )
+    root = str(tmp_path)
+    assert main(["-C", root, "show", "RK9"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "paused  DEFERRED.md:5" in said
+    assert "  why      Because of a reason." in said
+    assert "  paused   Waiting on a decision. — " in said and "resume RK9" in said
+    assert "The reasoning." in said
+
+    assert main(["-C", root, "show", "RK1", "RK9", "--json"]) == EXIT_OK
+    joined = json.loads(capsys.readouterr().out)["views"]
+    assert [(one["id"], one["paused"]) for one in joined] == [("RK1", False), ("RK9", True)]
+    assert joined[1]["paused_reason"] == "Waiting on a decision."
+    assert joined[1]["why"] == "Because of a reason."
+
+    assert main(["-C", root, "brief", "RK9"]) != EXIT_OK
+    # And the door the row names lands, last because it empties the store this test read.
+    door = next(row for row in said.splitlines() if row.startswith("  paused"))
+    assert runs(tmp_path, door) == (["resume", "RK9"],)
+
+
 # -- the verb one word away, run rather than matched (RK1498) ------------------
 
 

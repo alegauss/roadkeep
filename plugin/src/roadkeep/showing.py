@@ -36,7 +36,7 @@ from roadkeep.config import DESIGN_ROLES, PROSE_ROLES, Config
 from roadkeep.kernel.document import Document, Entry
 from roadkeep.history import Landed, Landings, indexed, landings
 from roadkeep.provenance import invocation
-from roadkeep.kernel.schema import Task, dismissal_premise, width
+from roadkeep.kernel.schema import Task, authored_why, dismissal_premise, pause_reason, width
 from roadkeep.remedying import Door
 from roadkeep.sections import Section, addressable, declaring, find, heading_of
 
@@ -134,6 +134,21 @@ class View:
         """Whether the sentence runs past the line the parse read it from."""
         return self.entry.wrapped
 
+    @property
+    def paused(self) -> bool:
+        """Whether this line was read out of the store `defer` moved it into (RK1712)."""
+        return self.role == "deferred"
+
+    @property
+    def why(self) -> str:
+        """The author's sentence: a paused line's carries the reason wrapped round it."""
+        return authored_why(self.task.why) if self.paused else self.task.why
+
+    @property
+    def reason(self) -> str | None:
+        """Why the line was set aside, where it was; None on every other line."""
+        return pause_reason(self.task.why) if self.paused else None
+
     def stated(self, config: Config, *, body: bool = True) -> str:
         """One task as a reader is told it, heading and prose included (RK9).
 
@@ -142,14 +157,21 @@ class View:
         is passed and not stored — the limit beside a section's count is the *role's*, and which
         file declared it is a fact about the project rather than about this view (RK287).
         """
-        state = "shipped" if self.shipped else "open"
+        state = "shipped" if self.shipped else "paused" if self.paused else "open"
         task, section = self.task, self.section
         rows = [
             f"{task.id}  Block {task.block}  {task.status}  {state}  "
             f"{self.file}:{self.entry.lineno}",
             f"  symptom  {task.symptom}",
-            f"  why      {task.why}",
+            f"  why      {self.why}",
         ]
+        if self.paused:
+            # The reason and the door back, under the sentence it was wrapped round (RK1712):
+            # the refusal this replaces named both, and the join must not say less than it did.
+            rows.append(
+                f"  paused   {self.reason or 'no reason recorded'} — "
+                f"`{invocation()} resume {task.id}` returns it to its block"
+            )
         if self.wrapped:
             # The rest of the sentence, verbatim (RK194): the fields above hold only as much of it
             # as fits on the first line, and this is exactly what `record amend --lines` says it
@@ -223,7 +245,12 @@ class View:
             "lines": [raw.rstrip("\r\n") for raw in self.lines],
             "wrapped": self.wrapped,
             "symptom": task.symptom,
-            "why": task.why,
+            "why": self.why,
+            # Set aside, and why (RK1712). `false` and `null` on every other line rather than
+            # absent, for `requires`' reason below: a key that comes and goes is one a client
+            # stops looking for.
+            "paused": self.paused,
+            "paused_reason": self.reason,
             "deps": [dep.render() for dep in task.deps],
             # What has to be present for this to be finishable (RK1311), which is not a dep and
             # is what `pick --have` filters on. `[]` and never omitted, for `deps`' reason: a
@@ -400,13 +427,13 @@ def views(config: Config, task_ids: Sequence[str]) -> tuple[View, ...]:
         # carries the redirect to `section show`, the paused store's answer and history's,
         # each written in the vocabulary the caller was using (RK1025, RK1341, RK1618).
         # Wrapping that in a plural would restate one answer as a list of one.
-        return (show(config, ordered[0], walked=walked),)
+        return (show(config, ordered[0], walked=walked, paused=True),)
     found: list[View] = []
     missing: list[tuple[str, str]] = []
     asked: tuple[str, ...] = ()
     for task_id in ordered:
         try:
-            found.append(show(config, task_id, walked=walked))
+            found.append(show(config, task_id, walked=walked, paused=True))
         except NoSuchTask as error:
             asked = error.where
             missing.append((task_id, error.instead))
@@ -415,13 +442,20 @@ def views(config: Config, task_ids: Sequence[str]) -> tuple[View, ...]:
     return tuple(found)
 
 
-def show(config: Config, task_id: str, *, walked: Landings | None = None) -> View:
+def show(
+    config: Config, task_id: str, *, walked: Landings | None = None, paused: bool = False
+) -> View:
     """Join the line, its section and the paths it names. Reads; never writes.
 
     ``walked`` is the three git walks a caller asking about several ids already made (RK1685).
     Absent, they are made here, which is what asking about one has always cost.
+
+    ``paused`` also asks the store `defer` moves a line into (RK1712), and only the `show`
+    verb passes it. That read refused a paused id while naming the file and line it sat on,
+    so its section was read by grep; a `brief` or a `remaining` of one is a different
+    question — starting work on a line set aside — and keeps the refusal that says so.
     """
-    entry, role, document = _locate(config, task_id)
+    entry, role, document = _locate(config, task_id, paused=paused)
     section, section_file, section_role, absence = _rationale(
         config, entry, shipped=role == "changelog"
     )
@@ -469,9 +503,14 @@ def show(config: Config, task_id: str, *, walked: Landings | None = None) -> Vie
     )
 
 
-def _locate(config: Config, task_id: str) -> tuple[Entry, str, Document]:
+def _locate(
+    config: Config, task_id: str, *, paused: bool = False
+) -> tuple[Entry, str, Document]:
     asked: list[str] = []
-    for role in ("roadmap", "changelog"):
+    # The store last, so a line both files hold — the state `resume` reconciles — answers
+    # as the open line it is about to be (RK1081, RK1712).
+    roles = ("roadmap", "changelog", "deferred") if paused else ("roadmap", "changelog")
+    for role in roles:
         if not config.on_disk(role):
             continue
         asked.append(config.relative(config.path(role)))

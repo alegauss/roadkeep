@@ -248,6 +248,8 @@ SITES: tuple[Site, ...] = (
     # RK1710. The count of elided non-goals names `non-goal list --all`, which
     # `test_scoping` executes and reads the twenty-first entry back from.
     Site("briefing.py:NonGoals.stated", "run"),
+    # RK1712. A paused line's join names `resume`, which `test_showing` runs off the row.
+    Site("showing.py:View.stated", "run"),
     # RK1286. Both name `cost --brief`, which `test_budgeting` executes — the gate's finding
     # composes the door with the id substituted and the read composes the sentence a backlog
     # with nothing open gets, and `remedying.Door` is what renders the first for a terminal.

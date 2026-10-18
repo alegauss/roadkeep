@@ -511,6 +511,7 @@
 - ✅ **RK1687** **`evidence` matches a regex over text, so a task whose proof is a number out of a PNG or a WAV declares none** — an evidence clause may end on a comparison, so a task whose proof is a number the project already writes down declares a criterion that runs (design recorded in `src/roadkeep/remaining.py`).
 - ✅ **RK1688** **`show` drops a path written as a bare filename, so a section naming five sprites reports none of them** — a quoted name with no directory is a path where exactly one tracked file carries it, so a section naming five sprites names five artefacts (design recorded in `src/roadkeep/showing.py`).
 - ✅ **RK1710** **non-goal list elides entries past twelve, and neither --json nor any flag prints the rest** — non-goal list --all prints every entry, --json always carries every lead and reason, and the elided count names the flag (design recorded in `plugin/src/roadkeep/briefing.py`).
+- ✅ **RK1712** **show refuses a deferred id and only names where it sits, so a paused line's section is read by grep** — show joins a paused line from the deferred store with its reason and the resume door, alone or among other ids; brief still refuses one (design recorded in `plugin/src/roadkeep/showing.py`).
 
 ## Block D — The gate
 

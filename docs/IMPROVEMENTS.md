@@ -98,25 +98,6 @@ take a section anchor and a replace for the same answer.
 
 ## Block C — Query
 
-### §RK1712 A paused line is still a line to show
-
-Met in polyweave on 2026-10-15 (roadkeep 0.2.511), asking for three set-aside lines
-before putting them to the owner: `roadkeep show PW443` answered with exit 2 and "no
-task PW443 in docs/ROADMAP.md or docs/CHANGELOG.md: PW443 is paused in
-docs/DEFERRED.md:40 — `roadkeep list --role deferred` prints it with the reason it was
-set aside, and `roadkeep resume PW443` returns it to its block". The same for PW311 and
-PW192. Their sections were still in IMPROVEMENTS.md, so the agent had to grep the file
-for `### §PW443` to read them: the read L5 says a command answers.
-
-The refusal knew exactly where the line was, and the store keeps the same id, deps and
-section. RK1650 states that reading is never refused, and this read is refused. Several
-ids in one call also fail whole when one of them is deferred, so asking for an open line
-and a paused one together answers neither.
-
-What roadkeep should do: `show` joins a deferred line like any other, from DEFERRED.md,
-with its reason for being set aside and its section, marked as paused, and names
-`resume` as the door back. The refusal stays only for an id no file holds.
-
 ## Block D — The gate
 
 ## Block E — Adoption
