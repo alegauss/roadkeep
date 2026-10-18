@@ -554,6 +554,37 @@ def test_the_json_carries_the_leads_the_file_and_whether_it_is_governed(tmp_path
     assert payload["non_goals_elided"] == 0
 
 
+def _twenty_one(tmp_path: Path) -> None:
+    bullets = "".join(f"- **No number {n}.** Because of a reason.\n" for n in range(1, 22))
+    project(tmp_path, roadmap=ROADMAP[: ROADMAP.index("- **No web")] + bullets)
+
+
+def test_the_listing_names_the_flag_that_prints_what_it_left(tmp_path, capsys):
+    """RK1710. quickshell's 21 non-goals listed as twelve and a count, and the one binding the
+    task was among the nine no flag could print — so the governed file was read by grep."""
+    _twenty_one(tmp_path)
+    assert main(["-C", str(tmp_path), "non-goal", "list"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "No number 21." not in out
+    assert "… and 9 more under Non-goals" in out and "non-goal list --all" in out
+
+
+def test_all_prints_the_twenty_first_non_goal(tmp_path, capsys):
+    _twenty_one(tmp_path)
+    assert main(["-C", str(tmp_path), "non-goal", "list", "--all"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "  not      No number 21." in out and "more under Non-goals" not in out
+
+
+def test_the_json_carries_every_non_goal_whatever_the_terminal_bound(tmp_path, capsys):
+    # The cut is a terminal convenience, not a data limit: the payload is a client's only door.
+    _twenty_one(tmp_path)
+    assert main(["-C", str(tmp_path), "non-goal", "list", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert len(payload["non_goals"]) == 21 and payload["non_goals_elided"] == 0
+    assert payload["non_goals_why"]["No number 21."] == "Because of a reason."
+
+
 # -- the reason each one is argued with (RK1676) ------------------------------
 
 

@@ -98,25 +98,6 @@ take a section anchor and a replace for the same answer.
 
 ## Block C — Query
 
-### §RK1710 The non-goals a listing leaves out
-
-Found in quickshell (QS225), whose roadmap carries 21 non-goals. `non-goal list` prints
-twelve and ends `... and 9 more under Non-goals`; `--json` carries the same twelve and
-`non_goals_elided: 9`, with no lead and no reason for the nine. No flag asks for the
-rest, so a non-goal that binds the task at hand can only be read by grepping the
-governed file, which is the thing the tool exists to make unnecessary.
-
-The task needed one of the nine: QS225's design says that a monitor-covering chain
-reaching independent flip names an exception in the non-goal about windowed latency, and
-that non-goal is not among the twelve printed.
-
-What to build: `non-goal list --all` prints every entry, and `--json` always carries
-every lead and reason (the elision is a terminal convenience, not a data limit). Where a
-filter is wanted, `--near "<text>"` ranks the leads the way `delivered --near` does, so
-a caller can find the one non-goal about a subject without reading all of them.
-
-Falsified when a project's twenty-first non-goal can be read through `non-goal list`.
-
 ### §RK1712 A paused line is still a line to show
 
 Met in polyweave on 2026-10-15 (roadkeep 0.2.511), asking for three set-aside lines

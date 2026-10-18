@@ -26,7 +26,7 @@ from roadkeep.blocking import (
     merge_block,
     open_block,
 )
-from roadkeep.briefing import non_goals
+from roadkeep.briefing import NON_GOALS, non_goals
 from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.queueing import (
     add as add_priority,
@@ -425,8 +425,11 @@ def _non_goal_list(config: Config, args: argparse.Namespace) -> Result | int:
         roadmap = config.document("roadmap")
         # The designs naming a lead, read from the rule's side (RK1478): `brief` gets this
         # record with the mapping empty, being about one line and already printing its design.
+        # Every bullet under `--all` and under `--json` (RK1710): the bound is the terminal's,
+        # and a payload cut to twelve left the rest to a grep of the governed file.
+        bound = None if args.all or args.json else NON_GOALS
         gathered = replace(
-            non_goals(config, roadmap), quoted=scoping.settling(config, roadmap)
+            non_goals(config, roadmap, bound), quoted=scoping.settling(config, roadmap)
         )
     except (KeyError, OSError) as error:
         return _refused(error)
@@ -1133,6 +1136,15 @@ def declare_places(subcommands: argparse._SubParsersAction) -> None:
         "--json",
         action="store_true",
         help="the leads and each one's reason, with the file and what was left",
+    )
+    scope_list.add_argument(
+        "--all",
+        action="store_true",
+        help="every non-goal, where the listing stops at twelve (--json always carries them)",
+    )
+    withheld(
+        scope_list,
+        all="the served tool answers in --json, which carries every non-goal already, so the flag would change nothing a caller there reads (RK1710)",
     )
     scope_list.set_defaults(handler=_non_goal_list, reads_only=True)
 

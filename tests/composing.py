@@ -245,6 +245,9 @@ SITES: tuple[Site, ...] = (
     # `test_briefing`, as far as a door with two blanks in it can be — filled, and parsed by the
     # real parser, which is `_quoting_rows`' own arrangement one row over.
     Site("briefing.py:Brief.stated", "run"),
+    # RK1710. The count of elided non-goals names `non-goal list --all`, which
+    # `test_scoping` executes and reads the twenty-first entry back from.
+    Site("briefing.py:NonGoals.stated", "run"),
     # RK1286. Both name `cost --brief`, which `test_budgeting` executes — the gate's finding
     # composes the door with the id substituted and the read composes the sentence a backlog
     # with nothing open gets, and `remedying.Door` is what renders the first for a terminal.

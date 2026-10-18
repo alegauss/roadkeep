@@ -118,7 +118,7 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 236 | 2 |
-| C — Query (consult without reading the file) | 2 | 202 | 7 |
+| C — Query (consult without reading the file) | 1 | 203 | 7 |
 | D — The gate | 0 | 319 | 7 |
 | E — Adoption | 0 | 123 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 166 | 4 |
@@ -127,11 +127,11 @@ called unbuilt were already in the ledger.
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
-| **Total** | 4 | 1183 | 24 |
+| **Total** | 3 | 1184 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1710** (deps: —) **non-goal list elides entries past twelve, and neither --json nor any flag prints the rest** — A non-goal binding the task at hand can then be read only by grepping the governed file the tool exists to replace. → §RK1710
+- 📋 **RK1711** (deps: —) **section add --role strategy refuses every anchor on a fresh init --strategy scaffold, and its remedy is the refused call** — A project scaffolded with a strategy file cannot write its first strategy section, so the role init declared is unusable. → §RK1711
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

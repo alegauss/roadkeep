@@ -215,7 +215,13 @@ class NonGoals:
                     f"`non-goal.reaches` is silent for it"
                 )
         if self.elided:
-            rows.append(f"  not      … and {self.elided} more under Non-goals")
+            # With the door (RK1710): a count nothing opens is the file back, read by grep.
+            from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
+            rows.append(
+                f"  not      … and {self.elided} more under Non-goals — "
+                f"`{invocation()} non-goal list --all` prints them"
+            )
         return "\n".join(rows)
 
     def payload(self, config: Config) -> dict[str, object]:
@@ -1087,7 +1093,9 @@ def _gather(
     )
 
 
-def non_goals(config: Config, document: Document) -> NonGoals:
+def non_goals(
+    config: Config, document: Document, bound: int | None = NON_GOALS
+) -> NonGoals:
     """The lead of each bullet under the non-goals heading, in file order and bounded.
 
     The lead is what `brief` prints: what keeps a proposal inside scope is *that* the line
@@ -1102,16 +1110,21 @@ def non_goals(config: Config, document: Document) -> NonGoals:
     cut *shown*, and a list past :data:`NON_GOALS` reports how many it left. A field with no
     limit at all is a forty-bullet section arriving in place of the file this call exists to
     replace — and an ungoverned list's reasons are prose nobody held to a width.
+
+    ``bound`` None is the listing that asked for every bullet (RK1710): `non-goal list --all`
+    and every `--json`, the cut being a terminal convenience and never a data limit. Measured
+    in quickshell, whose 21 non-goals came back as twelve and a count, and the one binding the
+    task was among the nine nothing could print.
     """
     scope = config.non_goals or Scope()
     every = scoping.read(document)
-    carried = every[:NON_GOALS]
+    carried = every if bound is None else every[:bound]
     return NonGoals(
         leads=tuple(
             textwrap.shorten(goal.lead, width=scope.lead, placeholder=ELLIPSIS)
             for goal in carried
         ),
-        elided=max(0, len(every) - NON_GOALS),
+        elided=len(every) - len(carried),
         reasons=tuple(
             textwrap.shorten(goal.why, width=scope.why, placeholder=ELLIPSIS)
             for goal in carried
