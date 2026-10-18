@@ -77,25 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1713 An edit that can be asked before it is made
-
-Met in polyweave on 2026-10-15. `section amend PW79 --replace "<a sentence>" --with "<a
-longer one>"` was refused, and the agent, to learn whether the sentence matched at all,
-ran the same call with `--with "x"`. That one was accepted and written: the section then
-read "x written to be read rather than admired", and the agent rewrote the whole body
-from a file to repair it. The first refusal had been the section's word limit, which the
-agent had cut out of its view.
-
-Nothing lets an agent ask what an edit would do. `budget` foresees a symptom or a why
-against its limit, but not a section's body after a replace; every other verb that
-writes writes on success. An agent probing a match or a count has only the real write to
-probe with.
-
-What roadkeep should do: a `--check` (or `--dry-run`) on the writing verbs, `section
-amend` first, that runs every validation and prints what would be written — the matched
-span, the word count against the limit, the diff — and writes nothing. `budget` could
-take a section anchor and a replace for the same answer.
-
 ## Block C — Query
 
 ## Block D — The gate

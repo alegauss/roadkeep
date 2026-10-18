@@ -4367,3 +4367,34 @@ def test_the_read_a_search_that_carries_nothing_names_runs(tmp_path, capsys):
     (argv,) = commands(said)
     assert main([*where, *[one if one != "<anchor>" else "RK1" for one in argv]]) == EXIT_OK
     assert "A first design" in capsys.readouterr().out
+
+
+# -- an edit asked before it is made (RK1713) ----------------------------------
+
+
+def test_check_prints_the_section_as_it_would_read_and_writes_nothing(tmp_path, capsys):
+    """RK1713. In polyweave the only way to learn whether a sentence matched was the real
+    write: a `--with "x"` probe matched, landed, and the body was rewritten to repair it."""
+    config = project(tmp_path)
+    args = ["-C", str(tmp_path), "section", "amend", "RK1", "--replace", "has no room for"]
+    assert main([*args, "--with", "x", "--check"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "§RK1 would be amended" in said and "nothing written" in said
+    assert "The reasoning the line x." in said
+    assert read(config) == RATIONALE
+
+    assert main([*args, "--with", "x", "--check", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["checked"] is True and payload["wrote"] == []
+    assert payload["body"] == "The reasoning the line x."
+    assert read(config) == RATIONALE
+
+
+def test_check_refuses_what_the_write_would_refuse(tmp_path, capsys):
+    # The probe's whole value: a string that does not match is refused exactly as the write
+    # refuses it, so the answer is the write's own and not a second reading of the rules.
+    config = project(tmp_path)
+    args = ["-C", str(tmp_path), "section", "amend", "RK1", "--replace", "absent words"]
+    assert main([*args, "--with", "x", "--check"]) == EXIT_USAGE
+    assert "does not carry" in capsys.readouterr().err
+    assert read(config) == RATIONALE

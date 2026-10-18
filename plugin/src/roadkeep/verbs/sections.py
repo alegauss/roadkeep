@@ -277,7 +277,9 @@ def _section_amend(config: Config, args: argparse.Namespace) -> Result | int:
                 body=body,
                 substitute=substitute,
             )
-        wrote = rewritten.document.save()
+        # Every refusal above has run by here, the word limit's included, so `--check` is the
+        # whole answer short of the save (RK1713): a probe that matches is never applied.
+        wrote = () if args.check else rewritten.document.save()
     except NotOneOccurrence as error:
         # The lookup one step earlier, which turns a refusal into an instruction (RK1310):
         # this call has already counted the string in the section it was addressed to, and the
@@ -288,6 +290,16 @@ def _section_amend(config: Config, args: argparse.Namespace) -> Result | int:
     except REFUSALS as error:
         return _refused(error)
 
+    if args.check:
+        return Result(
+            {
+                **rewritten.payload(config, wrote, body is not None),
+                "checked": True,
+                # The prose as it would read, which is what the probe was for.
+                "body": rewritten.section.prose.strip(),
+            },
+            rewritten.checked(config),
+        )
     # `Result` and not `answered`, this record taking a third argument (RK1614's carry list):
     # both registers still come off one result, and only the shape is outside the three.
     return Result(
@@ -826,6 +838,11 @@ def declare_places(subcommands: argparse._SubParsersAction) -> None:
     )
     section_amend.add_argument(
         "--role", default="improvements", help="which prose file (default: improvements)"
+    )
+    section_amend.add_argument(
+        "--check",
+        action="store_true",
+        help="run every check and print the section as it would read, writing nothing",
     )
     section_amend.add_argument("--json", action="store_true", help=_JSON_HELP)
     # `omitted=False` and not an oversight: an amend with neither field is refused below rather

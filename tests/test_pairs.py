@@ -706,6 +706,8 @@ _SUPPLIED: dict[str, dict[str, object]] = {
     # the corpus `--near` orders, so without one both forms refuse and the sweep would be
     # reading its own reach rather than whether the flag reaches anything.
     "delivered": {"block": "A", "near": "A symptom that is plainly long enough"},
+    # An edit to make, so `--check` has a write to withhold (RK1713).
+    "section amend": {"anchor": "I.1", "title": "A retitled design"},
 }
 
 #: Served booleans whose two forms **both** refuse here, with the state each wants. The same

@@ -4070,6 +4070,7 @@ _PRICING: tuple[Priced, ...] = (
             "--replace": "an edit to prose already on disk, so what it costs is the body "
             "this already prices",
             "--with": "the other half of that edit",
+            "--check": "turns the write into its own read, so it carries no field to price",
         },
     ),
     Priced("--non-goal", "non-goal add", {}),

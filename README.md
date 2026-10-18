@@ -117,7 +117,7 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 236 | 2 |
+| B — Authoring (insert, never hand-edit) | 0 | 237 | 2 |
 | C — Query (consult without reading the file) | 0 | 204 | 7 |
 | D — The gate | 0 | 319 | 7 |
 | E — Adoption | 0 | 123 | 1 |
@@ -127,11 +127,7 @@ called unbuilt were already in the ledger.
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
-| **Total** | 1 | 1186 | 24 |
-
-**Next ready:**
-
-- 📋 **RK1713** (deps: —) **no writing verb can be asked what it would write, so an agent probes a replace with a real write** — A probe that matches is applied, and the agent repairs the section it only meant to test. → §RK1713
+| **Total** | 0 | 1187 | 24 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -1638,6 +1638,33 @@ class Rewritten:
         rows += _staging_rows(config.relative(one) for one in wrote)
         return "\n".join(rows)
 
+    def checked(self, config: Config) -> str:
+        """What the write would leave, and that it did not happen (RK1713).
+
+        The section whole and not a diff: the prose is what the caller is deciding about, and
+        a probe of a `--replace` reads the sentence in place rather than the two strings it
+        already typed. Met in polyweave, where the only way to learn whether a sentence
+        matched was the real write — a `--with "x"` that matched, landed, and was repaired by
+        rewriting the body from a file.
+        """
+        named = f"§{self.section.anchor}" if self.section.anchor else f"'{self.section.title}'"
+        if not self.changed:
+            return f"{named} would be unchanged: it already reads that way — nothing written"
+        where = config.relative(config.path(self.role))
+        counted = (
+            f"  {self.section.counted(config.schema_for(self.role).section_max)}"
+            if self.section.anchor
+            else ""
+        )
+        # The heading and its own prose, which is what an amend replaces: a subsection is
+        # amended by its own anchor, so printing it here would show text this call cannot move.
+        heading = self.document.lines[self.section.first - 1].rstrip("\r\n")
+        return (
+            f"{named} would be amended  {where}:{self.section.first}  "
+            f"({', '.join(self.changed)}){counted} — nothing written (--check)\n\n"
+            f"{heading}\n\n{self.section.prose.strip()}"
+        )
+
     def payload(
         self, config: Config, wrote: Sequence[Path], read_body: bool
     ) -> dict[str, object]:

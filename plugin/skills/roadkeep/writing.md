@@ -424,7 +424,10 @@ it — refused unless the old string occurs exactly once, which is what keeps th
 visible in the call. It is also the one form that **inherits** an overrun: a legacy section
 already over the word limit for reasons the correction has nothing to do with takes the edit,
 where the whole-body form is refused and the way out was shortening prose you never came to
-touch. Growing it is still charged. A body-only amend leaves the **heading line's bytes** alone
+touch. Growing it is still charged. **To learn whether a string matches or an edit fits,
+ask: `section amend <id> --replace "<old>" --with "<new>" --check`** runs every refusal
+and prints the prose as it would read, writing nothing — never probe with a real write.
+A body-only amend leaves the **heading line's bytes** alone
 too — the reader takes a `§` an author wrote under an outline and the writer would not
 reproduce it, so re-rendering a heading nobody named silently restyled the file. **The anchor is
 `section move <anchor> --to <address>`**, and only under an outline: `renumber` moves an

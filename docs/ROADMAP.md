@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1713** (deps: —) **no writing verb can be asked what it would write, so an agent probes a replace with a real write** — A probe that matches is applied, and the agent repairs the section it only meant to test. → §RK1713
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

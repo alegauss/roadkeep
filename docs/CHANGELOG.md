@@ -296,6 +296,7 @@
 - ✅ **RK1655** **reopen files a line whose pointer resolves to nothing, and has no way to write the design in the same call** — reopen --section writes the design in the transaction that files the line, and a reopen without one reports the anchor nothing answers.
 - ✅ **RK1695** **a record amend whose tail the parser would not read back crashes with a traceback instead of refusing** — A Continuation refusal reaches the caller as one: its count is given, and _retrying takes only a string as a retry's address (design recorded in `src/roadkeep/kernel/document.py`).
 - ✅ **RK1708** **a ledger entry whose id the grammar rejects has no verb that corrects it, and its finding names one that refuses** — record amend --line <n> --body - rewrites a ledger line whose id the grammar refuses, and the finding on such a line now prints that door instead of one that refuses.
+- ✅ **RK1713** **no writing verb can be asked what it would write, so an agent probes a replace with a real write** — section amend --check runs every refusal and prints the prose as it would read, writing nothing, on the CLI and the served tool (design recorded in `plugin/src/roadkeep/sections.py`).
 
 ## Block C — Query
 

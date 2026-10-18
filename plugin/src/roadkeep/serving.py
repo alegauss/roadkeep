@@ -608,9 +608,11 @@ TOOLS: tuple[Tool, ...] = (
     # whole-body form costs most: a refusal on a 250-word body re-sends the table and the fence
     # with it, and a one-clause correction names two strings. Exposed because the caller with
     # eight sections to correct is this one, the hand edit being what the guard denies.
+    # `check` too (RK1713): the probe was met on this transport, an agent learning whether a
+    # sentence matched by sending a `--with "x"` that matched and landed.
     Tool(
         "section amend",
-        ("anchor", "title", "body", "body_file", "replace", "replacement", "role"),
+        ("anchor", "title", "body", "body_file", "replace", "replacement", "role", "check"),
     ),
     # The address `section amend` refuses to spell as a correction (RK377), and `renumber`
     # cannot reach under an outline. Exposed beside them because the state it repairs is one
