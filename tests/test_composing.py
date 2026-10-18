@@ -2247,7 +2247,8 @@ def test_a_field_no_spelling_carries_is_a_placeholder_and_the_line_still_runs(
             continue
         ran += 1
         assert delivered == want, (shell, why, delivered)
-    assert ran, "no shell in this table is on this machine, so nothing was measured"
+    if not ran:
+        pytest.skip(f"none of {mangles} is on this machine, so nothing was measured")
 
 
 # -- the vendored copy the un-wiring keeps (RK1549) ----------------------------

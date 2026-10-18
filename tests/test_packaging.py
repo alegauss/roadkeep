@@ -26,6 +26,7 @@ import ast
 import io
 import os
 import re
+import sys
 import tokenize
 import tomllib
 from importlib import import_module
@@ -686,10 +687,15 @@ def test_every_source_file_parses_under_the_floor_the_manifest_promises() -> Non
     )
 
 
+@pytest.mark.skipif(
+    sys.version_info < (3, 12),
+    reason="the floor tokenizes an f-string as one STRING, so there is nothing to look inside",
+)
 def test_the_check_above_finds_the_one_that_shipped() -> None:
     """A gate nobody has seen fail is a gate nobody trusts, and this one passed for months.
     The source is built here rather than planted in the tree, which this very check would
-    then report."""
+    then report. On the floor itself the check is blind and need not see: importing there is
+    the gate."""
     escaped = "'" + BACKSLASH + '"' + BACKSLASH + '"' + "'"
 
     assert _needs_312(f"x = f\"{{written or {escaped}}}\"" + chr(10)) != []
