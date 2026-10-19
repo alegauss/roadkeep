@@ -948,3 +948,6 @@ deriving the anchor, which is how they came apart.
 - ✅ **RK1699** **The plugin's source is the repository root, so installing it would copy the Electron app into every adopter's cache** — The plugin lives in plugin/ with src/ inside it: a relative source copies its directory whole and may read nothing above it, so a CI-built payload branch was the other door.
 - ✅ **RK1704** **The reader's public site builds here but deploys nowhere, since this repository's one Pages site is roadkeep's** — The reader's site is a path of roadkeep's one Pages deploy and not its own: keeping the archived repository publishing would need a build fed to it from here.
 - ✅ **RK1702** **A release tag here publishes the CLI and builds no installer, so the app ships from a different commit** — The app carries roadkeep's version, stamped on every commit, so one tag names both; its own number would have titled installers the release disagrees with.
+
+## Block L — Product sites on the package
+

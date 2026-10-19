@@ -75,7 +75,57 @@ already written, not authorship.
 
 ## Block A — The model
 
+### §RK1716 Deps on a sibling project
+
+A dep on another repository's task can only be written as free text, for example
+`viglet-design-system: VDS213` or `claude-tray: T389`. RK28 resolves such a dep as
+unresolvable, which is honest, but it means `deps`, `pick` and `blocked` can never tell
+whether VDS213 shipped. The alegauss product sites were filed this way in October 2026,
+each task waiting on viglet-design-system Block H and on the claude-tray pilot, and no
+command in any of those repositories can say which tasks are unblocked.
+
+Every repository involved is governed by roadkeep, so the answer exists on disk: the
+other project's CHANGELOG either holds the id with the shipped marker or does not.
+
+The change: `roadkeep.toml` declares sibling projects by name and path, for example
+`[projects] viglet-design-system = "../../viglet/viglet-design-system/latest"`. A dep
+written `<name>: <id>` or `<name>: <id>–<id>` then resolves by reading that project's
+config and ledger, read-only. An undeclared name stays free text, as today. A declared
+path that is missing is reported as unresolvable with the path, never counted as
+shipped.
+
+Done when a dep on a declared project's shipped id lets `pick` offer the task, an
+unshipped one keeps it blocked with the foreign id named, and nothing is written outside
+this repository.
+
 ## Block B — Authoring
+
+### §RK1715 A label already taken under another title
+
+`block add` checks each governed file for the label, writes the heading where it is
+missing, and reports the files that already declare it as skipped. It does not compare
+the title. Seen in viglet-design-system: `docs/CHANGELOG.md` had `## Block G — The
+package knows one chrome` (VDS146, VDS147 shipped), and
+
+    roadkeep block add G --title "Sites that take the look without a build"
+
+wrote the new heading into ROADMAP, IMPROVEMENTS and DEFERRED, printed `not
+docs/CHANGELOG.md: already declares it`, and exited 0. One label then had two titles
+across the files. The next `ship` into G would have filed new work under a block that
+the ledger says is about something else. The heading was reverted by hand and the work
+refiled as Block H.
+
+The skip is right when the title matches: that is RK1223's case, a block in the ledger
+that the roadmap has not opened yet. It is wrong when the title differs, because the
+label is already taken.
+
+The change: before writing anything, read every governed file's heading for the label.
+If any of them carries a different title, refuse the whole call, name the file and its
+title, and suggest the next free label. A matching title keeps today's behaviour.
+
+Done when the call above exits non-zero with no file written, the refusal names
+`docs/CHANGELOG.md` and the title it holds, and a label declared with the same title in
+the ledger alone still opens in the roadmap.
 
 ## Block C — Query
 
@@ -94,3 +144,33 @@ already written, not authorship.
 ## Block J — Validation (whether a person ever tried it)
 
 ## Block K — The desktop app (one installer for the reader and the plugin)
+
+## Block L — Product sites on the package
+
+### §RK1714 Both sites on the package
+
+The pitch (`site/`) and the roadkeep-gui landing (`gui/site/`, built here by
+`build:gui`) each keep a copy of the product sites' template. `site/src` carries
+`components/Nav.tsx`, `Footer.tsx`, `sections/Hero.tsx`, `ui/Ad.tsx` and `ui/Rich.tsx`;
+`gui/site/src` carries those plus `sections/FeatureIndex.tsx`, `sections/NonGoals.tsx`,
+`pages/Feature.tsx`, `ui/CopyButton.tsx` and `ui/ThemeToggle.tsx`. Both prerender with
+`scripts/prerender.mjs`, and `gui/site` draws its card with `scripts/og-image.mjs`. The
+tokens are hand-written in each `src/index.css` (541 and 1645 lines).
+
+Neither `package.json` has Tailwind, which VDS214 assumes all eight sites have. The
+first step is a choice: add Tailwind v4 and the package's preset, or style the `./site`
+components from `site.css` (VDS216) with no new build dependency.
+
+The move: `data-tone="cool"` on both, because both grounds are slate-blue (`#0a0f1b`
+dark, `#f7f8fb` light). The accent comes from `projects.json`: roadkeep-gui's
+`245,158,11` / `#fbbf24` is its amber, but roadkeep is listed as slate `148,163,184` /
+`#cbd5e1` while the pitch is amber, so one of the two changes, decided here. Shared
+components come from `./site`; `Terminal`, `Mark`, `CopyLine`, `HeroWindow` and the
+pitch's sections stay local. Both builds call the `./vite` helpers. Google Analytics
+loads only after consent, as the hub's AG1. The pitch stays dark-only. The Starlight
+area in `site/docs` is out of scope. The pilot is claude-tray T389.
+
+Done when `site/src` and `gui/site/src` have none of the files `./site` provides; the
+prerendered HTML of every route holds the same text as before; screenshots of each route
+(dark for the pitch, light and dark for gui) are compared before and after, with the
+differences listed in the commit; both sites appear in `consumers.json`.

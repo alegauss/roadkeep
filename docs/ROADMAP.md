@@ -24,7 +24,11 @@
 
 ## Block A — The model (a task is data before it is a line)
 
+- 💭 **RK1716** (deps: —) **A dep on another repository's task is free text, so nothing can tell whether it shipped** — Every repository involved is governed by roadkeep, yet deps, pick and blocked answer unresolvable where the other ledger already holds the answer. → §RK1716
+
 ## Block B — Authoring (insert, never hand-edit)
+
+- 📋 **RK1715** (deps: —) **block add opens a label the ledger already declares under another title** — It writes the new heading where the label is missing and exits 0, so one label carries two titles across the governed files. → §RK1715
 
 ## Block C — Query (consult without reading the file)
 
@@ -43,6 +47,10 @@
 ## Block J — Validation (whether a person ever tried it)
 
 ## Block K — The desktop app (one installer for the reader and the plugin)
+
+## Block L — Product sites on the package
+
+- 📋 **RK1714** (deps: viglet-design-system: VDS213–VDS216, claude-tray: T389) **The pitch and the roadkeep-gui landing each keep their own copy of the template eight product sites share** — The shared Nav, Hero, Footer and sponsor slot drift apart in each copy, and the design system now carries them once. → §RK1714
 
 ## Done when — Block D
 
