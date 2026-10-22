@@ -141,6 +141,30 @@ the ledger alone still opens in the roadmap.
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
+### §RK1717 The README's first screen, held to the visibility test
+
+The README is the PyPI page and the first page a Claude Code user opens, and the
+visibility repository (`D:\Git\alegauss\visibility`) judges every alegauss product's
+first screen by one test, set in its `drafts/VS4-primeira-tela.md` for claude-tray:
+someone who never heard of the tool knows **what it does**, **why install it** and **how
+to install it** without scrolling.
+
+The rewrite of 2026-10-22 (75a2c90e, 0db5ee0f) moved the install and a first session to
+the top and the design argument below, but it was not measured against that test. What
+is left to decide:
+
+- The one sentence. Is it what a Claude Code user searches for, or the tool's own vocabulary?
+- A demo. claude-tray gained a GIF (VS5); here the moment is the hook denying an `Edit` on
+  the roadmap and naming the `add` to call.
+- What returns from the old README. The comparison with markdownlint, Vale and Backlog.md
+  left with no page in the docs to hold it.
+- The visibility strategy keeps roadkeep to cheap actions tied to claude-tray, so this stays
+  one pass, not a launch.
+
+Done when the first screen passes the test as visibility states it, and the row for
+roadkeep in visibility's `actions.json` records the change, so its effect on PyPI
+downloads and repository visitors is measured.
+
 ## Block J — Validation (whether a person ever tried it)
 
 ## Block K — The desktop app (one installer for the reader and the plugin)
