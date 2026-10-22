@@ -1,31 +1,31 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/alegauss/roadkeep/main/docs/assets/roadkeep-banner.png" alt="roadkeep — a schema at the point of insertion" width="840">
-</p>
-
 <!--
-  Assets in docs/assets/ — the mark is task lines cut at a gate, with the refused
+  Assets in site/public/assets/ — the mark is task lines cut at a gate, with the refused
   remainder faded beyond it. The SVGs follow the reader's light/dark theme; a PNG
   cannot, so each carries a fixed dark palette.
 
-    roadkeep-mark.svg     160x160   icon
-    roadkeep-logo.svg     520x160   mark + wordmark
-    roadkeep-banner.svg  1200x300   source for the header above
-    roadkeep-banner.png  1200x300   the header above. Raster and absolute because this
-                                    file is also the PyPI project page (RK19): a
-                                    relative path resolves against pypi.org and an SVG
-                                    is served as text/plain, so both render as broken.
+    roadkeep-mark.svg     160x160   icon, the header below. Absolute and served by the
+                                    site because this file is also the PyPI project page
+                                    (RK19): a relative path resolves against pypi.org, and
+                                    raw.githubusercontent serves an SVG as text/plain.
                                     Every link below is absolute for the same reason.
+    roadkeep-logo.svg     520x160   mark + wordmark
+    roadkeep-banner.svg  1200x300   banner source
+    roadkeep-banner.png  1200x300   banner
     roadkeep-social.svg  1280x640   source for the link preview
     roadkeep-social.png  1280x640   upload at Settings > General > Social preview.
                                     This is what renders when the repo URL is pasted
                                     into LinkedIn, Slack or a link card anywhere else.
                                     Re-render either PNG after editing its SVG:
                                     msedge --headless=new --window-size=1200,300 \
-                                      --screenshot=docs/assets/roadkeep-banner.png \
-                                      file:///.../docs/assets/roadkeep-banner.svg
+                                      --screenshot=site/public/assets/roadkeep-banner.png \
+                                      file:///.../site/public/assets/roadkeep-banner.svg
 -->
 
 <div align="center">
+
+<img src="https://alegauss.github.io/roadkeep/assets/roadkeep-mark.svg" alt="roadkeep logo" width="120">
+
+# roadkeep
 
 **A Claude Code plugin that keeps your `ROADMAP.md`, `CHANGELOG.md` and `IMPROVEMENTS.md` to one format, by refusing the hand-edit and handing the agent the command that writes it properly.**
 
