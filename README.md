@@ -14,6 +14,7 @@
                                     file is also the PyPI project page (RK19): a
                                     relative path resolves against pypi.org and an SVG
                                     is served as text/plain, so both render as broken.
+                                    Every link below is absolute for the same reason.
     roadkeep-social.svg  1280x640   source for the link preview
     roadkeep-social.png  1280x640   upload at Settings > General > Social preview.
                                     This is what renders when the repo URL is pasted
@@ -24,19 +25,161 @@
                                       file:///.../docs/assets/roadkeep-banner.svg
 -->
 
+<div align="center">
 
-**A CLI that owns the writes to your `ROADMAP.md`, `CHANGELOG.md`, `IMPROVEMENTS.md`
-and `STRATEGY.md`, so the format is a schema at the point of insertion instead of a
-convention an author is asked to remember.**
+**A Claude Code plugin that keeps your `ROADMAP.md`, `CHANGELOG.md` and `IMPROVEMENTS.md` to one format, by refusing the hand-edit and handing the agent the command that writes it properly.**
 
-Shipped as a Claude Code plugin, because the author to constrain is usually an agent.
+```sh
+claude plugin marketplace add alegauss/roadkeep --scope project
+claude plugin install roadkeep@alegauss --scope project
+```
+
+Python 3.11+ · zero runtime dependencies · nothing to add to `PATH` · your files stay plain Markdown
+
+**[alegauss.github.io/roadkeep](https://alegauss.github.io/roadkeep/)**: the site, and the
+[docs](https://alegauss.github.io/roadkeep/docs/).
+
+</div>
+
+- **Refused before the prose exists.** A task line is fields with limits: `symptom` and `why`
+  have a `maxLength`, markers are an `enum`, ids have a pattern. A line that does not fit is
+  refused when it is written, not reported by a linter after the tokens are spent.
+- **A hand-edit is denied, with the command to call instead.** The hook names the exact
+  `add`, `status` or `ship` that does the job, so the right path is also the cheapest one.
+- **Ask instead of read.** `pick`, `brief`, `list` and `deps` answer what is next, what blocks
+  what and why a task exists, so an agent never reads a whole backlog to find one line.
+- **It governs the file you already have.** One line per task in your existing `ROADMAP.md`,
+  not a new store to migrate into, and a write that would not round-trip byte for byte is
+  refused.
+- **The same gate everywhere.** `roadkeep lint` runs as the hook at the end of a turn, as a
+  pre-commit hook and as a GitHub Action, and every finding names the command that fixes it.
 
 ---
 
-## The problem, measured
+> **Unofficial / community project.** Not affiliated with, endorsed by, or sponsored by
+> Anthropic. "Claude" and "Claude Code" are trademarks of Anthropic.
 
-This did not start as an idea. It started as three readings from a real production
-repository, where all three files declared a format and none enforced it:
+## Install
+
+Run the two commands above in the repository you want governed. You need a **Python 3.11+**
+interpreter as `python`; the plugin carries the package itself, so there is nothing to
+`pip install`.
+
+`--scope project` writes both declarations into that repository's `.claude/settings.json`:
+
+```jsonc
+"extraKnownMarketplaces": { "alegauss": { "source": { "source": "github", "repo": "alegauss/roadkeep" } } },
+"enabledPlugins": { "roadkeep@alegauss": true }
+```
+
+Commit that file and **every clone is wired**, with no step per machine. What arrives:
+
+- the **hook** that denies a hand-edit of a governed file and names the command, and runs
+  `lint` before the turn ends;
+- the **MCP tools** (`mcp__roadkeep__*`), whose input schema is *your* project's: its limits,
+  its markers, its id shape;
+- four **slash commands**, `/roadkeep:add`, `/roadkeep:ship`, `/roadkeep:pick` and
+  `/roadkeep:lint`;
+- the **skill**, loaded only when a governed file is in play.
+
+Inside an interactive session, `/plugin marketplace add alegauss/roadkeep` and
+`/plugin install roadkeep@alegauss` do the same for your user alone.
+
+## First session
+
+The format is declared once per repository, in `roadkeep.toml`. Ask for it:
+
+> Adopt docs/ROADMAP.md under roadkeep, with the prefix SH.
+
+For a backlog you already have, that runs `adopt` first, which measures your file and reports
+what a limit would refuse before anything changes. Then it runs `init --existing`, which
+declares your roadmap untouched: the prefix comes off the ids it already carries and the
+blocks off its own headings. On a new project, a bare `init` writes the config and the empty
+files. Years of lines written before the rules can be forgiven by name with `--baseline`, so
+the gate goes into CI on the first day. The whole run, with every refusal it printed, is in
+[Adopting a backlog you already have](https://alegauss.github.io/roadkeep/docs/adopting/).
+
+From then on, ask in plain words:
+
+> Add a task to block B: the export drops the last line when the file has no trailing newline.
+
+> What should I work on next?
+
+> Ship RK12: export keeps the last line.
+
+Claude calls `add`, `pick` and `ship`. If the symptom is too long, the refusal says by how
+much, and `ship` moves the line to the changelog and drops its rationale section in one write.
+If Claude reaches for `Edit` on the roadmap out of habit, the hook stops it and names the call.
+[In a session](https://alegauss.github.io/roadkeep/docs/session/) covers everything the agent
+receives.
+
+## Run it as a gate
+
+`roadkeep lint` exits **1** on a file that drifted and **0** on one that did not. That exit
+code is the whole contract, so every surface calls the same command:
+
+```yaml
+# .github/workflows/gate.yml — the action this repository ships
+steps:
+  - uses: actions/checkout@v4
+  - uses: alegauss/roadkeep@v0.2.0      # with: {directory: .}
+
+# .pre-commit-config.yaml — the same command, one step earlier
+repos:
+  - repo: https://github.com/alegauss/roadkeep
+    rev: v0.2.0                        # a release tag; `main` tracks unreleased
+    hooks:
+      - id: roadkeep-lint              # or roadkeep-lint-fix, which normalizes first
+```
+
+`--fix` repairs only what the format *derives* — the dep annotation, the pointer, dep order,
+an invisible codepoint, whitespace around a field, a queue entry whose task has left, a
+criteria heading addressed to nothing — and
+leaves every editorial finding to a human, which is what keeps a first run on a real backlog
+down to a report somebody reads.
+
+Every finding names the command that closes it. `roadkeep repair` runs the ones that need no
+decision, `repair --dry-run` prints them without running, and `roadkeep explain <code>` says
+what a finding code means.
+
+## Without Claude Code
+
+```sh
+uvx roadkeep lint                  # no install, no checkout
+pip install roadkeep               # or into an environment you keep
+
+# A fix that is on main and not yet released: the same run, resolved by URL
+uvx --from git+https://github.com/alegauss/roadkeep roadkeep lint
+```
+
+Every command takes `--json`, which also says which file and line the answer came from.
+
+### On Claude Code on the web
+
+[Claude Code on the web](https://code.claude.com/docs/en/claude-code-on-the-web) never
+installs a marketplace plugin. It reads only what the repository commits, so the plugin
+commands above wire nothing there, and an agent with no guard falls back to hand-editing the
+governed files. The fix is a small launcher committed to the repository, which the hook and
+the MCP server point at instead of the plugin root. It finds an engine at run time, and its
+guard stands down where the plugin is installed. [Viglet Shio](https://github.com/openviglet/shio) carries
+the reference copy at
+[`.claude/hooks/roadkeep-launch.py`](https://github.com/openviglet/shio/blob/main/.claude/hooks/roadkeep-launch.py),
+and [In a session](https://alegauss.github.io/roadkeep/docs/session/) explains the wiring.
+
+### From a checkout beside it
+
+A project adopting an unreleased version runs a sibling checkout, and `install` writes the
+hook, the MCP server and the skill into that project itself:
+
+```sh
+python ../roadkeep/plugin/scripts/roadkeep.py -C . install
+python ../roadkeep/plugin/scripts/roadkeep.py -C . install --check   # in CI: still in step?
+```
+
+## Why it exists
+
+It started as three readings from a real production repository, where all three files
+declared a format and none enforced it:
 
 | Artefact | Declared rule | Actual reading |
 |---|---|---|
@@ -44,72 +187,31 @@ repository, where all three files declared a format and none enforced it:
 | `agents.md` | index only, loaded every turn | grew to **186 KB (~46k tokens)** |
 | `docs/IMPROVEMENTS.md` | rationale for *unshipped* work | a sibling project's reached **539 KB** |
 
-The finding that decided the design: **six of the eight worst lines were written in the
-session that then diagnosed the problem.** This is not inattention. An author — human or
-model — who has the whole design in working memory will write it where the reader is,
-and an instruction to be terse does not survive the moment its author knows more than
-the line allows.
+Six of the eight worst lines were written in the session that then diagnosed the problem. An
+author, human or model, who has the whole design in mind writes it where the reader is, and an
+instruction to be terse does not survive that. A linter reports after the prose exists, when
+the author is asked to delete work just done. A field with `maxLength: 200` refuses before the
+sentence is composed.
 
-## Why a linter was the wrong answer
-
-A linter reports *after* the prose exists. By then the tokens are spent, and the author
-is being asked to delete work they just did. A field with `maxLength: 200` refuses at
-the point of insertion, before a sentence is composed to fill it.
-
-Same rule, two orders of magnitude cheaper — and it converts an analytical act (*"is
-this too long, and what would I cut?"*) into a procedural one (*"call `add`"*).
-
-> **The saving is the analysis, not the characters.**
-
-## What makes it different
-
-The space around this is not empty, and the honest comparison is narrow:
-
-| | What it does well | Why roadkeep is not it |
-|---|---|---|
-| **markdownlint** | structure and style of Markdown | explicitly not prose — it will not tell you a sentence is too long |
-| **Vale** | prose rules, style guides | a linter: it reports after the text exists, which is the cost being avoided |
-| **Backlog.md**, taskmd, and the markdown-task-for-agents family | mature task management, kanban, MCP | one `.md` **file per task**, with acceptance criteria and DoD — more room, and more room invites more prose |
-| **ADR / MADR** | rationale that survives, superseded never deleted | an ADR set grows monotonically; that curve *is* the 539 KB above |
-
-Four properties are the actual differentiator:
-
-1. **Enforced at the write path, not the review.** The refusal happens before the prose
-   exists. Everything else in this space reports afterwards.
-2. **It governs the file you already have.** One line in your existing `ROADMAP.md` —
-   not a new store you migrate into. A repository with a hand-written backlog is the
-   target, not the obstacle.
-3. **Round-trip or refuse.** Parse → render → byte-identical, or the tool declines to
-   write the file at all. A tool that owns writes to a hand-edited file has to prove it
-   cannot corrupt one.
-4. **Query instead of read.** Every question a maintainer asks the file is a command,
-   so answering it costs no context. Reading a backlog end-to-end to find one ready
-   task cost ~5k tokens in this very repository.
-
-## The six laws
-
-A change that breaks one is wrong even if requested.
-[docs/IMPROVEMENTS.md §0.3](https://github.com/alegauss/roadkeep/blob/main/docs/IMPROVEMENTS.md)
-is authoritative.
+Six laws bind the design, and a change that breaks one is wrong even if requested
+([§0.3](https://github.com/alegauss/roadkeep/blob/main/docs/IMPROVEMENTS.md)):
 
 | # | Law |
 |---|---|
 | L1 | The format is a schema, **enforced where the text is created**; `lint` is the backstop. |
-| L2 | **The store is the repository** — Markdown, greppable, diffable. No database, no service. |
-| L3 | **Round-trip or don't write** — parse → render → byte-identical. |
-| L4 | **The tool never writes prose** — it validates and renders. |
-| L5 | **Query instead of read** — every question is a command. |
-| L6 | **Configuration, not convention** — prefix, paths, markers and limits are per project. |
+| L2 | **The store is the repository**: Markdown, greppable, diffable. No database, no service. |
+| L3 | **Round-trip or don't write**: parse → render → byte-identical. |
+| L4 | **The tool never writes prose**: it validates and renders. |
+| L5 | **Query instead of read**: every question is a command. |
+| L6 | **Configuration, not convention**: prefix, paths, markers and limits are per project. |
 
-L4 is the one people try to relax first. A generator that writes the `symptom` for you
-would reintroduce exactly the drift this exists to stop.
+The non-goals: no web UI and no server, no issue-tracker sync, no model and no prompts inside
+the tool, and no dates, quarters or estimates.
 
 ## Status
 
-The table below is **not written by hand** — `roadkeep export --readme` derives it from
-`docs/`, which is the point of RK39: a README that restates a backlog it cannot re-read is
-stale from the first ship, and this one claimed "8 of 36" while four of the commands it
-called unbuilt were already in the ledger.
+The table below is **not written by hand**: `roadkeep export --readme` derives it from
+`docs/`, so it cannot restate a backlog it no longer matches.
 
 <!-- roadkeep:begin -->
 <!-- generated by `roadkeep export --readme`; edit the governed files instead -->
@@ -135,311 +237,10 @@ called unbuilt were already in the ledger.
 - 📋 **RK1715** (deps: —) **block add opens a label the ledger already declares under another title** — It writes the new heading where the label is missing and exits 0, so one label carries two titles across the governed files. → §RK1715
 <!-- roadkeep:end -->
 
-Every command takes `--json`, which carries provenance — which file and line the answer
-came from — because an answer an agent cannot audit gets verified by reading the file,
-which is the cost the command existed to remove.
-
-Open work, and where to look:
-[docs/ROADMAP.md](https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md) — the count
-and the next ready line are in the derived block above, so this sentence states neither. The
-same file carries the **non-goals**, which is the half of it that binds: `brief` prints them
-with every task, and they are what a proposal is checked against before it becomes a line.
-
-Four projects are adopted and governed — this one, Shio, Turing and Dumont — each with its own
-`roadkeep.toml` and the measurement that produced it. A fifth candidate was measured and
-**retired** rather than adopted: its tasks are wrapped paragraphs with their deps on a line of
-their own, and reading those is a second grammar rather than a configuration key. That refusal
-is the one worth reading, because a tool that stretched to fit it would have stopped being
-able to promise the round-trip.
-
-## Adopt it in a project — two commands, and the repository carries the rest
-
-Nothing is installed and nothing is added to `PATH`. The plugin ships this package, so the
-only thing the machine needs is a Python ≥3.11 interpreter — which is what runs the tool
-either way. Run these in the project you want governed:
-
-```sh
-claude plugin marketplace add alegauss/roadkeep --scope project
-claude plugin install roadkeep@alegauss --scope project
-```
-
-`--scope project` writes both declarations into that repository's `.claude/settings.json`:
-
-```jsonc
-"extraKnownMarketplaces": { "alegauss": { "source": { "source": "github", "repo": "alegauss/roadkeep" } } },
-"enabledPlugins": { "roadkeep@alegauss": true }
-```
-
-Commit that file and **every clone is wired** — no per-machine step, no OS-specific path. What
-arrives with it: the hook that denies a hand-edit and names the tool, the twelve MCP tools
-whose input schema is *your* project's schema, the four `/roadkeep:*` commands, and the skill
-that loads only when a governed file is in play (~300 tokens per session, all in).
-
-Then declare the format once. `init` and `adopt` run before the project is governed, so they
-are the one thing that wants a shell — the plugin's own copy answers, with no install:
-
-```sh
-# the plugin's launcher, wherever the marketplace was cloned
-R=~/.claude/plugins/marketplaces/alegauss/plugin/scripts/roadkeep.py
-
-python $R adopt docs/ROADMAP.md --prefix SH   # measures first: what would change, and where
-python $R adopt docs/IMPROVEMENTS.md --sections --with docs/STRATEGY.md   # the other half
-python $R init --existing                     # declares the files there, scaffolds the rest
-```
-
-`--existing` is the flag a repository with a backlog wants: a bare `init` writes the files it
-declares, so it refuses one that already has them. With it the roadmap you have is declared
-untouched, the prefix comes off the ids it already carries and the blocks off its own
-headings — which is the step that used to be a hand-written `roadkeep.toml` (RK1415).
-
-Both halves, because both are limits you have to declare. The backlog run reports the longest
-`symptom`, `why` and rendered line; the `--sections` run reports the longest section in words
-and the width your prose is already wrapped to — the numbers `[limits]` gets set from, taken
-from your corpus rather than copied from this one. `--with` names the other prose files, and
-is the one measure that is about a set: two outlines written apart both start at `I`, so the
-address they share is a finding no per-file read can make and the first one `lint` would.
-
-Everything a *task* needs afterwards is already in the tools the plugin installed: `add`,
-`status`, `ship`, `retire`, `record_add`, `record_drop`, `section_add`, `section_drop`,
-`brief`, `pick`, `list`,
-`deps`, `lint`. No shell, no `PATH`, and the schema each of them validates against is the one
-`roadkeep.toml` just declared.
-
-**[Viglet Shio](https://github.com/openviglet/shio) is the reference adoption**: 80 task
-lines, a 618 KB ledger of 233 entries written years before this tool, and a `roadkeep.toml`
-that declares exactly what that history is — `[ledger]` for the two slots its lines never
-carried, `[limits.changelog]` for a file whose median line is 1038 characters, and
-`[rules.changelog]` for the two prose rules history cannot obey.
-
-### Or from a checkout beside it
-
-A project adopting an *unreleased* version runs a sibling checkout rather than the published
-plugin — and then the hook, the tools and the skill arrive with nothing, because those ship
-with the plugin. `install` writes them itself, translated from the files the plugin carries,
-with the launcher's path as the only substituted fact:
-
-```sh
-python ../roadkeep/plugin/scripts/roadkeep.py -C . install
-python ../roadkeep/plugin/scripts/roadkeep.py -C . install --check   # in CI: still in step?
-```
-
-`.mcp.json`, the guard on its three hook events in `.claude/settings.json`, a verbatim
-`.claude/skills/roadkeep/` — `SKILL.md` and the two reference pages it points at, which are
-one surface because an orientation naming a page nobody has fails by returning nothing — and
-— only where the repository already has workflows — a
-job calling the action above. The skill is **refreshed on every run** and `--check` exits 1
-once it drifts, which is what a vendored copy otherwise has nothing to keep it in step with.
-Declarations are merged, so what another tool wrote in either file survives; the workflow is
-written once and tuned by you thereafter. The fifth surface is named and not written: the line
-in `CONTRIBUTING.md` is prose about your project, and this tool writes none (L4).
-
-### On Claude Code on the web, the plugin is not there
-
-[Claude Code on the web](https://code.claude.com/docs/en/claude-code-on-the-web) has no
-`/plugin` command and never installs a marketplace plugin — a cloud session reads only what the
-repository commits (`.claude/settings.json`, `.mcp.json`, `.claude/skills/`) and a setup script.
-So the two commands at the top of this section wire **nothing** there: the hook, the server and
-the skill all ride with a plugin the environment does not install, and an agent with no guard
-falls back to hand-editing the governed files — the one drift this tool exists to refuse, now
-in the one place it cannot see itself doing it (*"No roadkeep plugin/hooks → I'll track via git
-log"* is the tell).
-
-The fix is the checkout path made portable: commit a small launcher and point the hook and the
-server at it instead of at `${CLAUDE_PLUGIN_ROOT}`. It resolves an engine at run time — the
-first that runs of a vendored `.roadkeep/`, a sibling `../roadkeep` and a clone already in the
-user cache, or `$ROADKEEP_HOME` alone where it is set, refused by name rather than stepped
-past — and runs the same `guard` and `mcp` entry points the plugin would, so **one wiring
-holds on a laptop and in the cloud**:
-
-```jsonc
-// .claude/settings.json — the guard on its three events, launcher instead of the plugin root
-"hooks": { "PreToolUse": [{ "matcher": "Edit|MultiEdit|NotebookEdit|Write|Bash",
-  "hooks": [{ "type": "command",
-    "command": "python \"${CLAUDE_PROJECT_DIR}/.claude/hooks/roadkeep-launch.py\" guard" }] }] }
-// .mcp.json — the same launcher, `mcp` mode, gives `mcp__roadkeep__*` where the plugin cannot
-"mcpServers": { "roadkeep": { "command": "python",
-  "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/roadkeep-launch.py", "mcp"] } }
-```
-
-Two rules keep the committed launcher from ever making a machine worse than the plugin did, and
-both are the **guard's**: it **defers to the plugin** when one is installed, so no deny message
-doubles on the laptop that already has it, and it **no-ops on exit 0** when no engine is found,
-so a repository without roadkeep is never blocked by a hook that cannot answer. The `mcp` mode
-keeps neither — a stdio server cannot stand down, since the exit that would say so is what the
-harness reads as a crash.
-[Viglet Shio](https://github.com/openviglet/shio) carries the reference copy at
-[`.claude/hooks/roadkeep-launch.py`](https://github.com/openviglet/shio/blob/main/.claude/hooks/roadkeep-launch.py).
-
-### Or just the CLI
-
-```sh
-uvx roadkeep lint                  # no install, no checkout
-pip install roadkeep               # or into an environment you keep
-
-# A fix that is on main and not yet released: the same run, resolved by URL
-uvx --from git+https://github.com/alegauss/roadkeep roadkeep lint
-```
-
-Python ≥3.11, **zero runtime dependencies** — `argparse` and `tomllib`, not `click` and
-`pydantic`. A tool meant to run in someone else's CI pays for every dependency it takes,
-and that is also what makes the `uvx` line above viable: there is nothing to resolve.
-
-## Run it as a gate
-
-`roadkeep lint` exits **1** on a file that drifted and **0** on one that did not — that exit
-code is the whole contract, so every surface calls the same command rather than a copy of it.
-A gate that runs in only one place is a gate with a documented bypass.
-
-```yaml
-# .github/workflows/gate.yml — the action this repository ships
-steps:
-  - uses: actions/checkout@v4
-  - uses: alegauss/roadkeep@v0.2.0      # with: {directory: .}
-
-# .pre-commit-config.yaml — the same command, one step earlier
-repos:
-  - repo: https://github.com/alegauss/roadkeep
-    rev: v0.2.0                        # a release tag; `main` tracks unreleased
-    hooks:
-      - id: roadkeep-lint              # or roadkeep-lint-fix, which normalizes first
-```
-
-`--fix` repairs only what the format *derives* — the dep annotation, the pointer, dep order,
-an invisible codepoint, whitespace around a field, a queue entry whose task has left, a
-criteria heading addressed to nothing — and
-leaves every editorial finding to a human, which is what keeps a first run on a real backlog
-down to a report somebody reads.
-
-Every finding **names the command that closes it**, and `roadkeep repair` runs the ones that
-need no decision — the mechanical pass, then each complete argv, re-reading the report between
-writes because a repair moves the line numbers after it. That matters most for the caller this
-ships for: the guard denies an agent the hand edit, so a report whose remedy lived in English
-cost a turn per finding to act on. What still needs a sentence you have to write, or a choice
-between two doors, is printed with both and never guessed at — the tool does not write prose.
-`repair --dry-run` prints the commands and runs none of them, and `roadkeep explain <code>`
-answers what a code *means* — the class, what produces it, and its doors — which is the one
-question the report could never answer, since a finding is about a line and a code is about a
-kind. With no argument it lists them all, which is a vocabulary this tool had never published.
-
-Two things it reports **without** failing, because refusing them would fail an honest file
-and a gate that gets bypassed is worth nothing: what a `Block X` dep expands to (one token
-named 41 open tasks in the backlog measured above), and — with `--since HEAD`, which the
-pre-commit hook passes — a rationale section edited while the line carrying its status was
-not. The line is the only thing `pick` reads and the section is deleted on ship, so a
-requirement written only into the reasoning cannot be picked, shipped, or kept.
-
-The gate also holds the files nobody edits on purpose. An instruction file loaded on every
-turn spends the resource this tool exists to protect, and `agents.md` reached **186 KB** in
-the project measured above while declaring a 150-line rule at the bottom of itself — so the
-budget moves out of its prose and into the configuration, in both units a reader pays:
-
-```toml
-[budgets]
-"agents.md" = { lines = 125, bytes = 8400 }   # this repository's own, held by `lint`
-```
-
-## Run it as a Claude Code plugin
-
-The store is Markdown (L2), so an agent can bypass the entire format with one `Edit` — and
-will, because `Edit` is cheaper than reading a `--help`. A gate at the commit catches that a
-whole turn of prose too late: the tokens are already spent, and the report asks for a
-deletion. So the plugin installs the one enforcement point an agent cannot route around.
-
-```jsonc
-// hooks/hooks.json, shipped in this repository — `roadkeep guard` answers both events
-"PreToolUse": [{ "matcher": "Edit|MultiEdit|NotebookEdit|Write", … }]   // deny, and say what to call
-"Stop":       [{ … }]                                                  // `lint`, before the turn ends
-```
-
-A write to a file some project's `roadkeep.toml` declares is **denied with the command that
-does it properly**, flags included — a refusal that names no alternative is one an agent
-routes around, and one that names the command makes the denial the cheapest path forward:
-
-```
-Edit refused: docs/ROADMAP.md is this project's roadmap, and roadkeep owns its writes.
-…
-Call instead, from the project root:
-  roadkeep add --block <x> --symptom "…" --why "…"  a new task line, fields refused at input
-  roadkeep status <id> <marker>                     a marker, and only in this file
-  roadkeep ship <id>                                shipped: ledger entry, line gone, section dropped
-```
-
-Three properties are load-bearing, and each is a test rather than an intention. The config is
-discovered **from the file** and not from the working directory, so one hook process answers
-correctly for every repository a session touches. **Silence is the allow** — `deny` is the only
-decision it ever returns, because `allow` in this protocol *grants* the write and would wave
-through the permission rules you set for every file the tool has no opinion about. And **every
-failure allows**: a broken `roadkeep.toml`, a payload that is not JSON, a tool input with no
-path. A guard that denies on its own errors turns one typo into a repository nobody can edit,
-and the gate is still there at the commit.
-
-`Bash` is deliberately not matched: `sed -i` on the roadmap is a real bypass, and matching every
-shell command to catch it taxes every command in the session. The `Stop` hook runs `lint`
-instead — so the bypass is caught before the turn ends, by the agent that can still fix it.
-
-The denial is one surface of four; the other three are what make calling the command cheaper
-than typing it. The plugin ships an **MCP server** — `roadkeep mcp`, JSON-RPC on stdio, no
-port and no state — exposing `add`, `ship`, `pick` and `lint` as tools whose input schema is
-*derived*: `maxLength` is this project's `symptom` and `why` limits, `enum` is its declared
-markers, `pattern` is its id shape, and the description is the subcommand's own help. So a
-misspelt `--deps` is refused by the protocol with the arguments that exist, instead of costing
-a round trip to a usage string, and every call is dispatched through the same parser a
-terminal uses — one engine, one refusal.
-
-The same four are **slash commands** — `/roadkeep:add`, `/roadkeep:ship`, `/roadkeep:pick`,
-`/roadkeep:lint` — for the person driving the standard, who reads `/help` and not a JSON
-Schema. `/roadkeep:add F | what does not work | one sentence.` passes those words *verbatim*:
-the command files are written so that every instruction about the user's text is a
-prohibition, because a prompt that said "write a concise symptom" would have moved the prose
-generation one file to the left while keeping L4's letter. That is asserted, not intended —
-`tests/test_commands.py` refuses the phrasing.
-
-The fourth is a **skill**, `plugin/skills/roadkeep/SKILL.md`, holding which command to call, what it
-derives, the two rules a schema cannot check, and how work is picked. It is a skill and not a
-paragraph in the
-project's instruction file because instructions are loaded on *every* turn, including the ones
-that touch no roadmap — the budget above exists because that is how the 186 KB happened. The
-skill is read when a governed file is in play and costs nothing otherwise, and it ships with
-the plugin, so the standard is the same text in every project rather than a copy per repo.
-
-That trigger is one cadence and the reference is another, so `SKILL.md` is an **orientation**
-— the loop's verbs, the reads worth reaching for, the two rules, and where the rest is — and
-`writing.md` and `asking.md` beside it hold the write path and the query surface, opened by
-the turns that need them. It named all forty-four verbs before that split and cost 65,885
-code units on every matching turn, which is a reference being loaded as an orientation: a
-session held every one of them from turn one, used about fourteen, and found the two that
-would have saved it most on its last day. `roadkeep cost --skill` prints both cadences.
-
-All four install with the two commands at the top of this file, and both surfaces the harness
-starts run `python "${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py"` — the package the plugin
-already copied. There is no console script to install and no `PATH` entry to add, because a
-plugin that installs cleanly and then starts nothing is the failure that taught this (RK57).
-
-One more property makes the gate usable on a repository that adopts the tool late: the `Stop`
-hook judges **only the lines the working tree changed**. Shio joined with 278 findings in it,
-and a gate that blocked the end of every turn over somebody else's history is a gate that gets
-switched off — so `lint`, the pre-commit hook and the Action still judge every line, and the
-hook answers the narrower question it was installed to answer (RK60).
-
-## Non-goals
-
-These are binding, and half the point. Check before proposing work:
-
-- **No web UI and no server.** Files and a CLI — the MCP server above is one stdio process
-  speaking JSON-RPC to the CLI, which binds nothing and stores nothing. A desktop reader
-  that only spawns the CLI or that server may live here; a service, a database or a second
-  writer of the line format may not.
-- **No issue-tracker sync.** A backlog that lives in a service is one an agent cannot `grep`.
-- **No model and no prompts inside the tool.** It validates and renders; it never writes
-  the symptom or the rationale.
-- **No dates, quarters or estimates.** A marker is maturity, not a schedule.
-
-## This repository is the conformance fixture
-
-`roadkeep lint` must pass on `docs/` here. The format is proven by the artefact rather
-than asserted in a README — including this one. A limit that cannot express these lines
-is the wrong limit, not a set of wrong lines, and the test suite asserts it against
-`docs/ROADMAP.md` under this repository's own `roadkeep.toml`.
+Open work is in
+[docs/ROADMAP.md](https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md). Four
+projects are governed by it today: this one, Shio, Turing and Dumont. This repository is its
+own conformance fixture: `roadkeep lint` must pass on `docs/` here, and the suite asserts it.
 
 ## More tools by alegauss
 
