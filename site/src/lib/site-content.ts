@@ -1228,14 +1228,14 @@ export const sponsor = {
   blurbLink: { label: "viglet.org", href: "https://www.viglet.org" },
   products: [
     {
-      href: "https://turing.viglet.org",
+      href: "https://openviglet.github.io/turing/",
       src: "/roadkeep/viglet/turing-logo.png",
       alt: "Viglet Turing logo",
       name: "Viglet Turing",
       note: "so visitors find what they came for, with AI answers drawn only from your own content",
     },
     {
-      href: "https://shio.viglet.org",
+      href: "https://openviglet.github.io/shio/",
       src: "/roadkeep/viglet/shio-logo.png",
       alt: "Viglet Shio logo",
       name: "Viglet Shio",
