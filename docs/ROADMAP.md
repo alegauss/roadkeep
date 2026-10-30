@@ -37,6 +37,8 @@
 
 ## Block E — Adoption
 
+- 📋 **RK1720** (deps: —) **pip, uvx and the README's pinned Action install the August release while the plugin is hundreds of versions ahead** — Publishing waits for a manual dispatch nobody remembers, so every adopter outside the plugin meets a tool the README no longer describes. → §RK1720
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK1719** (deps: —) **um lock de processo morto bloqueia toda escrita até ser apagado à mão** — O lock guarda o pid de quem o tomou; o roadkeep espera 5s e recusa sem conferir se aquele pid ainda existe, e a recusa vinha truncada como refused, nothing written. → §RK1719
@@ -48,6 +50,7 @@
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
 - 📋 **RK1717** (deps: —) **The README has never been held to the five-second first-screen test the visibility repository applies** — The README is also the PyPI page and the first page a Claude Code user reads, and visibility judges each product's first screen by what it does, why and how to install. → §RK1717
+- 📋 **RK1721** (deps: —) **The README says four projects are governed by roadkeep when more than twice that many are** — A count only a person can update goes stale, and an undercount reads as a project that stopped growing. → §RK1721
 
 ## Block J — Validation (whether a person ever tried it)
 

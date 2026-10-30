@@ -151,7 +151,42 @@ already computes, and the door is `budget --id <id> --defer`.
 
 ## Block E — Adoption
 
+### §RK1720 Every version reaches PyPI without a dispatch
+
+The last release on PyPI and on GitHub is v0.2.0, of 28/08/2026. The plugin, which
+carries the package inside it, is at 0.2.532: the pre-commit hook bumps the patch on
+every commit, and `publish.yml` only runs when someone dispatches it. So `uvx roadkeep`,
+`pip install roadkeep` and the Action pinned in the README at `alegauss/roadkeep@v0.2.0`
+all hand an adopter the August tool, while the README describes the October one. The
+portfolio review of 30/10/2026 (visibility repo, `estrategia/portfolio.md` and
+`produtos/roadkeep.md`) found this is the first thing a Show HN commenter would hit; the
+author confirmed the release stopped only for lack of a habit, so the fix is to remove
+the habit from the path.
+
+The design:
+
+- **No dispatch to remember.** A trigger publishes from `main` without a person: on a schedule (weekly, skipped when nothing changed since the last tag), or on each push whose `__version__` differs from the newest tag. The second matches "every plugin version" literally but means one PyPI release per commit; the weekly cadence is the proposal, and the choice is the author's.
+- **The guards stay.** The same `build` job (gate, tests, wheel probe) runs first; only the trigger changes.
+- **A moving `v0` tag** follows each release, and the README pins the Action to `@v0`, so the snippet never goes stale again.
+- **The desktop installers** keep their own cadence if building them per release is too heavy.
+
 ## Block F — The plugin
+
+### §RK1719 Um lock de processo morto
+
+A linha RK1719 entrou no roadmap no commit 85b0ad60 sem a seção para onde aponta; esta
+seção só registra o que a própria linha já diz, para o lint voltar a passar, e o desenho
+fica para quem pegar a tarefa.
+
+O sintoma: o lock que serializa as escritas guarda o pid de quem o tomou. Se esse
+processo morre sem soltá-lo, toda escrita seguinte espera 5 segundos e recusa, sem
+conferir se o pid ainda existe, e a recusa chegava truncada como "refused, nothing
+written", sem dizer que o motivo era o lock nem como sair dele. O caminho hoje é apagar
+o arquivo à mão.
+
+O que a tarefa precisa decidir: conferir se o pid gravado ainda vive (no Windows e no
+POSIX) e tomar o lock de um processo morto, dizendo isso na saída; e, quando o dono
+estiver vivo, a recusa nomear o lock, o pid e há quanto tempo ele o segura, por inteiro.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
@@ -182,6 +217,26 @@ is left to decide:
 Done when the first screen passes the test as visibility states it, and the row for
 roadkeep in visibility's `actions.json` records the change, so its effect on PyPI
 downloads and repository visitors is measured.
+
+### §RK1721 The governed-projects sentence
+
+The README closes its open-work section with "Four projects are governed by it today:
+this one, Shio, Turing and Dumont." The portfolio review of 30/10/2026 (visibility repo,
+`produtos/roadkeep.md`) counted more: claude-tray, polyweave, winwright, piano,
+commitclerk, mini-gpt and the visibility repository were adopted after the sentence was
+written. A number that undercounts reads as a project that stopped growing, and a reader
+who checks one of those repositories finds the docs say less than the truth.
+
+The design: the sentence stops carrying a count that only a person can update. Either it
+names no number ("every repository of its author, among them Turing, Shio, Dumont,
+claude-tray and winwright, each with a public `docs/ROADMAP.md` to read"), or the count
+comes from a list the build already holds. Only public repositories are named, each
+linked to its own governed roadmap, which is the proof a reader can open. Nothing claims
+an adopter outside the author, because none is known yet; that is said plainly rather
+than implied.
+
+This belongs beside RK1717, the first-screen test, but is not it: RK1717 is about the
+opening, this is a stale fact further down.
 
 ## Block J — Validation (whether a person ever tried it)
 

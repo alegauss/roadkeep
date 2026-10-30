@@ -222,15 +222,15 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | B — Authoring (insert, never hand-edit) | 2 | 237 | 2 |
 | C — Query (consult without reading the file) | 0 | 204 | 7 |
 | D — The gate | 0 | 319 | 7 |
-| E — Adoption | 0 | 123 | 1 |
+| E — Adoption | 1 | 123 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 167 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
-| I — The documentation area (what an adopter reads before there is a session to ask) | 1 | 20 | 0 |
+| I — The documentation area (what an adopter reads before there is a session to ask) | 2 | 20 | 0 |
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 1 | 0 | 0 |
-| **Total** | 6 | 1187 | 24 |
+| **Total** | 8 | 1187 | 24 |
 
 **Next ready:**
 
