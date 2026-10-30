@@ -218,26 +218,6 @@ Done when the first screen passes the test as visibility states it, and the row 
 roadkeep in visibility's `actions.json` records the change, so its effect on PyPI
 downloads and repository visitors is measured.
 
-### §RK1721 The governed-projects sentence
-
-The README closes its open-work section with "Four projects are governed by it today:
-this one, Shio, Turing and Dumont." The portfolio review of 30/10/2026 (visibility repo,
-`produtos/roadkeep.md`) counted more: claude-tray, polyweave, winwright, piano,
-commitclerk, mini-gpt and the visibility repository were adopted after the sentence was
-written. A number that undercounts reads as a project that stopped growing, and a reader
-who checks one of those repositories finds the docs say less than the truth.
-
-The design: the sentence stops carrying a count that only a person can update. Either it
-names no number ("every repository of its author, among them Turing, Shio, Dumont,
-claude-tray and winwright, each with a public `docs/ROADMAP.md` to read"), or the count
-comes from a list the build already holds. Only public repositories are named, each
-linked to its own governed roadmap, which is the proof a reader can open. Nothing claims
-an adopter outside the author, because none is known yet; that is said plainly rather
-than implied.
-
-This belongs beside RK1717, the first-screen test, but is not it: RK1717 is about the
-opening, this is a stale fact further down.
-
 ## Block J — Validation (whether a person ever tried it)
 
 ## Block K — The desktop app (one installer for the reader and the plugin)

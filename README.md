@@ -226,11 +226,11 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 167 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
-| I — The documentation area (what an adopter reads before there is a session to ask) | 2 | 20 | 0 |
+| I — The documentation area (what an adopter reads before there is a session to ask) | 1 | 21 | 0 |
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 1 | 0 | 0 |
-| **Total** | 8 | 1187 | 24 |
+| **Total** | 7 | 1188 | 24 |
 
 **Next ready:**
 
@@ -238,8 +238,15 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 <!-- roadkeep:end -->
 
 Open work is in
-[docs/ROADMAP.md](https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md). Four
-projects are governed by it today: this one, Shio, Turing and Dumont. This repository is its
+[docs/ROADMAP.md](https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md). Every
+repository of its author is governed by it, and these have a public roadmap to read:
+[Turing](https://github.com/openviglet/turing/blob/2026.3/docs/ROADMAP.md),
+[Shio](https://github.com/openviglet/shio/blob/2026.3/docs/ROADMAP.md),
+[Dumont](https://github.com/openviglet/dumont/blob/2026.3/docs/ROADMAP.md),
+[polyweave](https://github.com/alegauss/polyweave/blob/main/docs/ROADMAP.md),
+[winwright](https://github.com/alegauss/winwright/blob/main/docs/ROADMAP.md) and
+[commitclerk](https://github.com/alegauss/commitclerk/blob/main/docs/ROADMAP.md). No adopter
+outside the author is known yet. This repository is its
 own conformance fixture: `roadkeep lint` must pass on `docs/` here, and the suite asserts it.
 
 ## More tools by alegauss
