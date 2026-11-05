@@ -200,8 +200,9 @@ _TOP_KEYS = frozenset(
 )
 #: `[projects.<name>]` — a sibling project governed by roadkeep, whose ledger answers a dep
 #: written `<name>: <id>` or `<name>: <id>–<id>` (RK1716). `path` is its checkout, absolute or
-#: relative to this root, and a bare string is the same path; it is read and never written.
-_PROJECTS_KEYS = frozenset({"path"})
+#: relative to this root, and a bare string is the same path; `git` is a remote fetched shallow
+#: into a cache where no checkout exists, at `ref` or the default branch. Read, never written.
+_PROJECTS_KEYS = frozenset({"path", "git", "ref"})
 #: What a sibling may be called: a word a dep can spell before its colon, never a path.
 _PROJECT_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.\-]*$")
 #: `[validation]` — where the question *has a person tried this* starts (RK1692). Declared
@@ -397,6 +398,20 @@ class Scope:
     #: The rest of the bullet. Longer than a task's `why` and not one sentence: the corpus
     #: argues these in two, and the file has no rationale section to send the second to.
     why: int = 320
+
+
+@dataclass(frozen=True, slots=True)
+class Sibling:
+    """One `[projects.<name>]` entry (RK1716): where its ledger is read from.
+
+    ``path`` wins where it is a directory on this machine, being fast and offline; ``git`` is
+    what answers everywhere else, a CI runner included. Either may be absent, not both.
+    """
+
+    name: str
+    path: Path | None = None
+    git: str | None = None
+    ref: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -878,10 +893,10 @@ class Config:
     #: a hook still reads as the tool's own write. Empty on every project without such a hook,
     #: which is the ordinary case and the one RK1473 was measured on.
     incidental: tuple[str, ...] = ()
-    #: `[projects]` — each sibling's name and the checkout its ledger is read from (RK1716), in
-    #: declared order. Empty on every project that declares none, where a `<name>: <id>` dep
-    #: stays the free text it always was.
-    projects: tuple[tuple[str, Path], ...] = ()
+    #: `[projects]` — each sibling and where its ledger is read from (RK1716), in declared
+    #: order. Empty on every project that declares none, where a `<name>: <id>` dep stays the
+    #: free text it always was.
+    projects: tuple[Sibling, ...] = ()
     #: `[claims] held` — how many **minutes** a claim on a line reads as held (RK151). Per
     #: project, because how long a task takes is the one thing about a claim that differs
     #: between backlogs (L6), and bounded by :data:`CLAIM_HELD_MAX`, because a window nobody
@@ -2399,31 +2414,47 @@ def _upstream(raw: object, problems: list[str]) -> str | None:
     return value
 
 
-def _projects(raw: object, base: Path, problems: list[str]) -> tuple[tuple[str, Path], ...]:
-    """`[projects]` — sibling name to checkout (RK1716).
+def _projects(raw: object, base: Path, problems: list[str]) -> tuple[Sibling, ...]:
+    """`[projects]` — each sibling and where it is read from (RK1716).
 
-    The path is resolved here and **not checked for existence**: a sibling absent on this
-    machine is a dep that resolves as unresolvable with that reason, which is an answer about
-    the dep, while a refused config would take every other command down with it.
+    The path is resolved here and **not checked for existence**, nor the remote for reach: a
+    sibling unavailable on this machine is a dep that resolves as unresolvable with that
+    reason, which is an answer about the dep, while a refused config would take every other
+    command down with it.
     """
     if raw is None:
         return ()
     if not isinstance(raw, Mapping):
         problems.append("projects must be a table of name = 'path' or name = { path = … }")
         return ()
-    out: list[tuple[str, Path]] = []
+    out: list[Sibling] = []
     for name, value in raw.items():
         where = f"projects.{name}"
         if not _PROJECT_NAME.match(name):
             problems.append(f"{where}: a sibling is named by a word a dep can spell, not {name!r}")
             continue
+        fields = value if isinstance(value, Mapping) else {"path": value}
         if isinstance(value, Mapping):
             _reject_unknown(value, _PROJECTS_KEYS, f"{where}.", problems)
-            value = value.get("path")
-        if not isinstance(value, str) or not value.strip():
-            problems.append(f"{where} must name the sibling's checkout as path = '…'")
+        spelled = {key: fields.get(key) for key in ("path", "git", "ref")}
+        wrong = [k for k, v in spelled.items() if v is not None and not (isinstance(v, str) and v.strip())]
+        if wrong:
+            problems.append(f"{where}.{wrong[0]} must be a non-empty string")
             continue
-        out.append((name, (base / value).resolve()))
+        if spelled["path"] is None and spelled["git"] is None:
+            problems.append(f"{where} must say where the sibling is, as path = '…' or git = '…'")
+            continue
+        if spelled["ref"] is not None and spelled["git"] is None:
+            problems.append(f"{where}.ref names a revision of a remote, and no git = '…' is declared")
+            continue
+        out.append(
+            Sibling(
+                name=name,
+                path=(base / spelled["path"]).resolve() if spelled["path"] else None,
+                git=spelled["git"],
+                ref=spelled["ref"],
+            )
+        )
     return tuple(out)
 
 

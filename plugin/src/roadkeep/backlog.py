@@ -38,7 +38,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 
-from roadkeep.config import Config, declares
+from roadkeep.config import Config, Sibling, declares
 from roadkeep.kernel.document import Document, Entry
 from roadkeep.kernel.schema import Dep, DepKind, Schema, Task
 
@@ -671,10 +671,10 @@ class Backlog:
         if found is None:
             return None
         name = found["name"]
-        root = dict(self.config.projects).get(name)
-        if root is None:
+        declared = next((one for one in self.config.projects if one.name == name), None)
+        if declared is None:
             return None
-        other = _sibling(root)
+        other = _sibling(declared)
         if isinstance(other, str):
             return Resolution(dep, kind, DepStatus.UNRESOLVABLE, f"{name}: {other}")
         what = Dep(found["what"].strip())
@@ -902,30 +902,60 @@ def _present(config: Config, role: str) -> Document | None:
 #: where that word is a sibling somebody declared.
 _SIBLING = re.compile(r"^(?P<name>[A-Za-z0-9][A-Za-z0-9_.\-]*):\s*(?P<what>\S.*)$")
 
-#: Each sibling's backlog, keyed by its checkout and held while none of the files it was read
-#: from changed: a `pick` resolving fifty lines that wait on one sibling reads it once.
+#: Each sibling's backlog, keyed by the directory it was read from and held while none of the
+#: files it was read from changed: a `pick` resolving fifty lines that wait on one sibling
+#: reads it once.
 _SIBLINGS: dict[Path, tuple[tuple[tuple[str, int], ...], Backlog]] = {}
 
+#: Each remote fetched in this process, and what the fetch answered: the directory its files
+#: were written to, or why there is none. Once per process (RK1716), so a remote that times
+#: out costs one timeout and not one per dependent.
+_FETCHED: dict[tuple[str, str], Path | str] = {}
 
-def _sibling(root: Path) -> Backlog | str:
+#: How long one git call may take before the remote is answered as unreachable (RK1716).
+FETCH_TIMEOUT = 20.0
+
+#: Whether this process may reach a remote. `lint` turns it off (RK1716): a gate must not
+#: depend on the network, and no finding is about an external dep's answer anyway.
+_OFFLINE: list[bool] = [False]
+
+
+class offline:  # noqa: N801 - read as a phrase: `with offline():`
+    """No sibling is fetched inside this block; one known only by its remote is unresolvable."""
+
+    def __enter__(self) -> None:
+        self._was = _OFFLINE[0]
+        _OFFLINE[0] = True
+
+    def __exit__(self, *_: object) -> None:
+        _OFFLINE[0] = self._was
+
+
+def _sibling(declared: Sibling) -> Backlog | str:
     """The sibling's backlog, or the reason there is none — read-only (RK1716).
 
-    The config is the one that directory itself declares and never one found by walking up:
-    a sibling checked out inside this repository would otherwise be answered by this
-    project's own ledger.
+    A ``path`` that is a directory wins, being fast and offline. Otherwise ``git`` is fetched
+    shallow into the cache, which is the one place this ever writes outside the repository.
     """
-    if not root.is_dir():
-        return f"no checkout at {root}"
+    if declared.path is not None and declared.path.is_dir():
+        return _read(declared.path)
+    if declared.git is None:
+        return f"no checkout at {declared.path}"
+    if _OFFLINE[0]:
+        return f"not fetched from {declared.git}: this read never reaches the network"
+    fetched = _fetch(declared.git, declared.ref or "")
+    return _read(fetched) if isinstance(fetched, Path) else fetched
+
+
+def _read(root: Path) -> Backlog | str:
+    """The backlog that directory itself declares, never one found by walking up: a sibling
+    checked out inside this repository would otherwise be answered by this project's ledger."""
     found = declares(root)
     if found is None:
         return f"{root} declares no roadkeep project"
     try:
         config = Config.load(found)
-        sources = [found] + [
-            config.path(role)
-            for role in ("roadmap", "changelog", "deferred", "dismissed")
-            if config.on_disk(role)
-        ]
+        sources = [found] + [config.path(role) for role in _READ_ROLES if config.on_disk(role)]
         signature = tuple((str(path), path.stat().st_mtime_ns) for path in sources)
         cached = _SIBLINGS.get(root)
         if cached is not None and cached[0] == signature:
@@ -937,6 +967,84 @@ def _sibling(root: Path) -> Backlog | str:
         return f"its backlog could not be read ({str(refused).splitlines()[0]})"
     _SIBLINGS[root] = (signature, backlog)
     return backlog
+
+
+#: The roles a dep's answer is read from: open, shipped, set aside, ruled out.
+_READ_ROLES = ("roadmap", "changelog", "deferred", "dismissed")
+
+
+def cache_root() -> Path:
+    """Where fetched siblings are kept: `$XDG_CACHE_HOME`, else the platform's user cache."""
+    import os  # noqa: PLC0415 - only a fetch needs the environment
+
+    base = os.environ.get("XDG_CACHE_HOME") or os.environ.get("LOCALAPPDATA")
+    return (Path(base) if base else Path.home() / ".cache") / "roadkeep" / "siblings"
+
+
+def _fetch(remote: str, ref: str) -> Path | str:
+    """The sibling's config and governed files at ``ref``, written into the cache (RK1716).
+
+    Git is the transport and not a host API, so any git host answers, a private one through
+    git's own credentials. A shallow, blob-less fetch of one revision, then only the files a
+    dep is answered from are read out of it — the config first, which names the rest. What a
+    remote answers for is what was pushed, never a ship sitting uncommitted on somebody's disk.
+    """
+    key = (remote, ref)
+    if key in _FETCHED:
+        return _FETCHED[key]
+    import hashlib  # noqa: PLC0415 - a fetch's own
+    import subprocess  # noqa: PLC0415
+
+    where = cache_root() / hashlib.sha256(f"{remote}\n{ref}".encode()).hexdigest()[:16]
+    store = where / "git"
+
+    def git(*argv: str) -> bytes:
+        return subprocess.run(
+            ["git", "-C", str(store), *argv],
+            check=True,
+            capture_output=True,
+            timeout=FETCH_TIMEOUT,
+            stdin=subprocess.DEVNULL,
+            env={**_environ(), "GIT_TERMINAL_PROMPT": "0"},
+        ).stdout
+
+    try:
+        store.mkdir(parents=True, exist_ok=True)
+        if not (store / "HEAD").exists():
+            git("init", "--bare", "--quiet")
+        git("fetch", "--quiet", "--depth", "1", "--filter=blob:none", remote, ref or "HEAD")
+        tree = where / "tree"
+        files = {"roadkeep.toml": git("show", "FETCH_HEAD:roadkeep.toml")}
+        (tree).mkdir(parents=True, exist_ok=True)
+        (tree / "roadkeep.toml").write_bytes(files["roadkeep.toml"])
+        config = Config.load(tree / "roadkeep.toml")
+        for role in _READ_ROLES:
+            if not config.has(role):
+                continue
+            relative = config.relative(config.path(role))
+            try:
+                body = git("show", f"FETCH_HEAD:{relative}")
+            except subprocess.CalledProcessError:
+                continue  # declared and not committed there: absent, which is not empty
+            target = tree / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(body)
+        answer: Path | str = tree
+    except subprocess.TimeoutExpired:
+        answer = f"{remote} did not answer within {FETCH_TIMEOUT:g}s"
+    except subprocess.CalledProcessError as failed:
+        said = (failed.stderr or b"").decode("utf-8", "replace").strip().splitlines()
+        answer = f"fetching {remote} failed ({said[-1] if said else 'git exited ' + str(failed.returncode)})"
+    except (OSError, ValueError) as refused:
+        answer = f"fetching {remote} failed ({str(refused).splitlines()[0]})"
+    _FETCHED[key] = answer
+    return answer
+
+
+def _environ() -> dict[str, str]:
+    import os  # noqa: PLC0415
+
+    return dict(os.environ)
 
 
 def _clip(sentence: str, limit: int = 90) -> str:

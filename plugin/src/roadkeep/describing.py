@@ -197,6 +197,9 @@ WHERE: Mapping[tuple[str, str], object] = {
     ("validation", "from"): None,
     # A sibling is the project's to name and to place (RK1716): nothing to default to.
     ("projects.<name>", "path"): None,
+    ("projects.<name>", "git"): None,
+    # The remote's default branch, which only the remote can name.
+    ("projects.<name>", "ref"): None,
 }
 
 

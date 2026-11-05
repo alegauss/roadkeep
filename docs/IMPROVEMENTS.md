@@ -75,35 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK1716 Deps on a sibling project
-
-Landed: the local-checkout half. A dep on another repository's task could only be
-written as free text, such as `turing: T456`. RK28 resolves it as unresolvable, so
-`deps`, `pick` and `blocked` never tell whether it shipped, and the user relays every
-Turing ship to Dumont's agent by hand. The other project is governed by roadkeep too:
-its ledger holds the answer.
-
-The change: `roadkeep.toml` declares sibling projects by path, git remote, or both; a
-bare string is a path:
-
-    [projects.turing]
-    path = "D:/Git/viglet/turing/latest"
-    git = "https://gitlab.com/viglet/turing.git"
-    ref = "2026.3"
-
-A dep written `<name>: <id>` or `<name>: <id>–<id>` then resolves by reading that
-project's config and ledger, read-only. A `path` that exists wins: fast and offline.
-Otherwise `git` is fetched shallow into a cache, two files at `ref` (the default branch
-when omitted), so CI and other machines answer too. Git is the transport, not a host
-API, so GitHub, GitLab or any git host works, private ones through git's own
-credentials. A remote answers for what was pushed, never an uncommitted ship.
-
-The fetch has a timeout and runs once per process. A missing path, failed fetch or
-unknown id is unresolvable with the reason, never shipped. `lint` never fetches: a gate
-must not depend on the network.
-
-Done when nothing but the cache is written outside this repository.
-
 ### §RK1723 Which project filed a line
 
 A friction skill working in Dumont files into Turing with `roadkeep -C <turing> add`.

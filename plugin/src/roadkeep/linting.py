@@ -105,7 +105,7 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from roadkeep import criteria, queueing, scoping, validating
-from roadkeep.backlog import Backlog, DepStatus, Stage, id_order
+from roadkeep.backlog import Backlog, DepStatus, Stage, id_order, offline
 from roadkeep.blocking import removable
 from roadkeep.config import LINE_ROLES as _LINE_ROLES
 from roadkeep.config import DESIGN_ROLES, PROSE_ROLES, PYPROJECT, ROLES, Config, spent, translated
@@ -617,6 +617,18 @@ class Report:
 
 
 def lint(
+    config: Config,
+    since: str | None = None,
+    baseline: str | None = None,
+    at: str | None = None,
+) -> Report:
+    """The gate, never reaching the network (RK1716): a sibling known only by its remote is
+    not fetched here, so the answer is the same on a machine with no route to it."""
+    with offline():
+        return _lint(config, since=since, baseline=baseline, at=at)
+
+
+def _lint(
     config: Config,
     since: str | None = None,
     baseline: str | None = None,

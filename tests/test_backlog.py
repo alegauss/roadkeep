@@ -1080,3 +1080,81 @@ def test_the_sibling_is_read_and_never_written_and_nothing_here_is_annotated(tmp
     from roadkeep.linting import lint
 
     assert not [f for f in lint(config).findings if f.code == "deps.stale"]
+
+
+# -- a sibling known only by its git remote (RK1716) --------------------------------
+
+
+def _remote(tmp_path: Path) -> str:
+    """The `turing` sibling committed into a repository of its own, whose path is the remote."""
+    from conftest import git_commit, git_init
+
+    siblings(tmp_path)  # writes tmp/turing and tmp/here
+    turing = tmp_path / "turing"
+    git_init(turing)
+    git_commit(turing, "sibling")
+    return str(turing)
+
+
+def _fresh(monkeypatch, tmp_path: Path) -> Path:
+    import roadkeep.backlog as backlog
+
+    cache = tmp_path / "cache"
+    monkeypatch.setenv("XDG_CACHE_HOME", str(cache))
+    monkeypatch.setattr(backlog, "_FETCHED", {})
+    monkeypatch.setattr(backlog, "_SIBLINGS", {})
+    return cache
+
+
+def _remote_only(tmp_path: Path, remote: str) -> Config:
+    here = tmp_path / "here"
+    text = (here / "roadkeep.toml").read_text(encoding="utf-8").split("[projects]")[0]
+    (here / "roadkeep.toml").write_text(
+        text + f"[projects.turing]\npath = \"../absent\"\ngit = {remote!r}\n", encoding="utf-8"
+    )
+    return Config.discover(here)
+
+
+def test_a_sibling_known_only_by_its_remote_answers_through_a_fetch(tmp_path, monkeypatch):
+    remote = _remote(tmp_path)
+    cache = _fresh(monkeypatch, tmp_path)
+    before = sorted(p.name for p in (tmp_path / "turing").iterdir())
+    answers = _answers(_remote_only(tmp_path, remote))
+    assert answers["RK9"][0] is DepStatus.SHIPPED
+    assert answers["RK10"][0] is DepStatus.OPEN
+    assert answers["RK11"][0] is DepStatus.UNRESOLVABLE
+    # Only the cache was written: the remote's working tree is as it was.
+    assert cache.is_dir()
+    assert sorted(p.name for p in (tmp_path / "turing").iterdir()) == before
+
+
+def test_an_unreachable_remote_holds_the_dependent_and_says_why(tmp_path, monkeypatch):
+    siblings(tmp_path)
+    _fresh(monkeypatch, tmp_path)
+    status, detail = _answers(_remote_only(tmp_path, str(tmp_path / "no-such-repo")))["RK9"]
+    assert status is DepStatus.UNRESOLVABLE
+    assert "fetching" in detail
+
+
+def test_a_remote_that_hangs_is_answered_within_the_timeout(tmp_path, monkeypatch):
+    import subprocess
+
+    siblings(tmp_path)
+    _fresh(monkeypatch, tmp_path)
+
+    def hangs(*args, **kwargs):
+        raise subprocess.TimeoutExpired(args[0], kwargs.get("timeout"))
+
+    monkeypatch.setattr(subprocess, "run", hangs)
+    status, detail = _answers(_remote_only(tmp_path, "https://example.invalid/t.git"))["RK9"]
+    assert status is DepStatus.UNRESOLVABLE
+    assert "did not answer within" in detail
+
+
+def test_lint_never_fetches(tmp_path, monkeypatch):
+    remote = _remote(tmp_path)
+    cache = _fresh(monkeypatch, tmp_path)
+    from roadkeep.linting import lint
+
+    lint(_remote_only(tmp_path, remote))
+    assert not cache.exists()
