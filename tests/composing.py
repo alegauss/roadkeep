@@ -135,6 +135,9 @@ SITES: tuple[Site, ...] = (
     # `add --block A …`, an ellipsis standing for the caller's own fields — and runs it filled,
     # which is the shape `abridged` exists to tell from a blank.
     Site("adopting.py:Created.stated", "run"),
+    # RK1728. The command a terminal's answers stand for, printed so the setup repeats without
+    # one — `test_adopting` runs it in a second directory and compares the two trees byte for byte.
+    Site("verbs/adopting.py:_ask", "run"),
     # RK1264, and the row above it is the same shape one door over: what `declare` composes is
     # the verb the role it just wrote opens, with the id and the reason left as placeholders —
     # so `test_adopting` builds the state and asserts the line, and running it as printed is

@@ -26,6 +26,9 @@ refusals, with the fields arriving as a schema instead of flag names typed from 
 **The CLI takes these spellings too**: `roadkeep next_id` and `--replacement` run as `next-id`
 and `--with`, with a note on stderr naming the CLI's own — so a name remembered from either
 surface works, and a verb this CLI has is never respelled into another act.
+**Setting a project up**: read `init --questions --json`, ask the user each question it lists
+(AskUserQuestion), and call `init` with the flags the answers name — the questions live in that
+list and nowhere here, so a new option reaches you without this page changing.
 `init`, `adopt` and `install` run *before* a project is governed, or on its wiring, and want
 the CLI — `declare` above is the one write on a configured tree, which is why it is served
 and they are not. **It takes two vocabularies**: a *role* writes that file and the `[files]`

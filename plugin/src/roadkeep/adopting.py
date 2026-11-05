@@ -710,6 +710,73 @@ _LEFT_WIRING = (
 )
 
 
+@dataclass(frozen=True, slots=True)
+class Question:
+    """One choice `init` takes, as data a terminal, the skill and the desktop app all read (RK1728).
+
+    ``choices`` empty is free text (the prefix, the blocks); a ``bool`` default is a yes/no
+    whose flag is passed only on yes; anything else names the value its flag takes.
+    """
+
+    key: str
+    flag: str
+    asked: str
+    default: object
+    choices: tuple[str, ...] = ()
+
+    def payload(self) -> dict[str, object]:
+        return {
+            "key": self.key,
+            "flag": self.flag,
+            "question": self.asked,
+            "default": self.default,
+            "choices": list(self.choices),
+        }
+
+
+def questions(root: str | Path = ".") -> tuple[Question, ...]:
+    """Every choice `init` takes, with the default computed for this directory (RK1728).
+
+    One list, so a new option is one entry here and every reader asks it: a question text kept
+    in the skill or in the app beside this would be three lists drifting apart.
+    """
+    base = Path(root).resolve()
+    derived = derived_prefix(base)
+    return (
+        Question("prefix", "--prefix", "Which id prefix do this project's lines take?",
+                 derived[0] if derived else ""),
+        Question("block", "--block", "Which block do the first lines go under?", "A"),
+        Question("strategy", "--strategy",
+                 "Scaffold a strategy file, for a document above the task line?", False),
+        Question("deferred", "--deferred",
+                 "Scaffold the deferred store, where set-aside work keeps its design?", False),
+        Question("install", "--install",
+                 "Wire the guard, skill and server into this project?", "none",
+                 ("none", "plain", "committed", "vendor")),
+        Question("merge", "--merge",
+                 "Register the merge driver, so two branches adding lines do not conflict?",
+                 False),
+        Question("gate", "--gate", "Add the CI gate under .github/workflows?",
+                 (base / ".github").is_dir()),
+    )
+
+
+def answered_argv(asked: Sequence[Question], answers: Mapping[str, object]) -> tuple[str, ...]:
+    """The non-interactive `init` arguments a set of answers stands for (RK1728)."""
+    out: list[str] = []
+    for one in asked:
+        value = answers.get(one.key, one.default)
+        if isinstance(one.default, bool):
+            if value:
+                out.append(one.flag)
+        elif one.choices:
+            if value and value != one.choices[0]:
+                out += [one.flag, str(value)]
+        elif value:
+            out += [one.flag, str(value)]
+    return tuple(out)
+
+
 class NoPrefix(ValueError):
     """A scaffold with no `--prefix`, no ids to read and a name with no letters (RK1727)."""
 

@@ -3375,3 +3375,54 @@ def test_a_name_with_no_letters_and_no_remote_asks_for_the_prefix(tmp_path, caps
     assert main(["-C", str(root), "init"]) != EXIT_OK
     assert "init --prefix" in capsys.readouterr().err
     assert not (root / "roadkeep.toml").exists()
+
+
+# -- init asks, from one list of questions (RK1728) ---------------------------------
+
+
+def test_the_question_list_carries_every_choice_init_takes(tmp_path, capsys) -> None:
+    from roadkeep.cli import build_parser
+
+    init_parser = next(
+        one for one in build_parser()._actions if getattr(one, "choices", None)  # noqa: SLF001
+    ).choices["init"]
+    offered = {
+        action.option_strings[0]
+        for action in init_parser._actions  # noqa: SLF001
+        if action.option_strings
+    } - {"-h", "--json", "--questions", "--existing"}
+    assert main(["-C", str(tmp_path), "init", "--questions", "--json"]) == EXIT_OK
+    listed = {one["flag"] for one in json.loads(capsys.readouterr().out)["questions"]}
+    assert listed == offered
+    assert not (tmp_path / "roadkeep.toml").exists(), "the list writes nothing"
+
+
+def test_a_terminal_run_and_the_command_it_prints_build_one_tree(tmp_path, capsys, monkeypatch) -> None:
+    answers = iter(["QS", "", "y", "", "", "", ""])
+    monkeypatch.setattr("sys.stdin.isatty", lambda: True)
+    monkeypatch.setattr("builtins.input", lambda prompt="": next(answers))
+    asked, repeated = tmp_path / "asked", tmp_path / "repeated"
+    asked.mkdir()
+    repeated.mkdir()
+    assert main(["-C", str(asked), "init"]) == EXIT_OK
+    printed = capsys.readouterr().out.splitlines()[0]
+    argv = printed.split(" init ", 1)[1].split()
+    assert argv == ["--prefix", "QS", "--block", "A", "--strategy"]
+    monkeypatch.setattr("sys.stdin.isatty", lambda: False)
+    assert main(["-C", str(repeated), "init", *argv]) == EXIT_OK
+
+    def tree(root: Path) -> dict[str, bytes]:
+        return {
+            str(p.relative_to(root)): p.read_bytes() for p in sorted(root.rglob("*")) if p.is_file()
+        }
+
+    assert tree(asked) == tree(repeated)
+
+
+def test_without_a_terminal_nothing_is_asked(tmp_path, monkeypatch) -> None:
+    def refuses(prompt=""):
+        raise AssertionError("a run with no terminal asked a question")
+
+    monkeypatch.setattr("sys.stdin.isatty", lambda: False)
+    monkeypatch.setattr("builtins.input", refuses)
+    assert main(["-C", str(tmp_path), "init"]) == EXIT_OK

@@ -108,30 +108,6 @@ line round-trips through amend and ship.
 
 ## Block E — Adoption
 
-### §RK1728 init asks, from one list of questions
-
-Every choice `init` takes is a flag, so a person setting up a project reads the help,
-guesses, and finds the rest after the first `lint`. Making `init` prompt is not enough
-on its own: the usual caller is an agent, whose shell has no terminal to answer from,
-and the desktop app (gui/) would need the same questions again. Three surfaces that each
-list the options drift apart.
-
-The change: the questions are data. `init --questions --json` prints each one with its
-flag, its choices and its default, computed for this directory: prefix, blocks, optional
-roles, plugin wiring, merge driver, gate. Three readers take that list:
-
-- **A terminal.** `init` with no options and stdin a TTY asks each question, then prints
-  the equivalent non-interactive command before running it, so the setup can be
-  repeated. Without a TTY nothing is asked and today's behaviour holds.
-- **The skill.** `SKILL.md` tells an agent setting up roadkeep to read the list, ask the
-  user (AskUserQuestion) and call `init` with the flags. No question text lives there.
-- **The desktop app**, through the same JSON.
-
-The prompts use `input()` alone, keeping zero runtime deps, and are rendered from the
-list, so a new option is one entry.
-
-The skill names no option the list does not carry.
-
 ## Block F — The plugin
 
 ### §RK1725 Filing into a sibling project

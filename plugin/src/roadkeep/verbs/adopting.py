@@ -35,11 +35,13 @@ from roadkeep.adopting import (
     SCAFFOLD_ROLES,
     STRATEGY_ROLE,
     adopt,
+    answered_argv,
     declare,
     init,
+    questions,
     relocate,
 )
-from roadkeep.provenance import joined
+from roadkeep.provenance import invocation, joined
 from roadkeep.capturing import (
     Filed,
     REPORTS,
@@ -99,6 +101,21 @@ def _init(config: Config, args: argparse.Namespace) -> Result | int:
     # config would be an ancestor's, and scaffolding under someone else's paths is how a
     # subproject ends up writing into its parent's roadmap.
     del config
+    if args.questions:
+        # The list itself, for a reader that asks somebody else (RK1728): the skill asks the
+        # user through its own tool, and the desktop app draws its own form, from this.
+        asked = questions(args.directory)
+        return Result(
+            {"questions": [one.payload() for one in asked]},
+            "\n".join(
+                f"{one.flag:<11} {one.asked} (default: {one.default}"
+                + (f"; one of {', '.join(one.choices)}" if one.choices else "")
+                + ")"
+                for one in asked
+            ),
+        )
+    if _bare(args) and sys.stdin.isatty():
+        _ask(args)
     try:
         created = init(
             args.directory,
@@ -121,6 +138,54 @@ def _init(config: Config, args: argparse.Namespace) -> Result | int:
         return _refused(error)
 
     return _wired(created, args)
+
+
+def _bare(args: argparse.Namespace) -> bool:
+    """Whether `init` was given no choice at all, which is the call a terminal is asked for."""
+    return not (
+        args.prefix or args.blocks or args.strategy or args.deferred or args.existing
+        or args.install or args.merge or args.gate or args.json
+    )
+
+
+def _ask(args: argparse.Namespace) -> None:
+    """Ask each question on the terminal, then print the command the answers stand for (RK1728).
+
+    `input()` alone, so asking costs no dependency; an empty answer takes the default. The
+    equivalent command is printed before anything is written, so the setup can be repeated
+    without a terminal — by a script, or by the agent whose shell has none.
+    """
+    asked = questions(args.directory)
+    answers: dict[str, object] = {}
+    for one in asked:
+        hint = "/".join(one.choices) if one.choices else ("y/n" if isinstance(one.default, bool) else "")
+        shown = ("y" if one.default else "n") if isinstance(one.default, bool) else one.default
+        while True:
+            said = input(f"{one.asked} [{shown}]{f' ({hint})' if hint else ''} ").strip()
+            if not said:
+                answers[one.key] = one.default
+                break
+            if isinstance(one.default, bool):
+                if said.lower() in ("y", "yes", "n", "no"):
+                    answers[one.key] = said.lower().startswith("y")
+                    break
+            elif one.choices:
+                if said in one.choices:
+                    answers[one.key] = said
+                    break
+            else:
+                answers[one.key] = said
+                break
+    argv = answered_argv(asked, answers)
+    print(f"{invocation()} init {joined(argv)}".rstrip())
+    prefix, block, install = answers.get("prefix"), answers.get("block"), answers.get("install")
+    args.prefix = [prefix] if prefix else None
+    args.blocks = [block] if block else None
+    args.strategy = bool(answers.get("strategy"))
+    args.deferred = bool(answers.get("deferred"))
+    args.install = None if install in (None, "none") else install
+    args.merge = bool(answers.get("merge"))
+    args.gate = bool(answers.get("gate"))
 
 
 def _wired(created: Created, args: argparse.Namespace) -> Result | int:
@@ -978,6 +1043,14 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
         help=(
             "create .github/workflows and wire the CI gate into it, as `init --install --gate` "
             "would: the gate is a file the install step writes"
+        ),
+    )
+    init_parser.add_argument(
+        "--questions",
+        action="store_true",
+        help=(
+            "write nothing: print every choice this command takes, with its flag, its choices "
+            "and the default computed for this directory — what a bare call on a terminal asks"
         ),
     )
     init_parser.add_argument("--json", action="store_true", help=_JSON_HELP)

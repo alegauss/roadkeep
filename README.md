@@ -222,7 +222,7 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | B — Authoring (insert, never hand-edit) | 0 | 239 | 2 |
 | C — Query (consult without reading the file) | 0 | 205 | 7 |
 | D — The gate | 0 | 319 | 7 |
-| E — Adoption | 1 | 126 | 1 |
+| E — Adoption | 0 | 127 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 168 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
@@ -230,11 +230,11 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 1 | 1 | 0 |
-| **Total** | 5 | 1198 | 24 |
+| **Total** | 4 | 1199 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1728** (deps: RK1726 ✅, RK1727 ✅) **Every init choice is a flag to discover, and nothing asks a person or an agent for it** — Setup happens by reading help and fixing things after the first lint, and a terminal prompt alone would not reach the agent or the desktop app. → §RK1728
+- 📋 **RK1729** (deps: —) **Both product sites run a prerender script of their own, and neither is registered with the design system** — RK1714 moved the chrome onto the package; the build step VDS215 ships and the two registries still miss both sites. → §RK1729
 <!-- roadkeep:end -->
 
 Open work is in
