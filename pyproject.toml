@@ -88,3 +88,6 @@ testpaths = ["tests"]
 # tool run as `uvx roadkeep` in someone else's CI pays for what it imports, not for what
 # its own suite installs — `pytest-xdist` is declared beside `pytest` in agents.md.
 addopts = ["-n", "auto"]
+# RK1727. A test exercising how `init` derives a prefix from a repository's name; every other
+# test has the derivation pinned to `RK` by `conftest._scaffolds_derive_rk`.
+markers = ["derives: a test of init's prefix derivation, run without the RK pin"]

@@ -632,6 +632,10 @@ class Created:
     #: help. Named here as the verbs that already write them, never a second copy of what
     #: they write, so the list is a door per step rather than a description of one.
     left: tuple[tuple[str, tuple[str, ...]], ...] = ()
+    #: The repository name the prefix was derived from, or `""` where it was stated or read
+    #: off ids (RK1727). Said in the report because a derived prefix is a guess the caller
+    #: cannot see afterwards, and renaming it after the first `add` renumbers every id.
+    derived_from: str = ""
 
     @property
     def written(self) -> tuple[Path, ...]:
@@ -650,6 +654,11 @@ class Created:
         rows += [f"adopted  {path.as_posix()}" for path in self.adopted]
         if self.inferred:
             rows.append(f"prefix   {self.prefixes[0]} (read off the ids already written)")
+        if self.derived_from:
+            rows.append(
+                f"prefix   {self.prefixes[0]} (derived from {self.derived_from}; "
+                f"init --prefix chooses another, before the first line is added)"
+            )
         rows += [
             f"not set  {what} — `{invocation()} {' '.join(argv)}`" for what, argv in self.left
         ]
@@ -677,6 +686,7 @@ class Created:
             "prefix": self.prefixes[0],
             "prefixes": list(self.prefixes),
             "inferred": self.inferred,
+            "derived_from": self.derived_from,
             "blocks": list(self.blocks),
             "left": [{"what": what, "argv": list(argv)} for what, argv in self.left],
         }
@@ -698,6 +708,74 @@ _LEFT_WIRING = (
     ),
     ("the merge driver, so two branches adding lines do not conflict", ("merge", "--register")),
 )
+
+
+class NoPrefix(ValueError):
+    """A scaffold with no `--prefix`, no ids to read and a name with no letters (RK1727)."""
+
+    def __init__(self, base: Path) -> None:
+        self.base = base
+        super().__init__(
+            f"{base.name or base} gives no prefix to derive and no ids say one: name it, as "
+            f"init --prefix <LETTERS> does"
+        )
+
+
+#: Where a name splits into words: separators, and a lower-to-upper case change.
+_WORD_BREAK = re.compile(r"[-_.\s]+|(?<=[a-z0-9])(?=[A-Z])")
+
+
+def derived_prefix(base: Path) -> tuple[str, str] | None:
+    """The prefix a repository's name gives, and that name — or None where it gives none.
+
+    The `origin` remote's last path segment first, because a worktree layout names the
+    directory after a version (`turing/2026.3`); else the directory. The initials of its
+    words (`claude-tray` gives `CT`), lengthened by letters of the first word to at least two
+    (`polyweave` gives `PO`). Uppercase letters only, which is the shape a prefix takes.
+    """
+    for name in (_remote_name(base), base.name):
+        if not name:
+            continue
+        words = [w for w in _WORD_BREAK.split(name) if any(c.isalpha() for c in w)]
+        if not words:
+            continue
+        letters = [[c.upper() for c in w if c.isalpha()] for w in words]
+        prefix = "".join(one[0] for one in letters)
+        extra = iter(letters[0][1:])
+        while len(prefix) < 2:
+            more = next(extra, None)
+            if more is None:
+                break
+            prefix += more
+        if len(prefix) >= 2:
+            return prefix, name
+    return None
+
+
+def _remote_name(base: Path) -> str:
+    """The last path segment of `origin`'s URL, without `.git`, or `""` where there is none."""
+    import subprocess  # noqa: PLC0415 - only a scaffold asks
+
+    def ask(*argv: str) -> str:
+        return subprocess.run(
+            ["git", "-C", str(base), *argv],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
+        ).stdout.strip()
+
+    try:
+        # The repository's own name only where this directory *is* the repository: a project
+        # scaffolded in a subdirectory (`gui/` here) is not named after the tree around it.
+        top = ask("rev-parse", "--show-toplevel")
+        if not top or Path(top).resolve() != base.resolve():
+            return ""
+        url = ask("remote", "get-url", "origin")
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    tail = re.split(r"[/:\\]", url.rstrip("/"))[-1] if url else ""
+    return tail[:-4] if tail.endswith(".git") else tail
 
 
 def _left(roles: Sequence[str]) -> tuple[tuple[str, tuple[str, ...]], ...]:
@@ -1198,7 +1276,14 @@ def init(
     # differently under the one this then chooses (`adopt`'s reason for replacing rather than
     # re-reading).
     read = _existing(present.get("roadmap"))
-    families = _families(prefix) if prefix else (read.prefixes or ("RK",))
+    # With nothing stated and no ids to read, the repository's own name (RK1727) — never `RK`,
+    # which is this tool's prefix and gave every scaffold roadkeep's ids.
+    derived = None if prefix or read.prefixes else derived_prefix(base)
+    if not prefix and not read.prefixes and derived is None:
+        raise NoPrefix(base)
+    families = (
+        _families(prefix) if prefix else (read.prefixes or (derived[0],))  # type: ignore[index]
+    )
     named = tuple(blocks) if blocks else (read.blocks or ("A",))
 
     # Raises on a prefix this format cannot carry, and on a set of families that would
@@ -1256,6 +1341,7 @@ def init(
         adopted=tuple(paths[role] for role in roles if role in present),
         inferred=not prefix and bool(read.prefixes),
         prefixes=families,
+        derived_from="" if derived is None else derived[1],
         left=_left(roles),
     )
 

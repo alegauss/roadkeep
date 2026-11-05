@@ -513,6 +513,29 @@ VOLATILE = ("invocation", "persisted", "_declared_by", "_plugin_name")
 
 
 @pytest.fixture(autouse=True)
+def _scaffolds_derive_rk(request):
+    """A bare `init` derives its prefix from the directory's name since RK1727, and this suite's
+    hundreds of scaffolds sit in temporary directories named after their tests — so each would
+    mint ids no assertion was written for. Pinned to `RK`, the prefix every fixture here was
+    written against, except where a test marks itself `derives` to exercise the derivation.
+    """
+    if request.node.get_closest_marker("derives"):
+        yield
+        return
+    from roadkeep import adopting
+
+    # By hand and not through `monkeypatch`: requesting that fixture here would instantiate it
+    # before `_volatile_caches` and so undo a test's own patches *after* that fixture's identity
+    # check, which then reads the poisoned `roadkeep.__file__` and passes what it must fail.
+    original = adopting.derived_prefix
+    adopting.derived_prefix = lambda base: ("RK", base.name)
+    try:
+        yield
+    finally:
+        adopting.derived_prefix = original
+
+
+@pytest.fixture(autouse=True)
 def _process_scoped_notices():
     """The served notes that fire once per server process (RK1443), forgotten between tests.
 

@@ -186,7 +186,7 @@ def lacking() -> Path:
     while one waits on a person, and the row is about the keys, not about that wait (RK1699).
     """
     root = Path(tempfile.mkdtemp())
-    assert main(["-C", str(root), "init"]) == EXIT_OK
+    assert main(["-C", str(root), "init", "--prefix", "RK"]) == EXIT_OK
     toml = root / "roadkeep.toml"
     toml.write_text(
         toml.read_text(encoding="utf-8") + '\n[requirements]\ndeclared = ["decision"]\n',
@@ -215,7 +215,7 @@ def claimed() -> Path:
     verb answers about the one it can still offer and the row is about the one it cannot.
     """
     root = Path(tempfile.mkdtemp())
-    assert main(["-C", str(root), "init"]) == EXIT_OK
+    assert main(["-C", str(root), "init", "--prefix", "RK"]) == EXIT_OK
     for symptom in ("a symptom plainly long enough to read", "a second, equally long symptom"):
         assert (
             main(
@@ -245,7 +245,7 @@ def gated() -> Path:
     keys need is *a* project whose CI gates on the action, and building one is four lines.
     """
     root = Path(tempfile.mkdtemp())
-    assert main(["-C", str(root), "init"]) == EXIT_OK
+    assert main(["-C", str(root), "init", "--prefix", "RK"]) == EXIT_OK
     workflows = root / ".github" / "workflows"
     workflows.mkdir(parents=True)
     (workflows / "roadkeep.yml").write_text(

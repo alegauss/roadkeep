@@ -86,7 +86,7 @@ def scaffold(tmp_path_factory: pytest.TempPathFactory) -> Path:
     refuses for want of a history — which is git's absence and not this project's declaration.
     """
     root = tmp_path_factory.mktemp("scaffold")
-    assert main(["-C", str(root), "init"]) == 0
+    assert main(["-C", str(root), "init", "--prefix", "RK"]) == 0
     assert (
         main(
             [

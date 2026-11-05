@@ -3332,3 +3332,46 @@ def test_one_init_with_every_option_yields_a_tree_the_checks_pass_on(tmp_path, c
     assert "declare decisions" in said
     assert main(["-C", str(tmp_path), "lint"]) == EXIT_OK
     assert main(["-C", str(tmp_path), "install", "--check"]) == EXIT_OK
+
+
+# -- a prefix derived from the repository's name (RK1727) ---------------------------
+
+
+def _clone_named(where: Path, remote: str) -> Path:
+    from conftest import git, git_init
+
+    git_init(where)
+    git(where, "remote", "add", "origin", remote)
+    return where
+
+
+@pytest.mark.derives
+def test_a_bare_init_derives_the_prefix_from_the_remote_s_name(tmp_path, capsys) -> None:
+    root = _clone_named(tmp_path / "anything", "https://github.com/alegauss/claude-tray.git")
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert 'prefix = "CT"' in (root / "roadkeep.toml").read_text(encoding="utf-8")
+    assert "derived from claude-tray" in said and "init --prefix" in said
+
+
+@pytest.mark.derives
+def test_a_worktree_named_after_a_version_takes_the_remote_s_name(tmp_path) -> None:
+    root = _clone_named(tmp_path / "2026.3", "git@gitlab.com:viglet/turing.git")
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    assert 'prefix = "TU"' in (root / "roadkeep.toml").read_text(encoding="utf-8")
+
+
+@pytest.mark.derives
+def test_an_explicit_prefix_still_wins(tmp_path) -> None:
+    root = _clone_named(tmp_path / "x", "https://github.com/alegauss/claude-tray.git")
+    assert main(["-C", str(root), "init", "--prefix", "QS"]) == EXIT_OK
+    assert 'prefix = "QS"' in (root / "roadkeep.toml").read_text(encoding="utf-8")
+
+
+@pytest.mark.derives
+def test_a_name_with_no_letters_and_no_remote_asks_for_the_prefix(tmp_path, capsys) -> None:
+    root = tmp_path / "2026.3"
+    root.mkdir()
+    assert main(["-C", str(root), "init"]) != EXIT_OK
+    assert "init --prefix" in capsys.readouterr().err
+    assert not (root / "roadkeep.toml").exists()

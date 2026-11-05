@@ -108,31 +108,6 @@ line round-trips through amend and ship.
 
 ## Block E — Adoption
 
-### §RK1727 A prefix derived from the repository name
-
-`init` without `--prefix` mints `RK`, this repository's own prefix. Every project
-scaffolded without the flag gets roadkeep's ids: a Turing line and a roadkeep line both
-read `RK12`, a commit subject naming one is ambiguous across the portfolio, and a
-sibling dep (RK1716) spells `turing: RK12`, which reads as a roadkeep task. Renaming the
-prefix after the first `add` is a `renumber` of every id. Collisions already happen by
-hand: claude-tray and Turing both chose `T`.
-
-`--existing` already reads the prefix off the ids a roadmap carries. An empty repository
-has no ids, but it has a name.
-
-The change: with no `--prefix` and no ids to read, `init` derives one from the
-repository's name: the `origin` remote's last path segment, else the directory. A
-worktree layout names the directory after a version (`turing/2026.3`), which is why the
-remote comes first. The initials of its words, split on `-`, `_`, `.` and case changes,
-uppercased (`claude-tray` gives `CT`), lengthened by letters of the first word to at
-least two characters (`polyweave` gives `PO`). A name with no letters derives nothing
-and `init` asks for `--prefix`. The report prints the derived prefix and the flag that
-overrides it. An interactive `init` offers it as the default. `RK` is never a default.
-
-Done when `init` in a clone of claude-tray declares `CT`, in a worktree named `2026.3`
-takes the remote's name, the report names `--prefix` as the override, and an explicit
-`--prefix` still wins.
-
 ### §RK1728 init asks, from one list of questions
 
 Every choice `init` takes is a flag, so a person setting up a project reads the help,
@@ -155,9 +130,7 @@ roles, plugin wiring, merge driver, gate. Three readers take that list:
 The prompts use `input()` alone, keeping zero runtime deps, and are rendered from the
 list, so a new option is one entry.
 
-Done when `--questions --json` lists every `init` option, a TTY run and the printed
-command produce byte-identical trees, a non-TTY run never blocks on input, and the skill
-names no option the list does not carry.
+The skill names no option the list does not carry.
 
 ## Block F — The plugin
 

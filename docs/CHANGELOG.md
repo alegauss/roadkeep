@@ -976,6 +976,7 @@
 - ✅ **RK1705** **a launcher committed before RK1699 finds no engine in a roadkeep checkout, and its guard then stands down unsaid** — A launcher committed before RK1699 finds the engine again through a shim at the old path, and a SessionStart that reaches no engine now says the governed files are unguarded.
 - ✅ **RK1720** **A release still waits on a manual dispatch, so PyPI and the README's Action pin fall behind the plugin** — A weekly schedule publishes the version main already carries when it has no tag, the v0 tag follows every release, and the README pins the Action at @v0.
 - ✅ **RK1726** **init scaffolds the least it can, so a working setup is four more commands nobody is shown** — init names every step it left unset with the verb that adds it, and --install, --merge and --gate run those verbs once the scaffold lands.
+- ✅ **RK1727** **init without --prefix gives every project roadkeep's own RK ids** — init with no --prefix and no ids derives one from the origin remote's name, else the directory, says so with the override, and asks for --prefix when the name gives none.
 
 ## Block F — The Claude Code plugin
 

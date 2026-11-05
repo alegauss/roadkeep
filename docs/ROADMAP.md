@@ -34,8 +34,7 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1727** (deps: —) **init without --prefix gives every project roadkeep's own RK ids** — Ids from different projects then read alike in commits and in sibling deps, and changing the prefix later renumbers every line. → §RK1727
-- 📋 **RK1728** (deps: RK1726 ✅, RK1727) **Every init choice is a flag to discover, and nothing asks a person or an agent for it** — Setup happens by reading help and fixing things after the first lint, and a terminal prompt alone would not reach the agent or the desktop app. → §RK1728
+- 📋 **RK1728** (deps: RK1726 ✅, RK1727 ✅) **Every init choice is a flag to discover, and nothing asks a person or an agent for it** — Setup happens by reading help and fixing things after the first lint, and a terminal prompt alone would not reach the agent or the desktop app. → §RK1728
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
@@ -145,6 +144,12 @@
 
 - **Both sites registered with the design system** consumers.json lists the pitch and
   the gui landing, and the hub's projects.json gives roadkeep the amber the pitch uses.
+
+## Done when — RK1728
+
+- **Every init option is asked from one list** --questions --json lists every init
+  option, a TTY run and its printed command give identical trees, and a non-TTY run
+  never blocks on input.
 
 ## Non-goals
 
