@@ -266,6 +266,33 @@ O que a tarefa precisa decidir: conferir se o pid gravado ainda vive (no Windows
 POSIX) e tomar o lock de um processo morto, dizendo isso na saída; e, quando o dono
 estiver vivo, a recusa nomear o lock, o pid e há quanto tempo ele o segura, por inteiro.
 
+### §RK1725 Filing into a sibling project
+
+An agent in Dumont that meets a Turing defect files it in Turing. Each friction skill
+(viglet-, polyweave-, winwright-friction) carries its own copy of how: which checkout,
+which launcher, when to commit, how the consumer's line records the wait. The copies
+live outside this repository, drift apart, and all need a local checkout, though RK1716
+can already read a project from its git remote.
+
+The mechanics belong to the plugin; a friction skill keeps only what to file and where.
+The change: a reference beside `writing.md`, opened from `SKILL.md` when a write targets
+a project `[projects]` declares (RK1437's cadence):
+
+- A `path` that exists: `roadkeep -C <path> add`, committed there only if that tree
+  holds nothing else.
+- Otherwise the `git` remote: a shallow clone at `ref` into a temp directory, the same
+  `add`, a commit on a branch named for the id and the filer, pushed, and a merge
+  request through push options (GitLab) or `gh pr create` (GitHub). Never a push to
+  `ref`: the review is the re-analysis RK1723 asks for.
+- Either way, the caller's line takes the dep `<name>: <id>`.
+
+roadkeep itself still never commits or pushes; the reference names the git commands. An
+id minted from the remote can collide with an unpushed one there, and the request is
+where `renumber` answers it.
+
+Done when a friction skill files into Turing through this reference with no local
+checkout, a merge request names the new id, and the consumer's line carries the dep.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

@@ -46,6 +46,7 @@
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK1719** (deps: —) **um lock de processo morto bloqueia toda escrita até ser apagado à mão** — O lock guarda o pid de quem o tomou; o roadkeep espera 5s e recusa sem conferir se aquele pid ainda existe, e a recusa vinha truncada como refused, nothing written. → §RK1719
+- 📋 **RK1725** (deps: RK1716, RK1723) **Filing into a sibling project is spelled by each friction skill and needs a local checkout** — Every consumer skill repeats the same filing steps outside this repository, and with only a git remote none of them can file at all. → §RK1725
 
 ## Block G — The editor surface (the backlog where the file is open)
 
