@@ -218,7 +218,7 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
-| A — The model (a task is data before it is a line) | 2 | 45 | 2 |
+| A — The model (a task is data before it is a line) | 1 | 45 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 239 | 2 |
 | C — Query (consult without reading the file) | 0 | 205 | 7 |
 | D — The gate | 0 | 319 | 7 |
@@ -230,11 +230,11 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 1 | 1 | 0 |
-| **Total** | 8 | 1196 | 24 |
+| **Total** | 7 | 1196 | 24 |
 
 **Next ready:**
 
-- ⏳ **RK1724** (deps: RK1716 ✅) **Shipping a task says nothing about the sibling tasks it unblocks** — A sibling's session start still says nothing about a ready line whose foreign dep shipped, so its agent learns only from pick. → §RK1724
+- 📋 **RK1726** (deps: —) **init scaffolds the least it can, so a working setup is four more commands nobody is shown** — An adopter who stops after init has no strategy or decisions file, no guard, no merge driver and no gate, and nothing says so. → §RK1726
 <!-- roadkeep:end -->
 
 Open work is in

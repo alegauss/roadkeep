@@ -100,30 +100,6 @@ Done when an `add -C` from a second governed project writes the continuation and
 from inside the target writes none, `foreign` lists the first until confirmed, and the
 line round-trips through amend and ship.
 
-### §RK1724 What a ship unblocks next door
-
-RK1716 makes Dumont's `pick` resolve `turing: T456` by reading Turing's ledger, so
-Dumont finds the unblock itself the next time it asks. That keeps each project the only
-writer of its own files. The alternative, Turing's `ship` editing Dumont's roadmap,
-would write into another repository's working tree, possibly under a parallel session
-with uncommitted edits, and leave a change no commit there accounts for. It is rejected.
-
-Two gaps remain. Turing's agent finishes T456 without knowing anyone waited on it, so it
-cannot tell the user. And Dumont's agent learns only when it runs `pick`; a session that
-starts on something else never hears it.
-
-The change: after `ship` has saved and released the write lock, it reads, through
-RK1716's resolution, the roadmaps of the projects Turing's `[projects]` declares, and
-prints each open line whose dep it just satisfied, `unblocks dumont: D123`. Never inside
-the lock: a fetch there makes other writers refuse after 5s, and one slower than 60s
-gets the lock reaped. So Turing must declare Dumont too. In Dumont, the session-start
-brief names ready lines with a foreign dep, `D123 ready: turing T456 shipped`, from a
-`path` or the cache only, never a fetch, since it runs on every start.
-
-Done when shipping T456 in a project declaring dumont prints D123 after the lock is
-released, nothing outside the repository is written, and a Dumont session start names
-D123 with no network call.
-
 ## Block B — Authoring
 
 ## Block C — Query

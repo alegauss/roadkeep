@@ -942,6 +942,11 @@ def _sibling(declared: Sibling) -> Backlog | str:
     if declared.git is None:
         return f"no checkout at {declared.path}"
     if _OFFLINE[0]:
+        # What an earlier fetch left is still an answer, and reading it costs no network
+        # (RK1724): a session start reads it, and a fresh machine says why it cannot.
+        cached = _cache_dir(declared.git, declared.ref or "") / "tree"
+        if (cached / "roadkeep.toml").is_file():
+            return _read(cached)
         return f"not fetched from {declared.git}: this read never reaches the network"
     fetched = _fetch(declared.git, declared.ref or "")
     return _read(fetched) if isinstance(fetched, Path) else fetched
@@ -1030,6 +1035,39 @@ def cache_root() -> Path:
     return (Path(base) if base else Path.home() / ".cache") / "roadkeep" / "siblings"
 
 
+def _cache_dir(remote: str, ref: str) -> Path:
+    """The one directory a remote at a ref is cached under, for the fetch and the offline read."""
+    import hashlib  # noqa: PLC0415 - only a sibling known by its remote needs it
+
+    return cache_root() / hashlib.sha256(f"{remote}\n{ref}".encode()).hexdigest()[:16]
+
+
+def ready_next_door(config: Config) -> tuple[str, ...]:
+    """Each ready line here that waited on a sibling's work which has now shipped (RK1724).
+
+    For the session start, so an agent that begins on something else still hears it: offline,
+    from a checkout or what a fetch already cached, because this runs on every start and a
+    network call there is a wait before the session can begin.
+    """
+    if not config.projects:
+        return ()
+    found: list[str] = []
+    with offline():
+        backlog = Backlog.load(config)
+        for entry in backlog.roadmap.entries:
+            if backlog.readiness(entry.task) is not Readiness.READY:
+                continue
+            for dep in entry.task.deps:
+                resolution = backlog.resolve_dep(dep)
+                if (
+                    resolution.kind is DepKind.EXTERNAL
+                    and resolution.status is DepStatus.SHIPPED
+                ):
+                    found.append(f"{entry.task.id} ({dep.id})")
+                    break
+    return tuple(found)
+
+
 def _fetch(remote: str, ref: str) -> Path | str:
     """The sibling's config and governed files at ``ref``, written into the cache (RK1716).
 
@@ -1041,10 +1079,9 @@ def _fetch(remote: str, ref: str) -> Path | str:
     key = (remote, ref)
     if key in _FETCHED:
         return _FETCHED[key]
-    import hashlib  # noqa: PLC0415 - a fetch's own
-    import subprocess  # noqa: PLC0415
+    import subprocess  # noqa: PLC0415 - a fetch's own
 
-    where = cache_root() / hashlib.sha256(f"{remote}\n{ref}".encode()).hexdigest()[:16]
+    where = _cache_dir(remote, ref)
     store = where / "git"
 
     def git(*argv: str) -> bytes:

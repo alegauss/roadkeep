@@ -1205,3 +1205,23 @@ def test_a_ship_nothing_waited_on_says_nothing_and_publishes_an_empty_list(tmp_p
     capsys.readouterr()
     assert main(["-C", str(turing), "ship", "T1", "--why", "It works now.", "--json"]) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["unblocks"] == []
+
+
+def test_the_sibling_s_session_start_names_the_line_a_ship_made_ready(tmp_path):
+    """A Dumont session that starts on something else never runs `pick`, so the start says it —
+    from the checkout `[projects]` names, with no network call."""
+    from roadkeep.guarding import announce
+
+    turing, dumont = tmp_path / "turing", tmp_path / "dumont"
+    _governed(turing, "T", 'dumont = "../dumont"\n')
+    _governed(dumont, "D", 'turing = "../turing"\n')
+    for root, deps in ((turing, []), (dumont, ["--dep", "turing: T1"])):
+        assert main(
+            ["-C", str(root), "add", "--block", "A", "--symptom", "A symptom",
+             "--why", "Because of a reason.", "--section", "A design",
+             "--section-body", "The design.", *deps]
+        ) == EXIT_OK
+    before = str(announce({"cwd": str(dumont)}, dumont))
+    assert "D1 (turing: T1)" not in before
+    assert main(["-C", str(turing), "ship", "T1", "--why", "It works now."]) == EXIT_OK
+    assert "D1 (turing: T1)" in str(announce({"cwd": str(dumont)}, dumont))

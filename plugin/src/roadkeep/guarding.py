@@ -657,6 +657,10 @@ class Notice:
     #: inside `__str__`: which engine answers is a fact about the project, decided where the
     #: project is read, and a `Notice` built by a test says which case it is testing.
     served: str = ""
+    #: Each ready line that waited on a sibling's work which has shipped, as `<id> (<dep>)`
+    #: (RK1724): the session that starts on something else is the one that never runs `pick`
+    #: and so never hears it. Empty on every project declaring no `[projects]`.
+    unblocked: tuple[str, ...] = ()
 
     def __str__(self) -> str:
         # And the first message of the session is the first place the invocation has to be one
@@ -717,6 +721,11 @@ class Notice:
                 f"checkout answering here: `{installing}` refreshes it, and until then "
                 f"the copy is not what this session is running."
             )
+        if self.unblocked:
+            said += (
+                f" Ready now that a sibling project shipped what it waited on: "
+                f"{', '.join(self.unblocked)}."
+            )
         return said
 
 
@@ -745,7 +754,28 @@ def announce(payload: Mapping[str, object], root: str | Path = ".") -> Notice | 
     # bare prefix is the right guess wherever nothing says otherwise, but this line is read
     # by every adopting session including the ones with no tools at all, and there naming a
     # prefix nobody can call is worse than naming the shell.
-    return Notice(files=files, stale=stale(config.root), served=served_by(config.root))
+    return Notice(
+        files=files,
+        stale=stale(config.root),
+        served=served_by(config.root),
+        unblocked=_unblocked(config),
+    )
+
+
+def _unblocked(config: Config) -> tuple[str, ...]:
+    """What a sibling's ship made ready here, or nothing — never a reason to say nothing else.
+
+    Offline and swallowed: a sibling checkout that cannot be read must not cost the session
+    the rest of its first message, the same rule this start keeps about a refused config.
+    """
+    if not config.projects:
+        return ()
+    from roadkeep.backlog import ready_next_door  # noqa: PLC0415 - RK260 the start path only
+
+    try:
+        return ready_next_door(config)
+    except (OSError, ValueError):
+        return ()
 
 
 @dataclass(frozen=True, slots=True)

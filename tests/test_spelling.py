@@ -149,6 +149,13 @@ def shapes(root: Path) -> dict[str, tuple[object, object]]:
                 files=(ROADMAP, CHANGELOG), served=served, stale=(VENDORED,)
             )
         ),
+        # RK1724. The clause naming what a sibling's ship made ready: it names no door, and is
+        # swept so a field that changes the message is never outside the inventory.
+        "Notice.unblocked": both(
+            lambda served: Notice(
+                files=(ROADMAP, CHANGELOG), served=served, unblocked=("RK9 (turing: T1)",)
+            )
+        ),
         # RK1280. The one that decides nothing and still names a door, so it is swept for
         # every other rendering's reason: a route this session cannot call is worse than none.
         "Advice": both(lambda served: Advice(path="roadkeep.toml", served=served)),

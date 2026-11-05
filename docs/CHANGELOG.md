@@ -56,7 +56,7 @@
 - ✅ **RK1168** **Declaring a namespace re-addresses the headings and leaves the file's own citations pointing at the other prose file** — one command declares the namespace and re-addresses that file's own citations, which is knowable only in that transaction.
 - ✅ **RK1180** **A block that is a standing category empties whenever it is caught up, and ship reads that as completion** — a label listed in blocks.standing is caught up rather than finished, so no sweep fires and no heading is offered for withdrawal.
 - ✅ **RK1716** **A dep on another repository's task is free text, so nothing can tell whether it shipped** — A <name>: <id> dep resolves against the sibling's ledger from its checkout or a shallow cached fetch of its git remote at ref, with a timeout, and lint never fetches.
-- ✅ **RK1724 (the shipping side)** **Shipping a task says nothing about the sibling tasks it unblocks** — A ship names each open line in a declared sibling whose dep it just satisfied, as unblocks <sibling>: <id>, read from checkouts and writing nothing there.
+- ✅ **RK1724** **Shipping a task says nothing about the sibling tasks it unblocks** — A ship names each sibling line it unblocked, and the sibling's session start names each ready line whose foreign dep shipped, offline from a checkout or the cache.
 
 ## Block B — Authoring
 
