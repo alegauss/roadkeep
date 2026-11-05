@@ -77,10 +77,11 @@ already written, not authorship.
 
 ### §RK1716 Deps on a sibling project
 
-A dep on another repository's task can only be written as free text, such as `turing:
-T456`. RK28 resolves it as unresolvable, so `deps`, `pick` and `blocked` never tell
-whether it shipped, and the user relays every Turing ship to Dumont's agent by hand. The
-other project is governed by roadkeep too: its ledger holds the answer.
+Landed: the local-checkout half. A dep on another repository's task could only be
+written as free text, such as `turing: T456`. RK28 resolves it as unresolvable, so
+`deps`, `pick` and `blocked` never tell whether it shipped, and the user relays every
+Turing ship to Dumont's agent by hand. The other project is governed by roadkeep too:
+its ledger holds the answer.
 
 The change: `roadkeep.toml` declares sibling projects by path, git remote, or both; a
 bare string is a path:
