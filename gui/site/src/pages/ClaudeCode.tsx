@@ -2,7 +2,7 @@ import { claudeCode as cc } from '../lib/site-content'
 import { product } from '../lib/product'
 import { Nav } from '../components/Nav'
 import { Footer } from '../components/Footer'
-import { Rich } from '../components/ui/Rich'
+import { SiteRich as Rich } from '@viglet/viglet-design-system/site'
 
 // The page for the person who runs the agent. The verb lists at the bottom are generated from
 // the two tables in packages/core, so the page cannot name a verb the window cannot send.

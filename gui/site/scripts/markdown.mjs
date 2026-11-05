@@ -9,7 +9,16 @@ import { parse } from 'node-html-parser'
 const SKIP_TAGS = new Set(['NAV', 'FOOTER', 'BUTTON', 'SCRIPT', 'STYLE', 'NOSCRIPT'])
 // Decorative chrome dropped by class: the pulse dot, the ticks, the card icons, the step
 // numbers, the section kicker, terminal window bars, the legend.
-const SKIP_CLASSES = new Set(['dot', 'chk', 'ico', 'n', 'eyebrow', 'bar', 'legend', 'copy-btn'])
+const SKIP_CLASSES = new Set([
+  'vg-site-dot',
+  'chk',
+  'ico',
+  'n',
+  'vg-site-eyebrow',
+  'eyebrow',
+  'bar',
+  'legend',
+])
 // Elements that carry a run of text, not a block: rendered inline, never recursed as blocks.
 const INLINE_TAGS = new Set(['SPAN', 'B', 'STRONG', 'I', 'EM', 'CODE', 'KBD', 'A', 'BR'])
 const HEADING = { H1: '#', H2: '##', H3: '###', H4: '####', H5: '#####', H6: '######' }

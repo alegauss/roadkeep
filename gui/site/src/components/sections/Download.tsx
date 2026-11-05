@@ -1,6 +1,5 @@
 import { download, releasesUrl } from '../../lib/site-content'
-import { CopyButton } from '../ui/CopyButton'
-import { Rich } from '../ui/Rich'
+import { SiteButton, SiteCopyButton, SiteRich as Rich } from '@viglet/viglet-design-system/site'
 
 // The section the argument ends in: the reader who accepted it can have the thing. The buttons
 // carry data-twin="omit" for the reason the hero's do, but the prose around them does not,
@@ -17,15 +16,13 @@ export function Download() {
             <Rich runs={download.intro} />
           </p>
         </div>
-        <div className="hero-cta" data-twin="omit">
-          <a className="btn btn-primary" href={releasesUrl}>
-            {download.cta}
-          </a>
-          <a className="btn btn-ghost" href={releasesUrl}>
+        <div className="download-cta" data-twin="omit">
+          <SiteButton href={releasesUrl}>{download.cta}</SiteButton>
+          <SiteButton variant="ghost" href={releasesUrl}>
             {download.secondary}
-          </a>
+          </SiteButton>
         </div>
-        <div className="hero-meta">
+        <div className="download-facts">
           {download.facts.map((fact) => (
             <span key={fact}>{fact}</span>
           ))}
@@ -34,7 +31,12 @@ export function Download() {
           <p className="allowlist-lead">{download.engineLead}</p>
           <div className="codeblock copy">
             <code>{download.engineLine}</code>
-            <CopyButton text={download.engineLine} label="Copy the install command" />
+            <SiteCopyButton
+              text={download.engineLine}
+              label="Copy the install command"
+              copyLabel="Copy"
+              copiedLabel="Copied"
+            />
           </div>
         </div>
         <p className="allowlist-note">

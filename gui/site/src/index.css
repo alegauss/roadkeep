@@ -1,13 +1,109 @@
 /* ============================================================================
-   Design tokens. The palette is light-first on bare :root; the dark values are
-   redefined under prefers-color-scheme (guarded so an explicit light toggle wins)
-   and again under [data-theme="dark"] so the toggle wins in both directions.
-
-   The colours are roadkeep's own: the amber gate and the slate task lines of its
-   mark, which is also what the app re-keys the design system's accent to. The
-   dark "islands" (terminals, the window mock) keep one palette in both themes,
-   because they are pictures of a dark surface rather than page chrome.
+   The chrome (nav, hero, buttons, theme toggle, copy button, feature index,
+   sponsor and footer) is the design system's site layer (RK1714): tokens.css is
+   the preset as plain custom properties, site.css the rules, and no Tailwind.
+   The cool tone below is re-keyed to roadkeep's slate ground and amber accent,
+   light on :root and dark on the data-theme attribute the pre-paint script
+   always sets. Everything after the re-key is this page's own sections.
    ============================================================================ */
+
+@import '@viglet/viglet-design-system/tokens.css';
+@import '@viglet/viglet-design-system/site.css';
+
+:root {
+  --vg-background: #f7f8fb;
+  --vg-foreground: #0f172a;
+  --vg-card: #ffffff;
+  --vg-popover: #ffffff;
+  --vg-popover-foreground: #0f172a;
+  --vg-muted: #f1f4f9;
+  --vg-muted-foreground: #475569;
+  --vg-border: #dbe1ea;
+  --vg-brand: #b45309;
+  --vg-brand-dark: #b45309;
+  --vg-brand-light: #f59e0b;
+  --vg-brand-lighter: #fbbf24;
+  --vg-brand-bg: rgba(245, 158, 11, 0.12);
+  --vg-brand-border: rgba(245, 158, 11, 0.38);
+  --vg-gradient: linear-gradient(120deg, #d97706, #b45309 55%, #7c2d12);
+  --vg-site-glow: rgba(245, 158, 11, 0.1);
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-brand: var(--font-sans);
+}
+
+:root[data-theme='dark'] {
+  --vg-background: #0a0f1b;
+  --vg-foreground: #f2f6fb;
+  --vg-card: #131b2d;
+  --vg-popover: #131b2d;
+  --vg-popover-foreground: #f2f6fb;
+  --vg-muted: #1a2440;
+  --vg-muted-foreground: #98a5bb;
+  --vg-border: #232f49;
+  --vg-brand: #f59e0b;
+  --vg-gradient: linear-gradient(120deg, #fbbf24, #f59e0b 55%, #ea580c);
+  --vg-site-glow: rgba(245, 158, 11, 0.14);
+}
+
+/* dark ink on amber: white reads at about 2:1 on this fill */
+.vg-site-btn-primary {
+  color: #1c1204;
+}
+/* balance, because the lead is one long clause and a greedy wrap leaves its last word alone on
+   the second line */
+.vg-site-hero h1 {
+  font-size: clamp(2.3rem, 5.6vw, 4.1rem);
+  line-height: 1.06;
+  margin: 0 auto 22px;
+  max-width: 980px;
+  text-wrap: balance;
+}
+.vg-site-sub {
+  max-width: 720px;
+}
+.vg-site-sub code {
+  font-size: 0.88em;
+  color: var(--accent-strong);
+}
+.vg-site-hero .win {
+  max-width: 780px;
+  margin: 44px auto 0;
+}
+
+/* ---------- consent: fixed above the page, never in the prerendered HTML ---------- */
+.consent-settings {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.consent {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 60;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 18px 20px;
+  border: 1px solid var(--vg-border);
+  border-radius: var(--vg-radius-panel);
+  background: var(--vg-popover);
+  color: var(--vg-popover-foreground);
+  box-shadow: 0 24px 60px -20px rgba(15, 23, 42, 0.45);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+.consent-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
 
 :root {
   /* brand: constant across themes */
@@ -150,335 +246,6 @@ pre {
 @media (max-width: 480px) {
   .wrap {
     padding: 0 16px;
-  }
-}
-
-/* ambient background glow */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(900px 500px at 80% -5%, var(--glow-1), transparent 60%),
-    radial-gradient(700px 600px at -10% 20%, var(--glow-2), transparent 55%),
-    linear-gradient(180deg, var(--bg), var(--bg-2));
-}
-
-/* ---------- nav ---------- */
-nav {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  background: var(--nav-bg);
-  border-bottom: 1px solid var(--line);
-}
-nav .wrap {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 64px;
-  gap: 16px;
-}
-.nav-left {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex: 0 0 auto;
-}
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  font-weight: 800;
-  font-size: 1.05rem;
-  letter-spacing: -0.02em;
-  white-space: nowrap;
-}
-.brand img {
-  height: 30px;
-  width: auto;
-  flex: 0 0 auto;
-}
-.parent {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex: 0 0 auto;
-  padding: 7px 13px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  color: var(--muted);
-  font-size: 0.8rem;
-  font-weight: 500;
-  white-space: nowrap;
-  transition:
-    color 0.2s,
-    border-color 0.2s,
-    background 0.2s;
-}
-.parent b {
-  color: var(--text);
-  font-weight: 600;
-}
-.parent svg {
-  width: 12px;
-  height: 12px;
-  color: var(--muted-2);
-  transition:
-    transform 0.2s,
-    color 0.2s;
-}
-.parent:hover {
-  background: var(--panel);
-  border-color: var(--amber);
-  color: var(--text);
-}
-.parent:hover svg {
-  color: var(--amber);
-  transform: translate(1.5px, -1.5px);
-}
-@media (max-width: 1320px) {
-  .parent .pre {
-    display: none;
-  }
-}
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 22px;
-}
-.nav-links a:not(.btn) {
-  color: var(--muted);
-  font-weight: 500;
-  font-size: 0.95rem;
-  transition: color 0.2s;
-  /* a two-word label is one item, not two */
-  white-space: nowrap;
-}
-.nav-links a:not(.btn):hover {
-  color: var(--text);
-}
-@media (max-width: 1320px) {
-  .nav-links {
-    gap: 16px;
-  }
-}
-/* Below this the labels go and the buttons stay: a reader who cannot reach the repository has
-   lost more than one who cannot reach an anchor. */
-@media (max-width: 1080px) {
-  .nav-links a:not(.btn) {
-    display: none;
-  }
-}
-/* At phone width the row keeps the brand, one button and the toggle. Everything in it is
-   `flex: 0 0 auto` and nowrap, so something has to leave or the document scrolls sideways. */
-@media (max-width: 600px) {
-  .nav-left .parent,
-  .nav-links .btn-ghost {
-    display: none;
-  }
-  .nav-links {
-    gap: 10px;
-  }
-  .nav-links .btn {
-    padding: 10px 15px;
-  }
-}
-@media (max-width: 380px) {
-  .brand {
-    font-size: 0.95rem;
-    gap: 9px;
-  }
-  .brand img {
-    height: 26px;
-  }
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  padding: 11px 20px;
-  border-radius: 11px;
-  font-weight: 600;
-  font-size: 0.95rem;
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.2s ease,
-    background 0.2s;
-  white-space: nowrap;
-  cursor: pointer;
-}
-.btn-primary {
-  background: linear-gradient(135deg, var(--amber-bright), var(--amber) 55%, #d97706);
-  color: var(--on-amber);
-  box-shadow: 0 8px 24px -10px rgba(245, 158, 11, 0.75);
-}
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 32px -12px rgba(245, 158, 11, 0.9);
-}
-.btn-ghost {
-  background: var(--panel);
-  color: var(--text);
-  border: 1px solid var(--line);
-}
-.btn-ghost:hover {
-  background: var(--panel-2);
-  transform: translateY(-2px);
-}
-
-/* theme toggle */
-.theme-toggle {
-  display: inline-grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  flex: 0 0 auto;
-  border-radius: 10px;
-  border: 1px solid var(--line);
-  background: var(--panel);
-  color: var(--muted);
-  cursor: pointer;
-  transition:
-    color 0.2s,
-    border-color 0.2s,
-    background 0.2s;
-}
-.theme-toggle:hover {
-  color: var(--text);
-  border-color: var(--amber);
-}
-.theme-toggle svg {
-  width: 18px;
-  height: 18px;
-}
-
-/* ---------- hero ---------- */
-.hero {
-  padding: 84px 0 64px;
-  text-align: center;
-  position: relative;
-}
-.hero .wrap {
-  position: relative;
-  z-index: 1;
-}
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 15px;
-  border-radius: 999px;
-  background: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.38);
-  color: var(--accent);
-  font-size: 0.82rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  margin-bottom: 28px;
-}
-.dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--amber);
-  box-shadow: 0 0 10px var(--amber);
-  animation: pulse 2s infinite;
-}
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.35;
-  }
-}
-/* balance, because the lead is one long clause and a greedy wrap leaves its last word alone on
-   the second line */
-.hero h1 {
-  font-size: clamp(2.3rem, 5.6vw, 4.1rem);
-  line-height: 1.06;
-  font-weight: 900;
-  letter-spacing: -0.035em;
-  margin: 0 auto 22px;
-  max-width: 980px;
-  text-wrap: balance;
-}
-.hero h1 .grad {
-  background: linear-gradient(120deg, var(--grad-1), var(--grad-2) 55%, var(--grad-3));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-.hero p.sub {
-  font-size: clamp(1.05rem, 2.2vw, 1.3rem);
-  color: var(--muted);
-  max-width: 720px;
-  margin: 0 auto 36px;
-  line-height: 1.55;
-}
-.hero p.sub code {
-  font-size: 0.88em;
-  color: var(--accent-strong);
-}
-.hero-cta {
-  display: flex;
-  gap: 14px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-bottom: 18px;
-}
-.hero-meta {
-  display: flex;
-  gap: 22px;
-  justify-content: center;
-  flex-wrap: wrap;
-  color: var(--muted-2);
-  font-size: 0.85rem;
-  margin-top: 8px;
-}
-.pills {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-top: 34px;
-}
-.pill {
-  padding: 8px 14px;
-  border-radius: 10px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  font-size: 0.82rem;
-  color: var(--muted);
-  font-weight: 500;
-}
-.pill b {
-  color: var(--text);
-}
-/* drop-shadow filters the alpha channel, so it traces the tile's rounded corners where a
-   box-shadow would hang a square behind them */
-.hero-icon {
-  height: 96px;
-  width: auto;
-  margin: 0 auto 30px;
-  display: block;
-  filter: drop-shadow(0 18px 30px rgba(15, 23, 42, 0.4));
-  animation: float 5s ease-in-out infinite;
-}
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
   }
 }
 
@@ -764,10 +531,6 @@ section {
 .win-note code {
   color: var(--accent-strong);
 }
-.hero .win {
-  max-width: 780px;
-  margin: 44px auto 0;
-}
 
 /* ---------- terminal (always a dark island) ---------- */
 .term {
@@ -899,36 +662,6 @@ section {
 .codeblock.copy code {
   white-space: nowrap;
 }
-.copy-btn {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  background: #1a2440;
-  border: 1px solid #2b3a57;
-  color: #98a5bb;
-  font-family: inherit;
-  font-size: 0.8rem;
-  font-weight: 600;
-  transition:
-    background 0.2s,
-    color 0.2s,
-    border-color 0.2s;
-}
-.copy-btn:hover {
-  background: var(--amber);
-  color: var(--on-amber);
-  border-color: var(--amber);
-}
-.copy-btn.copied {
-  background: rgba(52, 211, 153, 0.18);
-  color: #6ee7b7;
-  border-color: rgba(52, 211, 153, 0.5);
-}
-
 /* ---------- the two actors and the laws ---------- */
 .actors {
   display: grid;
@@ -1036,52 +769,6 @@ section {
   font-size: 0.88em;
 }
 
-/* ---------- footer ---------- */
-footer {
-  padding: 56px 0 38px;
-  margin-top: 30px;
-  position: relative;
-  border-top: 1px solid var(--line);
-}
-.foot-grid {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 24px;
-  flex-wrap: wrap;
-}
-.foot-brand {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  font-weight: 800;
-}
-.foot-brand img {
-  height: 28px;
-  width: auto;
-}
-.foot-links {
-  display: flex;
-  gap: 24px;
-  flex-wrap: wrap;
-}
-.foot-links a {
-  color: var(--muted);
-  font-size: 0.9rem;
-  transition: color 0.2s;
-}
-.foot-links a:hover {
-  color: var(--accent);
-}
-.disclaimer {
-  color: var(--muted-2);
-  font-size: 0.8rem;
-  margin: 22px auto 0;
-  text-align: center;
-  max-width: 820px;
-  line-height: 1.6;
-}
-
 /* ---------- house ad ----------
    The band contributes nothing of its own: all of the spacing is the slot's margin, so a slot
    the loader collapses takes the gap with it. min-height is the loader's own reserved height
@@ -1091,111 +778,6 @@ footer {
   max-width: 780px;
   min-height: 140px;
   margin: 8px auto 0;
-}
-
-/* ---------- sponsor block ----------
-   Product tiles keep a white plate under the logo so the marks render as published in both
-   themes, never recoloured to fit this palette. */
-.sponsor {
-  margin-top: 30px;
-  padding-top: 26px;
-  border-top: 1px solid var(--line);
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-}
-.sponsor-mark {
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
-  background: #fff;
-  padding: 3px;
-  flex: none;
-}
-.sponsor-body {
-  min-width: 0;
-}
-.sponsor-label {
-  display: block;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted-2);
-}
-.sponsor-name {
-  display: block;
-  margin-top: 2px;
-  font-weight: 800;
-  font-size: 1.02rem;
-  letter-spacing: -0.01em;
-  color: var(--text);
-}
-.sponsor-name:hover {
-  color: var(--accent);
-}
-.sponsor-body p {
-  margin-top: 6px;
-  max-width: 640px;
-  color: var(--muted);
-  font-size: 0.88rem;
-  line-height: 1.6;
-}
-.sponsor-body p a {
-  color: var(--accent);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.sponsor-products {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 14px;
-}
-.sponsor-product {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 14px 9px 10px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--panel);
-  color: var(--text);
-  transition:
-    border-color 0.2s,
-    transform 0.15s ease;
-}
-.sponsor-product:hover {
-  border-color: var(--accent);
-  transform: translateY(-2px);
-}
-.sponsor-product img {
-  width: 28px;
-  height: 28px;
-  border-radius: 7px;
-  background: #fff;
-  padding: 2px;
-  flex: none;
-}
-.sponsor-product b {
-  display: block;
-  font-size: 0.86rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-.sponsor-product small {
-  display: block;
-  max-width: 280px;
-  color: var(--muted-2);
-  font-size: 0.76rem;
-  line-height: 1.45;
-}
-@media (max-width: 620px) {
-  .sponsor {
-    flex-direction: column;
-  }
-  .sponsor-product {
-    width: 100%;
-  }
 }
 
 /* reveal on scroll: this animates its own opacity, it never moves the window */
@@ -1216,17 +798,11 @@ footer {
     transform: none;
     transition: none;
   }
-  .hero-icon,
-  .dot {
-    animation: none;
-  }
   html {
     scroll-behavior: auto;
   }
-  .sponsor-product:hover,
   .card:hover,
-  .law:hover,
-  .feature-card:hover {
+  .law:hover {
     transform: none;
   }
 }
@@ -1351,14 +927,66 @@ footer {
 }
 
 /* ---------- sub-pages: shared ---------- */
+/* a depth page's header is this page's own, not the landing hero the design system draws */
 .page-hero {
   padding: 72px 0 20px;
+  text-align: center;
+  position: relative;
 }
 .page-hero h1 {
   font-size: clamp(2rem, 5vw, 3.1rem);
+  line-height: 1.06;
   font-weight: 900;
   letter-spacing: -0.03em;
+  margin: 0 auto 18px;
+  max-width: 980px;
+  text-wrap: balance;
+}
+.page-hero p.sub {
+  font-size: clamp(1.05rem, 2.2vw, 1.3rem);
+  color: var(--muted);
+  max-width: 720px;
+  margin: 0 auto 36px;
+  line-height: 1.55;
+}
+.page-hero p.sub code {
+  font-size: 0.88em;
+  color: var(--accent-strong);
+}
+
+/* the code line is a dark island in both themes, so its copy button keeps the island's palette */
+.codeblock .vg-site-copy {
+  background: #1a2440;
+  border-color: #2b3a57;
+  color: #98a5bb;
+}
+.codeblock .vg-site-copy:hover {
+  background: var(--amber);
+  color: var(--on-amber);
+  border-color: var(--amber);
+}
+.codeblock .vg-site-copy.copied {
+  background: rgba(52, 211, 153, 0.18);
+  color: #6ee7b7;
+  border-color: rgba(52, 211, 153, 0.5);
+}
+
+/* the download section's buttons and the facts under them */
+.download-cta {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
   margin-bottom: 18px;
+}
+.download-facts {
+  display: flex;
+  gap: 22px;
+  justify-content: center;
+  flex-wrap: wrap;
+  color: var(--muted-2);
+  font-size: 0.85rem;
+  margin-top: 8px;
 }
 
 /* ---------- /claude-code ---------- */
@@ -1544,46 +1172,6 @@ footer {
 }
 
 /* ---------- /features depth pages ---------- */
-.feature-index {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
-  gap: 16px;
-}
-.feature-card {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 22px 24px;
-  background: linear-gradient(180deg, var(--panel), var(--bg-2));
-  transition:
-    transform 0.2s,
-    border-color 0.2s,
-    box-shadow 0.25s;
-}
-.feature-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(245, 158, 11, 0.5);
-  box-shadow: 0 18px 40px -24px rgba(245, 158, 11, 0.6);
-}
-.feature-card h3 {
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-  letter-spacing: -0.01em;
-}
-.feature-card p {
-  color: var(--muted);
-  font-size: 0.92rem;
-  line-height: 1.55;
-  flex: 1 1 auto;
-}
-.feature-card-go {
-  margin-top: 14px;
-  color: var(--accent);
-  font-weight: 600;
-  font-size: 0.9rem;
-}
 .feature-back {
   display: inline-block;
   color: var(--accent);

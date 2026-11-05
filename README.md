@@ -229,12 +229,12 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | I — The documentation area (what an adopter reads before there is a session to ask) | 1 | 21 | 0 |
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
-| L — Product sites on the package | 1 | 0 | 0 |
-| **Total** | 14 | 1188 | 24 |
+| L — Product sites on the package | 1 | 1 | 0 |
+| **Total** | 14 | 1189 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1714** (deps: —) **The pitch and the roadkeep-gui landing each keep their own copy of the template eight product sites share** — The shared Nav, Hero, Footer and sponsor slot drift apart in each copy, and the design system now carries them once. → §RK1714
+- 📋 **RK1715** (deps: —) **block add opens a label the ledger already declares under another title** — It writes the new heading where the label is missing and exits 0, so one label carries two titles across the governed files. → §RK1715
 <!-- roadkeep:end -->
 
 Open work is in

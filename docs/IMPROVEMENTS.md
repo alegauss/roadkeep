@@ -414,23 +414,28 @@ downloads and repository visitors is measured.
 
 ## Block L — Product sites on the package
 
-### §RK1714 Both sites on the package
+### §RK1729 Both sites on the package's build
 
-The pitch landed: `site/` takes `./site`, `tokens.css` and `site.css` with no Tailwind
-(VDS216), so that choice is made for gui too. `data-tone="cool"`, the amber re-keyed on
-`:root[data-theme="dark"]`, the dark-only `roadkeep-mark-dark.svg` as a `logoShape:
-"mark"` brand, dark ink on the primary button (white reads ~2:1 on amber), consent-gated
-analytics in `Consent.tsx`. Rich stays local: `SiteRich` has no link run. Its twin came
-out byte-identical.
+RK1714 moved both sites' chrome onto `./site`; what it left is the build step and the
+registry.
 
-Left: the roadkeep-gui landing (`gui/site/`, built by `build:gui`) keeps its copy: Nav,
-Footer, Hero, Ad, Rich, FeatureIndex, NonGoals, Feature, CopyButton, ThemeToggle, its
-own prerender and hand-written tokens. Same move, plus light and dark: `SiteThemeToggle`
-and `siteThemeScript` replace ThemeToggle and `lib/theme.ts`, `SiteFeatureIndex` and
-`SiteCopyButton` the local two. roadkeep-gui's accent is amber `245,158,11`.
+**The prerender.** `site/scripts/prerender.mjs` and `gui/site/scripts/prerender.mjs`
+each render the routes, patch the head by replace-or-throw, write the Markdown twin, the
+manifest, the sitemap and robots. The design system's `./vite` entry ships
+`prerenderSite` and `lastAuthoredChange` (VDS215) for exactly this, and claude-tray's
+site lists `./vite` among its entries. Move both scripts onto it, keeping each site's
+own `markdown.mjs` converter and the assertions in `scripts/prerender.test.mjs`; the
+gui's social card can take `renderOgCard` from the same entry in place of
+`scripts/og-image.mjs`. Read `prerenderSite`'s options before starting: a twin converter
+or a manifest field it has no hook for is the open question, and it is answered in the
+design system, not by keeping a private copy.
 
-Both pages call the `./vite` helpers (`prerenderSite`) instead of their own prerender
-scripts, which the pitch has not done yet. Outside this repository: the hub's
-`projects.json` lists roadkeep as slate `148,163,184` while the pitch is amber, so that
-entry changes to amber; and both sites are added to the design system's
-`consumers.json`. The Starlight area in `site/docs` is out of scope.
+**The registry**, outside this repository and committed there: the design system's
+`consumers.json` gains both sites (`chrome: "product-site"`, `tone: "cool"`, accent
+amber, entries `./site`, `./site.css`, `./tokens.css`, `./vite`), and the hub's
+`projects.json` changes roadkeep from slate `148,163,184` to the amber the pitch uses,
+`245,158,11`.
+
+Done when neither site has a prerender script of its own beyond what `prerenderSite`
+cannot do, both tests still pass on the built output, and both registries name both
+sites.

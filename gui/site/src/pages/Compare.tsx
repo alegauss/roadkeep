@@ -2,7 +2,7 @@ import { Fragment } from 'react'
 import { compare as cmp } from '../lib/site-content'
 import { Nav } from '../components/Nav'
 import { Footer } from '../components/Footer'
-import { Rich } from '../components/ui/Rich'
+import { SiteRich as Rich } from '@viglet/viglet-design-system/site'
 
 function cellClass(value: string): string {
   const head = value[0]

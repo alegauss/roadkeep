@@ -19,9 +19,20 @@ import {
   writeCount,
 } from './product'
 
-export type Run = string | { code: string } | { b: string } | { i: string }
+import type { SiteBrand, SiteRun, SponsorDeclaration } from '@viglet/viglet-design-system/site'
+
+export type Run = SiteRun
 
 export type Rich = Run[]
+
+// The brand the design system's nav, hero and footer draw, and the key the theme choice is
+// stored under, which the pre-paint script in vite.config.ts and the toggle both read.
+export const brand: SiteBrand = {
+  href: '/roadkeep/gui/',
+  name: 'roadkeep-gui',
+  logo: '/roadkeep/gui/logo.svg',
+}
+export const THEME_KEY = 'rkg-theme'
 
 /* ------------------------------------------------------------------ meta + chrome */
 
@@ -74,16 +85,20 @@ export const footer = {
 // Mirrors alegauss.github.io/sponsor.json, the canonical sponsor declaration for these
 // projects. Transcribed rather than fetched at runtime: the site is prerendered, and the point
 // of naming a sponsor is that crawlers and LLMs read it in the served HTML.
-export const sponsor = {
-  label: 'Sponsored by',
-  name: 'Viglet',
-  url: 'https://www.viglet.org',
-  siteLabel: 'viglet.org',
-  logo: '/roadkeep/gui/viglet/viglet-logo.png',
-  summary:
-    'Open source search and content tools for organisations with a lot to publish. Run on your own servers, with no per-user licence.',
+// Shaped as the design system's SponsorDeclaration, which SiteSponsor renders.
+export const sponsor: SponsorDeclaration = {
+  sponsor: {
+    label: 'Sponsored by',
+    name: 'Viglet',
+    url: 'https://www.viglet.org',
+    siteLabel: 'viglet.org',
+    logo: '/roadkeep/gui/viglet/viglet-logo.png',
+    summary:
+      'Open source search and content tools for organisations with a lot to publish. Run on your own servers, with no per-user licence.',
+  },
   products: [
     {
+      id: 'turing',
       name: 'Viglet Turing',
       url: 'https://turing.viglet.org/',
       logo: '/roadkeep/gui/viglet/turing-logo.png',
@@ -91,13 +106,14 @@ export const sponsor = {
         'so visitors find what they came for, with AI answers drawn only from your own content',
     },
     {
+      id: 'shio',
       name: 'Viglet Shio',
       url: 'https://shio.viglet.org/',
       logo: '/roadkeep/gui/viglet/shio-logo.png',
       inline: 'so a new page goes live the same day, reviewed and approved by your own team',
     },
   ],
-} as const
+}
 
 /* ------------------------------------------------------------------ hero */
 

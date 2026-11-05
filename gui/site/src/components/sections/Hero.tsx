@@ -1,49 +1,38 @@
+import { SiteButton, SiteHero, SiteRich } from '@viglet/viglet-design-system/site'
 import { download, hero, repoUrl } from '../../lib/site-content'
-import { Rich } from '../ui/Rich'
 import { HeroWindow } from '../HeroWindow'
+
+// The hero is the design system's (RK1714), which marks the actions `data-twin="omit"`: the
+// call to action converts a reader and costs an agent the same words on every page. The button
+// scrolls to the download section rather than leaving, because what the installer needs and
+// touches is the question between a reader and an install, and that section answers it.
+//
+// The props are module constants: the copy is static, so nothing here is rebuilt per render.
+const icon = { src: '/roadkeep/gui/logo.svg', alt: 'roadkeep-gui logo' }
+const sub = <SiteRich runs={hero.sub} />
+const actions = (
+  <>
+    <SiteButton href="#download">{download.cta}</SiteButton>
+    <SiteButton variant="ghost" href={repoUrl}>
+      ★ View on GitHub
+    </SiteButton>
+  </>
+)
+const feature = <HeroWindow />
+const pills = hero.pills.map((runs) => <SiteRich key={JSON.stringify(runs[0])} runs={runs} />)
 
 export function Hero() {
   return (
-    <header className="hero" id="top">
-      <div className="wrap">
-        <img className="hero-icon" src="/roadkeep/gui/logo.svg" alt="roadkeep-gui logo" />
-        <div className="badge">
-          <span className="dot" /> {hero.badge}
-        </div>
-        <h1>
-          {hero.titleLead}
-          <br />
-          <span className="grad">{hero.titleAccent}</span>
-        </h1>
-        <p className="sub">
-          <Rich runs={hero.sub} />
-        </p>
-        {/* The call to action is dropped from the Markdown twin by this attribute: it converts
-            a reader and costs an agent the same words on every page. The button scrolls to the
-            download section rather than leaving, because what the installer needs and touches
-            is the question between a reader and an install, and that section answers it. */}
-        <div className="hero-cta" data-twin="omit">
-          <a className="btn btn-primary" href="#download">
-            {download.cta}
-          </a>
-          <a className="btn btn-ghost" href={repoUrl}>
-            ★ View on GitHub
-          </a>
-        </div>
-        <div className="hero-meta">
-          {hero.meta.map((item) => (
-            <span key={item}>{item}</span>
-          ))}
-        </div>
-        <HeroWindow />
-        <div className="pills">
-          {hero.pills.map((runs, i) => (
-            <span className="pill" key={i}>
-              <Rich runs={runs} />
-            </span>
-          ))}
-        </div>
-      </div>
-    </header>
+    <SiteHero
+      icon={icon}
+      badge={hero.badge}
+      title={hero.titleLead}
+      titleAccent={hero.titleAccent}
+      sub={sub}
+      actions={actions}
+      meta={hero.meta}
+      feature={feature}
+      pills={pills}
+    />
   )
 }

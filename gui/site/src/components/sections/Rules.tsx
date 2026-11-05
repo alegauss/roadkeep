@@ -1,5 +1,5 @@
 import { rules } from '../../lib/site-content'
-import { Rich } from '../ui/Rich'
+import { SiteRich as Rich } from '@viglet/viglet-design-system/site'
 
 // The three parties, then the rules in the order a reader meets them.
 export function Rules() {

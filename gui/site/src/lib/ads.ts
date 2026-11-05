@@ -13,7 +13,11 @@
 // script is run again, which redraws them from the catalogue the browser has already cached.
 
 import { useEffect } from 'react'
-import { effectiveTheme, type Theme } from './theme'
+import { createSiteTheme, type SiteTheme as Theme } from '@viglet/viglet-design-system/site'
+import { THEME_KEY } from './site-content'
+
+// The design system's theme runtime, under the key the toggle and the pre-paint script use.
+const siteTheme = createSiteTheme(THEME_KEY)
 
 const SRC = 'https://ads.japode.com/v1/ads.js'
 
@@ -48,7 +52,7 @@ function draw(theme: Theme): void {
  */
 export function useAds(): void {
   useEffect(() => {
-    const sync = () => draw(effectiveTheme())
+    const sync = () => draw(siteTheme.effective())
     sync()
 
     const toggle = new MutationObserver(sync)

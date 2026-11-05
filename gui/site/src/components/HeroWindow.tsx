@@ -1,5 +1,5 @@
 import { heroWindow } from '../lib/site-content'
-import { Rich } from './ui/Rich'
+import { SiteRich as Rich } from '@viglet/viglet-design-system/site'
 
 // The portfolio screen, drawn in HTML rather than shown as a screenshot, so the Markdown twin
 // and a crawler read its rows as text. What it shows is the argument of the page: one row per

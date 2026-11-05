@@ -1,39 +1,18 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-tone="cool">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6HG45Q9BHP"></script>
-    <script>
-      window.dataLayer = window.dataLayer || []
-      function gtag() {
-        dataLayer.push(arguments)
-      }
-      gtag('js', new Date())
-
-      gtag('config', 'G-6HG45Q9BHP')
-    </script>
+    <!-- Google Analytics is not in this head: it loads only after the visitor allows it, from
+         the banner in components/Consent.tsx, the hub's AG1 flow. -->
     <link rel="icon" type="image/svg+xml" href="/roadkeep/gui/logo.svg" />
 
     <!--
-      The theme follows the OS, and a stored choice wins over it. This runs before first
-      paint: the tokens the body background reads are keyed off data-theme, so a class
-      applied after hydration is a visible flash of the wrong theme. Kept inline and
-      dependency-free for that reason.
+      The theme follows the OS, and a stored choice wins over it. The design system's
+      pre-paint script replaces the anchor below, inlined by vite.config.ts: the tokens are
+      keyed off data-theme, so it states the OS preference too, before first paint.
     -->
-    <script>
-      ;(function () {
-        try {
-          var stored = localStorage.getItem('rkg-theme')
-          if (stored === 'dark' || stored === 'light') {
-            document.documentElement.setAttribute('data-theme', stored)
-          }
-        } catch (e) {
-          /* private mode, or no storage: fall through to the OS preference */
-        }
-      })()
-    </script>
+    <!--theme-script-->
 
     <title>roadkeep-gui</title>
     <meta name="description" content="A desktop reader for roadkeep-governed backlogs." />
@@ -56,7 +35,7 @@
       </style>
     </noscript>
   </head>
-  <body>
+  <body class="vg-site">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

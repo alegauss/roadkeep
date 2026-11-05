@@ -1,5 +1,5 @@
 import { why } from '../../lib/site-content'
-import { Rich } from '../ui/Rich'
+import { SiteRich as Rich } from '@viglet/viglet-design-system/site'
 
 export function Why() {
   return (

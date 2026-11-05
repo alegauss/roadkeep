@@ -1,49 +1,41 @@
-import { download, navLinks, parentUrl, releasesUrl, repoUrl } from '../lib/site-content'
-import { ThemeToggle } from './ui/ThemeToggle'
+import { SiteButton, SiteNav, SiteThemeToggle } from '@viglet/viglet-design-system/site'
+import {
+  brand,
+  download,
+  navLinks,
+  parentUrl,
+  releasesUrl,
+  repoUrl,
+  THEME_KEY,
+} from '../lib/site-content'
 
+const themeLabel = (next: string) => `Switch to ${next} theme`
+const parent = {
+  href: parentUrl,
+  name: 'alegauss',
+  pre: 'part of',
+  title: 'alegauss: small developer tools',
+}
+
+// The bar every route shares, drawn by the design system's site layer (RK1714). What is left
+// here is this product's half of it: which links, and which words.
 export function Nav() {
   return (
-    <nav>
-      <div className="wrap">
-        <div className="nav-left">
-          <a className="brand" href="/roadkeep/gui/">
-            <img src="/roadkeep/gui/logo.svg" alt="" />
-            roadkeep-gui
-          </a>
-          <a className="parent" href={parentUrl} title="alegauss: small developer tools">
-            <span className="pre">part of</span>
-            <b>alegauss</b>
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M7 17 17 7" />
-              <path d="M9 7h8v8" />
-            </svg>
-          </a>
-        </div>
-        <div className="nav-links">
-          {navLinks.map((link) => (
-            <a key={link.href} href={link.href}>
-              {link.label}
-            </a>
-          ))}
+    <SiteNav
+      brand={brand}
+      parent={parent}
+      links={navLinks}
+      actions={
+        <>
           {/* The download is the primary button because a release exists. GitHub keeps its
               place beside it: the repository is what a reader checks before installing. */}
-          <a className="btn btn-primary" href={releasesUrl}>
-            {download.cta}
-          </a>
-          <a className="btn btn-ghost" href={repoUrl}>
+          <SiteButton href={releasesUrl}>{download.cta}</SiteButton>
+          <SiteButton variant="ghost" href={repoUrl}>
             ★ View on GitHub
-          </a>
-          <ThemeToggle />
-        </div>
-      </div>
-    </nav>
+          </SiteButton>
+          <SiteThemeToggle storageKey={THEME_KEY} label={themeLabel} />
+        </>
+      }
+    />
   )
 }

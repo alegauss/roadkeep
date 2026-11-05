@@ -1257,4 +1257,4 @@
 
 ## Block L — Product sites on the package
 
-- ✅ **RK1714 (the pitch)** **The pitch and the roadkeep-gui landing each keep their own copy of the template eight product sites share** — The pitch draws its nav, hero, buttons, sponsor and footer from the design system on tokens.css and site.css, with analytics loading only after consent.
+- ✅ **RK1714** **The pitch and the roadkeep-gui landing each keep their own copy of the template eight product sites share** — Both sites draw their nav, hero, buttons, sponsor and footer from the design system, the gui landing its theme toggle, copy button and feature index too, with analytics after consent.

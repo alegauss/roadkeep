@@ -1,6 +1,6 @@
 import { nonGoals } from '../../lib/site-content'
 import { product } from '../../lib/product'
-import { Rich } from '../ui/Rich'
+import { SiteRich as Rich } from '@viglet/viglet-design-system/site'
 
 // The titles and reasons are the roadmap's own, generated at build time.
 export function NonGoals() {
