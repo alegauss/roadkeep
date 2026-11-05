@@ -30,6 +30,7 @@ import pytest
 
 from roadkeep.blocking import (
     BlockExists,
+    BlockTitleTaken,
     BlockOccupied,
     NoSuchBlock,
     NoSuchNeighbour,
@@ -1463,6 +1464,75 @@ def test_a_label_every_file_already_declares_is_still_nothing_to_open(tmp_path):
     with pytest.raises(BlockExists) as refused:
         open_block(Config.discover(tmp_path), "J", "Reopened")
     assert "nothing to open" in str(refused.value)
+
+
+# -- a label the ledger already titles differently is taken (RK1715) -----------
+
+
+def taken(tmp_path: Path) -> Path:
+    """The viglet-design-system state: the ledger holds Block G under one title and the roadmap
+    has never opened it, so `block add G` with another title is a collision, not a reopening."""
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "TT"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        'improvements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text("# Roadmap\n\n## Block F — First\n", encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text(
+        "# Shipped\n\n## Block F — First\n\n## Block G — The package knows one chrome\n\n"
+        "- ✅ **TT1** **A symptom** — it works.\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "IMPROVEMENTS.md").write_text(
+        "# Improvements\n\n## Block F — First\n", encoding="utf-8"
+    )
+    return tmp_path
+
+
+def _tree(root: Path) -> dict[str, bytes]:
+    return {p.name: p.read_bytes() for p in sorted(root.glob("*.md"))}
+
+
+def test_a_label_the_ledger_titles_differently_is_refused_with_nothing_written(
+    tmp_path, capsys
+):
+    """It wrote the new heading into every file that lacked the label, said the ledger was
+    skipped, and exited 0 — and one label then meant two blocks."""
+    root = taken(tmp_path)
+    before = _tree(root)
+    code = main(
+        ["-C", str(root), "block", "add", "G", "--title", "Sites that take the look without a build"]
+    )
+    said = capsys.readouterr().err
+    assert code != EXIT_OK
+    assert _tree(root) == before
+    assert "CHANGELOG.md" in said
+    assert "The package knows one chrome" in said
+
+
+def test_the_refusal_offers_the_next_free_label_as_a_call_that_lands(tmp_path):
+    """The door is the same call under the label no file declares, and running it opens the
+    block everywhere it was missing."""
+    root = taken(tmp_path)
+    with pytest.raises(BlockTitleTaken) as refused:
+        open_block(Config.discover(root), "G", "Sites that take the look without a build")
+    assert refused.value.free == "H"
+    assert refused.value.held == (("CHANGELOG.md", "The package knows one chrome"),)
+    opened = open_block(Config.discover(root), "H", "Sites that take the look without a build")
+    opened.save()
+    assert "## Block H — Sites that take the look without a build" in (
+        root / "ROADMAP.md"
+    ).read_text(encoding="utf-8")
+
+
+def test_a_ledger_label_under_the_same_title_still_opens_in_the_roadmap(tmp_path):
+    """RK1223's case is untouched: the ledger holding a block the roadmap has not opened is a
+    reopening, and the title agreeing — in any case or spacing — is what says so."""
+    root = taken(tmp_path)
+    opened = open_block(Config.discover(root), "G", "the package  knows one CHROME")
+    opened.save()
+    assert "## Block G" in (root / "ROADMAP.md").read_text(encoding="utf-8")
+    assert [where for where, _ in opened.skipped] == ["CHANGELOG.md"]
 
 
 def test_the_neighbour_refusal_is_not_the_same_shape(tmp_path):

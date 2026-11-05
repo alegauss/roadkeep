@@ -86,11 +86,12 @@ from roadkeep.kernel.document import (
     save_all,
 )
 from roadkeep.kernel.schema import Schema, SchemaError, Violation, mangled
-from roadkeep.provenance import invocation
+from roadkeep.provenance import invocation, quoted, survives
 
 __all__ = [
     "BlockExists",
     "BlockOccupied",
+    "BlockTitleTaken",
     "Catalogue",
     "Closed",
     "Declared",
@@ -269,6 +270,28 @@ class NotOrganisable(ValueError):
         )
 
 
+def _next_free(readable: Mapping[str, tuple[str, Document, tuple[Heading, ...]]]) -> str:
+    """The single-letter label after the highest one any governed file declares, or ''.
+
+    After the highest rather than the first gap: a gap is usually a block that shipped and was
+    dropped from the roadmap while the ledger kept it, and a label the ledger still holds is
+    exactly the collision :class:`BlockTitleTaken` refuses.
+    """
+    labels = {h.label for _, _, blocks in readable.values() for h in blocks if h.label}
+    letters = [one for one in labels if len(one) == 1 and "A" <= one <= "Z"]
+    if not letters:
+        return ""
+    for code in range(ord(max(letters)) + 1, ord("Z") + 1):
+        if chr(code) not in labels:
+            return chr(code)
+    return ""
+
+
+def _same_title(one: str, other: str) -> bool:
+    """Whether two titles name one block: case and runs of whitespace are spelling, not meaning."""
+    return " ".join(one.split()).casefold() == " ".join(other.split()).casefold()
+
+
 class BlockExists(ValueError):
     """A label every file that files work under blocks already declares.
 
@@ -315,6 +338,47 @@ class BlockExists(ValueError):
             f"goes, so this is a heading to open rather than nothing — "
             f"`{invocation()} block add {label} --title \"<its title>\" {flags}`"
         )
+
+
+class BlockTitleTaken(BlockExists):
+    """A label some governed file already declares under a different title (RK1715).
+
+    `block add` writes the heading where the label is missing and skips the files that declare
+    it, which is right where the titles agree: that is RK1223's case, a block the ledger holds
+    and the roadmap has not opened yet. Where they differ the label is taken. Measured in
+    viglet-design-system: the ledger held `Block G — The package knows one chrome`, `block add
+    G --title "Sites that take the look without a build"` wrote the new heading into three
+    other files and exited 0, and the next `ship` into G would have filed new work under a
+    block the ledger says is about something else.
+
+    Refused whole, before anything is written, naming each file and the title it holds.
+    ``free`` is the next label no file declares, which the refusal layer turns into the same
+    call with ``anchor`` replaced (RK1149) — so the door is a call that runs rather than a
+    sentence to retype. Empty where the labels are not single letters, because "next" is then
+    a question about the project's own scheme that this module has no answer to.
+    """
+
+    def __init__(
+        self, label: str, title: str, held: Sequence[tuple[str, str]], free: str
+    ) -> None:
+        self.label = label
+        self.anchor = label
+        # A `BlockExists` to every caller that catches one: the label *is* declared, under
+        # another title, and nothing is opened either way.
+        self.where = tuple(where for where, _ in held)
+        self.lacking = ()
+        self.title = title
+        #: `(file, title)` per governed file declaring the label under another title.
+        self.held = tuple(held)
+        self.free = free
+        named = "; ".join(f"{where} titles it {spelled!r}" for where, spelled in self.held)
+        said = (
+            f"{label} is already declared under another title ({named}), so opening it as "
+            f"{title!r} would give one label two meanings across the governed files"
+        )
+        if free:
+            said += f"; {free} is the next label no file declares"
+        ValueError.__init__(self, said)
 
 
 class NoSuchBlock(KeyError):
@@ -1176,13 +1240,20 @@ class Catalogue:
             f"{one.became.stage}".rstrip()
             for one in self.blocks
         ]
-        elsewhere = [one.label for one in self.blocks if not one.plannable]
-        if elsewhere:
-            # The one row an author has to act on before typing `add --block`, said once
-            # rather than as a column that is empty on every other line.
+        elsewhere = [one for one in self.blocks if not one.plannable]
+        # The one row an author has to act on before typing `add --block`, said once per label
+        # rather than as a column that is empty on every other line. **With the title the other
+        # file already holds** (RK1715): `block add` refuses a label declared under a different
+        # one, so a door leaving the title to the caller named a call that refuses on every
+        # title but one — and that one was on the line above. A title no shell delivers is the
+        # caller's to type back, which is RK1667's rule.
+        for one in elsewhere:
+            title = (
+                quoted(one.title) if one.title and survives(one.title) else "…"
+            )
             rows.append(
-                f"  not in {where}: {', '.join(elsewhere)} — `{invocation()} block add "
-                f"<label> --title …` re-declares the heading a task can be filed under"
+                f"  not in {where}: {one.label} — `{invocation()} block add "
+                f"{one.label} --title {title}` re-declares the heading a task can be filed under"
             )
         return "\n".join(rows)
 
@@ -1456,6 +1527,18 @@ def open_block(
     # that has one — `BLOCK_ROLES` order, so it is the roadmap wherever the roadmap has
     # blocks. A file being organised for the first time has no heading of its own to copy.
     convention = next((blocks for _, _, blocks in readable.values() if blocks), ())
+
+    # A label some file already titles differently is taken (RK1715), and that is decided
+    # across the whole set before any file is written. A heading that is the label alone has
+    # no title to disagree with.
+    held = [
+        (where, _title(h))
+        for where, _, blocks in readable.values()
+        for h in blocks
+        if h.label == label and _title(h) and not _same_title(_title(h), title)
+    ]
+    if held:
+        raise BlockTitleTaken(label, title.strip(), held, _next_free(readable))
 
     for role, (where, document, blocks) in readable.items():
         if not blocks:

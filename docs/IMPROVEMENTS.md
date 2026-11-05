@@ -156,33 +156,6 @@ D123 with no network call.
 
 ## Block B — Authoring
 
-### §RK1715 A label already taken under another title
-
-`block add` checks each governed file for the label, writes the heading where it is
-missing, and reports the files that already declare it as skipped. It does not compare
-the title. Seen in viglet-design-system: `docs/CHANGELOG.md` had `## Block G — The
-package knows one chrome` (VDS146, VDS147 shipped), and
-
-    roadkeep block add G --title "Sites that take the look without a build"
-
-wrote the new heading into ROADMAP, IMPROVEMENTS and DEFERRED, printed `not
-docs/CHANGELOG.md: already declares it`, and exited 0. One label then had two titles
-across the files. The next `ship` into G would have filed new work under a block that
-the ledger says is about something else. The heading was reverted by hand and the work
-refiled as Block H.
-
-The skip is right when the title matches: that is RK1223's case, a block in the ledger
-that the roadmap has not opened yet. It is wrong when the title differs, because the
-label is already taken.
-
-The change: before writing anything, read every governed file's heading for the label.
-If any of them carries a different title, refuse the whole call, name the file and its
-title, and suggest the next free label. A matching title keeps today's behaviour.
-
-Done when the call above exits non-zero with no file written, the refusal names
-`docs/CHANGELOG.md` and the title it holds, and a label declared with the same title in
-the ledger alone still opens in the roadmap.
-
 ### §RK1718 A defer refusal that hides the reason's room
 
 Found in quickshell on 2026-10-23, deferring QS373. A 147-character reason was refused

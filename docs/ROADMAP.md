@@ -30,7 +30,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1715** (deps: —) **block add opens a label the ledger already declares under another title** — It writes the new heading where the label is missing and exits 0, so one label carries two titles across the governed files. → §RK1715
 - 📋 **RK1718** (deps: —) **A defer refused for length blames the line's structure and names a budget read that does not price the reason** — The reason is the only field the caller writes, and budget --defer already knows its room, so the refusal sends the caller guessing twice. → §RK1718
 
 ## Block C — Query (consult without reading the file)
