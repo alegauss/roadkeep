@@ -220,7 +220,7 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 2 | 44 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 239 | 2 |
-| C — Query (consult without reading the file) | 1 | 204 | 7 |
+| C — Query (consult without reading the file) | 1 | 205 | 7 |
 | D — The gate | 0 | 319 | 7 |
 | E — Adoption | 3 | 124 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 168 | 4 |
@@ -230,11 +230,11 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 1 | 1 | 0 |
-| **Total** | 9 | 1194 | 24 |
+| **Total** | 9 | 1195 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1722** (deps: —) **A ledger entry carries no date, so every site re-derives one from git by hand** — alegauss.github.io keeps its own git log parser to date each entry, a second reader of the ledger that origin answers only one id at a time. → §RK1722
+- ⏳ **RK1722** (deps: —) **A ledger entry carries no date, so every site re-derives one from git by hand** — A git archive extract has no history, so the site still needs list --dated to answer from a bare repository at a revision. → §RK1722
 <!-- roadkeep:end -->
 
 Open work is in

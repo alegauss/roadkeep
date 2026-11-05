@@ -156,6 +156,8 @@ def _list_argv(args: argparse.Namespace) -> tuple[str, ...]:
         out.append("--startable")
     if args.ids:
         out.append("--ids")
+    if getattr(args, "dated", False):
+        out.append("--dated")
     return tuple(out)
 
 
@@ -200,6 +202,10 @@ _NOT_STARTABLE = (
 
 
 def _list(config: Config, args: argparse.Namespace) -> Result | int:
+    # `--dated` is a form of its own and that form is the payload (RK1722): a date has no place
+    # in the verbatim lines stdout carries, so asking for one is asking for the JSON.
+    if getattr(args, "dated", False):
+        args.json = True
     have = getattr(args, "have", ())
     try:
         census, standing = _census(config, args)
@@ -225,12 +231,15 @@ def _list(config: Config, args: argparse.Namespace) -> Result | int:
     # this split already assumes.
     listed = census.listed(args.ids)
     stood = _stood(config, args, census)
+    dated = _dated(config, args)
     # **One bound, taken over the register that was asked for** (RK1615). The cap is measured on
     # what would be *printed*, and the two registers are different sizes — so this reads
     # `args.json` where the rest of the handler no longer does. That is not the branch the type
     # removed: this decides the verdict, not which answer to hand over.
     bound = census.bounded(
-        json.dumps(census.listing(standing, have, stood=stood, ready=ready), indent=2)
+        json.dumps(
+            census.listing(standing, have, stood=stood, ready=ready, dated=dated), indent=2
+        )
         if args.json
         else listed,
         config.list_read,
@@ -242,13 +251,13 @@ def _list(config: Config, args: argparse.Namespace) -> Result | int:
         # consumer piping `--ids` gets the empty listing the exit code explains, and never
         # a sentence where the ids were.
         return Result(
-            census.listing(standing, have, bound, stood=stood, ready=ready),
+            census.listing(standing, have, bound, stood=stood, ready=ready, dated=dated),
             "",
             noted=bound.stated(),
             code=EXIT_GATE,
         )
     return Result(
-        census.listing(standing, have, stood=stood, ready=ready),
+        census.listing(standing, have, stood=stood, ready=ready, dated=dated),
         listed,
         noted="\n".join([*census.notes(standing), *_standing_rows(stood)]),
     )
@@ -271,6 +280,30 @@ def _stood(
     from roadkeep.deferring import standing as paused  # noqa: PLC0415 - RK260
 
     return paused(config, census.counted)
+
+
+def _dated(config: Config, args: argparse.Namespace) -> dict[str, dict[str, object]] | None:
+    """When each listed id was proposed and shipped, where `--dated` asked (RK1722).
+
+    Derived from git and never stored: the commit that added the id to the roadmap, and the
+    one that added it to the ledger, each as `{commit, date}` — the date `origin` reports. Two
+    `git log` passes over the whole of two files, so opt-in, for `--stale`'s reason. `{}` where
+    this tree has no history to read, which leaves every row without the keys: a caller can
+    tell *never* (a key absent beside others present) from *cannot say* (none anywhere).
+    """
+    if not getattr(args, "dated", False):
+        return None
+    from roadkeep.history import HistoryUnavailable, added_at  # noqa: PLC0415 - RK260
+
+    try:
+        moments = {"proposed": added_at(config, "roadmap"), "shipped": added_at(config, "changelog")}
+    except (HistoryUnavailable, OSError):
+        return {}
+    out: dict[str, dict[str, object]] = {}
+    for key, found in moments.items():
+        for task_id, (commit, date) in found.items():
+            out.setdefault(task_id, {})[key] = {"commit": commit, "date": date}
+    return out
 
 
 def _standing_rows(stood: tuple[Stood, ...] | None) -> list[str]:
@@ -1681,8 +1714,19 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
             "verdict: how long a pause may stand is a judgement about work"
         ),
     )
+    list_parser.add_argument(
+        "--dated",
+        action="store_true",
+        help=(
+            "the payload, with `proposed` and `shipped` on each row: the commit that added "
+            "its id to the roadmap and to the ledger, each as {commit, date}, derived from "
+            "git — a form of its own beside --json and --ids. Absent where this tree has no "
+            "history"
+        ),
+    )
     withheld(
         list_parser,
+        dated='two git passes over two whole files, charged at connect for every session that never asks; a build reading dates runs the CLI, which is where that cost belongs',
         ids='how a terminal prints: the payload carries every id in `tasks`, so a caller over this transport already has what the flag composes',
         have='the caller on this transport is the one with no hands, which is what the split already assumes — and the flag `brief` and `pick` expose costs the connect budget a read that answers without it does not',
         startable='the narrowing is over rows this transport already holds: every roadmap row in the payload carries its own `readiness`, so a caller here filters the answer it has rather than paying the connect budget for a flag that spends a second call to return less',
@@ -1697,7 +1741,12 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     # Two output *forms* of one read are two answers, exactly as `budget`'s subjects are
     # (RK465's rule, RK467's find): the payload came back whole with nothing said about the
     # flag that shaped nothing.
-    answers(list_parser, ("ids", "the listing as bare ids"), ("json", "the payload"))
+    answers(
+        list_parser,
+        ("ids", "the listing as bare ids"),
+        ("json", "the payload"),
+        ("dated", "the payload with each line's dates"),
+    )
 
     stats_parser = subcommands.add_parser(
         "stats",

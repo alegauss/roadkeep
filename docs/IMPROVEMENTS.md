@@ -181,9 +181,6 @@ Defaults stay minimal for a non-interactive call, so a script that runs `init` t
 writes the same bytes. The report ends with what was not chosen and the command that
 adds it later.
 
-Done when one `init` with every option yields a tree on which `lint`, `install --check`
-and `merge --check` all pass, and an `init` with none writes what it writes today.
-
 ### §RK1727 A prefix derived from the repository name
 
 `init` without `--prefix` mints `RK`, this repository's own prefix. Every project

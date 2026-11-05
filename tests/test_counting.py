@@ -924,3 +924,51 @@ def test_a_reads_table_holding_nobody_to_anything_is_refused(tmp_path):
 def test_each_reads_key_stands_without_the_other(tmp_path):
     assert project(tmp_path, extra="[reads]\nlist = 40\n").brief_read is None
     assert project(tmp_path, extra="[reads]\nbrief = 40\n").list_read is None
+
+
+# -- when each line was proposed and shipped (RK1722) -------------------------------
+
+
+def _dated(tmp_path: Path, capsys, *argv: str) -> dict[str, dict]:
+    import json
+
+    from roadkeep.cli import main
+
+    assert main(["-C", str(tmp_path), "list", "--dated", *argv]) == 0
+    return {row["id"]: row for row in json.loads(capsys.readouterr().out)["tasks"]}
+
+
+def test_each_row_carries_the_commits_that_proposed_and_shipped_it(tmp_path, capsys):
+    """alegauss.github.io kept its own git log parser to date each entry, a second reader of
+    the ledger. The dates are derived here instead, the same ones `origin` reports."""
+    from conftest import git, git_commit, git_init
+
+    project(tmp_path, changelog=LEDGER.replace("RK0", "RK4"))
+    git_init(tmp_path)
+    first = git_commit(tmp_path, "the backlog")
+    rows = _dated(tmp_path, capsys)
+    assert rows["RK1"]["proposed"]["commit"] == first
+    assert rows["RK1"]["proposed"]["date"] == git(tmp_path, "log", "-1", "--format=%aI").strip()
+    assert "shipped" not in rows["RK1"]
+    ledger = _dated(tmp_path, capsys, "--role", "changelog")
+    assert ledger["RK4"]["shipped"]["commit"] == first
+
+
+def test_a_tree_without_history_answers_with_the_fields_absent(tmp_path, capsys):
+    project(tmp_path)
+    rows = _dated(tmp_path, capsys)
+    assert rows and all("proposed" not in row and "shipped" not in row for row in rows.values())
+
+
+def test_without_the_flag_no_row_carries_a_date(tmp_path, capsys):
+    import json
+
+    from conftest import git_commit, git_init
+    from roadkeep.cli import main
+
+    project(tmp_path)
+    git_init(tmp_path)
+    git_commit(tmp_path, "the backlog")
+    assert main(["-C", str(tmp_path), "list", "--json"]) == 0
+    rows = json.loads(capsys.readouterr().out)["tasks"]
+    assert all("proposed" not in row for row in rows)

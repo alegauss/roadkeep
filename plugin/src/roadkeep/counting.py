@@ -640,8 +640,13 @@ class Census:
         bound: Bound | None = None,
         stood: tuple[Stood, ...] | None = None,
         ready: Mapping[str, str | None] | None = None,
+        dated: Mapping[str, Mapping[str, object]] | None = None,
     ) -> dict[str, object]:
         """The same answer as data, with what the label it was scoped to turned out to be.
+
+        ``dated`` is when each id was proposed and shipped, where `--dated` asked (RK1722):
+        each row gains the keys its id has, so a row with neither was added by no commit git
+        can name.
 
         ``bound`` is the ceiling this answer did not fit under (RK1476). Every key it had
         stays: only `tasks` is withdrawn, to `null` — which says *not listed* where `[]` says
@@ -675,6 +680,8 @@ class Census:
                 }
                 for entry in sorted(self.counted, key=lambda entry: rank[entry.task.id])
             ]
+        if dated is not None:
+            rows = [{**row, **dated.get(str(row.get("id", "")), {})} for row in rows]
         ordered = {} if stood is None else {"order": OLDEST_FIRST}
         return {
             "file": self.file,

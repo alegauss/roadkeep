@@ -682,6 +682,19 @@ class Cost:
 def added_ids(config: Config, role: str) -> dict[str, str]:
     """Which commit first added each id to one governed file: id → sha, oldest wins.
 
+    :func:`added_at`'s answer with the date dropped, for the callers that join on a sha.
+    """
+    return {task_id: sha for task_id, (sha, _) in added_at(config, role).items()}
+
+
+def added_at(config: Config, role: str) -> dict[str, tuple[str, str]]:
+    """Which commit first added each id to one governed file, and when: id → (sha, date).
+
+    The date is the author date in ISO 8601, which is what :func:`origin_of` reports, so a
+    build reading every entry here and a person asking `origin <id>` are told one date
+    (RK1722). Derived, never stored: "No dates or quarters" forbids a schedule, and a date
+    written into the line would repeat what git holds (L2).
+
     One `git log -U0` over the file, not one pickaxe per id: 69 ids is 69 processes, which
     is the difference between a query and a thing nobody runs twice. The trade is that this
     reads *added lines* rather than asking about an id, so an id the file never carried is
@@ -697,7 +710,7 @@ def added_ids(config: Config, role: str) -> dict[str, str]:
         config.root,
         "log",
         "--reverse",
-        f"--format={_RECORD}%H",
+        f"--format={_RECORD}%H %aI",
         "--no-color",
         "-U0",
         # A merge's own change, against its first parent (RK1704): `log -p` shows none for a
@@ -713,13 +726,14 @@ def added_ids(config: Config, role: str) -> dict[str, str]:
     # shipped entry was reported as one no commit accounts for — permanently, since the qualifier
     # stays until the completing ship. Optional here for the same reason the grammar has it.
     bold = re.compile(rf"\*\*({config.schema.id_fragment})(?: \([^)]+\))?\*\*")
-    first: dict[str, str] = {}
+    first: dict[str, tuple[str, str]] = {}
     for head, rows in _records(output):
+        sha, _, date = head.strip().partition(" ")
         added = "\n".join(
             row for row in rows if row.startswith("+") and not row.startswith("+++")
         )
         for task_id in bold.findall(added):
-            first.setdefault(task_id, head.strip())
+            first.setdefault(task_id, (sha, date))
     return first
 
 

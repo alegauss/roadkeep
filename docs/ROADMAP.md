@@ -31,7 +31,7 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1722** (deps: —) **A ledger entry carries no date, so every site re-derives one from git by hand** — alegauss.github.io keeps its own git log parser to date each entry, a second reader of the ledger that origin answers only one id at a time. → §RK1722
+- ⏳ **RK1722** (deps: —) **A ledger entry carries no date, so every site re-derives one from git by hand** — A git archive extract has no history, so the site still needs list --dated to answer from a bare repository at a revision. → §RK1722
 
 ## Block D — The gate
 
@@ -149,6 +149,18 @@
 
 - **Both sites registered with the design system** consumers.json lists the pitch and
   the gui landing, and the hub's projects.json gives roadkeep the amber the pitch uses.
+
+## Done when — RK1726
+
+- **One init wires every option, and none writes today's bytes** An init with every
+  option yields a tree where lint, install --check and merge --check pass; an init with
+  none writes what it writes today.
+
+## Done when — RK1722
+
+- **A history-less extract still gets its dates** list --dated answers from a bare
+  repository at a revision with no working tree, so the site's git archive path can
+  delete shipDates.
 
 ## Non-goals
 
