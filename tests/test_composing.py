@@ -951,9 +951,17 @@ def test_the_door_a_scaffold_names_runs(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "init"]) == EXIT_OK
     said = capsys.readouterr().out
     ran = runs(tmp_path, said)
-    # The one door a scaffold offers, and it ends in the caller's own `…` — so it is filled
-    # and run as the template it is, which is what `abridged` exists to tell apart.
-    assert [one[:3] for one in ran] == [["add", "--block", "A"]], said
+    # A door for each step the scaffold left unset (RK1726), each run and landing, and last the
+    # one that ends in the caller's own `…` — filled and run as the template it is, which is
+    # what `abridged` exists to tell apart.
+    assert [one[:3] for one in ran] == [
+        ["declare", "strategy"],
+        ["declare", "deferred"],
+        ["declare", "decisions"],
+        ["install"],
+        ["merge", "--register"],
+        ["add", "--block", "A"],
+    ], said
     capsys.readouterr()
     # The line landed, which is the whole claim: a scaffold that names a write nobody can make
     # is a scaffold that answered about somebody else's project.

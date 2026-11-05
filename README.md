@@ -222,7 +222,7 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | B — Authoring (insert, never hand-edit) | 0 | 239 | 2 |
 | C — Query (consult without reading the file) | 0 | 205 | 7 |
 | D — The gate | 0 | 319 | 7 |
-| E — Adoption | 3 | 124 | 1 |
+| E — Adoption | 3 | 125 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 168 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
@@ -230,11 +230,11 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 1 | 1 | 0 |
-| **Total** | 7 | 1196 | 24 |
+| **Total** | 7 | 1197 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1726** (deps: —) **init scaffolds the least it can, so a working setup is four more commands nobody is shown** — An adopter who stops after init has no strategy or decisions file, no guard, no merge driver and no gate, and nothing says so. → §RK1726
+- ⏳ **RK1726** (deps: —) **init scaffolds the least it can, so a working setup is four more commands nobody is shown** — init still cannot run the chosen wiring steps itself, so a complete setup is still several commands after it. → §RK1726
 <!-- roadkeep:end -->
 
 Open work is in

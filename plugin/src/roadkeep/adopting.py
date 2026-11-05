@@ -626,6 +626,12 @@ class Created:
     #: which `--existing` falsifies, the ids in an adopted roadmap being exactly such a fact.
     #: One source, so the printed answer and the payload cannot name two prefixes.
     prefixes: tuple[str, ...] = ()
+    #: What this scaffold did **not** set up, each with the argv that adds it later (RK1726).
+    #: An adopter who stops after `init` had no strategy or decisions file, no guard, no merge
+    #: driver and no gate, and nothing said so — each was a separate verb found by reading
+    #: help. Named here as the verbs that already write them, never a second copy of what
+    #: they write, so the list is a door per step rather than a description of one.
+    left: tuple[tuple[str, tuple[str, ...]], ...] = ()
 
     @property
     def written(self) -> tuple[Path, ...]:
@@ -644,6 +650,9 @@ class Created:
         rows += [f"adopted  {path.as_posix()}" for path in self.adopted]
         if self.inferred:
             rows.append(f"prefix   {self.prefixes[0]} (read off the ids already written)")
+        rows += [
+            f"not set  {what} — `{invocation()} {' '.join(argv)}`" for what, argv in self.left
+        ]
         if self.adopted:
             # The next read is the gate and not `adopt`: the estimate is what a caller takes
             # *before* the configuration exists, and from here `lint` names every line, with
@@ -669,7 +678,33 @@ class Created:
             "prefixes": list(self.prefixes),
             "inferred": self.inferred,
             "blocks": list(self.blocks),
+            "left": [{"what": what, "argv": list(argv)} for what, argv in self.left],
         }
+
+
+#: What a scaffold can leave unset, and the verb that sets each up afterwards (RK1726), in
+#: the order a reader would take them: the files first, then what wires the tool into the
+#: session, the merge and the CI run. The plugin wiring and the gate are one `install`,
+#: which writes the workflow where `.github/workflows` exists — so the row says both.
+_LEFT_ROLES = (
+    (STRATEGY_ROLE, "the strategy file, a document above the task line"),
+    (DEFERRED_ROLE, "the deferred store, where set-aside work is kept"),
+    (DECISIONS_ROLE, "the decision ledger, for constraints that outlive the code"),
+)
+_LEFT_WIRING = (
+    (
+        "the guard, the skill and the CI gate (the gate once .github/workflows exists)",
+        ("install",),
+    ),
+    ("the merge driver, so two branches adding lines do not conflict", ("merge", "--register")),
+)
+
+
+def _left(roles: Sequence[str]) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return (
+        *((what, ("declare", role)) for role, what in _LEFT_ROLES if role not in roles),
+        *_LEFT_WIRING,
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -1221,6 +1256,7 @@ def init(
         adopted=tuple(paths[role] for role in roles if role in present),
         inferred=not prefix and bool(read.prefixes),
         prefixes=families,
+        left=_left(roles),
     )
 
 
