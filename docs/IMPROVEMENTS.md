@@ -102,10 +102,7 @@ The fetch has a timeout and runs once per process. A missing path, failed fetch 
 unknown id is unresolvable with the reason, never shipped. `lint` never fetches: a gate
 must not depend on the network.
 
-Done when a shipped id in a declared project lets `pick` offer the task through either
-source, an unshipped one keeps it blocked naming the foreign id, an unreachable remote
-answers unresolvable within the timeout, and nothing but the cache is written outside
-this repository.
+Done when nothing but the cache is written outside this repository.
 
 ### §RK1723 Which project filed a line
 
