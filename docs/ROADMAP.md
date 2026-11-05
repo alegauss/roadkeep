@@ -24,7 +24,7 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK1723** (deps: —) **A line filed from another project reads exactly like one filed at home** — An agent filing into Turing from Dumont saw the symptom and not the product, and nothing tells Turing which lines still need its own analysis. → §RK1723
+- 📋 **RK1723** (deps: —) (requires: decision) **A line filed from another project reads exactly like one filed at home** — An agent filing into Turing from Dumont saw the symptom and not the product, and nothing tells Turing which lines still need its own analysis. → §RK1723
 - 📋 **RK1724** (deps: RK1716 ✅) **Shipping a task says nothing about the sibling tasks it unblocks** — When Turing ships what Dumont waits on, the user still has to tell Dumont's agent, because only its next pick would find out. → §RK1724
 
 ## Block B — Authoring (insert, never hand-edit)
