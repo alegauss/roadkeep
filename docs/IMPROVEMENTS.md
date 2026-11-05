@@ -344,29 +344,29 @@ estiver vivo, a recusa nomear o lock, o pid e há quanto tempo ele o segura, por
 ### §RK1725 Filing into a sibling project
 
 An agent in Dumont that meets a Turing defect files it in Turing. Each friction skill
-(viglet-, polyweave-, winwright-friction) carries its own copy of how: which checkout,
-which launcher, when to commit, how the consumer's line records the wait. The copies
-live outside this repository, drift apart, and all need a local checkout, though RK1716
-can already read a project from its git remote.
+(viglet-, polyweave-, winwright-friction) carries its own copy of how, and every copy
+drifts and needs a local checkout, though RK1716 can read a remote.
 
-The mechanics belong to the plugin; a friction skill keeps only what to file and where.
 The change: a reference beside `writing.md`, opened from `SKILL.md` when a write targets
 a project `[projects]` declares (RK1437's cadence):
 
 - A `path` that exists: `roadkeep -C <path> add`, committed there only if that tree
   holds nothing else.
 - Otherwise the `git` remote: a shallow clone at `ref` into a temp directory, the same
-  `add`, a commit on a branch named for the id and the filer, pushed, and a merge
-  request through push options (GitLab) or `gh pr create` (GitHub). Never a push to
-  `ref`: the review is the re-analysis RK1723 asks for.
+  `add`, a commit on a branch named for the id and the filer. Before the push, fetch
+  `ref` and rebase with `git -c merge.roadkeep.driver=…`: a temp clone has no config,
+  and a host never runs a custom driver. An id spent twice is moved with `renumber` and
+  the rebase rerun. Then push and open a merge request (GitLab push options, or
+  `gh pr create`), never a push to `ref`: the review is RK1723's re-analysis.
 - Either way, the caller's line takes the dep `<name>: <id>`.
 
-roadkeep itself still never commits or pushes; the reference names the git commands. An
-id minted from the remote can collide with an unpushed one there, and the request is
-where `renumber` answers it.
+roadkeep itself never commits or pushes; the reference names the git commands. A
+collision landing after the push is caught by the home project's CI `lint` as
+`id.duplicate`.
 
-Done when a friction skill files into Turing through this reference with no local
-checkout, a merge request names the new id, and the consumer's line carries the dep.
+Done when a friction skill files into Turing with no local checkout, a remote that moved
+since the clone yields a request with no duplicate id, and the consumer's line carries
+the dep.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
