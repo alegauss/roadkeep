@@ -248,6 +248,81 @@ The design:
 - **A moving `v0` tag** follows each release, and the README pins the Action to `@v0`, so the snippet never goes stale again.
 - **The desktop installers** keep their own cadence if building them per release is too heavy.
 
+### §RK1726 init offers everything the tool can set up
+
+`init` writes `roadkeep.toml`, the roadmap, the ledger and the rationale file.
+Everything else a working setup needs is a separate command run afterwards, found by
+reading help: `--strategy` and `--deferred` are flags nobody is shown, `decisions` is a
+role `init` cannot scaffold at all, and the plugin surfaces, the vendored engine, the
+merge driver and the CI gate are `install`, `install --vendor`, `merge --register` and a
+workflow written by hand. Stopping after `init` leaves no guard, no merge driver and no
+gate, silently.
+
+The change: `init` offers every role and every wiring step the tool has, and runs the
+chosen ones in the same all-or-nothing transaction it already uses:
+
+- the prose and line roles beyond the three: strategy, decisions, deferred;
+- the plugin wiring: none (the plugin is installed), `install`, `install --committed`,
+  or `install --vendor`;
+- the merge driver, as `merge --register` writes it, with the `git config` line printed;
+- the gate: the action workflow, the pre-commit hook, or neither.
+
+Each option is the existing verb, called, never a second copy of what it writes.
+Defaults stay minimal for a non-interactive call, so a script that runs `init` today
+writes the same bytes. The report ends with what was not chosen and the command that
+adds it later.
+
+Done when one `init` with every option yields a tree on which `lint`, `install --check`
+and `merge --check` all pass, and an `init` with none writes what it writes today.
+
+### §RK1727 A prefix derived from the repository name
+
+`init` without `--prefix` mints `RK`, this repository's own prefix. Every project
+scaffolded without the flag gets roadkeep's ids: a Turing line and a roadkeep line both
+read `RK12`, a commit subject naming one is ambiguous across the portfolio, and a
+sibling dep (RK1716) spells `turing: RK12`, which reads as a roadkeep task. Renaming the
+prefix after the first `add` is a `renumber` of every id.
+
+`--existing` already reads the prefix off the ids a roadmap carries. An empty repository
+has no ids, but it has a name.
+
+The change: with no `--prefix` and no ids to read, `init` derives one from the
+repository directory: the initials of its words split on `-`, `_`, `.` and case changes,
+uppercased (`claude-tray` gives `CT`, `polyweave` gives `P`), lengthened by letters of
+the first word to at least two characters (`PO`). The report prints the derived prefix
+and the flag that overrides it, so the choice is visible before the first id exists. An
+interactive `init` offers it as the default answer. `RK` is never a default anywhere but
+in this repository's own `roadkeep.toml`.
+
+Done when `init` in `D:/tmp/claude-tray` declares `CT`, the report names `--prefix` as
+the override, and an explicit `--prefix` still wins.
+
+### §RK1728 init asks, from one list of questions
+
+Every choice `init` takes is a flag, so a person setting up a project reads the help,
+guesses, and finds the rest after the first `lint`. Making `init` prompt is not enough
+on its own: the usual caller is an agent, whose shell has no terminal to answer from,
+and the desktop app (gui/) would need the same questions again. Three surfaces that each
+list the options drift apart.
+
+The change: the questions are data. `init --questions --json` prints each one with its
+flag, its choices and its default, computed for this directory: prefix, blocks, optional
+roles, plugin wiring, merge driver, gate. Three readers take that list:
+
+- **A terminal.** `init` with no options and stdin a TTY asks each question, then prints
+  the equivalent non-interactive command before running it, so the setup can be
+  repeated. Without a TTY nothing is asked and today's behaviour holds.
+- **The skill.** `SKILL.md` tells an agent setting up roadkeep to read the list, ask the
+  user (AskUserQuestion) and call `init` with the flags. No question text lives there.
+- **The desktop app**, through the same JSON.
+
+The prompts use `input()` alone, keeping zero runtime deps, and are rendered from the
+list, so a new option is one entry.
+
+Done when `--questions --json` lists every `init` option, a TTY run and the printed
+command produce byte-identical trees, a non-TTY run never blocks on input, and the skill
+names no option the list does not carry.
+
 ## Block F — The plugin
 
 ### §RK1719 Um lock de processo morto
