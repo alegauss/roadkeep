@@ -234,7 +234,7 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 
 **Next ready:**
 
-- 📋 **RK1715** (deps: —) **block add opens a label the ledger already declares under another title** — It writes the new heading where the label is missing and exits 0, so one label carries two titles across the governed files. → §RK1715
+- 📋 **RK1714** (deps: —) **The pitch and the roadkeep-gui landing each keep their own copy of the template eight product sites share** — The shared Nav, Hero, Footer and sponsor slot drift apart in each copy, and the design system now carries them once. → §RK1714
 <!-- roadkeep:end -->
 
 Open work is in

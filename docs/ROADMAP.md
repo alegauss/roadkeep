@@ -41,14 +41,14 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1720** (deps: —) **pip, uvx and the README's pinned Action install the August release while the plugin is hundreds of versions ahead** — Publishing waits for a manual dispatch nobody remembers, so every adopter outside the plugin meets a tool the README no longer describes. → §RK1720
+- 📋 **RK1720** (deps: —) **A release still waits on a manual dispatch, so PyPI and the README's Action pin fall behind the plugin** — PyPI got 0.2.535 on 30/10 after two months at 0.2.0, the README still pins the Action at v0.2.0, and the next gap starts when nobody remembers again. → §RK1720
 - 📋 **RK1726** (deps: —) **init scaffolds the least it can, so a working setup is four more commands nobody is shown** — An adopter who stops after init has no strategy or decisions file, no guard, no merge driver and no gate, and nothing says so. → §RK1726
 - 📋 **RK1727** (deps: —) **init without --prefix gives every project roadkeep's own RK ids** — Ids from different projects then read alike in commits and in sibling deps, and changing the prefix later renumbers every line. → §RK1727
 - 📋 **RK1728** (deps: RK1726, RK1727) **Every init choice is a flag to discover, and nothing asks a person or an agent for it** — Setup happens by reading help and fixing things after the first lint, and a terminal prompt alone would not reach the agent or the desktop app. → §RK1728
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1719** (deps: —) **um lock de processo morto bloqueia toda escrita até ser apagado à mão** — O lock guarda o pid de quem o tomou; o roadkeep espera 5s e recusa sem conferir se aquele pid ainda existe, e a recusa vinha truncada como refused, nothing written. → §RK1719
+- 📋 **RK1719** (deps: —) **A lock whose holder died refuses every write for up to a minute, until its age reaps it** — Abandonment is judged by age alone, so a dead pid is waited on as if alive, and the refusal says neither how long the lock is held nor when it clears. → §RK1719
 - 📋 **RK1725** (deps: RK1716, RK1723) **Filing into a sibling project is spelled by each friction skill and needs a local checkout** — Every consumer skill repeats the same filing steps outside this repository, and with only a git remote none of them can file at all. → §RK1725
 
 ## Block G — The editor surface (the backlog where the file is open)
@@ -65,7 +65,7 @@
 
 ## Block L — Product sites on the package
 
-- 📋 **RK1714** (deps: viglet-design-system: VDS213–VDS216, claude-tray: T389) **The pitch and the roadkeep-gui landing each keep their own copy of the template eight product sites share** — The shared Nav, Hero, Footer and sponsor slot drift apart in each copy, and the design system now carries them once. → §RK1714
+- 📋 **RK1714** (deps: —) **The pitch and the roadkeep-gui landing each keep their own copy of the template eight product sites share** — The shared Nav, Hero, Footer and sponsor slot drift apart in each copy, and the design system now carries them once. → §RK1714
 
 ## Done when — Block D
 

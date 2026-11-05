@@ -140,18 +140,19 @@ with uncommitted edits, and leave a change no commit there accounts for. It is r
 
 Two gaps remain. Turing's agent finishes T456 without knowing anyone waited on it, so it
 cannot tell the user. And Dumont's agent learns only when it runs `pick`; a session that
-starts on something else never hears it, which is why the user relays it by hand today.
+starts on something else never hears it.
 
-The change: `ship` reads, read-only and through RK1716's path-or-remote resolution and
-timeout, the roadmaps of the projects `[projects]` declares, and prints each open line
-there whose dep it just satisfied, `unblocks dumont: D123`. In the dependent project,
-the session-start brief names ready lines that have a foreign dep, as `D123 ready:
-turing T456 shipped`. That is derived on every start rather than stored, so it needs no
-state about what was seen before, and it is bounded like the brief's other lists.
+The change: after `ship` has saved and released the write lock, it reads, through
+RK1716's resolution, the roadmaps of the projects Turing's `[projects]` declares, and
+prints each open line whose dep it just satisfied, `unblocks dumont: D123`. Never inside
+the lock: a fetch there makes other writers refuse after 5s, and one slower than 60s
+gets the lock reaped. So Turing must declare Dumont too. In Dumont, the session-start
+brief names ready lines with a foreign dep, `D123 ready: turing T456 shipped`, from a
+`path` or the cache only, never a fetch, since it runs on every start.
 
-Done when shipping T456 in a project that declares dumont prints D123, nothing outside
-the repository is written, and a Dumont session start names D123 as ready through
-turing: T456.
+Done when shipping T456 in a project declaring dumont prints D123 after the lock is
+released, nothing outside the repository is written, and a Dumont session start names
+D123 with no network call.
 
 ## Block B — Authoring
 
@@ -205,25 +206,27 @@ already computes, and the door is `budget --id <id> --defer`.
 ### §RK1722 Dates a build can take from the answer
 
 `history` already resolves both moments of a task from git: the commit that added its id
-to the roadmap (proposed) and the one that added it to the ledger (shipped). It does so
-one id at a time, through `origin <id>`. A build that dates every entry cannot pay one
-`git log -S` per id, so alegauss.github.io's `scripts/fetch-records.mjs` carries its own
-`shipDates`, one `git log -p` over the ledger with its own id pattern. That is a second
-reader of the format, and it breaks when the grammar changes.
+to the roadmap (proposed) and the one that added it to the ledger (shipped). `origin`
+asks one id at a time, but `history.added_ids` already reads a whole file in one `git
+log -U0` pass, sha only. alegauss.github.io's `scripts/fetch-records.mjs` keeps its own
+`shipDates` instead, a second reader of the format whose id pattern already misses a
+partial entry's `**RK1169 (…)**` qualifier, which `added_ids` reads.
 
 The date stays derived. "No dates or quarters" forbids a schedule; a date stored in the
 line would also cost characters everywhere, conflict on merges and repeat what git holds
 (L2). Derived, it survives a rebase and covers every entry already shipped.
 
-The change: `list --json` and `export --json` carry `proposed` and `shipped` per task,
-each `{commit, date}`, from one `git log -p` pass per governed file. Without git or
-history the fields are absent, so a caller can tell "never" from "cannot say". The site
-reads a bare clone through `git archive`, so the payload must be answerable for a
-revision of a repository.
+The change: `added_ids` carries the commit's date beside its sha, the same date `origin`
+reports, so the two reads never disagree. `list --json` and `export --json` carry
+`proposed` and `shipped` per task, each `{commit, date}`. Without git or history the
+fields are absent, so a caller can tell "never" from "cannot say".
 
-Done when fetch-records.mjs can delete `shipDates` and read the same dates from
-roadkeep's JSON, two runs at one commit give identical bytes, and a tree without git
-answers with the fields absent rather than refusing.
+The site runs roadkeep on a `git archive` extract, which has no history, so it would
+always get the absent fields. The read must answer from a repository at a revision with
+no working tree, such as a bare clone and `--at <rev>`.
+
+Done when fetch-records.mjs can delete `shipDates` and its extract, two runs at one
+commit give identical bytes, and a tree without git answers with the fields absent.
 
 ## Block D — The gate
 
@@ -231,41 +234,39 @@ answers with the fields absent rather than refusing.
 
 ### §RK1720 Every version reaches PyPI without a dispatch
 
-The last release on PyPI and on GitHub is v0.2.0, of 28/08/2026. The plugin, which
-carries the package inside it, is at 0.2.532: the pre-commit hook bumps the patch on
-every commit, and `publish.yml` only runs when someone dispatches it. So `uvx roadkeep`,
-`pip install roadkeep` and the Action pinned in the README at `alegauss/roadkeep@v0.2.0`
-all hand an adopter the August tool, while the README describes the October one. The
-portfolio review of 30/10/2026 (visibility repo, `estrategia/portfolio.md` and
-`produtos/roadkeep.md`) found this is the first thing a Show HN commenter would hit; the
-author confirmed the release stopped only for lack of a habit, so the fix is to remove
-the habit from the path.
+PyPI and GitHub held v0.2.0, of 28/08/2026, until v0.2.535 was dispatched on 30/10, 45
+minutes after this line was filed. The habit is still the only trigger: the plugin is
+already ahead of that release, because the pre-commit hook bumps the patch on every
+commit, and the README pins the Action at `alegauss/roadkeep@v0.2.0`. The portfolio
+review of 30/10/2026 (visibility, `produtos/roadkeep.md`) found this is the first thing
+a Show HN commenter would hit.
 
 The design:
 
-- **No dispatch to remember.** A trigger publishes from `main` without a person: on a schedule (weekly, skipped when nothing changed since the last tag), or on each push whose `__version__` differs from the newest tag. The second matches "every plugin version" literally but means one PyPI release per commit; the weekly cadence is the proposal, and the choice is the author's.
+- **No dispatch to remember.** A schedule (weekly, skipped when nothing changed since the newest tag) publishes from `main`. It publishes the `__version__` already committed: every commit's number is unique, so the dispatch path's bump-and-commit step is skipped, and a version that already has a tag is a no-op, not a PyPI refusal.
 - **The guards stay.** The same `build` job (gate, tests, wheel probe) runs first; only the trigger changes.
 - **A moving `v0` tag** follows each release, and the README pins the Action to `@v0`, so the snippet never goes stale again.
-- **The desktop installers** keep their own cadence if building them per release is too heavy.
+- **The desktop installers** run on their own cadence: on 30/10 their suite failed on both runners after PyPI had published, so a release must not depend on them.
 
 ### §RK1726 init offers everything the tool can set up
 
 `init` writes `roadkeep.toml`, the roadmap, the ledger and the rationale file.
-Everything else a working setup needs is a separate command run afterwards, found by
-reading help: `--strategy` and `--deferred` are flags nobody is shown, `decisions` is a
-role `init` cannot scaffold at all, and the plugin surfaces, the vendored engine, the
-merge driver and the CI gate are `install`, `install --vendor`, `merge --register` and a
-workflow written by hand. Stopping after `init` leaves no guard, no merge driver and no
-gate, silently.
+Everything else a working setup needs is a separate command found by reading help:
+`--strategy` and `--deferred` are flags nobody is shown, and the plugin surfaces, the
+vendored engine, the merge driver and the CI gate are `install`, `install --vendor`,
+`merge --register` and a workflow `install` writes only where `.github/workflows`
+exists. Stopping after `init` leaves no guard, no merge driver and no gate, silently.
 
-The change: `init` offers every role and every wiring step the tool has, and runs the
-chosen ones in the same all-or-nothing transaction it already uses:
+The change: `init` offers every wiring step the tool has, and runs the chosen ones in
+the same all-or-nothing transaction it already uses:
 
-- the prose and line roles beyond the three: strategy, decisions, deferred;
+- the optional roles strategy and deferred. Not decisions: RK1269 keeps it out of every
+  scaffold, so the report names `declare decisions`;
 - the plugin wiring: none (the plugin is installed), `install`, `install --committed`,
   or `install --vendor`;
 - the merge driver, as `merge --register` writes it, with the `git config` line printed;
-- the gate: the action workflow, the pre-commit hook, or neither.
+- the gate: `install`'s workflow, creating the directory when asked; a pre-commit hook
+  has no writer, so the README's snippet is printed.
 
 Each option is the existing verb, called, never a second copy of what it writes.
 Defaults stay minimal for a non-interactive call, so a script that runs `init` today
@@ -281,21 +282,24 @@ and `merge --check` all pass, and an `init` with none writes what it writes toda
 scaffolded without the flag gets roadkeep's ids: a Turing line and a roadkeep line both
 read `RK12`, a commit subject naming one is ambiguous across the portfolio, and a
 sibling dep (RK1716) spells `turing: RK12`, which reads as a roadkeep task. Renaming the
-prefix after the first `add` is a `renumber` of every id.
+prefix after the first `add` is a `renumber` of every id. Collisions already happen by
+hand: claude-tray and Turing both chose `T`.
 
 `--existing` already reads the prefix off the ids a roadmap carries. An empty repository
 has no ids, but it has a name.
 
 The change: with no `--prefix` and no ids to read, `init` derives one from the
-repository directory: the initials of its words split on `-`, `_`, `.` and case changes,
-uppercased (`claude-tray` gives `CT`, `polyweave` gives `P`), lengthened by letters of
-the first word to at least two characters (`PO`). The report prints the derived prefix
-and the flag that overrides it, so the choice is visible before the first id exists. An
-interactive `init` offers it as the default answer. `RK` is never a default anywhere but
-in this repository's own `roadkeep.toml`.
+repository's name: the `origin` remote's last path segment, else the directory. A
+worktree layout names the directory after a version (`turing/2026.3`), which is why the
+remote comes first. The initials of its words, split on `-`, `_`, `.` and case changes,
+uppercased (`claude-tray` gives `CT`), lengthened by letters of the first word to at
+least two characters (`polyweave` gives `PO`). A name with no letters derives nothing
+and `init` asks for `--prefix`. The report prints the derived prefix and the flag that
+overrides it. An interactive `init` offers it as the default. `RK` is never a default.
 
-Done when `init` in `D:/tmp/claude-tray` declares `CT`, the report names `--prefix` as
-the override, and an explicit `--prefix` still wins.
+Done when `init` in a clone of claude-tray declares `CT`, in a worktree named `2026.3`
+takes the remote's name, the report names `--prefix` as the override, and an explicit
+`--prefix` still wins.
 
 ### §RK1728 init asks, from one list of questions
 
@@ -325,21 +329,27 @@ names no option the list does not carry.
 
 ## Block F — The plugin
 
-### §RK1719 Um lock de processo morto
+### §RK1719 A lock whose holder died
 
-A linha RK1719 entrou no roadmap no commit 85b0ad60 sem a seção para onde aponta; esta
-seção só registra o que a própria linha já diz, para o lint voltar a passar, e o desenho
-fica para quem pegar a tarefa.
+The write lock (`locking.py`) records `pid N at T` and is judged abandoned by age alone:
+a waiter gives up after `WAIT` (5s) and the lock is reaped only past `STALE` (60s). The
+module says there is no portable way to ask whether a pid is alive, so a holder that was
+killed is waited on as if it were writing, and every write in that minute is refused.
 
-O sintoma: o lock que serializa as escritas guarda o pid de quem o tomou. Se esse
-processo morre sem soltá-lo, toda escrita seguinte espera 5 segundos e recusa, sem
-conferir se o pid ainda existe, e a recusa chegava truncada como "refused, nothing
-written", sem dizer que o motivo era o lock nem como sair dele. O caminho hoje é apagar
-o arquivo à mão.
+The line was filed as "blocked until deleted by hand" with a truncated refusal. Neither
+holds: the age rule clears it within a minute, and `LockBusy` reaches both the terminal
+and the MCP answer whole, naming the holder and the file, since before it was filed.
 
-O que a tarefa precisa decidir: conferir se o pid gravado ainda vive (no Windows e no
-POSIX) e tomar o lock de um processo morto, dizendo isso na saída; e, quando o dono
-estiver vivo, a recusa nomear o lock, o pid e há quanto tempo ele o segura, por inteiro.
+The change: before waiting, read the holder's pid and ask whether it lives. On POSIX,
+`os.kill(pid, 0)`; on Windows, `OpenProcess` and `GetExitCodeProcess` through `ctypes`,
+which keeps zero runtime deps. Never `os.kill` on Windows: it terminates the process. A
+dead holder is reaped at once and the output says so. Where the answer is unknown (no
+permission, a pid reused), the age rule stands, so this only ever shortens the wait. The
+refusal for a live holder adds how long the lock has been held and when it would be
+reaped.
+
+Done when a lock left by a killed process is taken on the next write on both platforms,
+a live holder is still waited on and refused, and the refusal names the age.
 
 ### §RK1725 Filing into a sibling project
 
@@ -407,12 +417,10 @@ downloads and repository visitors is measured.
 ### §RK1714 Both sites on the package
 
 The pitch (`site/`) and the roadkeep-gui landing (`gui/site/`, built here by
-`build:gui`) each keep a copy of the product sites' template. `site/src` carries
-`components/Nav.tsx`, `Footer.tsx`, `sections/Hero.tsx`, `ui/Ad.tsx` and `ui/Rich.tsx`;
-`gui/site/src` carries those plus `sections/FeatureIndex.tsx`, `sections/NonGoals.tsx`,
-`pages/Feature.tsx`, `ui/CopyButton.tsx` and `ui/ThemeToggle.tsx`. Both prerender with
-`scripts/prerender.mjs`, and `gui/site` draws its card with `scripts/og-image.mjs`. The
-tokens are hand-written in each `src/index.css` (541 and 1645 lines).
+`build:gui`) each keep a copy of the product sites' template. Both carry Nav, Footer,
+Hero, Ad and Rich; `gui/site/src` adds FeatureIndex, NonGoals, Feature, CopyButton and
+ThemeToggle. Each has its own prerender script and hand-written tokens in
+`src/index.css`.
 
 Neither `package.json` has Tailwind, which VDS214 assumes all eight sites have. The
 first step is a choice: add Tailwind v4 and the package's preset, or style the `./site`
@@ -425,7 +433,7 @@ dark, `#f7f8fb` light). The accent comes from `projects.json`: roadkeep-gui's
 components come from `./site`; `Terminal`, `Mark`, `CopyLine`, `HeroWindow` and the
 pitch's sections stay local. Both builds call the `./vite` helpers. Google Analytics
 loads only after consent, as the hub's AG1. The pitch stays dark-only. The Starlight
-area in `site/docs` is out of scope. The pilot is claude-tray T389.
+area in `site/docs` is out of scope. The pilot, claude-tray T389, shipped.
 
 Done when `site/src` and `gui/site/src` have none of the files `./site` provides; the
 prerendered HTML of every route holds the same text as before; screenshots of each route
