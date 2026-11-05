@@ -47,6 +47,7 @@ from roadkeep.config import (
     _IDS_KEYS,
     _INSTALL_KEYS,
     _PROJECT_KEYS,
+    _PROJECTS_KEYS,
     _LEDGER_KEYS,
     _LIMIT_KEYS,
     _LIMITS_ACCEPTED,
@@ -98,6 +99,7 @@ TABLES: Mapping[str, frozenset[str]] = {
     "tools": _TOOLS_KEYS,
     "reads": _READS_KEYS,
     "validation": _VALIDATION_KEYS,
+    "projects.<name>": _PROJECTS_KEYS,
 }
 
 
@@ -193,6 +195,8 @@ WHERE: Mapping[tuple[str, str], object] = {
     # No default and not an unknown either (RK1692): absent, looking starts at the next ship
     # after the table was declared, which history answers and no constant could.
     ("validation", "from"): None,
+    # A sibling is the project's to name and to place (RK1716): nothing to default to.
+    ("projects.<name>", "path"): None,
 }
 
 
@@ -379,6 +383,7 @@ _DESCRIBED = {
     "tools": "_TOOLS_KEYS",
     "reads": "_READS_KEYS",
     "validation": "_VALIDATION_KEYS",
+    "projects.<name>": "_PROJECTS_KEYS",
 }
 
 

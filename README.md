@@ -218,7 +218,7 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
-| A — The model (a task is data before it is a line) | 3 | 43 | 2 |
+| A — The model (a task is data before it is a line) | 3 | 44 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 238 | 2 |
 | C — Query (consult without reading the file) | 1 | 204 | 7 |
 | D — The gate | 0 | 319 | 7 |
@@ -230,11 +230,11 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 1 | 1 | 0 |
-| **Total** | 13 | 1190 | 24 |
+| **Total** | 13 | 1191 | 24 |
 
 **Next ready:**
 
-- 💭 **RK1716** (deps: —) **A dep on another repository's task is free text, so nothing can tell whether it shipped** — Every repository involved is governed by roadkeep, yet deps, pick and blocked answer unresolvable where the other ledger already holds the answer. → §RK1716
+- ⏳ **RK1716** (deps: —) **A dep on another repository's task is free text, so nothing can tell whether it shipped** — A sibling declared only by its git remote still cannot answer, so CI and other machines see its deps as unresolvable. → §RK1716
 <!-- roadkeep:end -->
 
 Open work is in

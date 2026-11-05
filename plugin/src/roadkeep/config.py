@@ -194,8 +194,16 @@ _TOP_KEYS = frozenset(
         "project",
         # RK1692. Whether a person's verdict is asked of shipped work, and from which entry.
         "validation",
+        # RK1716. The sibling projects a dep may name as `<name>: <id>`.
+        "projects",
     }
 )
+#: `[projects.<name>]` — a sibling project governed by roadkeep, whose ledger answers a dep
+#: written `<name>: <id>` or `<name>: <id>–<id>` (RK1716). `path` is its checkout, absolute or
+#: relative to this root, and a bare string is the same path; it is read and never written.
+_PROJECTS_KEYS = frozenset({"path"})
+#: What a sibling may be called: a word a dep can spell before its colon, never a path.
+_PROJECT_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.\-]*$")
 #: `[validation]` — where the question *has a person tried this* starts (RK1692). Declared
 #: means governed, and the one key names the first ledger entry the question is asked of:
 #: everything shipped before it is history and answers nothing. Absent, looking starts at the
@@ -870,6 +878,10 @@ class Config:
     #: a hook still reads as the tool's own write. Empty on every project without such a hook,
     #: which is the ordinary case and the one RK1473 was measured on.
     incidental: tuple[str, ...] = ()
+    #: `[projects]` — each sibling's name and the checkout its ledger is read from (RK1716), in
+    #: declared order. Empty on every project that declares none, where a `<name>: <id>` dep
+    #: stays the free text it always was.
+    projects: tuple[tuple[str, Path], ...] = ()
     #: `[claims] held` — how many **minutes** a claim on a line reads as held (RK151). Per
     #: project, because how long a task takes is the one thing about a claim that differs
     #: between backlogs (L6), and bounded by :data:`CLAIM_HELD_MAX`, because a window nobody
@@ -993,6 +1005,7 @@ class Config:
         identity = _identity(data.get("limits"), problems)
         upstream = _upstream(data.get("report"), problems)
         incidental = _incidental(data.get("history"), problems)
+        projects = _projects(data.get("projects"), base, problems)
         held = _held(data.get("claims"), problems)
         permanent = _permanent_headings(data.get("headings"), problems)
         standing = _standing_blocks(data.get("blocks"), problems)
@@ -1051,6 +1064,7 @@ class Config:
             identity=identity,
             upstream=upstream,
             incidental=incidental,
+            projects=projects,
             held=held,
             permanent_headings=permanent,
             standing=standing,
@@ -2383,6 +2397,34 @@ def _upstream(raw: object, problems: list[str]) -> str | None:
         problems.append("report.upstream must be 'owner/repo'")
         return None
     return value
+
+
+def _projects(raw: object, base: Path, problems: list[str]) -> tuple[tuple[str, Path], ...]:
+    """`[projects]` — sibling name to checkout (RK1716).
+
+    The path is resolved here and **not checked for existence**: a sibling absent on this
+    machine is a dep that resolves as unresolvable with that reason, which is an answer about
+    the dep, while a refused config would take every other command down with it.
+    """
+    if raw is None:
+        return ()
+    if not isinstance(raw, Mapping):
+        problems.append("projects must be a table of name = 'path' or name = { path = … }")
+        return ()
+    out: list[tuple[str, Path]] = []
+    for name, value in raw.items():
+        where = f"projects.{name}"
+        if not _PROJECT_NAME.match(name):
+            problems.append(f"{where}: a sibling is named by a word a dep can spell, not {name!r}")
+            continue
+        if isinstance(value, Mapping):
+            _reject_unknown(value, _PROJECTS_KEYS, f"{where}.", problems)
+            value = value.get("path")
+        if not isinstance(value, str) or not value.strip():
+            problems.append(f"{where} must name the sibling's checkout as path = '…'")
+            continue
+        out.append((name, (base / value).resolve()))
+    return tuple(out)
 
 
 def _incidental(raw: object, problems: list[str]) -> tuple[str, ...]:

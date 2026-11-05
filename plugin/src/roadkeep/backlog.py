@@ -33,10 +33,12 @@ and on things that are not tracked work at all. So:
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from enum import StrEnum
+from pathlib import Path
 
-from roadkeep.config import Config
+from roadkeep.config import Config, declares
 from roadkeep.kernel.document import Document, Entry
 from roadkeep.kernel.schema import Dep, DepKind, Schema, Task
 
@@ -638,12 +640,56 @@ class Backlog:
         return resolver(dep, kind)
 
     def _resolve_external(self, dep: Dep, kind: DepKind) -> Resolution:
+        sibling = self._resolve_sibling(dep, kind)
+        if sibling is not None:
+            return sibling
         return Resolution(
             dep,
             kind,
             DepStatus.UNRESOLVABLE,
             "outside the backlog: nothing here will ever mark this done",
         )
+
+    def _resolve_sibling(self, dep: Dep, kind: DepKind) -> Resolution | None:
+        """A `<name>: <id>` dep on a project `[projects]` declares, answered by its ledger (RK1716).
+
+        `turing: T456` was free text, so `deps`, `pick` and `blocked` called it outside the
+        backlog forever, and a person relayed every Turing ship to Dumont's agent by hand —
+        while Turing's own changelog held the answer. The sibling is read with this module's
+        own resolver, so a shipped, open, deferred or retired id there means here what it
+        means there; read-only, and never written.
+
+        **Unknown there is unresolvable here**, never unknown: `deps.unknown` is this project's
+        gap to fix, and an id missing from another repository is not a line anybody here can
+        add. A sibling that is absent, unconfigured or unreadable is unresolvable with that
+        reason, so the dependent is held and says why — never shipped by default.
+
+        None for every external dep that does not name a declared sibling, which keeps the
+        free text it always was.
+        """
+        found = _SIBLING.match(dep.id)
+        if found is None:
+            return None
+        name = found["name"]
+        root = dict(self.config.projects).get(name)
+        if root is None:
+            return None
+        other = _sibling(root)
+        if isinstance(other, str):
+            return Resolution(dep, kind, DepStatus.UNRESOLVABLE, f"{name}: {other}")
+        what = Dep(found["what"].strip())
+        if other.config.schema.classify_dep(what) not in (DepKind.TASK, DepKind.RANGE):
+            return Resolution(
+                dep,
+                kind,
+                DepStatus.UNRESOLVABLE,
+                f"{name}: {what.id!r} is neither an id nor a range of that project",
+            )
+        answer = other.resolve_dep(what)
+        status = (
+            DepStatus.UNRESOLVABLE if answer.status is DepStatus.UNKNOWN else answer.status
+        )
+        return Resolution(dep, kind, status, f"{name}: {answer.detail}")
 
     def _resolve_range(self, dep: Dep, kind: DepKind) -> Resolution:
         still_open = self._open_in_range(dep)
@@ -849,6 +895,48 @@ def _present(config: Config, role: str) -> Document | None:
     if not config.on_disk(role):
         return None
     return config.document(role)
+
+
+#: `<name>: <what>` — a dep naming a sibling project's work (RK1716). The name is the shape
+#: `[projects]` accepts, so a free-text dep whose words happen to end in a colon matches only
+#: where that word is a sibling somebody declared.
+_SIBLING = re.compile(r"^(?P<name>[A-Za-z0-9][A-Za-z0-9_.\-]*):\s*(?P<what>\S.*)$")
+
+#: Each sibling's backlog, keyed by its checkout and held while none of the files it was read
+#: from changed: a `pick` resolving fifty lines that wait on one sibling reads it once.
+_SIBLINGS: dict[Path, tuple[tuple[tuple[str, int], ...], Backlog]] = {}
+
+
+def _sibling(root: Path) -> Backlog | str:
+    """The sibling's backlog, or the reason there is none — read-only (RK1716).
+
+    The config is the one that directory itself declares and never one found by walking up:
+    a sibling checked out inside this repository would otherwise be answered by this
+    project's own ledger.
+    """
+    if not root.is_dir():
+        return f"no checkout at {root}"
+    found = declares(root)
+    if found is None:
+        return f"{root} declares no roadkeep project"
+    try:
+        config = Config.load(found)
+        sources = [found] + [
+            config.path(role)
+            for role in ("roadmap", "changelog", "deferred", "dismissed")
+            if config.on_disk(role)
+        ]
+        signature = tuple((str(path), path.stat().st_mtime_ns) for path in sources)
+        cached = _SIBLINGS.get(root)
+        if cached is not None and cached[0] == signature:
+            return cached[1]
+        backlog = Backlog.load(config)
+    except (OSError, ValueError) as refused:
+        # A refused config, an unreadable file, a ledger that does not round-trip: the dep
+        # cannot be answered, and saying why is the whole of what this can do about it.
+        return f"its backlog could not be read ({str(refused).splitlines()[0]})"
+    _SIBLINGS[root] = (signature, backlog)
+    return backlog
 
 
 def _clip(sentence: str, limit: int = 90) -> str:

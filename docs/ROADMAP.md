@@ -24,9 +24,9 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 💭 **RK1716** (deps: —) **A dep on another repository's task is free text, so nothing can tell whether it shipped** — Every repository involved is governed by roadkeep, yet deps, pick and blocked answer unresolvable where the other ledger already holds the answer. → §RK1716
+- ⏳ **RK1716** (deps: —) **A dep on another repository's task is free text, so nothing can tell whether it shipped** — A sibling declared only by its git remote still cannot answer, so CI and other machines see its deps as unresolvable. → §RK1716
 - 📋 **RK1723** (deps: —) **A line filed from another project reads exactly like one filed at home** — An agent filing into Turing from Dumont saw the symptom and not the product, and nothing tells Turing which lines still need its own analysis. → §RK1723
-- 📋 **RK1724** (deps: RK1716) **Shipping a task says nothing about the sibling tasks it unblocks** — When Turing ships what Dumont waits on, the user still has to tell Dumont's agent, because only its next pick would find out. → §RK1724
+- 📋 **RK1724** (deps: RK1716 ⏳) **Shipping a task says nothing about the sibling tasks it unblocks** — When Turing ships what Dumont waits on, the user still has to tell Dumont's agent, because only its next pick would find out. → §RK1724
 
 ## Block B — Authoring (insert, never hand-edit)
 
@@ -48,7 +48,7 @@
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK1719** (deps: —) **A lock whose holder died refuses every write for up to a minute, until its age reaps it** — Abandonment is judged by age alone, so a dead pid is waited on as if alive, and the refusal says neither how long the lock is held nor when it clears. → §RK1719
-- 📋 **RK1725** (deps: RK1716, RK1723) **Filing into a sibling project is spelled by each friction skill and needs a local checkout** — Every consumer skill repeats the same filing steps outside this repository, and with only a git remote none of them can file at all. → §RK1725
+- 📋 **RK1725** (deps: RK1716 ⏳, RK1723) **Filing into a sibling project is spelled by each friction skill and needs a local checkout** — Every consumer skill repeats the same filing steps outside this repository, and with only a git remote none of them can file at all. → §RK1725
 
 ## Block G — The editor surface (the backlog where the file is open)
 
@@ -154,6 +154,12 @@
 
 - **Both sites registered with the design system** consumers.json lists the pitch and
   the gui landing, and the hub's projects.json gives roadkeep the amber the pitch uses.
+
+## Done when — RK1716
+
+- **A sibling known only by its remote answers** With no checkout, a shallow fetch of
+  its config and ledger at ref resolves the dep, an unreachable remote answers
+  unresolvable within the timeout, and lint never fetches.
 
 ## Non-goals
 

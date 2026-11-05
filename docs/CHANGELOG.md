@@ -55,6 +55,7 @@
 - ✅ **RK1102** **a predicate that reads a governed file's text instead of asking the parser has now been wrong twice** — conftest's docstring states ask the parser, never the line, and a scan holds that the shared fixtures read no file as text but the one declared.
 - ✅ **RK1168** **Declaring a namespace re-addresses the headings and leaves the file's own citations pointing at the other prose file** — one command declares the namespace and re-addresses that file's own citations, which is knowable only in that transaction.
 - ✅ **RK1180** **A block that is a standing category empties whenever it is caught up, and ship reads that as completion** — a label listed in blocks.standing is caught up rather than finished, so no sweep fires and no heading is offered for withdrawal.
+- ✅ **RK1716 (the local checkout)** **A dep on another repository's task is free text, so nothing can tell whether it shipped** — A dep written <name>: <id> on a sibling [projects] declares by path resolves against that project's ledger, so pick offers what shipped there and holds what is open.
 
 ## Block B — Authoring
 

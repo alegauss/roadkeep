@@ -40,7 +40,7 @@ from dataclasses import dataclass, replace
 
 from roadkeep.backlog import Backlog, DepStatus
 from roadkeep.kernel.document import Document, Entry
-from roadkeep.kernel.schema import Dep, SchemaError, Task
+from roadkeep.kernel.schema import Dep, DepKind, SchemaError, Task
 
 
 @dataclass(frozen=True, slots=True)
@@ -135,6 +135,12 @@ def _naming_the_lines(
 
 def _annotate(backlog: Backlog, dep: Dep) -> Dep:
     resolution = backlog.resolve_dep(dep)
+    if resolution.kind is DepKind.EXTERNAL:
+        # Never derived, sibling or not (RK1716). An external dep resolved as unresolvable
+        # and so was never annotated; one naming a declared sibling now resolves, but its
+        # answer depends on a checkout this machine may not have — a ✅ written here would be
+        # `deps.stale` on every machine where the sibling is absent. What was typed stays.
+        return dep
     if resolution.status is DepStatus.SHIPPED:
         return replace(dep, marker=backlog.config.schema.shipped_marker)
     if resolution.status is DepStatus.DEFERRED:

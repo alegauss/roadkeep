@@ -972,3 +972,111 @@ def test_a_frozen_excerpt_still_round_trips_and_says_where_it_came_from(shape):
     assert document.render() == source
     assert document.entries and document.rejects == ()
     assert shape.rev in source and "frozen excerpt" in source
+
+
+# -- a dep on a sibling project's task (RK1716) ------------------------------------
+
+
+def siblings(tmp_path: Path, projects: str = 'turing = "../turing"\n') -> Config:
+    """This project waits on four things in `turing`, which is roadkeep-governed too: one
+    shipped there, one open there, one it never filed, and a range with nothing open."""
+    turing = tmp_path / "turing"
+    turing.mkdir()
+    (turing / "roadkeep.toml").write_text(
+        'prefix = "T"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n',
+        encoding="utf-8",
+    )
+    (turing / "ROADMAP.md").write_text(
+        "## Block A — The model\n" + line("T6", "—"), encoding="utf-8"
+    )
+    (turing / "CHANGELOG.md").write_text(
+        "## Block A — The model\n" + shipped("T5") + shipped("T1"), encoding="utf-8"
+    )
+    here = tmp_path / "here"
+    here.mkdir()
+    write_project(
+        here,
+        "## Block A — The model\n"
+        + line("RK9", "turing: T5")
+        + line("RK10", "turing: T6")
+        + line("RK11", "turing: T99")
+        + line("RK12", "elsewhere: T5")
+        + line("RK13", "turing: T1–T3"),
+    )
+    with (here / "roadkeep.toml").open("a", encoding="utf-8") as handle:
+        handle.write("[projects]\n" + projects)
+    return Config.discover(here)
+
+
+def _answers(config: Config) -> dict[str, tuple[DepStatus, str]]:
+    backlog = Backlog.load(config)
+    return {
+        entry.task.id: (r.status, r.detail)
+        for entry in backlog.roadmap.entries
+        for r in backlog.resolve(entry.task)
+    }
+
+
+def test_a_dep_on_a_declared_sibling_is_answered_by_its_ledger(tmp_path):
+    answers = _answers(siblings(tmp_path))
+    assert answers["RK9"][0] is DepStatus.SHIPPED
+    assert answers["RK10"][0] is DepStatus.OPEN
+    assert answers["RK10"][1].startswith("turing: open")
+    assert answers["RK13"][0] is DepStatus.SHIPPED
+
+
+def test_an_id_the_sibling_never_filed_is_unresolvable_and_never_unknown(tmp_path):
+    """`deps.unknown` is this project's gap to fix; an id missing from another repository is
+    not a line anybody here can add."""
+    status, detail = _answers(siblings(tmp_path))["RK11"]
+    assert status is DepStatus.UNRESOLVABLE
+    assert detail.startswith("turing: ")
+
+
+def test_a_name_no_table_declares_stays_free_text(tmp_path):
+    status, detail = _answers(siblings(tmp_path))["RK12"]
+    assert status is DepStatus.UNRESOLVABLE
+    assert "outside the backlog" in detail
+
+
+def test_pick_offers_the_line_whose_sibling_shipped_and_holds_the_open_one(tmp_path):
+    backlog = Backlog.load(siblings(tmp_path))
+    ready = {
+        entry.task.id: backlog.readiness(entry.task) for entry in backlog.roadmap.entries
+    }
+    assert ready["RK9"] is Readiness.READY
+    assert ready["RK10"] is Readiness.BLOCKED
+    assert ready["RK11"] is Readiness.OUTSIDE
+
+
+def test_the_table_form_names_the_same_checkout(tmp_path):
+    answers = _answers(siblings(tmp_path, '[projects.turing]\npath = "../turing"\n'))
+    assert answers["RK9"][0] is DepStatus.SHIPPED
+
+
+def test_an_absent_checkout_holds_the_dependent_and_says_why(tmp_path):
+    status, detail = _answers(siblings(tmp_path, 'turing = "../nowhere"\n'))["RK9"]
+    assert status is DepStatus.UNRESOLVABLE
+    assert "no checkout" in detail
+
+
+def test_a_sibling_is_named_by_a_word_and_not_a_path(tmp_path):
+    from roadkeep.config import ConfigError
+
+    with pytest.raises(ConfigError):
+        siblings(tmp_path, '"../turing" = "../turing"\n')
+
+
+def test_the_sibling_is_read_and_never_written_and_nothing_here_is_annotated(tmp_path):
+    """A ✅ derived from a checkout this machine may lack would be `deps.stale` on every machine
+    without it, so the line keeps what was typed — and the gate passes either way."""
+    config = siblings(tmp_path)
+    turing = tmp_path / "turing"
+    before = {p.name: p.read_bytes() for p in turing.iterdir()}
+    roadmap = (tmp_path / "here" / "ROADMAP.md").read_bytes()
+    assert main(["-C", str(tmp_path / "here"), "lint", "--fix"]) in (EXIT_OK, 1)
+    assert {p.name: p.read_bytes() for p in turing.iterdir()} == before
+    assert (tmp_path / "here" / "ROADMAP.md").read_bytes() == roadmap
+    from roadkeep.linting import lint
+
+    assert not [f for f in lint(config).findings if f.code == "deps.stale"]
