@@ -77,25 +77,33 @@ already written, not authorship.
 
 ### §RK1716 Deps on a sibling project
 
-A dep on another repository's task can only be written as free text, for example
-`viglet-design-system: VDS213` or `claude-tray: T389`. RK28 resolves such a dep as
-unresolvable, which is honest, but it means `deps`, `pick` and `blocked` can never tell
-whether VDS213 shipped. The alegauss product sites were filed this way in October 2026,
-each task waiting on viglet-design-system Block H and on the claude-tray pilot, and no
-command in any of those repositories can say which tasks are unblocked.
+A dep on another repository's task can only be written as free text, such as `turing:
+T456`. RK28 resolves it as unresolvable, so `deps`, `pick` and `blocked` never tell
+whether it shipped, and the user relays every Turing ship to Dumont's agent by hand. The
+other project is governed by roadkeep too: its ledger holds the answer.
 
-Every repository involved is governed by roadkeep, so the answer exists on disk: the
-other project's CHANGELOG either holds the id with the shipped marker or does not.
+The change: `roadkeep.toml` declares sibling projects by path, git remote, or both; a
+bare string is a path:
 
-The change: `roadkeep.toml` declares sibling projects by name and path, for example
-`[projects] viglet-design-system = "../../viglet/viglet-design-system/latest"`. A dep
-written `<name>: <id>` or `<name>: <id>–<id>` then resolves by reading that project's
-config and ledger, read-only. An undeclared name stays free text, as today. A declared
-path that is missing is reported as unresolvable with the path, never counted as
-shipped.
+    [projects.turing]
+    path = "D:/Git/viglet/turing/latest"
+    git = "https://gitlab.com/viglet/turing.git"
+    ref = "2026.3"
 
-Done when a dep on a declared project's shipped id lets `pick` offer the task, an
-unshipped one keeps it blocked with the foreign id named, and nothing is written outside
+A dep written `<name>: <id>` or `<name>: <id>–<id>` then resolves by reading that
+project's config and ledger, read-only. A `path` that exists wins: fast and offline.
+Otherwise `git` is fetched shallow into a cache, two files at `ref` (the default branch
+when omitted), so CI and other machines answer too. Git is the transport, not a host
+API, so GitHub, GitLab or any git host works, private ones through git's own
+credentials. A remote answers for what was pushed, never an uncommitted ship.
+
+The fetch has a timeout and runs once per process. A missing path, failed fetch or
+unknown id is unresolvable with the reason, never shipped. `lint` never fetches: a gate
+must not depend on the network.
+
+Done when a shipped id in a declared project lets `pick` offer the task through either
+source, an unshipped one keeps it blocked naming the foreign id, an unreachable remote
+answers unresolvable within the timeout, and nothing but the cache is written outside
 this repository.
 
 ### §RK1723 Which project filed a line
@@ -134,12 +142,12 @@ Two gaps remain. Turing's agent finishes T456 without knowing anyone waited on i
 cannot tell the user. And Dumont's agent learns only when it runs `pick`; a session that
 starts on something else never hears it, which is why the user relays it by hand today.
 
-The change: `ship` reads, read-only, the projects `[projects]` declares and prints each
-open line there whose dep it just satisfied, `unblocks dumont: D123`. In the dependent
-project, the session-start brief names ready lines that have a foreign dep, as `D123
-ready: turing T456 shipped`. That is derived on every start rather than stored, so it
-needs no state about what was seen before, and it is bounded like the brief's other
-lists.
+The change: `ship` reads, read-only and through RK1716's path-or-remote resolution and
+timeout, the roadmaps of the projects `[projects]` declares, and prints each open line
+there whose dep it just satisfied, `unblocks dumont: D123`. In the dependent project,
+the session-start brief names ready lines that have a foreign dep, as `D123 ready:
+turing T456 shipped`. That is derived on every start rather than stored, so it needs no
+state about what was seen before, and it is bounded like the brief's other lists.
 
 Done when shipping T456 in a project that declares dumont prints D123, nothing outside
 the repository is written, and a Dumont session start names D123 as ready through
