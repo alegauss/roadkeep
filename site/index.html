@@ -1,22 +1,11 @@
 <!doctype html>
-<html lang="en">
+<!-- cool tone: the ground is slate-blue; dark only, see src/index.css -->
+<html lang="en" data-tone="cool" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Google tag (gtag.js) -->
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=G-6HG45Q9BHP"
-    ></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag("js", new Date());
-
-      gtag("config", "G-6HG45Q9BHP");
-    </script>
+    <!-- Google Analytics is not in this head: it loads only after the visitor allows it, from
+         the banner in components/Consent.tsx, the hub's AG1 flow. -->
     <link
       rel="icon"
       type="image/svg+xml"
@@ -57,7 +46,7 @@
       </style>
     </noscript>
   </head>
-  <body>
+  <body class="vg-site">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <!-- The ad network, last and async: it makes one request for the whole page however many

@@ -65,7 +65,7 @@
 
 ## Block L — Product sites on the package
 
-- 📋 **RK1714** (deps: —) **The pitch and the roadkeep-gui landing each keep their own copy of the template eight product sites share** — The shared Nav, Hero, Footer and sponsor slot drift apart in each copy, and the design system now carries them once. → §RK1714
+- ⏳ **RK1714** (deps: —) **The pitch and the roadkeep-gui landing each keep their own copy of the template eight product sites share** — The roadkeep-gui landing still keeps its own template copy, and consumers.json and the hub's slate accent still miss both sites. → §RK1714
 
 ## Done when — Block D
 
@@ -150,6 +150,16 @@
 - **No page restates prose another file owns** an area with room on every page invites
   the accretion this tool refuses, so a page renders the file that owns the words or
   carries no version of them.
+
+## Done when — RK1714
+
+- **The gui landing keeps no copy of ./site** gui/site/src holds none of the files the
+  design system's ./site provides, and both builds call its ./vite helpers.
+- **Every route reads the same, shown both ways** The prerendered HTML of every route
+  holds the text it held before, and screenshots in light and dark are compared with the
+  differences listed in the commit.
+- **Both sites registered with the design system** consumers.json lists the pitch and
+  the gui landing, and the hub's projects.json gives roadkeep the amber the pitch uses.
 
 ## Non-goals
 

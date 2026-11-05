@@ -16,7 +16,7 @@ const SKIP_TAGS = new Set(["NAV", "FOOTER", "BUTTON", "SCRIPT", "STYLE", "NOSCRI
 // Decorative chrome dropped by class: the badge's pulse dot, the card emoji, the step numbers,
 // the ✕/✓ marks beside a list item, the section kicker, the terminal window bar and the hero's
 // own mark.
-const SKIP_CLASSES = new Set(["dot", "ico", "n", "m", "x", "eyebrow", "term-bar", "hero-mark"]);
+const SKIP_CLASSES = new Set(["vg-site-dot", "ico", "n", "m", "x", "eyebrow", "term-bar", "vg-site-hero-icon"]);
 // Elements that carry a run of text, not a block — rendered inline, never recursed as blocks.
 const INLINE_TAGS = new Set(["SPAN", "B", "STRONG", "I", "EM", "CODE", "KBD", "A", "BR"]);
 const HEADING = { H1: "#", H2: "##", H3: "###", H4: "####", H5: "#####", H6: "######" };

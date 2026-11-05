@@ -1,3 +1,4 @@
+import { SiteButton } from "@viglet/viglet-design-system/site";
 import { closing } from "../../lib/site-content";
 import { Rich } from "../ui/Rich";
 
@@ -12,11 +13,11 @@ export function Closing() {
           <p>
             <Rich runs={closing.body} />
           </p>
-          <div className="hero-cta" data-twin="omit">
+          <div className="closing-cta" data-twin="omit">
             {closing.ctas.map((cta) => (
-              <a key={cta.href} className={`btn btn-${cta.kind}`} href={cta.href}>
+              <SiteButton key={cta.href} variant={cta.kind} href={cta.href}>
                 {cta.label}
-              </a>
+              </SiteButton>
             ))}
           </div>
         </div>

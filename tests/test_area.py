@@ -281,7 +281,9 @@ def test_neither_build_declares_a_dependency_that_runs_at_read_time():
     assert "pagefind: true" in ASTRO.read_text(encoding="utf-8")
 
     pitch = json.loads((SITE / "package.json").read_text(encoding="utf-8"))
-    assert set(pitch["dependencies"]) == {"react", "react-dom"}
+    # The design system is the parser's case at runtime (RK1714): components that render props
+    # and a stylesheet, prerendered into the file, calling nothing.
+    assert set(pitch["dependencies"]) == {"react", "react-dom", "@viglet/viglet-design-system"}
     # And what ships is the prerendered file: the client hydrates what is already in the HTML,
     # so a reader with no JavaScript still has the whole page.
     assert "prerender.mjs" in pitch["scripts"]["build"]

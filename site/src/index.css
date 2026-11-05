@@ -1,18 +1,52 @@
 /* ============================================================================
-   The page's whole stylesheet, and the only one: no framework and no utility
-   layer, because what is here is one page's chrome and a utility class per
-   declaration would be the same bytes with the names moved into the markup.
+   The page's own stylesheet, on top of the design system's (RK1714). tokens.css is
+   the preset as plain custom properties and site.css styles the chrome every product
+   site shares: the nav, the hero, the buttons, the sponsor and the footer. No
+   Tailwind: those two files are plain CSS, and everything below is one page's
+   sections, where a utility class per declaration would be the same bytes with the
+   names moved into the markup.
 
-   Dark, and dark only. This page is a pitch read once, most often from a link,
-   and a theme toggle is a control whose whole value is for a reader who stays —
-   so what it would buy is a preference nobody sets against a flash of the wrong
-   palette on first paint for everybody. The documentation area next door is the
-   surface a reader comes back to, and Starlight gives that one both themes.
+   Dark, and dark only: index.html sets data-theme="dark" and no script changes it.
+   This page is a pitch read once, most often from a link, and a theme toggle is a
+   control whose whole value is for a reader who stays — so what it would buy is a
+   preference nobody sets against a flash of the wrong palette on first paint for
+   everybody. The documentation area next door is the surface a reader comes back
+   to, and Starlight gives that one both themes.
 
    The mock-ups inside the terminal blocks keep their own palette regardless, so
    a transcript looks like a terminal and not like the page around it.
    ============================================================================ */
 
+@import "@viglet/viglet-design-system/tokens.css";
+@import "@viglet/viglet-design-system/site.css";
+
+/* The cool tone keyed to roadkeep: the slate-blue ground the page always had, and the
+   amber accent. Declared on the dark attribute the preset's own dark ground keys on,
+   with :root added so this file wins over it however the two are ordered. */
+:root[data-theme="dark"]{
+  --vg-background:#0a0f1b;
+  --vg-foreground:#f2f6fb;
+  --vg-card:#131b2d;
+  --vg-card-foreground:#f2f6fb;
+  --vg-popover:#131b2d;
+  --vg-popover-foreground:#f2f6fb;
+  --vg-muted:#1a2440;
+  --vg-muted-foreground:#98a5bb;
+  --vg-border:#232f49;
+  --vg-brand:#fbbf24;
+  --vg-brand-dark:#b45309;
+  --vg-brand-light:#f59e0b;
+  --vg-brand-lighter:#fbbf24;
+  --vg-brand-bg:rgba(245,158,11,.12);
+  --vg-brand-border:rgba(245,158,11,.34);
+  --vg-gradient:linear-gradient(115deg,#fbbf24,#f59e0b 52%,#b45309);
+  --vg-site-glow:rgba(245,158,11,.20);
+  --font-sans:'Inter',system-ui,-apple-system,sans-serif;
+  --font-brand:var(--font-sans);
+  color-scheme:dark;
+}
+
+/* the page's own palette, which the sections below read */
 :root{
   --amber:#f59e0b;
   --amber-bright:#fbbf24;
@@ -35,28 +69,13 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{
-  font-family:'Inter',system-ui,-apple-system,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  line-height:1.62;
-  -webkit-font-smoothing:antialiased;
-  overflow-x:hidden;
-}
-a{color:inherit;text-decoration:none}
+body{line-height:1.62}
 code,kbd{font-family:'JetBrains Mono',monospace}
 .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
 .accent{color:var(--amber)}
 b,strong{font-weight:600}
 
-/* ambient backdrop: amber bloom over a faint engineering grid */
-body::before{
-  content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
-  background:
-    radial-gradient(1000px 560px at 78% -8%, rgba(245,158,11,.20), transparent 62%),
-    radial-gradient(760px 620px at -12% 14%, rgba(245,158,11,.07), transparent 58%),
-    linear-gradient(180deg,var(--bg),var(--bg-2) 60%,var(--bg));
-}
+/* the faint engineering grid over the design system's amber bloom */
 body::after{
   content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.35;
   background-image:
@@ -67,94 +86,32 @@ body::after{
   mask-image:radial-gradient(1200px 700px at 50% 0%, #000 25%, transparent 78%);
 }
 
-/* ---------- nav ---------- */
-nav{
-  position:sticky;top:0;z-index:50;
-  -webkit-backdrop-filter:blur(14px);
-  backdrop-filter:blur(14px);
-  background:rgba(10,15,27,.78);
-  border-bottom:1px solid var(--line-soft);
-}
-nav .wrap{display:flex;align-items:center;justify-content:space-between;height:66px;gap:20px}
-.nav-left{display:flex;align-items:center;gap:14px;min-width:0}
-.brand{display:flex;align-items:center;gap:11px;font-family:'JetBrains Mono',monospace;font-weight:600;font-size:1.05rem;letter-spacing:-.03em}
-.brand svg{width:30px;height:30px}
-/* parent-brand backlink: this site is one of the alegauss tools */
-.parent{
-  display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;
-  padding:7px 13px;border-radius:999px;
-  border:1px solid var(--line);
-  color:var(--muted);font-size:.8rem;font-weight:500;white-space:nowrap;
-  transition:color .2s,border-color .2s,background .2s;
-}
-.parent b{color:var(--text);font-weight:600}
-.parent svg{width:12px;height:12px;color:var(--muted-2);transition:transform .2s,color .2s}
-.parent:hover{background:var(--panel);border-color:var(--amber);color:var(--text)}
-.parent:hover svg{color:var(--amber);transform:translate(1.5px,-1.5px)}
-@media(max-width:560px){.parent .pre{display:none}}
-.nav-links{display:flex;align-items:center;gap:26px}
-.nav-links a:not(.btn){color:var(--muted);font-weight:500;font-size:.93rem;transition:color .2s}
-.nav-links a:not(.btn):hover{color:var(--text)}
-.btn{
-  display:inline-flex;align-items:center;gap:9px;
-  padding:11px 20px;border-radius:11px;font-weight:600;font-size:.95rem;
-  transition:transform .15s ease, box-shadow .2s ease, background .2s, border-color .2s;
-  white-space:nowrap;cursor:pointer;
-}
-.btn-primary{
-  background:linear-gradient(135deg,var(--amber-bright),var(--amber-deep));
-  color:#1a1206;box-shadow:0 10px 26px -10px rgba(245,158,11,.65);
-}
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 16px 34px -12px rgba(245,158,11,.85)}
-.btn-ghost{background:var(--panel);color:var(--text);border:1px solid var(--line)}
-.btn-ghost:hover{background:var(--panel-2);transform:translateY(-2px);border-color:rgba(245,158,11,.4)}
-.btn-sm{padding:9px 15px;font-size:.88rem;border-radius:10px}
-@media(max-width:900px){.nav-links a:not(.btn){display:none}}
+/* ---------- the chrome, the page's half of it ---------- */
+/* dark ink on amber: the package's white reads at about 2:1 on this fill */
+.vg-site-btn-primary{color:#1a1206}
+/* the name is set like the command it is */
+.vg-site-brand-name{font-family:'JetBrains Mono',monospace;letter-spacing:-.03em}
 
 /* ---------- hero ---------- */
-.hero{padding:76px 0 30px;text-align:center;position:relative}
-.badge{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:7px 15px;border-radius:999px;
-  background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.34);
-  color:var(--amber-bright);font-size:.8rem;font-weight:600;
-  margin-bottom:26px;
-}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--amber-bright);box-shadow:0 0 10px var(--amber);animation:pulse 2.2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-h1{
-  font-size:clamp(2.2rem,5vw,3.65rem);line-height:1.07;font-weight:900;letter-spacing:-.038em;
-  margin-bottom:22px;text-wrap:balance;
-}
-.grad{
-  background:linear-gradient(115deg,var(--amber-bright),var(--amber) 52%,var(--amber-deep));
-  -webkit-background-clip:text;background-clip:text;color:transparent;
-}
-.hero p.sub{
-  font-size:clamp(1.04rem,2.1vw,1.26rem);color:var(--muted);
-  max-width:720px;margin:0 auto 16px;line-height:1.58;
-}
-.hero p.sub b{color:var(--text)}
-.hero p.note{color:var(--muted-2);font-size:.95rem;max-width:600px;margin:0 auto 32px}
-.hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:22px}
-.hero-meta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px}
-.chip{
-  display:inline-block;
-  padding:8px 14px;border-radius:10px;background:rgba(19,27,45,.7);border:1px solid var(--line);
-  font-size:.82rem;color:var(--muted);font-weight:500;
-}
-.chip b{color:var(--text)}
+.vg-site-hero{padding:76px 0 30px}
+.vg-site-hero h1{font-size:clamp(2.2rem,5vw,3.65rem);line-height:1.07;letter-spacing:-.038em;text-wrap:balance}
+.vg-site-sub b{color:var(--text)}
+.vg-site-hero-meta{color:var(--muted-2);font-size:.95rem}
+.vg-site-pill b{color:var(--text)}
+.closing-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
 
-.hero-mark{
-  width:96px;height:96px;margin:0 auto 28px;border-radius:24px;
-  display:grid;place-items:center;
-  background:linear-gradient(160deg,rgba(245,158,11,.18),transparent 62%),var(--panel);
-  border:1px solid rgba(245,158,11,.34);
-  box-shadow:0 26px 58px -20px rgba(245,158,11,.45);
-  animation:float 5.5s ease-in-out infinite;
+/* ---------- consent: fixed above the page, never in the prerendered HTML ---------- */
+.consent-settings{
+  background:none;border:0;padding:0;color:inherit;font:inherit;cursor:pointer;
+  text-decoration:underline;text-underline-offset:2px;
 }
-.hero-mark svg{width:72px;height:72px}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-11px)}}
+.consent{
+  position:fixed;left:16px;right:16px;bottom:16px;z-index:60;max-width:640px;margin:0 auto;
+  padding:18px 20px;border:1px solid var(--vg-border);border-radius:var(--vg-radius-panel);
+  background:var(--vg-popover);color:var(--vg-popover-foreground);
+  box-shadow:0 24px 60px -20px rgba(0,0,0,.8);font-size:.9rem;line-height:1.6;
+}
+.consent-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 
 /* ---------- section scaffolding ---------- */
 section{padding:70px 0;position:relative}
@@ -462,49 +419,6 @@ td.why b{color:var(--amber-bright);font-weight:600}
 .closing h2{font-size:clamp(1.6rem,3.4vw,2.3rem);font-weight:800;letter-spacing:-.03em;margin-bottom:14px;line-height:1.2}
 .closing p{color:var(--muted);max-width:660px;margin:0 auto 26px;font-size:1.02rem}
 .closing p b{color:var(--text)}
-.closing .hero-cta{margin-bottom:0}
-
-/* ---------- footer ---------- */
-footer{border-top:1px solid var(--line);padding:44px 0 38px;margin-top:34px}
-.foot-grid{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
-.foot-brand{display:flex;align-items:center;gap:11px;font-family:'JetBrains Mono',monospace;font-weight:600}
-.foot-brand svg{width:28px;height:28px}
-.foot-links{display:flex;gap:22px;flex-wrap:wrap}
-.foot-links a{color:var(--muted);font-size:.89rem;transition:color .2s}
-.foot-links a:hover{color:var(--amber)}
-.disclaimer{color:var(--muted-2);font-size:.79rem;margin:22px auto 0;text-align:center;max-width:780px;line-height:1.65}
-
-/* ---------- sponsor block (generated from alegauss.github.io/sponsor.json) ----------
-   Sits between the footer links and the disclaimer. Product tiles carry the real logos
-   on a white plate — the marks are reproduced as published, never recoloured to match
-   this palette. */
-.sponsor{
-  margin-top:30px;padding-top:26px;border-top:1px solid var(--line);
-  display:flex;align-items:flex-start;gap:16px;
-}
-.sponsor-mark{width:42px;height:42px;border-radius:10px;background:#fff;padding:3px;flex:none}
-.sponsor-body{min-width:0}
-.sponsor-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-2);display:block}
-.sponsor-name{font-weight:800;font-size:1.02rem;letter-spacing:-.01em;display:block;margin-top:2px}
-.sponsor-name:hover{color:var(--amber-bright)}
-.sponsor-body p{color:var(--muted);font-size:.88rem;line-height:1.6;margin-top:6px;max-width:640px}
-.sponsor-body p a{color:var(--amber-bright);text-decoration:underline;text-underline-offset:3px}
-.sponsor-products{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
-.sponsor-product{
-  display:flex;align-items:center;gap:10px;
-  padding:9px 14px 9px 10px;border:1px solid var(--line);border-radius:12px;
-  background:var(--panel);transition:border-color .2s,transform .15s ease;
-}
-.sponsor-product:hover{border-color:var(--amber-bright);transform:translateY(-2px)}
-.sponsor-product img{width:28px;height:28px;border-radius:7px;background:#fff;padding:2px;flex:none}
-.sponsor-product b{display:block;font-size:.86rem;font-weight:700;letter-spacing:-.01em}
-.sponsor-product small{display:block;color:var(--muted-2);font-size:.76rem;line-height:1.45;max-width:280px}
-@media(max-width:620px){
-  .sponsor{flex-direction:column}
-  .sponsor-product{width:100%}
-}
-
-.disclaimer code{color:var(--muted)}
 
 /* ---------- carried ads (ads.japode.com) ----------
    The only third-party markup on this page, and the whole of its styling: the loader
@@ -536,6 +450,5 @@ footer{border-top:1px solid var(--line);padding:44px 0 38px;margin-top:34px}
 .reveal.in{opacity:1;transform:none}
 @media(prefers-reduced-motion:reduce){
   .reveal{opacity:1;transform:none;transition:none}
-  .hero-mark,.dot{animation:none}
   html{scroll-behavior:auto}
 }

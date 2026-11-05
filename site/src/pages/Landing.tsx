@@ -1,6 +1,5 @@
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
-import { MarkSprite } from "../components/ui/Mark";
 import { Ad } from "../components/ui/Ad";
 import { Hero } from "../components/sections/Hero";
 import { Why } from "../components/sections/Why";
@@ -32,7 +31,6 @@ import { Closing } from "../components/sections/Closing";
 export function Landing() {
   return (
     <>
-      <MarkSprite />
       <Nav />
       <Hero />
       <Why />

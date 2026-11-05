@@ -15,6 +15,8 @@
 // has to keep true: a pasted output that drifts is prose with a shelf life, and the area next
 // door (site/docs) is where output is generated from a real run instead.
 
+import type { SiteBrand, SponsorDeclaration } from "@viglet/viglet-design-system/site";
+
 export type Run =
   | string
   | { code: string }
@@ -55,10 +57,18 @@ export const repoUrl = "https://github.com/alegauss/roadkeep";
 export const parentUrl = "https://alegauss.github.io/";
 export const pypiUrl = "https://pypi.org/project/roadkeep/";
 
+// The brand the design system's nav, hero and footer draw. The mark is the dark-palette copy:
+// roadkeep-mark.svg follows the reader's system theme and this page is dark in either.
+export const brand = {
+  href: "#top",
+  name: "roadkeep",
+  logo: "/roadkeep/assets/roadkeep-mark-dark.svg",
+  logoShape: "mark",
+} as const satisfies SiteBrand;
+
 // The nav is anchors on one page plus one link that leaves it: /roadkeep/docs/ is a separate
 // build under the same base, so it is written as a path and there is no route for it here.
 export const nav = {
-  brand: "roadkeep",
   parent: { pre: "part of", name: "alegauss", href: parentUrl },
   links: [
     { href: "#why", label: "Why it exists" },
@@ -1215,37 +1225,40 @@ export const closing = {
 
 /* ------------------------------------------------------------------ sponsor + footer */
 
-// Generated from alegauss.github.io/sponsor.json by scripts/sync-sponsor.mjs. Edit the JSON,
-// not this block. Kept as rendered markup on purpose: a runtime fetch would keep the sponsor
-// out of the HTML that crawlers and LLMs actually read.
-export const sponsor = {
-  label: "Sponsored by",
-  name: "Viglet",
-  href: "https://www.viglet.org",
-  mark: { src: "/roadkeep/viglet/viglet-logo.png", alt: "Viglet logo" },
-  blurbLead:
-    "Open source search and content tools for organisations with a lot to publish — run on your own servers, with no per-user licence. More at ",
-  blurbLink: { label: "viglet.org", href: "https://www.viglet.org" },
+// Mirrors alegauss.github.io/sponsor.json, the canonical sponsor declaration for these
+// projects, in the design system's SponsorDeclaration shape that SiteSponsor renders. Kept as
+// rendered markup on purpose: a runtime fetch would keep the sponsor out of the HTML that
+// crawlers and LLMs actually read.
+export const sponsor: SponsorDeclaration = {
+  sponsor: {
+    label: "Sponsored by",
+    name: "Viglet",
+    url: "https://www.viglet.org",
+    siteLabel: "viglet.org",
+    logo: "/roadkeep/viglet/viglet-logo.png",
+    summary:
+      "Open source search and content tools for organisations with a lot to publish — run on your own servers, with no per-user licence.",
+  },
   products: [
     {
-      href: "https://turing.viglet.org/",
-      src: "/roadkeep/viglet/turing-logo.png",
-      alt: "Viglet Turing logo",
+      id: "turing",
       name: "Viglet Turing",
-      note: "so visitors find what they came for, with AI answers drawn only from your own content",
+      url: "https://turing.viglet.org/",
+      logo: "/roadkeep/viglet/turing-logo.png",
+      inline:
+        "so visitors find what they came for, with AI answers drawn only from your own content",
     },
     {
-      href: "https://shio.viglet.org/",
-      src: "/roadkeep/viglet/shio-logo.png",
-      alt: "Viglet Shio logo",
+      id: "shio",
       name: "Viglet Shio",
-      note: "so a new page goes live the same day, reviewed and approved by your own team",
+      url: "https://shio.viglet.org/",
+      logo: "/roadkeep/viglet/shio-logo.png",
+      inline: "so a new page goes live the same day, reviewed and approved by your own team",
     },
   ],
-} as const;
+};
 
 export const footer = {
-  brand: "roadkeep",
   links: [
     { href: repoUrl, label: "GitHub" },
     { href: "/roadkeep/docs/", label: "Docs" },

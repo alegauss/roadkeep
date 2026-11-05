@@ -416,26 +416,21 @@ downloads and repository visitors is measured.
 
 ### §RK1714 Both sites on the package
 
-The pitch (`site/`) and the roadkeep-gui landing (`gui/site/`, built here by
-`build:gui`) each keep a copy of the product sites' template. Both carry Nav, Footer,
-Hero, Ad and Rich; `gui/site/src` adds FeatureIndex, NonGoals, Feature, CopyButton and
-ThemeToggle. Each has its own prerender script and hand-written tokens in
-`src/index.css`.
+The pitch landed: `site/` takes `./site`, `tokens.css` and `site.css` with no Tailwind
+(VDS216), so that choice is made for gui too. `data-tone="cool"`, the amber re-keyed on
+`:root[data-theme="dark"]`, the dark-only `roadkeep-mark-dark.svg` as a `logoShape:
+"mark"` brand, dark ink on the primary button (white reads ~2:1 on amber), consent-gated
+analytics in `Consent.tsx`. Rich stays local: `SiteRich` has no link run. Its twin came
+out byte-identical.
 
-Neither `package.json` has Tailwind, which VDS214 assumes all eight sites have. The
-first step is a choice: add Tailwind v4 and the package's preset, or style the `./site`
-components from `site.css` (VDS216) with no new build dependency.
+Left: the roadkeep-gui landing (`gui/site/`, built by `build:gui`) keeps its copy: Nav,
+Footer, Hero, Ad, Rich, FeatureIndex, NonGoals, Feature, CopyButton, ThemeToggle, its
+own prerender and hand-written tokens. Same move, plus light and dark: `SiteThemeToggle`
+and `siteThemeScript` replace ThemeToggle and `lib/theme.ts`, `SiteFeatureIndex` and
+`SiteCopyButton` the local two. roadkeep-gui's accent is amber `245,158,11`.
 
-The move: `data-tone="cool"` on both, because both grounds are slate-blue (`#0a0f1b`
-dark, `#f7f8fb` light). The accent comes from `projects.json`: roadkeep-gui's
-`245,158,11` / `#fbbf24` is its amber, but roadkeep is listed as slate `148,163,184` /
-`#cbd5e1` while the pitch is amber, so one of the two changes, decided here. Shared
-components come from `./site`; `Terminal`, `Mark`, `CopyLine`, `HeroWindow` and the
-pitch's sections stay local. Both builds call the `./vite` helpers. Google Analytics
-loads only after consent, as the hub's AG1. The pitch stays dark-only. The Starlight
-area in `site/docs` is out of scope. The pilot, claude-tray T389, shipped.
-
-Done when `site/src` and `gui/site/src` have none of the files `./site` provides; the
-prerendered HTML of every route holds the same text as before; screenshots of each route
-(dark for the pitch, light and dark for gui) are compared before and after, with the
-differences listed in the commit; both sites appear in `consumers.json`.
+Both pages call the `./vite` helpers (`prerenderSite`) instead of their own prerender
+scripts, which the pitch has not done yet. Outside this repository: the hub's
+`projects.json` lists roadkeep as slate `148,163,184` while the pitch is amber, so that
+entry changes to amber; and both sites are added to the design system's
+`consumers.json`. The Starlight area in `site/docs` is out of scope.

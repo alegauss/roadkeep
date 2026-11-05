@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160" role="img" aria-label="roadkeep">
+  <title>roadkeep</title>
+  <desc>The roadkeep mark in its dark palette only: the pitch is dark whatever the reader's system theme, so the copy beside roadkeep-mark.svg does not follow it.</desc>
+  <rect fill="#cbd5e1" x="24" y="34" width="46" height="12" rx="6"/>
+  <rect fill="#cbd5e1" x="24" y="62" width="72" height="12" rx="6"/>
+  <rect fill="#cbd5e1" x="24" y="90" width="58" height="12" rx="6"/>
+  <rect fill="#cbd5e1" x="24" y="118" width="90" height="12" rx="6"/>
+  <rect fill="#f59e0b" x="120" y="22" width="8" height="116" rx="4"/>
+  <rect fill="#cbd5e1" opacity=".26" x="136" y="118" width="30" height="12" rx="6"/>
+</svg>
