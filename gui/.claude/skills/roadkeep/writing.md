@@ -221,6 +221,8 @@ spelling the file shows or the bare id — the `✅` is derived and is not yours
 — and one of the two forms per call, never both. A dep renders *into* the line and the
 line's ceiling is shared with the `why`, so an addition that does not fit is refused
 **naming the dep** rather than the sentence that did not move.
+`amend <id> --drop-requires <word>` takes off a need that was met, and dropping the last
+clears the group — `--requires` states one and cannot state none.
 **The `symptom` is not one of `amend`'s fields** — it is the falsifiable claim the
 line is, so a different one is a different task — and where the premise itself turned out
 false, `restate <id> --symptom "…"` is that correction and the only door to it: the id,
@@ -357,7 +359,8 @@ differ are two deliveries under one id, not one recorded twice: `record drop <id
 <n>` if you have read both, or `record renumber <id> --line <n> --to <new>` to give one its
 own address — the new id derived, one past the highest in its family, where you pass none.
 To *fix* an entry use `record amend <id> --why "…"` (or `record amend <id> --part "<which
-half>"` on a partial) —
+half>"` on a partial), and a line whose id the grammar refuses — an adopted `**SH-0f**` —
+by the number a finding printed, `record amend --line <n> --body -`, the whole line on stdin —
 never drop-and-re-add, which moves the line to the end of its block and shows a reviewer a
 deletion where a word changed. On a ledger written before the tool, where a bullet
 **wraps**, that correction is refused until `record amend <id> --lines <n>` says how many
@@ -421,7 +424,10 @@ it — refused unless the old string occurs exactly once, which is what keeps th
 visible in the call. It is also the one form that **inherits** an overrun: a legacy section
 already over the word limit for reasons the correction has nothing to do with takes the edit,
 where the whole-body form is refused and the way out was shortening prose you never came to
-touch. Growing it is still charged. A body-only amend leaves the **heading line's bytes** alone
+touch. Growing it is still charged. **To learn whether a string matches or an edit fits,
+ask: `section amend <id> --replace "<old>" --with "<new>" --check`** runs every refusal
+and prints the prose as it would read, writing nothing — never probe with a real write.
+A body-only amend leaves the **heading line's bytes** alone
 too — the reader takes a `§` an author wrote under an outline and the writer would not
 reproduce it, so re-rendering a heading nobody named silently restyled the file. **The anchor is
 `section move <anchor> --to <address>`**, and only under an outline: `renumber` moves an
