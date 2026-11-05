@@ -98,6 +98,53 @@ Done when a dep on a declared project's shipped id lets `pick` offer the task, a
 unshipped one keeps it blocked with the foreign id named, and nothing is written outside
 this repository.
 
+### §RK1723 Which project filed a line
+
+A friction skill working in Dumont files into Turing with `roadkeep -C <turing> add`.
+The line is identical to one Turing's own session filed, and the git author is the same
+person either way, so neither the file nor `origin` tells them apart. Yet a line filed
+from a consumer saw the symptom, not the product: it is a report to re-analyse, not a
+design to execute. Today the user says so by hand.
+
+The fact is observable at the write and nowhere else: when the process's directory
+resolves to a governed project other than the target, `add` knows both. A flag the
+caller must remember would make it a convention again (L1).
+
+The change: `add` writes one derived continuation under the line when the two projects
+differ, `filed **dumont**`, in the grammar `checked` and `validated` already use. The
+name is the caller's declared project name, else its directory. No date and no person;
+`origin` answers those. `ship` carries it into the ledger entry, so a site can show
+which product asked. A read, `foreign`, lists open lines whose filer the home project
+has not reviewed; like `unvalidated`, a report and never a gate. Confirming a line
+rewrites the continuation to `filed **dumont** reviewed`.
+
+Done when an `add -C` from a second governed project writes the continuation and one
+from inside the target writes none, `foreign` lists the first until confirmed, and the
+line round-trips through amend and ship.
+
+### §RK1724 What a ship unblocks next door
+
+RK1716 makes Dumont's `pick` resolve `turing: T456` by reading Turing's ledger, so
+Dumont finds the unblock itself the next time it asks. That keeps each project the only
+writer of its own files. The alternative, Turing's `ship` editing Dumont's roadmap,
+would write into another repository's working tree, possibly under a parallel session
+with uncommitted edits, and leave a change no commit there accounts for. It is rejected.
+
+Two gaps remain. Turing's agent finishes T456 without knowing anyone waited on it, so it
+cannot tell the user. And Dumont's agent learns only when it runs `pick`; a session that
+starts on something else never hears it, which is why the user relays it by hand today.
+
+The change: `ship` reads, read-only, the projects `[projects]` declares and prints each
+open line there whose dep it just satisfied, `unblocks dumont: D123`. In the dependent
+project, the session-start brief names ready lines that have a foreign dep, as `D123
+ready: turing T456 shipped`. That is derived on every start rather than stored, so it
+needs no state about what was seen before, and it is bounded like the brief's other
+lists.
+
+Done when shipping T456 in a project that declares dumont prints D123, nothing outside
+the repository is written, and a Dumont session start names D123 as ready through
+turing: T456.
+
 ## Block B — Authoring
 
 ### §RK1715 A label already taken under another title
@@ -146,6 +193,29 @@ many characters it may take, which is the same `reason_room` that `budget --defe
 already computes, and the door is `budget --id <id> --defer`.
 
 ## Block C — Query
+
+### §RK1722 Dates a build can take from the answer
+
+`history` already resolves both moments of a task from git: the commit that added its id
+to the roadmap (proposed) and the one that added it to the ledger (shipped). It does so
+one id at a time, through `origin <id>`. A build that dates every entry cannot pay one
+`git log -S` per id, so alegauss.github.io's `scripts/fetch-records.mjs` carries its own
+`shipDates`, one `git log -p` over the ledger with its own id pattern. That is a second
+reader of the format, and it breaks when the grammar changes.
+
+The date stays derived. "No dates or quarters" forbids a schedule; a date stored in the
+line would also cost characters everywhere, conflict on merges and repeat what git holds
+(L2). Derived, it survives a rebase and covers every entry already shipped.
+
+The change: `list --json` and `export --json` carry `proposed` and `shipped` per task,
+each `{commit, date}`, from one `git log -p` pass per governed file. Without git or
+history the fields are absent, so a caller can tell "never" from "cannot say". The site
+reads a bare clone through `git archive`, so the payload must be answerable for a
+revision of a repository.
+
+Done when fetch-records.mjs can delete `shipDates` and read the same dates from
+roadkeep's JSON, two runs at one commit give identical bytes, and a tree without git
+answers with the fields absent rather than refusing.
 
 ## Block D — The gate
 

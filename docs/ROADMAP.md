@@ -25,6 +25,8 @@
 ## Block A — The model (a task is data before it is a line)
 
 - 💭 **RK1716** (deps: —) **A dep on another repository's task is free text, so nothing can tell whether it shipped** — Every repository involved is governed by roadkeep, yet deps, pick and blocked answer unresolvable where the other ledger already holds the answer. → §RK1716
+- 📋 **RK1723** (deps: —) **A line filed from another project reads exactly like one filed at home** — An agent filing into Turing from Dumont saw the symptom and not the product, and nothing tells Turing which lines still need its own analysis. → §RK1723
+- 📋 **RK1724** (deps: RK1716) **Shipping a task says nothing about the sibling tasks it unblocks** — When Turing ships what Dumont waits on, the user still has to tell Dumont's agent, because only its next pick would find out. → §RK1724
 
 ## Block B — Authoring (insert, never hand-edit)
 
@@ -32,6 +34,8 @@
 - 📋 **RK1718** (deps: —) **A defer refused for length blames the line's structure and names a budget read that does not price the reason** — The reason is the only field the caller writes, and budget --defer already knows its room, so the refusal sends the caller guessing twice. → §RK1718
 
 ## Block C — Query (consult without reading the file)
+
+- 📋 **RK1722** (deps: —) **A ledger entry carries no date, so every site re-derives one from git by hand** — alegauss.github.io keeps its own git log parser to date each entry, a second reader of the ledger that origin answers only one id at a time. → §RK1722
 
 ## Block D — The gate
 
