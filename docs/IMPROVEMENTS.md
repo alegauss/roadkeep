@@ -81,24 +81,22 @@ A friction skill working in Dumont files into Turing with `roadkeep -C <turing> 
 The line is identical to one Turing's own session filed, and the git author is the same
 person either way, so neither the file nor `origin` tells them apart. Yet a line filed
 from a consumer saw the symptom, not the product: it is a report to re-analyse, not a
-design to execute. Open, a person's call: the non-goal against multi-line task lines may
-forbid this.
+design to execute.
 
 The fact is observable at the write and nowhere else: when the process's directory
 resolves to a governed project other than the target, `add` knows both. A flag the
 caller must remember would make it a convention again (L1).
 
-The change: `add` writes one derived continuation under the line when the two projects
-differ, `filed **dumont**`, in the grammar `checked` and `validated` already use. The
-name is the caller's declared project name, else its directory. No date and no person;
-`origin` answers those. `ship` carries it into the ledger entry, so a site can show
-which product asked. A read, `foreign`, lists open lines whose filer the home project
-has not reviewed; like `unvalidated`, a report and never a gate. Confirming a line
-rewrites the continuation to `filed **dumont** reviewed`.
+Decided (2026-11-05): a clause on the line itself, `(from: dumont)`, beside `(deps: …)`
+and `(requires: …)`, and never a continuation line, which the non-goal against
+multi-line task lines rules out. Every write path already carries the line's clauses, so
+amend, restate, defer, retire, renumber and merge keep it with no new grammar.
 
-Done when an `add -C` from a second governed project writes the continuation and one
-from inside the target writes none, `foreign` lists the first until confirmed, and the
-line round-trips through amend and ship.
+The change: `add` writes the clause when the two projects differ. The name is the
+caller's declared `[project] name`, else its directory. No date and no person; `origin`
+answers those. `ship` carries it into the ledger entry, so a site can show which product
+asked. A read, `foreign`, lists open lines carrying it; like `unvalidated`, a report and
+never a gate. Reviewing a line drops the clause (`amend <id> --reviewed`).
 
 ## Block B — Authoring
 
@@ -152,8 +150,9 @@ someone who never heard of the tool knows **what it does**, **why install it** a
 to install it** without scrolling.
 
 The rewrite of 2026-10-22 (75a2c90e, 0db5ee0f) moved the install and a first session to
-the top and the design argument below, but it was not measured against that test. What
-is left to decide:
+the top and the design argument below, but it was not measured against that test.
+Decided (2026-11-05): the deliverable here is a proposal in visibility's `drafts/`, as
+VS4 was for claude-tray, which Alexandre approves before the README changes. It settles:
 
 - The one sentence. Is it what a Claude Code user searches for, or the tool's own vocabulary?
 - A demo. claude-tray gained a GIF (VS5); here the moment is the hook denying an `Edit` on
@@ -162,10 +161,6 @@ is left to decide:
   left with no page in the docs to hold it.
 - The visibility strategy keeps roadkeep to cheap actions tied to claude-tray, so this stays
   one pass, not a launch.
-
-Done when the first screen passes the test as visibility states it, and the row for
-roadkeep in visibility's `actions.json` records the change, so its effect on PyPI
-downloads and repository visitors is measured.
 
 ## Block J — Validation (whether a person ever tried it)
 

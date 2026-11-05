@@ -231,6 +231,10 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 1 | 2 | 0 |
 | **Total** | 4 | 1200 | 24 |
+
+**Next ready:**
+
+- 📋 **RK1717** (deps: —) **The README has never been held to the five-second first-screen test the visibility repository applies** — The README is the PyPI page and a Claude Code user's first read, and visibility judges a first screen by what it does, why and how to install. → §RK1717
 <!-- roadkeep:end -->
 
 Open work is in

@@ -24,7 +24,7 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK1723** (deps: —) (requires: decision) **A line filed from another project reads exactly like one filed at home** — An agent filing into Turing from Dumont saw the symptom and not the product, and nothing tells Turing which lines still need its own analysis. → §RK1723
+- 📋 **RK1723** (deps: —) **A line filed from another project reads exactly like one filed at home** — An agent filing into Turing from Dumont saw the symptom and not the product, and nothing tells Turing which lines still need its own analysis. → §RK1723
 
 ## Block B — Authoring (insert, never hand-edit)
 
@@ -44,7 +44,7 @@
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
-- 📋 **RK1717** (deps: —) (requires: decision) **The README has never been held to the five-second first-screen test the visibility repository applies** — The README is the PyPI page and a Claude Code user's first read, and visibility judges a first screen by what it does, why and how to install. → §RK1717
+- 📋 **RK1717** (deps: —) **The README has never been held to the five-second first-screen test the visibility repository applies** — The README is the PyPI page and a Claude Code user's first read, and visibility judges a first screen by what it does, why and how to install. → §RK1717
 
 ## Block J — Validation (whether a person ever tried it)
 
@@ -142,6 +142,18 @@
 
 - **Both sites registered with the design system** consumers.json lists the pitch and
   the gui landing, and the hub's projects.json gives roadkeep the amber the pitch uses.
+
+## Done when — RK1723
+
+- **A foreign line says where it came from until reviewed** An add from a second
+  governed project writes the from clause and one from inside writes none; foreign lists
+  it until reviewed; it survives amend and ship.
+
+## Done when — RK1717
+
+- **The approved first screen passes the five-second test** The README's first screen
+  passes visibility's test once the draft is approved, and visibility's actions.json
+  records the change so its effect is measured.
 
 ## Non-goals
 
