@@ -1269,3 +1269,4 @@
 ## Block L — Product sites on the package
 
 - ✅ **RK1714** **The pitch and the roadkeep-gui landing each keep their own copy of the template eight product sites share** — Both sites draw their nav, hero, buttons, sponsor and footer from the design system, the gui landing its theme toggle, copy button and feature index too, with analytics after consent.
+- ✅ **RK1729 (the pitch's prerender)** **Both product sites run a prerender script of their own, and neither is registered with the design system** — The pitch prerenders through the design system's prerenderSite, keeping only its twin converter and its two-sitemap robots.txt, with byte-identical output.

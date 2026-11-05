@@ -175,19 +175,16 @@ downloads and repository visitors is measured.
 
 ### §RK1729 Both sites on the package's build
 
-RK1714 moved both sites' chrome onto `./site`; what it left is the build step and the
-registry.
+The pitch prerenders through the design system's `prerenderSite` (VDS215), keeping only
+its `markdown.mjs` converter and a `robots.txt` naming the docs sitemap; its output was
+byte-identical.
 
-**The prerender.** `site/scripts/prerender.mjs` and `gui/site/scripts/prerender.mjs`
-each render the routes, patch the head by replace-or-throw, write the Markdown twin, the
-manifest, the sitemap and robots. The design system's `./vite` entry ships
-`prerenderSite` and `lastAuthoredChange` (VDS215) for exactly this, and claude-tray's
-site lists `./vite` among its entries. Move both scripts onto it, keeping each site's
-own `markdown.mjs` converter and the assertions in `scripts/prerender.test.mjs`; the
-gui's social card can take `renderOgCard` from the same entry in place of
-`scripts/og-image.mjs`. Read `prerenderSite`'s options before starting: a twin converter
-or a manifest field it has no hook for is the open question, and it is answered in the
-design system, not by keeping a private copy.
+**The gui landing** (`gui/site/scripts/prerender.mjs`) cannot follow yet: its head
+carries `<link rel="alternate" type="text/markdown">` per route, and `prerenderSite` has
+no hook for it. Patching the HTML afterwards would leave the manifest's byte counts
+stale. The hook belongs in the design system (an option that adds head tags per route);
+then the gui moves the same way, and its social card can take `renderOgCard` from
+`./vite` in place of `scripts/og-image.mjs`.
 
 **The registry**, outside this repository and committed there: the design system's
 `consumers.json` gains both sites (`chrome: "product-site"`, `tone: "cool"`, accent
@@ -195,6 +192,5 @@ amber, entries `./site`, `./site.css`, `./tokens.css`, `./vite`), and the hub's
 `projects.json` changes roadkeep from slate `148,163,184` to the amber the pitch uses,
 `245,158,11`.
 
-Done when neither site has a prerender script of its own beyond what `prerenderSite`
-cannot do, both tests still pass on the built output, and both registries name both
-sites.
+Done when the gui has no prerender of its own beyond what `prerenderSite` cannot do,
+both sites' tests pass on the built output, and both registries name both sites.
