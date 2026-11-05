@@ -55,7 +55,7 @@
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
-- 📋 **RK1717** (deps: —) **The README has never been held to the five-second first-screen test the visibility repository applies** — The README is also the PyPI page and the first page a Claude Code user reads, and visibility judges each product's first screen by what it does, why and how to install. → §RK1717
+- 📋 **RK1717** (deps: —) (requires: decision) **The README has never been held to the five-second first-screen test the visibility repository applies** — The README is the PyPI page and a Claude Code user's first read, and visibility judges a first screen by what it does, why and how to install. → §RK1717
 
 ## Block J — Validation (whether a person ever tried it)
 

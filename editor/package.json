@@ -2,7 +2,7 @@
   "name": "roadkeep",
   "displayName": "roadkeep",
   "description": "The backlog this workspace governs, read by the command that owns it.",
-  "version": "0.2.553",
+  "version": "0.2.554",
   "publisher": "alegauss",
   "license": "MIT",
   "engines": {

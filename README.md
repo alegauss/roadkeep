@@ -234,7 +234,7 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 
 **Next ready:**
 
-- 📋 **RK1717** (deps: —) **The README has never been held to the five-second first-screen test the visibility repository applies** — The README is also the PyPI page and the first page a Claude Code user reads, and visibility judges each product's first screen by what it does, why and how to install. → §RK1717
+- 📋 **RK1718** (deps: —) **A defer refused for length blames the line's structure and names a budget read that does not price the reason** — The reason is the only field the caller writes, and budget --defer already knows its room, so the refusal sends the caller guessing twice. → §RK1718
 <!-- roadkeep:end -->
 
 Open work is in
