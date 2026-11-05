@@ -108,31 +108,6 @@ line round-trips through amend and ship.
 
 ## Block E — Adoption
 
-### §RK1726 init offers everything the tool can set up
-
-`init` writes `roadkeep.toml`, the roadmap, the ledger and the rationale file.
-Everything else is a separate command found only by reading help: `--strategy` and
-`--deferred` are flags nobody is shown, and the plugin surfaces, the vendored engine,
-the merge driver and the CI gate are `install`, `install --vendor`, `merge --register`
-and a workflow `install` writes only where `.github/workflows` exists. Stopping after
-`init` leaves no guard, no merge driver and no gate, silently.
-
-The change: `init` offers every wiring step the tool has, and runs the chosen ones in
-its existing all-or-nothing transaction:
-
-- the optional roles strategy and deferred. Not decisions: RK1269 keeps it out of every
-  scaffold, so the report names `declare decisions`;
-- the plugin wiring: none (the plugin is installed), `install`, `install --committed`,
-  or `install --vendor`;
-- the merge driver, as `merge --register` writes it, with the `git config` line printed;
-- the gate: `install`'s workflow, creating the directory when asked; a pre-commit hook
-  has no writer, so the README's snippet is printed.
-
-Each option is the existing verb, called, never a second copy of what it writes.
-Defaults stay minimal for a non-interactive call, so a script that runs `init` today
-writes the same bytes. The report ends with what was not chosen and the command that
-adds it later.
-
 ### §RK1727 A prefix derived from the repository name
 
 `init` without `--prefix` mints `RK`, this repository's own prefix. Every project

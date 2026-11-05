@@ -28,6 +28,7 @@ import tempfile
 
 from roadkeep.adopting import (
     OPT_IN,
+    Created,
     NoSuchTable,
     declare_table,
     DEFERRED_ROLE,
@@ -119,7 +120,67 @@ def _init(config: Config, args: argparse.Namespace) -> Result | int:
     except (ValueError, OSError) as error:
         return _refused(error)
 
-    return Result(created.payload(args.directory), created.stated())
+    return _wired(created, args)
+
+
+def _wired(created: Created, args: argparse.Namespace) -> Result | int:
+    """The scaffold, and each wiring step the caller chose run through its own verb (RK1726).
+
+    Every option is the existing verb, called — `install`, its `--committed` and `--vendor`,
+    and the merge driver — never a second copy of what they write. Run after the scaffold has
+    landed, because each reads the configuration the scaffold wrote; a step that refuses leaves
+    the scaffold standing and says which step it was, with the verb that retries it. What was
+    chosen leaves the report's `not set` rows, so the list that ends the answer is exactly what
+    is still undone.
+    """
+    from dataclasses import replace  # noqa: PLC0415 - this branch's own
+    from pathlib import Path  # noqa: PLC0415
+
+    installing = bool(args.install or args.gate)
+    if not (installing or args.merge):
+        return Result(created.payload(args.directory), created.stated())
+    done = {"install"} if installing else set()
+    if args.merge:
+        done.add("merge")
+    created = replace(
+        created, left=tuple(one for one in created.left if one[1][0] not in done)
+    )
+    said: list[str] = []
+    payload: dict[str, object] = {}
+    try:
+        if args.gate:
+            # The one thing `install` will not decide for a project: whether it has CI. Asked
+            # here by the flag, so the workflow is written rather than reported as skipped.
+            Path(args.directory, ".github", "workflows").mkdir(parents=True, exist_ok=True)
+        if installing:
+            pinned = vendor(args.directory) if args.install == "vendor" else None
+            source = None if pinned is None else _vendored_source(pinned, False)
+            wiring = install(
+                args.directory,
+                source=source,
+                register_merge=args.merge,
+                committed=args.install == "committed",
+            )
+            said.append(wiring.stated(False))
+            payload["wired"] = wiring.payload(False)
+            if pinned is not None:
+                said.append(pinned.stated(False))
+                payload["vendored"] = pinned.payload()
+        else:
+            from roadkeep.merging import register, registration_report  # noqa: PLC0415
+
+            config = Config.discover(args.directory)
+            registration = register(config)
+            said.extend(
+                registration_report(registration, config.relative(registration.attributes), 0)
+            )
+    except (ValueError, OSError) as error:
+        print(created.stated(), file=sys.stderr)
+        return _refused(error)
+    return Result(
+        {**created.payload(args.directory), **payload},
+        "\n".join([created.stated(), *said]),
+    )
 
 
 def _declare(config: Config, args: argparse.Namespace) -> Result | int:
@@ -893,6 +954,30 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
             "them, and scaffold only the rest: the door onto a repository whose backlog "
             "somebody kept by hand. The prefix is read off the ids the roadmap carries and "
             "the blocks off its headings, unless --prefix or --block says otherwise"
+        ),
+    )
+    init_parser.add_argument(
+        "--install",
+        nargs="?",
+        const="plain",
+        choices=("plain", "committed", "vendor"),
+        help=(
+            "wire the session too, through `install` once the scaffold lands: bare for the "
+            "hook, skill and server, `committed` for the wiring a clone carries, `vendor` for "
+            "an engine copied into the project"
+        ),
+    )
+    init_parser.add_argument(
+        "--merge",
+        action="store_true",
+        help="register the merge driver too, as `merge --register` writes it",
+    )
+    init_parser.add_argument(
+        "--gate",
+        action="store_true",
+        help=(
+            "create .github/workflows and wire the CI gate into it, as `init --install --gate` "
+            "would: the gate is a file the install step writes"
         ),
     )
     init_parser.add_argument("--json", action="store_true", help=_JSON_HELP)

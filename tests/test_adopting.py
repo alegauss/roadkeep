@@ -3312,3 +3312,23 @@ def test_the_identity_table_is_refused_once_it_is_open(tmp_path: Path, capsys) -
     capsys.readouterr()
     assert main([*where, "declare", "project"]) == EXIT_USAGE
     assert "already declares [project]" in capsys.readouterr().err
+
+
+def test_one_init_with_every_option_yields_a_tree_the_checks_pass_on(tmp_path, capsys) -> None:
+    """RK1726. A working setup was `init` and then four commands nobody was shown. Each option
+    here is the existing verb, called, so what lands is what that verb writes — and the tree it
+    leaves is one `lint` and `install --check` both accept."""
+    from conftest import git_init
+
+    git_init(tmp_path)
+    assert main(["-C", str(tmp_path), "init", "--install", "--merge", "--gate"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert (tmp_path / ".mcp.json").is_file()
+    assert (tmp_path / ".github" / "workflows" / "roadkeep.yml").is_file()
+    assert "merge=roadkeep" in (tmp_path / ".gitattributes").read_text(encoding="utf-8")
+    # Only what was not chosen is still named as left to do.
+    assert "not set  the guard" not in said
+    assert "not set  the merge driver" not in said
+    assert "declare decisions" in said
+    assert main(["-C", str(tmp_path), "lint"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "install", "--check"]) == EXIT_OK
