@@ -25,7 +25,7 @@
 ## Block A — The model (a task is data before it is a line)
 
 - 📋 **RK1723** (deps: —) (requires: decision) **A line filed from another project reads exactly like one filed at home** — An agent filing into Turing from Dumont saw the symptom and not the product, and nothing tells Turing which lines still need its own analysis. → §RK1723
-- 📋 **RK1724** (deps: RK1716 ✅) **Shipping a task says nothing about the sibling tasks it unblocks** — When Turing ships what Dumont waits on, the user still has to tell Dumont's agent, because only its next pick would find out. → §RK1724
+- ⏳ **RK1724** (deps: RK1716 ✅) **Shipping a task says nothing about the sibling tasks it unblocks** — A sibling's session start still says nothing about a ready line whose foreign dep shipped, so its agent learns only from pick. → §RK1724
 
 ## Block B — Authoring (insert, never hand-edit)
 
@@ -153,6 +153,11 @@
 - **One init wires every option, and none writes today's bytes** An init with every
   option yields a tree where lint, install --check and merge --check pass; an init with
   none writes what it writes today.
+
+## Done when — RK1724
+
+- **The sibling's session start names the unblock** A session start in the sibling names
+  each ready line whose foreign dep shipped, from a path or the cache and never a fetch.
 
 ## Non-goals
 

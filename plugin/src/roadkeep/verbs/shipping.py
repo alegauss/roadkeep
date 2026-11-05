@@ -15,10 +15,11 @@ from __future__ import annotations
 
 import argparse
 import sys
+from dataclasses import replace
 from collections.abc import Sequence
 
 from roadkeep.authoring import Neighbours
-from roadkeep.backlog import Backlog, Stage
+from roadkeep.backlog import Backlog, Stage, unblocked_elsewhere
 from roadkeep.config import Config
 from roadkeep.kernel.document import declares, shading
 from roadkeep.ranking import NEAREST, claim, nearest
@@ -98,7 +99,21 @@ def _ship(config: Config, args: argparse.Namespace) -> Result | int:
         # entry already was.
         return _closed(config, shipment, args, wrote)
 
-    return answered(shipment, config=config, wrote=wrote)
+    return _next_door(config, args.id, answered(shipment, config=config, wrote=wrote))
+
+
+def _next_door(config: Config, shipped: str, result: Result) -> Result:
+    """The answer, with each sibling line this ship unblocked named under it (RK1724).
+
+    After the save, and offline: the command still holds this checkout's write lock, so what
+    is read is other repositories' checkouts and never a remote — a fetch here would be a wait
+    every other writer pays, and one past `STALE` would get the lock reaped. Silent where
+    nothing waited, and the key is always there, so a caller tells *none* from *not asked*.
+    """
+    unblocked = unblocked_elsewhere(config, shipped)
+    fields = {**result.fields, "unblocks": list(unblocked)} if isinstance(result.fields, dict) else result.fields
+    said = result.said + "".join(f"\n  unblocks {one}" for one in unblocked)
+    return replace(result, fields=fields, said=said)
 
 
 def _partly(config: Config, partial: Partial, args: argparse.Namespace) -> Result | int:

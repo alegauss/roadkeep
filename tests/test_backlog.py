@@ -1158,3 +1158,50 @@ def test_lint_never_fetches(tmp_path, monkeypatch):
 
     lint(_remote_only(tmp_path, remote))
     assert not cache.exists()
+
+
+# -- what a ship unblocks next door (RK1724) ------------------------------------------
+
+
+def _governed(root: Path, prefix: str, projects: str) -> None:
+    root.mkdir(parents=True, exist_ok=True)
+    (root / "roadkeep.toml").write_text(
+        f'prefix = "{prefix}"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        f'improvements = "IMPROVEMENTS.md"\n[projects]\n{projects}',
+        encoding="utf-8",
+    )
+    (root / "ROADMAP.md").write_text("## Block A — The model\n", encoding="utf-8")
+    (root / "CHANGELOG.md").write_text("## Block A — The model\n", encoding="utf-8")
+    (root / "IMPROVEMENTS.md").write_text(
+        "# Improvements\n\n## Block A — The model\n", encoding="utf-8"
+    )
+
+
+def test_a_ship_names_the_sibling_line_it_unblocked_and_writes_nothing_there(tmp_path, capsys):
+    turing, dumont = tmp_path / "turing", tmp_path / "dumont"
+    _governed(turing, "T", 'dumont = "../dumont"\n')
+    _governed(dumont, "D", 'turing = "../turing"\n')
+    for root, deps in ((turing, []), (dumont, ["--dep", "turing: T1"])):
+        assert main(
+            ["-C", str(root), "add", "--block", "A", "--symptom", "A symptom",
+             "--why", "Because of a reason.", "--section", "A design",
+             "--section-body", "The design.", *deps]
+        ) == EXIT_OK
+    before = {p.name: p.read_bytes() for p in dumont.iterdir()}
+    capsys.readouterr()
+    assert main(["-C", str(turing), "ship", "T1", "--why", "It works now."]) == EXIT_OK
+    assert "unblocks dumont: D1" in capsys.readouterr().out
+    assert {p.name: p.read_bytes() for p in dumont.iterdir()} == before
+
+
+def test_a_ship_nothing_waited_on_says_nothing_and_publishes_an_empty_list(tmp_path, capsys):
+    turing, dumont = tmp_path / "turing", tmp_path / "dumont"
+    _governed(turing, "T", 'dumont = "../dumont"\n')
+    _governed(dumont, "D", 'turing = "../turing"\n')
+    assert main(
+        ["-C", str(turing), "add", "--block", "A", "--symptom", "A symptom",
+         "--why", "Because of a reason.", "--section", "A design", "--section-body", "The design."]
+    ) == EXIT_OK
+    capsys.readouterr()
+    assert main(["-C", str(turing), "ship", "T1", "--why", "It works now.", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["unblocks"] == []

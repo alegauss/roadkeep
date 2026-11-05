@@ -969,6 +969,55 @@ def _read(root: Path) -> Backlog | str:
     return backlog
 
 
+def unblocked_elsewhere(config: Config, shipped: str) -> tuple[str, ...]:
+    """Each sibling's open line that this ship just satisfied, as `<sibling>: <id>` (RK1724).
+
+    Read and never written: each project stays the only writer of its own files, so what a ship
+    here can do for Dumont is say so — Dumont's own `pick` finds the unblock either way. From
+    checkouts only, never a fetch: this runs at the end of a write, and a network call there is
+    a wait every other writer would pay. A sibling names this project by declaring it in its own
+    `[projects]` at this checkout's path, which is the only name its deps can spell.
+    """
+    found: list[str] = []
+    with offline():
+        for declared in config.projects:
+            other = _sibling(declared)
+            if isinstance(other, str):
+                continue
+            names = {
+                one.name
+                for one in other.config.projects
+                if one.path is not None and one.path == config.root
+            }
+            if not names:
+                continue
+            for entry in other.roadmap.entries:
+                for dep in entry.task.deps:
+                    spelled = _SIBLING.match(dep.id)
+                    if spelled is None or spelled["name"] not in names:
+                        continue
+                    if not _covers(config, spelled["what"].strip(), shipped):
+                        continue
+                    if other.resolve_dep(dep).status is DepStatus.SHIPPED:
+                        found.append(f"{declared.name}: {entry.task.id}")
+                        break
+    return tuple(found)
+
+
+def _covers(config: Config, what: str, shipped: str) -> bool:
+    """Whether a sibling's dep text names this id: the id itself, or a range holding it."""
+    if what == shipped:
+        return True
+    schema = config.schema
+    named = Dep(what)
+    bounds = schema.range_of_dep(named)
+    family = schema.family_of_dep(named)
+    if bounds is None or family is None:
+        return False
+    number = number_of(shipped, schema, family)
+    return number is not None and bounds[0] <= number <= bounds[1]
+
+
 #: The roles a dep's answer is read from: open, shipped, set aside, ruled out.
 _READ_ROLES = ("roadmap", "changelog", "deferred", "dismissed")
 
