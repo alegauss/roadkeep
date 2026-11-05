@@ -52,7 +52,7 @@
 
 ## Block L — Product sites on the package
 
-- ⏳ **RK1729** (deps: —) **Both product sites run a prerender script of their own, and neither is registered with the design system** — The gui landing writes a markdown alternate link prerenderSite has no hook for; consumers.json and the hub's accent still miss both sites. → §RK1729
+- ⏳ **RK1729** (deps: a per-route head hook in prerenderSite) **Both product sites run a prerender script of their own, and neither is registered with the design system** — The gui writes a markdown alternate link prerenderSite has no hook for; consumers.json and the hub's accent still miss both sites. → §RK1729
 
 ## Done when — Block D
 

@@ -231,10 +231,6 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 1 | 2 | 0 |
 | **Total** | 4 | 1200 | 24 |
-
-**Next ready:**
-
-- ⏳ **RK1729** (deps: —) **Both product sites run a prerender script of their own, and neither is registered with the design system** — The gui landing writes a markdown alternate link prerenderSite has no hook for; consumers.json and the hub's accent still miss both sites. → §RK1729
 <!-- roadkeep:end -->
 
 Open work is in
