@@ -51,7 +51,9 @@ def project(tmp_path: Path) -> Path:
 def seize(root: Path, *, age: float = 0.0) -> Path:
     """Another process's lock, as it would be on disk — optionally already old."""
     target = lock_path(root)
-    target.write_text("pid 999999 at 1.0\n", encoding="utf-8")
+    # A pid that is running, or the lock would be reaped as its holder's death (RK1719): this
+    # process's own, which is alive for as long as the test asks and owns no claim of it.
+    target.write_text(f"pid {os.getpid()} at 1.0\n", encoding="utf-8")
     if age:
         when = time.time() - age
         os.utime(target, (when, when))
@@ -104,12 +106,51 @@ def test_the_refusal_names_the_file_to_delete(tmp_path):
         with exclusive(tmp_path):
             pass
     assert str(lock_path(tmp_path)) in str(refused.value)
-    assert "pid 999999" in str(refused.value)
+    assert f"pid {os.getpid()}" in str(refused.value)
+
+
+def _finished_pid() -> int:
+    """The pid of a process that has already exited, as a killed holder's would be."""
+    import subprocess
+    import sys
+
+    done = subprocess.Popen([sys.executable, "-c", "pass"])
+    done.wait()
+    return done.pid
+
+
+def test_a_lock_whose_holder_died_is_taken_on_the_next_write_and_said(tmp_path, capsys, monkeypatch):
+    """RK1719. Judged by age alone, a killed holder was waited on as if it were writing and every
+    write for a minute refused. Fresh, so only the pid can say it is abandoned."""
+    monkeypatch.setattr(locking, "STALE", 3600.0)
+    target = lock_path(tmp_path)
+    target.write_text(f"pid {_finished_pid()} at 1.0\n", encoding="utf-8")
+    with exclusive(tmp_path) as held:
+        assert held.read_text(encoding="utf-8").startswith(f"pid {os.getpid()}")
+    assert "no longer running" in capsys.readouterr().err
+
+
+def test_a_live_holder_is_still_refused_and_the_refusal_names_its_age(tmp_path):
+    seize(tmp_path, age=2.0)
+    with pytest.raises(LockBusy) as refused:
+        with exclusive(tmp_path):
+            pass
+    said = str(refused.value)
+    assert "held the lock 2s" in said
+    assert f"abandoned at {locking.STALE:.0f}s" in said
+
+
+def test_a_lock_naming_no_pid_keeps_the_age_rule(tmp_path):
+    """Nothing to ask about, so nothing shortens the wait: a fresh lock is still refused."""
+    lock_path(tmp_path).write_text("written by something else\n", encoding="utf-8")
+    with pytest.raises(LockBusy):
+        with exclusive(tmp_path):
+            pass
 
 
 def test_a_lock_nobody_released_is_reaped_by_age_and_the_waiter_proceeds(tmp_path):
-    # The holder may have been killed, and there is no portable way to ask whether a pid is
-    # alive. A lock nobody will ever release is an unusable checkout, so age decides.
+    # The holder may still be running for all this can tell — which is the case age decides
+    # (RK1719): a lock nobody will ever release is an unusable checkout.
     seize(tmp_path, age=locking.STALE * 3)
     with exclusive(tmp_path) as held:
         assert held.exists()
@@ -140,7 +181,7 @@ def test_a_holder_that_was_reaped_does_not_delete_the_next_holders_lock(tmp_path
     with exclusive(tmp_path) as held:
         held.unlink()
         seize(tmp_path)  # somebody reaped ours and took their own
-    assert lock_path(tmp_path).read_text(encoding="utf-8").startswith("pid 999999")
+    assert lock_path(tmp_path).read_text(encoding="utf-8").startswith(f"pid {os.getpid()}")
 
 
 # -- what the commands do with it --------------------------------------------

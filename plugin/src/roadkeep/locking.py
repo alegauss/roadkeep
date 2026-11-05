@@ -21,11 +21,14 @@ Three things this is not:
   An editor, a `git checkout` or a hand edit takes nothing — those are :class:`StaleFile`'s
   subject (RK116), and the two mechanisms are complementary rather than alternatives.
 * **Not waited on forever.** The holder may have been killed, and a lock nobody will ever
-  release is an unusable checkout. There is no portable way to ask whether a pid is alive,
-  so abandonment is judged by **age**: past :data:`STALE` seconds the lock is reaped and the
-  waiter proceeds. The wait is much shorter than that, deliberately — a caller learns in
-  seconds that the checkout is busy, and only a lock old enough that no command could still
-  be running is taken away from whoever left it.
+  release is an unusable checkout. So the holder's pid is asked first (RK1719): a holder
+  that is not running is reaped at once and the caller is told so — `os.kill(pid, 0)` on
+  POSIX, `OpenProcess` and `GetExitCodeProcess` through `ctypes` on Windows, where
+  `os.kill` would terminate the process it asks about. Where that answer is unknown (no
+  permission, no pid in the file) abandonment is judged by **age**: past :data:`STALE`
+  seconds the lock is reaped and the waiter proceeds. The wait is much shorter than that,
+  deliberately — a caller learns in seconds that the checkout is busy, and only a lock old
+  enough that no command could still be running is taken away from a holder that may live.
 """
 
 from __future__ import annotations
@@ -33,6 +36,8 @@ from __future__ import annotations
 import contextlib
 import hashlib
 import os
+import re
+import sys
 import tempfile
 import time
 from collections.abc import Iterator
@@ -63,17 +68,24 @@ class LockBusy(RuntimeError):
     """Another roadkeep process is writing to this checkout and did not finish (RK117).
 
     Reported and never worked around: proceeding is the duplicate id this exists to stop.
-    Names the file, because a lock whose holder died is deleted by hand in the one case the
-    age rule is too slow for.
+    Raised only about a holder that is running or could not be asked, since a dead one is
+    reaped before this is reached (RK1719) — so it says how long the lock has been held and
+    when the age rule would take it, which is the answer to *wait, or delete it?*
     """
 
-    def __init__(self, path: Path, holder: str = "") -> None:
+    def __init__(self, path: Path, holder: str = "", held: float | None = None) -> None:
         self.path = path
         self.holder = holder
+        self.held = held
         who = f" ({holder})" if holder else ""
+        age = (
+            f"; it has held the lock {held:.0f}s and is read as abandoned at {STALE:.0f}s"
+            if held is not None
+            else ""
+        )
         super().__init__(
             f"another roadkeep process is writing to this checkout{who} and did not "
-            f"release its lock within {WAIT:.0f}s — re-run the command, or delete "
+            f"release its lock within {WAIT:.0f}s{age} — re-run the command, or delete "
             f"{path} if nothing is running"
         )
 
@@ -147,11 +159,22 @@ def _claim(target: Path) -> str:
         try:
             handle = os.open(target, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
         except FileExistsError:
+            holder = _holder(target)
+            if _alive(_pid(holder)) is False:
+                # Gone, so nothing can still be writing: reaped now rather than waited on for
+                # the minute the age rule would take, and said, because a lock vanishing
+                # under a caller is a thing to know happened.
+                _reap(target)
+                sys.stderr.write(
+                    f"roadkeep: took the write lock {holder or 'left'} held, whose process "
+                    f"is no longer running\n"
+                )
+                continue
             if _abandoned(target):
                 _reap(target)
                 continue
             if time.monotonic() >= deadline:
-                raise LockBusy(target, _holder(target)) from None
+                raise LockBusy(target, holder, _age(target)) from None
             time.sleep(POLL)
             continue
         with os.fdopen(handle, "w", encoding="utf-8") as writer:
@@ -175,6 +198,74 @@ def _holder(target: Path) -> str:
         return target.read_text(encoding="utf-8").strip()
     except OSError:
         return ""
+
+
+#: The pid a token names, as :func:`_token` spells it.
+_PID = re.compile(r"^pid (\d+) at ")
+
+
+def _pid(holder: str) -> int | None:
+    found = _PID.match(holder)
+    return int(found.group(1)) if found else None
+
+
+def _alive(pid: int | None) -> bool | None:
+    """Whether a process with this pid is running: True, False, or None where it cannot tell.
+
+    None is the answer that keeps the age rule, so this only ever shortens a wait. Never
+    `os.kill` on Windows — there it terminates the process rather than asking about it.
+    """
+    if pid is None or pid <= 0:
+        return None
+    if pid == os.getpid():
+        return True
+    if os.name == "nt":
+        return _alive_windows(pid)
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True  # it exists, and belongs to somebody else
+    except OSError:
+        return None
+    return True
+
+
+def _alive_windows(pid: int) -> bool | None:
+    import ctypes  # noqa: PLC0415 - Windows only, and stdlib
+    from ctypes import wintypes  # noqa: PLC0415
+
+    query = 0x1000  # PROCESS_QUERY_LIMITED_INFORMATION
+    still_active = 259
+    invalid_parameter = 87  # no process has this pid
+    try:
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel32.OpenProcess.argtypes = (wintypes.DWORD, wintypes.BOOL, wintypes.DWORD)
+        kernel32.OpenProcess.restype = wintypes.HANDLE
+        kernel32.GetExitCodeProcess.argtypes = (wintypes.HANDLE, ctypes.POINTER(wintypes.DWORD))
+        kernel32.GetExitCodeProcess.restype = wintypes.BOOL
+        kernel32.CloseHandle.argtypes = (wintypes.HANDLE,)
+        handle = kernel32.OpenProcess(query, False, pid)
+        if not handle:
+            return False if ctypes.get_last_error() == invalid_parameter else None
+        try:
+            code = wintypes.DWORD()
+            if not kernel32.GetExitCodeProcess(handle, ctypes.byref(code)):
+                return None
+            return code.value == still_active
+        finally:
+            kernel32.CloseHandle(handle)
+    except (OSError, AttributeError):
+        return None
+
+
+def _age(target: Path) -> float | None:
+    """How long the lock on disk has existed, or None if it is gone."""
+    try:
+        return max(0.0, time.time() - target.stat().st_mtime)
+    except OSError:
+        return None
 
 
 def _abandoned(target: Path) -> bool:

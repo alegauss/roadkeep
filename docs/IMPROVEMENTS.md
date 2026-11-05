@@ -253,28 +253,6 @@ names no option the list does not carry.
 
 ## Block F — The plugin
 
-### §RK1719 A lock whose holder died
-
-The write lock (`locking.py`) records `pid N at T` and is judged abandoned by age alone:
-a waiter gives up after `WAIT` (5s) and the lock is reaped only past `STALE` (60s). The
-module says there is no portable way to ask whether a pid is alive, so a holder that was
-killed is waited on as if it were writing, and every write in that minute is refused.
-
-The line was filed as "blocked until deleted by hand" with a truncated refusal. Neither
-holds: the age rule clears it within a minute, and `LockBusy` reaches both the terminal
-and the MCP answer whole, naming the holder and the file, since before it was filed.
-
-The change: before waiting, read the holder's pid and ask whether it lives. On POSIX,
-`os.kill(pid, 0)`; on Windows, `OpenProcess` and `GetExitCodeProcess` through `ctypes`,
-which keeps zero runtime deps. Never `os.kill` on Windows: it terminates the process. A
-dead holder is reaped at once and the output says so. Where the answer is unknown (no
-permission, a pid reused), the age rule stands, so this only ever shortens the wait. The
-refusal for a live holder adds how long the lock has been held and when it would be
-reaped.
-
-Done when a lock left by a killed process is taken on the next write on both platforms,
-a live holder is still waited on and refused, and the refusal names the age.
-
 ### §RK1725 Filing into a sibling project
 
 An agent in Dumont that meets a Turing defect files it in Turing. Each friction skill

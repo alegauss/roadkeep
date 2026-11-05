@@ -1146,6 +1146,7 @@
 - ✅ **RK1706** **a line's requires can be replaced but never cleared, so a need a person met stays on the line** — amend --drop-requires takes a met need off a line, over the CLI and the tools alike, and dropping the last word clears the group so pick offers the line again.
 - ✅ **RK1709** **anchors --next names no free top-level when a family is not one numbering** — anchors names each numbering's free top-level with its family count where they differ, and a trailing colon no longer reads as a namespace (design recorded in `plugin/src/roadkeep/history.py`).
 - ✅ **RK1711** **section add --role strategy refuses every anchor on a fresh init --strategy scaffold, and its remedy is the refused call** — An id project's prose takes a non-id top-level anchor before the first block, so a scaffolded strategy file opens (design recorded in `plugin/src/roadkeep/sections.py`).
+- ✅ **RK1719** **A lock whose holder died refuses every write for up to a minute, until its age reaps it** — A lock whose holder process is gone is taken on the next write and said so, on POSIX and Windows; a live holder is still refused, with how long it has held the lock.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

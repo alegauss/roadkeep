@@ -223,18 +223,18 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | C — Query (consult without reading the file) | 1 | 204 | 7 |
 | D — The gate | 0 | 319 | 7 |
 | E — Adoption | 4 | 123 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 167 | 4 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 168 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 1 | 21 | 0 |
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 1 | 1 | 0 |
-| **Total** | 11 | 1192 | 24 |
+| **Total** | 10 | 1193 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1719** (deps: —) **A lock whose holder died refuses every write for up to a minute, until its age reaps it** — Abandonment is judged by age alone, so a dead pid is waited on as if alive, and the refusal says neither how long the lock is held nor when it clears. → §RK1719
+- 📋 **RK1720** (deps: —) **A release still waits on a manual dispatch, so PyPI and the README's Action pin fall behind the plugin** — PyPI got 0.2.535 on 30/10 after two months at 0.2.0, the README still pins the Action at v0.2.0, and the next gap starts when nobody remembers again. → §RK1720
 <!-- roadkeep:end -->
 
 Open work is in
