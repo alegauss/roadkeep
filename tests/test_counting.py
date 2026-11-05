@@ -972,3 +972,41 @@ def test_without_the_flag_no_row_carries_a_date(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "list", "--json"]) == 0
     rows = json.loads(capsys.readouterr().out)["tasks"]
     assert all("proposed" not in row for row in rows)
+
+
+def test_an_extract_with_no_history_is_dated_by_the_bare_clone_it_came_from(tmp_path, capsys):
+    """The site runs roadkeep on a `git archive` extract, which has no history: the dates come
+    from the bare clone it was cut from, at the revision it was cut at — and say the same bytes
+    on every run, which is what lets the build's output be stamped by commit and not clock."""
+    import shutil
+
+    from conftest import git, git_commit, git_init
+    from roadkeep.cli import main
+
+    source = tmp_path / "source"
+    source.mkdir()
+    project(source, changelog=LEDGER.replace("RK0", "RK4"))
+    git_init(source)
+    sha = git_commit(source, "the backlog")
+    bare = tmp_path / "bare.git"
+    git(tmp_path, "clone", "--quiet", "--bare", str(source), str(bare))
+    extract = tmp_path / "extract"
+    extract.mkdir()
+    for name in ("roadkeep.toml", "ROADMAP.md", "CHANGELOG.md"):
+        shutil.copy2(source / name, extract / name)
+
+    argv = ["-C", str(extract), "list", "--dated", "--history", str(bare), "--at", sha]
+    assert main(argv) == 0
+    first = capsys.readouterr().out
+    assert main(argv) == 0
+    assert capsys.readouterr().out == first
+    rows = {row["id"]: row for row in json.loads(first)["tasks"]}
+    assert rows["RK1"]["proposed"]["commit"] == sha
+
+
+def test_where_the_dates_come_from_is_refused_without_the_dates(tmp_path, capsys):
+    from roadkeep.cli import main
+
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "list", "--at", "HEAD"]) != 0
+    assert "take --dated" in capsys.readouterr().err

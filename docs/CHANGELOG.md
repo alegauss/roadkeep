@@ -516,7 +516,7 @@
 - ✅ **RK1688** **`show` drops a path written as a bare filename, so a section naming five sprites reports none of them** — a quoted name with no directory is a path where exactly one tracked file carries it, so a section naming five sprites names five artefacts (design recorded in `src/roadkeep/showing.py`).
 - ✅ **RK1710** **non-goal list elides entries past twelve, and neither --json nor any flag prints the rest** — non-goal list --all prints every entry, --json always carries every lead and reason, and the elided count names the flag (design recorded in `plugin/src/roadkeep/briefing.py`).
 - ✅ **RK1712** **show refuses a deferred id and only names where it sits, so a paused line's section is read by grep** — show joins a paused line from the deferred store with its reason and the resume door, alone or among other ids; brief still refuses one (design recorded in `plugin/src/roadkeep/showing.py`).
-- ✅ **RK1722 (the dated listing)** **A ledger entry carries no date, so every site re-derives one from git by hand** — list --dated answers each line's proposing and shipping commit with its date, derived from git in one pass per file and the same date origin reports.
+- ✅ **RK1722** **A ledger entry carries no date, so every site re-derives one from git by hand** — list --dated answers each line's proposing and shipping commit and date, and --history <bare clone> --at <rev> dates a git archive extract that has no history of its own.
 
 ## Block D — The gate
 

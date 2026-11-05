@@ -687,13 +687,19 @@ def added_ids(config: Config, role: str) -> dict[str, str]:
     return {task_id: sha for task_id, (sha, _) in added_at(config, role).items()}
 
 
-def added_at(config: Config, role: str) -> dict[str, tuple[str, str]]:
+def added_at(
+    config: Config, role: str, *, git_dir: Path | None = None, rev: str | None = None
+) -> dict[str, tuple[str, str]]:
     """Which commit first added each id to one governed file, and when: id → (sha, date).
 
     The date is the author date in ISO 8601, which is what :func:`origin_of` reports, so a
     build reading every entry here and a person asking `origin <id>` are told one date
     (RK1722). Derived, never stored: "No dates or quarters" forbids a schedule, and a date
     written into the line would repeat what git holds (L2).
+
+    ``git_dir`` and ``rev`` answer for a tree with no history of its own (RK1722): a `git
+    archive` extract read beside the bare repository it came from, at the revision it was
+    extracted at. The file's path is the same relative to both, which is what an extract is.
 
     One `git log -U0` over the file, not one pickaxe per id: 69 ids is 69 processes, which
     is the difference between a query and a thing nobody runs twice. The trade is that this
@@ -706,8 +712,10 @@ def added_at(config: Config, role: str) -> dict[str, tuple[str, str]]:
         relative = config.path(role).relative_to(config.root)
     except ValueError:
         relative = config.path(role)
+    elsewhere = (f"--git-dir={git_dir}",) if git_dir is not None else ()
     output = _run(
         config.root,
+        *elsewhere,
         "log",
         "--reverse",
         f"--format={_RECORD}%H %aI",
@@ -718,6 +726,8 @@ def added_at(config: Config, role: str) -> dict[str, tuple[str, str]]:
         # repository's history was merged in — was added by no commit at all. Safe for an
         # ordinary branch merge, where the branch's own commit comes first and is kept.
         "--diff-merges=first-parent",
+        # A revision before the separator, never an option: a ref is the caller's word.
+        *((rev,) if rev else ()),
         "--",
         str(relative),
     )

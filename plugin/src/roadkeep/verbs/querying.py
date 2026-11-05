@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from roadkeep import attesting, claiming
@@ -206,6 +207,12 @@ def _list(config: Config, args: argparse.Namespace) -> Result | int:
     # in the verbatim lines stdout carries, so asking for one is asking for the JSON.
     if getattr(args, "dated", False):
         args.json = True
+    elif getattr(args, "history", None) or getattr(args, "at", None):
+        return _refused(
+            ValueError("--history and --at say where the dates come from, so they take --dated")
+        )
+    if (getattr(args, "at", None) or "").startswith("-"):
+        return _refused(ValueError(f"--at names a revision, and {args.at!r} reads as an option"))
     have = getattr(args, "have", ())
     try:
         census, standing = _census(config, args)
@@ -295,8 +302,15 @@ def _dated(config: Config, args: argparse.Namespace) -> dict[str, dict[str, obje
         return None
     from roadkeep.history import HistoryUnavailable, added_at  # noqa: PLC0415 - RK260
 
+    # Another repository's history, for a tree that has none (RK1722): a `git archive`
+    # extract read beside the bare clone it came from, at the revision it was cut at.
+    history = getattr(args, "history", None)
+    elsewhere = {"git_dir": Path(history).resolve() if history else None, "rev": args.at}
     try:
-        moments = {"proposed": added_at(config, "roadmap"), "shipped": added_at(config, "changelog")}
+        moments = {
+            "proposed": added_at(config, "roadmap", **elsewhere),
+            "shipped": added_at(config, "changelog", **elsewhere),
+        }
     except (HistoryUnavailable, OSError):
         return {}
     out: dict[str, dict[str, object]] = {}
@@ -1724,8 +1738,23 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
             "history"
         ),
     )
+    list_parser.add_argument(
+        "--history",
+        metavar="GIT_DIR",
+        help=(
+            "with --dated, read the dates from this repository instead of the tree's own — "
+            "for a `git archive` extract, which has none: the bare clone it was cut from"
+        ),
+    )
+    list_parser.add_argument(
+        "--at",
+        metavar="REV",
+        help="with --dated, the revision the dates are read at — the one the extract was cut at",
+    )
     withheld(
         list_parser,
+        history="a build's flag for an extract beside its bare clone; this transport serves a session working in a checkout, whose own history --dated already reads",
+        at="the same build's revision, and the same reason",
         dated='two git passes over two whole files, charged at connect for every session that never asks; a build reading dates runs the CLI, which is where that cost belongs',
         ids='how a terminal prints: the payload carries every id in `tasks`, so a caller over this transport already has what the flag composes',
         have='the caller on this transport is the one with no hands, which is what the split already assumes — and the flag `brief` and `pick` expose costs the connect budget a read that answers without it does not',

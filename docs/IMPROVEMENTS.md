@@ -127,31 +127,6 @@ D123 with no network call.
 
 ## Block C — Query
 
-### §RK1722 Dates a build can take from the answer
-
-`history` already resolves both moments of a task from git: the commit that added its id
-to the roadmap (proposed) and the one that added it to the ledger (shipped). `origin`
-asks one id at a time, but `history.added_ids` already reads a whole file in one `git
-log -U0` pass, sha only. alegauss.github.io's `scripts/fetch-records.mjs` keeps its own
-`shipDates` instead, a second reader of the format whose id pattern already misses a
-partial entry's `**RK1169 (…)**` qualifier, which `added_ids` reads.
-
-The date stays derived. "No dates or quarters" forbids a schedule; a date stored in the
-line would also cost characters everywhere, conflict on merges and repeat what git holds
-(L2). Derived, it survives a rebase and covers every entry already shipped.
-
-The change: `added_ids` carries the commit's date beside its sha, the same date `origin`
-reports, so the two reads never disagree. `list --json` and `export --json` carry
-`proposed` and `shipped` per task, each `{commit, date}`. Without git or history the
-fields are absent, so a caller can tell "never" from "cannot say".
-
-The site runs roadkeep on a `git archive` extract, which has no history, so it would
-always get the absent fields. The read must answer from a repository at a revision with
-no working tree, such as a bare clone and `--at <rev>`.
-
-Done when fetch-records.mjs can delete `shipDates` and its extract, two runs at one
-commit give identical bytes, and a tree without git answers with the fields absent.
-
 ## Block D — The gate
 
 ## Block E — Adoption
