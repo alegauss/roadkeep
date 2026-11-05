@@ -66,11 +66,13 @@ Use `run-commit.cmd -m "<conventional-commits title>"` from the repo root, **`-m
 ASCII. Without it, a docs commit's prose about already-shipped work is misread as `feat:
 implement <feature>` — the title is yours and only the body is generated.
 
-**It stages everything.** That is why a claim carries a **scope**: `claim <id> --path …` says
-what this commit owns, and `claim <id>` reads it back against the tree (RK280) — naming what
-some other session is holding, what no claim accounts for, and which ids moved inside a file
-this commit stages (RK1117, RK1120). Every write also **prints the `git add --` line** for
-what it wrote, projections included (RK298, RK1129, RK1130). Run that line, then commit.
+**Bare, it stages everything.** That is why a claim carries a **scope**: `claim <id> --path …`
+says what this commit owns, and `claim <id>` reads it back against the tree (RK280) — naming
+what some other session is holding, what no claim accounts for, and which ids moved inside a
+file this commit stages (RK1117, RK1120). Every write also **prints the `git add --` line**
+for what it wrote, projections included (RK298, RK1129, RK1130). Pass those paths, with the
+source and tests the task touched, after `--`: `run-commit.cmd -m "<title>" -- <paths>`
+stages only them, and `--staged` commits the index as it is.
 
 **Every commit bumps the patch version** (RK153). `.githooks/pre-commit` does it and never
 blocks; it is wired by `git config core.hooksPath .githooks`, which a fresh clone has to run.
@@ -82,8 +84,9 @@ blocks; it is wired by `git config core.hooksPath .githooks`, which a fresh clon
 rules in `gui/CLAUDE.md` — none of the above applies there. It stages by path, never through
 `run-commit.cmd`, because parallel sessions share this checkout. Two things cross the line:
 
-- **A commit here stages `gui/` too.** `run-commit.cmd` adds everything, so a `gui/` path in
-  `git status` that is not this task's is somebody's work in progress. Stage by path then.
+- **A bare commit here stages `gui/` too.** `run-commit.cmd` without `--` adds everything, so
+  a `gui/` path in `git status` that is not this task's is somebody's work in progress. Pass
+  this task's paths after `--` then.
 - **A verb change is a reader change.** `gui/` reads what the CLI prints, and
   `.github/workflows/gui.yml` runs its suite on every change under `src/` for that reason. Run
   `npm test` in `gui/` before committing a payload rename, not after CI reports it.
