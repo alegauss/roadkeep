@@ -1902,6 +1902,9 @@ FORESEEN: Mapping[str, tuple[str, ...]] = {
 #: table above unchanged — which is every code but this one.
 FORESEEN_BOUND: Mapping[tuple[str, str], tuple[str, ...]] = {
     ("why.too-long", "line"): ("budget", "<id>", "--why", "<draft>"),
+    # A pause's reason, the one field a `defer` writes (RK1718): `--symptom`/`--why` drafts
+    # price fields this call never touches, and `--defer` is the read that knows its room.
+    ("line.too-long", "line"): ("budget", "<id>", "--defer"),
 }
 
 

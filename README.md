@@ -219,7 +219,7 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 2 | 44 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 238 | 2 |
+| B — Authoring (insert, never hand-edit) | 0 | 239 | 2 |
 | C — Query (consult without reading the file) | 1 | 204 | 7 |
 | D — The gate | 0 | 319 | 7 |
 | E — Adoption | 4 | 123 | 1 |
@@ -230,11 +230,11 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 1 | 1 | 0 |
-| **Total** | 12 | 1191 | 24 |
+| **Total** | 11 | 1192 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1718** (deps: —) **A defer refused for length blames the line's structure and names a budget read that does not price the reason** — The reason is the only field the caller writes, and budget --defer already knows its room, so the refusal sends the caller guessing twice. → §RK1718
+- 📋 **RK1719** (deps: —) **A lock whose holder died refuses every write for up to a minute, until its age reaps it** — Abandonment is judged by age alone, so a dead pid is waited on as if alive, and the refusal says neither how long the lock is held nor when it clears. → §RK1719
 <!-- roadkeep:end -->
 
 Open work is in

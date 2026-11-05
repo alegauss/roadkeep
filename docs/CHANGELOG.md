@@ -299,6 +299,7 @@
 - ✅ **RK1708** **a ledger entry whose id the grammar rejects has no verb that corrects it, and its finding names one that refuses** — record amend --line <n> --body - rewrites a ledger line whose id the grammar refuses, and the finding on such a line now prints that door instead of one that refuses.
 - ✅ **RK1713** **no writing verb can be asked what it would write, so an agent probes a replace with a real write** — section amend --check runs every refusal and prints the prose as it would read, writing nothing, on the CLI and the served tool (design recorded in `plugin/src/roadkeep/sections.py`).
 - ✅ **RK1715** **block add opens a label the ledger already declares under another title** — block add refuses a label any governed file titles differently, writing nothing and offering the next free label as the retry; block list's door now carries the declared title.
+- ✅ **RK1718** **A defer refused for length blames the line's structure and names a budget read that does not price the reason** — A defer refused for length names the reason as the field to shrink, with the room budget --defer reports, and its foresee door is budget <id> --defer.
 
 ## Block C — Query
 

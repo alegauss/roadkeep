@@ -53,8 +53,11 @@ from roadkeep.kernel.schema import (
     PAUSED_OPEN,
     SchemaError,
     Task,
+    Violation,
     authored_why,
+    over_by,
     pause_reason,
+    width,
 )
 from roadkeep.sections import declaring
 
@@ -541,6 +544,29 @@ class Resumption:
         }
 
 
+def _reason_over(config: Config, paused: Task, reason: str) -> Violation:
+    """The line refused, said about the one field this call writes (RK1718).
+
+    The kernel's `line.too-long` says no field is over and *the structure* does not fit, which
+    is true of a line and false of this call: the symptom and the open line's `why` are carried
+    forward, so the reason is the only thing the caller can shrink. Measured in quickshell, a
+    147-character reason was refused that way, then a 66-character one, and only `budget
+    --defer` gave the number that mattered. So this states that number — the reason's room,
+    the line's overrun taken off what was typed, which is the arithmetic `reason_room` makes —
+    and the bound sends the refusal's door to the read that prices it.
+    """
+    schema = config.schema_for("deferred")
+    surplus = width(schema.render(paused)) - schema.line_max
+    room = max(0, width(reason) - surplus)
+    said = (
+        f"the reason is {over_by(width(reason), room)}, the room this line leaves it; "
+        f"the rest of the line is the symptom and the open line's why, carried forward"
+    )
+    if room == 0:
+        said += ", and they fill it alone, so it is the open line's why that has to shorten first"
+    return Violation("line.too-long", "reason", said, bound="line")
+
+
 def defer(config: Config, task_id: str, *, reason: str) -> Pause:
     """Move one open line to the store. Validates both edits before writing either.
 
@@ -588,7 +614,7 @@ def defer(config: Config, task_id: str, *, reason: str) -> Pause:
         if one.code == "line.too-long"
     ]
     if over:
-        raise SchemaError(tuple(over))
+        raise SchemaError((_reason_over(config, paused, reason),))
     insertion = place(store, paused, role="deferred", config=config)
     remaining = remove_entry(roadmap, entry)
     # And the queue entry, in the same rewrite (RK327). Worth naming apart from the two

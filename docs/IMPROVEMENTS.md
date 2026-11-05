@@ -125,24 +125,6 @@ D123 with no network call.
 
 ## Block B — Authoring
 
-### §RK1718 A defer refusal that hides the reason's room
-
-Found in quickshell on 2026-10-23, deferring QS373. A 147-character reason was refused
-with `line.too-long`: "the rendered line is 456 characters ... no field is over the
-budget this line left it, so what does not fit is the structure around them". The door
-it named was `budget --symptom <draft> --why <draft>`. A 66-character reason was then
-refused the same way at 348. Only `budget --id QS373 --defer` gave the number that
-mattered, `reason_room: 37`, because a deferred line carries the open line's why and
-wraps the reason inside it.
-
-So the refusal blames "the structure" when the field being written is the reason, and
-its door goes to a read that does not price that field.
-
-What to build: when `defer` (and `retire`, which wraps a reason the same way) is refused
-for line length, the message names the reason as the field that has to shrink, says how
-many characters it may take, which is the same `reason_room` that `budget --defer`
-already computes, and the door is `budget --id <id> --defer`.
-
 ## Block C — Query
 
 ### §RK1722 Dates a build can take from the answer

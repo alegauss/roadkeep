@@ -3946,6 +3946,24 @@ def test_the_figure_is_the_reason_defer_actually_accepts(tmp_path, capsys):
     assert main(["-C", root, "defer", "RK2", "--reason", "x" * room]) == EXIT_OK
 
 
+def test_the_refusal_names_the_reason_its_room_and_the_read_that_prices_it(tmp_path, capsys):
+    """RK1718. A defer refused for length blamed *the structure* and offered `budget --symptom
+    <draft> --why <draft>`, which prices two fields this call never writes; the reason's room
+    was a number only `budget --defer` gave. So the refusal states the same number, about the
+    field that has to shrink, and its door is that read."""
+    config = _with_store(tmp_path)
+    room = budget(config, "RK2", defer=True).reason_room
+    reason = "x" * (room + 7)
+    assert main(["-C", str(tmp_path), "defer", "RK2", "--reason", reason]) != EXIT_OK
+    said = capsys.readouterr().err
+    assert f"the reason is {room + 7} characters" in said
+    assert f"limit is {room}" in said
+    assert "delete 7 characters" in said
+    assert "structure around them" not in said
+    assert "budget RK2 --defer" in said or "budget <id> --defer" in said
+    assert "--symptom <draft>" not in said
+
+
 def test_the_state_word_names_the_store_and_not_the_ledger(tmp_path, capsys):
     """The printer said *the ledger line* about every departure, which was true while the only
     two wrote to the changelog. A pause's line goes to the store, under the store's grammar."""
