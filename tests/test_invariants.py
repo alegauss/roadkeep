@@ -1026,6 +1026,10 @@ CORPUS = (
 #: from it is what cost two reds, and no scan tells those apart. The reason is where the
 #: telling happens.
 READS_THE_CORPUS = {
+    "test_packaging.test_the_action_snippet_pins_the_tag_every_release_moves": (
+        "the README's Action snippet as text, which is a pin an adopter copies and no field "
+        "of any governed file — the assertion is about the characters on that line"
+    ),
     "test_exporting.test_this_repositorys_readme_is_current": (
         "the README as text, against the projection `export` writes into it — the assertion "
         "*is* about the characters, which is what makes it a comparison and not a guess"

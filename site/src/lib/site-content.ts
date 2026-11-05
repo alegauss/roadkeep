@@ -1061,7 +1061,7 @@ export const install = {
       lines: [
         [
           "- uses: ",
-          { g: "alegauss/roadkeep@v0.2.0" },
+          { g: "alegauss/roadkeep@v0" },
           " ",
           { c: "# the action this repo ships" },
         ],

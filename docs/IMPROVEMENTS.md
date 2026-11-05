@@ -156,33 +156,17 @@ commit give identical bytes, and a tree without git answers with the fields abse
 
 ## Block E — Adoption
 
-### §RK1720 Every version reaches PyPI without a dispatch
-
-PyPI and GitHub held v0.2.0, of 28/08/2026, until v0.2.535 was dispatched on 30/10, 45
-minutes after this line was filed. The habit is still the only trigger: the plugin is
-already ahead of that release, because the pre-commit hook bumps the patch on every
-commit, and the README pins the Action at `alegauss/roadkeep@v0.2.0`. The portfolio
-review of 30/10/2026 (visibility, `produtos/roadkeep.md`) found this is the first thing
-a Show HN commenter would hit.
-
-The design:
-
-- **No dispatch to remember.** A schedule (weekly, skipped when nothing changed since the newest tag) publishes from `main`. It publishes the `__version__` already committed: every commit's number is unique, so the dispatch path's bump-and-commit step is skipped, and a version that already has a tag is a no-op, not a PyPI refusal.
-- **The guards stay.** The same `build` job (gate, tests, wheel probe) runs first; only the trigger changes.
-- **A moving `v0` tag** follows each release, and the README pins the Action to `@v0`, so the snippet never goes stale again.
-- **The desktop installers** run on their own cadence: on 30/10 their suite failed on both runners after PyPI had published, so a release must not depend on them.
-
 ### §RK1726 init offers everything the tool can set up
 
 `init` writes `roadkeep.toml`, the roadmap, the ledger and the rationale file.
-Everything else a working setup needs is a separate command found by reading help:
-`--strategy` and `--deferred` are flags nobody is shown, and the plugin surfaces, the
-vendored engine, the merge driver and the CI gate are `install`, `install --vendor`,
-`merge --register` and a workflow `install` writes only where `.github/workflows`
-exists. Stopping after `init` leaves no guard, no merge driver and no gate, silently.
+Everything else is a separate command found only by reading help: `--strategy` and
+`--deferred` are flags nobody is shown, and the plugin surfaces, the vendored engine,
+the merge driver and the CI gate are `install`, `install --vendor`, `merge --register`
+and a workflow `install` writes only where `.github/workflows` exists. Stopping after
+`init` leaves no guard, no merge driver and no gate, silently.
 
 The change: `init` offers every wiring step the tool has, and runs the chosen ones in
-the same all-or-nothing transaction it already uses:
+its existing all-or-nothing transaction:
 
 - the optional roles strategy and deferred. Not decisions: RK1269 keeps it out of every
   scaffold, so the report names `declare decisions`;

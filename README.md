@@ -122,7 +122,7 @@ code is the whole contract, so every surface calls the same command:
 # .github/workflows/gate.yml — the action this repository ships
 steps:
   - uses: actions/checkout@v4
-  - uses: alegauss/roadkeep@v0.2.0      # with: {directory: .}
+  - uses: alegauss/roadkeep@v0      # with: {directory: .}
 
 # .pre-commit-config.yaml — the same command, one step earlier
 repos:
@@ -222,7 +222,7 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | B — Authoring (insert, never hand-edit) | 0 | 239 | 2 |
 | C — Query (consult without reading the file) | 1 | 204 | 7 |
 | D — The gate | 0 | 319 | 7 |
-| E — Adoption | 4 | 123 | 1 |
+| E — Adoption | 3 | 124 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 168 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
@@ -230,11 +230,11 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 1 | 1 | 0 |
-| **Total** | 10 | 1193 | 24 |
+| **Total** | 9 | 1194 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1720** (deps: —) **A release still waits on a manual dispatch, so PyPI and the README's Action pin fall behind the plugin** — PyPI got 0.2.535 on 30/10 after two months at 0.2.0, the README still pins the Action at v0.2.0, and the next gap starts when nobody remembers again. → §RK1720
+- 📋 **RK1722** (deps: —) **A ledger entry carries no date, so every site re-derives one from git by hand** — alegauss.github.io keeps its own git log parser to date each entry, a second reader of the ledger that origin answers only one id at a time. → §RK1722
 <!-- roadkeep:end -->
 
 Open work is in

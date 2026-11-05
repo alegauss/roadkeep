@@ -972,6 +972,7 @@
 - ✅ **RK1683** **an emoji is all `[project]` can point at, so a repository with a real logo has nowhere to name the file** — `project.logo` names a mark as a repository-relative path, refused for a climb, a backslash or a scheme, and never for a missing file (design recorded in `src/roadkeep/config.py`).
 - ✅ **RK1684** **`[files]` takes a path that climbs out of the project root, and its absolute-path refusal misses `/x` on Windows** — One reader holds both path keys: absolute is refused on either flavour and not on this one, and a climb out of the root is refused at all (design recorded in `src/roadkeep/config.py`).
 - ✅ **RK1705** **a launcher committed before RK1699 finds no engine in a roadkeep checkout, and its guard then stands down unsaid** — A launcher committed before RK1699 finds the engine again through a shim at the old path, and a SessionStart that reaches no engine now says the governed files are unguarded.
+- ✅ **RK1720** **A release still waits on a manual dispatch, so PyPI and the README's Action pin fall behind the plugin** — A weekly schedule publishes the version main already carries when it has no tag, the v0 tag follows every release, and the README pins the Action at @v0.
 
 ## Block F — The Claude Code plugin
 

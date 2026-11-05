@@ -133,6 +133,43 @@ def test_every_writer_of_the_number_stages_the_list_the_bumper_declares() -> Non
     assert set(staged.group(1).split()) == tracked
 
 
+def test_a_release_needs_no_dispatch_and_never_bumps_on_the_schedule() -> None:
+    """RK1720. PyPI held v0.2.0 for two months because a dispatch was the only trigger. The
+    weekly run publishes the number `main` already carries, so the bump and the commit stay on
+    the dispatch path alone, and a tagged version stops the run before the suite is paid for."""
+    release = RELEASE.read_text(encoding="utf-8")
+    assert re.search(r"^  schedule:\n    - cron: ", release, re.MULTILINE), (
+        "no schedule: a release still waits on somebody remembering"
+    )
+    assert re.search(r"^  build:\n(?:    .*\n)*?    needs: plan$", release, re.MULTILINE)
+    # Each step that bumps or commits is guarded to the dispatch path, never the schedule.
+    jobs = release[release.index("\njobs:") :]
+    code = "\n".join(one for one in jobs.splitlines() if not one.lstrip().startswith("#"))
+    steps = re.split(r"\n      - ", code)
+    for step in steps:
+        if "bump_version.py" in step or "git commit" in step:
+            guard = re.search(r"^\s*if: (.+)$", step, re.MULTILINE)
+            assert guard and "workflow_dispatch" in guard.group(1), step
+            assert "schedule" not in guard.group(1), step
+
+    def guard_of(job: str) -> str:
+        found = re.search(rf"^  {job}:\n(?:    .*\n)*?    if: (.+)$", release, re.MULTILINE)
+        assert found, job
+        return found.group(1)
+
+    assert "schedule" in guard_of("publish-pypi")
+    assert "schedule" not in guard_of("installers"), "installers must not hold back PyPI"
+
+
+def test_the_action_snippet_pins_the_tag_every_release_moves() -> None:
+    """RK1720. The README pinned `@v0.2.0` while the plugin was hundreds of patches ahead; `v0`
+    follows each release, so the snippet an adopter copies never goes stale."""
+    readme = (HERE / "README.md").read_text(encoding="utf-8")
+    assert "alegauss/roadkeep@v0 " in readme
+    assert "roadkeep@v0." not in readme
+    assert "git push -f origin v0" in RELEASE.read_text(encoding="utf-8")
+
+
 def clone_of_the_hook(root: Path) -> None:
     """The smallest checkout the hook runs in: the three files that state the number, the
     bumper they are written by, and the hook itself on `core.hooksPath`.

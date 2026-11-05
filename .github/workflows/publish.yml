@@ -9,6 +9,17 @@
 #   * Run manually, target=pypi -> bumps the version for real, commits it, tags it,
 #     publishes to PyPI and creates the GitHub Release.
 #   * Publishing a GitHub Release by hand -> publishes exactly that tag to PyPI.
+#   * Every week, on its own (RK1720) -> publishes the version `main` already carries. The
+#     pre-commit hook bumps the patch on every commit, so that number is already unique and
+#     nothing is bumped or committed here: the run tags it and publishes it. A version that
+#     already has a tag means nothing was committed since the last release, and the run stops
+#     at the plan rather than asking PyPI to refuse a number it has. PyPI held v0.2.0 for two
+#     months because a dispatch was the only trigger and nobody remembered it.
+#
+# Every real release also moves the `v0` tag to itself, and the README pins the Action at
+# `@v0`, so the snippet an adopter copies never names a release this repository has left.
+# The desktop installers follow a release cut by dispatch or by hand, and not the weekly one:
+# their suite failing must never be what holds the CLI back from PyPI.
 #
 # Four guards, in the order that makes each one cheap:
 #
@@ -42,6 +53,8 @@ name: publish
 on:
   release:
     types: [published]
+  schedule:
+    - cron: "23 6 * * 1" # Mondays, 06:23 UTC
   workflow_dispatch:
     inputs:
       target:
@@ -64,8 +77,35 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Whether a scheduled run has anything to release (RK1720), decided before the suite is paid
+  # for. Every other trigger is a person asking, and always proceeds.
+  plan:
+    name: anything to release
+    runs-on: ubuntu-latest
+    outputs:
+      release: ${{ steps.plan.outputs.release }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - id: plan
+        run: |
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "release=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          version=$(PYTHONPATH=plugin/src python3 -c "import roadkeep; print(roadkeep.__version__)")
+          if git rev-parse -q --verify "refs/tags/v${version}" >/dev/null; then
+            echo "v${version} is already released: nothing was committed since"
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          fi
+
   build:
     name: build and verify
+    needs: plan
+    if: needs.plan.outputs.release == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write # only exercised when cutting a real release
@@ -125,6 +165,27 @@ jobs:
           git push origin "HEAD:${GITHUB_REF_NAME}"
           git push origin "v${version}"
 
+      # The scheduled path: the number is the one `main` already carries (see the header), so
+      # this tags the commit the suite above just passed on, and changes nothing else.
+      - name: tag the committed version
+        if: github.event_name == 'schedule'
+        run: |
+          version="${{ steps.version.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${version}" -m "v${version}"
+          git push origin "v${version}"
+
+      # The tag the README's Action snippet pins (RK1720). Moved, never created twice: `-f` on
+      # both ends is the whole point of a tag that follows the newest release.
+      - name: move the v0 tag
+        if: github.event_name == 'schedule' || github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.target == 'pypi')
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -f -a v0 -m "v0 follows v${{ steps.version.outputs.version }}"
+          git push -f origin v0
+
       - run: pip install build twine
       - run: python -m build
       - name: the metadata is one PyPI will take
@@ -168,7 +229,7 @@ jobs:
 
   publish-pypi:
     name: publish to PyPI
-    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.target == 'pypi')
+    if: github.event_name == 'schedule' || github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.target == 'pypi')
     needs: build
     runs-on: ubuntu-latest
     environment:
@@ -185,8 +246,8 @@ jobs:
 
   github-release:
     name: create the GitHub Release
-    # Only for the automated path: a release-triggered run already has one.
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'pypi'
+    # Only for the automated paths: a release-triggered run already has one.
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.target == 'pypi')
     needs: [build, publish-pypi]
     runs-on: ubuntu-latest
     permissions:
