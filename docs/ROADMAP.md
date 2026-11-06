@@ -40,8 +40,6 @@
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
-- ⏳ **RK1717** (deps: —) (requires: decision) **The README has never been held to the five-second first-screen test the visibility repository applies** — The README waits on Alexandre approving the draft; then it changes and visibility's actions.json records the date. → §RK1717
-
 ## Block J — Validation (whether a person ever tried it)
 
 ## Block K — The desktop app (one installer for the reader and the plugin)
@@ -138,12 +136,6 @@
 
 - **Both sites registered with the design system** consumers.json lists the pitch and
   the gui landing, and the hub's projects.json gives roadkeep the amber the pitch uses.
-
-## Done when — RK1717
-
-- **The approved first screen passes the five-second test** The README's first screen
-  passes visibility's test once the draft is approved, and visibility's actions.json
-  records the change so its effect is measured.
 
 ## Non-goals
 

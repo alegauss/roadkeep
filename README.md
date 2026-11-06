@@ -27,32 +27,32 @@
 
 # roadkeep
 
-**A Claude Code plugin that keeps your `ROADMAP.md`, `CHANGELOG.md` and `IMPROVEMENTS.md` to one format, by refusing the hand-edit and handing the agent the command that writes it properly.**
+**Stop paying tokens to keep your docs.** A Claude Code plugin that turns your `ROADMAP.md`
+and `CHANGELOG.md` into a format a command enforces, so the agent calls one command
+instead of reading, rewriting and re-checking the file.
 
 ```sh
 claude plugin marketplace add alegauss/roadkeep --scope project
 claude plugin install roadkeep@alegauss --scope project
 ```
 
-Python 3.11+ · zero runtime dependencies · nothing to add to `PATH` · your files stay plain Markdown
+Python 3.11+ · zero runtime dependencies · your files stay plain Markdown
 
-**[alegauss.github.io/roadkeep](https://alegauss.github.io/roadkeep/)**: the site, and the
-[docs](https://alegauss.github.io/roadkeep/docs/).
+**[alegauss.github.io/roadkeep](https://alegauss.github.io/roadkeep/)** · [docs](https://alegauss.github.io/roadkeep/docs/)
 
 </div>
 
-- **Refused before the prose exists.** A task line is fields with limits: `symptom` and `why`
-  have a `maxLength`, markers are an `enum`, ids have a pattern. A line that does not fit is
+- **Measured where it hurt.** On a real project the roadmap averaged 142 words a line against
+  a one-sentence rule, and `agents.md` reached 186 KB. Every one of those words is context
+  the agent reads again on the next turn.
+- **Refused before the prose exists.** A line has fields with limits, so an over-long one is
   refused when it is written, not reported by a linter after the tokens are spent.
 - **A hand-edit is denied, with the command to call instead.** The hook names the exact
-  `add`, `status` or `ship` that does the job, so the right path is also the cheapest one.
-- **Ask instead of read.** `pick`, `brief`, `list` and `deps` answer what is next, what blocks
-  what and why a task exists, so an agent never reads a whole backlog to find one line.
-- **It governs the file you already have.** One line per task in your existing `ROADMAP.md`,
-  not a new store to migrate into, and a write that would not round-trip byte for byte is
-  refused.
-- **The same gate everywhere.** `roadkeep lint` runs as the hook at the end of a turn, as a
-  pre-commit hook and as a GitHub Action, and every finding names the command that fixes it.
+  `add`, `ship` or `status`, so the right path is also the cheapest one.
+- **Ask instead of read.** `pick`, `brief` and `list` answer what is next and why, so an agent
+  never reads a whole backlog to find one line.
+- **Your existing files.** One line per task in the `ROADMAP.md` you already have; nothing to
+  migrate into.
 
 ---
 
@@ -116,7 +116,9 @@ receives.
 ## Run it as a gate
 
 `roadkeep lint` exits **1** on a file that drifted and **0** on one that did not. That exit
-code is the whole contract, so every surface calls the same command:
+code is the whole contract, so every surface calls the same command: the plugin's hook at
+the end of a turn, a pre-commit hook and a GitHub Action, and every finding names the
+command that fixes it:
 
 ```yaml
 # .github/workflows/gate.yml — the action this repository ships
@@ -226,11 +228,11 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 169 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
-| I — The documentation area (what an adopter reads before there is a session to ask) | 1 | 22 | 0 |
+| I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 22 | 0 |
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 1 | 2 | 0 |
-| **Total** | 2 | 1203 | 24 |
+| **Total** | 1 | 1203 | 24 |
 <!-- roadkeep:end -->
 
 Open work is in

@@ -1248,7 +1248,7 @@
 - ✅ **RK1431** **A page whose sections a component renders publishes an empty On this page, so nothing links them** — Every generated section is in the contents list, stated once in headings.ts and merged into the route by a Starlight middleware.
 - ✅ **RK1444** **the area prices every surface a session is handed except the skill, and its page has no word left to say so** — The session page renders `cost --skill` as a third cadence — the orientation and a row per reference page — and the build reruns when the skill moves.
 - ✅ **RK1721** **The README says four projects are governed by roadkeep when more than twice that many are** — The README names the governed repositories that have a public roadmap, each linked, instead of a count only a person updates.
-- ✅ **RK1717 (the proposal)** **The README has never been held to the five-second first-screen test the visibility repository applies** — A first-screen proposal for the README sits in visibility's drafts/RK1717-roadkeep-primeira-tela.md, leading with the site's token pitch and the measured cost.
+- ✅ **RK1717** **The README has never been held to the five-second first-screen test the visibility repository applies** — The README's first screen leads with the site's token pitch and the measured cost, approved by Alexandre on 2026-11-06; the CI gate moved to its own section.
 
 ## Block J — Validation (whether a person ever tried it)
 
