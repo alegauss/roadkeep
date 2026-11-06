@@ -127,11 +127,11 @@ byte-identical.
 **The gui landing** (`gui/site/scripts/prerender.mjs`) cannot follow yet: its head
 carries `<link rel="alternate" type="text/markdown">` per route, and `prerenderSite` has
 no hook for it. Patching the HTML afterwards would leave the manifest's byte counts
-stale. The hook belongs in the design system (an option that adds head tags per route);
-then the gui moves the same way, and its social card can take `renderOgCard` from
-`./vite` in place of `scripts/og-image.mjs`.
+stale. The hook landed as VDS243 (`headTags`, committed locally in viglet-design-system,
+not yet published); once a release carries it, the gui moves the same way, and its
+social card can take `renderOgCard` from `./vite` in place of `scripts/og-image.mjs`.
 
-**The registry**, outside this repository and committed there: the design system's
+**The registry** is done, committed locally there (2026-11-05): the design system's
 `consumers.json` gains both sites (`chrome: "product-site"`, `tone: "cool"`, accent
 amber, entries `./site`, `./site.css`, `./tokens.css`, `./vite`), and the hub's
 `projects.json` changes roadkeep from slate `148,163,184` to the amber the pitch uses,
