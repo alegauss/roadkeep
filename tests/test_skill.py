@@ -152,7 +152,7 @@ ORIENTATION_MAX = 13_000
 #: page to *split* — the move RK1437 made on the orientation, one cadence out — so the number
 #: says the reading has grown past what one turn should open, not that the rule may not be
 #: written. Each is the file's own reading plus a section's worth of headroom.
-PAGE_MAX = {"writing.md": 54_000, "asking.md": 26_000}
+PAGE_MAX = {"writing.md": 54_000, "asking.md": 26_000, "filing.md": 4_000}
 
 
 def test_every_page_the_orientation_points_at_has_a_ceiling():

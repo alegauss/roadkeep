@@ -1706,7 +1706,7 @@ def _guided(tool: Tool, config: Config, parts: Mapping[str, int]) -> tuple[tuple
         return ()
     home = (config.root / read.path).parent if read.origin == "project" else Path(read.path).parent
     corpus: list[str] = []
-    for page in (home / "SKILL.md", *(home / one for one in ("writing.md", "asking.md"))):
+    for page in (home / "SKILL.md", *(home / one for one in ("writing.md", "asking.md", "filing.md"))):
         try:
             corpus.append(page.read_text(encoding="utf-8"))
         except OSError:

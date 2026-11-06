@@ -223,18 +223,14 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | C — Query (consult without reading the file) | 0 | 205 | 7 |
 | D — The gate | 0 | 319 | 7 |
 | E — Adoption | 0 | 127 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 168 | 4 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 169 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 1 | 22 | 0 |
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 1 | 2 | 0 |
-| **Total** | 3 | 1202 | 24 |
-
-**Next ready:**
-
-- 📋 **RK1725** (deps: RK1716 ✅, RK1723 ✅) **Filing into a sibling project is spelled by each friction skill and needs a local checkout** — Every consumer skill repeats the same filing steps outside this repository, and with only a git remote none of them can file at all. → §RK1725
+| **Total** | 2 | 1203 | 24 |
 <!-- roadkeep:end -->
 
 Open work is in

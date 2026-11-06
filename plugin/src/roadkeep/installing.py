@@ -115,7 +115,12 @@ PLUGIN_MANIFEST = ".claude-plugin/plugin.json"
 #: globbed off the directory: what the plugin carries is a declaration, and a page somebody
 #: dropped beside the skill is not a surface this command installs. They are copied verbatim
 #: — the one substituted fact lives in the entry-point sentence, which is `SKILL.md`'s.
-PLUGIN_PAGES = ("skills/roadkeep/writing.md", "skills/roadkeep/asking.md")
+PLUGIN_PAGES = (
+    "skills/roadkeep/writing.md",
+    "skills/roadkeep/asking.md",
+    # RK1725. How a line is filed into a sibling project, opened only when one is the target.
+    "skills/roadkeep/filing.md",
+)
 #: The self-locating bridge, for the environment that installs no plugin and has no checkout
 #: to point at (RK1108). Copied rather than translated: it is a program and not a declaration,
 #: and the one fact `install` substitutes elsewhere — where the engine is — is the question

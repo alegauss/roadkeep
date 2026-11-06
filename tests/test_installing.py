@@ -3192,7 +3192,8 @@ def test_an_absent_page_that_names_a_verb_keeps_its_own_row(project, capsys):
     assert main(["-C", str(project), "lint"]) == EXIT_OK
     said = capsys.readouterr().out
     assert "`add`" in said and "`budget`" in said
-    assert said.count("this project has no copy of it") == 2
+    # One row per page that names a verb: writing.md, asking.md and filing.md (RK1725).
+    assert said.count("this project has no copy of it") == 3
 
 
 # -- what the absent page would have said (RK1505) -----------------------------

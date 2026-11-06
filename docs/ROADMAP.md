@@ -34,8 +34,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1725** (deps: RK1716 ✅, RK1723 ✅) **Filing into a sibling project is spelled by each friction skill and needs a local checkout** — Every consumer skill repeats the same filing steps outside this repository, and with only a git remote none of them can file at all. → §RK1725
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
