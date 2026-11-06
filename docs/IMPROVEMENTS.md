@@ -75,29 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK1723 Which project filed a line
-
-A friction skill working in Dumont files into Turing with `roadkeep -C <turing> add`.
-The line is identical to one Turing's own session filed, and the git author is the same
-person either way, so neither the file nor `origin` tells them apart. Yet a line filed
-from a consumer saw the symptom, not the product: it is a report to re-analyse, not a
-design to execute.
-
-The fact is observable at the write and nowhere else: when the process's directory
-resolves to a governed project other than the target, `add` knows both. A flag the
-caller must remember would make it a convention again (L1).
-
-Decided (2026-11-05): a clause on the line itself, `(from: dumont)`, beside `(deps: …)`
-and `(requires: …)`, and never a continuation line, which the non-goal against
-multi-line task lines rules out. Every write path already carries the line's clauses, so
-amend, restate, defer, retire, renumber and merge keep it with no new grammar.
-
-The change: `add` writes the clause when the two projects differ. The name is the
-caller's declared `[project] name`, else its directory. No date and no person; `origin`
-answers those. `ship` carries it into the ledger entry, so a site can show which product
-asked. A read, `foreign`, lists open lines carrying it; like `unvalidated`, a report and
-never a gate. Reviewing a line drops the clause (`amend <id> --reviewed`).
-
 ## Block B — Authoring
 
 ## Block C — Query

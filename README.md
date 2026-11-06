@@ -218,7 +218,7 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
-| A — The model (a task is data before it is a line) | 1 | 45 | 2 |
+| A — The model (a task is data before it is a line) | 0 | 46 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 239 | 2 |
 | C — Query (consult without reading the file) | 0 | 205 | 7 |
 | D — The gate | 0 | 319 | 7 |
@@ -230,11 +230,11 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 1 | 2 | 0 |
-| **Total** | 4 | 1201 | 24 |
+| **Total** | 3 | 1202 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1723** (deps: —) **A line filed from another project reads exactly like one filed at home** — An agent filing into Turing from Dumont saw the symptom and not the product, and nothing tells Turing which lines still need its own analysis. → §RK1723
+- 📋 **RK1725** (deps: RK1716 ✅, RK1723 ✅) **Filing into a sibling project is spelled by each friction skill and needs a local checkout** — Every consumer skill repeats the same filing steps outside this repository, and with only a git remote none of them can file at all. → §RK1725
 <!-- roadkeep:end -->
 
 Open work is in

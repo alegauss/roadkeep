@@ -57,6 +57,8 @@
 - ✅ **RK1180** **A block that is a standing category empties whenever it is caught up, and ship reads that as completion** — a label listed in blocks.standing is caught up rather than finished, so no sweep fires and no heading is offered for withdrawal.
 - ✅ **RK1716** **A dep on another repository's task is free text, so nothing can tell whether it shipped** — A <name>: <id> dep resolves against the sibling's ledger from its checkout or a shallow cached fetch of its git remote at ref, with a timeout, and lint never fetches.
 - ✅ **RK1724** **Shipping a task says nothing about the sibling tasks it unblocks** — A ship names each sibling line it unblocked, and the sibling's session start names each ready line whose foreign dep shipped, offline from a checkout or the cache.
+- ✅ **RK1723** **A line filed from another project reads exactly like one filed at home** — An add from another governed project writes (from: <project>) on the line; list --foreign lists those lines, and amend --reviewed drops the clause.
+  checked **A foreign line says where it came from until reviewed** An add from a second governed project writes the from clause and one from inside writes none; foreign lists it until reviewed; it survives amend and ship.
 
 ## Block B — Authoring
 

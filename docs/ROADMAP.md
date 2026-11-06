@@ -24,8 +24,6 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK1723** (deps: —) **A line filed from another project reads exactly like one filed at home** — An agent filing into Turing from Dumont saw the symptom and not the product, and nothing tells Turing which lines still need its own analysis. → §RK1723
-
 ## Block B — Authoring (insert, never hand-edit)
 
 ## Block C — Query (consult without reading the file)
@@ -36,7 +34,7 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1725** (deps: RK1716 ✅, RK1723) **Filing into a sibling project is spelled by each friction skill and needs a local checkout** — Every consumer skill repeats the same filing steps outside this repository, and with only a git remote none of them can file at all. → §RK1725
+- 📋 **RK1725** (deps: RK1716 ✅, RK1723 ✅) **Filing into a sibling project is spelled by each friction skill and needs a local checkout** — Every consumer skill repeats the same filing steps outside this repository, and with only a git remote none of them can file at all. → §RK1725
 
 ## Block G — The editor surface (the backlog where the file is open)
 
@@ -142,12 +140,6 @@
 
 - **Both sites registered with the design system** consumers.json lists the pitch and
   the gui landing, and the hub's projects.json gives roadkeep the amber the pitch uses.
-
-## Done when — RK1723
-
-- **A foreign line says where it came from until reviewed** An add from a second
-  governed project writes the from clause and one from inside writes none; foreign lists
-  it until reviewed; it survives amend and ship.
 
 ## Done when — RK1717
 
