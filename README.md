@@ -226,15 +226,15 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 168 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
-| I — The documentation area (what an adopter reads before there is a session to ask) | 1 | 21 | 0 |
+| I — The documentation area (what an adopter reads before there is a session to ask) | 1 | 22 | 0 |
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 1 | 2 | 0 |
-| **Total** | 4 | 1200 | 24 |
+| **Total** | 4 | 1201 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1717** (deps: —) **The README has never been held to the five-second first-screen test the visibility repository applies** — The README is the PyPI page and a Claude Code user's first read, and visibility judges a first screen by what it does, why and how to install. → §RK1717
+- 📋 **RK1723** (deps: —) **A line filed from another project reads exactly like one filed at home** — An agent filing into Turing from Dumont saw the symptom and not the product, and nothing tells Turing which lines still need its own analysis. → §RK1723
 <!-- roadkeep:end -->
 
 Open work is in
