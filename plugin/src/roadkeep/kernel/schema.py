@@ -306,6 +306,13 @@ def _reads_requires(_present: bool) -> str:
     return r"(?: \(requires: (?P<requires>[^)]*)\))?"
 
 
+def _reads_filed(_present: bool) -> str:
+    # Which project filed this line, where it was not this one (RK1723). Optional and never
+    # written empty, `requires`' rule exactly: every line filed at home is byte-for-byte the
+    # line this format had before the slot existed.
+    return r"(?: \(from: (?P<filed>[^)]*)\))?"
+
+
 def _reads_symptom(present: bool) -> str:
     # Absent is a bare separator and not an empty match, which is the pair `_writes_symptom`
     # keeps: a markerless, symptomless ledger line is `- **T1** — because.` (RK48).
@@ -343,6 +350,10 @@ def _writes_requires(_schema: Schema, task: Task) -> str:
     return f" (requires: {', '.join(task.requires)})" if task.requires else ""
 
 
+def _writes_filed(_schema: Schema, task: Task) -> str:
+    return f" (from: {task.filed})" if task.filed else ""
+
+
 def _writes_symptom(schema: Schema, task: Task) -> str:
     # Both shapes here rather than a `present` gate, mirroring `_reads_symptom`: a file
     # without the slot still has the separator, so "absent" means an unwritten bold and
@@ -369,6 +380,10 @@ TEMPLATE: tuple[Slot, ...] = (
     # questions — what this line waits on, and what it needs present to be done at all —
     # and a reader scanning for "can I start this" reads both before the prose (RK1297).
     Slot("requires", _reads_requires, _writes_requires),
+    # A clause on the line and never a continuation under it (RK1723, decided 2026-11-05):
+    # the non-goal against multi-line task lines rules the second out, and every write path
+    # already carries a line's clauses, so amend, defer, retire and merge keep it unasked.
+    Slot("from", _reads_filed, _writes_filed),
     Slot("symptom", _reads_symptom, _writes_symptom),
     Slot("why", _reads_why, _writes_why),
 )
@@ -880,6 +895,10 @@ class Task:
     #: `Insertion.needs` one module up is the follow-up an `add` left owing, and it prints a
     #: row under that name beside the rows this field produces. One word, one thing.
     requires: tuple[str, ...] = ()
+    #: The project that filed this line, where it was not this one (RK1723): a report from a
+    #: consumer that saw the symptom and not the product, to re-analyse before it is built.
+    #: Derived by `add` from where the call was made, never typed (L1); empty is filed here.
+    filed: str = ""
     ref: str | None = None
     #: Which part of the work this entry records, where only part of it landed (RK121).
     #: A **ledger** field and the third state the model did not have: open in the roadmap

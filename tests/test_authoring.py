@@ -3017,3 +3017,77 @@ def test_a_line_already_over_on_another_field_is_not_the_dep_s_fault(tmp_path):
     with pytest.raises(SchemaError) as caught:
         amend(config, "RK1", add_deps=["RK9"], why="y" * 400 + ".")
     assert not isinstance(caught.value, DepRefused)
+
+
+# -- which project filed a line (RK1723) --------------------------------------------
+
+
+def _sibling_projects(tmp_path: Path) -> tuple[Path, Path]:
+    roots = []
+    for name, prefix in (("turing", "T"), ("dumont", "D")):
+        root = tmp_path / name
+        root.mkdir()
+        (root / "roadkeep.toml").write_text(
+            f'prefix = "{prefix}"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+            'improvements = "IMPROVEMENTS.md"\n',
+            encoding="utf-8",
+        )
+        for file, title in (("ROADMAP.md", ""), ("CHANGELOG.md", ""), ("IMPROVEMENTS.md", "# Improvements\n\n")):
+            (root / file).write_text(f"{title}## Block A — The model\n", encoding="utf-8")
+        roots.append(root)
+    return roots[0], roots[1]
+
+
+def _filed(root: Path) -> int:
+    from roadkeep.cli import main
+
+    return main(
+        ["-C", str(root), "add", "--block", "A", "--symptom", "A symptom",
+         "--why", "Because of a reason.", "--section", "A design", "--section-body", "The design."]
+    )
+
+
+@pytest.mark.files_from
+def test_a_line_filed_from_another_project_says_so_and_one_filed_at_home_does_not(
+    tmp_path, monkeypatch
+) -> None:
+    turing, dumont = _sibling_projects(tmp_path)
+    monkeypatch.chdir(dumont)
+    assert _filed(turing) == 0
+    monkeypatch.chdir(turing)
+    assert _filed(turing) == 0
+    lines = (turing / "ROADMAP.md").read_text(encoding="utf-8")
+    assert "**T1** (deps: —) (from: dumont) **A symptom**" in lines
+    assert "**T2** (deps: —) **A symptom**" in lines
+
+
+@pytest.mark.files_from
+def test_foreign_lists_the_line_until_it_is_reviewed(tmp_path, monkeypatch, capsys) -> None:
+    from roadkeep.cli import main
+
+    turing, dumont = _sibling_projects(tmp_path)
+    monkeypatch.chdir(dumont)
+    assert _filed(turing) == 0
+    monkeypatch.chdir(turing)
+    capsys.readouterr()
+    assert main(["list", "--foreign", "--ids"]) == 0
+    assert capsys.readouterr().out.split() == ["T1"]
+    assert main(["amend", "T1", "--reviewed"]) == 0
+    capsys.readouterr()
+    assert main(["list", "--foreign", "--ids"]) == 0
+    assert capsys.readouterr().out.split() == []
+    assert "(from:" not in (turing / "ROADMAP.md").read_text(encoding="utf-8")
+
+
+@pytest.mark.files_from
+def test_the_clause_survives_an_amend_and_reaches_the_ledger(tmp_path, monkeypatch) -> None:
+    from roadkeep.cli import main
+
+    turing, dumont = _sibling_projects(tmp_path)
+    monkeypatch.chdir(dumont)
+    assert _filed(turing) == 0
+    monkeypatch.chdir(turing)
+    assert main(["amend", "T1", "--why", "Because of a better reason."]) == 0
+    assert "(from: dumont)" in (turing / "ROADMAP.md").read_text(encoding="utf-8")
+    assert main(["ship", "T1", "--why", "It works now."]) == 0
+    assert "(from: dumont)" in (turing / "CHANGELOG.md").read_text(encoding="utf-8")

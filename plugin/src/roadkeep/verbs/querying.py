@@ -155,6 +155,8 @@ def _list_argv(args: argparse.Namespace) -> tuple[str, ...]:
         out += ["--marker", args.marker]
     if getattr(args, "startable", False):
         out.append("--startable")
+    if getattr(args, "foreign", False):
+        out.append("--foreign")
     if args.ids:
         out.append("--ids")
     if getattr(args, "dated", False):
@@ -224,6 +226,8 @@ def _list(config: Config, args: argparse.Namespace) -> Result | int:
             if ready is None:
                 return _refused(ValueError(_NOT_STARTABLE.format(role=_role(args))))
             census = census.startable(ready, have)
+        if getattr(args, "foreign", False):
+            census = census.foreign()
     except (KeyError, OSError) as error:
         return _refused(error)
 
@@ -1718,6 +1722,16 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
             "line to be ready"
         ),
     )
+    # RK1723. The lines another project filed and this one has not yet analysed: each carries
+    # `(from: …)` until `amend <id> --reviewed`. A report and never a gate, like `unvalidated`.
+    list_parser.add_argument(
+        "--foreign",
+        action="store_true",
+        help=(
+            "only the open lines another project filed, which carry (from: …) until an "
+            "amend --reviewed says this project has analysed them"
+        ),
+    )
     list_parser.add_argument(
         "--stale",
         action="store_true",
@@ -1753,6 +1767,7 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     )
     withheld(
         list_parser,
+        foreign="the clause is in every line this transport already returns, so a caller here narrows the rows it holds; the flag is for a terminal, where the listing is read by eye",
         history="a build's flag for an extract beside its bare clone; this transport serves a session working in a checkout, whose own history --dated already reads",
         at="the same build's revision, and the same reason",
         dated='two git passes over two whole files, charged at connect for every session that never asks; a build reading dates runs the CLI, which is where that cost belongs',

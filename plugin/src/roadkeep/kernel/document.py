@@ -1688,6 +1688,7 @@ def _read_bullet(body: str, schema: Schema, block: str) -> Task | str | None:
         why=match.group("why"),
         deps=deps,
         requires=requires,
+        filed=match.group("filed") or "",
         ref=ref,
         indent=indent,
     )

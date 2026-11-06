@@ -79,7 +79,7 @@ ROADMAP = """# Roadmap
 ## Block A — The model
 
 - 💭 **RK1** (deps: —) **A first symptom** — Because of a reason. → §I.1
-- 🛠 **RK2** (deps: RK1) **A second symptom** — Because of another. → §I.2
+- 🛠 **RK2** (deps: RK1) (from: dumont) **A second symptom** — Because of another. → §I.2
 
 ## Non-goals
 
@@ -196,6 +196,7 @@ _UNMEASURED: dict[tuple[str, str, str], str] = {
     "would change what every other pair is measured against",
     ("list", "--json", "--stale"): "the same, one form over",
     ("list", "--stale", "--dated"): "the same absent store, one form further (RK1722)",
+    ("list", "--foreign", "--stale"): "the same absent store, one filter over (RK1723)",
     ("list", "--startable", "--stale"): "the same absent store, which is what refuses here "
     "before either flag is read — and on a project that declares one the pair is refused on "
     "its own merits (RK1680), a store having no open line to be ready",

@@ -536,6 +536,28 @@ def _scaffolds_derive_rk(request):
 
 
 @pytest.fixture(autouse=True)
+def _adds_are_filed_at_home(request):
+    """An `add` made from one governed project into another writes `(from: <project>)` since
+    RK1723, and this suite runs from inside roadkeep's own checkout — so every `add -C <tmp>`
+    would be filed from roadkeep and carry a clause no fixture was written for. Pinned to
+    *filed here*, except where a test marks itself `files_from` to exercise the clause. By hand
+    and not through `monkeypatch`, for `_scaffolds_derive_rk`'s reason.
+    """
+    if request.node.get_closest_marker("files_from"):
+        yield
+        return
+    from roadkeep import authoring
+    from roadkeep.verbs import authoring as verb
+
+    originals = (authoring.filer, verb.filer)
+    authoring.filer = verb.filer = lambda config, cwd=None: ""
+    try:
+        yield
+    finally:
+        authoring.filer, verb.filer = originals
+
+
+@pytest.fixture(autouse=True)
 def _process_scoped_notices():
     """The served notes that fire once per server process (RK1443), forgotten between tests.
 

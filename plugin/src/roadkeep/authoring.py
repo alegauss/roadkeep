@@ -690,6 +690,7 @@ def compose(
     deps: Sequence[str] = (),
     requires: Sequence[str] = (),
     ref: str | None = None,
+    filed: str = "",
 ) -> Task:
     """The fields, as a :class:`Task`. Fills in what is derivable; validates nothing.
 
@@ -714,6 +715,7 @@ def compose(
         # and what the parser reads back out of the line are split by one function, so a
         # group the writer and the reader disagree about is not a state this can reach.
         requires=read_requires(", ".join(requires)) if requires else (),
+        filed=filed,
         ref=ref,
     )
 
@@ -912,6 +914,31 @@ def refuse_deps(config: Config, backlog: Backlog, task: Task) -> None:
             raise CyclicDep(task.id, hop.via)
 
 
+def filer(config: Config, cwd: str | Path | None = None) -> str:
+    """The project an `add` is being made from, where it is not the one written to (RK1723).
+
+    Observable here and nowhere else: the process stands in one governed project and `-C`
+    names another, which is a friction skill in Dumont filing into Turing. The caller's
+    declared `[project] name`, else its directory; `""` where the two are one project, where
+    the caller stands in no governed project, or where its config cannot be read — a line
+    filed at home carries nothing, and a guess is not written into somebody else's file.
+    """
+    import os  # noqa: PLC0415 - only this read needs the process's directory
+
+    from roadkeep.config import ConfigError, find_config  # noqa: PLC0415
+
+    found = find_config(Path(cwd) if cwd is not None else Path(os.getcwd()))
+    if found is None or found.parent.resolve() == config.root.resolve():
+        return ""
+    try:
+        caller = Config.load(found)
+    except (ConfigError, OSError, ValueError):
+        return ""
+    name = caller.project.name if caller.project and caller.project.name else found.parent.name
+    # The clause closes at the first `)`, so a name carrying one would end it early.
+    return name.replace("(", "").replace(")", "").strip()
+
+
 def add(
     config: Config,
     *,
@@ -925,6 +952,7 @@ def add(
     task_id: str | None = None,
     family: str | None = None,
     section: Rationale | None = None,
+    filed: str = "",
 ) -> Insertion:
     """Insert one task into the roadmap and save it. The whole write path.
 
@@ -981,6 +1009,7 @@ def add(
         task_id=task_id,
         family=family,
         section=section,
+        filed=filed,
     )
     # The paths ride back on the record (RK1129), because the caller composing a commit is the
     # one who needs them and `save` is the only reader that knows what a projection refreshed.
@@ -1011,6 +1040,7 @@ def prepared(
     task_id: str | None = None,
     family: str | None = None,
     section: Rationale | None = None,
+    filed: str = "",
 ) -> Insertion:
     """:func:`add`'s whole transaction up to the save, and nothing written (RK1694).
 
@@ -1038,6 +1068,7 @@ def prepared(
         deps=deps,
         requires=requires,
         ref=ref,
+        filed=filed,
     )
     # The pointer, against the same history `section add` reads (RK1177). One command earlier
     # than it used to be: `add --ref XIV.29` was accepted and `section add XIV.29` then refused
@@ -1942,6 +1973,7 @@ def amend(
     drop_requires: Sequence[str] = (),
     ref: str | None = None,
     lines: int | None = None,
+    reviewed: bool = False,
 ) -> Amendment:
     """Correct one open line's `why`, `deps`, `requires` or `ref`. At input, or nothing (RK65).
 
@@ -1999,8 +2031,15 @@ def amend(
             raise RequirementNotCarried(task_id, missing, entry.task.requires)
         requires = [one for one in entry.task.requires if one not in drop_requires]
 
+    if reviewed and not entry.task.filed:
+        # Refused rather than a silent no-op: a caller confirming a line believes it was a
+        # foreign one, and a line filed here has nothing to confirm (RK1723).
+        raise ValueError(f"{task_id} was filed here, so it carries no (from: …) to review")
     wanted = replace(
         entry.task,
+        # Reviewed is the home project having analysed a consumer's report, which is when the
+        # clause stops being true of the work (RK1723): the line is now a design like any other.
+        filed="" if reviewed else entry.task.filed,
         why=entry.task.why if why is None else why,
         deps=entry.task.deps
         if deps is None

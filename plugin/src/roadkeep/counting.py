@@ -501,6 +501,19 @@ class Census:
             for entry in self.counted
         }
 
+    def foreign(self) -> Census:
+        """The same census over the open lines another project filed (RK1723).
+
+        Each still carries its `(from: …)`, so this is the list the home project has not yet
+        analysed: a report and never a gate, like `unvalidated`. The misses go, for
+        :meth:`startable`'s reason — a refused line has no clause this could trust.
+        """
+        return replace(
+            self,
+            counted=tuple(entry for entry in self.open_entries() if entry.task.filed),
+            missed=(),
+        )
+
     def startable(
         self, ready: Mapping[str, str | None], available: Iterable[str] = ()
     ) -> Census:

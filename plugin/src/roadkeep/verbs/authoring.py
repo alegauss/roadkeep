@@ -18,7 +18,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-from roadkeep.authoring import add, amend, restate, set_status
+from roadkeep.authoring import add, amend, filer, restate, set_status
 from roadkeep.capturing import stamp
 from roadkeep.config import Config
 from roadkeep.deferring import defer, resume
@@ -91,6 +91,7 @@ def _add(config: Config, args: argparse.Namespace) -> Result | int:
             task_id=args.task_id,
             family=args.family,
             section=section,
+            filed=filer(config),
         )
     except REFUSALS as error:
         return _refused(error)  # a SchemaError arrives here as the ValueError it is
@@ -153,6 +154,7 @@ def _amend(config: Config, args: argparse.Namespace) -> Result | int:
         and args.ref is None
         and not args.requires
         and not args.drop_requires
+        and not args.reviewed
     ):
         # Named only where the project declares a vocabulary (L6): a flag offered here and
         # refused by `requires.unknown` one call later is the detour RK16 keeps out of a
@@ -174,6 +176,7 @@ def _amend(config: Config, args: argparse.Namespace) -> Result | int:
             drop_requires=args.drop_requires,
             ref=args.ref,
             lines=args.lines,
+            reviewed=args.reviewed,
         )
     except REFUSALS as error:
         return _refused(error)
@@ -536,6 +539,12 @@ def declare_lines(subcommands: argparse._SubParsersAction) -> None:
     amend_parser.add_argument(
         "--ref", help="the rationale anchor, for ref_scheme = 'outline'"
     )
+    # RK1723. A line another project filed carries `(from: …)` until this one has analysed it.
+    amend_parser.add_argument(
+        "--reviewed",
+        action="store_true",
+        help="drop the (from: …) clause: this project has analysed the line another one filed",
+    )
     amend_parser.add_argument(
         "--lines",
         type=int,
@@ -545,6 +554,10 @@ def declare_lines(subcommands: argparse._SubParsersAction) -> None:
         ),
     )
     amend_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    withheld(
+        amend_parser,
+        reviewed="a review is this project's own judgement on another project's report, made once per foreign line, and this surface is charged at connect for every session that never meets one",
+    )
     amend_parser.set_defaults(
         handler=_amend, reads_stdin=(Prose(dest="why", omitted=False),)
     )

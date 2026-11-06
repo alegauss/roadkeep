@@ -988,6 +988,8 @@ def test_the_two_faces_are_the_same_sequence_of_slots():
         # RK1297, and the reason this list is written out rather than counted: a slot whose
         # group is optional on both faces is exactly the kind that can be added with one.
         "requires",
+        # RK1723: which project filed the line, optional on both faces as `requires` is.
+        "from",
         "symptom",
         "why",
     ]
