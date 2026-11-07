@@ -118,3 +118,255 @@ amber, entries `./site`, `./site.css`, `./tokens.css`, `./vite`), and the hub's
 
 Done when the gui has no prerender of its own beyond what `prerenderSite` cannot do,
 both sites' tests pass on the built output, and both registries name both sites.
+
+## Block M — Codex integration (one engine, host-specific adapters)
+
+### §RK1730 Codex patch inputs and governed targets
+
+Evidence: guarding.py limits WRITE_TOOLS to Claude names; a simulated Codex PreToolUse
+payload with tool_name=apply_patch and tool_input.command targeting docs/ROADMAP.md
+returned no refusal. Codex matcher aliases do not change that canonical payload name.
+
+Scope: introduce an explicit host input adapter around the shared guard. Decode
+apply_patch add, update, delete and move targets; inspect both ends of moves and every
+file in a multi-file patch. Resolve relative paths against payload cwd, preserve Windows
+drive paths and spaces, and resolve the owning roadkeep.toml for cross-repository
+targets. Retain Claude payload behavior and the same domain rules. Likely seams:
+guarding.py, hook entry-point dispatch and tests/test_plugin.py, plus focused adapter
+fixtures.
+
+Acceptance: block creation or mutation of each governed role; block a move into or out
+of a governed destination; allow ordinary source patches and projects without
+configuration. Cover mixed patches, absolute and relative paths, nested repositories,
+malformed input and unsupported patch forms. An undecodable potential write must have an
+explicit documented outcome, never an accidental silent allow. Feed synthetic hook
+payloads to the executable guard without applying their patches.
+
+Limits: no second parser for roadmap lines, no change to the Markdown format and no
+claim that hooks form a security sandbox.
+
+Official references to recheck when implementing: https://learn.chatgpt.com/docs/hooks
+
+### §RK1731 Codex shell and lifecycle decisions
+
+Evidence: Refusal.decision returns ask for Bash, and the executable guard emits
+permissionDecision=ask. The Codex hook documentation states this result is unsupported
+in PreToolUse and the tool call continues after the hook failure. This is a
+compatibility defect, not a request to weaken Claude behavior.
+
+Scope: define the Codex policy for shell mentions of governed paths and serialize only
+supported outcomes. Block confirmed prohibited writes with an actionable Roadkeep
+command. Preserve the existing exemptions for legitimate Roadkeep invocations and safe
+Git staging/history operations. For ambiguous commands, choose and document a deliberate
+supported refusal policy; do not emulate an approval by returning allow or relying on
+PermissionRequest to run when no approval is needed. Keep host-independent ownership
+checks shared.
+
+Acceptance: executable payload tests demonstrate no unsupported ask output, rejection of
+prohibited redirection/script writes, and successful approved Roadkeep mutations and Git
+add/commit workflows. Cover quoting, spaces, Windows shells, newline-separated commands
+and command operators. Verify SessionStart context and Stop lint results use supported
+Codex outputs, including recursion protection and timeouts.
+
+Limits: do not introduce a general shell interpreter or promise complete prevention of
+computed-path writes. Keep the existing attestation, lint and CI backstops, and preserve
+Claude ask semantics in its own adapter.
+
+Official references to recheck when implementing: https://learn.chatgpt.com/docs/hooks
+
+### §RK1732 Codex workspace binding for the existing MCP server
+
+Evidence: the existing Python MCP server passed initialize and tools/list with 67 tools
+when started explicitly in the site repository. Its default directory is the process
+working directory; that smoke test did not establish Codex plugin startup behavior. A
+plugin-root cwd copied from an example would target the package instead of the user's
+project.
+
+Scope: establish the workspace binding contract for Codex local stdio startup, tools and
+diagnostics, using supported client context or an explicit configured project directory.
+Reuse serving.py and the CLI dispatch. Preserve dynamic schemas, readOnlyHint
+annotations and configuration refresh behavior. Keep each worktree and simultaneous
+project isolated, and refuse missing or ambiguous project identity with a usable
+configuration remedy. Likely seams: serving.py, launcher arguments and Codex MCP
+configuration.
+
+Acceptance: initialize, tools/list and representative read/write calls run against
+temporary repositories with distinct prefixes and configs. Starting from a plugin cache,
+a subdirectory or another project cannot silently select that backlog. Verify two
+concurrent workspaces, paths containing spaces, Windows launch behavior and schema
+changes within a session. Standard output remains JSON-RPC only; startup diagnostics use
+stderr.
+
+Limits: no hosted service, database, duplicate engine or supported Python API. Require
+the existing Python runtime and use the same repository-backed transactions.
+
+Official references to recheck when implementing:
+https://learn.chatgpt.com/docs/extend/mcp
+
+### §RK1733 Host-aware installation and engine provenance
+
+Evidence: provenance.py resolves installed plugins through CLAUDE_CONFIG_DIR and the
+Claude registry; installing.py names Claude manifests and project settings. Existing
+duplicate-hook suppression must not interpret a cached Codex directory as evidence that
+a plugin is active.
+
+Scope: introduce host-aware installation and engine discovery, covering native plugin
+activation and repository wiring. Adapt invocation hints, served tool naming, engines
+output and stale-surface diagnostics to the selected host. Derive names from the actual
+connection rather than assuming Claude-prefixed MCP tool names. Preserve ROADKEEP_HOME
+selection, vendored-engine precedence and the no-network launcher contract. Likely
+seams: provenance.py, installing.py, launcher discovery and diagnostics tests.
+
+Acceptance: test enabled, disabled, absent and outdated Codex installations; multiple
+user config roots; stale caches; native plus committed wiring; and simultaneous
+Claude/Codex use. A cached but inactive plugin must not suppress a live project guard.
+Hook execution is not duplicated when both supported declarations are active. Missing
+engines or untrusted hooks must be reported honestly rather than presented as enforced.
+
+Limits: no broad scan of unrelated credentials or user files, no automatic trust grants
+and no background download. Preserve current Claude engine-selection behavior. Pin
+fixtures to observed supported configuration contracts and record the tested Codex
+versions.
+
+Official references to recheck when implementing:
+https://learn.chatgpt.com/docs/config-file/config-basic
+
+### §RK1734 Shared skills and Codex workflow entry points
+
+Evidence: plugin/skills/roadkeep already uses SKILL.md, while plugin/commands/add.md and
+its siblings contain Claude-specific allowed-tools, slash-command arguments and
+CLAUDE_PLUGIN_ROOT references. The domain workflow is reusable; those invocation
+contracts are not automatically portable.
+
+Scope: keep one authoritative Roadkeep skill and shared reference pages, adapting
+host-specific launch and tool hints at packaging or installation time. Provide Codex
+equivalents for add, ship, pick and lint through supported skill invocation, preserving
+each command's behavior. Consider agents/openai.yaml only for useful UI metadata or tool
+dependencies. Handle both a connected MCP server and the documented CLI fallback. Likely
+seams: plugin/skills, plugin/commands and generated installation surfaces.
+
+Acceptance: every referenced file and command exists in a clean package; the Codex skill
+discovers session tools without hardcoded Claude names; fallback execution reaches the
+selected engine. Preserve the add command's exact-user-words rule, missing-field
+behavior, claims, non-goals and one-task-per-commit guidance where applicable. Compare
+generated instructions to their shared source so fixes cannot drift between hosts.
+
+Limits: no model-based prose generator, duplicate authored manuals or assumed parity of
+Claude frontmatter. Keep Codex workflow files discoverable without copying an every-turn
+manual into AGENTS.md.
+
+Official references to recheck when implementing:
+https://learn.chatgpt.com/docs/build-skills
+
+### §RK1735 Codex project installation lifecycle
+
+Evidence: installing.py currently writes .claude/settings.json, .claude/skills/roadkeep
+and .claude/hooks/roadkeep-launch.py. Codex uses different configuration and skill
+discovery locations; copying those files does not activate equivalent behavior.
+
+Scope: add an explicit host selector, such as install --host codex, after confirming the
+final CLI spelling. Support project-scoped .codex/config.toml, .agents/skills and
+supported hook declarations, plus a committed launcher where required. Reuse
+installation planning and ownership rules. Extend check, refresh and uninstall to the
+selected host. Respect trusted-project configuration and explicit hook trust; report the
+required review without enabling bypass flags or silently trusting code.
+
+Acceptance: dry-run/check performs no writes; first install, repeat install, refresh and
+uninstall have deterministic results. Existing TOML settings, unrelated MCP servers,
+skills, comments where supported, and Claude wiring survive. Malformed configuration is
+refused without overwriting it. Test paths with spaces, Windows and POSIX launchers,
+native-plugin coexistence and an engine unavailable in the target environment. Removal
+deletes only Roadkeep-owned wiring and preserves the adopter's CI policy.
+
+Limits: do not change the default host for existing users without an explicit
+compatibility decision. No credentials, machine-wide permission changes, network
+bootstrap or automatic trust approval.
+
+Official references to recheck when implementing:
+https://learn.chatgpt.com/docs/config-file/config-basic
+https://learn.chatgpt.com/docs/hooks
+
+### §RK1736 Portable Codex package and local marketplace
+
+Evidence: plugin/.claude-plugin/plugin.json declares the current package, whose MCP
+configuration uses CLAUDE_PLUGIN_ROOT. The local Codex CLI exposes plugin management,
+and official packaging supports a portable root manifest plus OpenAI-specific extension
+fields. Native Codex loading has not yet been tested for Roadkeep.
+
+Scope: add the portable plugin.json and root mcp.json, using a supported stdio
+declaration and PLUGIN_ROOT where required. Retain the Claude manifest and entry point.
+Bundle the shared engine, skills, host hook declarations and any required listing
+assets. Add a local marketplace entry for development installation, with paths relative
+to the catalog. Extend version-stamping and packaging tests so all manifests derive from
+the existing single version authority.
+
+Acceptance: validate schemas, package contents, executable paths and root-relative
+references. Install from a clean local package or marketplace, outside the development
+checkout, and verify the selected workspace and hook trust flow. Test upgrade, disable
+and removal; preserve Claude discovery and avoid loading one hook definition twice.
+Document Python >=3.11 as the local runtime requirement.
+
+Limits: no API key, hosted MCP endpoint, remote publication or duplicate engine. Public
+directory eligibility is handled as a documented distribution constraint, not inferred
+from a successful local installation.
+
+Official references to recheck when implementing:
+https://developers.openai.com/plugins/build/plugins
+
+### §RK1737 Native Codex enforcement and compatibility evidence
+
+Scope: add a repeatable integration harness over disposable repositories and the
+packaged plugin. Test the actual Codex runtime in addition to unit payload fixtures;
+record client versions, operating system, configuration and hook trust state. Begin with
+local Codex desktop/CLI surfaces that can be exercised. Test the IDE and remote surfaces
+separately before claiming parity.
+
+Acceptance: in a fresh trusted session, SessionStart identifies the selected engine;
+apply_patch attempts on each governed role are denied; the equivalent Roadkeep
+transaction succeeds; normal source edits and permitted Git operations work; Stop
+reports actionable lint findings without a loop. Verify unsupported hook outputs cannot
+silently authorize a write. Exercise multiple files, nested repositories, two worktrees,
+blocked startup, missing Python, disabled/untrusted hooks, update and uninstall. Confirm
+MCP initialization, schema refresh and representative read/write tools.
+
+Run the Python suite and existing plugin/launcher tests to protect Claude behavior;
+inspect CI corpus skips rather than treating skipped real-file coverage as proof. Keep
+generated runs and credentials out of the repository, retaining only reproducible
+fixtures and a concise compatibility report.
+
+Limits: acceptance is observed behavior for named versions and surfaces. Hooks are a
+workflow guardrail with known coverage limits; the tests must not claim an
+operating-system security boundary or install plugins in the user's personal environment
+without an explicit test choice.
+
+Official references to recheck when implementing: https://learn.chatgpt.com/docs/hooks
+
+### §RK1738 Codex adoption and distribution documentation
+
+Scope: document the tested Codex installation paths in the product README and
+documentation area, updating shared copy sources rather than duplicating divergent
+prose. Explain the native local plugin, project-scoped fallback, Python requirement,
+workspace binding, hook trust, MCP tools, skills, check/update/uninstall and
+troubleshooting. Include exact commands tested by the integration task and a versioned
+surface matrix for desktop, CLI, IDE and remote execution.
+
+Explain what changes compared with Claude, which engine and Markdown contracts stay
+shared, and how to recover when hooks are disabled, untrusted or unavailable. Retain
+CI/pre-commit guidance as backstops and distinguish workflow enforcement from a security
+boundary.
+
+Distribution: recheck official OpenAI rules at implementation time. Record whether
+bundled hooks are eligible for the public directory and whether local stdio submission
+needs publisher approval. Present manual/local installation as a separate verified path.
+If public submission remains unavailable, document that limitation without claiming an
+upcoming approval or creating a hosted service. Provide a concrete maintainer checklist
+for identity, assets, package validation and eligibility if submission is later
+authorized.
+
+Acceptance: a clean-room adoption follows the guide successfully; all links and commands
+resolve; marketing claims match the compatibility report. No directory submission,
+account registration, launch campaign or public publication belongs to this task.
+
+Official references to recheck when implementing:
+https://developers.openai.com/plugins/deploy/desktop-only
+https://developers.openai.com/plugins/build/plugins

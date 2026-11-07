@@ -952,3 +952,6 @@ deriving the anchor, which is how they came apart.
 ## Block L — Product sites on the package
 
 - ✅ **RK1714** **The pitch and the roadkeep-gui landing each keep their own copy of the template eight product sites share** — Both product sites style the design system's ./site from its plain site.css and tokens.css, not Tailwind and its preset: no build dependency for a chrome that is plain CSS.
+
+## Block M — Codex integration (one engine, host-specific adapters)
+

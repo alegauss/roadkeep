@@ -48,6 +48,18 @@
 
 - ⏳ **RK1729** (deps: a design-system release with VDS243) **Both product sites run a prerender script of their own, and neither is registered with the design system** — The gui landing still runs its own prerender until a design-system release carries prerenderSite's headTags. → §RK1729
 
+## Block M — Codex integration (one engine, host-specific adapters)
+
+- 📋 **RK1730** (deps: —) **The guard ignores Codex apply_patch calls that edit governed files** — Recognize Codex patch targets before execution so roadmap ownership also applies to the native editing tool. → §RK1730
+- 📋 **RK1731** (deps: RK1730) **Shell refusals return a decision that Codex does not support** — Use supported hook responses so a governed shell write cannot proceed because an ask decision was rejected. → §RK1731
+- 📋 **RK1732** (deps: —) **MCP startup does not establish the Codex workspace it governs** — Bind the existing stdio server to the intended repository so tools cannot inspect or mutate the plugin cache backlog. → §RK1732
+- 📋 **RK1733** (deps: RK1732) **Engine discovery and installation diagnostics only recognize Claude wiring** — Identify active Codex installations and their engine without deferring to disabled plugins or stale cached copies. → §RK1733
+- 📋 **RK1734** (deps: RK1732) **Bundled workflows assume Claude command syntax and tool names** — Give Codex the same Roadkeep workflow through reusable skills with valid invocations and tool references. → §RK1734
+- 📋 **RK1735** (deps: RK1730, RK1731, RK1733, RK1734) **Install, check and uninstall cannot manage Codex project wiring** — Provide an explicit Codex installation path that preserves unrelated configuration and can be verified and reversed. → §RK1735
+- 📋 **RK1736** (deps: RK1730, RK1731, RK1733, RK1734, RK1735) **The distributed plugin only declares a Claude installation** — Package the shared engine, MCP server and skills for Codex while retaining the existing Claude distribution. → §RK1736
+- 📋 **RK1737** (deps: RK1735, RK1736) **No end-to-end evidence shows Roadkeep enforcement inside Codex** — Verify native plugin behavior and host regressions before claiming the Codex integration is supported. → §RK1737
+- 📋 **RK1738** (deps: RK1737) **Users have no verified Codex adoption or distribution guide** — Document supported installation, trust and recovery paths using the integration evidence and current distribution rules. → §RK1738
+
 ## Done when — Block D
 
 - **The gate passes on this repository's own docs** the format is proven by the artefact
@@ -136,6 +148,105 @@
 
 - **Both sites registered with the design system** consumers.json lists the pitch and
   the gui landing, and the hub's projects.json gives roadkeep the amber the pitch uses.
+
+## Done when — RK1730
+
+- **All patch destinations are checked** Fixtures cover add, update, delete, move and
+  multi-file patches against governed files, including Windows and cross-repository
+  paths.
+- **Ordinary edits remain usable** Source-file edits and unconfigured projects pass,
+  while existing Claude Edit, Write and MultiEdit cases retain their behavior.
+
+## Done when — RK1731
+
+- **Codex receives supported decisions** PreToolUse output never uses ask; executable
+  fixtures verify the supported deny shape and actionable refusal text.
+- **Legitimate commands are preserved** Roadkeep commands and permitted Git operations
+  pass; prohibited shell writes and ambiguous cases follow the documented host policy.
+- **Lifecycle hooks retain their meaning** SessionStart guidance and Stop lint results
+  use accepted outputs and honor recursion protection and configured timeouts.
+
+## Done when — RK1732
+
+- **Tools act on the selected workspace** Two temporary repositories and worktrees keep
+  distinct prefixes, reads and writes, regardless of the plugin installation directory.
+- **Protocol and diagnostics remain valid** Initialization, schemas, read-only hints and
+  refresh pass; stdout contains only protocol messages and missing workspace errors name
+  a remedy.
+
+## Done when — RK1733
+
+- **Activation is distinguished from cache** Disabled and stale cached plugins never
+  suppress the active project guard; enabled native and committed wiring do not execute
+  the same guard twice.
+- **Diagnostics identify the actual host** Invocation hints, engine selection, stale
+  checks and served tool names match each Codex or Claude fixture without changing
+  engine precedence.
+
+## Done when — RK1734
+
+- **Workflows preserve their contracts** Codex add, ship, pick and lint instructions
+  retain required fields, exact-user-word rules and existing safety constraints.
+- **Every instruction has a reachable target** Package checks resolve references and CLI
+  fallbacks; connected-tool instructions use the actual Codex session names and share
+  the authoritative skill text.
+
+## Done when — RK1735
+
+- **Installation is repeatable and reversible** First install, repeat, refresh, check
+  and uninstall pass fixture tests while preserving unrelated settings and existing
+  Claude wiring.
+- **Trust and configuration failures are explicit** Untrusted hooks, malformed TOML and
+  missing engines name remedies; check is read-only and no path silently grants trust or
+  bypasses review.
+- **Committed wiring works on both platforms** A clean project can invoke the selected
+  engine with Windows or POSIX paths, including spaces, without relying on a developer
+  checkout layout.
+
+## Done when — RK1736
+
+- **Both packages resolve one implementation** Codex and Claude manifests reference
+  shipped files and the same engine; schema, version-stamping and package-content checks
+  pass.
+- **A clean local install loads correctly** The packaged marketplace install works
+  outside the checkout, uses the target workspace and preserves explicit hook trust,
+  upgrade, disable and removal behavior.
+
+## Done when — RK1737
+
+- **Native enforcement is observed** A packaged Codex session rejects governed patches,
+  allows Roadkeep transactions and ordinary edits, and reports Stop findings without
+  recursion.
+- **Host and workspace regressions are covered** Claude tests pass; isolated projects,
+  worktrees, trust states, missing runtimes and plugin update/removal cases have
+  reproducible evidence.
+- **Compatibility claims match the evidence** The report names tested client versions
+  and platforms and distinguishes unsupported or untested surfaces and skipped corpus
+  coverage.
+
+## Done when — RK1738
+
+- **A clean adopter can follow the guide** Tested commands cover install, trust, tools,
+  skills, workspace selection, update, check, recovery and uninstall from a fresh
+  environment.
+- **Distribution claims are current and bounded** The guide cites current OpenAI
+  requirements and separates verified local use from public submission eligibility and
+  untested surfaces.
+
+## Done when — Block M
+
+- **Both agents use the same engine** Codex and Claude share the CLI, schemas,
+  repository store and authoritative skills; host-specific adapters do not create a
+  second writer.
+- **Native enforcement has reproducible evidence** A packaged Codex installation passes
+  governed-edit, legal-transaction, workspace-isolation and lifecycle tests, with
+  versions and coverage limits recorded.
+- **Installation preserves explicit trust and user settings** Clean install, upgrade,
+  disable, check and removal preserve unrelated configuration, retain Claude support and
+  never grant hook trust automatically.
+- **Distribution guidance matches verified support** Adoption instructions reproduce
+  tested local installation and distinguish client support from current public-directory
+  and local-MCP submission eligibility.
 
 ## Non-goals
 
