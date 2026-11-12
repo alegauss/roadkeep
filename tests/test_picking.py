@@ -427,8 +427,13 @@ def test_the_pick_here_is_the_lowest_ready_id_in_the_file(governed):
         # rather than a failure: every tier was applied and none of them had a candidate, so
         # the counts are zero and the caller is told which. The branch below is what holds
         # the moment a line is added back, which is why it is kept rather than deleted.
-        assert choice.reason == "nothing is open"
-        assert (choice.ready, choice.blocked, choice.outside, choice.paused) == (0, 0, 0, 0)
+        # Or every open line waits on something outside it (RK1737's trusted session, a
+        # design-system release): open, and still nothing to start, which is also an answer.
+        assert choice.ready == 0
+        if choice.reason == "nothing is open":
+            assert (choice.blocked, choice.outside, choice.paused) == (0, 0, 0)
+        else:
+            assert choice.blocked + choice.outside + choice.paused > 0, choice.reason
         return
     # Tier.STARTED while a line is claimed, and that is the workflow rather than a defect:
     # one task per commit means the 🛠 window is the window work happens in, so asserting

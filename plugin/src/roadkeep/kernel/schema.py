@@ -511,6 +511,7 @@ def grammar(marker: bool, symptom: bool) -> str:
 #: with it, `tests/test_budgeting.py` failed as it is written to, and the figure follows the
 #: reading exactly as it did the first time. Moving it up is the safe direction — the aim gets
 #: shorter, so the gate is reached less often — and the rule it follows is the sentence above.
+#: **And at 2,480**, where it read 6.61 and the rule gave 6.7, the same way and for the same reason.
 #:
 #: Not configuration (L6). A project declares how long its lines may be; this is a property
 #: of the prose those lines are written in, and a `roadkeep.toml` field for it would be a
@@ -520,7 +521,7 @@ def grammar(marker: bool, symptom: bool) -> str:
 #: Here rather than in `budgeting`, which is where it was written and is still read from
 #: (RK201): the refusal needs the same conversion the aim is published with, and a second
 #: constant one layer down would be the second opinion an author stops trusting.
-CHARS_PER_WORD = 6.6
+CHARS_PER_WORD = 6.7
 
 
 #: How far a body composed *to* its word limit overshot the count `words` takes (RK301).

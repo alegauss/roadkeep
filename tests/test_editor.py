@@ -554,7 +554,12 @@ def test_the_prompt_carries_the_budget_and_the_command_is_what_writes(tmp_path):
     assert said["wrote"] is True, said.get("said")
     # 120 is `[limits] symptom` and 33 is what was typed: the countdown is the payload's
     # number minus the words on screen, and neither figure is written into the client.
-    assert "87 of 120 left" in said["prompts"][0] and "aim 18 words" in said["prompts"][0]
+    # The aim is `words(120)`, read off the conversion and never spelled: the ratio is
+    # re-measured as the corpus grows (6.6, then 6.7), and a literal here went red with it.
+    from roadkeep.kernel.schema import words
+
+    assert "87 of 120 left" in said["prompts"][0]
+    assert f"aim {words(120)} words" in said["prompts"][0]
     assert "175 of 200 left" in said["prompts"][1]
     written = (root / "docs" / "ROADMAP.md").read_text(encoding="utf-8")
     assert typed[0] in written and typed[1] in written
