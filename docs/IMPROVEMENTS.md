@@ -83,7 +83,73 @@ already written, not authorship.
 
 ## Block E — Adoption
 
+### §RK1740 install --vendor deletes the capture inbox it shares a folder with
+
+Measured on 2026-11-12, refreshing seventeen vendored projects under `D:\Git` with
+`install --vendor --committed`: multi-agent, japode/ads and japode/schools each held a
+`.roadkeep/reports/` and no engine, and after the run each held the engine and no
+reports. `vendor` replaces `.roadkeep/` whole with `shutil.rmtree`, which is right for
+the engine (a half-old tree is the state RK1193 exists to prevent) and wrong for the one
+directory under it the engine does not own.
+
+`capturing.REPORTS` puts the capture inbox at `.roadkeep/reports` (RK89), and the same
+run that writes a capture adds `.roadkeep/` to `.gitignore`. So the reports are in no
+history: a refresh that deletes them deletes the only copy, and nothing in the report
+said a file outside the engine went with it.
+
+The replacement should own what it copied and nothing else: move `reports/` (or anything
+the engine did not ship) aside before the removal and back after it, or remove only the
+engine's own directories. Either way the report names what it kept.
+
+Done when `install --vendor` over a `.roadkeep/` holding captures leaves every capture
+byte-identical, and a test holds it.
+
+### §RK1741 A vendored copy is a cache that never refreshes
+
+Measured on 2026-11-12 across the 57 projects under `D:\Git` that declare a
+`roadkeep.toml`: thirteen vendored copies stood between 0.2.473 and 0.2.511 while the
+checkout on the same machine stood at 0.2.576, and four projects whose settings pin
+`ROADKEEP_HOME` to `${CLAUDE_PROJECT_DIR}/.roadkeep` held no engine there, so the
+launcher refused every command (RK1678). Bringing them level took a hand-run sweep.
+
+The copy exists for Claude Code on the web, where no plugin installs, and `.roadkeep/`
+is gitignored, so it is not a pin a commit carries: it is a per-machine cache. A cache
+that never refreshes is the drift this tool's L1 argument was written against, one level
+down. It also outranks the checkout locally: the launcher reads `.roadkeep/` before the
+sibling, and a project's `env` pin outranks a user-level `ROADKEEP_HOME`.
+
+The guard already compares versions at `SessionStart` for `install.stale`. Where the
+running engine is newer than the vendored copy, or the pinned tree holds no engine, it
+can run the refresh `install --vendor` does and say so, rather than leave the next
+session to meet a refusal about a format its copy predates (RK1739). A sweep over
+sibling projects, `install --vendor --all` or similar, covers the projects no session
+opens.
+
+Done when a session opening a project whose vendored copy is older than the reachable
+engine finishes `SessionStart` running the newer one, and names the versions it moved.
+
 ## Block F — The plugin
+
+### §RK1739 A wholesale grammar failure blames the file when the engine is the stale one
+
+Measured on 2026-11-12 in winwright: the roadmap's four open lines all carry the `(from:
+…)` clause RK1723 introduced, and a served tool answered that the grammar fails on 4 of
+4 bullets, that no `[grammar]` is declared, and that the file was written under another
+format. `lint` from the current engine reads the same file clean. The server had started
+before RK1723's commit, so the format it lacked was newer than itself.
+
+The refusal reasons only about the file. It already holds the fact that would have
+answered: `roadkeep.toml` records `[install] wired`, the version that wired the project,
+and the running engine knows its own. When every bullet fails and the running engine is
+older than the wired one, the likelier cause is the engine, and the remedy is restarting
+the server or refreshing the copy, not rewriting the file.
+
+Two smaller defects ride along. An empty `[grammar]` table is reported as undeclared,
+which contradicts a file the reader can open. And the message gives no version at all,
+so telling a stale process from a foreign format takes a second session.
+
+Done when a wholesale grammar failure under an engine older than `wired` names both
+versions and the restart, and an empty `[grammar]` is reported as declared but empty.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
