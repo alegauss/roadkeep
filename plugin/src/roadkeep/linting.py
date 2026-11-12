@@ -1040,9 +1040,9 @@ def _grammatical(
                 + (
                     f" — `[grammar.{role}]` is what to look at"
                     if declared
-                    else " — no [grammar] is declared, so the file was written under "
-                    "another format"
-                ),
+                    else _undeclared(config, role)
+                )
+                + _older(config),
                 subject=role,
                 # What it covers, which is not where it is filed (RK1070): the declaration
                 # is in the config and the lines it explains are in the governed file.
@@ -1050,6 +1050,52 @@ def _grammatical(
             )
         )
     return out
+
+
+def _undeclared(config: Config, role: str) -> str:
+    """What the config says about this role's grammar, where it declares none for it (RK1739).
+
+    Two states that read alike and are not: no `[grammar]` table at all, and one that is there
+    and names nothing for this role — reporting the second as the first contradicts a file the
+    reader can open. Read off the source here, on the one path that is a wholesale failure.
+    """
+    import tomllib  # noqa: PLC0415 - only a whole file failing pays for this
+
+    try:
+        data = tomllib.loads(Path(config.source).read_text(encoding="utf-8"))
+    except (OSError, TypeError, ValueError):
+        data = {}
+    if isinstance(data.get("grammar"), dict):
+        return (
+            f" — [grammar] is declared but names no grammar for {role}, so the file was "
+            f"written under another format or this engine does not know its own"
+        )
+    return " — no [grammar] is declared, so the file was written under another format"
+
+
+def _older(config: Config) -> str:
+    """The engine, where it predates the one that wired this project (RK1739).
+
+    A file this engine reads wholesale as foreign may be written in a format newer than the
+    engine — measured: a server started before RK1723 refused four lines carrying its `from`
+    clause, which the current engine reads clean. `[install] wired` names the version that
+    wired the project, so where the running one is older the remedy is a restart or a
+    refresh, and rewriting the lines would be the wrong repair.
+    """
+    from roadkeep import __version__  # noqa: PLC0415
+
+    wired = config.install_wired
+
+    def number(version: str) -> tuple[int, ...]:
+        return tuple(int("".join(c for c in part if c.isdigit()) or 0) for part in version.split("."))
+
+    if not wired or number(__version__) >= number(wired):
+        return ""
+    return (
+        f"; this engine is {__version__} and the project was wired by {wired}, so a format "
+        f"newer than the engine is the likelier cause — restart the session or refresh the "
+        f"copy before rewriting a line"
+    )
 
 
 @dataclass(frozen=True, slots=True)

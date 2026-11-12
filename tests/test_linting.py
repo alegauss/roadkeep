@@ -2196,6 +2196,46 @@ def test_the_grammar_finding_covers_a_file_it_is_not_filed_against():
 # -- the one invariant a declaration adds (RK1068) -----------------------------
 
 
+#: Two bullets in a shape the default grammar does not read: the wholesale failure (RK1739).
+FOREIGN = (
+    "# Roadmap\n\n## Block A — The model\n\n"
+    "- 📋 **RK1** **A first symptom** Because of a reason.\n"
+    "- 📋 **RK2** **A second symptom** Because of a reason.\n"
+)
+
+
+def _wholesale(tmp_path: Path, extra: str = "") -> str:
+    config = project(tmp_path, roadmap=FOREIGN, config=CONFIG + extra)
+    found = [f for f in lint(config).findings if f.code == "grammar.unreadable"]
+    assert len(found) == 1, [str(f) for f in lint(config).findings]
+    return found[0].message
+
+
+def test_a_wholesale_failure_with_no_grammar_table_says_none_is_declared(tmp_path):
+    message = _wholesale(tmp_path)
+    assert "no [grammar] is declared" in message
+    assert "this engine is" not in message
+
+
+def test_an_empty_grammar_table_is_reported_as_declared_and_empty(tmp_path):
+    message = _wholesale(tmp_path, "\n[grammar]\n")
+    assert "no [grammar] is declared" not in message
+    assert "[grammar] is declared but names no grammar for roadmap" in message
+
+
+def test_an_engine_older_than_the_wiring_is_named_beside_the_file(tmp_path):
+    """RK1739: a stale server read a newer format as foreign and blamed the file. Where the
+    running engine predates `[install] wired`, both versions and the restart are named."""
+    import roadkeep
+
+    message = _wholesale(tmp_path, '\n[install]\nwired = "99.0.0"\n')
+    assert f"this engine is {roadkeep.__version__}" in message
+    assert "wired by 99.0.0" in message and "restart the session" in message
+    (tmp_path / "older").mkdir()
+    older = _wholesale(tmp_path / "older", '\n[install]\nwired = "0.0.1"\n')
+    assert "this engine is" not in older
+
+
 def test_a_grammar_that_cannot_read_back_what_it_writes_is_one_defect(tmp_path):
     # The cost RK1064 does not remove, caught at the end it is about: a grammar given as
     # data can be one that cannot reproduce its own file, and the round-trip guard then

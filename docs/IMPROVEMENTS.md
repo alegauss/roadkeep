@@ -130,27 +130,6 @@ engine finishes `SessionStart` running the newer one, and names the versions it 
 
 ## Block F — The plugin
 
-### §RK1739 A wholesale grammar failure blames the file when the engine is the stale one
-
-Measured on 2026-11-12 in winwright: the roadmap's four open lines all carry the `(from:
-…)` clause RK1723 introduced, and a served tool answered that the grammar fails on 4 of
-4 bullets, that no `[grammar]` is declared, and that the file was written under another
-format. `lint` from the current engine reads the same file clean. The server had started
-before RK1723's commit, so the format it lacked was newer than itself.
-
-The refusal reasons only about the file. It already holds the fact that would have
-answered: `roadkeep.toml` records `[install] wired`, the version that wired the project,
-and the running engine knows its own. When every bullet fails and the running engine is
-older than the wired one, the likelier cause is the engine, and the remedy is restarting
-the server or refreshing the copy, not rewriting the file.
-
-Two smaller defects ride along. An empty `[grammar]` table is reported as undeclared,
-which contradicts a file the reader can open. And the message gives no version at all,
-so telling a stale process from a foreign format takes a second session.
-
-Done when a wholesale grammar failure under an engine older than `wired` names both
-versions and the restart, and an empty `[grammar]` is reported as declared but empty.
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

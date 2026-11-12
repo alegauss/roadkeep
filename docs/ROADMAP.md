@@ -37,8 +37,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1739** (deps: —) **A file that fails the grammar wholesale is blamed on its author, even when the running engine predates the format** — A stale MCP server refused winwright's four lines carrying a from clause as another format, and named no engine version against the wired one. → §RK1739
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

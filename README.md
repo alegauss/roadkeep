@@ -225,7 +225,7 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | C — Query (consult without reading the file) | 0 | 205 | 7 |
 | D — The gate | 0 | 319 | 7 |
 | E — Adoption | 2 | 127 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 169 | 4 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 170 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 22 | 0 |
@@ -233,11 +233,11 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 1 | 2 | 0 |
 | M — Codex integration (one engine, host-specific adapters) | 2 | 7 | 0 |
-| **Total** | 6 | 1210 | 24 |
+| **Total** | 5 | 1211 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1739** (deps: —) **A file that fails the grammar wholesale is blamed on its author, even when the running engine predates the format** — A stale MCP server refused winwright's four lines carrying a from clause as another format, and named no engine version against the wired one. → §RK1739
+- 📋 **RK1740** (deps: —) **install --vendor deletes the whole .roadkeep/ tree, so the capture reports kept under .roadkeep/reports are lost** — Refreshing seventeen projects erased the reports of three, and the folder is gitignored, so no copy survived to restore them. → §RK1740
 <!-- roadkeep:end -->
 
 Open work is in

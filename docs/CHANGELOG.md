@@ -1157,6 +1157,7 @@
 - ✅ **RK1711** **section add --role strategy refuses every anchor on a fresh init --strategy scaffold, and its remedy is the refused call** — An id project's prose takes a non-id top-level anchor before the first block, so a scaffolded strategy file opens (design recorded in `plugin/src/roadkeep/sections.py`).
 - ✅ **RK1719** **A lock whose holder died refuses every write for up to a minute, until its age reaps it** — A lock whose holder process is gone is taken on the next write and said so, on POSIX and Windows; a live holder is still refused, with how long it has held the lock.
 - ✅ **RK1725** **Filing into a sibling project is spelled by each friction skill and needs a local checkout** — The skill ships filing.md, opened when a write targets a declared sibling: add -C into a checkout, or a shallow clone, rebase with the driver and a merge request, then the dep.
+- ✅ **RK1739** **A file that fails the grammar wholesale is blamed on its author, even when the running engine predates the format** — A wholesale grammar failure names this engine and the newer wired one, with the restart; an empty [grammar] reads as declared (design recorded in `plugin/src/roadkeep/linting.py`).
 
 ## Block G — The editor surface (the backlog where the file is open)
 
