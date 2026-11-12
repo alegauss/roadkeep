@@ -237,7 +237,7 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 
 **Next ready:**
 
-- 📋 **RK1737** (deps: RK1735 ✅, RK1736 ✅) **No end-to-end evidence shows Roadkeep enforcement inside Codex** — Verify native plugin behavior and host regressions before claiming the Codex integration is supported. → §RK1737
+- 📋 **RK1739** (deps: —) **A file that fails the grammar wholesale is blamed on its author, even when the running engine predates the format** — A stale MCP server refused winwright's four lines carrying a from clause as another format, and named no engine version against the wired one. → §RK1739
 <!-- roadkeep:end -->
 
 Open work is in
