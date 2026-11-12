@@ -54,7 +54,7 @@ from roadkeep.config import Config
 from roadkeep.criteria import readdress
 from roadkeep.kernel.document import Document, Entry, save_all
 from roadkeep.kernel.schema import Task
-from roadkeep.ids import id_scanner, next_id
+from roadkeep.ids import id_scanner, next_id, next_past
 from roadkeep.markers import refresh
 from roadkeep.sections import Section, checked, descending, find, heading_of
 
@@ -246,7 +246,9 @@ class Renumbering:
         }
 
 
-def renumber(config: Config, task_id: str, to: str | None = None) -> Renumbering:
+def renumber(
+    config: Config, task_id: str, to: str | None = None, past: Sequence[str] = ()
+) -> Renumbering:
     """Move one open line to a free id, with its section and its dependents.
 
     `to` is derived when it is not given: one past the highest id in this line's own
@@ -258,12 +260,18 @@ def renumber(config: Config, task_id: str, to: str | None = None) -> Renumbering
     Refuses before writing anything: an id in neither line file, a destination the format
     cannot read, a destination already spent, and any line the move would render over the
     limit — a longer number is two more characters, and the cap is the cap.
+
+    ``past`` names the other side of the merge (RK1748): the derived destination clears what
+    those revisions spent as well, because one past this tree's highest is the next number
+    the other branch most likely took. Ignored beside an explicit `to`, which is checked
+    against this tree only — the caller who typed a number has chosen it.
     """
     schema = config.schema
     documents = _line_documents(config)
     role, entry = _locate(config, documents, task_id)
     if to is None:
-        to = next_id(config, family_of(config, task_id))
+        family = family_of(config, task_id)
+        to = next_past(config, family, past) if past else next_id(config, family)
     if to == task_id:
         raise SameId(task_id)
     if not schema.id_pattern().match(to):

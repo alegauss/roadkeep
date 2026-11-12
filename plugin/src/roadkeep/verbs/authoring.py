@@ -208,7 +208,7 @@ def _renumber(config: Config, args: argparse.Namespace) -> Result | int:
     is the `written` shape RK1614 declared, and what picks the branch in `answered`.
     """
     try:
-        moved = renumber(config, args.id, args.to)
+        moved = renumber(config, args.id, args.to, past=tuple(args.past or ()))
         wrote = moved.save()
     except REFUSALS as error:
         return _refused(error)
@@ -622,17 +622,22 @@ def declare_lines(subcommands: argparse._SubParsersAction) -> None:
         "renumber",
         help="move one open line to a free id, with its section and its dependents",
         description=(
-            "Change one line's address, without a departure. The line, the section its "
-            "pointer resolves to and every dep naming it move in one transaction; the "
-            "ledger is never opened, because an id it records is a decision and not an "
-            "address. This is the repair a merge that allocated one id twice needs, and "
-            "the door `ship`, `retire` and `amend` all deliberately refuse to be."
+            "Change one line's address, without a departure: the line, its section and every "
+            "dep naming it move in one transaction, and the ledger, whose ids are decisions, "
+            "is never opened. The repair for an id a merge spent twice; `--past` names the "
+            "other branch."
         ),
     )
     renumber_parser.add_argument("id", help="the line to move, e.g. RK90")
     renumber_parser.add_argument(
         "--to",
-        help="the new id (default: derived, one past the highest in the line's family)",
+        help="the new id (default: one past the highest in the line's family)",
+    )
+    renumber_parser.add_argument(
+        "--past",
+        action="append",
+        metavar="REV",
+        help="also derive past this branch's ids",
     )
     renumber_parser.add_argument("--json", action="store_true", help="every edit, as data")
     renumber_parser.set_defaults(handler=_renumber)

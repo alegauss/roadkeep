@@ -1195,7 +1195,8 @@ def _spent(
     if doubled:
         out.append(
             f"both branches created {', '.join(doubled)}: one address, two tasks — "
-            f"`{invocation()} renumber <id>` on one side, then merge again"
+            f"`{invocation()} renumber <id> --past <the other branch>` on one side, then merge "
+            f"again"
         )
     if contested:
         out.append(

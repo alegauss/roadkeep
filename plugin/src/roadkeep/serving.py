@@ -442,8 +442,9 @@ TOOLS: tuple[Tool, ...] = (
     # The repair a merge needs, exposed for the reason it exists at all (RK97): the agent
     # that hits a doubled id is the one the hook denies a hand-edit to, so a door only a
     # human can reach is no door. `to` is offered because the derived answer is not always
-    # the wanted one — it is refused against every source either way.
-    Tool("renumber", ("id", "to")),
+    # the wanted one — it is refused against every source either way. `past` is the other side
+    # of the merge (RK1748): the derived answer clears what that branch spent as well.
+    Tool("renumber", ("id", "to", "past")),
     # `part` is exposed because the agent shipping half of something is the one that needs
     # it (RK121): without it the only honest options are a ledger entry that overstates and
     # a hand-edited qualifier the grammar reads and no verb maintains.

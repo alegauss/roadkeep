@@ -544,3 +544,53 @@ def test_the_payload_says_whether_the_list_moved(tmp_path, capsys):
     capsys.readouterr()
     assert main([*where, "renumber", "RK9", "--to", "RK20", "--json"]) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["criteria"] is True
+
+
+# -- the other side of the merge (RK1748) --------------------------------------
+
+
+def _forked(tmp_path: Path, capsys) -> Path:
+    """A feature branch holding RK1-2 against a main that went on to RK1-5."""
+    from conftest import git, git_commit, git_init  # noqa: PLC0415 - the git cases only
+
+    git_init(tmp_path)
+    where = ["-C", str(tmp_path)]
+    assert main([*where, "init"]) == EXIT_OK
+    git_commit(tmp_path, "base")
+    trunk = git(tmp_path, "rev-parse", "--abbrev-ref", "HEAD").strip()
+    git(tmp_path, "branch", "-m", trunk, "main")
+    git(tmp_path, "checkout", "-q", "-b", "feature")
+    for side, count in (("feature", 2), ("main", 5)):
+        git(tmp_path, "checkout", "-q", side)
+        for n in range(count):
+            argv = ["add", "--block", "A", "--symptom", f"{side} case {n} fails", "--why", "So."]
+            assert main([*where, *argv]) == EXIT_OK
+        git_commit(tmp_path, side)
+    git(tmp_path, "checkout", "-q", "feature")
+    capsys.readouterr()
+    return tmp_path
+
+
+def test_a_destination_past_the_other_branch_clears_what_it_spent(tmp_path, capsys):
+    """RK1748, measured by the RK1744 spike. The remedy the driver names is `renumber` on one
+    side, and its derived destination read that side alone: RK1 and RK2 moved to RK3 and RK4,
+    which main had also spent, and the second merge collided exactly as the first had."""
+    root = _forked(tmp_path, capsys)
+    config = Config.discover(root)
+
+    assert renumber(config, "RK1").to == "RK3"  # the trap, read without writing
+    moved = renumber(config, "RK1", past=("main",))
+
+    assert moved.to == "RK6"
+
+
+def test_a_revision_git_does_not_know_is_refused_before_anything_moves(tmp_path, capsys):
+    root = _forked(tmp_path, capsys)
+    before = (root / "ROADMAP.md").read_bytes() if (root / "ROADMAP.md").exists() else None
+
+    code = main(["-C", str(root), "renumber", "RK1", "--past", "no-such-branch"])
+
+    assert code == EXIT_USAGE
+    assert "no-such-branch" in capsys.readouterr().err
+    if before is not None:
+        assert (root / "ROADMAP.md").read_bytes() == before

@@ -591,7 +591,8 @@ beneath a sentence that no longer says what it answered.
 A **merge conflict inside a governed file** is not a hand edit either. `merge --register`
 wires `roadkeep merge` in as git's driver for the files `roadkeep.toml` declares, and it
 merges by id: two branches appending under one heading is two additions, not a conflict,
-and an id **both branches created** is reported by name for `renumber` to move. What it
+and an id **both branches created** is reported by name for `renumber <id> --past <branch>`
+to move on one side, the destination then clearing what the other branch spent too. What it
 cannot prove — prose changed on both sides, a line that does not round-trip, an output
 `lint` would refuse — it hands back as git's own conflict markers and exits 1. `install`
 names it in its report and `install --register-merge` runs that half during adoption, so a
