@@ -127,7 +127,8 @@ Observed on Codex CLI 0.167.0-alpha.4.1 (desktop 26.1106), Windows 11, gpt-6.1-s
 `codex exec` in a disposable repository: SessionStart runs; apply_patch and a shell
 write on the roadmap are denied; the server binds the session's directory. Codex reads
 only `.codex-plugin/plugin.json`, expands no variable in server args, passes no plugin
-variable to the server, names tools `mcp__roadkeep__*`, and gives hooks `PLUGIN_ROOT`.
+variable to the server, names tools `mcp__roadkeep__*`, and gives hooks `PLUGIN_ROOT`. A
+plugin update leaves its hooks untrusted, reported Failed, and the write goes through.
 
 Left: the same in the desktop app and an IDE; Stop reporting lint without a loop; two
 worktrees, nested repositories, missing Python, disabled or untrusted hooks, a plugin
