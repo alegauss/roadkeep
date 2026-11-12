@@ -3363,3 +3363,132 @@ def test_a_repair_step_is_not_subtracted_against_the_tool_that_asked_for_it(tmp_
     assert reachable_dests("declare") is None
     reachable(None)
     assert reachable_dests("cost") is None
+
+
+# -- which workspace a server answers for (RK1732) ---------------------------
+
+
+def _made(where: Path, **kwargs) -> Path:
+    where.mkdir(parents=True, exist_ok=True)
+    return project(where, **kwargs)
+
+
+def test_the_binding_prefers_the_flag_then_the_variable_then_the_cwd(tmp_path):
+    from roadkeep.serving import PROJECT_ENV, bind
+
+    one, two = _made(tmp_path / "one"), _made(tmp_path / "two")
+    flagged = bind("one", {PROJECT_ENV: str(two)}, cwd=tmp_path)
+    assert (flagged.source, flagged.directory) == ("-C", str(one.resolve()))
+    named = bind(".", {PROJECT_ENV: "two"}, cwd=tmp_path)
+    assert (named.source, named.directory, named.refused) == (
+        PROJECT_ENV, str(two.resolve()), ""
+    )
+    plain = bind(".", {}, cwd=one / "docs")
+    assert plain.source == "cwd" and not plain.refused
+    missing = bind(".", {PROJECT_ENV: str(tmp_path / "gone")}, cwd=tmp_path)
+    assert PROJECT_ENV in missing.refused
+
+
+def test_a_start_inside_the_engine_is_refused_and_names_the_remedy():
+    from roadkeep.serving import PROJECT_ENV, _engine_home, bind
+
+    home = _engine_home()
+    for where in (home, home / "src" / "roadkeep"):
+        refused = bind(".", {}, cwd=where).refused
+        assert refused and PROJECT_ENV in refused and "-C" in refused
+
+
+def test_a_refused_binding_still_lists_and_refuses_every_call(tmp_path):
+    from roadkeep.serving import Binding
+
+    binding = Binding(str(tmp_path), "cwd", "started inside the engine")
+    reader = io.StringIO(
+        '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}}\n'
+        '{"jsonrpc": "2.0", "id": 2, "method": "tools/list"}\n'
+        '{"jsonrpc": "2.0", "id": 3, "method": "tools/call", '
+        '"params": {"name": "list", "arguments": {}}}\n'
+    )
+    writer = io.StringIO()
+    assert serve(reader, writer, ".", binding) == 0
+    answers = {a["id"]: a for a in map(json.loads, writer.getvalue().splitlines()) if "id" in a}
+    assert answers[1]["result"]["serverInfo"]["name"] == "roadkeep"
+    assert answers[2]["result"]["tools"]
+    refused = answers[3]["result"]
+    assert refused["isError"] and "started inside the engine" in text_of(refused)
+
+
+def _launch(cwd: Path, project_dir: Path | None, *flags: str):
+    import subprocess
+
+    from roadkeep.serving import PROJECT_ENV
+
+    env = {k: v for k, v in os.environ.items() if k != PROJECT_ENV}
+    if project_dir is not None:
+        env[PROJECT_ENV] = str(project_dir)
+    env["PYTHONIOENCODING"] = "utf-8"
+    launcher = Path(__file__).resolve().parents[1] / "plugin" / "scripts" / "roadkeep.py"
+    return subprocess.Popen(
+        [sys.executable, str(launcher), *flags, "mcp"],
+        cwd=cwd,
+        env=env,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf-8",
+    )
+
+
+def _session(*messages: dict) -> str:
+    return "".join(json.dumps({"jsonrpc": "2.0", **m}) + "\n" for m in messages)
+
+
+_TALK = (
+    {"id": 1, "method": "initialize", "params": {"protocolVersion": PROTOCOL}},
+    {"method": "notifications/initialized"},
+    {"id": 2, "method": "tools/list"},
+    {"id": 3, "method": "tools/call", "params": {"name": "list", "arguments": {}}},
+    {
+        "id": 4,
+        "method": "tools/call",
+        "params": {
+            "name": "add",
+            "arguments": {"block": "A", "symptom": "A second symptom", "why": "Because."},
+        },
+    },
+)
+
+
+def test_two_workspaces_are_served_side_by_side_from_the_plugin_root(tmp_path):
+    """Both servers start in the engine's own home, which is where a host copying an example
+    config launches them; the variable is what binds each to its repository."""
+    from roadkeep.serving import _engine_home
+
+    left = _made(tmp_path / "left side", config=CONFIG.replace('"RK"', '"LS"'),
+                   roadmap=CLEAN.replace("RK1", "LS1"))
+    right = _made(tmp_path / "right", config=CONFIG.replace('"RK"', '"RT"'),
+                    roadmap=CLEAN.replace("RK1", "RT1"))
+    running = [(where, _launch(_engine_home(), where)) for where in (left, right)]
+    for where, process in running:
+        out, err = process.communicate(_session(*_TALK), timeout=120)
+        answers = {a["id"]: a for a in map(json.loads, out.splitlines()) if "id" in a}
+        prefix = "LS" if where == left else "RT"
+        assert f"bound by {serving.PROJECT_ENV}" in err and str(where.resolve()) in err
+        assert answers[2]["result"]["tools"]
+        assert f"{prefix}1" in text_of(answers[3]["result"])
+        assert not answers[4]["result"].get("isError"), text_of(answers[4]["result"])
+        assert f"**{prefix}2**" in (where / ROADMAP).read_text(encoding="utf-8")
+    # Each wrote its own backlog and nothing else.
+    assert "RT2" not in (left / ROADMAP).read_text(encoding="utf-8")
+
+
+def test_an_unbound_start_in_the_plugin_root_serves_no_backlog():
+    from roadkeep.serving import _engine_home
+
+    process = _launch(_engine_home(), None)
+    out, err = process.communicate(_session(*_TALK[:4]), timeout=120)
+    answers = {a["id"]: a for a in map(json.loads, out.splitlines()) if "id" in a}
+    assert "no project bound" in err
+    assert answers[2]["result"]["tools"]
+    assert answers[3]["result"]["isError"]
+    assert serving.PROJECT_ENV in text_of(answers[3]["result"])

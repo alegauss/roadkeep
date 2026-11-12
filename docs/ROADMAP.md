@@ -55,9 +55,8 @@
 
 ## Block M — Codex integration (one engine, host-specific adapters)
 
-- 📋 **RK1732** (deps: —) **MCP startup does not establish the Codex workspace it governs** — Bind the existing stdio server to the intended repository so tools cannot inspect or mutate the plugin cache backlog. → §RK1732
-- 📋 **RK1733** (deps: RK1732) **Engine discovery and installation diagnostics only recognize Claude wiring** — Identify active Codex installations and their engine without deferring to disabled plugins or stale cached copies. → §RK1733
-- 📋 **RK1734** (deps: RK1732) **Bundled workflows assume Claude command syntax and tool names** — Give Codex the same Roadkeep workflow through reusable skills with valid invocations and tool references. → §RK1734
+- 📋 **RK1733** (deps: RK1732 ✅) **Engine discovery and installation diagnostics only recognize Claude wiring** — Identify active Codex installations and their engine without deferring to disabled plugins or stale cached copies. → §RK1733
+- 📋 **RK1734** (deps: RK1732 ✅) **Bundled workflows assume Claude command syntax and tool names** — Give Codex the same Roadkeep workflow through reusable skills with valid invocations and tool references. → §RK1734
 - 📋 **RK1735** (deps: RK1730 ✅, RK1731 ✅, RK1733, RK1734) **Install, check and uninstall cannot manage Codex project wiring** — Provide an explicit Codex installation path that preserves unrelated configuration and can be verified and reversed. → §RK1735
 - 📋 **RK1736** (deps: RK1730 ✅, RK1731 ✅, RK1733, RK1734, RK1735) **The distributed plugin only declares a Claude installation** — Package the shared engine, MCP server and skills for Codex while retaining the existing Claude distribution. → §RK1736
 - 📋 **RK1737** (deps: RK1735, RK1736) **No end-to-end evidence shows Roadkeep enforcement inside Codex** — Verify native plugin behavior and host regressions before claiming the Codex integration is supported. → §RK1737
@@ -151,14 +150,6 @@
 
 - **Both sites registered with the design system** consumers.json lists the pitch and
   the gui landing, and the hub's projects.json gives roadkeep the amber the pitch uses.
-
-## Done when — RK1732
-
-- **Tools act on the selected workspace** Two temporary repositories and worktrees keep
-  distinct prefixes, reads and writes, regardless of the plugin installation directory.
-- **Protocol and diagnostics remain valid** Initialization, schemas, read-only hints and
-  refresh pass; stdout contains only protocol messages and missing workspace errors name
-  a remedy.
 
 ## Done when — RK1733
 

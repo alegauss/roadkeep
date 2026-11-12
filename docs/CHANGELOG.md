@@ -1284,3 +1284,6 @@
   checked **Codex receives supported decisions** PreToolUse output never uses ask; executable fixtures verify the supported deny shape and actionable refusal text.
   checked **Legitimate commands are preserved** Roadkeep commands and permitted Git operations pass; prohibited shell writes and ambiguous cases follow the documented host policy.
   checked **Lifecycle hooks retain their meaning** SessionStart guidance and Stop lint results use accepted outputs and honor recursion protection and configured timeouts.
+- ✅ **RK1732** **MCP startup does not establish the Codex workspace it governs** — The MCP server binds to -C, then ROADKEEP_PROJECT, then cwd, says which on stderr, and refuses calls when started inside its own install (design recorded in `plugin/src/roadkeep/serving.py`).
+  checked **Tools act on the selected workspace** Two temporary repositories and worktrees keep distinct prefixes, reads and writes, regardless of the plugin installation directory.
+  checked **Protocol and diagnostics remain valid** Initialization, schemas, read-only hints and refresh pass; stdout contains only protocol messages and missing workspace errors name a remedy.

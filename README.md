@@ -232,12 +232,12 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 1 | 2 | 0 |
-| M — Codex integration (one engine, host-specific adapters) | 7 | 2 | 0 |
-| **Total** | 11 | 1205 | 24 |
+| M — Codex integration (one engine, host-specific adapters) | 6 | 3 | 0 |
+| **Total** | 10 | 1206 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1732** (deps: —) **MCP startup does not establish the Codex workspace it governs** — Bind the existing stdio server to the intended repository so tools cannot inspect or mutate the plugin cache backlog. → §RK1732
+- 📋 **RK1733** (deps: RK1732 ✅) **Engine discovery and installation diagnostics only recognize Claude wiring** — Identify active Codex installations and their engine without deferring to disabled plugins or stale cached copies. → §RK1733
 <!-- roadkeep:end -->
 
 Open work is in

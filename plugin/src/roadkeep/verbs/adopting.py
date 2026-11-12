@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import tempfile
 
@@ -70,7 +71,7 @@ from roadkeep.installing import (
     vendor,
 )
 from roadkeep.rendering import Result, _estimate_json, _print_estimate, answered
-from roadkeep.serving import serve
+from roadkeep.serving import bind, serve
 from roadkeep.capturing import PARTS
 from roadkeep.verbs.declaring import _JSON_HELP, answers, narrows
 from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK, EXIT_USAGE, _refused, beneath
@@ -795,8 +796,17 @@ def _mcp(config: Config, args: argparse.Namespace) -> int:
 
     The directory and not the `Config`: the server re-discovers it per message, so a
     `roadkeep.toml` edited during the session is the one the next `tools/list` describes.
+
+    Which directory is :func:`~roadkeep.serving.bind`'s (RK1732), said once on stderr — stdout
+    is the JSON-RPC channel and carries nothing else.
     """
-    return serve(sys.stdin, sys.stdout, args.directory)
+    binding = bind(args.directory)
+    print(binding, file=sys.stderr, flush=True)
+    if not binding.refused:
+        # Into the project, because a session's own directory is the project its tools answer
+        # for (RK1325): bound by `-C` or the variable, the process may have started elsewhere.
+        os.chdir(binding.directory)
+    return serve(sys.stdin, sys.stdout, binding.directory, binding)
 
 
 def declare_wiring(subcommands: argparse._SubParsersAction) -> None:

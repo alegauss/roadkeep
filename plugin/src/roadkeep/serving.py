@@ -81,6 +81,7 @@ import contextlib
 import hashlib
 import io
 import json
+import os
 import re
 import sys
 from collections.abc import Callable, Iterator, Mapping, Sequence
@@ -3453,7 +3454,75 @@ def _error(identifier: Any, code: int, message: str) -> dict[str, Any]:
     return {"jsonrpc": "2.0", "id": identifier, "error": {"code": code, "message": message}}
 
 
-def serve(reader: TextIO, writer: TextIO, directory: str = ".") -> int:
+#: The variable that names the project a server answers for (RK1732), for a host that starts
+#: it somewhere else: Codex documents no working directory for a plugin's stdio server and
+#: sends no MCP roots, so its config's `env` or `env_vars` is the one channel it does have.
+PROJECT_ENV = "ROADKEEP_PROJECT"
+
+
+@dataclass(frozen=True)
+class Binding:
+    """Which project one server process answers for, and what said so (RK1732).
+
+    ``source`` is `-C`, :data:`PROJECT_ENV` or `cwd`, in that precedence: what a launch states
+    outranks where it happened to start. ``refused`` is non-empty where the answer would be a
+    backlog nobody chose — every `tools/call` then returns it, with the remedy, as an error.
+    """
+
+    directory: str
+    source: str
+    refused: str = ""
+
+    def __str__(self) -> str:
+        if self.refused:
+            return f"the roadkeep server has no project bound: {self.refused}"
+        where = Path(self.directory).resolve()
+        return f"the roadkeep server is serving {where} (bound by {self.source})"
+
+
+def _engine_home() -> Path:
+    """The directory that holds this engine's package — `plugin/` in a checkout or a plugin
+    cache, `.roadkeep/` where it is vendored. A project is never found by walking up from it."""
+    return Path(__file__).resolve().parents[2]
+
+
+def bind(
+    directory: str = ".",
+    environ: Mapping[str, str] | None = None,
+    cwd: str | Path | None = None,
+) -> Binding:
+    """Settle the project this server governs, before the first message (RK1732).
+
+    An implicit start inside the engine's own home is refused rather than answered: a host
+    that launches from the plugin root — the cwd an example config copies — would otherwise
+    discover the backlog the *package* ships with and serve it as the user's project.
+    """
+    env = os.environ if environ is None else environ
+    start = Path(cwd if cwd is not None else os.getcwd())
+    if directory != ".":
+        return Binding(str((start / directory).resolve()), "-C")
+    named = env.get(PROJECT_ENV, "")
+    if named:
+        if not (start / named).is_dir():
+            return Binding(
+                named, PROJECT_ENV, f"{PROJECT_ENV}={named} is not a directory; set it to "
+                "the repository whose roadkeep.toml these tools should answer for"
+            )
+        return Binding(str((start / named).resolve()), PROJECT_ENV)
+    here = start.resolve()
+    home = _engine_home()
+    if here == home or home in here.parents:
+        return Binding(
+            str(here), "cwd", f"started in {here}, inside the engine's own install, so the "
+            f"backlog found there is the package's; set {PROJECT_ENV} to the repository in "
+            "the server's config, or give the server's arguments -C and that repository"
+        )
+    return Binding(str(here), "cwd")
+
+
+def serve(
+    reader: TextIO, writer: TextIO, directory: str = ".", binding: Binding | None = None
+) -> int:
     """Read line-delimited JSON-RPC until the client closes stdin.
 
     The loop never raises: a malformed line is a parse error the client can read, and a
@@ -3462,7 +3531,12 @@ def serve(reader: TextIO, writer: TextIO, directory: str = ".") -> int:
     The :class:`Watch` is the connection, and lives exactly as long as it (RK177): a second
     message may find `roadkeep.toml` describing different tools than the first one answered
     with, and the client is told so rather than left validating against what it cached.
+
+    ``binding`` is :func:`bind`'s answer; given, it decides the directory, and a refused one
+    answers every `tools/call` with its remedy while `initialize` and `tools/list` still work.
     """
+    if binding is not None:
+        directory = binding.directory
     watch = Watch()
     for line in reader:
         if not line.strip():
@@ -3472,7 +3546,12 @@ def serve(reader: TextIO, writer: TextIO, directory: str = ".") -> int:
         except ValueError:
             response: dict[str, Any] | None = _error(None, PARSE_ERROR, "invalid JSON")
         else:
-            response = handle(message, directory, watch)
+            if binding is not None and binding.refused and _calls(message):
+                response = _result(
+                    message["id"], Answer(str(binding), is_error=True).content()
+                )
+            else:
+                response = handle(message, directory, watch)
         if response is not None:
             _send(writer, response)
         # After the answer, never instead of it: the response is what the client is waiting
@@ -3481,6 +3560,16 @@ def serve(reader: TextIO, writer: TextIO, directory: str = ".") -> int:
         if notice is not None:
             _send(writer, notice)
     return 0
+
+
+def _calls(message: Any) -> bool:
+    """Whether a message is a `tools/call` request, which a refused binding answers itself."""
+    return (
+        isinstance(message, Mapping)
+        and message.get("jsonrpc") == "2.0"
+        and message.get("id") is not None
+        and message.get("method") == "tools/call"
+    )
 
 
 def _send(writer: TextIO, message: Mapping[str, Any]) -> None:

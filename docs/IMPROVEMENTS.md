@@ -187,62 +187,30 @@ both sites' tests pass on the built output, and both registries name both sites.
 
 ## Block M — Codex integration (one engine, host-specific adapters)
 
-### §RK1732 Codex workspace binding for the existing MCP server
-
-Evidence: the existing Python MCP server passed initialize and tools/list with 67 tools
-when started explicitly in the site repository. Its default directory is the process
-working directory; that smoke test did not establish Codex plugin startup behavior. A
-plugin-root cwd copied from an example would target the package instead of the user's
-project.
-
-Scope: establish the workspace binding contract for Codex local stdio startup, tools and
-diagnostics, using supported client context or an explicit configured project directory.
-Reuse serving.py and the CLI dispatch. Preserve dynamic schemas, readOnlyHint
-annotations and configuration refresh behavior. Keep each worktree and simultaneous
-project isolated, and refuse missing or ambiguous project identity with a usable
-configuration remedy. Likely seams: serving.py, launcher arguments and Codex MCP
-configuration.
-
-Acceptance: initialize, tools/list and representative read/write calls run against
-temporary repositories with distinct prefixes and configs. Starting from a plugin cache,
-a subdirectory or another project cannot silently select that backlog. Verify two
-concurrent workspaces, paths containing spaces, Windows launch behavior and schema
-changes within a session. Standard output remains JSON-RPC only; startup diagnostics use
-stderr.
-
-Limits: no hosted service, database, duplicate engine or supported Python API. Require
-the existing Python runtime and use the same repository-backed transactions.
-
-Official references to recheck when implementing:
-https://learn.chatgpt.com/docs/extend/mcp
-
 ### §RK1733 Host-aware installation and engine provenance
 
 Evidence: provenance.py resolves installed plugins through CLAUDE_CONFIG_DIR and the
-Claude registry; installing.py names Claude manifests and project settings. Existing
-duplicate-hook suppression must not interpret a cached Codex directory as evidence that
-a plugin is active.
+Claude registry; installing.py names Claude manifests and project settings.
+Duplicate-hook suppression must not read a cached Codex directory as evidence a plugin
+is active.
 
-Scope: introduce host-aware installation and engine discovery, covering native plugin
-activation and repository wiring. Adapt invocation hints, served tool naming, engines
-output and stale-surface diagnostics to the selected host. Derive names from the actual
-connection rather than assuming Claude-prefixed MCP tool names. Preserve ROADKEEP_HOME
-selection, vendored-engine precedence and the no-network launcher contract. Likely
-seams: provenance.py, installing.py, launcher discovery and diagnostics tests.
+Scope: host-aware installation and engine discovery, covering native plugin activation
+and repository wiring. Adapt invocation hints, served tool naming, engines output and
+stale-surface diagnostics to the selected host, deriving names from the actual
+connection rather than assuming Claude-prefixed MCP names. Preserve ROADKEEP_HOME
+selection, vendored-engine precedence and the no-network launcher contract.
 
 Acceptance: test enabled, disabled, absent and outdated Codex installations; multiple
-user config roots; stale caches; native plus committed wiring; and simultaneous
-Claude/Codex use. A cached but inactive plugin must not suppress a live project guard.
-Hook execution is not duplicated when both supported declarations are active. Missing
-engines or untrusted hooks must be reported honestly rather than presented as enforced.
+user config roots; stale caches; native plus committed wiring; simultaneous Claude/Codex
+use. A cached but inactive plugin must not suppress a live project guard. Hooks are not
+run twice when both declarations are active. Missing engines or untrusted hooks are
+reported honestly, never presented as enforced.
 
-Limits: no broad scan of unrelated credentials or user files, no automatic trust grants
-and no background download. Preserve current Claude engine-selection behavior. Pin
-fixtures to observed supported configuration contracts and record the tested Codex
-versions.
+Limits: no scan of unrelated credentials or user files, no automatic trust grants, no
+background download. Preserve Claude engine selection. Pin fixtures to observed
+configuration contracts and record the tested Codex versions.
 
-Official references to recheck when implementing:
-https://learn.chatgpt.com/docs/config-file/config-basic
+Official reference: https://learn.chatgpt.com/docs/config-file/config-basic
 
 ### §RK1734 Shared skills and Codex workflow entry points
 
