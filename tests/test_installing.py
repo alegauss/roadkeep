@@ -3646,3 +3646,122 @@ def test_the_payload_says_null_where_nothing_was_passed_over(project, capsys, mo
     monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(project / "empty"))
     assert main(["-C", str(project), "engines", "--invoke", "--json"]) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["unread"] is None
+
+
+# -- the Codex host (RK1735) --------------------------------------------------
+
+
+@pytest.fixture
+def codex_source(source: Path) -> Path:
+    """The checkout, carrying the four commands the Codex skills are rendered from (RK1734)."""
+    shutil.copytree(HERE / "plugin" / "commands", source / "commands")
+    return source
+
+
+CODEX_THEIRS = '# mine, kept\nmodel = "x"\n\n[mcp_servers.other]\ncommand = "node"\n'
+
+
+def test_codex_wiring_lands_where_codex_reads_and_nothing_of_claude(project, codex_source):
+    from roadkeep.installing import CODEX_CONFIG, CODEX_HOOKS, CODEX_SKILLS
+
+    (project / ".codex").mkdir()
+    (project / CODEX_CONFIG).write_text(CODEX_THEIRS, encoding="utf-8")
+    install(project, source=codex_source, host="codex")
+    assert not (project / ".mcp.json").exists()
+    assert not (project / ".claude").exists()
+    hooks = loaded(project / CODEX_HOOKS)["hooks"]
+    assert set(hooks) == {"SessionStart", "PreToolUse", "Stop"}
+    assert hooks["PreToolUse"][0]["matcher"] == "apply_patch|Bash"
+    commands = [h["command"] for groups in hooks.values() for g in groups for h in g["hooks"]]
+    assert all(c.endswith("guard --host codex") for c in commands)
+    launcher = (codex_source / "scripts" / "roadkeep.py").resolve().as_posix()
+    assert all(launcher in c for c in commands)
+    config = read(project / CODEX_CONFIG)
+    assert config.startswith(CODEX_THEIRS.rstrip("\n"))
+    import tomllib
+
+    server = tomllib.loads(config)["mcp_servers"]["roadkeep"]
+    assert server["args"] == [launcher, "-C", project.resolve().as_posix(), "mcp"]
+    for name in ("roadkeep", "roadkeep-add", "roadkeep-lint", "roadkeep-pick", "roadkeep-ship"):
+        assert (project / CODEX_SKILLS / name / "SKILL.md").is_file(), name
+    assert "mcp__" not in read(project / CODEX_SKILLS / "roadkeep-add" / "SKILL.md")
+
+
+def test_codex_install_is_repeatable_and_its_check_writes_nothing(project, codex_source):
+    from roadkeep.installing import CODEX_CONFIG
+
+    before = plan(project, source=codex_source, host="codex")
+    assert before.changing and not (project / ".codex").exists()
+    install(project, source=codex_source, host="codex")
+    text = read(project / CODEX_CONFIG)
+    again = install(project, source=codex_source, host="codex")
+    assert not again.changing
+    assert read(project / CODEX_CONFIG) == text
+    assert not plan(project, source=codex_source, host="codex").changing
+
+
+def test_the_codex_matcher_is_the_tools_the_guard_decides():
+    from roadkeep.guarding import ASK_TOOLS, PATCH_TOOLS
+    from roadkeep.installing import CODEX_MATCHER
+
+    assert CODEX_MATCHER.split("|") == [*PATCH_TOOLS, *ASK_TOOLS]
+
+
+def test_codex_install_names_the_trust_review_it_does_not_grant(project, codex_source):
+    from roadkeep.installing import CODEX_HOOKS
+
+    said = dict(plan(project, source=codex_source, host="codex").skipped)
+    assert "`/hooks`" in said[CODEX_HOOKS] and "grants neither" in said[CODEX_HOOKS]
+
+
+def test_a_malformed_codex_config_is_refused_and_left_as_it_was(project, codex_source):
+    from roadkeep.installing import CODEX_CONFIG, CODEX_HOOKS
+
+    (project / ".codex").mkdir()
+    (project / CODEX_CONFIG).write_text("[mcp_servers\n", encoding="utf-8")
+    with pytest.raises(Unreadable):
+        install(project, source=codex_source, host="codex")
+    assert read(project / CODEX_CONFIG) == "[mcp_servers\n"
+    assert not (project / CODEX_HOOKS).exists()
+
+
+def test_a_roadkeep_server_codex_has_that_this_did_not_write_is_kept(project, codex_source):
+    from roadkeep.installing import CODEX_CONFIG
+
+    (project / ".codex").mkdir()
+    mine = '[mcp_servers.roadkeep]\ncommand = "uv"\nargs = ["run", "roadkeep", "mcp"]\n'
+    (project / CODEX_CONFIG).write_text(mine, encoding="utf-8")
+    wired = install(project, source=codex_source, host="codex")
+    assert read(project / CODEX_CONFIG) == mine
+    assert any("did not write" in why for _, why in wired.skipped)
+    install(project, source=codex_source, host="codex", replace_server=True)
+    assert "roadkeep.py" in read(project / CODEX_CONFIG)
+
+
+def test_codex_uninstall_takes_out_only_its_own_and_leaves_claude_wired(project, codex_source):
+    from roadkeep.installing import CODEX_CONFIG
+
+    install(project, source=codex_source)
+    claude = {p: read(p) for p in (project / ".mcp.json", project / ".claude" / "settings.json")}
+    (project / ".codex").mkdir()
+    (project / CODEX_CONFIG).write_text(CODEX_THEIRS, encoding="utf-8")
+    install(project, source=codex_source, host="codex")
+    assert removal(project, "codex").changing
+    uninstall(project, "codex")
+    assert read(project / CODEX_CONFIG) == CODEX_THEIRS
+    assert not (project / ".codex" / "hooks.json").exists()
+    assert not (project / ".agents").exists()
+    assert {p: read(p) for p in claude} == claude
+    assert not removal(project, "codex").changing
+
+
+def test_the_host_flag_reaches_install_check_and_uninstall(project, codex_source, capsys):
+    from roadkeep.cli import EXIT_OK, main
+
+    args = ["-C", str(project), "install", "--source", str(codex_source), "--host", "codex"]
+    assert main([*args, "--check"]) != EXIT_OK
+    assert main(args) == EXIT_OK
+    assert main([*args, "--check"]) == EXIT_OK
+    assert (project / ".codex" / "hooks.json").is_file()
+    assert main(["-C", str(project), "uninstall", "--host", "codex"]) == EXIT_OK
+    assert not (project / ".codex").exists()

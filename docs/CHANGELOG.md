@@ -1291,3 +1291,5 @@
 - ✅ **RK1734** **Bundled workflows assume Claude command syntax and tool names** — codex_skills renders the four commands as roadkeep-<verb> Codex skills with the real launcher and no Claude-only spelling; one main skill (design recorded in `plugin/src/roadkeep/installing.py`).
   checked **Workflows preserve their contracts** Codex add, ship, pick and lint instructions retain required fields, exact-user-word rules and existing safety constraints.
   checked **Every instruction has a reachable target** Package checks resolve references and CLI fallbacks; connected-tool instructions use the actual Codex session names and share the authoritative skill text.
+- ✅ **RK1735** **Install, check and uninstall cannot manage Codex project wiring** — install --host codex wires .codex/hooks.json, the config.toml server and .agents/skills, names the /hooks review; check and uninstall follow (design recorded in `plugin/src/roadkeep/installing.py`).
+  checked **Installation is repeatable and reversible** First install, repeat, refresh, check and uninstall pass fixture tests while preserving unrelated settings and existing Claude wiring.

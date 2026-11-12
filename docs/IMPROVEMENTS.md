@@ -187,56 +187,27 @@ both sites' tests pass on the built output, and both registries name both sites.
 
 ## Block M — Codex integration (one engine, host-specific adapters)
 
-### §RK1735 Codex project installation lifecycle
-
-Evidence: installing.py writes .claude/settings.json, .claude/skills/roadkeep and
-.claude/hooks/roadkeep-launch.py. Codex reads other locations, so copying those
-activates nothing. codex_skills (RK1734) renders the four commands as Codex skills.
-
-Scope: an explicit host selector, such as install --host codex. Write project-scoped
-.codex/config.toml, .agents/skills and supported hook declarations (guard --host codex),
-plus a committed launcher where required. Reuse installation planning and ownership
-rules; extend check, refresh and uninstall to the selected host.  Report the trust
-review needed; never grant it.
-
-Acceptance: check writes nothing; first install, repeat, refresh and uninstall are
-deterministic. Unrelated TOML, servers, skills and Claude wiring survive; malformed
-configuration is refused, not overwritten. Cover paths with spaces, Windows and POSIX
-launchers, native-plugin coexistence and a missing engine. Removal deletes only
-Roadkeep-owned wiring.
-
-Limits: the default host stays Claude. No credentials, machine-wide permissions, network
-bootstrap or automatic trust approval.
-
-References: https://learn.chatgpt.com/docs/config-file/config-basic,
-https://learn.chatgpt.com/docs/hooks
-
 ### §RK1736 Portable Codex package and local marketplace
 
-Evidence: plugin/.claude-plugin/plugin.json declares the current package, whose MCP
-configuration uses CLAUDE_PLUGIN_ROOT. The local Codex CLI exposes plugin management,
-and official packaging supports a portable root manifest plus OpenAI-specific extension
-fields. Native Codex loading has not yet been tested for Roadkeep.
+Evidence: plugin/.claude-plugin/plugin.json declares the package, whose MCP config uses
+CLAUDE_PLUGIN_ROOT. Codex packaging supports a portable root plugin.json and mcp.json, a
+legacy .codex-plugin/plugin.json, and hooks/hooks.json by default; codex_skills (RK1734)
+renders the four commands. Native Codex loading is untested for Roadkeep.
 
-Scope: add the portable plugin.json and root mcp.json, using a supported stdio
-declaration and PLUGIN_ROOT where required. Retain the Claude manifest and entry point.
-Bundle the shared engine, skills, host hook declarations and any required listing
-assets. Add a local marketplace entry for development installation, with paths relative
-to the catalog. Extend version-stamping and packaging tests so all manifests derive from
-the existing single version authority.
+Scope: add the portable manifest and mcp.json, using PLUGIN_ROOT where required, and
+keep the Claude manifest. Bundle the engine, skills and host hook declarations. Add a
+local marketplace entry for development installs. Version-stamping derives every
+manifest from the single version authority.
 
 Acceptance: validate schemas, package contents, executable paths and root-relative
-references. Install from a clean local package or marketplace, outside the development
-checkout, and verify the selected workspace and hook trust flow. Test upgrade, disable
-and removal; preserve Claude discovery and avoid loading one hook definition twice.
-Document Python >=3.11 as the local runtime requirement.
+references. Install from a clean local package outside the checkout and verify the bound
+workspace and hook trust flow. Test upgrade, disable and removal; keep Claude discovery
+and never load one hook definition twice. State Python >=3.11 as the runtime.
 
-Limits: no API key, hosted MCP endpoint, remote publication or duplicate engine. Public
-directory eligibility is handled as a documented distribution constraint, not inferred
-from a successful local installation.
+Limits: no API key, hosted endpoint, remote publication or duplicate engine. Public
+directory eligibility is a documented constraint, not inferred from a local install.
 
-Official references to recheck when implementing:
-https://developers.openai.com/plugins/build/plugins
+Reference: https://developers.openai.com/plugins/build/plugins
 
 ### §RK1737 Native Codex enforcement and compatibility evidence
 

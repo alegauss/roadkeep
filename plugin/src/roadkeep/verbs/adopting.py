@@ -61,6 +61,7 @@ from roadkeep.capturing import (
 from roadkeep.backlog import Backlog
 from roadkeep.config import ROLES, Config, find_config
 from roadkeep.installing import (
+    INSTALL_HOSTS,
     PROJECT_ENGINE,
     engines,
     install,
@@ -451,6 +452,7 @@ def _install(config: Config, args: argparse.Namespace) -> int:
                 source=source,
                 committed=args.committed,
                 replacing=args.replace_server,
+                host=args.host,
             )
             if args.check
             else install(
@@ -459,6 +461,7 @@ def _install(config: Config, args: argparse.Namespace) -> int:
                 register_merge=args.register_merge,
                 committed=args.committed,
                 replace_server=args.replace_server,
+                host=args.host,
             )
         )
     except (ValueError, OSError) as error:
@@ -652,7 +655,11 @@ def _uninstall(config: Config, args: argparse.Namespace) -> int:
     if getattr(args, "engine", False):
         return _reclaim(args)
     try:
-        intent = removal(args.directory) if args.check else uninstall(args.directory)
+        intent = (
+            removal(args.directory, args.host)
+            if args.check
+            else uninstall(args.directory, args.host)
+        )
     except (ValueError, OSError) as error:
         return _refused(error)
 
@@ -1289,6 +1296,16 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
             "content here an adopter may have authored themselves"
         ),
     )
+    install_parser.add_argument(
+        "--host",
+        choices=INSTALL_HOSTS,
+        default="claude",
+        help=(
+            "which harness to wire: claude (the default) writes .mcp.json, .claude/settings.json "
+            "and .claude/skills; codex writes .codex/hooks.json, the server in "
+            ".codex/config.toml and .agents/skills, and names the /hooks review it cannot grant"
+        ),
+    )
     install_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     install_parser.set_defaults(handler=_install, wiring=True)
 
@@ -1363,6 +1380,12 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
             "remove the vendored copy at .roadkeep/ instead of the wiring — weighed first, "
             "and refused where the tree carries a .git, which is a clone and not an artefact"
         ),
+    )
+    uninstall_parser.add_argument(
+        "--host",
+        choices=INSTALL_HOSTS,
+        default="claude",
+        help="which harness's wiring to take out; the other host's is left as it is",
     )
     uninstall_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     uninstall_parser.set_defaults(handler=_uninstall, wiring=True)

@@ -153,6 +153,28 @@ PROJECT_WORKFLOW = ".github/workflows/roadkeep.yml"
 #: pointing anywhere outside would be a path that resolves on one machine.
 PROJECT_BRIDGE = ".claude/hooks/roadkeep-launch.py"
 
+#: Where `install --host codex` lands each surface (RK1735): Codex reads a project's hooks from
+#: `.codex/hooks.json`, its servers from `.codex/config.toml` and its skills from
+#: `.agents/skills/` — and none of them from `.claude/`, so copying those files activates nothing.
+CODEX_HOOKS = ".codex/hooks.json"
+CODEX_CONFIG = ".codex/config.toml"
+CODEX_SKILLS = ".agents/skills"
+CODEX_SKILL = f"{CODEX_SKILLS}/roadkeep/SKILL.md"
+CODEX_PAGES = tuple(
+    f"{CODEX_SKILL.rsplit('/', 1)[0]}/{page.rsplit('/', 1)[1]}" for page in PLUGIN_PAGES
+)
+
+#: The hosts `install` and `uninstall` wire, the first being the default an existing user has.
+INSTALL_HOSTS = ("claude", "codex")
+
+#: What a Codex project install cannot do for itself, said on every run: Codex runs a project
+#: hook only once the project is trusted and the hook reviewed in `/hooks`, and granting either
+#: is the adopter's decision — a command that did it for them would be the bypass it reports.
+CODEX_TRUST = (
+    f"{CODEX_HOOKS}: Codex runs these only in a trusted project and after `/hooks` reviews "
+    f"them — this command grants neither, so until then the guard is declared and not enforced"
+)
+
 #: Where a **vendored** engine lands (RK1193). Inside the project so the path a declaration
 #: names is stable across machines, and git-ignored so it stays an artefact: the tree is a
 #: copy of somebody else's repository, and committing it would make every `/plugin update` a
@@ -864,8 +886,14 @@ def plan(
     gauging: bool = True,
     committed: bool = False,
     replacing: bool = False,
+    host: str = "claude",
 ) -> Plan:
     """Read the plugin's surfaces and the project's, and answer what would change.
+
+    ``host`` is which harness's surfaces are wired (RK1735): `claude`, the default every
+    existing project has, or `codex` — `.codex/hooks.json`, the server table in
+    `.codex/config.toml` and the skills under `.agents/skills/`, in place of the three Claude
+    declarations and its skill copy. The workflow, the bridge and the driver are host-free.
 
     Writes nothing, which is what lets `install` and `install --check` be the same
     computation — a check that ran a different code path would be checking something else.
@@ -937,10 +965,11 @@ def plan(
     # which is a **skip** and never a refusal: `install` writes five surfaces, and stopping the
     # run over one entry leaves a project half-wired for a decision the other four do not touch
     # — RK370's shape, settled the same way.
-    theirs = "" if replacing else foreign_server(base)
+    codex = host == "codex"
+    theirs = "" if replacing or codex else foreign_server(base)
     surfaces = (
         []
-        if theirs
+        if theirs or codex
         else [_declaration(base / PROJECT_MCP, lambda current: _merged_mcp(current, server))]
     )
     # Conditioned on the tree *providing* the plugin and never on which repository this is
@@ -959,9 +988,9 @@ def plan(
                 ),
             ),
         )
-    if _provides_plugin(base):
+    if not codex and _provides_plugin(base):
         skipped.insert(0, (PROJECT_SETTINGS, f"{PROJECT_SETTINGS}: {_OWN_HOOKS}"))
-    else:
+    elif not codex:
         surfaces.append(
             _declaration(
                 base / PROJECT_SETTINGS, lambda current: _merged_settings(current, hooks)
@@ -990,7 +1019,13 @@ def plan(
         )
         skipped.insert(0, (described.split(":")[0], described))
     debt = _standing(base) if gauging else None
-    if own:
+    if codex:
+        wired, said = _codex_surfaces(
+            base, origin, launcher, committed=committed, own=own, replacing=replacing
+        )
+        surfaces += wired
+        skipped[:0] = said
+    elif own:
         skipped.insert(0, (PROJECT_SKILL, f"{PROJECT_SKILL}: {_OWN_SKILL}"))
         skipped.insert(1, (PROJECT_PAGES[0], f"{PROJECT_PAGES[0]}: {_OWN_PAGES}"))
     else:
@@ -1078,6 +1113,7 @@ def install(
     register_merge: bool = False,
     committed: bool = False,
     replace_server: bool = False,
+    host: str = "claude",
 ) -> Plan:
     """Write every surface that would change, or write nothing.
 
@@ -1097,6 +1133,7 @@ def install(
         registering=register_merge,
         committed=committed,
         replacing=replace_server,
+        host=host,
     )
     # First of the refusals (RK1462): the surfaces on disk came from an engine this one is
     # behind, so *refresh* means *downgrade* — and the caller asked for it because a check and
@@ -3342,7 +3379,7 @@ def remove_engine(root: str | Path = ".", *, checked: bool = False) -> Engine:
     return found
 
 
-def removal(root: str | Path = ".") -> Removal:
+def removal(root: str | Path = ".", host: str = "claude") -> Removal:
     """Read the project's own surfaces and answer what un-wiring would take out.
 
     Reads no checkout, unlike :func:`plan`: the wiring is recognised by *this project's own
@@ -3397,6 +3434,10 @@ def removal(root: str | Path = ".") -> Removal:
                 f"leave it for a later `{invocation()} install --vendor` to replace",
             )
         )
+    if host == "codex":
+        # RK1735: Codex's own surfaces and nothing of Claude's — a project wired for both keeps
+        # the other host's wiring, and the bridge too, which the Claude hooks may still run.
+        return Removal(root=base, withdrawals=_codex_withdrawals(base), kept=tuple(kept))
     # The same ownership reading on the way out (RK1560). A declaration this command did not
     # write is not this command's to withdraw, and taking it out was the install defect with
     # the sign flipped — the entry gone and no row saying what had been there.
@@ -3436,7 +3477,7 @@ def removal(root: str | Path = ".") -> Removal:
     )
 
 
-def uninstall(root: str | Path = ".") -> Removal:
+def uninstall(root: str | Path = ".", host: str = "claude") -> Removal:
     """Take this project's entries out of the four surfaces, or take nothing out.
 
     The inverse of :func:`install` and held to its two rules: the declarations keep everything
@@ -3445,7 +3486,7 @@ def uninstall(root: str | Path = ".") -> Removal:
     because `install` created it and an empty declaration reads as a project that declares
     something.
     """
-    intent = removal(root)
+    intent = removal(root, host)
     for withdrawal in intent.changing:
         if withdrawal.text is None:
             withdrawal.path.unlink()
@@ -3599,6 +3640,181 @@ def _ours(group: dict) -> bool:
     return any(
         any(spelling in hook.get("command", "") for spelling in _LAUNCHERS)
         for hook in group.get("hooks", [])
+    )
+
+
+# -- the Codex host (RK1735) -------------------------------------------------
+
+
+def _absolute(base: Path, launcher: str) -> str:
+    """The launcher as one absolute path: a Codex hook runs from the session's directory and
+    its config expands no project variable, so a relative spelling resolves from wherever."""
+    path = Path(launcher)
+    return (path if path.is_absolute() else base / path).resolve().as_posix()
+
+
+#: The `PreToolUse` matcher a Codex project gets: the two tools Codex writes through (RK1730,
+#: RK1731). Spelled here and not imported, because `guarding` already imports this module — and
+#: asserted equal to `guarding.PATCH_TOOLS` and `ASK_TOOLS` by a test, as `screening`'s lists are.
+CODEX_MATCHER = "apply_patch|Bash"
+
+
+def _codex_hooks(origin: Path, launcher: str) -> dict:
+    """The plugin's hooks for Codex: the launcher absolute, `--host codex` on the guard, and
+    the `PreToolUse` matcher naming the two tools Codex writes through (RK1730, RK1731)."""
+    matcher = CODEX_MATCHER
+    declared = _hooks(origin, launcher)
+    return {
+        event: [
+            {
+                **({**group, "matcher": matcher} if "matcher" in group else group),
+                "hooks": [
+                    {**hook, "command": f"{hook['command']} --host codex"}
+                    for hook in group["hooks"]
+                ],
+            }
+            for group in groups
+        ]
+        for event, groups in declared.items()
+    }
+
+
+def _merged_codex_hooks(current: dict, hooks: dict) -> dict:
+    """`.codex/hooks.json` with this project's groups replaced, every other one kept."""
+    merged = dict(current)
+    events = dict(merged.get("hooks", {}))
+    for event, groups in hooks.items():
+        events[event] = [group for group in events.get(event, []) if not _ours(group)] + groups
+    merged["hooks"] = events
+    return merged
+
+
+#: The table this command owns in `.codex/config.toml`, and every subtable under it. Matched
+#: on the header line because the file is merged as text: the standard library reads TOML and
+#: writes none, and a parse-and-dump would also drop every comment an adopter wrote.
+_CODEX_TABLE = re.compile(rf'^\[\s*mcp_servers\s*\.\s*"?{SERVER}"?\s*(?:\.[^\]]*)?\]\s*(?:#.*)?$')
+
+
+def _codex_block(base: Path, launcher: str) -> str:
+    """The server table, bound to this project by `-C` (RK1732) and never by where Codex starts it."""
+    args = [launcher, "-C", base.resolve().as_posix(), "mcp"]
+    listed = ", ".join(json.dumps(one, ensure_ascii=False) for one in args)
+    return f'[mcp_servers.{SERVER}]\ncommand = "python"\nargs = [{listed}]\n'
+
+
+def _without_codex_table(text: str) -> str:
+    """The config with this command's table and its subtables taken out, the rest verbatim."""
+    kept: list[str] = []
+    skipping = False
+    for line in text.splitlines(keepends=True):
+        stripped = line.strip()
+        if stripped.startswith("[") and not stripped.startswith("[["):
+            skipping = bool(_CODEX_TABLE.match(stripped))
+        if not skipping:
+            kept.append(line)
+    return "".join(kept).rstrip("\n")
+
+
+def _codex_server(current: dict) -> object:
+    servers = current.get("mcp_servers")
+    return servers.get(SERVER) if isinstance(servers, dict) else None
+
+
+def _codex_ours(entry: object) -> bool:
+    """Whether a `roadkeep` server entry is one this command wrote, by the launcher it runs."""
+    if not isinstance(entry, dict):
+        return False
+    words = [entry.get("command", ""), *entry.get("args", [])]
+    return any(isinstance(w, str) and any(s in w for s in _LAUNCHERS) for w in words)
+
+
+def _codex_loaded(path: Path) -> tuple[str, dict]:
+    """The config's text and its parse, or a refusal naming it — never a rewrite of a file
+    this cannot read, which is :class:`Unreadable`'s rule for the JSON surfaces."""
+    import tomllib  # noqa: PLC0415 - RK260
+
+    if not path.is_file():
+        return "", {}
+    text = _read(path)
+    try:
+        return text, tomllib.loads(text)
+    except tomllib.TOMLDecodeError as error:
+        raise Unreadable(path, str(error)) from error
+
+
+def _codex_config(path: Path, block: str, replacing: bool) -> Surface | str:
+    """The config with this project's server table, or the sentence saying why not.
+
+    A `roadkeep` entry this command did not write is left alone unless the caller asked —
+    `foreign_server`'s rule for `.mcp.json` (RK1560). The merge is textual, so it is checked
+    by parsing what it produced: a table it could not isolate is refused, not half-replaced.
+    """
+    import tomllib  # noqa: PLC0415 - RK260
+
+    text, current = _codex_loaded(path)
+    entry = _codex_server(current)
+    if entry is not None and not replacing and not _codex_ours(entry):
+        return f"{CODEX_CONFIG}: a `{SERVER}` server this command did not write — kept"
+    kept = _without_codex_table(text)
+    merged = f"{kept}\n\n{block}" if kept else block
+    try:
+        parsed = tomllib.loads(merged)
+    except tomllib.TOMLDecodeError as error:
+        raise Unreadable(path, f"merging the server table left it unreadable: {error}") from error
+    if _codex_server(parsed) != tomllib.loads(block)["mcp_servers"][SERVER]:
+        raise Unreadable(path, f"the `{SERVER}` server is declared where a table merge cannot reach")
+    return Surface(
+        path=path, text=merged, refresh=True, existed=path.is_file(), stale=parsed != current
+    )
+
+
+def _codex_surfaces(
+    base: Path, origin: Path, launcher: str, *, committed: bool, own: bool, replacing: bool
+) -> tuple[list[Surface], list[tuple[str, str]]]:
+    """What `install --host codex` writes, and what it says it did not (RK1735)."""
+    absolute = _absolute(base, launcher)
+    surfaces = [
+        _declaration(
+            base / CODEX_HOOKS,
+            lambda current: _merged_codex_hooks(current, _codex_hooks(origin, absolute)),
+        )
+    ]
+    skipped: list[tuple[str, str]] = [(CODEX_HOOKS, CODEX_TRUST)]
+    config = _codex_config(base / CODEX_CONFIG, _codex_block(base, absolute), replacing)
+    if isinstance(config, str):
+        skipped.insert(0, (CODEX_CONFIG, config))
+    else:
+        surfaces.append(config)
+    if own:
+        skipped.insert(0, (CODEX_SKILL, f"{CODEX_SKILL}: {_OWN_SKILL}"))
+        return surfaces, skipped
+    surfaces.append(_copy(base / CODEX_SKILL, _skill(origin, absolute, committed=committed)))
+    surfaces += [
+        _copy(base / landed, _read(origin / page))
+        for page, landed in zip(PLUGIN_PAGES, CODEX_PAGES, strict=True)
+    ]
+    surfaces += [
+        _copy(base / CODEX_SKILLS / where, text)
+        for where, text in codex_skills(origin, absolute).items()
+    ]
+    return surfaces, skipped
+
+
+def _codex_withdrawals(base: Path) -> tuple[Withdrawal, ...]:
+    """What `uninstall --host codex` takes out: this command's entries and copies, nothing more."""
+    path = base / CODEX_CONFIG
+    text, current = _codex_loaded(path)
+    if _codex_ours(_codex_server(current)):
+        left = _without_codex_table(text)
+        config = Withdrawal(path=path, text=f"{left}\n" if left else None, existed=True, held=True)
+    else:
+        config = Withdrawal(path=path, text=None, existed=path.is_file(), held=False)
+    return (
+        _withdrawn(base / CODEX_HOOKS, _without_guard),
+        config,
+        _dropped(base / CODEX_SKILL),
+        *(_dropped(base / page) for page in CODEX_PAGES),
+        *(_dropped(base / CODEX_SKILLS / f"{SERVER}-{verb}" / "SKILL.md") for verb in PLUGIN_COMMANDS),
     )
 
 
