@@ -150,6 +150,12 @@ def shapes(root: Path) -> dict[str, tuple[object, object]]:
             lambda served: Review(report=report, served=served, config=config)
         ),
         "Notice": both(lambda served: Notice(files=(ROADMAP, CHANGELOG), served=served)),
+        # RK1741: a start that refreshed the vendored engine says which versions it moved.
+        "Notice.refreshed": both(
+            lambda served: Notice(
+                files=(ROADMAP, CHANGELOG), served=served, refreshed=("0.1.1", "0.2.0")
+            )
+        ),
         "Notice.drifted": both(
             lambda served: Notice(
                 files=(ROADMAP, CHANGELOG), served=served, stale=(VENDORED,)

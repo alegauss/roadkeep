@@ -224,7 +224,7 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | B — Authoring (insert, never hand-edit) | 0 | 239 | 2 |
 | C — Query (consult without reading the file) | 0 | 205 | 7 |
 | D — The gate | 0 | 319 | 7 |
-| E — Adoption | 1 | 128 | 1 |
+| E — Adoption | 0 | 129 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 170 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
@@ -233,11 +233,7 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 1 | 2 | 0 |
 | M — Codex integration (one engine, host-specific adapters) | 2 | 7 | 0 |
-| **Total** | 4 | 1212 | 24 |
-
-**Next ready:**
-
-- 📋 **RK1741** (deps: —) **A vendored engine falls behind the checkout on the same machine, and nothing refreshes it until a session refuses a line** — Thirteen vendored copies sat at 0.2.473 to 0.2.511 against a 0.2.576 checkout, and four pinned an empty tree, until a hand-run sweep. → §RK1741
+| **Total** | 3 | 1213 | 24 |
 <!-- roadkeep:end -->
 
 Open work is in

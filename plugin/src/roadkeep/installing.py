@@ -3184,6 +3184,33 @@ def vendor(root: str | Path = ".", *, checked: bool = False) -> Vendored:
     )
 
 
+def refresh_vendored(root: str | Path = ".") -> tuple[str, str] | None:
+    """Re-vendor where the copy is older than the engine `--vendor` would pick (RK1741).
+
+    `.roadkeep/` is gitignored, so it is a per-machine cache and not a pin a commit carries —
+    and a cache nothing refreshes is how thirteen projects sat 65 versions behind the checkout
+    beside them, measured, until a hand-run sweep. Asked at `SessionStart`, which is the one
+    moment a session can still be running the newer engine for everything it then does.
+
+    The choice is :func:`vendor`'s own, so the rules stay one: highest version, a working
+    checkout only where `ROADKEEP_SRC` names it, verified after it lands. Returns the two
+    versions moved between, or None where nothing is vendored, nothing newer is reachable, or
+    any step refused — a session start is never the place a refresh fails loudly.
+    """
+    base = Path(root).resolve()
+    held = vendored_at(base)
+    if held is None:
+        return None
+    try:
+        would = vendor(base, checked=True)
+        if _numbered(would.chosen.version) <= _numbered(held.version):
+            return None
+        done = vendor(base)
+    except (ValueError, OSError):
+        return None
+    return held.version, done.verified or done.chosen.version
+
+
 def _ignored(root: Path) -> bool:
     """Whether a `.gitignore` here already covers the vendored tree (RK1193).
 

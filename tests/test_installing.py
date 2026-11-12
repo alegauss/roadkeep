@@ -1590,6 +1590,62 @@ def test_a_refresh_with_no_inbox_reports_none(tmp_path, monkeypatch):
     assert written.reports == 0 and "capture file" not in written.stated(False)
 
 
+def _stating(root: Path, version: str) -> Path:
+    """An engine tree whose package states its version, which is what `vendored_at` reads."""
+    engine_tree(root, version)
+    (root / "src" / "roadkeep").mkdir(parents=True, exist_ok=True)
+    (root / "src" / "roadkeep" / "__init__.py").write_text(
+        f'__version__ = "{version}"\n', encoding="utf-8"
+    )
+    return root
+
+
+def test_a_vendored_copy_older_than_the_reachable_engine_is_refreshed(tmp_path, monkeypatch):
+    """RK1741: thirteen copies sat up to 103 versions behind the checkout beside them, and
+    nothing moved them until a session refused a line. The start refreshes, by `vendor`'s own
+    choice, and keeps the captures RK1740 protects."""
+    from roadkeep.capturing import REPORTS
+    from roadkeep.installing import refresh_vendored, vendored_at
+
+    only_here(monkeypatch, tmp_path)
+    project = tmp_path / "adopter"
+    project.mkdir()
+    assert refresh_vendored(project) is None  # nothing vendored, nothing to refresh
+    monkeypatch.setenv("ROADKEEP_SRC", str(_stating(tmp_path / "old", "0.1.1")))
+    from roadkeep.installing import vendor
+
+    vendor(project)
+    (project / REPORTS).mkdir(parents=True)
+    (project / REPORTS / "kept.json").write_text("{}", encoding="utf-8")
+    assert refresh_vendored(project) is None  # the newest reachable is the one held
+    monkeypatch.setenv("ROADKEEP_SRC", str(_stating(tmp_path / "new", "0.2.0")))
+    assert refresh_vendored(project) == ("0.1.1", "0.2.0")
+    assert vendored_at(project).version == "0.2.0"
+    assert (project / REPORTS / "kept.json").read_text(encoding="utf-8") == "{}"
+    assert refresh_vendored(project) is None
+
+
+def test_a_refresh_that_refuses_is_silent_at_the_start(tmp_path, monkeypatch):
+    from roadkeep.installing import refresh_vendored, vendor
+
+    only_here(monkeypatch, tmp_path)
+    project = tmp_path / "adopter"
+    project.mkdir()
+    monkeypatch.setenv("ROADKEEP_SRC", str(_stating(tmp_path / "old", "0.1.1")))
+    vendor(project)
+    monkeypatch.setenv("ROADKEEP_SRC", str(tmp_path / "gone"))
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path / "nowhere"))
+    assert refresh_vendored(project) is None
+
+
+def test_the_start_says_which_versions_it_moved():
+    from roadkeep.guarding import Notice
+
+    said = str(Notice(files=("ROADMAP.md",), refreshed=("0.1.1", "0.2.0")))
+    assert "was 0.1.1" in said and "refreshed .roadkeep/ to 0.2.0" in said
+    assert "refreshed" not in str(Notice(files=("ROADMAP.md",)))
+
+
 def test_what_landed_is_asked_what_it_is(tmp_path, monkeypatch):
     """The fourth rule, and the one that makes the other three mean anything: picking by
     version proves nothing about a tree that arrived different."""

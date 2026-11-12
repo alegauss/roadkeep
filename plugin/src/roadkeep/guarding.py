@@ -707,6 +707,9 @@ class Notice:
     #: (RK1724): the session that starts on something else is the one that never runs `pick`
     #: and so never hears it. Empty on every project declaring no `[projects]`.
     unblocked: tuple[str, ...] = ()
+    #: The vendored engine's versions before and after this start refreshed it, or `()`
+    #: (RK1741). Said because it moved files under `.roadkeep/` the session did not ask about.
+    refreshed: tuple[str, ...] = ()
 
     def __str__(self) -> str:
         # And the first message of the session is the first place the invocation has to be one
@@ -772,6 +775,12 @@ class Notice:
                 f" Ready now that a sibling project shipped what it waited on: "
                 f"{', '.join(self.unblocked)}."
             )
+        if self.refreshed:
+            old, new = self.refreshed
+            said += (
+                f" The vendored engine was {old} and older than this machine's {new}, so "
+                f"this start refreshed .roadkeep/ to {new}."
+            )
         return said
 
 
@@ -794,8 +803,12 @@ def announce(payload: Mapping[str, object], root: str | Path = ".") -> Notice | 
         return None
     # Asked here and not on a `PreToolUse`, for the reason the notice itself is: the copy a
     # session trusts is the skill it loads, and by the first write it has been read (RK234).
-    from roadkeep.installing import stale  # noqa: PLC0415 - RK260 the SessionStart path only
+    from roadkeep.installing import refresh_vendored, stale  # noqa: PLC0415 - RK260
 
+    # Before `stale`, which then reads the refreshed copy (RK1741): a vendored engine older than
+    # the one this machine can reach is a cache, and the start is when the session can still be
+    # handed the newer one for everything it does.
+    refreshed = refresh_vendored(config.root) or ()
     # `serving` and not `served_as` (RK444): a refusal has to recommend something and the
     # bare prefix is the right guess wherever nothing says otherwise, but this line is read
     # by every adopting session including the ones with no tools at all, and there naming a
@@ -805,6 +818,7 @@ def announce(payload: Mapping[str, object], root: str | Path = ".") -> Notice | 
         stale=stale(config.root),
         served=served_by(config.root),
         unblocked=_unblocked(config),
+        refreshed=refreshed,
     )
 
 

@@ -83,30 +83,6 @@ already written, not authorship.
 
 ## Block E — Adoption
 
-### §RK1741 A vendored copy is a cache that never refreshes
-
-Measured on 2026-11-12 across the 57 projects under `D:\Git` that declare a
-`roadkeep.toml`: thirteen vendored copies stood between 0.2.473 and 0.2.511 while the
-checkout on the same machine stood at 0.2.576, and four projects whose settings pin
-`ROADKEEP_HOME` to `${CLAUDE_PROJECT_DIR}/.roadkeep` held no engine there, so the
-launcher refused every command (RK1678). Bringing them level took a hand-run sweep.
-
-The copy exists for Claude Code on the web, where no plugin installs, and `.roadkeep/`
-is gitignored, so it is not a pin a commit carries: it is a per-machine cache. A cache
-that never refreshes is the drift this tool's L1 argument was written against, one level
-down. It also outranks the checkout locally: the launcher reads `.roadkeep/` before the
-sibling, and a project's `env` pin outranks a user-level `ROADKEEP_HOME`.
-
-The guard already compares versions at `SessionStart` for `install.stale`. Where the
-running engine is newer than the vendored copy, or the pinned tree holds no engine, it
-can run the refresh `install --vendor` does and say so, rather than leave the next
-session to meet a refusal about a format its copy predates (RK1739). A sweep over
-sibling projects, `install --vendor --all` or similar, covers the projects no session
-opens.
-
-Done when a session opening a project whose vendored copy is older than the reachable
-engine finishes `SessionStart` running the newer one, and names the versions it moved.
-
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)
