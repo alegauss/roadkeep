@@ -1,6 +1,6 @@
 {
   "name": "roadkeep",
-  "version": "0.2.586",
+  "version": "0.2.587",
   "description": "Refuses the hand-edit of a governed roadmap, changelog or rationale file and names the command to call instead, runs the gate as the turn ends, and offers add, ship, pick and lint as MCP tools over the one engine.",
   "author": {
     "name": "Alexandre Oliveira"

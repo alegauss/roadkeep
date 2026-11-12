@@ -439,7 +439,9 @@ def test_what_an_install_copies_is_the_payload_and_nothing_else():
     files = [PLUGIN / one for one in tracked if one]
     assert files, "git lists nothing under plugin/, so this measures nothing"
     tops = {Path(one).parts[0] for one in tracked if one}
-    assert tops <= {".claude-plugin", "commands", "hooks", "scripts", "skills", "src"}, tops
+    # And the two files Codex reads at the plugin root (RK1736): its portable manifest and server.
+    allowed = {".claude-plugin", "commands", "hooks", "scripts", "skills", "src"}
+    assert tops <= allowed | {"plugin.json", "mcp.json"}, tops
     written = sum(one.stat().st_size for one in files)
     assert written < 6 * 1024 * 1024, f"{written / 1048576:.2f} MiB"
 
