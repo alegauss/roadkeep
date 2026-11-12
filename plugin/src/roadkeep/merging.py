@@ -776,6 +776,12 @@ def _merge_prose(
     moving that still refuses.
     """
     decided, doubled, contested, withdrawn = _decide_sections(ancestor, mine, yours)
+    # The records a decisions file carries beside its bodies (RK1747): one line per decision,
+    # keyed by id exactly as a roadmap's are, so they are decided by the roadmap's rule.
+    entries, *spent = _decide(ancestor, mine, yours)
+    doubled, contested, withdrawn = (
+        (*one, *two) for one, two in zip((doubled, contested, withdrawn), spent)
+    )
     if doubled or contested or withdrawn:
         return Merge(
             role,
@@ -791,9 +797,17 @@ def _merge_prose(
     held = _sections_of(frame)
     took = tuple(
         anchor for anchor, lines in decided.items() if lines is not None and held.get(anchor) != lines
+    ) + tuple(
+        task_id
+        for task_id, entry in entries.items()
+        if entry is not None and _raw(frame, task_id) != entry.raw
     )
-    removed = tuple(anchor for anchor, lines in decided.items() if lines is None and anchor in held)
+    removed = tuple(
+        anchor for anchor, lines in decided.items() if lines is None and anchor in held
+    ) + tuple(task_id for task_id, entry in entries.items() if entry is None and _raw(frame, task_id))
     result = Document.parse(_written(frame, other, decided), config.schema_for(role))
+    if entries:
+        result = _materialize(result, entries, where=config.relative(config.path(role)))
     findings = _introduced(config, role, result, ancestor, mine, yours)
     if findings:
         return Merge(role, None, took=took, removed=removed, reason=_refused(findings))
@@ -854,10 +868,15 @@ def _decide_sections(
 
 
 def _prose_skeleton(document: Document) -> tuple[str, ...]:
-    """The file with its §sections taken out — what `_skeleton` is for a roadmap."""
+    """The file with its §sections taken out — what `_skeleton` is for a roadmap.
+
+    And its record lines (RK1747): a decisions file carries one per decision above the bodies,
+    and leaving them in made every two branches that each shipped a decision a frame both
+    sides moved.
+    """
     from roadkeep.sections import anchored  # noqa: PLC0415 - RK260, the prose path only
 
-    inside: set[int] = set()
+    inside: set[int] = {entry.lineno for entry in document.entries}
     for section in anchored(document):
         inside |= set(range(section.first, section.last + 1))
     return _folded(

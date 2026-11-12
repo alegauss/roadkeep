@@ -1306,3 +1306,4 @@
 
 - ✅ **RK1745** **the prose merge refuses or misplaces sections when one branch added a block** — The prose skeleton folds blank runs like the roadmap's, and a section arriving in a block-organised file goes to the end of its own block.
 - ✅ **RK1746** **declare leaves a new governed file out of a merge driver the project already wired** — declare extends .gitattributes to the new file wherever a governed file already merges through the driver, and names the line.
+- ✅ **RK1747** **the prose merge refuses two branches that each shipped a decision** — The prose merge decides record lines by id with the roadmap's rule and keeps them out of the frame, so decisions merge like sections.

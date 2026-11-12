@@ -252,6 +252,70 @@ def test_a_role_declared_where_no_driver_is_wired_wires_none(tmp_path, capsys):
     assert not (tmp_path / ".gitattributes").exists()
 
 
+DECISIONS = """# Decisions
+
+## Block A — The model
+
+- ✅ **RK1** **the line both branches started from** — The store is the repository.
+
+### §RK1 Why the repository
+
+The body both branches started from.
+
+## Block B — Authoring
+"""
+
+
+def deciding(tmp_path: Path) -> Config:
+    """`project`, with a decisions file declared beside the three."""
+    project(tmp_path)
+    source = tmp_path / "roadkeep.toml"
+    source.write_text(
+        source.read_text(encoding="utf-8") + 'decisions = "docs/DECISIONS.md"\n', encoding="utf-8"
+    )
+    (tmp_path / "docs" / "DECISIONS.md").write_text(DECISIONS, encoding="utf-8")
+    return Config.discover(tmp_path)
+
+
+def test_a_decision_shipped_on_each_side_merges_records_and_bodies(tmp_path):
+    """RK1747. A decisions file is prose with a record line per decision above the bodies, and
+    the prose merge decided sections only: the records stayed in the frame, so two branches
+    that each shipped a decision moved it on both sides and were refused — measured by the
+    RK1744 spike on a scaffold, `ship --decides` on main and on a feature branch."""
+    config = deciding(tmp_path)
+    mine = DECISIONS.replace(
+        "\n### §RK1",
+        "- ✅ **RK2** **what this branch decided** — Main pins its timeout.\n\n### §RK1",
+    )
+    yours = DECISIONS + (
+        "\n- ✅ **RK3** **what the other decided** — Search keeps its own index.\n"
+        "\n### §RK3 Why its own index\n\nThe other side's body.\n"
+    )
+
+    for sides in ((mine, yours), (yours, mine)):
+        merged = merge(config, "decisions", DECISIONS, *sides)
+        assert merged.clean, merged.reason
+        text = merged.text or ""
+        for needle in ("**RK1**", "**RK2**", "**RK3**", "§RK1 Why", "§RK3 Why"):
+            assert text.count(needle) == 1, (needle, text)
+        assert text.index("**RK2**") < text.index("## Block B") < text.index("**RK3**")
+
+
+def test_the_decisions_merge_gives_an_untouched_file_back_byte_for_byte(tmp_path):
+    config = deciding(tmp_path)
+    assert merge(config, "decisions", DECISIONS, DECISIONS, DECISIONS).text == DECISIONS
+
+
+def test_a_decision_both_sides_recorded_under_one_id_is_named(tmp_path):
+    config = deciding(tmp_path)
+    mine = DECISIONS + "\n- ✅ **RK2** **one decision** — Said one way.\n"
+    yours = DECISIONS + "\n- ✅ **RK2** **another decision** — Said another way.\n"
+
+    merged = merge(config, "decisions", DECISIONS, mine, yours)
+
+    assert not merged.clean and merged.doubled == ("RK2",)
+
+
 def test_a_block_both_sides_added_differently_is_still_refused(tmp_path, capsys):
     # The rule RK1743 must not loosen: two headings two people wrote is prose.
     base, ours, theirs = _scaffold_and_fork(tmp_path)
