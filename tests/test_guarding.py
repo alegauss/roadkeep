@@ -1510,3 +1510,109 @@ def test_a_project_that_declares_its_own_server_answers_wherever_this_runs(tmp_p
     )
     monkeypatch.chdir(Path(__file__).resolve().parents[1])
     assert serving(root) == "mcp__roadkeep__"
+
+
+# -- Codex's apply_patch (RK1730) --------------------------------------------
+
+
+def patch(*body: str, cwd: Path | None = None, wrapped: bool = True) -> dict[str, object]:
+    """A Codex `PreToolUse` payload for `apply_patch`: the targets live inside the patch."""
+    lines = ["*** Begin Patch", *body, "*** End Patch"] if wrapped else list(body)
+    payload: dict[str, object] = {
+        "hook_event_name": "PreToolUse",
+        "tool_name": "apply_patch",
+        "tool_input": {"command": "\n".join(lines) + "\n"},
+    }
+    if cwd is not None:
+        payload["cwd"] = str(cwd)
+    return payload
+
+
+@pytest.mark.parametrize(
+    "header",
+    ["*** Add File: {p}", "*** Update File: {p}", "*** Delete File: {p}"],
+)
+def test_every_patch_form_on_a_governed_file_is_denied(tmp_path, header):
+    root = project(tmp_path)
+    for spelled in (ROADMAP, str(root / CHANGELOG)):
+        refusal = guard(patch(header.format(p=spelled), "+x", cwd=root), root)
+        assert refusal is not None and refusal.decision == "deny"
+        assert refusal.tool == "apply_patch"
+
+
+def test_a_move_is_judged_at_both_ends(tmp_path):
+    root = project(tmp_path)
+    (root / "notes.md").write_text("x\n", encoding="utf-8")
+    into = guard(patch("*** Update File: notes.md", f"*** Move to: {ROADMAP}", cwd=root), root)
+    assert into is not None and into.role == "roadmap"
+    out = guard(patch(f"*** Update File: {ROADMAP}", "*** Move to: old.md", cwd=root), root)
+    assert out is not None and out.role == "roadmap"
+
+
+def test_a_mixed_patch_is_refused_by_its_governed_file(tmp_path):
+    root = project(tmp_path)
+    body = ("*** Add File: src/a.py", "+x", f"*** Update File: {CHANGELOG}", "@@", "+y")
+    refusal = guard(patch(*body, cwd=root), root)
+    assert refusal is not None and refusal.role == "changelog"
+
+
+def test_an_ordinary_patch_and_an_unconfigured_project_are_allowed(tmp_path):
+    root = project(tmp_path / "governed")
+    body = ("*** Add File: src/my file.py", "+x", "*** Update File: README.md", "@@", "+y")
+    assert guard(patch(*body, cwd=root), root) is None
+    bare = tmp_path / "bare"
+    bare.mkdir()
+    assert guard(patch(f"*** Update File: {ROADMAP}", "+x", cwd=bare), bare) is None
+
+
+def test_a_patch_into_a_nested_project_is_refused_as_that_one(tmp_path):
+    root = project(tmp_path, wired=True)
+    project(tmp_path / "gui", wired=True)
+    refusal = guard(patch(f"*** Update File: gui/{ROADMAP}", "+x", cwd=root), root)
+    assert refusal is not None and refusal.elsewhere == "gui"
+
+
+def test_an_undecodable_patch_naming_a_governed_file_is_refused_not_waved_through(tmp_path):
+    # The documented outcome for input the decoder cannot read: the mention test, so a
+    # governed spelling anywhere in it denies and only text naming none is allowed.
+    root = project(tmp_path)
+    garbled = patch(f"*** Update File {ROADMAP}", "+x", cwd=root, wrapped=False)
+    refusal = guard(garbled, root)
+    assert refusal is not None and refusal.decision == "deny"
+    empty = guard(patch("*** Update File:   ", f"+{ROADMAP}", cwd=root), root)
+    assert empty is not None
+    assert guard(patch("nothing here", cwd=root, wrapped=False), root) is None
+    for raw in (None, {}, {"command": 7}, "text"):
+        payload = {"hook_event_name": "PreToolUse", "tool_name": "apply_patch", "tool_input": raw}
+        assert guard(payload, root) is None
+
+
+def test_an_argv_input_is_read_as_its_patch(tmp_path):
+    root = project(tmp_path)
+    text = f"*** Begin Patch\n*** Delete File: {ROADMAP}\n*** End Patch\n"
+    payload = {
+        "hook_event_name": "PreToolUse",
+        "tool_name": "apply_patch",
+        "tool_input": {"command": ["apply_patch", text]},
+        "cwd": str(root),
+    }
+    assert guard(payload, root) is not None
+
+
+def test_the_executable_guard_denies_a_patch_without_applying_it(tmp_path):
+    root = project(tmp_path)
+    before = (root / ROADMAP).read_bytes()
+    payload = patch(f"*** Update File: {ROADMAP}", "@@", "-x", "+y", cwd=root)
+    done = subprocess.run(
+        [sys.executable, str(HERE / "plugin" / "scripts" / "roadkeep.py"), "guard"],
+        input=json.dumps(payload),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        cwd=root,
+        check=True,
+    )
+    answer = json.loads(done.stdout)["hookSpecificOutput"]
+    assert answer["permissionDecision"] == "deny"
+    assert answer["permissionDecisionReason"].startswith("apply_patch refused")
+    assert (root / ROADMAP).read_bytes() == before

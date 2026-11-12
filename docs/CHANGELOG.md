@@ -1277,3 +1277,6 @@
 
 ## Block M — Codex integration (one engine, host-specific adapters)
 
+- ✅ **RK1730** **The guard ignores Codex apply_patch calls that edit governed files** — The guard decodes every apply_patch target, both ends of a move included, and denies a governed one; undecodable input gets the mention test (design recorded in `plugin/src/roadkeep/guarding.py`).
+  checked **All patch destinations are checked** Fixtures cover add, update, delete, move and multi-file patches against governed files, including Windows and cross-repository paths.
+  checked **Ordinary edits remain usable** Source-file edits and unconfigured projects pass, while existing Claude Edit, Write and MultiEdit cases retain their behavior.

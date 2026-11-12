@@ -232,12 +232,12 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 1 | 2 | 0 |
-| M — Codex integration (one engine, host-specific adapters) | 9 | 0 | 0 |
-| **Total** | 13 | 1203 | 24 |
+| M — Codex integration (one engine, host-specific adapters) | 8 | 1 | 0 |
+| **Total** | 12 | 1204 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1730** (deps: —) **The guard ignores Codex apply_patch calls that edit governed files** — Recognize Codex patch targets before execution so roadmap ownership also applies to the native editing tool. → §RK1730
+- 📋 **RK1731** (deps: RK1730 ✅) **Shell refusals return a decision that Codex does not support** — Use supported hook responses so a governed shell write cannot proceed because an ask decision was rejected. → §RK1731
 <!-- roadkeep:end -->
 
 Open work is in

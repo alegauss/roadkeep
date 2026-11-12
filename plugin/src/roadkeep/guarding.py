@@ -133,6 +133,18 @@ _OPERATORS = "();<>|&\n"
 #: the matcher and this module have to agree or the hook never sees the payload it decides.
 GUARDED_TOOLS = (*WRITE_TOOLS, *ASK_TOOLS)
 
+#: Codex's native editor (RK1730), whose payload carries a patch rather than a path: the
+#: targets are spelled inside `tool_input.command` under `*** Add File:` and its siblings.
+#: Not in :data:`GUARDED_TOOLS`, which is the Claude matcher's list and a test holds it to
+#: that file; Codex's own wiring is RK1735's. A decoded patch names its files exactly as a
+#: write tool does, so it is denied and never asked about.
+PATCH_TOOLS = ("apply_patch",)
+
+#: The headers of the patch grammar that name a file, each a write: an add creates it, an
+#: update or a delete changes it, and a move writes its destination as well as its source.
+#: Body lines are prefixed `+`, `-`, ` ` or `@@`, so a line opening `*** ` is never content.
+_PATCH_HEADERS = ("*** Add File:", "*** Update File:", "*** Delete File:", "*** Move to:")
+
 #: The events that mean the turn is trying to end, and `lint` is the last thing to say.
 STOP_EVENTS = ("Stop", "SubagentStop")
 
@@ -852,7 +864,7 @@ def decide(payload: Mapping[str, object], root: str | Path = ".") -> Barrier:
     repository the session touches.
     """
     tool = payload.get("tool_name")
-    if not isinstance(tool, str) or tool not in GUARDED_TOOLS:
+    if not isinstance(tool, str) or tool not in (*GUARDED_TOOLS, *PATCH_TOOLS):
         return Barrier()
     base = _cwd(payload, root)
     if tool in ASK_TOOLS:
@@ -860,8 +872,19 @@ def decide(payload: Mapping[str, object], root: str | Path = ".") -> Barrier:
         # a sentence about four tables attached to a call that may be reading the file is
         # prose about a write nobody made.
         return Barrier(refusal=_mentioned(payload.get("tool_input"), base, tool))
+    if tool in PATCH_TOOLS:
+        targets = _patched(payload.get("tool_input"), base)
+        if targets is None:
+            # Undecodable: no `*** Begin Patch`, or no header naming a file. Judged as a shell
+            # command is, by whether a governed path occurs in the text at all — so a patch
+            # this cannot read is refused wherever it spells a governed file, and allowed only
+            # where no spelling of one is there to be written (RK1730).
+            text = _patch_input(payload.get("tool_input"))
+            return Barrier(refusal=_mentioned(text, base, tool))
+    else:
+        targets = _targets(payload.get("tool_input"), base)
     advice: Advice | None = None
-    for path in _targets(payload.get("tool_input"), base):
+    for path in targets:
         config = owning(path)
         if config is None:
             continue
@@ -1289,6 +1312,51 @@ def _targets(raw: object, base: Path) -> tuple[Path, ...]:
             candidate = Path(value)
             out.append(candidate if candidate.is_absolute() else base / candidate)
     return tuple(out)
+
+
+def _patch_input(raw: object) -> dict[str, str] | None:
+    """The patch text an `apply_patch` input carries, as a `command` the mention test reads.
+
+    `command` is the key Codex sends; a list there is an argv whose words are joined, and
+    `input` and `patch` are read too for the reason :data:`_PATH_KEYS` lists three keys.
+    """
+    if not isinstance(raw, Mapping):
+        return None
+    for key in ("command", "input", "patch"):
+        value = raw.get(key)
+        if isinstance(value, list) and all(isinstance(word, str) for word in value):
+            value = "\n".join(value)
+        if isinstance(value, str) and value:
+            return {"command": value}
+    return None
+
+
+def _patched(raw: object, base: Path) -> tuple[Path, ...] | None:
+    """Every file an `apply_patch` input writes, or ``None`` where the patch is undecodable.
+
+    Both ends of a move and every file in a multi-file patch, relative ones resolved against
+    the session's directory. Whitespace inside a path is kept and only its ends are trimmed,
+    so a name with a space or a `C:\\` drive survives. ``None`` is not an empty patch: it is
+    the input this cannot read, which :func:`decide` hands to the mention test instead.
+    """
+    found = _patch_input(raw)
+    if found is None:
+        return None
+    text = found["command"]
+    if "*** Begin Patch" not in text:
+        return None
+    out: list[Path] = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        for header in _PATCH_HEADERS:
+            if stripped.startswith(header):
+                value = stripped[len(header):].strip()
+                if not value:
+                    return None
+                candidate = Path(value)
+                out.append(candidate if candidate.is_absolute() else base / candidate)
+                break
+    return tuple(out) or None
 
 
 def _cwd(payload: Mapping[str, object], root: str | Path) -> Path:

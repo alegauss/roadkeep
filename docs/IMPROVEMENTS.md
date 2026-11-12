@@ -187,32 +187,6 @@ both sites' tests pass on the built output, and both registries name both sites.
 
 ## Block M — Codex integration (one engine, host-specific adapters)
 
-### §RK1730 Codex patch inputs and governed targets
-
-Evidence: guarding.py limits WRITE_TOOLS to Claude names; a simulated Codex PreToolUse
-payload with tool_name=apply_patch and tool_input.command targeting docs/ROADMAP.md
-returned no refusal. Codex matcher aliases do not change that canonical payload name.
-
-Scope: introduce an explicit host input adapter around the shared guard. Decode
-apply_patch add, update, delete and move targets; inspect both ends of moves and every
-file in a multi-file patch. Resolve relative paths against payload cwd, preserve Windows
-drive paths and spaces, and resolve the owning roadkeep.toml for cross-repository
-targets. Retain Claude payload behavior and the same domain rules. Likely seams:
-guarding.py, hook entry-point dispatch and tests/test_plugin.py, plus focused adapter
-fixtures.
-
-Acceptance: block creation or mutation of each governed role; block a move into or out
-of a governed destination; allow ordinary source patches and projects without
-configuration. Cover mixed patches, absolute and relative paths, nested repositories,
-malformed input and unsupported patch forms. An undecodable potential write must have an
-explicit documented outcome, never an accidental silent allow. Feed synthetic hook
-payloads to the executable guard without applying their patches.
-
-Limits: no second parser for roadmap lines, no change to the Markdown format and no
-claim that hooks form a security sandbox.
-
-Official references to recheck when implementing: https://learn.chatgpt.com/docs/hooks
-
 ### §RK1731 Codex shell and lifecycle decisions
 
 Evidence: Refusal.decision returns ask for Bash, and the executable guard emits

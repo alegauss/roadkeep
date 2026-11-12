@@ -55,13 +55,12 @@
 
 ## Block M — Codex integration (one engine, host-specific adapters)
 
-- 📋 **RK1730** (deps: —) **The guard ignores Codex apply_patch calls that edit governed files** — Recognize Codex patch targets before execution so roadmap ownership also applies to the native editing tool. → §RK1730
-- 📋 **RK1731** (deps: RK1730) **Shell refusals return a decision that Codex does not support** — Use supported hook responses so a governed shell write cannot proceed because an ask decision was rejected. → §RK1731
+- 📋 **RK1731** (deps: RK1730 ✅) **Shell refusals return a decision that Codex does not support** — Use supported hook responses so a governed shell write cannot proceed because an ask decision was rejected. → §RK1731
 - 📋 **RK1732** (deps: —) **MCP startup does not establish the Codex workspace it governs** — Bind the existing stdio server to the intended repository so tools cannot inspect or mutate the plugin cache backlog. → §RK1732
 - 📋 **RK1733** (deps: RK1732) **Engine discovery and installation diagnostics only recognize Claude wiring** — Identify active Codex installations and their engine without deferring to disabled plugins or stale cached copies. → §RK1733
 - 📋 **RK1734** (deps: RK1732) **Bundled workflows assume Claude command syntax and tool names** — Give Codex the same Roadkeep workflow through reusable skills with valid invocations and tool references. → §RK1734
-- 📋 **RK1735** (deps: RK1730, RK1731, RK1733, RK1734) **Install, check and uninstall cannot manage Codex project wiring** — Provide an explicit Codex installation path that preserves unrelated configuration and can be verified and reversed. → §RK1735
-- 📋 **RK1736** (deps: RK1730, RK1731, RK1733, RK1734, RK1735) **The distributed plugin only declares a Claude installation** — Package the shared engine, MCP server and skills for Codex while retaining the existing Claude distribution. → §RK1736
+- 📋 **RK1735** (deps: RK1730 ✅, RK1731, RK1733, RK1734) **Install, check and uninstall cannot manage Codex project wiring** — Provide an explicit Codex installation path that preserves unrelated configuration and can be verified and reversed. → §RK1735
+- 📋 **RK1736** (deps: RK1730 ✅, RK1731, RK1733, RK1734, RK1735) **The distributed plugin only declares a Claude installation** — Package the shared engine, MCP server and skills for Codex while retaining the existing Claude distribution. → §RK1736
 - 📋 **RK1737** (deps: RK1735, RK1736) **No end-to-end evidence shows Roadkeep enforcement inside Codex** — Verify native plugin behavior and host regressions before claiming the Codex integration is supported. → §RK1737
 - 📋 **RK1738** (deps: RK1737) **Users have no verified Codex adoption or distribution guide** — Document supported installation, trust and recovery paths using the integration evidence and current distribution rules. → §RK1738
 
@@ -153,14 +152,6 @@
 
 - **Both sites registered with the design system** consumers.json lists the pitch and
   the gui landing, and the hub's projects.json gives roadkeep the amber the pitch uses.
-
-## Done when — RK1730
-
-- **All patch destinations are checked** Fixtures cover add, update, delete, move and
-  multi-file patches against governed files, including Windows and cross-repository
-  paths.
-- **Ordinary edits remain usable** Source-file edits and unconfigured projects pass,
-  while existing Claude Edit, Write and MultiEdit cases retain their behavior.
 
 ## Done when — RK1731
 
