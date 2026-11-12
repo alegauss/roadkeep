@@ -228,6 +228,30 @@ def test_sections_arriving_land_under_their_own_block(tmp_path, capsys):
             assert lines.index(f"### §SRCH{n} Design SRCH{n}") > block_b
 
 
+def test_a_role_declared_later_merges_through_the_driver_already_wired(tmp_path, capsys):
+    """RK1746. `declare decisions` after `init --merge` left DECISIONS.md out of
+    `.gitattributes`, so two branches each shipping a decision met git's textual conflict in a
+    file the guard denies editing — `merge --check` said 3 of 4, and nothing asked it."""
+    git_init(tmp_path)
+    assert main(["-C", str(tmp_path), "init", "--merge"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "declare", "decisions"]) == EXIT_OK
+    said = capsys.readouterr().out
+
+    attributes = (tmp_path / ".gitattributes").read_text(encoding="utf-8")
+    assert "DECISIONS.md merge=roadkeep" in attributes, said
+    assert ".gitattributes" in said.splitlines()[-1]  # the stage line names it
+
+
+def test_a_role_declared_where_no_driver_is_wired_wires_none(tmp_path, capsys):
+    # The opt-in stays the project's (L6): extended where it was made, never started here.
+    git_init(tmp_path)
+    assert main(["-C", str(tmp_path), "init"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "declare", "decisions"]) == EXIT_OK
+    capsys.readouterr()
+
+    assert not (tmp_path / ".gitattributes").exists()
+
+
 def test_a_block_both_sides_added_differently_is_still_refused(tmp_path, capsys):
     # The rule RK1743 must not loosen: two headings two people wrote is prose.
     base, ours, theirs = _scaffold_and_fork(tmp_path)

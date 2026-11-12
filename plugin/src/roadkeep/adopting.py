@@ -866,8 +866,12 @@ class Retrofitted:
     #: says so and stages the one file, because a report claiming a `[files]` key it did not
     #: write is a diff a reviewer then goes looking for and does not find.
     restored: bool = False
+    #: The `.gitattributes` lines written so the new file merges through the driver the
+    #: project already wired (RK1746). Empty where nothing was sent to it before.
+    routed: tuple[str, ...] = ()
 
     def stated(self, config: Config) -> str:
+        from roadkeep.merging import ATTRIBUTES  # noqa: PLC0415 - RK260
         from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
 
         where = config.relative(self.path)
@@ -890,7 +894,11 @@ class Retrofitted:
         opens = _ROLE_OPENS.get(self.role)
         if opens is not None:
             rows.append(f"  opens    `{invocation()} {opens}`")
+        for line in self.routed:
+            rows.append(f"  routed   {ATTRIBUTES}  + {line}")
         staged = where if self.restored else f"{where} {self.config.name}"
+        if self.routed:
+            staged += f" {ATTRIBUTES}"
         rows.append(f"  stage    git add -- {staged}")
         return "\n".join(rows)
 
@@ -901,6 +909,7 @@ class Retrofitted:
             "config": self.config.as_posix(),
             "blocks": list(self.blocks),
             "restored": self.restored,
+            "routed": list(self.routed),
         }
 
 
@@ -1571,7 +1580,27 @@ def declare(
         path=target,
         config=config.source,
         blocks=tuple(one.label or "" for one in declaring),
+        routed=_routed(config.root, target),
     )
+
+
+def _routed(root: Path, target: Path) -> tuple[str, ...]:
+    """Send the new file to the merge driver where the project already sends others (RK1746).
+
+    Measured by the RK1744 spike: `declare decisions` on a project `init --merge` had wired
+    left DECISIONS.md out of `.gitattributes`, so the first two branches each shipping a
+    decision met git's textual conflict in a file the guard denies editing. `merge --check`
+    said *3 of 4*, and nothing asks it at the moment a role arrives. The opt-in is the
+    project's and already made — a governed file sent to the driver — so this extends it and
+    never starts it: a project with no line for the driver gets none here.
+    """
+    from roadkeep.merging import attributed, register  # noqa: PLC0415 - RK260
+
+    config = Config.discover(root)
+    wiring = attributed(config)
+    if not wiring.sent or config.relative(target) not in wiring.unsent:
+        return ()
+    return register(config).added
 
 
 @dataclass(frozen=True, slots=True)
