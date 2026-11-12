@@ -1051,6 +1051,48 @@ def test_git_itself_reaches_the_driver_and_reads_back_a_line_it_can_act_on(tmp_p
     assert "git rev-parse HEAD MERGE_HEAD" in said, said
 
 
+def test_syncing_main_into_a_feature_resolves_deps_against_the_merged_ledger(tmp_path, capsys):
+    """RK1749, measured by the RK1744 spike. Main shipped `RK1`, the feature had filed `RK2
+    (deps: RK1)`, and `git merge main` on the feature refused ROADMAP.md over `deps.unknown`:
+    the roadmap merge removed `RK1`, and the ledger it asked was the one on disk — this side's,
+    which had not heard of the ship. Through git and this checkout's own code, because the
+    other side reaches the driver only as git's `GITHEAD_<sha>` variable."""
+    git_init(tmp_path)
+    where = ["-C", str(tmp_path)]
+    assert main([*where, "init", "--merge"]) == EXIT_OK
+    source = Path(__file__).resolve().parents[1] / "plugin" / "src"
+    python = Path(sys.executable).as_posix()
+    set_driver(tmp_path, f'"{python}" -m roadkeep.cli merge %O %A %B --path %P')
+    assert main([*where, "add", "--block", "A", "--symptom", "the base task", "--why", "So."]) == 0
+    git_commit(tmp_path, "base")
+    trunk = git(tmp_path, "rev-parse", "--abbrev-ref", "HEAD").strip()
+    git(tmp_path, "checkout", "-q", "-b", "feature")
+    argv = ["add", "--block", "A", "--symptom", "the feature task", "--why", "So.", "--dep", "RK1"]
+    assert main([*where, *argv]) == EXIT_OK
+    git_commit(tmp_path, "feature waits on RK1")
+    git(tmp_path, "checkout", "-q", trunk)
+    assert main([*where, "ship", "RK1", "--why", "Done."]) == EXIT_OK
+    git_commit(tmp_path, "main ships RK1")
+    git(tmp_path, "checkout", "-q", "feature")
+    capsys.readouterr()
+
+    done = subprocess.run(
+        ["git", "merge", "--no-edit", trunk],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=False,
+        env={**os.environ, **GIT_ENVIRONMENT, "PYTHONPATH": str(source)},
+    )
+
+    assert done.returncode == 0, done.stdout + done.stderr
+    roadmap = Config.discover(tmp_path).path("roadmap").read_text(encoding="utf-8")
+    assert "(deps: RK1 ✅)" in roadmap, roadmap  # re-derived, so the gate has nothing to fix
+    main([*where, "lint"])
+    assert "deps." not in capsys.readouterr().out  # the lines here carry no section, so only deps
+
+
 def test_the_repair_named_is_the_one_the_registration_prints(tmp_path):
     # One spelling (RK272): `register` prints it as what to do next and the check prints it as
     # what to do now, and two spellings would be two repairs — of which one would be wrong.

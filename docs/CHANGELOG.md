@@ -1308,3 +1308,4 @@
 - ✅ **RK1746** **declare leaves a new governed file out of a merge driver the project already wired** — declare extends .gitattributes to the new file wherever a governed file already merges through the driver, and names the line.
 - ✅ **RK1747** **the prose merge refuses two branches that each shipped a decision** — The prose merge decides record lines by id with the roadmap's rule and keeps them out of the frame, so decisions merge like sections.
 - ✅ **RK1748** **the renumber the merge driver names derives a destination the other branch already spent** — renumber --past REV derives past the ids that revision spent, read through git, and the driver's refusal names it.
+- ✅ **RK1749** **syncing main into a feature is refused when main shipped a line the feature waits on** — The driver composes the other side's ledger and store from git's GITHEAD, resolves deps against them and re-derives the annotations the merge moved.

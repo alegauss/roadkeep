@@ -534,9 +534,12 @@ def merge(config: Config, role: str, base: str, ours: str, theirs: str) -> Merge
         task_id for task_id, entry in decided.items() if entry is None and _raw(frame, task_id)
     )
     result = _materialize(frame, decided, where=config.relative(config.path(role)))
-    findings = _introduced(config, role, result, *versions.values())
+    records = _records_after(config) if role == "roadmap" else {}
+    findings = _introduced(config, role, result, *versions.values(), records=records)
     if findings:
         return Merge(role, None, took=took, removed=removed, reason=_refused(findings))
+    if role == "roadmap":
+        result = _annotated(config, result, records, moved={*took, *removed})
     return Merge(
         role,
         result.render(),
@@ -1222,8 +1225,120 @@ def _both_sides_moved_the_prose() -> str:
     )
 
 
+#: The refs git writes for the commit being brought in — after the merge machinery has run,
+#: so not while a driver is called: measured, `.git` held only `HEAD` and `ORIG_HEAD` then. Kept
+#: as the fallback for a caller running the driver by hand inside a stopped merge.
+_OTHER_SIDE = ("MERGE_HEAD", "CHERRY_PICK_HEAD", "REVERT_HEAD", "REBASE_HEAD")
+
+
+def _other_side(config: Config) -> str | None:
+    """The commit this merge brings in, as git tells a driver, or None where it does not.
+
+    `git merge` and `git merge --squash` export `GITHEAD_<sha>=<name>` for the head being
+    merged — the variable its conflict labels come from, and the only trace of the other side
+    in the driver's environment. `cherry-pick` and `rebase` export nothing; a rebase replays
+    onto the other side, whose records are then the ones on disk, so the gap is a cherry-pick.
+    """
+    import os  # noqa: PLC0415 - the driver's path only
+
+    from roadkeep.history import resolves  # noqa: PLC0415 - RK260
+
+    for key in os.environ:
+        if key.startswith("GITHEAD_") and resolves(config, key[len("GITHEAD_") :]):
+            return key[len("GITHEAD_") :]
+    return next((ref for ref in _OTHER_SIDE if resolves(config, ref)), None)
+
+
+def _records_after(config: Config) -> dict[str, Document]:
+    """The ledger and the store as this merge will leave them, where git says what is coming.
+
+    RK1749, measured by the RK1744 spike: main shipped `RK1`, a feature line waited on it, and
+    syncing main into the feature was refused over `deps.unknown` — the roadmap merge removed
+    `RK1`, and the ledger it resolved against was the one on disk, which is *this* side's and
+    had not heard of the ship. The other side's records are composed with this side's by the
+    same rules this module merges them with, so the dep is asked about the backlog the merge
+    produces rather than half of it. Nothing is written: git merges those files on its own call.
+
+    Empty — the disk's records, the answer before this — where no ref names the other side
+    or a record merge would itself be refused: an answer this function cannot prove is not one
+    it substitutes.
+    """
+    from roadkeep.history import HistoryUnavailable, _run, blob_at  # noqa: PLC0415 - RK260
+
+    other = _other_side(config)
+    if other is None:
+        return {}
+    try:
+        base = _run(config.root, "merge-base", "HEAD", other).strip()
+    except HistoryUnavailable:
+        base = ""
+    found: dict[str, Document] = {}
+    for role, key in (("changelog", "ledger"), ("deferred", "store")):
+        if not config.has(role) or not config.on_disk(role):
+            continue
+        path = config.path(role)
+        theirs = blob_at(config, other, path)
+        if theirs is None:
+            continue
+        ours = path.read_text(encoding="utf-8")
+        ancestor = blob_at(config, base, path) if base else None
+        merged = merge(
+            config,
+            role,
+            (ancestor if ancestor is not None else b"").decode("utf-8") or ours,
+            ours,
+            theirs.decode("utf-8"),
+        )
+        if merged.text is None:
+            return {}
+        found[key] = Document.parse(merged.text, config.schema_for(role))
+    return found
+
+
+def _annotated(
+    config: Config, result: Document, records: dict[str, Document], *, moved: set[str]
+) -> Document:
+    """The merged roadmap with the dep annotations this merge changed re-derived.
+
+    RK1749's second half: a line waiting on one the other side shipped kept `(deps: RK1 📋)`,
+    true on its own branch and stale in the file the driver wrote, so every such merge landed
+    as a gate failure `lint --fix` then repaired. An annotation is derived (RK16), so deriving
+    it here is the same write that fixer makes, made where the state that changes it is known.
+
+    Only on a line the merge moved or one waiting on such a line: an annotation already stale
+    on both sides is a defect a branch committed, which RK1352 leaves to the gate rather than
+    to a driver rewriting lines nobody touched. Left as composed where a re-derived line would
+    break a limit, which is `lint`'s to name.
+    """
+    from roadkeep.backlog import Backlog, _present  # noqa: PLC0415 - RK260
+    from roadkeep.markers import refresh  # noqa: PLC0415 - RK260
+
+    backlog = Backlog(
+        config=config,
+        roadmap=result,
+        ledger=records.get("ledger") or _present(config, "changelog"),
+        store=records.get("store") or _present(config, "deferred"),
+    )
+    try:
+        derived = refresh(backlog).document.by_id()
+    except SchemaError:
+        return result
+    for entry in result.entries:
+        fresh = derived.get(entry.task.id)
+        if fresh is None or fresh.raw == entry.raw:
+            continue
+        if entry.task.id in moved or any(dep.id in moved for dep in entry.task.deps):
+            held = result.by_id()[entry.task.id]
+            result = result.replace_line(held.index, fresh.raw)
+    return result
+
+
 def _introduced(
-    config: Config, role: str, result: Document, *inputs: Document
+    config: Config,
+    role: str,
+    result: Document,
+    *inputs: Document,
+    records: dict[str, Document] | None = None,
 ) -> list:
     """The findings this merge composed, which are the ones it may refuse over (RK1352).
 
@@ -1249,7 +1364,10 @@ def _introduced(
         # naming a line the other side removed exists in no version and in the merged file
         # alone, which is the one class a merge is uniquely able to write — and the half
         # `within` runs cannot be asked about it.
-        return [*within(config, role, document), *resolving(config, role, document)]
+        return [
+            *within(config, role, document),
+            *resolving(config, role, document, **(records or {})),
+        ]
 
     held = {(finding.code, finding.id) for document in inputs for finding in asked(document)}
     return [finding for finding in asked(result) if (finding.code, finding.id) not in held]

@@ -2249,7 +2249,14 @@ def characters_in(config: Config, role: str, document: Document) -> list[Finding
     return _characters(config, role, document)
 
 
-def resolving(config: Config, role: str, roadmap: Document) -> list[Finding]:
+def resolving(
+    config: Config,
+    role: str,
+    roadmap: Document,
+    *,
+    ledger: Document | None = None,
+    store: Document | None = None,
+) -> list[Finding]:
     """The dep questions one file cannot answer, asked of a candidate roadmap (RK1353).
 
     `within` is *everything decidable from one file alone*, and whether a dep names a line
@@ -2267,6 +2274,10 @@ def resolving(config: Config, role: str, roadmap: Document) -> list[Finding]:
 
     Roadmap only, deliberately: a ledger entry carries no deps, so asking would be composing
     a question the grammar has no field for.
+
+    ``ledger`` and ``store`` stand in for the disk's (RK1749): mid-merge the committed ones are
+    *this* side's, so a dep on a line the other side shipped resolved against a ledger that
+    had not heard of it, and syncing main into a feature was refused over `deps.unknown`.
     """
     from roadkeep.backlog import Backlog, _present  # noqa: PLC0415 - RK260's edge back
 
@@ -2275,8 +2286,8 @@ def resolving(config: Config, role: str, roadmap: Document) -> list[Finding]:
     backlog = Backlog(
         config=config,
         roadmap=roadmap,
-        ledger=_present(config, "changelog"),
-        store=_present(config, "deferred"),
+        ledger=ledger if ledger is not None else _present(config, "changelog"),
+        store=store if store is not None else _present(config, "deferred"),
     )
     file = config.relative(config.path(role))
     # All four kinds and not the three `_deps` holds (RK1354). A cycle is the purer case of
