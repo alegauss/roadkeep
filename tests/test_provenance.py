@@ -816,5 +816,25 @@ def test_engines_states_the_codex_copy_beside_the_claude_one(tmp_path, monkeypat
     found = engines(project)
     assert found.payload()["codex"]["version"] == "0.2.500"
     assert "codex    0.2.500   user config" in found.stated()
-    # Stated, and not yet compared: with no Claude plugin there is still nothing to differ with.
-    assert found.verdict == "agreed"
+    # A judge: at another number than the pen, behind, with Codex's own remedy and launcher.
+    assert found.verdict == "behind" and not found.agree
+    assert "Codex's judge is 0.2.500: update the plugin in Codex" in found.stated()
+    assert "/plugin update" not in found.stated()
+    assert found.invoke().endswith("0.2.500/scripts/roadkeep.py")
+
+
+def test_a_codex_copy_at_the_pens_version_agrees(tmp_path, monkeypatch):
+    from dataclasses import replace
+
+    import roadkeep
+    from roadkeep.installing import Engines, engines
+
+    codex, project = tmp_path / "codex", tmp_path / "p"
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "nowhere"))
+    monkeypatch.setenv("CODEX_HOME", str(codex))
+    codexed(codex, project, user=ON, versions=(roadkeep.__version__,))
+    found = engines(project)
+    clean = Engines(running=replace(found.running, modified=False), codex=found.codex)
+    assert clean.verdict == "agreed"
+    dirty = Engines(running=replace(found.running, modified=True), codex=found.codex)
+    assert dirty.verdict == "unpinnable"

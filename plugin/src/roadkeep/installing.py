@@ -1600,8 +1600,8 @@ UNPINNABLE = "unpinnable"
 class Engines:
     """Every copy of this tool one project runs, read back together (RK415).
 
-    **Six are read and three state a version that is compared** (RK1392, RK1451, RK1733): the
-    Codex copy states one and is read beside the rest, not yet judged. RK1385 added the merge driver,
+    **Six are read and four state a version** (RK1392, RK1451, RK1733): the Codex copy is a
+    judge beside the Claude plugin, compared by version alone. RK1385 added the merge driver,
     which git runs when nobody is watching, and it is deliberately outside the comparison:
     `agreed`, `behind` and `unpinnable` compare versions, and this tool refuses to execute a
     recorded driver to ask for one — the gate states a ref, which is not a number either. So a
@@ -1660,8 +1660,8 @@ class Engines:
     #: gets is the path beside the tree above, which is the comparison they came for.
     driver: str = ""
     #: The Codex plugin copy enabled for this project, or None (RK1733) — read off Codex's own
-    #: config, so a copy sitting in its cache with no enabled key is reported as none. Stated
-    #: and not yet compared: which host's copy is the judge is the remainder of that task.
+    #: config, so a copy sitting in its cache with no enabled key is reported as none. A judge
+    #: like the plugin, by version alone: Codex's cache records no commit to compare.
     codex: Installed | None = None
 
     @property
@@ -1688,7 +1688,13 @@ class Engines:
         Where a commit is missing on either side the version is still the best fact available,
         so it decides — a marketplace row that recorded no sha is not evidence of a difference.
         """
+        # RK1733: Codex's enabled copy judges too, by version alone — its cache records no
+        # sha — and a judge at another number is `behind` whichever host it serves.
+        if self.codex is not None and self.codex.version != self.running.version:
+            return BEHIND
         if self.plugin is None:
+            if self.codex is not None and self.running.modified:
+                return UNPINNABLE
             return AGREED
         if self.plugin.version != self.running.version:
             return BEHIND
@@ -1784,6 +1790,9 @@ class Engines:
         """
         if self.plugin is not None and self.plugin.home is not None:
             return f"python {(self.plugin.home / LAUNCHER).as_posix()}"
+        # RK1733: the copy Codex's hooks run, where no Claude plugin is wired.
+        if self.codex is not None and self.codex.home is not None:
+            return f"python {(self.codex.home / LAUNCHER).as_posix()}"
         if self.declared:
             return self.declared
         return invocation()
@@ -1919,6 +1928,14 @@ class Engines:
                 f"differ   both state {running.version} and this checkout is modified at "
                 f"{running.revision}, so the two cannot be compared: commit, or read a hook's "
                 f"refusal as that copy's rule rather than this one's"
+            )
+        elif self.codex is not None and self.codex.version != running.version:
+            # RK1733: the same pair with the other host's judge, and its own remedy — Codex
+            # moves its copy in its plugin browser, where `/plugin update` means nothing.
+            rows.append(
+                f"differ   the pen is {running.version} at {running.revision} and Codex's "
+                f"judge is {self.codex.version}: update the plugin in Codex, and until then a "
+                f"hook's refusal there is that copy's rule and not this one's"
             )
         elif self.verdict != AGREED:
             rows.append(
@@ -2103,7 +2120,9 @@ def behind(root: str | Path = ".") -> bool:
     rule (RK300): what changes between the two calls is the facts, never the judgement.
     """
     base = Path(root).resolve()
-    cheap = Engines(running=engine(placed=False), plugin=installed(base))
+    cheap = Engines(
+        running=engine(placed=False), plugin=installed(base), codex=codex_installed(base)
+    )
     if cheap.plugin is None or cheap.verdict == BEHIND:
         return cheap.verdict == BEHIND
     return engines(base).verdict == BEHIND

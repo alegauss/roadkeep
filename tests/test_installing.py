@@ -2657,7 +2657,7 @@ def test_the_count_a_sentence_states_says_which_question_it_is_about():
         "driver",
         "declared",
         "declaration",
-        # RK1733: Codex's enabled copy, read and stated, and not compared yet.
+        # RK1733: Codex's enabled copy, a judge beside the plugin, by version alone.
         "codex",
     }, sorted(read)
     # And the verdict still compares two: adding a driver never moves it, whatever it holds,
@@ -2669,8 +2669,12 @@ def test_the_count_a_sentence_states_says_which_question_it_is_about():
         assert replace(pair, driver=command).agree == pair.agree
     from roadkeep.provenance import Installed
 
+    # The Codex copy is the other judge (RK1733): at another number it is `behind`, at the pen's
+    # own number it leaves the Claude pair's verdict as it was.
     other = Installed(version="0.0.1", home=None, commit=None, scope="user")
-    assert replace(pair, codex=other).verdict == pair.verdict
+    assert replace(pair, codex=other).verdict == "behind"
+    same = replace(other, version=pair.running.version)
+    assert replace(pair, codex=same).verdict == pair.verdict
 
 
 # -- the copy inside the project, which the launcher finds first (RK1451) ------

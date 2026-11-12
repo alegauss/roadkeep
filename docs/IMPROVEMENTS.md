@@ -187,30 +187,6 @@ both sites' tests pass on the built output, and both registries name both sites.
 
 ## Block M — Codex integration (one engine, host-specific adapters)
 
-### §RK1733 Host-aware installation and engine provenance
-
-Evidence: codex_installed reads Codex's enabled copy, but installing.py names Claude
-manifests and project settings. Duplicate-hook suppression must not read a cached Codex
-directory as evidence a plugin is active.
-
-Scope: host-aware installation and engine discovery, covering native plugin activation
-and repository wiring. Adapt invocation hints, served tool naming, engines output and
-stale-surface diagnostics to the selected host, deriving names from the actual
-connection rather than assuming Claude-prefixed MCP names. Preserve ROADKEEP_HOME
-selection, vendored-engine precedence and the no-network launcher contract.
-
-Acceptance: test enabled, disabled, absent and outdated Codex installations; multiple
-user config roots; stale caches; native plus committed wiring; simultaneous Claude/Codex
-use. A cached but inactive plugin must not suppress a live project guard. Hooks are not
-run twice when both declarations are active. Missing engines or untrusted hooks are
-never presented as enforced.
-
-Limits: no scan of unrelated credentials or user files, no automatic trust grants, no
-background download. Preserve Claude engine selection.  Record the tested Codex
-versions.
-
-Official reference: https://learn.chatgpt.com/docs/config-file/config-basic
-
 ### §RK1734 Shared skills and Codex workflow entry points
 
 Evidence: plugin/skills/roadkeep already uses SKILL.md, while plugin/commands/add.md and
@@ -222,8 +198,10 @@ Scope: keep one authoritative Roadkeep skill and shared reference pages, adaptin
 host-specific launch and tool hints at packaging or installation time. Provide Codex
 equivalents for add, ship, pick and lint through supported skill invocation, preserving
 each command's behavior. Consider agents/openai.yaml only for useful UI metadata or tool
-dependencies. Handle both a connected MCP server and the documented CLI fallback. Likely
-seams: plugin/skills, plugin/commands and generated installation surfaces.
+dependencies. Handle both a connected MCP server and the documented CLI fallback.
+provenance.serving still names only Claude's tool prefixes; Codex documents none, so
+derive it from a live session. Likely seams: plugin/skills, plugin/commands and
+generated installation surfaces.
 
 Acceptance: every referenced file and command exists in a clean package; the Codex skill
 discovers session tools without hardcoded Claude names; fallback execution reaches the
