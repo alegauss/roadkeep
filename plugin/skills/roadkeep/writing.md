@@ -603,6 +603,15 @@ run this driver — the one query on that command, and the one tool on this surf
 for a flag rather than a verb. Neither half is otherwise visible until the merge it was
 registered for, so ask once per clone.
 
+**A long-lived branch** keeps one backlog with four habits. Give it a family of its own — a
+`prefix` entry in `roadkeep.toml` no other family starts with, filed with `add --prefix` —
+so two sides never mint one id; a sub-branch takes another. A block of its own may be added
+on either side. Merge the default branch **into** it locally, where the driver runs, before
+any forge merges it back: a forge's button runs no driver, and after that sync the branch
+already holds what the button would have to join. And let `lint` gate the pull request,
+which catches a duplicate id a driverless merge landed. A `cherry-pick` gives the driver no
+other side to read, so a dep it resolves is the one case left to `lint --fix`.
+
 **A finding names the command that closes it, so never infer one.** Every code the gate
 can report resolves to a door, and the report prints it under the line: a complete argv
 where one exists, with the id and the line number already substituted; the two doors and

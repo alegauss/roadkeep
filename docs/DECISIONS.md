@@ -957,3 +957,66 @@ deriving the anchor, which is how they came apart.
 
 ## Block N — Branches (one backlog across parallel branches)
 
+- ✅ **RK1744** **no tested strategy keeps one backlog consistent across parallel long-lived branches** — A long-lived branch keeps its own id family and takes the default branch locally, where the driver runs, before a forge merges it back.
+
+### §RK1744 What the spike ran and what holds
+
+Twenty-one scenarios, each a throwaway repository driven through git with the driver run
+from the checkout under test: blocks added on one side or both, ships, sections and
+decisions on both sides, deps on lines the other side shipped or retired, one id spent
+twice, three branches, a sub-branch, squash, rebase, cherry-pick, a driverless merge,
+and a branch synced three times.
+
+Seven defects were fixed as their own tasks, RK1743 and RK1745 to RK1750. Every scenario
+now ends clean, or refused by name where a person decides: a ship against an amend, a
+dep on a retired line, one id or block label spent twice.
+
+Each fix has a test in tests/test_merging.py or tests/test_renumbering.py. The harness
+ran in a scratch directory and is not in the tree, so nothing reruns the matrix.
+
+#### §RK1744.1 Blind spots: what was not run
+
+Not run, so not known to hold.
+
+- **A real forge.** No merge button or pull_request merge ref was exercised; the gate
+  catching a duplicate id there rests on `lint` over a local driverless merge.
+- **Linux and macOS.** Only Windows with Git for Windows; `GITHEAD_<sha>` was observed on
+  this git alone.
+- **Several people.** Simulated as branches in one clone. An unpushed branch is invisible
+  to `--past`, and two clones on one branch share a family.
+- **Scale.** A dozen lines per side; no real merge over a ledger of 1,700 entries.
+- **Time.** Branches renamed, deleted and recreated under one name.
+- **Recovery by hand.** Abort, renumber and merge again was run; resolving whole-file
+  markers by hand was not.
+
+#### §RK1744.2 Fragilities: what can stop holding
+
+Holds today and can stop holding with no change here.
+
+- **The other side arrives only as `GITHEAD_<sha>`**, which `git merge` exports for its
+  labels and does not document for drivers. A git that drops it silently brings back
+  RK1749's refusal. `cherry-pick` and `rebase` export nothing already.
+- **The strategy is a habit nothing enforces.** A forge runs no driver; skip the local
+  sync and two additions under one heading conflict as text.
+- **The driver is per clone**, and only `merge --check` names a clone without it.
+- **`--past` reads what this clone fetched**, so a stale fetch derives a spent id.
+- **Joined blocks go before the next shared heading**, an order neither author chose.
+- **Families must not overlap**, and nothing proposes a free one.
+- **An annotation that would break a limit is not re-derived**; `lint` names it.
+
+#### §RK1744.3 Candidates measured and not built
+
+Four candidates named at the start, none built, each for a measured reason.
+
+- **A letter family per branch** (`RKA`, `RKB`) is refused: a family another starts with
+  reads as either, and `init` says so.
+- **`[ids] refs`**, a `next_id` reading every ref on every `add`, would prevent the one
+  collision left, one family spent on two sides. `renumber --past` repairs it in one call
+  per id, without git reads on every write.
+- **A merge preview** is `git merge --no-commit` and an abort; the refusal already names
+  each id.
+- **One-line fragments** would make a forge merge conflict-free, which syncing first does
+  without a second file shape.
+
+None is wrong now, so none is filed; a measured cost of the habit each replaces reopens
+it.

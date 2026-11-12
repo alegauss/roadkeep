@@ -1310,3 +1310,4 @@
 - ✅ **RK1748** **the renumber the merge driver names derives a destination the other branch already spent** — renumber --past REV derives past the ids that revision spent, read through git, and the driver's refusal names it.
 - ✅ **RK1749** **syncing main into a feature is refused when main shipped a line the feature waits on** — The driver composes the other side's ledger and store from git's GITHEAD, resolves deps against them and re-derives the annotations the merge moved.
 - ✅ **RK1750** **two branches that each added a block of their own are refused as prose both sides moved** — Block headings each side inserted under labels the other does not use join one frame verbatim, and their lines and sections land under them.
+- ✅ **RK1744** **no tested strategy keeps one backlog consistent across parallel long-lived branches** — Twenty-one merge scenarios ran against the driver, seven defects were fixed as their own tasks, and the strategy is in the skill.

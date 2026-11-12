@@ -148,22 +148,3 @@ https://developers.openai.com/plugins/deploy/desktop-only
 https://developers.openai.com/plugins/build/plugins
 
 ## Block N — Branches (one backlog across parallel branches)
-
-### §RK1744 Spike: a backlog across parallel branches
-
-Run every merge a team meets in throwaway repos, fix each defect it exposes as its own
-task, and end on one written strategy: what an adopter configures, which verbs a branch
-uses, and what the gate checks. Scenarios: both branches filing under one block; a block
-added on one side, on both, and before branching; ships on both sides; IMPROVEMENTS
-sections on both sides; a dep on a line the other side shipped or retired; one id spent
-on both sides; three branches; a branch cut from a feature branch; squash, rebase,
-cherry-pick and a forge merge button, none of which run the driver; and a pull_request
-gate over the merge ref. Candidates to measure, not presumed: a prefix per feature;
-[ids] refs, a next_id that also reads other refs; a family per branch derived against
-the merge-base; renumber --family; a merge preview against a branch; one-line fragments
-off the default branch. Done when the strategy is in the skill, every scenario has a
-test or a recorded reason it needs none, and a report of what the strategy still does
-not cover is recorded with it: each blind spot, fragility and unrun scenario, what fails
-when it is hit, and the evidence behind it. A gap stays a gap in that report, never
-softened into a recommendation; it is filed through ship --decides so it outlives this
-section.

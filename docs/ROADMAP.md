@@ -53,8 +53,6 @@
 
 ## Block N — Branches (one backlog across parallel branches)
 
-- 💭 **RK1744** (deps: RK1743 ✅) **no tested strategy keeps one backlog consistent across parallel long-lived branches** — A feature branch and main filing and shipping at once is the normal case, and only two of its merges have been run end to end. → §RK1744
-
 ## Done when — Block D
 
 - **The gate passes on this repository's own docs** the format is proven by the artefact
