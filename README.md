@@ -233,8 +233,8 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 0 | 2 | 0 |
 | M — Codex integration (one engine, host-specific adapters) | 2 | 8 | 0 |
-| N — Branches (one backlog across parallel branches) | 1 | 0 | 0 |
-| **Total** | 3 | 1215 | 24 |
+| N — Branches (one backlog across parallel branches) | 1 | 1 | 0 |
+| **Total** | 3 | 1216 | 24 |
 
 **Next ready:**
 

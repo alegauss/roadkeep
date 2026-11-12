@@ -61,6 +61,7 @@ from __future__ import annotations
 
 import shlex
 import shutil
+from collections.abc import Iterable
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -859,10 +860,8 @@ def _prose_skeleton(document: Document) -> tuple[str, ...]:
     inside: set[int] = set()
     for section in anchored(document):
         inside |= set(range(section.first, section.last + 1))
-    return tuple(
-        line.rstrip("\r\n")
-        for number, line in enumerate(document.lines, start=1)
-        if number not in inside
+    return _folded(
+        line for number, line in enumerate(document.lines, start=1) if number not in inside
     )
 
 
@@ -899,8 +898,39 @@ def _written(
     """
     from roadkeep.sections import anchored  # noqa: PLC0415 - RK260, the prose path only
 
+    leading, before, trailing, blocked = _arriving(frame, other, decided)
+    text = _walked(frame, decided, leading, before, trailing)
+    if not blocked:
+        return text
+    # Each at the end of its block's region in the file as written so far, re-located after
+    # every insertion for the reason `_materialize` re-locates by id.
+    result = Document.parse(text, frame.schema)
+    for label, regions in blocked.items():
+        for lines in regions:
+            heading = result.heading(label)
+            assert heading is not None  # `_arriving` only fills this for a heading the frame has
+            at = result.subtree_end(heading)
+            payload = [line.rstrip("\r\n") for line in lines]
+            if at > 0 and result.lines[at - 1].strip():
+                payload.insert(0, "")
+            if at < len(result.lines):
+                payload.append("")
+            for offset, raw in enumerate(payload):
+                result = result.insert_line(at + offset, raw)
+    return result.render()
+
+
+def _walked(
+    frame: Document,
+    decided: dict[str, tuple[str, ...] | None],
+    leading: list[list[str]],
+    before: dict[str, list[list[str]]],
+    trailing: list[list[str]],
+) -> str:
+    """The frame's own sections, decided, with the arrivals placed by anchor."""
+    from roadkeep.sections import anchored  # noqa: PLC0415 - RK260, the prose path only
+
     held = _sections_of(frame)
-    leading, before, trailing = _arriving(frame, other, decided)
     spans = sorted((one.first, one.last, one.anchor) for one in anchored(frame))
     blank = frame.newline
     # How many blank lines the frame kept after each section, so an unchanged file comes
@@ -943,35 +973,64 @@ def _spaced(blocks: list[list[str]], blank: str) -> list[str]:
 
 def _arriving(
     frame: Document, other: Document | None, decided: dict[str, tuple[str, ...] | None]
-) -> tuple[list[list[str]], dict[str, list[list[str]]], list[list[str]]]:
-    """New sections as (before the first, before a named anchor, after the last).
+) -> tuple[
+    list[list[str]], dict[str, list[list[str]]], list[list[str]], dict[str, list[list[str]]]
+]:
+    """New sections as (before the first, before a named anchor, after the last, at the end
+    of a named block).
 
-    Three buckets rather than one, because a new section can precede every anchor the frame
-    has, follow every one, or sit between two — and a single map keyed by "what comes after"
-    has no key for the last case.
+    Separate buckets rather than one, because a new section can precede every anchor the
+    frame has, follow every one, or sit between two — and a single map keyed by "what comes
+    after" has no key for the last case. The fourth is the block-organised file's (RK1743).
     """
     from roadkeep.sections import anchored  # noqa: PLC0415 - RK260, the prose path only
 
     leading: list[list[str]] = []
     before: dict[str, list[list[str]]] = {}
     trailing: list[list[str]] = []
+    blocked: dict[str, list[list[str]]] = {}
     if other is None:
-        return leading, before, trailing
+        return leading, before, trailing, blocked
     held = _sections_of(frame)
-    order = [one.anchor for one in anchored(other)]
+    sections = list(anchored(other))
+    order = [one.anchor for one in sections]
+    home = {one.anchor: _block_above(other, one.first) for one in sections}
+    framed = {one.anchor: _block_above(frame, one.first) for one in anchored(frame)}
     for index, anchor in enumerate(order):
         lines = decided.get(anchor)
         if anchor in held or lines is None:
             continue
+        label = home[anchor]
         following = next((one for one in order[index + 1 :] if one in held), None)
         preceding = next((one for one in reversed(order[:index]) if one in held), None)
-        if following is not None:
+        if label is not None and frame.heading(label) is not None:
+            # A block-organised file (RK1743): the neighbour only counts inside the block, and
+            # otherwise the section goes to the end of its own block, as `section add` places
+            # it. By anchor order alone, a frame whose only sections sat under a block the
+            # other side added took every arriving section under that block — written, and
+            # called clean by the gate, which does not ask which block a section is under.
+            if following is not None and framed.get(following) == label:
+                before.setdefault(following, []).append(list(lines))
+            else:
+                blocked.setdefault(label, []).append(list(lines))
+        elif following is not None:
             before.setdefault(following, []).append(list(lines))
         elif preceding is not None:
             trailing.append(list(lines))
         else:
             leading.append(list(lines))
-    return leading, before, trailing
+    return leading, before, trailing, blocked
+
+
+def _block_above(document: Document, lineno: int) -> str | None:
+    """The label of the block heading a line sits under, or None in a file without blocks."""
+    label = None
+    for heading in document.headings:
+        if heading.lineno >= lineno:
+            break
+        if heading.label:
+            label = heading.label
+    return label
 
 
 def _frame(
@@ -1005,10 +1064,20 @@ def _skeleton(document: Document) -> tuple[str, ...]:
     question of whether it moved.
     """
     entries = {entry.lineno for entry in document.entries}
+    return _folded(
+        line for number, line in enumerate(document.lines, start=1) if number not in entries
+    )
+
+
+def _folded(lines: Iterable[str]) -> tuple[str, ...]:
+    """Lines without endings, a run of blanks as one and none at either end (RK1743).
+
+    The comparison both skeletons make, so the roadmap and the prose file cannot disagree
+    about what counts as a frame that moved: taking entries or sections out leaves the
+    separators `place` and `section add` wrote beside them, and those are derived layout.
+    """
     kept: list[str] = []
-    for number, line in enumerate(document.lines, start=1):
-        if number in entries:
-            continue
+    for line in lines:
         text = line.rstrip("\r\n")
         if not text.strip() and (not kept or not kept[-1].strip()):
             continue

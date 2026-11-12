@@ -166,10 +166,14 @@ def _scaffold_and_fork(tmp_path: Path) -> tuple[Path, Path, Path]:
     return base, ours, theirs
 
 
-def _file(root: Path, *, block: str, family: str, count: int, ship: int) -> None:
+def _file(
+    root: Path, *, block: str, family: str, count: int, ship: int, sections: bool = False
+) -> None:
     for n in range(1, count + 1):
         argv = ["add", "--block", block, "--prefix", family]
         argv += ["--symptom", f"case {n} of {family} does not work", "--why", f"Reason {n}."]
+        if sections:
+            argv += ["--section", f"Design {family}{n}", "--section-body", f"Body {n}."]
         assert main(["-C", str(root), *argv]) == EXIT_OK
     for n in range(1, ship + 1):
         assert main(["-C", str(root), "ship", f"{family}{n}", "--why", f"Done {n}."]) == EXIT_OK
@@ -198,6 +202,30 @@ def test_a_block_one_side_added_merges_with_lines_the_other_filed(tmp_path, caps
                 assert f"**{entry.task.id}**" in (merged.text or ""), (role, entry.task.id)
         # Symmetric: which side added the block is not a fact the verdict may depend on.
         assert merge(config, role, texts[0], texts[2], texts[1]).clean
+
+
+def test_sections_arriving_land_under_their_own_block(tmp_path, capsys):
+    """RK1743's prose half, measured by the RK1744 spike. The same two branches with a
+    section behind every line: the prose skeleton kept the separators too, so IMPROVEMENTS.md
+    was refused; and once it was not, every arriving §RK section was placed by anchor order
+    alone, under `## Block B — Search` — the only block the frame had sections in. `lint`
+    called that file clean, because nothing asks which block a section sits under."""
+    base, ours, theirs = _scaffold_and_fork(tmp_path)
+    _file(ours, block="A", family="RK", count=3, ship=1, sections=True)
+    assert main(["-C", str(theirs), "block", "add", "B", "--title", "Search"]) == EXIT_OK
+    _file(theirs, block="B", family="SRCH", count=3, ship=1, sections=True)
+    capsys.readouterr()
+    config = Config.discover(base)
+    texts = [(root / IMPROVEMENTS).read_text(encoding="utf-8") for root in (base, ours, theirs)]
+
+    for sides in (texts, [texts[0], texts[2], texts[1]]):
+        merged = merge(config, "improvements", *sides)
+        assert merged.clean, merged.reason
+        lines = (merged.text or "").splitlines()
+        block_b = lines.index("## Block B — Search")
+        for n in (2, 3):
+            assert lines.index(f"### §RK{n} Design RK{n}") < block_b
+            assert lines.index(f"### §SRCH{n} Design SRCH{n}") > block_b
 
 
 def test_a_block_both_sides_added_differently_is_still_refused(tmp_path, capsys):
