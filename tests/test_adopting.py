@@ -3334,6 +3334,18 @@ def test_one_init_with_every_option_yields_a_tree_the_checks_pass_on(tmp_path, c
     assert main(["-C", str(tmp_path), "install", "--check"]) == EXIT_OK
 
 
+def test_the_merge_driver_alone_is_registered_without_an_install(tmp_path, capsys) -> None:
+    """`--merge` without `--install` takes its own branch, which imported the report from the
+    wrong module and raised on the first adopter who chose it (askround, 2026-11-12)."""
+    from conftest import git_init
+
+    git_init(tmp_path)
+    assert main(["-C", str(tmp_path), "init", "--prefix", "AR", "--merge"]) == EXIT_OK
+    capsys.readouterr()
+    assert "merge=roadkeep" in (tmp_path / ".gitattributes").read_text(encoding="utf-8")
+    assert not (tmp_path / ".mcp.json").exists()
+
+
 # -- a prefix derived from the repository's name (RK1727) ---------------------------
 
 

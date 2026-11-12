@@ -234,7 +234,8 @@ def _wired(created: Created, args: argparse.Namespace) -> Result | int:
                 said.append(pinned.stated(False))
                 payload["vendored"] = pinned.payload()
         else:
-            from roadkeep.merging import register, registration_report  # noqa: PLC0415
+            from roadkeep.merging import register  # noqa: PLC0415
+            from roadkeep.rendering import registration_report  # noqa: PLC0415
 
             config = Config.discover(args.directory)
             registration = register(config)
