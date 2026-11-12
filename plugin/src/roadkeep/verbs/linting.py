@@ -22,6 +22,7 @@ from roadkeep.config import Config
 from roadkeep.kernel.document import write_atomically
 from roadkeep.fixing import Fix, fix
 from roadkeep.guarding import (
+    HOSTS,
     START_EVENTS,
     STOP_EVENTS,
     announce,
@@ -347,7 +348,7 @@ def _guard(config: Config, args: argparse.Namespace) -> int:
     # One reading of the project for both answers (RK1283): this is the hook the harness
     # waits for before every `Edit`, and the config parse it used to make twice is the part
     # of an allowed call that is not free.
-    barrier = decide(payload, root)
+    barrier = decide(payload, root, getattr(args, "host", None))
     refusal = barrier.refusal
     if refusal is not None:
         print(
@@ -358,6 +359,7 @@ def _guard(config: Config, args: argparse.Namespace) -> int:
                         # Derived from the tool the payload named (RK128): `deny` where it
                         # said which file it writes, `ask` where a shell command only
                         # mentioned one and what it does with it is nobody's to guess here.
+                        # Never `ask` to Codex, which runs the call on it (RK1731).
                         "permissionDecision": refusal.decision,
                         "permissionDecisionReason": str(refusal),
                     }
@@ -666,6 +668,12 @@ def declare_gate(subcommands: argparse._SubParsersAction) -> None:
             "is read as the hook itself having failed, which would deny nothing and "
             "report a broken hook on every edit in the session."
         ),
+    )
+    guard_parser.add_argument(
+        "--host",
+        choices=HOSTS,
+        help="the harness the answer goes to; omitted, Codex where the payload carries a "
+        "turn_id, else Claude Code — Codex has no `ask`, so a shell mention is denied there",
     )
     guard_parser.set_defaults(handler=_guard, tolerates_config_error=True, reads_only=True)
 

@@ -1616,3 +1616,114 @@ def test_the_executable_guard_denies_a_patch_without_applying_it(tmp_path):
     assert answer["permissionDecision"] == "deny"
     assert answer["permissionDecisionReason"].startswith("apply_patch refused")
     assert (root / ROADMAP).read_bytes() == before
+
+
+# -- Codex's decisions (RK1731) ----------------------------------------------
+
+#: The hook outputs Codex rejects as a failed hook, which then runs the call anyway.
+UNSUPPORTED = {"continue", "stopReason", "suppressOutput"}
+
+
+def codex(payload: dict[str, object]) -> dict[str, object]:
+    """The same payload as Codex sends it: its turn id is the host's mark."""
+    return {**payload, "turn_id": "t-1", "model": "gpt", "permission_mode": "default"}
+
+
+def answered(monkeypatch, capsys, payload: object, root: Path, *flags: str) -> dict:
+    monkeypatch.setattr("sys.stdin", io.StringIO(json.dumps(payload)))
+    assert main(["-C", str(root), "guard", *flags]) == EXIT_OK
+    out = capsys.readouterr().out
+    return json.loads(out) if out.strip() else {}
+
+
+def decision(answer: dict) -> str | None:
+    return answer.get("hookSpecificOutput", {}).get("permissionDecision")
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        f"sed -i s/a/b/ {ROADMAP}",
+        f"echo x > {ROADMAP}",
+        f"echo x >> '{ROADMAP}'",
+        f'python -c "open(\'{ROADMAP}\', \'w\').write(1)"',
+        f"git add {ROADMAP}\nsed -i s/a/b/ {CHANGELOG}",
+        f"git add {ROADMAP} && rm {CHANGELOG}",
+        f"cat \"{ROADMAP}\" | tee {CHANGELOG}",
+    ],
+)
+def test_a_codex_shell_write_is_denied_and_never_asked(tmp_path, monkeypatch, capsys, command):
+    root = project(tmp_path)
+    answer = answered(monkeypatch, capsys, codex(shell(command, cwd=root)), root)
+    assert decision(answer) == "deny"
+    reason = answer["hookSpecificOutput"]["permissionDecisionReason"]
+    assert reason.startswith("Bash refused: it names") and "cannot ask" in reason
+    assert not UNSUPPORTED & set(answer)
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        f"git add {ROADMAP} {CHANGELOG}",
+        f'git add "{ROADMAP}" && git commit -m "docs: x"',
+        f"git diff {ROADMAP}\ngit log -- {CHANGELOG}",
+        'roadkeep add --block A --symptom "s" --why "w."',
+        "python -m pytest -q",
+    ],
+)
+def test_codex_keeps_staging_history_and_roadkeep_itself(tmp_path, monkeypatch, capsys, command):
+    root = project(tmp_path)
+    assert answered(monkeypatch, capsys, codex(shell(command, cwd=root)), root) == {}
+
+
+@pytest.mark.skipif(os.name != "nt", reason="the separator is one character only on Windows")
+def test_a_codex_command_spelled_with_backslashes_is_still_denied(tmp_path, monkeypatch, capsys):
+    root = project(tmp_path)
+    payload = codex(shell("Set-Content docs\\ROADMAP.md x", cwd=root))
+    assert decision(answered(monkeypatch, capsys, payload, root)) == "deny"
+
+
+def test_the_host_flag_outranks_the_payload(tmp_path, monkeypatch, capsys):
+    root = project(tmp_path)
+    plain = shell(f"sed -i s/a/b/ {ROADMAP}", cwd=root)
+    assert decision(answered(monkeypatch, capsys, plain, root)) == "ask"
+    assert decision(answered(monkeypatch, capsys, plain, root, "--host", "codex")) == "deny"
+    marked = codex(plain)
+    assert decision(answered(monkeypatch, capsys, marked, root, "--host", "claude")) == "ask"
+
+
+def test_a_codex_write_tool_is_denied_as_before(tmp_path, monkeypatch, capsys):
+    root = project(tmp_path)
+    answer = answered(monkeypatch, capsys, codex(write(str(root / ROADMAP))), root)
+    assert decision(answer) == "deny"
+    assert answer["hookSpecificOutput"]["permissionDecisionReason"].startswith("Edit refused:")
+
+
+def test_codex_lifecycle_answers_use_supported_fields(tmp_path, monkeypatch, capsys):
+    root = project(tmp_path)
+    start = codex({"hook_event_name": "SessionStart", "source": "startup", "cwd": str(root)})
+    said = answered(monkeypatch, capsys, start, root)
+    assert set(said) <= {"hookSpecificOutput"}
+    if said:
+        assert set(said["hookSpecificOutput"]) == {"hookEventName", "additionalContext"}
+    drifted = CLEAN.replace("Because of a reason.", "Because of a reason. And another.")
+    project(tmp_path, roadmap=drifted)
+    stop = codex({"hook_event_name": "Stop", "cwd": str(root), "stop_hook_active": False})
+    blocked = answered(monkeypatch, capsys, stop, root)
+    assert set(blocked) == {"decision", "reason"} and blocked["decision"] == "block"
+    again = {**stop, "stop_hook_active": True}
+    assert answered(monkeypatch, capsys, again, root) == {}
+
+
+def test_the_launcher_never_prints_ask_to_codex(tmp_path):
+    root = project(tmp_path)
+    done = subprocess.run(
+        [sys.executable, str(HERE / "plugin" / "scripts" / "roadkeep.py"), "guard"],
+        input=json.dumps(codex(shell(f"sed -i s/a/b/ {ROADMAP}", cwd=root))),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        cwd=root,
+        check=True,
+    )
+    assert json.loads(done.stdout)["hookSpecificOutput"]["permissionDecision"] == "deny"

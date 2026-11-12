@@ -232,12 +232,12 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 1 | 2 | 0 |
-| M — Codex integration (one engine, host-specific adapters) | 8 | 1 | 0 |
-| **Total** | 12 | 1204 | 24 |
+| M — Codex integration (one engine, host-specific adapters) | 7 | 2 | 0 |
+| **Total** | 11 | 1205 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1731** (deps: RK1730 ✅) **Shell refusals return a decision that Codex does not support** — Use supported hook responses so a governed shell write cannot proceed because an ask decision was rejected. → §RK1731
+- 📋 **RK1732** (deps: —) **MCP startup does not establish the Codex workspace it governs** — Bind the existing stdio server to the intended repository so tools cannot inspect or mutate the plugin cache backlog. → §RK1732
 <!-- roadkeep:end -->
 
 Open work is in

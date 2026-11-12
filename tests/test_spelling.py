@@ -140,6 +140,12 @@ def shapes(root: Path) -> dict[str, tuple[object, object]]:
                 tool="Edit", path=f"gui/{ROADMAP}", role="roadmap", served=served, elsewhere="gui"
             )
         ),
+        # RK1731: a shell mention answered to Codex, which has no `ask` — its own opening.
+        "Refusal.codex": both(
+            lambda served: Refusal(
+                tool="Bash", path=ROADMAP, role="roadmap", served=served, host="codex"
+            )
+        ),
         "Review": both(
             lambda served: Review(report=report, served=served, config=config)
         ),

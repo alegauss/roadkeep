@@ -187,33 +187,6 @@ both sites' tests pass on the built output, and both registries name both sites.
 
 ## Block M — Codex integration (one engine, host-specific adapters)
 
-### §RK1731 Codex shell and lifecycle decisions
-
-Evidence: Refusal.decision returns ask for Bash, and the executable guard emits
-permissionDecision=ask. The Codex hook documentation states this result is unsupported
-in PreToolUse and the tool call continues after the hook failure. This is a
-compatibility defect, not a request to weaken Claude behavior.
-
-Scope: define the Codex policy for shell mentions of governed paths and serialize only
-supported outcomes. Block confirmed prohibited writes with an actionable Roadkeep
-command. Preserve the existing exemptions for legitimate Roadkeep invocations and safe
-Git staging/history operations. For ambiguous commands, choose and document a deliberate
-supported refusal policy; do not emulate an approval by returning allow or relying on
-PermissionRequest to run when no approval is needed. Keep host-independent ownership
-checks shared.
-
-Acceptance: executable payload tests demonstrate no unsupported ask output, rejection of
-prohibited redirection/script writes, and successful approved Roadkeep mutations and Git
-add/commit workflows. Cover quoting, spaces, Windows shells, newline-separated commands
-and command operators. Verify SessionStart context and Stop lint results use supported
-Codex outputs, including recursion protection and timeouts.
-
-Limits: do not introduce a general shell interpreter or promise complete prevention of
-computed-path writes. Keep the existing attestation, lint and CI backstops, and preserve
-Claude ask semantics in its own adapter.
-
-Official references to recheck when implementing: https://learn.chatgpt.com/docs/hooks
-
 ### §RK1732 Codex workspace binding for the existing MCP server
 
 Evidence: the existing Python MCP server passed initialize and tools/list with 67 tools

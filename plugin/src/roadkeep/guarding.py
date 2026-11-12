@@ -140,6 +140,17 @@ GUARDED_TOOLS = (*WRITE_TOOLS, *ASK_TOOLS)
 #: write tool does, so it is denied and never asked about.
 PATCH_TOOLS = ("apply_patch",)
 
+#: The harnesses whose hook protocol this answers (RK1731). They share the payload shape and
+#: differ in one decision: Codex supports only `deny` and `allow` in `PreToolUse`, and treats
+#: `ask` as a failed hook and **runs the call** — so a shell mention is denied there.
+HOSTS = ("claude", "codex")
+
+#: The payload field that names the Codex host where no `--host` was passed: a turn id is one
+#: of the extensions its hook documentation lists, and Claude Code sends none. Detecting it
+#: wrongly costs a denial where an ask was due, which is the direction that cannot let a write
+#: through.
+_CODEX_MARK = "turn_id"
+
 #: The headers of the patch grammar that name a file, each a write: an add creates it, an
 #: update or a delete changes it, and a move writes its destination as well as its source.
 #: Body lines are prefixed `+`, `-`, ` ` or `@@`, so a line opening `*** ` is never content.
@@ -329,6 +340,9 @@ class Refusal:
     #: answers for the project it was started in, so following a tool door here would write
     #: the *other* backlog — and `path` alone, spelled from its own project, reads as that one.
     elsewhere: str = ""
+    #: The harness this answer goes to (RK1731), one of :data:`HOSTS`. Only the decision for a
+    #: shell mention depends on it, because only that one is `ask` anywhere.
+    host: str = "claude"
 
     @property
     def reachable(self) -> str:
@@ -345,8 +359,20 @@ class Refusal:
         path forward. A shell command only mentions the path — `sed -i` and `cat` are one
         payload shape — so the answer belongs to whoever owns the repository, which is the
         one response that is neither a lie about the boundary nor a hole in it.
+
+        **Except under Codex** (RK1731), whose `PreToolUse` has no `ask`: it marks that output
+        a failed hook and runs the command. `allow` would grant it and approve nothing a
+        person saw, so the supported answer left is `deny`, with the read verbs named — the
+        exemptions for staging, history and roadkeep's own commands decide before this does.
         """
-        return "ask" if self.tool in ASK_TOOLS else "deny"
+        if self.tool in ASK_TOOLS and self.host != "codex":
+            return "ask"
+        return "deny"
+
+    @property
+    def mentioned(self) -> bool:
+        """Whether this answers a command that only *mentions* the file, whatever was decided."""
+        return self.tool in ASK_TOOLS
 
     @property
     def commands(self) -> tuple[Door, ...]:
@@ -395,6 +421,14 @@ class Refusal:
                 f"{self.tool} names {self.path}, {whose}, and roadkeep "
                 f"owns its writes. A shell command is not read to see which it does, so the "
                 f"decision is yours: reading it is fine, and writing it wants a verb below."
+            )
+        if self.mentioned:
+            # RK1731: the same uncertainty, and a host that cannot hand it to a person.
+            return (
+                f"{self.tool} refused: it names {self.path}, {whose}, and roadkeep owns its "
+                f"writes. A shell command is not read to see which it does and this host "
+                f"cannot ask, so a read goes through the verbs at the end and a write "
+                f"through one below; `git add`, `git diff` and `git log` stay allowed."
             )
         return f"{self.tool} refused: {self.path} is {whose}, and roadkeep owns its writes."
 
@@ -856,13 +890,30 @@ class Barrier:
     advice: Advice | None = None
 
 
-def decide(payload: Mapping[str, object], root: str | Path = ".") -> Barrier:
+def host_of(payload: Mapping[str, object], declared: str | None = None) -> str:
+    """Which harness a payload came from (RK1731): ``declared`` where the wiring said so,
+    else Codex where its turn id is present, else Claude Code."""
+    if declared in HOSTS:
+        return declared
+    return "codex" if _CODEX_MARK in payload else "claude"
+
+
+def decide(
+    payload: Mapping[str, object], root: str | Path = ".", host: str | None = None
+) -> Barrier:
     """Both answers, from one reading of the project (RK22, RK1280, RK1283).
 
     ``root`` is only the fallback for a payload with no ``cwd`` — the paths in the tool input
     decide which project's configuration applies, because one hook process serves every
-    repository the session touches.
+    repository the session touches. ``host`` is :func:`host_of`'s ``declared``.
     """
+    barrier = _decide(payload, root)
+    if barrier.refusal is None:
+        return barrier
+    return replace(barrier, refusal=replace(barrier.refusal, host=host_of(payload, host)))
+
+
+def _decide(payload: Mapping[str, object], root: str | Path) -> Barrier:
     tool = payload.get("tool_name")
     if not isinstance(tool, str) or tool not in (*GUARDED_TOOLS, *PATCH_TOOLS):
         return Barrier()
@@ -921,13 +972,15 @@ def advise(payload: Mapping[str, object], root: str | Path = ".") -> Advice | No
     return decide(payload, root).advice
 
 
-def guard(payload: Mapping[str, object], root: str | Path = ".") -> Refusal | None:
+def guard(
+    payload: Mapping[str, object], root: str | Path = ".", host: str | None = None
+) -> Refusal | None:
     """Decide one `PreToolUse` call: ``None`` allows, a :class:`Refusal` denies.
 
     :func:`decide`'s refusal half, kept as its own name because that is the question every
     caller outside this module asks and the one the tests are written against.
     """
-    return decide(payload, root).refusal
+    return decide(payload, root, host).refusal
 
 
 def _mentioned(raw: object, base: Path, tool: str) -> Refusal | None:

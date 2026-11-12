@@ -1280,3 +1280,7 @@
 - ✅ **RK1730** **The guard ignores Codex apply_patch calls that edit governed files** — The guard decodes every apply_patch target, both ends of a move included, and denies a governed one; undecodable input gets the mention test (design recorded in `plugin/src/roadkeep/guarding.py`).
   checked **All patch destinations are checked** Fixtures cover add, update, delete, move and multi-file patches against governed files, including Windows and cross-repository paths.
   checked **Ordinary edits remain usable** Source-file edits and unconfigured projects pass, while existing Claude Edit, Write and MultiEdit cases retain their behavior.
+- ✅ **RK1731** **Shell refusals return a decision that Codex does not support** — Under Codex (turn_id or guard --host codex) a governed shell mention is denied, not asked; staging, history and roadkeep stay allowed (design recorded in `plugin/src/roadkeep/guarding.py`).
+  checked **Codex receives supported decisions** PreToolUse output never uses ask; executable fixtures verify the supported deny shape and actionable refusal text.
+  checked **Legitimate commands are preserved** Roadkeep commands and permitted Git operations pass; prohibited shell writes and ambiguous cases follow the documented host policy.
+  checked **Lifecycle hooks retain their meaning** SessionStart guidance and Stop lint results use accepted outputs and honor recursion protection and configured timeouts.
