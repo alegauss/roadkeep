@@ -187,55 +187,29 @@ both sites' tests pass on the built output, and both registries name both sites.
 
 ## Block M — Codex integration (one engine, host-specific adapters)
 
-### §RK1736 Portable Codex package and local marketplace
-
-Evidence: plugin/.claude-plugin/plugin.json declares the package, whose MCP config uses
-CLAUDE_PLUGIN_ROOT. Codex packaging supports a portable root plugin.json and mcp.json, a
-legacy .codex-plugin/plugin.json, and hooks/hooks.json by default; codex_skills (RK1734)
-renders the four commands. Native Codex loading is untested for Roadkeep.
-
-Scope: add the portable manifest and mcp.json, using PLUGIN_ROOT where required, and
-keep the Claude manifest. Bundle the engine, skills and host hook declarations. Add a
-local marketplace entry for development installs. Version-stamping derives every
-manifest from the single version authority.
-
-Acceptance: validate schemas, package contents, executable paths and root-relative
-references. Install from a clean local package outside the checkout and verify the bound
-workspace and hook trust flow. Test upgrade, disable and removal; keep Claude discovery
-and never load one hook definition twice. State Python >=3.11 as the runtime.
-
-Limits: no API key, hosted endpoint, remote publication or duplicate engine. Public
-directory eligibility is a documented constraint, not inferred from a local install.
-
-Reference: https://developers.openai.com/plugins/build/plugins
-
 ### §RK1737 Native Codex enforcement and compatibility evidence
 
-Scope: add a repeatable integration harness over disposable repositories and the
-packaged plugin. Test the actual Codex runtime in addition to unit payload fixtures;
-record client versions, operating system, configuration and hook trust state. Begin with
-local Codex desktop/CLI surfaces that can be exercised. Test the IDE and remote surfaces
-separately before claiming parity.
+Scope: a repeatable integration harness over disposable repositories and the packaged
+plugin, run in the actual Codex runtime beside the unit payload fixtures; record client
+versions, operating system, configuration and hook trust state. Start with local Codex
+desktop/CLI; test IDE and remote surfaces separately before claiming parity.
 
-Acceptance: in a fresh trusted session, SessionStart identifies the selected engine;
-apply_patch attempts on each governed role are denied; the equivalent Roadkeep
-transaction succeeds; normal source edits and permitted Git operations work; Stop
-reports actionable lint findings without a loop. Verify unsupported hook outputs cannot
-silently authorize a write. Exercise multiple files, nested repositories, two worktrees,
-blocked startup, missing Python, disabled/untrusted hooks, update and uninstall. Confirm
-MCP initialization, schema refresh and representative read/write tools.
+Acceptance: in a fresh trusted session, SessionStart identifies the engine; apply_patch
+on each governed role is denied; the roadkeep transaction succeeds; source edits and
+permitted Git operations work; Stop reports actionable lint findings without a loop.
+Unsupported hook outputs never authorize a write. Exercise multiple files, nested
+repositories, two worktrees, blocked startup, missing Python, disabled or untrusted
+hooks, update and uninstall, and confirm the plugin server's workspace (RK1732 refuses a
+start inside its own install) and representative tools.
 
-Run the Python suite and existing plugin/launcher tests to protect Claude behavior;
-inspect CI corpus skips rather than treating skipped real-file coverage as proof. Keep
-generated runs and credentials out of the repository, retaining only reproducible
-fixtures and a concise compatibility report.
+Keep generated runs and credentials out of the repository: only reproducible fixtures
+and a concise compatibility report.
 
 Limits: acceptance is observed behavior for named versions and surfaces. Hooks are a
-workflow guardrail with known coverage limits; the tests must not claim an
-operating-system security boundary or install plugins in the user's personal environment
-without an explicit test choice.
+workflow guardrail, not an operating-system boundary, and no plugin is installed in the
+user's personal environment without an explicit test choice.
 
-Official references to recheck when implementing: https://learn.chatgpt.com/docs/hooks
+Reference: https://learn.chatgpt.com/docs/hooks
 
 ### §RK1738 Codex adoption and distribution documentation
 

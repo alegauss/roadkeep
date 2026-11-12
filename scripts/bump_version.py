@@ -55,6 +55,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MODULE = ROOT / "plugin" / "src" / "roadkeep" / "__init__.py"
 MANIFEST = ROOT / "plugin" / ".claude-plugin" / "plugin.json"
+#: The portable manifest Codex reads first (RK1736), at the plugin root: the same number, for
+#: the reason the Claude one carries it.
+PORTABLE = ROOT / "plugin" / "plugin.json"
 #: The editor host's manifest (RK1011), which carries the number for `plugin.json`'s reason:
 #: a reader reporting a version this package never released is one nobody can diagnose.
 EDITOR = ROOT / "editor" / "package.json"
@@ -62,9 +65,9 @@ EDITOR = ROOT / "editor" / "package.json"
 #: names the CLI and the installers built beside it, so the installer's own number is this one.
 GUI = ROOT / "gui" / "package.json"
 #: Every JSON manifest stating the number, each rewritten by the one `"version"` substitution.
-JSONS = (MANIFEST, EDITOR, GUI)
+JSONS = (MANIFEST, PORTABLE, EDITOR, GUI)
 
-#: What the four files are called from the repository root, for `git show :<path>`.
+#: What the five files are called from the repository root, for `git show :<path>`.
 #:
 #: **And what two callers stage** (RK1427). This script writes them; `.githooks/pre-commit`
 #: and `.github/workflows/publish.yml` each name them again in a `git add`, because a shell
@@ -74,6 +77,7 @@ JSONS = (MANIFEST, EDITOR, GUI)
 TRACKED = (
     "plugin/src/roadkeep/__init__.py",
     "plugin/.claude-plugin/plugin.json",
+    "plugin/plugin.json",
     "editor/package.json",
     "gui/package.json",
 )

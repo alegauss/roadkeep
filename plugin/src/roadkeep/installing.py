@@ -3773,13 +3773,27 @@ def _codex_surfaces(
 ) -> tuple[list[Surface], list[tuple[str, str]]]:
     """What `install --host codex` writes, and what it says it did not (RK1735)."""
     absolute = _absolute(base, launcher)
-    surfaces = [
-        _declaration(
-            base / CODEX_HOOKS,
-            lambda current: _merged_codex_hooks(current, _codex_hooks(origin, absolute)),
+    surfaces: list[Surface] = []
+    skipped: list[tuple[str, str]] = []
+    enabled = codex_installed(base)
+    if enabled is not None:
+        # RK1736: the plugin's own `hooks/hooks.json` already runs the guard in this project,
+        # and a second declaration would run every hook twice — `_provides_plugin`'s reason.
+        skipped.append(
+            (
+                CODEX_HOOKS,
+                f"{CODEX_HOOKS}: Codex enables the roadkeep plugin {enabled.version} for this "
+                f"project, whose hooks already run the guard — a second declaration runs it twice",
+            )
         )
-    ]
-    skipped: list[tuple[str, str]] = [(CODEX_HOOKS, CODEX_TRUST)]
+    else:
+        surfaces.append(
+            _declaration(
+                base / CODEX_HOOKS,
+                lambda current: _merged_codex_hooks(current, _codex_hooks(origin, absolute)),
+            )
+        )
+        skipped.append((CODEX_HOOKS, CODEX_TRUST))
     config = _codex_config(base / CODEX_CONFIG, _codex_block(base, absolute), replacing)
     if isinstance(config, str):
         skipped.insert(0, (CODEX_CONFIG, config))

@@ -1293,3 +1293,6 @@
   checked **Every instruction has a reachable target** Package checks resolve references and CLI fallbacks; connected-tool instructions use the actual Codex session names and share the authoritative skill text.
 - ✅ **RK1735** **Install, check and uninstall cannot manage Codex project wiring** — install --host codex wires .codex/hooks.json, the config.toml server and .agents/skills, names the /hooks review; check and uninstall follow (design recorded in `plugin/src/roadkeep/installing.py`).
   checked **Installation is repeatable and reversible** First install, repeat, refresh, check and uninstall pass fixture tests while preserving unrelated settings and existing Claude wiring.
+- ✅ **RK1736** **The distributed plugin only declares a Claude installation** — The plugin ships a portable plugin.json and stdio mcp.json for Codex, stamped with one version; Codex reuses its hooks and marketplace, never twice (design recorded in `tests/test_plugin.py`).
+  checked **Both packages resolve one implementation** Codex and Claude manifests reference shipped files and the same engine; schema, version-stamping and package-content checks pass.
+  checked **A clean local install loads correctly** The packaged marketplace install works outside the checkout, uses the target workspace and preserves explicit hook trust, upgrade, disable and removal behavior.

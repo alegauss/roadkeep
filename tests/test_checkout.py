@@ -29,6 +29,8 @@ from conftest import GOVERNED, HERE, RECORDED, WATCHED, Checkout, _stamp, since_
 
 MODULE = "plugin/src/roadkeep/__init__.py"
 MANIFEST = "plugin/.claude-plugin/plugin.json"
+#: The portable manifest Codex reads (RK1736), the third file stating the number.
+PORTABLE = "plugin/plugin.json"
 
 
 def half_stale() -> Checkout:
@@ -72,12 +74,12 @@ def test_a_fact_nobody_recorded_is_an_error_and_not_a_pass():
 
 
 def test_the_watched_set_is_what_states_a_version_twice():
-    # RK19's rule read from the other end: these two are the only files that write the number,
+    # RK19's rule read from the other end: these three are the only files that write the number,
     # so they are the only ones a mid-run bump can make a test disagree about. The governed
     # files are stamped beside them and kept a separate name (RK315): what they defend is not
     # an import, so folding the two into one set would put one reason on two facts.
-    assert set(WATCHED) == {MODULE, MANIFEST}
-    assert set(RECORDED) == {MODULE, MANIFEST, *GOVERNED}
+    assert set(WATCHED) == {MODULE, MANIFEST, PORTABLE}
+    assert set(RECORDED) == {MODULE, MANIFEST, PORTABLE, *GOVERNED}
 
 
 # -- the copy taken at collection (RK315) -------------------------------------

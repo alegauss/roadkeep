@@ -34,6 +34,7 @@ upstream = "alegauss/roadkeep"
 incidental = [
   "plugin/src/roadkeep/__init__.py",
   "plugin/.claude-plugin/plugin.json",
+  "plugin/plugin.json",
   "editor/package.json",
   "gui/package.json",
 ]

@@ -188,6 +188,8 @@ HERE = Path(__file__).resolve().parents[1]
 WATCHED = (
     "plugin/src/roadkeep/__init__.py",
     "plugin/.claude-plugin/plugin.json",
+    # The portable manifest Codex reads (RK1736), stamped beside the Claude one.
+    "plugin/plugin.json",
 )
 
 #: This repository's own governed files, which are the format's conformance fixture — the set

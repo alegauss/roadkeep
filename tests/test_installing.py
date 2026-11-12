@@ -3765,3 +3765,25 @@ def test_the_host_flag_reaches_install_check_and_uninstall(project, codex_source
     assert (project / ".codex" / "hooks.json").is_file()
     assert main(["-C", str(project), "uninstall", "--host", "codex"]) == EXIT_OK
     assert not (project / ".codex").exists()
+
+
+def test_codex_install_declares_no_second_hook_where_the_plugin_already_runs_it(
+    project, codex_source, tmp_path, monkeypatch
+):
+    """RK1736: the enabled plugin's own `hooks/hooks.json` runs the guard in this project, so a
+    project declaration would run every hook twice — the server and the skills still land."""
+    import sys
+
+    from roadkeep.installing import CODEX_CONFIG, CODEX_HOOKS
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from test_provenance import ON, codexed
+
+    project.mkdir(parents=True, exist_ok=True)
+    codexed(tmp_path / "codex", project, user=ON)
+    monkeypatch.setenv("CODEX_HOME", str(tmp_path / "codex"))
+    wired = install(project, source=codex_source, host="codex")
+    assert not (project / CODEX_HOOKS).exists()
+    assert (project / CODEX_CONFIG).is_file()
+    said = dict(wired.skipped)[CODEX_HOOKS]
+    assert "runs it twice" in said and "0.2.500" in said

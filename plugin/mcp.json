@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "roadkeep": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["${PLUGIN_ROOT}/scripts/roadkeep.py", "mcp"]
+    }
+  }
+}

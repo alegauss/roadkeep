@@ -37,6 +37,7 @@ on:
         # matched, they would make this filter match every commit.
         '!plugin/src/roadkeep/__init__.py',
         '!plugin/.claude-plugin/plugin.json',
+        '!plugin/plugin.json',
         '!gui/package.json',
         'pyproject.toml',
         'action.yml',
@@ -51,6 +52,7 @@ on:
         # matched, they would make this filter match every commit.
         '!plugin/src/roadkeep/__init__.py',
         '!plugin/.claude-plugin/plugin.json',
+        '!plugin/plugin.json',
         '!gui/package.json',
         'pyproject.toml',
         'action.yml',

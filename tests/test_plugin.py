@@ -575,3 +575,100 @@ def test_the_payload_passes_the_loaders_own_validator(tmp_path):
     code, reported = validate(payload)
     assert code != 0, reported
     assert "frontmatter" in reported.lower(), reported
+
+
+# -- the Codex package (RK1736) ----------------------------------------------
+
+PORTABLE = PLUGIN / "plugin.json"
+CODEX_MCP = PLUGIN / "mcp.json"
+
+
+def test_the_portable_manifest_states_what_the_claude_one_states(checkout):
+    """Codex reads the root `plugin.json` first; Claude reads `.claude-plugin/plugin.json`. One
+    package, so the identity is one fact written twice and held here, the version included."""
+    checkout.steady("plugin/plugin.json", "plugin/src/roadkeep/__init__.py")
+    portable, claude = read(PORTABLE), read(MANIFEST)
+    for key in ("name", "version", "license", "repository", "homepage", "author", "keywords"):
+        assert portable[key] == claude[key], key
+    assert portable["version"] == roadkeep.__version__
+    # No Claude-only field: slash commands and a Claude-rooted server are not this host's.
+    assert "mcpServers" not in portable and "commands" not in portable
+
+
+def test_the_codex_server_declaration_runs_the_launcher_this_package_ships():
+    servers = read(CODEX_MCP)["mcpServers"]
+    assert list(servers) == ["roadkeep"]
+    server = servers["roadkeep"]
+    assert server["type"] == "stdio" and server["command"] == "python"
+    launcher, *rest = server["args"]
+    assert launcher == "${PLUGIN_ROOT}/scripts/roadkeep.py"
+    assert (PLUGIN / "scripts" / "roadkeep.py").is_file()
+    assert build_parser().parse_args(rest).command == "mcp"
+    # Claude never reads it: its convention is the dotted `.mcp.json`, which stays absent here.
+    assert not (PLUGIN / ".mcp.json").exists()
+
+
+def _cached(tmp_path: Path) -> Path:
+    """The package as Codex unpacks it: a copy, outside this checkout (RK1736)."""
+    copy = tmp_path / "cache" / "alegauss" / "roadkeep" / roadkeep.__version__
+    shutil.copytree(PLUGIN, copy, ignore=shutil.ignore_patterns("__pycache__"))
+    return copy
+
+
+def _adopter(tmp_path: Path) -> Path:
+    project = tmp_path / "adopter project"
+    (project / "docs").mkdir(parents=True)
+    (project / "roadkeep.toml").write_text(
+        'prefix = "AD"\n[files]\nroadmap = "docs/ROADMAP.md"\n', encoding="utf-8"
+    )
+    (project / "docs" / "ROADMAP.md").write_text("# Roadmap\n", encoding="utf-8")
+    return project
+
+
+def test_a_clean_copy_of_the_package_guards_a_codex_patch(tmp_path):
+    """The hook Codex discovers is the plugin's `hooks/hooks.json`; it sets `CLAUDE_PLUGIN_ROOT`
+    for compatibility, and the guard tells the host by its turn id (RK1731)."""
+    import os
+
+    copy, project = _cached(tmp_path), _adopter(tmp_path)
+    group = read(copy / "hooks" / "hooks.json")["hooks"]["PreToolUse"][0]
+    command = group["hooks"][0]["command"].replace("${CLAUDE_PLUGIN_ROOT}", copy.as_posix())
+    payload = {
+        "hook_event_name": "PreToolUse",
+        "tool_name": "apply_patch",
+        "tool_input": {"command": "*** Begin Patch\n*** Delete File: docs/ROADMAP.md\n*** End Patch\n"},
+        "cwd": str(project),
+        "turn_id": "t",
+    }
+    done = subprocess.run(
+        shlex.split(command),
+        input=json.dumps(payload),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        cwd=project,
+        env={**os.environ, "CLAUDE_PLUGIN_ROOT": str(copy), "PLUGIN_ROOT": str(copy)},
+        check=True,
+    )
+    assert json.loads(done.stdout)["hookSpecificOutput"]["permissionDecision"] == "deny"
+
+
+def test_a_clean_copy_of_the_package_serves_the_project_it_starts_in(tmp_path):
+    copy, project = _cached(tmp_path), _adopter(tmp_path)
+    server = read(copy / "mcp.json")["mcpServers"]["roadkeep"]
+    argv = [a.replace("${PLUGIN_ROOT}", copy.as_posix()) for a in server["args"]]
+    talk = "".join(
+        json.dumps({"jsonrpc": "2.0", **m}) + "\n"
+        for m in (
+            {"id": 1, "method": "initialize", "params": {}},
+            {"id": 2, "method": "tools/call", "params": {"name": "list", "arguments": {}}},
+        )
+    )
+    done = subprocess.run(
+        [sys.executable, *argv], input=talk, capture_output=True, text=True,
+        encoding="utf-8", cwd=project, check=True,
+    )
+    answers = [json.loads(line) for line in done.stdout.splitlines()]
+    assert answers[0]["result"]["serverInfo"]["version"] == roadkeep.__version__
+    assert not answers[1]["result"].get("isError"), answers[1]
+    assert str(project.resolve()) in done.stderr

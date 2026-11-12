@@ -232,12 +232,12 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 1 | 2 | 0 |
-| M — Codex integration (one engine, host-specific adapters) | 3 | 6 | 0 |
-| **Total** | 7 | 1209 | 24 |
+| M — Codex integration (one engine, host-specific adapters) | 2 | 7 | 0 |
+| **Total** | 6 | 1210 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1736** (deps: RK1730 ✅, RK1731 ✅, RK1733 ✅, RK1734 ✅, RK1735 ✅) **The distributed plugin only declares a Claude installation** — Package the shared engine, MCP server and skills for Codex while retaining the existing Claude distribution. → §RK1736
+- 📋 **RK1737** (deps: RK1735 ✅, RK1736 ✅) **No end-to-end evidence shows Roadkeep enforcement inside Codex** — Verify native plugin behavior and host regressions before claiming the Codex integration is supported. → §RK1737
 <!-- roadkeep:end -->
 
 Open work is in

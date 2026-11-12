@@ -55,8 +55,7 @@
 
 ## Block M — Codex integration (one engine, host-specific adapters)
 
-- 📋 **RK1736** (deps: RK1730 ✅, RK1731 ✅, RK1733 ✅, RK1734 ✅, RK1735 ✅) **The distributed plugin only declares a Claude installation** — Package the shared engine, MCP server and skills for Codex while retaining the existing Claude distribution. → §RK1736
-- 📋 **RK1737** (deps: RK1735 ✅, RK1736) **No end-to-end evidence shows Roadkeep enforcement inside Codex** — Verify native plugin behavior and host regressions before claiming the Codex integration is supported. → §RK1737
+- 📋 **RK1737** (deps: RK1735 ✅, RK1736 ✅) **No end-to-end evidence shows Roadkeep enforcement inside Codex** — Verify native plugin behavior and host regressions before claiming the Codex integration is supported. → §RK1737
 - 📋 **RK1738** (deps: RK1737) **Users have no verified Codex adoption or distribution guide** — Document supported installation, trust and recovery paths using the integration evidence and current distribution rules. → §RK1738
 
 ## Done when — Block D
@@ -147,15 +146,6 @@
 
 - **Both sites registered with the design system** consumers.json lists the pitch and
   the gui landing, and the hub's projects.json gives roadkeep the amber the pitch uses.
-
-## Done when — RK1736
-
-- **Both packages resolve one implementation** Codex and Claude manifests reference
-  shipped files and the same engine; schema, version-stamping and package-content checks
-  pass.
-- **A clean local install loads correctly** The packaged marketplace install works
-  outside the checkout, uses the target workspace and preserves explicit hook trust,
-  upgrade, disable and removal behavior.
 
 ## Done when — RK1737
 
