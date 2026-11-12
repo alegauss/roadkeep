@@ -441,7 +441,7 @@ def test_what_an_install_copies_is_the_payload_and_nothing_else():
     tops = {Path(one).parts[0] for one in tracked if one}
     # And the two files Codex reads at the plugin root (RK1736): its portable manifest and server.
     allowed = {".claude-plugin", "commands", "hooks", "scripts", "skills", "src"}
-    assert tops <= allowed | {"plugin.json", "mcp.json"}, tops
+    assert tops <= allowed | {".codex-plugin", "mcp.json"}, tops
     written = sum(one.stat().st_size for one in files)
     assert written < 6 * 1024 * 1024, f"{written / 1048576:.2f} MiB"
 
@@ -579,40 +579,44 @@ def test_the_payload_passes_the_loaders_own_validator(tmp_path):
     assert "frontmatter" in reported.lower(), reported
 
 
-# -- the Codex package (RK1736) ----------------------------------------------
+# -- the Codex package (RK1736, measured under RK1737) ----------------------------
 
-PORTABLE = PLUGIN / "plugin.json"
+PORTABLE = PLUGIN / ".codex-plugin" / "plugin.json"
 CODEX_MCP = PLUGIN / "mcp.json"
 
 
-def test_the_portable_manifest_states_what_the_claude_one_states(checkout):
-    """Codex reads the root `plugin.json` first; Claude reads `.claude-plugin/plugin.json`. One
-    package, so the identity is one fact written twice and held here, the version included."""
-    checkout.steady("plugin/plugin.json", "plugin/src/roadkeep/__init__.py")
+def test_the_codex_manifest_states_what_the_claude_one_states(checkout):
+    """Codex 0.167 reads `.codex-plugin/plugin.json` and, without one, falls back to the Claude
+    manifest — whose server it then fails to start. Measured: a root `plugin.json` was never
+    read. One package, so the identity is one fact written twice and held here."""
+    checkout.steady("plugin/.codex-plugin/plugin.json", "plugin/src/roadkeep/__init__.py")
     portable, claude = read(PORTABLE), read(MANIFEST)
     for key in ("name", "version", "license", "repository", "homepage", "author", "keywords"):
         assert portable[key] == claude[key], key
     assert portable["version"] == roadkeep.__version__
-    # No Claude-only field: slash commands and a Claude-rooted server are not this host's.
-    assert "mcpServers" not in portable and "commands" not in portable
+    assert portable["mcpServers"] == "./mcp.json" and portable["skills"] == "./skills/"
+    assert (PLUGIN / "skills" / "roadkeep" / "SKILL.md").is_file()
+    assert "commands" not in portable
+    assert not (PLUGIN / "plugin.json").exists(), "the root manifest Codex never read is gone"
 
 
-def test_the_codex_server_declaration_runs_the_launcher_this_package_ships():
+def test_the_codex_server_finds_its_own_copy_and_names_no_variable():
+    """Measured: Codex starts a plugin's server in the session's directory and expands neither
+    `${PLUGIN_ROOT}` nor `${CLAUDE_PLUGIN_ROOT}` in its arguments, and passes it no variable
+    naming the plugin. So the declaration locates the newest cached copy itself."""
     servers = read(CODEX_MCP)["mcpServers"]
     assert list(servers) == ["roadkeep"]
     server = servers["roadkeep"]
     assert server["type"] == "stdio" and server["command"] == "python"
-    launcher, *rest = server["args"]
-    assert launcher == "${PLUGIN_ROOT}/scripts/roadkeep.py"
-    assert (PLUGIN / "scripts" / "roadkeep.py").is_file()
-    assert build_parser().parse_args(rest).command == "mcp"
-    # Claude never reads it: its convention is the dotted `.mcp.json`, which stays absent here.
+    flag, code = server["args"]
+    assert flag == "-c" and "${" not in code and "'scripts','roadkeep.py'" in code
+    assert "cwd" not in server, "the session's directory is what binds the project (RK1732)"
     assert not (PLUGIN / ".mcp.json").exists()
 
 
-def _cached(tmp_path: Path) -> Path:
-    """The package as Codex unpacks it: a copy, outside this checkout (RK1736)."""
-    copy = tmp_path / "cache" / "alegauss" / "roadkeep" / roadkeep.__version__
+def _cached(tmp_path: Path, version: str = roadkeep.__version__) -> Path:
+    """The package as Codex unpacks it, under a Codex home of its own."""
+    copy = tmp_path / "codex" / "plugins" / "cache" / "alegauss" / "roadkeep" / version
     shutil.copytree(PLUGIN, copy, ignore=shutil.ignore_patterns("__pycache__"))
     return copy
 
@@ -656,9 +660,13 @@ def test_a_clean_copy_of_the_package_guards_a_codex_patch(tmp_path):
 
 
 def test_a_clean_copy_of_the_package_serves_the_project_it_starts_in(tmp_path):
-    copy, project = _cached(tmp_path), _adopter(tmp_path)
-    server = read(copy / "mcp.json")["mcpServers"]["roadkeep"]
-    argv = [a.replace("${PLUGIN_ROOT}", copy.as_posix()) for a in server["args"]]
+    import os
+
+    older = _cached(tmp_path, "0.0.1")
+    (older / "scripts" / "roadkeep.py").write_text("raise SystemExit('the older copy ran')\n")
+    _cached(tmp_path)
+    project = _adopter(tmp_path)
+    server = read(PLUGIN / "mcp.json")["mcpServers"]["roadkeep"]
     talk = "".join(
         json.dumps({"jsonrpc": "2.0", **m}) + "\n"
         for m in (
@@ -667,8 +675,9 @@ def test_a_clean_copy_of_the_package_serves_the_project_it_starts_in(tmp_path):
         )
     )
     done = subprocess.run(
-        [sys.executable, *argv], input=talk, capture_output=True, text=True,
+        [sys.executable, *server["args"]], input=talk, capture_output=True, text=True,
         encoding="utf-8", cwd=project, check=True,
+        env={**os.environ, "CODEX_HOME": str(tmp_path / "codex")},
     )
     answers = [json.loads(line) for line in done.stdout.splitlines()]
     assert answers[0]["result"]["serverInfo"]["version"] == roadkeep.__version__

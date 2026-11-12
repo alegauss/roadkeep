@@ -30,7 +30,7 @@ from conftest import GOVERNED, HERE, RECORDED, WATCHED, Checkout, _stamp, since_
 MODULE = "plugin/src/roadkeep/__init__.py"
 MANIFEST = "plugin/.claude-plugin/plugin.json"
 #: The portable manifest Codex reads (RK1736), the third file stating the number.
-PORTABLE = "plugin/plugin.json"
+PORTABLE = "plugin/.codex-plugin/plugin.json"
 
 
 def half_stale() -> Checkout:

@@ -189,7 +189,7 @@ WATCHED = (
     "plugin/src/roadkeep/__init__.py",
     "plugin/.claude-plugin/plugin.json",
     # The portable manifest Codex reads (RK1736), stamped beside the Claude one.
-    "plugin/plugin.json",
+    "plugin/.codex-plugin/plugin.json",
 )
 
 #: This repository's own governed files, which are the format's conformance fixture — the set
@@ -535,6 +535,28 @@ def _scaffolds_derive_rk(request):
         yield
     finally:
         adopting.derived_prefix = original
+
+
+@pytest.fixture(autouse=True)
+def _no_codex_on_this_machine(tmp_path_factory):
+    """`engines` reads Codex's own config since RK1733, so a machine with the plugin installed
+    turned nineteen assertions about *no plugin* into ones about that install (measured, RK1737).
+    Pointed at an empty home, and `PLUGIN_ROOT` cleared so a suite run from a Codex hook is not
+    read as one. By hand, for the reason `_scaffolds_derive_rk` gives; a test that sets either
+    through `monkeypatch` still wins, being applied after this."""
+    import os
+
+    saved = {key: os.environ.get(key) for key in ("CODEX_HOME", "PLUGIN_ROOT")}
+    os.environ["CODEX_HOME"] = str(tmp_path_factory.getbasetemp() / "no-codex-home")
+    os.environ.pop("PLUGIN_ROOT", None)
+    try:
+        yield
+    finally:
+        for key, value in saved.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
 
 
 @pytest.fixture(autouse=True)

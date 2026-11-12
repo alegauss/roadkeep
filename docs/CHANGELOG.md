@@ -1299,3 +1299,4 @@
 - ✅ **RK1736** **The distributed plugin only declares a Claude installation** — The plugin ships a portable plugin.json and stdio mcp.json for Codex, stamped with one version; Codex reuses its hooks and marketplace, never twice (design recorded in `tests/test_plugin.py`).
   checked **Both packages resolve one implementation** Codex and Claude manifests reference shipped files and the same engine; schema, version-stamping and package-content checks pass.
   checked **A clean local install loads correctly** The packaged marketplace install works outside the checkout, uses the target workspace and preserves explicit hook trust, upgrade, disable and removal behavior.
+- ✅ **RK1737 (Codex CLI 0.167 evidence)** **No end-to-end evidence shows Roadkeep enforcement inside Codex** — Live Codex denies apply_patch and shell writes; its server now runs via .codex-plugin and a self-locating launcher, and names mcp__roadkeep__ tools.

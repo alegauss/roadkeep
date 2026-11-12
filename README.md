@@ -232,8 +232,12 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 1 | 2 | 0 |
-| M — Codex integration (one engine, host-specific adapters) | 2 | 7 | 0 |
-| **Total** | 3 | 1213 | 24 |
+| M — Codex integration (one engine, host-specific adapters) | 2 | 8 | 0 |
+| **Total** | 3 | 1214 | 24 |
+
+**Next ready:**
+
+- ⏳ **RK1737** (deps: RK1735 ✅, RK1736 ✅) **No end-to-end evidence shows Roadkeep enforcement inside Codex** — Desktop and IDE parity, two worktrees, missing Python, disabled hooks, plugin update and uninstall are not yet observed in a live Codex session. → §RK1737
 <!-- roadkeep:end -->
 
 Open work is in

@@ -3,7 +3,10 @@
     "roadkeep": {
       "type": "stdio",
       "command": "python",
-      "args": ["${PLUGIN_ROOT}/scripts/roadkeep.py", "mcp"]
+      "args": [
+        "-c",
+        "import glob,os,runpy,sys;h=os.environ.get('CODEX_HOME') or os.path.join(os.path.expanduser('~'),'.codex');f=glob.glob(os.path.join(h,'plugins','cache','*','roadkeep','*','scripts','roadkeep.py'));v=lambda p:[int(x) if x.isdigit() else -1 for x in os.path.basename(os.path.dirname(os.path.dirname(p))).split('.')];f or sys.exit('roadkeep: no Codex plugin copy under '+h);s=max(f,key=v);sys.argv=[s,'mcp'];runpy.run_path(s,run_name='__main__')"
+      ]
     }
   }
 }

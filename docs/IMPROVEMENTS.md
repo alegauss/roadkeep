@@ -123,25 +123,18 @@ both sites' tests pass on the built output, and both registries name both sites.
 
 ### §RK1737 Native Codex enforcement and compatibility evidence
 
-Scope: a repeatable integration harness over disposable repositories and the packaged
-plugin, run in the actual Codex runtime beside the unit payload fixtures; record client
-versions, operating system, configuration and hook trust state. Start with local Codex
-desktop/CLI; test IDE and remote surfaces separately before claiming parity.
+Observed on Codex CLI 0.167.0-alpha.4.1 (desktop 26.1106), Windows 11, gpt-6.1-sol, via
+`codex exec` in a disposable repository: SessionStart runs; apply_patch and a shell
+write on the roadmap are denied; the server binds the session's directory. Codex reads
+only `.codex-plugin/plugin.json`, expands no variable in server args, passes no plugin
+variable to the server, names tools `mcp__roadkeep__*`, and gives hooks `PLUGIN_ROOT`.
 
-Acceptance: in a fresh trusted session, SessionStart identifies the engine; apply_patch
-on each governed role is denied; the roadkeep transaction succeeds; source edits and
-permitted Git operations work; Stop reports actionable lint findings without a loop.
-Unsupported hook outputs never authorize a write. Exercise multiple files, nested
-repositories, two worktrees, blocked startup, missing Python, disabled or untrusted
-hooks, update and uninstall, and confirm the plugin server's workspace (RK1732 refuses a
-start inside its own install) and representative tools.
+Left: the same in the desktop app and an IDE; Stop reporting lint without a loop; two
+worktrees, nested repositories, missing Python, disabled or untrusted hooks, a plugin
+update (which re-asks for trust) and uninstall. Record each with its version, and keep
+runs and credentials out of the repository.
 
-Keep generated runs and credentials out of the repository: only reproducible fixtures
-and a concise compatibility report.
-
-Limits: acceptance is observed behavior for named versions and surfaces. Hooks are a
-workflow guardrail, not an operating-system boundary, and no plugin is installed in the
-user's personal environment without an explicit test choice.
+Limits: hooks are a workflow guardrail, not an operating-system boundary.
 
 Reference: https://learn.chatgpt.com/docs/hooks
 

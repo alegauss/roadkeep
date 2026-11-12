@@ -57,7 +57,7 @@ MODULE = ROOT / "plugin" / "src" / "roadkeep" / "__init__.py"
 MANIFEST = ROOT / "plugin" / ".claude-plugin" / "plugin.json"
 #: The portable manifest Codex reads first (RK1736), at the plugin root: the same number, for
 #: the reason the Claude one carries it.
-PORTABLE = ROOT / "plugin" / "plugin.json"
+PORTABLE = ROOT / "plugin" / ".codex-plugin" / "plugin.json"
 #: The editor host's manifest (RK1011), which carries the number for `plugin.json`'s reason:
 #: a reader reporting a version this package never released is one nobody can diagnose.
 EDITOR = ROOT / "editor" / "package.json"
@@ -77,7 +77,7 @@ JSONS = (MANIFEST, PORTABLE, EDITOR, GUI)
 TRACKED = (
     "plugin/src/roadkeep/__init__.py",
     "plugin/.claude-plugin/plugin.json",
-    "plugin/plugin.json",
+    "plugin/.codex-plugin/plugin.json",
     "editor/package.json",
     "gui/package.json",
 )

@@ -1727,3 +1727,44 @@ def test_the_launcher_never_prints_ask_to_codex(tmp_path):
         check=True,
     )
     assert json.loads(done.stdout)["hookSpecificOutput"]["permissionDecision"] == "deny"
+
+
+# -- what Codex measured (RK1737) ---------------------------------------------
+
+
+def test_codex_is_told_by_its_plugin_variable_where_no_turn_id_comes(monkeypatch):
+    """Codex's `SessionStart` carries no turn id; its plugin hooks run with `PLUGIN_ROOT`."""
+    from roadkeep.guarding import host_of
+
+    start = {"hook_event_name": "SessionStart", "source": "startup"}
+    assert host_of(start, environ={}) == "claude"
+    assert host_of(start, environ={"CLAUDE_PLUGIN_ROOT": "x"}) == "claude"
+    assert host_of(start, environ={"PLUGIN_ROOT": "x", "CLAUDE_PLUGIN_ROOT": "x"}) == "codex"
+    assert host_of(start, "claude", environ={"PLUGIN_ROOT": "x"}) == "claude"
+
+
+def test_codex_serves_the_bare_prefix_where_it_serves_at_all(tmp_path):
+    from roadkeep.guarding import codex_served
+
+    root = project(tmp_path)
+    assert codex_served(root, environ={}) == ""
+    assert codex_served(root, environ={"PLUGIN_ROOT": "x"}) == WIRED
+    (root / ".codex").mkdir()
+    (root / ".codex" / "config.toml").write_text(
+        '[mcp_servers.roadkeep]\ncommand = "python"\n', encoding="utf-8"
+    )
+    assert codex_served(root, environ={}) == WIRED
+
+
+def test_a_codex_refusal_names_the_tools_codex_serves(tmp_path, monkeypatch):
+    """Measured in a live Codex session: the refusal named `mcp__plugin_roadkeep_roadkeep__add`,
+    a name Codex never serves; its plugin's tools are `mcp__roadkeep__*`."""
+    root = project(tmp_path)
+    monkeypatch.setenv("PLUGIN_ROOT", str(tmp_path / "plugin"))
+    reason = str(guard(write(ROADMAP, tool="apply_patch", cwd=root) | {
+        "tool_input": {"command": f"*** Begin Patch\n*** Delete File: {ROADMAP}\n*** End Patch\n"}
+    }, root))
+    assert "mcp__roadkeep__add" in reason
+    assert "mcp__plugin_" not in reason
+    said = str(announce({"hook_event_name": "SessionStart", "cwd": str(root)}, root))
+    assert "mcp__roadkeep__brief" in said and "mcp__plugin_" not in said

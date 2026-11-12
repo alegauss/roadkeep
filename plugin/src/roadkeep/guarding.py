@@ -813,13 +813,17 @@ def announce(payload: Mapping[str, object], root: str | Path = ".") -> Notice | 
     # bare prefix is the right guess wherever nothing says otherwise, but this line is read
     # by every adopting session including the ones with no tools at all, and there naming a
     # prefix nobody can call is worse than naming the shell.
-    return Notice(
+    notice = Notice(
         files=files,
         stale=stale(config.root),
         served=served_by(config.root),
         unblocked=_unblocked(config),
         refreshed=refreshed,
     )
+    if host_of(payload) == "codex":
+        # Codex names the tools its own way and reads no `.mcp.json` (RK1737).
+        notice = replace(notice, served=codex_served(config.root))
+    return notice
 
 
 def _unblocked(config: Config) -> tuple[str, ...]:
@@ -904,12 +908,39 @@ class Barrier:
     advice: Advice | None = None
 
 
-def host_of(payload: Mapping[str, object], declared: str | None = None) -> str:
-    """Which harness a payload came from (RK1731): ``declared`` where the wiring said so,
-    else Codex where its turn id is present, else Claude Code."""
+def host_of(
+    payload: Mapping[str, object],
+    declared: str | None = None,
+    environ: Mapping[str, str] | None = None,
+) -> str:
+    """Which harness a payload came from (RK1731): ``declared`` where the wiring said so, else
+    Codex where its turn id is present or the hook runs with `PLUGIN_ROOT` set, else Claude.
+
+    The variable because the turn id is not enough, measured (RK1737): Codex's `SessionStart`
+    payload carries none, and a plugin hook there gets `PLUGIN_ROOT` beside the
+    `CLAUDE_PLUGIN_ROOT` it sets for compatibility — Claude Code sets only the second.
+    """
     if declared in HOSTS:
         return declared
-    return "codex" if _CODEX_MARK in payload else "claude"
+    env = os.environ if environ is None else environ
+    return "codex" if _CODEX_MARK in payload or env.get("PLUGIN_ROOT") else "claude"
+
+
+def codex_served(root: Path, environ: Mapping[str, str] | None = None) -> str:
+    """The prefix Codex serves this project's tools under, or `""` where it serves none.
+
+    Measured (RK1737): Codex names a plugin's tools `mcp__<server>__<tool>`, which is
+    :data:`WIRED`. Served where the plugin runs this hook (`PLUGIN_ROOT`) or the project's
+    `.codex/config.toml` declares the server `install --host codex` writes (RK1735).
+    """
+    env = os.environ if environ is None else environ
+    if env.get("PLUGIN_ROOT"):
+        return WIRED
+    try:
+        declared = (root / ".codex" / "config.toml").read_text(encoding="utf-8")
+    except OSError:
+        return ""
+    return WIRED if "[mcp_servers.roadkeep]" in declared else ""
 
 
 def decide(
@@ -924,7 +955,14 @@ def decide(
     barrier = _decide(payload, root)
     if barrier.refusal is None:
         return barrier
-    return replace(barrier, refusal=replace(barrier.refusal, host=host_of(payload, host)))
+    which = host_of(payload, host)
+    refusal = replace(barrier.refusal, host=which)
+    if which == "codex":
+        # The tools this table offers are named by the host that serves them (RK1737).
+        found = find_config(_cwd(payload, root))
+        base = found.parent if found is not None else _cwd(payload, root)
+        refusal = replace(refusal, served=codex_served(base))
+    return replace(barrier, refusal=refusal)
 
 
 def _decide(payload: Mapping[str, object], root: str | Path) -> Barrier:
