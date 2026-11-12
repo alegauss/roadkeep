@@ -900,7 +900,8 @@ def _prose_frame(
         return mine, None, yours
     if here == was:
         return yours, THEIRS, mine
-    return None, None, None
+    joined = _joined(mine, yours, was, here, there)
+    return (joined, "both sides", yours) if joined is not None else (None, None, None)
 
 
 def _written(
@@ -1069,7 +1070,78 @@ def _frame(
         return mine, None
     if here == was:
         return yours, THEIRS
-    return None, None
+    joined = _joined(mine, yours, was, here, there)
+    return (joined, "both sides") if joined is not None else (None, None)
+
+
+def _joined(
+    mine: Document,
+    yours: Document,
+    was: tuple[str, ...],
+    here: tuple[str, ...],
+    there: tuple[str, ...],
+) -> Document | None:
+    """This side's frame with the block headings the other side added, or None (RK1750).
+
+    Measured by the RK1744 spike: two features each running `block add` for a block of its
+    own were refused as *both branches changed the headings*, so a block per feature worked
+    only when the blocks were created on main before branching. Two sets of headings that are
+    each the ancestor's plus whole block headings, under labels the two sides do not share,
+    is two additions and not prose both sides moved — the headings land verbatim as their
+    authors wrote them, which is not this tool composing a word (L4). Anything else inserted,
+    or one label added on both sides, is the reviewer's as before.
+    """
+    ours_added = _inserted(was, here)
+    theirs_added = _inserted(was, there)
+    if ours_added is None or theirs_added is None:
+        return None
+    ours_heads, theirs_heads = _block_lines(mine), _block_lines(yours)
+    if any(line.strip() and line not in ours_heads for line in ours_added):
+        return None
+    if any(line.strip() and line not in theirs_heads for line in theirs_added):
+        return None
+    ours_labels = {ours_heads[line] for line in ours_added if line.strip()}
+    theirs_labels = {theirs_heads[line] for line in theirs_added if line.strip()}
+    if ours_labels & theirs_labels:
+        return None
+    result = mine
+    for index, line in enumerate(there):
+        if line not in theirs_added or not line.strip() or line in here:
+            continue
+        # Before the next heading the other side kept that this side also has, so the block
+        # lands where its author put it among the blocks both sides share.
+        anchor = next((one for one in there[index + 1 :] if one in here and one.startswith("#")), None)
+        at = next(
+            (i for i, raw in enumerate(result.lines) if raw.rstrip("\r\n") == anchor), None
+        ) if anchor is not None else None
+        if at is None:
+            result = result.insert_line(len(result.lines), "")
+            result = result.insert_line(len(result.lines), line)
+        else:
+            result = result.insert_line(at, "")
+            result = result.insert_line(at, line)
+    return result
+
+
+def _inserted(was: tuple[str, ...], now: tuple[str, ...]) -> list[str] | None:
+    """The lines ``now`` adds to ``was`` when it keeps every one of them in order, else None."""
+    added: list[str] = []
+    at = 0
+    for line in now:
+        if at < len(was) and line == was[at]:
+            at += 1
+        else:
+            added.append(line)
+    return added if at == len(was) else None
+
+
+def _block_lines(document: Document) -> dict[str, str]:
+    """Each block heading as its line reads, mapped to the label it declares."""
+    return {
+        f"{'#' * heading.level} {heading.text}": heading.label
+        for heading in document.headings
+        if heading.label
+    }
 
 
 def _skeleton(document: Document) -> tuple[str, ...]:

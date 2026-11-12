@@ -316,15 +316,44 @@ def test_a_decision_both_sides_recorded_under_one_id_is_named(tmp_path):
     assert not merged.clean and merged.doubled == ("RK2",)
 
 
-def test_a_block_both_sides_added_differently_is_still_refused(tmp_path, capsys):
-    # The rule RK1743 must not loosen: two headings two people wrote is prose.
+def test_one_label_both_sides_titled_differently_is_still_refused(tmp_path, capsys):
+    # The rule RK1743 and RK1750 must not loosen: one label is one region, and two titles two
+    # people wrote for it is prose — which of them names the block is the reviewer's.
     base, ours, theirs = _scaffold_and_fork(tmp_path)
     assert main(["-C", str(ours), "block", "add", "B", "--title", "Billing"]) == EXIT_OK
-    assert main(["-C", str(theirs), "block", "add", "C", "--title", "Search"]) == EXIT_OK
+    assert main(["-C", str(theirs), "block", "add", "B", "--title", "Search"]) == EXIT_OK
     capsys.readouterr()
     texts = [(root / ROADMAP).read_text(encoding="utf-8") for root in (base, ours, theirs)]
 
     assert not merge(Config.discover(base), "roadmap", *texts).clean
+
+
+def test_a_block_each_side_added_under_its_own_label_is_two_additions(tmp_path, capsys):
+    """RK1750, measured by the RK1744 spike: two features each ran `block add` for a block of
+    its own and filed under it, and every governed file was refused as *both branches changed
+    the headings* — so a block per feature held only when main created the blocks first."""
+    base, ours, theirs = _scaffold_and_fork(tmp_path)
+    assert main(["-C", str(ours), "block", "add", "B", "--title", "Billing"]) == EXIT_OK
+    _file(ours, block="B", family="RK", count=2, ship=1, sections=True)
+    assert main(["-C", str(theirs), "block", "add", "C", "--title", "Search"]) == EXIT_OK
+    _file(theirs, block="C", family="SRCH", count=2, ship=1, sections=True)
+    capsys.readouterr()
+    config = Config.discover(base)
+
+    for role, name in (("roadmap", ROADMAP), ("changelog", CHANGELOG), ("improvements", IMPROVEMENTS)):
+        texts = [(root / name).read_text(encoding="utf-8") for root in (base, ours, theirs)]
+        for sides in (texts[1:], texts[:0:-1]):
+            merged = merge(config, role, texts[0], *sides)
+            assert merged.clean, f"{role}: {merged.reason}"
+            lines = (merged.text or "").splitlines()
+            billing, search = lines.index("## Block B — Billing"), lines.index("## Block C — Search")
+            n_ = "1" if role == "changelog" else "2"  # the shipped one, or the open one
+            mine = [n for n, l in enumerate(lines) if f"RK{n_}*" in l or f"§RK{n_} " in l]
+            yours = [n for n, l in enumerate(lines) if f"SRCH{n_}" in l]
+            assert mine and yours, (role, merged.text)
+            # Each block's lines under its own heading, whichever comes first in the file.
+            for at, head, other in ((mine, billing, search), (yours, search, billing)):
+                assert all(n > head and (n < other or other < head) for n in at), (role, lines)
 
 
 def test_a_line_both_sides_rewrote_is_kept_apart_from_a_spent_id(tmp_path):
