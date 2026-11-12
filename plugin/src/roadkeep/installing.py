@@ -99,7 +99,7 @@ from roadkeep.merging import ATTRIBUTES, Registration, register
 # never evaluated; what it cost is that the field said something false to every reader.
 from roadkeep.provenance import Engine as AnsweringEngine
 from roadkeep.provenance import Installed, codex_installed, engine, home, installed
-from roadkeep.provenance import invocation, stated_at
+from roadkeep.provenance import WIRED, invocation, stated_at
 
 #: The server's name, which is also the prefix an agent reads on every tool it offers.
 SERVER = "roadkeep"
@@ -358,6 +358,22 @@ class Unanchored(ValueError):
             f"`install` re-addresses that one sentence for a project wired to a checkout, "
             f"and a copy carrying `roadkeep` where the package is not installed names a "
             f"command that fails"
+        )
+
+
+class Untranslated(ValueError):
+    """A command file spells something only Claude Code resolves, past what RK1734 translates.
+
+    A refusal for :class:`Unanchored`'s reason: the Codex skill would name a tool, a variable or
+    an argument syntax its host never resolves. Reached only by editing a command, so it names it.
+    """
+
+    def __init__(self, path: Path, found: int) -> None:
+        self.path = path
+        self.found = found
+        super().__init__(
+            f"{path} keeps {found} Claude-only spelling(s) after translation for Codex: "
+            f"a skill carrying one names something that host never resolves"
         )
 
 
@@ -2531,6 +2547,80 @@ def _entry(launcher: str, *, committed: bool = False) -> str:
         f"`python \"{launcher}\"` is this project's entry point — `install` wired it to a "
         f"checkout, so the package is not installed here and `roadkeep` is on no PATH."
     )
+
+
+#: The slash commands the plugin ships for Claude Code (RK25), each of which Codex receives as
+#: a skill of its own (RK1734): Codex has no plugin commands, and a skill is what `$name` reaches.
+PLUGIN_COMMANDS = ("add", "lint", "pick", "ship")
+
+#: What a command file spells that only Claude Code reads (RK1734), each a refusal if it
+#: survives translation: a Codex skill carrying one names a tool, a variable or an argument
+#: syntax its host never resolves — the instruction reaches nothing.
+_MCP = WIRED.removesuffix(f"{SERVER}__")
+_CLAUDE_ONLY = ("CLAUDE_PLUGIN_ROOT", _MCP, "$ARGUMENTS", "$1", "!`")
+
+#: The sentence a command uses to name both of Claude's spellings of one tool (RK333), which a
+#: Codex skill drops: the model reads its own tool list, and naming a prefix this host never
+#: serves is the hardcoded name the task removes. Composed from the served prefix, never spelled.
+_PLUGIN_SPELLING = f"{_MCP}plugin_{SERVER}_{SERVER}__"
+_BOTH_SPELLINGS = re.compile(
+    rf" — `{re.escape(WIRED)}(\w+)` where the project declares the\s+server, "
+    rf"`{re.escape(_PLUGIN_SPELLING)}\1` where the plugin provides it —"
+)
+_ONE_SPELLING = re.compile(
+    rf"`(?:{re.escape(WIRED)}|{re.escape(_PLUGIN_SPELLING)})(\w+)`"
+)
+_EXECUTED = re.compile(r"^!`(.+)`$", re.MULTILINE)
+
+
+def codex_skills(origin: Path, launcher: str) -> dict[str, str]:
+    """The four commands as Codex skills, keyed `roadkeep-<verb>/SKILL.md` (RK1734).
+
+    **Rendered from the command files and never authored beside them**, so a fix to one is a
+    fix to both hosts: the body is the command's, with the five things only Claude Code
+    resolves translated — the launcher becomes ``launcher`` (Codex expands no variable in a
+    skill), an executed line becomes an instruction to run it, both tool spellings become the
+    session's own tool, and `$1` / `$ARGUMENTS` become the arguments named in the header.
+    `allowed-tools` and `argument-hint` are dropped: Codex documents `name` and `description`.
+
+    The main skill is not here: `skills/roadkeep/` is where Codex discovers a plugin's skills
+    too, so the two hosts already read one copy. Where this lands is packaging's (RK1735/6).
+    """
+    out: dict[str, str] = {}
+    for verb in PLUGIN_COMMANDS:
+        path = origin / "commands" / f"{verb}.md"
+        head, _, body = _read(path).removeprefix("---\n").partition("\n---\n")
+        fields = dict(
+            (key.strip(), value.strip())
+            for key, sep, value in (line.partition(":") for line in head.splitlines())
+            if sep
+        )
+        described = fields.get("description", "").strip('"')
+        hint = fields.get("argument-hint", "").strip('"')
+        name = f"roadkeep-{verb}"
+        quoted = f'python "{launcher}"'
+        body = body.replace('python "${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py"', quoted)
+        body = _EXECUTED.sub(lambda m: f"Run `{m.group(1)}` and read what it printed.", body)
+        body = _BOTH_SPELLINGS.sub("", body)
+        body = _ONE_SPELLING.sub(lambda m: f"this session's roadkeep `{m.group(1)}` tool", body)
+        argument = hint.strip("<>[] ").split(" ")[0] if hint else ""
+        body = body.replace('"$1"', f"<{argument}>").replace("$1", f"<{argument}>")
+        body = body.replace("`$ARGUMENTS`", f"the words typed after `${name}`")
+        invoked = (
+            f"Invoked as `${name} {hint}`: the words after the skill's name are its "
+            f"arguments, and none is invented where one is missing.\n\n"
+            if hint
+            else ""
+        )
+        text = (
+            f"---\nname: {name}\ndescription: {json.dumps(described, ensure_ascii=False)}\n"
+            f"---\n\n{invoked}{body.lstrip()}"
+        )
+        left = sum(text.count(token) for token in _CLAUDE_ONLY)
+        if left:
+            raise Untranslated(path, left)
+        out[f"{name}/SKILL.md"] = text
+    return out
 
 
 def _copy(path: Path, text: str) -> Surface:

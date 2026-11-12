@@ -11,10 +11,11 @@ page states what every write refuses and why.
 
 ## Writing and shipping
 
-When this session's roadkeep tools are available, **prefer them** — named
+When this session's roadkeep tools are available, **prefer them** — under Claude Code named
 `mcp__roadkeep__*` where a project's own `.mcp.json` declares the server and
-`mcp__plugin_<plugin>_roadkeep__*` where a plugin provides it, so read the prefix off the
-tool list rather than typing it: the whole write path and the reads a task needs are there
+`mcp__plugin_<plugin>_roadkeep__*` where a plugin provides it, and by another host its own
+way, so read the prefix off the tool list rather than typing it: the whole write path and the
+reads a task needs are there
 — `add`, `block_add`, `block_drop`, `block_merge`, `declare`, `claim`, `scope`, `status`, `amend`,
 `restate`, `ship`, `retire`, `supersede`, `revise`, `defer`, `resume`, `dismiss`, `reopen`,
 `record_add`, `record_amend`,

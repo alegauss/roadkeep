@@ -1288,3 +1288,6 @@
   checked **Tools act on the selected workspace** Two temporary repositories and worktrees keep distinct prefixes, reads and writes, regardless of the plugin installation directory.
   checked **Protocol and diagnostics remain valid** Initialization, schemas, read-only hints and refresh pass; stdout contains only protocol messages and missing workspace errors name a remedy.
 - ✅ **RK1733** **Engine discovery and installation diagnostics only recognize Claude wiring** — engines judges the enabled Codex copy beside the Claude plugin, names Codex's remedy and launcher, and a write pinned behind either is refused (design recorded in `plugin/src/roadkeep/installing.py`).
+- ✅ **RK1734** **Bundled workflows assume Claude command syntax and tool names** — codex_skills renders the four commands as roadkeep-<verb> Codex skills with the real launcher and no Claude-only spelling; one main skill (design recorded in `plugin/src/roadkeep/installing.py`).
+  checked **Workflows preserve their contracts** Codex add, ship, pick and lint instructions retain required fields, exact-user-word rules and existing safety constraints.
+  checked **Every instruction has a reachable target** Package checks resolve references and CLI fallbacks; connected-tool instructions use the actual Codex session names and share the authoritative skill text.

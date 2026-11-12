@@ -291,3 +291,72 @@ def test_no_command_spells_the_console_script():
         body = one.read_text(encoding="utf-8").split("---", 2)[2]
         assert "`roadkeep " not in body, f"{one.name}: the console script, not the launcher"
         assert "!`" not in body or LAUNCHER in body, one.name
+
+
+# -- the same four, as Codex skills (RK1734) --------------------------------
+
+#: The plugin's own launcher, spelled with a space the way a real install path can be.
+CODEX_LAUNCHER = (HERE / "plugin" / "scripts" / "roadkeep.py").as_posix()
+
+
+def codex() -> dict[str, str]:
+    from roadkeep.installing import codex_skills
+
+    return codex_skills(HERE / "plugin", CODEX_LAUNCHER)
+
+
+def test_every_command_is_a_codex_skill_with_only_the_documented_frontmatter():
+    rendered = codex()
+    assert set(rendered) == {f"roadkeep-{verb}/SKILL.md" for verb in EXPECTED}
+    for where, text in rendered.items():
+        head = text.split("---", 2)[1].strip().splitlines()
+        assert [line.split(":", 1)[0] for line in head] == ["name", "description"], where
+        assert head[0] == f"name: {where.split('/')[0]}"
+        source = frontmatter(COMMANDS / f"{where.split('/')[0].removeprefix('roadkeep-')}.md")
+        assert json.loads(head[1].split(":", 1)[1]) == source["description"]
+
+
+def test_no_codex_skill_names_what_only_claude_resolves():
+    for where, text in codex().items():
+        for token in ("CLAUDE_PLUGIN_ROOT", "mcp__", "$ARGUMENTS", "$1", "!`", "allowed-tools"):
+            assert token not in text, (where, token)
+
+
+def test_every_command_a_codex_skill_offers_runs_its_launcher_and_parses():
+    assert Path(CODEX_LAUNCHER).is_file()
+    spelled = re.compile(rf"`python \"{re.escape(CODEX_LAUNCHER)}\" ([^`]+)`")
+    for where, text in codex().items():
+        found = [one.strip() for one in spelled.findall(text)]
+        assert found, where
+        verb = where.split("/")[0].removeprefix("roadkeep-")
+        commands = [build_parser().parse_args(shlex.split(line)).command for line in found]
+        assert verb in commands or verb == "add", (where, commands)
+
+
+def test_the_codex_add_skill_keeps_the_rules_no_schema_can_check():
+    text = codex()["roadkeep-add/SKILL.md"]
+    assert "Pass the user's words verbatim." in text
+    assert "Do not retry with a shortened field." in text
+    assert "call this session's `add` tool with those parts" in text
+    assert "`$roadkeep-add <block> | <symptom> | <why>`" in text
+
+
+def test_a_codex_skill_is_rendered_from_its_command_and_cannot_drift(tmp_path):
+    """One source: an edit to a command is an edit to its skill, and a Claude-only spelling
+    the translation does not know is refused rather than shipped to a host that cannot read it."""
+    import shutil
+
+    from roadkeep.installing import Untranslated, codex_skills
+
+    shutil.copytree(HERE / "plugin" / "commands", tmp_path / "commands")
+    ship = tmp_path / "commands" / "ship.md"
+    ship.write_text(
+        ship.read_text(encoding="utf-8") + "\nA sentence added to the command.\n",
+        encoding="utf-8",
+    )
+    assert "A sentence added to the command." in codex_skills(tmp_path, "x")[
+        "roadkeep-ship/SKILL.md"
+    ]
+    ship.write_text(ship.read_text(encoding="utf-8") + "Call `mcp__other__x`.\n", encoding="utf-8")
+    with pytest.raises(Untranslated, match="ship.md"):
+        codex_skills(tmp_path, "x")

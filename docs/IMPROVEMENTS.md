@@ -187,61 +187,28 @@ both sites' tests pass on the built output, and both registries name both sites.
 
 ## Block M — Codex integration (one engine, host-specific adapters)
 
-### §RK1734 Shared skills and Codex workflow entry points
-
-Evidence: plugin/skills/roadkeep already uses SKILL.md, while plugin/commands/add.md and
-its siblings contain Claude-specific allowed-tools, slash-command arguments and
-CLAUDE_PLUGIN_ROOT references. The domain workflow is reusable; those invocation
-contracts are not automatically portable.
-
-Scope: keep one authoritative Roadkeep skill and shared reference pages, adapting
-host-specific launch and tool hints at packaging or installation time. Provide Codex
-equivalents for add, ship, pick and lint through supported skill invocation, preserving
-each command's behavior. Consider agents/openai.yaml only for useful UI metadata or tool
-dependencies. Handle both a connected MCP server and the documented CLI fallback.
-provenance.serving still names only Claude's tool prefixes; Codex documents none, so
-derive it from a live session. Likely seams: plugin/skills, plugin/commands and
-generated installation surfaces.
-
-Acceptance: every referenced file and command exists in a clean package; the Codex skill
-discovers session tools without hardcoded Claude names; fallback execution reaches the
-selected engine. Preserve the add command's exact-user-words rule, missing-field
-behavior, claims, non-goals and one-task-per-commit guidance where applicable. Compare
-generated instructions to their shared source so fixes cannot drift between hosts.
-
-Limits: no model-based prose generator, duplicate authored manuals or assumed parity of
-Claude frontmatter. Keep Codex workflow files discoverable without copying an every-turn
-manual into AGENTS.md.
-
-Official references to recheck when implementing:
-https://learn.chatgpt.com/docs/build-skills
-
 ### §RK1735 Codex project installation lifecycle
 
-Evidence: installing.py currently writes .claude/settings.json, .claude/skills/roadkeep
-and .claude/hooks/roadkeep-launch.py. Codex uses different configuration and skill
-discovery locations; copying those files does not activate equivalent behavior.
+Evidence: installing.py writes .claude/settings.json, .claude/skills/roadkeep and
+.claude/hooks/roadkeep-launch.py. Codex reads other locations, so copying those
+activates nothing. codex_skills (RK1734) renders the four commands as Codex skills.
 
-Scope: add an explicit host selector, such as install --host codex, after confirming the
-final CLI spelling. Support project-scoped .codex/config.toml, .agents/skills and
-supported hook declarations, plus a committed launcher where required. Reuse
-installation planning and ownership rules. Extend check, refresh and uninstall to the
-selected host. Respect trusted-project configuration and explicit hook trust; report the
-required review without enabling bypass flags or silently trusting code.
+Scope: an explicit host selector, such as install --host codex. Write project-scoped
+.codex/config.toml, .agents/skills and supported hook declarations (guard --host codex),
+plus a committed launcher where required. Reuse installation planning and ownership
+rules; extend check, refresh and uninstall to the selected host.  Report the trust
+review needed; never grant it.
 
-Acceptance: dry-run/check performs no writes; first install, repeat install, refresh and
-uninstall have deterministic results. Existing TOML settings, unrelated MCP servers,
-skills, comments where supported, and Claude wiring survive. Malformed configuration is
-refused without overwriting it. Test paths with spaces, Windows and POSIX launchers,
-native-plugin coexistence and an engine unavailable in the target environment. Removal
-deletes only Roadkeep-owned wiring and preserves the adopter's CI policy.
+Acceptance: check writes nothing; first install, repeat, refresh and uninstall are
+deterministic. Unrelated TOML, servers, skills and Claude wiring survive; malformed
+configuration is refused, not overwritten. Cover paths with spaces, Windows and POSIX
+launchers, native-plugin coexistence and a missing engine. Removal deletes only
+Roadkeep-owned wiring.
 
-Limits: do not change the default host for existing users without an explicit
-compatibility decision. No credentials, machine-wide permission changes, network
+Limits: the default host stays Claude. No credentials, machine-wide permissions, network
 bootstrap or automatic trust approval.
 
-Official references to recheck when implementing:
-https://learn.chatgpt.com/docs/config-file/config-basic
+References: https://learn.chatgpt.com/docs/config-file/config-basic,
 https://learn.chatgpt.com/docs/hooks
 
 ### §RK1736 Portable Codex package and local marketplace

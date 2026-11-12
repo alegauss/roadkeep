@@ -232,12 +232,12 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 1 | 2 | 0 |
-| M — Codex integration (one engine, host-specific adapters) | 5 | 4 | 0 |
-| **Total** | 9 | 1207 | 24 |
+| M — Codex integration (one engine, host-specific adapters) | 4 | 5 | 0 |
+| **Total** | 8 | 1208 | 24 |
 
 **Next ready:**
 
-- 📋 **RK1734** (deps: RK1732 ✅) **Bundled workflows assume Claude command syntax and tool names** — Give Codex the same Roadkeep workflow through reusable skills with valid invocations and tool references. → §RK1734
+- 📋 **RK1735** (deps: RK1730 ✅, RK1731 ✅, RK1733 ✅, RK1734 ✅) **Install, check and uninstall cannot manage Codex project wiring** — Provide an explicit Codex installation path that preserves unrelated configuration and can be verified and reversed. → §RK1735
 <!-- roadkeep:end -->
 
 Open work is in

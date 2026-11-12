@@ -55,9 +55,8 @@
 
 ## Block M — Codex integration (one engine, host-specific adapters)
 
-- 📋 **RK1734** (deps: RK1732 ✅) **Bundled workflows assume Claude command syntax and tool names** — Give Codex the same Roadkeep workflow through reusable skills with valid invocations and tool references. → §RK1734
-- 📋 **RK1735** (deps: RK1730 ✅, RK1731 ✅, RK1733 ✅, RK1734) **Install, check and uninstall cannot manage Codex project wiring** — Provide an explicit Codex installation path that preserves unrelated configuration and can be verified and reversed. → §RK1735
-- 📋 **RK1736** (deps: RK1730 ✅, RK1731 ✅, RK1733 ✅, RK1734, RK1735) **The distributed plugin only declares a Claude installation** — Package the shared engine, MCP server and skills for Codex while retaining the existing Claude distribution. → §RK1736
+- 📋 **RK1735** (deps: RK1730 ✅, RK1731 ✅, RK1733 ✅, RK1734 ✅) **Install, check and uninstall cannot manage Codex project wiring** — Provide an explicit Codex installation path that preserves unrelated configuration and can be verified and reversed. → §RK1735
+- 📋 **RK1736** (deps: RK1730 ✅, RK1731 ✅, RK1733 ✅, RK1734 ✅, RK1735) **The distributed plugin only declares a Claude installation** — Package the shared engine, MCP server and skills for Codex while retaining the existing Claude distribution. → §RK1736
 - 📋 **RK1737** (deps: RK1735, RK1736) **No end-to-end evidence shows Roadkeep enforcement inside Codex** — Verify native plugin behavior and host regressions before claiming the Codex integration is supported. → §RK1737
 - 📋 **RK1738** (deps: RK1737) **Users have no verified Codex adoption or distribution guide** — Document supported installation, trust and recovery paths using the integration evidence and current distribution rules. → §RK1738
 
@@ -149,14 +148,6 @@
 
 - **Both sites registered with the design system** consumers.json lists the pitch and
   the gui landing, and the hub's projects.json gives roadkeep the amber the pitch uses.
-
-## Done when — RK1734
-
-- **Workflows preserve their contracts** Codex add, ship, pick and lint instructions
-  retain required fields, exact-user-word rules and existing safety constraints.
-- **Every instruction has a reachable target** Package checks resolve references and CLI
-  fallbacks; connected-tool instructions use the actual Codex session names and share
-  the authoritative skill text.
 
 ## Done when — RK1735
 
