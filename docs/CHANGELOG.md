@@ -1287,3 +1287,4 @@
 - ✅ **RK1732** **MCP startup does not establish the Codex workspace it governs** — The MCP server binds to -C, then ROADKEEP_PROJECT, then cwd, says which on stderr, and refuses calls when started inside its own install (design recorded in `plugin/src/roadkeep/serving.py`).
   checked **Tools act on the selected workspace** Two temporary repositories and worktrees keep distinct prefixes, reads and writes, regardless of the plugin installation directory.
   checked **Protocol and diagnostics remain valid** Initialization, schemas, read-only hints and refresh pass; stdout contains only protocol messages and missing workspace errors name a remedy.
+- ✅ **RK1733 (Codex reader)** **Engine discovery and installation diagnostics only recognize Claude wiring** — engines reads the Codex copy enabled for a project, honouring CODEX_HOME and trusted project config, and never counts a cached copy nothing enables.

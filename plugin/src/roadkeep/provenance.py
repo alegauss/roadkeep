@@ -1062,6 +1062,118 @@ def installed(root: Path) -> Installed | None:
     )
 
 
+#: Where Codex unpacks an installed plugin, under its home: `<marketplace>/<plugin>/<version>`,
+#: with `local` as the version of a local one. Read as the observed packaging contract states it
+#: (RK1733), and never written.
+_CODEX_CACHE = ("plugins", "cache")
+
+
+def codex_home() -> Path | None:
+    """Codex's home: `CODEX_HOME` where the environment sets one, else `~/.codex` (RK1733)."""
+    import os  # noqa: PLC0415
+
+    stated = os.environ.get("CODEX_HOME")
+    if stated:
+        return Path(stated)
+    mine = home()
+    return None if mine is None else mine / ".codex"
+
+
+def codex_installed(root: Path) -> Installed | None:
+    """The Codex plugin copy **enabled** for this project, or None (RK1733).
+
+    Codex records the choice as `[plugins."roadkeep@<marketplace>"] enabled` in its user
+    config, and a project's `.codex/config.toml` overrides it — read only where the user
+    config trusts that project, because Codex skips an untrusted project's layer and a reader
+    that did not would report a plugin Codex never loads. A cached copy no enabled key names
+    is **not** an install: a stale or switched-off cache must not stand in for a live guard.
+
+    Among the versions cached for that marketplace, the newest is the one reported, its own
+    manifest's version where it states one. Every read fails open to None — nothing here is
+    worth failing a write over, which is :func:`installed`'s rule too.
+    """
+    import tomllib  # noqa: PLC0415
+
+    place = codex_home()
+    if place is None:
+        return None
+    try:
+        wanted = root.resolve()
+        user = tomllib.loads((place / "config.toml").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    layers: list[tuple[str, dict[str, object]]] = [("user", user)]
+    if _trusted(user, wanted):
+        try:
+            text = (wanted / ".codex" / "config.toml").read_text(encoding="utf-8")
+            layers.append(("project", tomllib.loads(text)))
+        except (OSError, ValueError):
+            pass
+    enabled: dict[str, str] = {}
+    for scope, layer in layers:
+        plugins = layer.get("plugins")
+        for key, table in (plugins.items() if isinstance(plugins, dict) else ()):
+            if not isinstance(key, str) or key.partition("@")[0] != PLUGIN:
+                continue
+            if not isinstance(table, dict) or not isinstance(table.get("enabled"), bool):
+                continue
+            if table["enabled"]:
+                enabled[key] = scope
+            else:
+                enabled.pop(key, None)
+    for key, scope in enabled.items():
+        market = key.partition("@")[2]
+        copy = _newest(place.joinpath(*_CODEX_CACHE, market, PLUGIN)) if market else None
+        if copy is not None:
+            return Installed(version=_stated_version(copy), home=copy, commit=None, scope=scope)
+    return None
+
+
+def _trusted(user: dict[str, object], project: Path) -> bool:
+    """Whether Codex's user config marks ``project`` trusted — `[projects."<path>"]
+    trust_level = "trusted"`, the layer an untrusted project's `.codex/` is skipped by."""
+    projects = user.get("projects")
+    for path, table in (projects.items() if isinstance(projects, dict) else ()):
+        if isinstance(table, dict) and table.get("trust_level") == "trusted":
+            if _is(path, project):
+                return True
+    return False
+
+
+def _newest(versions: Path) -> Path | None:
+    """The newest version directory cached under one plugin, or None where none is."""
+    try:
+        found = [one for one in versions.iterdir() if one.is_dir()]
+    except OSError:
+        return None
+
+    def order(one: Path) -> tuple[int, tuple[int, ...], str]:
+        parts = one.name.split(".")
+        if all(part.isdigit() for part in parts):
+            return (1, tuple(int(part) for part in parts), one.name)
+        return (0, (), one.name)
+
+    return max(found, key=order) if found else None
+
+
+def _stated_version(copy: Path) -> str:
+    """The version a cached copy's own manifest states, else its directory's name."""
+    import json  # noqa: PLC0415
+
+    for manifest in (
+        ("plugin.json",),
+        (".codex-plugin", "plugin.json"),
+        (".claude-plugin", "plugin.json"),
+    ):
+        try:
+            stated = json.loads(copy.joinpath(*manifest).read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if isinstance(stated, dict) and isinstance(stated.get("version"), str):
+            return stated["version"]
+    return copy.name
+
+
 def _loaded(rows: list[dict[str, object]]) -> dict[str, object] | None:
     """Which of a project's rows the harness would actually load (RK1167).
 

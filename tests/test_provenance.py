@@ -713,3 +713,108 @@ def test_every_other_caller_keeps_the_ceiling_that_answers_a_real_question(monke
     with pytest.raises(history.HistoryUnavailable):
         history._run(HERE, "rev-parse", "HEAD")
     assert seen == [history._TIMEOUT]
+
+
+# -- Codex's copy (RK1733) ---------------------------------------------------
+
+
+def codexed(
+    codex: Path,
+    project: Path,
+    *,
+    user: str = "",
+    local: str | None = None,
+    trusted: bool = True,
+    versions: tuple[str, ...] = ("0.2.500",),
+    market: str = "alegauss",
+) -> None:
+    """A Codex home as its packaging contract lays one out: config, trust and a cache."""
+    import json
+
+    project.mkdir(parents=True, exist_ok=True)
+    codex.mkdir(parents=True, exist_ok=True)
+    trust = f"[projects.'{project}']\ntrust_level = \"trusted\"\n\n" if trusted else ""
+    (codex / "config.toml").write_text(trust + user, encoding="utf-8")
+    if local is not None:
+        (project / ".codex").mkdir(exist_ok=True)
+        (project / ".codex" / "config.toml").write_text(local, encoding="utf-8")
+    for version in versions:
+        copy = codex / "plugins" / "cache" / market / "roadkeep" / version
+        (copy / ".claude-plugin").mkdir(parents=True, exist_ok=True)
+        (copy / ".claude-plugin" / "plugin.json").write_text(
+            json.dumps({"name": "roadkeep", "version": version}), encoding="utf-8"
+        )
+
+
+ON = '[plugins."roadkeep@alegauss"]\nenabled = true\n'
+OFF = '[plugins."roadkeep@alegauss"]\nenabled = false\n'
+
+
+def test_an_enabled_codex_plugin_is_read_back_at_its_newest_cached_version(tmp_path, monkeypatch):
+    from roadkeep.provenance import codex_installed
+
+    project, codex = tmp_path / "project dir", tmp_path / "codex"
+    codexed(codex, project, user=ON, versions=("0.2.9", "0.2.500", "0.2.61"))
+    monkeypatch.setenv("CODEX_HOME", str(codex))
+    found = codex_installed(project)
+    assert found is not None
+    assert (found.version, found.scope) == ("0.2.500", "user")
+    assert found.home == codex / "plugins" / "cache" / "alegauss" / "roadkeep" / "0.2.500"
+
+
+def test_a_cached_codex_plugin_nothing_enables_is_not_an_install(tmp_path, monkeypatch):
+    from roadkeep.provenance import codex_installed
+
+    monkeypatch.setenv("CODEX_HOME", str(tmp_path / "codex"))
+    for user in ("", OFF, '[plugins."other@alegauss"]\nenabled = true\n'):
+        codexed(tmp_path / "codex", tmp_path / "p", user=user)
+        assert codex_installed(tmp_path / "p") is None, user
+    # Enabled, and nothing cached for that marketplace: still no copy to name.
+    monkeypatch.setenv("CODEX_HOME", str(tmp_path / "other"))
+    codexed(tmp_path / "other", tmp_path / "p", user=ON, market="elsewhere")
+    assert codex_installed(tmp_path / "p") is None
+
+
+def test_a_trusted_project_layer_overrides_the_user_and_an_untrusted_one_is_skipped(
+    tmp_path, monkeypatch
+):
+    from roadkeep.provenance import codex_installed
+
+    codex, project = tmp_path / "codex", tmp_path / "p"
+    monkeypatch.setenv("CODEX_HOME", str(codex))
+    codexed(codex, project, user=ON, local=OFF)
+    assert codex_installed(project) is None
+    codexed(codex, project, user=OFF, local=ON)
+    found = codex_installed(project)
+    assert found is not None and found.scope == "project"
+    codexed(codex, project, user=OFF, local=ON, trusted=False)
+    assert codex_installed(project) is None
+
+
+def test_a_missing_or_broken_codex_home_answers_none(tmp_path, monkeypatch):
+    from roadkeep.provenance import codex_installed
+
+    monkeypatch.setenv("CODEX_HOME", str(tmp_path / "absent"))
+    assert codex_installed(tmp_path) is None
+    (tmp_path / "broken").mkdir()
+    (tmp_path / "broken" / "config.toml").write_text("[plugins\n", encoding="utf-8")
+    monkeypatch.setenv("CODEX_HOME", str(tmp_path / "broken"))
+    assert codex_installed(tmp_path) is None
+
+
+def test_engines_states_the_codex_copy_beside_the_claude_one(tmp_path, monkeypatch):
+    from roadkeep.installing import engines
+
+    codex, project = tmp_path / "codex", tmp_path / "p"
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "nowhere"))
+    monkeypatch.setenv("CODEX_HOME", str(codex))
+    codexed(codex, project, user=OFF)
+    found = engines(project)
+    assert found.codex is None and found.payload()["codex"] is None
+    assert "codex    —         no Codex plugin is enabled" in found.stated()
+    codexed(codex, project, user=ON)
+    found = engines(project)
+    assert found.payload()["codex"]["version"] == "0.2.500"
+    assert "codex    0.2.500   user config" in found.stated()
+    # Stated, and not yet compared: with no Claude plugin there is still nothing to differ with.
+    assert found.verdict == "agreed"

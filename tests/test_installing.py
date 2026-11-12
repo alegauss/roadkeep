@@ -2657,6 +2657,8 @@ def test_the_count_a_sentence_states_says_which_question_it_is_about():
         "driver",
         "declared",
         "declaration",
+        # RK1733: Codex's enabled copy, read and stated, and not compared yet.
+        "codex",
     }, sorted(read)
     # And the verdict still compares two: adding a driver never moves it, whatever it holds,
     # and neither does a vendored copy — that one is `split`, which is a different pair
@@ -2665,6 +2667,10 @@ def test_the_count_a_sentence_states_says_which_question_it_is_about():
     for command in ("", "/elsewhere/roadkeep merge %O %A %B --path %P"):
         assert replace(pair, driver=command).verdict == pair.verdict
         assert replace(pair, driver=command).agree == pair.agree
+    from roadkeep.provenance import Installed
+
+    other = Installed(version="0.0.1", home=None, commit=None, scope="user")
+    assert replace(pair, codex=other).verdict == pair.verdict
 
 
 # -- the copy inside the project, which the launcher finds first (RK1451) ------

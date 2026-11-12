@@ -98,7 +98,7 @@ from roadkeep.merging import ATTRIBUTES, Registration, register
 # record from the day that one landed. Nothing broke, because an annotation under PEP 563 is
 # never evaluated; what it cost is that the field said something false to every reader.
 from roadkeep.provenance import Engine as AnsweringEngine
-from roadkeep.provenance import Installed, engine, home, installed
+from roadkeep.provenance import Installed, codex_installed, engine, home, installed
 from roadkeep.provenance import invocation, stated_at
 
 #: The server's name, which is also the prefix an agent reads on every tool it offers.
@@ -1600,7 +1600,8 @@ UNPINNABLE = "unpinnable"
 class Engines:
     """Every copy of this tool one project runs, read back together (RK415).
 
-    **Five are read and three state a version** (RK1392, RK1451). RK1385 added the merge driver,
+    **Six are read and three state a version that is compared** (RK1392, RK1451, RK1733): the
+    Codex copy states one and is read beside the rest, not yet judged. RK1385 added the merge driver,
     which git runs when nobody is watching, and it is deliberately outside the comparison:
     `agreed`, `behind` and `unpinnable` compare versions, and this tool refuses to execute a
     recorded driver to ask for one — the gate states a ref, which is not a number either. So a
@@ -1658,6 +1659,10 @@ class Engines:
     #: recorded driver, which `merging._resolves` refuses on its own argument. What a reader
     #: gets is the path beside the tree above, which is the comparison they came for.
     driver: str = ""
+    #: The Codex plugin copy enabled for this project, or None (RK1733) — read off Codex's own
+    #: config, so a copy sitting in its cache with no enabled key is reported as none. Stated
+    #: and not yet compared: which host's copy is the judge is the remainder of that task.
+    codex: Installed | None = None
 
     @property
     def verdict(self) -> str:
@@ -1810,7 +1815,7 @@ class Engines:
         return (
             f"declared as `{self.declaration}`, which this command did not write — so the "
             f"harness starts that, and the copy inside it may not be the one this names; "
-            f"`{invocation()} engines` reads all five"
+            f"`{invocation()} engines` reads all six"
         )
 
     def stated(self) -> str:
@@ -1854,6 +1859,14 @@ class Engines:
             home = "" if plugin.home is None else f"  {plugin.home.as_posix()}"
             rows.append(
                 f"plugin   {plugin.version:<10}{plugin.revision}  {plugin.scope} scope{home}"
+            )
+        # RK1733: the other host's plugin, said either way for the reason the Claude row is.
+        if self.codex is None:
+            rows.append("codex    —         no Codex plugin is enabled for this project")
+        else:
+            rows.append(
+                f"codex    {self.codex.version:<10}{self.codex.scope} config  "
+                f"{self.codex.home.as_posix() if self.codex.home else ''}".rstrip()
             )
         rows += [f"gate     {ref:<10}{where}" for where, ref in self.gates or ()]
         if not self.gates:
@@ -1957,6 +1970,14 @@ class Engines:
             "vendored": None
             if self.vendored is None
             else {"version": self.vendored.version, "home": self.vendored.home.as_posix()},
+            # Null where Codex enables no copy for this project (RK1733), cached or not.
+            "codex": None
+            if self.codex is None
+            else {
+                "version": self.codex.version,
+                "home": None if self.codex.home is None else self.codex.home.as_posix(),
+                "scope": self.codex.scope,
+            },
             "gates": [{"file": where, "ref": ref} for where, ref in self.gates],
             # The fourth copy (RK1385), as the command and never as a version: reading that
             # would mean running it. `""` and never omitted, so a consumer tells "nothing
@@ -2009,7 +2030,7 @@ def _routed(root: Path) -> bool:
 
 
 def engines(root: str | Path = ".") -> Engines:
-    """The five, for one project. Reads five small files and asks git nothing new."""
+    """The six, for one project. Reads six small files and asks git nothing new."""
     base = Path(root).resolve()
     return Engines(
         running=engine(),
@@ -2029,6 +2050,7 @@ def engines(root: str | Path = ".") -> Engines:
         # every other absence here is: a tree git cannot be asked about answers "nothing
         # wired", which is what a reader of an unwired project sees anyway.
         driver=_driver(base),
+        codex=codex_installed(base),
     )
 
 

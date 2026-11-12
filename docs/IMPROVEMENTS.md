@@ -189,10 +189,9 @@ both sites' tests pass on the built output, and both registries name both sites.
 
 ### §RK1733 Host-aware installation and engine provenance
 
-Evidence: provenance.py resolves installed plugins through CLAUDE_CONFIG_DIR and the
-Claude registry; installing.py names Claude manifests and project settings.
-Duplicate-hook suppression must not read a cached Codex directory as evidence a plugin
-is active.
+Evidence: codex_installed reads Codex's enabled copy, but installing.py names Claude
+manifests and project settings. Duplicate-hook suppression must not read a cached Codex
+directory as evidence a plugin is active.
 
 Scope: host-aware installation and engine discovery, covering native plugin activation
 and repository wiring. Adapt invocation hints, served tool naming, engines output and
@@ -204,11 +203,11 @@ Acceptance: test enabled, disabled, absent and outdated Codex installations; mul
 user config roots; stale caches; native plus committed wiring; simultaneous Claude/Codex
 use. A cached but inactive plugin must not suppress a live project guard. Hooks are not
 run twice when both declarations are active. Missing engines or untrusted hooks are
-reported honestly, never presented as enforced.
+never presented as enforced.
 
 Limits: no scan of unrelated credentials or user files, no automatic trust grants, no
-background download. Preserve Claude engine selection. Pin fixtures to observed
-configuration contracts and record the tested Codex versions.
+background download. Preserve Claude engine selection.  Record the tested Codex
+versions.
 
 Official reference: https://learn.chatgpt.com/docs/config-file/config-basic
 
