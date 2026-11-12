@@ -97,28 +97,6 @@ already written, not authorship.
 
 ## Block L — Product sites on the package
 
-### §RK1729 Both sites on the package's build
-
-The pitch prerenders through the design system's `prerenderSite` (VDS215), keeping only
-its `markdown.mjs` converter and a `robots.txt` naming the docs sitemap; its output was
-byte-identical.
-
-**The gui landing** (`gui/site/scripts/prerender.mjs`) cannot follow yet: its head
-carries `<link rel="alternate" type="text/markdown">` per route, and `prerenderSite` has
-no hook for it. Patching the HTML afterwards would leave the manifest's byte counts
-stale. The hook landed as VDS243 (`headTags`, committed locally in viglet-design-system,
-not yet published); once a release carries it, the gui moves the same way, and its
-social card can take `renderOgCard` from `./vite` in place of `scripts/og-image.mjs`.
-
-**The registry** is done, committed locally there (2026-11-05): the design system's
-`consumers.json` gains both sites (`chrome: "product-site"`, `tone: "cool"`, accent
-amber, entries `./site`, `./site.css`, `./tokens.css`, `./vite`), and the hub's
-`projects.json` changes roadkeep from slate `148,163,184` to the amber the pitch uses,
-`245,158,11`.
-
-Done when the gui has no prerender of its own beyond what `prerenderSite` cannot do,
-both sites' tests pass on the built output, and both registries name both sites.
-
 ## Block M — Codex integration (one engine, host-specific adapters)
 
 ### §RK1737 Native Codex enforcement and compatibility evidence

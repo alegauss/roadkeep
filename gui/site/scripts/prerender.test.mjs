@@ -60,6 +60,16 @@ test('each page has a unique title, its canonical, and an og:image', () => {
   }
 })
 
+test('each page names its Markdown twin, so an agent reading the HTML finds the flat file', () => {
+  // Written through `prerenderSite`'s `headTags` (VDS243, RK1729): the one head tag the shared
+  // step does not write itself, and the reason this site kept a prerender of its own until then.
+  for (const r of manifest.routes) {
+    const html = readFileSync(join(distDir, r.html), 'utf8')
+    const link = `<link rel="alternate" type="text/markdown" href="${r.url}index.md" />`
+    assert.ok(html.includes(link), `${r.html} does not name ${r.url}index.md`)
+  }
+})
+
 test('every page is prerendered, not an empty mount point', () => {
   for (const r of manifest.routes) {
     const html = readFileSync(join(distDir, r.html), 'utf8')

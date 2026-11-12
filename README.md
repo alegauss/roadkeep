@@ -231,9 +231,9 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 22 | 0 |
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
-| L — Product sites on the package | 1 | 2 | 0 |
+| L — Product sites on the package | 0 | 2 | 0 |
 | M — Codex integration (one engine, host-specific adapters) | 2 | 8 | 0 |
-| **Total** | 3 | 1214 | 24 |
+| **Total** | 2 | 1214 | 24 |
 
 **Next ready:**
 

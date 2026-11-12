@@ -46,8 +46,6 @@
 
 ## Block L — Product sites on the package
 
-- ⏳ **RK1729** (deps: a design-system release with VDS243) **Both product sites run a prerender script of their own, and neither is registered with the design system** — The gui landing still runs its own prerender until a design-system release carries prerenderSite's headTags. → §RK1729
-
 ## Block M — Codex integration (one engine, host-specific adapters)
 
 - ⏳ **RK1737** (deps: RK1735 ✅, RK1736 ✅) **No end-to-end evidence shows Roadkeep enforcement inside Codex** — Desktop and IDE parity, two worktrees, missing Python, disabled hooks, plugin update and uninstall are not yet observed in a live Codex session. → §RK1737
@@ -136,11 +134,6 @@
 - **No page restates prose another file owns** an area with room on every page invites
   the accretion this tool refuses, so a page renders the file that owns the words or
   carries no version of them.
-
-## Done when — RK1729
-
-- **Both sites registered with the design system** consumers.json lists the pitch and
-  the gui landing, and the hub's projects.json gives roadkeep the amber the pitch uses.
 
 ## Done when — RK1737
 
