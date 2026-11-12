@@ -221,7 +221,7 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 46 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 239 | 2 |
+| B — Authoring (insert, never hand-edit) | 0 | 240 | 2 |
 | C — Query (consult without reading the file) | 0 | 205 | 7 |
 | D — The gate | 0 | 319 | 7 |
 | E — Adoption | 0 | 129 | 1 |
@@ -233,7 +233,8 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | K — The desktop app (one installer for the reader and the plugin) | 0 | 9 | 0 |
 | L — Product sites on the package | 0 | 2 | 0 |
 | M — Codex integration (one engine, host-specific adapters) | 2 | 8 | 0 |
-| **Total** | 2 | 1214 | 24 |
+| N — Branches (one backlog across parallel branches) | 1 | 0 | 0 |
+| **Total** | 3 | 1215 | 24 |
 
 **Next ready:**
 

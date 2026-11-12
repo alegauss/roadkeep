@@ -955,3 +955,5 @@ deriving the anchor, which is how they came apart.
 
 ## Block M — Codex integration (one engine, host-specific adapters)
 
+## Block N — Branches (one backlog across parallel branches)
+

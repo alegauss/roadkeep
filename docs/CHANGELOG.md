@@ -303,6 +303,7 @@
 - ✅ **RK1713** **no writing verb can be asked what it would write, so an agent probes a replace with a real write** — section amend --check runs every refusal and prints the prose as it would read, writing nothing, on the CLI and the served tool (design recorded in `plugin/src/roadkeep/sections.py`).
 - ✅ **RK1715** **block add opens a label the ledger already declares under another title** — block add refuses a label any governed file titles differently, writing nothing and offering the next free label as the retry; block list's door now carries the declared title.
 - ✅ **RK1718** **A defer refused for length blames the line's structure and names a budget read that does not price the reason** — A defer refused for length names the reason as the field to shrink, with the room budget --defer reports, and its foresee door is budget <id> --defer.
+- ✅ **RK1743** **merge refuses a branch that adds a block while the other only files lines under an existing one** — The merge skeleton folds blank-line runs, so a block added on one side merges with lines filed under an existing one on the other.
 
 ## Block C — Query
 
@@ -1300,3 +1301,6 @@
   checked **Both packages resolve one implementation** Codex and Claude manifests reference shipped files and the same engine; schema, version-stamping and package-content checks pass.
   checked **A clean local install loads correctly** The packaged marketplace install works outside the checkout, uses the target workspace and preserves explicit hook trust, upgrade, disable and removal behavior.
 - ✅ **RK1737 (Codex CLI 0.167 evidence)** **No end-to-end evidence shows Roadkeep enforcement inside Codex** — Live Codex denies apply_patch and shell writes; its server now runs via .codex-plugin and a self-locating launcher, and names mcp__roadkeep__ tools.
+
+## Block N — Branches (one backlog across parallel branches)
+

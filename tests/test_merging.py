@@ -152,6 +152,65 @@ def test_a_line_only_one_side_edited_is_taken_from_that_side(tmp_path):
     assert "Because it was rewritten." in (merged.text or "")
 
 
+def _scaffold_and_fork(tmp_path: Path) -> tuple[Path, Path, Path]:
+    """One scaffolded project and two copies of it: the ancestor, and the two branches."""
+    import shutil  # noqa: PLC0415 - this fixture alone copies a tree
+
+    base = tmp_path / "base"
+    base.mkdir()
+    init = ["init", "--prefix", "RK", "--prefix", "SRCH", "--block", "A — Production"]
+    assert main(["-C", str(base), *init]) == EXIT_OK
+    ours, theirs = tmp_path / "ours", tmp_path / "theirs"
+    shutil.copytree(base, ours)
+    shutil.copytree(base, theirs)
+    return base, ours, theirs
+
+
+def _file(root: Path, *, block: str, family: str, count: int, ship: int) -> None:
+    for n in range(1, count + 1):
+        argv = ["add", "--block", block, "--prefix", family]
+        argv += ["--symptom", f"case {n} of {family} does not work", "--why", f"Reason {n}."]
+        assert main(["-C", str(root), *argv]) == EXIT_OK
+    for n in range(1, ship + 1):
+        assert main(["-C", str(root), "ship", f"{family}{n}", "--why", f"Done {n}."]) == EXIT_OK
+
+
+def test_a_block_one_side_added_merges_with_lines_the_other_filed(tmp_path, capsys):
+    """RK1743. One branch ran `block add B` and filed and shipped under it; the other only
+    filed and shipped under the existing Block A. The driver refused both files with *both
+    branches changed the headings*, though main's headings were byte-identical to the
+    ancestor: `add` into an empty block writes a blank line beside the entries, and
+    `_skeleton` kept it, so layout `place` derives read as prose a person wrote."""
+    base, ours, theirs = _scaffold_and_fork(tmp_path)
+    _file(ours, block="A", family="RK", count=3, ship=1)
+    assert main(["-C", str(theirs), "block", "add", "B", "--title", "Search"]) == EXIT_OK
+    _file(theirs, block="B", family="SRCH", count=3, ship=2)
+    capsys.readouterr()
+    config = Config.discover(base)
+
+    for role, name in (("roadmap", ROADMAP), ("changelog", CHANGELOG)):
+        texts = [(root / name).read_text(encoding="utf-8") for root in (base, ours, theirs)]
+        merged = merge(config, role, *texts)
+        assert merged.clean, f"{role}: {merged.reason}"
+        assert "## Block B — Search" in (merged.text or "")
+        for root in (ours, theirs):
+            for entry in Config.discover(root).document(role).entries:
+                assert f"**{entry.task.id}**" in (merged.text or ""), (role, entry.task.id)
+        # Symmetric: which side added the block is not a fact the verdict may depend on.
+        assert merge(config, role, texts[0], texts[2], texts[1]).clean
+
+
+def test_a_block_both_sides_added_differently_is_still_refused(tmp_path, capsys):
+    # The rule RK1743 must not loosen: two headings two people wrote is prose.
+    base, ours, theirs = _scaffold_and_fork(tmp_path)
+    assert main(["-C", str(ours), "block", "add", "B", "--title", "Billing"]) == EXIT_OK
+    assert main(["-C", str(theirs), "block", "add", "C", "--title", "Search"]) == EXIT_OK
+    capsys.readouterr()
+    texts = [(root / ROADMAP).read_text(encoding="utf-8") for root in (base, ours, theirs)]
+
+    assert not merge(Config.discover(base), "roadmap", *texts).clean
+
+
 def test_a_line_both_sides_rewrote_is_kept_apart_from_a_spent_id(tmp_path):
     # One line, two sentences — the wording is the reviewer's, and the remedy is not an
     # address, so it is reported under its own name.

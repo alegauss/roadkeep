@@ -51,6 +51,10 @@
 - ⏳ **RK1737** (deps: RK1735 ✅, RK1736 ✅) **No end-to-end evidence shows Roadkeep enforcement inside Codex** — Desktop and IDE parity, two worktrees, missing Python, disabled hooks, plugin update and uninstall are not yet observed in a live Codex session. → §RK1737
 - 📋 **RK1738** (deps: RK1737 ⏳) **Users have no verified Codex adoption or distribution guide** — Document supported installation, trust and recovery paths using the integration evidence and current distribution rules. → §RK1738
 
+## Block N — Branches (one backlog across parallel branches)
+
+- 💭 **RK1744** (deps: RK1743 ✅) **no tested strategy keeps one backlog consistent across parallel long-lived branches** — A feature branch and main filing and shipping at once is the normal case, and only two of its merges have been run end to end. → §RK1744
+
 ## Done when — Block D
 
 - **The gate passes on this repository's own docs** the format is proven by the artefact

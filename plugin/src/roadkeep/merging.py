@@ -996,13 +996,26 @@ def _skeleton(document: Document) -> tuple[str, ...]:
 
     Normalised because a branch checked out on Windows and one on Linux differ in every
     line, and refusing a merge over that is refusing every merge.
+
+    A run of blank lines is one blank, and a blank at either end is none (RK1743): `add` into
+    an empty block writes a separator beside the entries, so the lines left once they are
+    taken out carried a blank the ancestor did not — layout `place` derives, read as prose a
+    person wrote, refusing every merge of a branch that added a block against one that filed
+    under an existing heading. The frame chosen still keeps its own bytes; this is only the
+    question of whether it moved.
     """
     entries = {entry.lineno for entry in document.entries}
-    return tuple(
-        line.rstrip("\r\n")
-        for number, line in enumerate(document.lines, start=1)
-        if number not in entries
-    )
+    kept: list[str] = []
+    for number, line in enumerate(document.lines, start=1):
+        if number in entries:
+            continue
+        text = line.rstrip("\r\n")
+        if not text.strip() and (not kept or not kept[-1].strip()):
+            continue
+        kept.append(text)
+    while kept and not kept[-1].strip():
+        kept.pop()
+    return tuple(kept)
 
 
 def _materialize(
