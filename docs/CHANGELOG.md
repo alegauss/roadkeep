@@ -981,6 +981,7 @@
 - ✅ **RK1727** **init without --prefix gives every project roadkeep's own RK ids** — init with no --prefix and no ids derives one from the origin remote's name, else the directory, says so with the override, and asks for --prefix when the name gives none.
 - ✅ **RK1728** **Every init choice is a flag to discover, and nothing asks a person or an agent for it** — init --questions lists every choice init takes with a default for the directory; a bare init on a terminal asks them and prints the equivalent command, and the skill reads the list.
   checked **Every init option is asked from one list** --questions --json lists every init option, a TTY run and its printed command give identical trees, and a non-TTY run never blocks on input.
+- ✅ **RK1740** **install --vendor deletes the whole .roadkeep/ tree, so the capture reports kept under .roadkeep/reports are lost** — install --vendor keeps .roadkeep/reports through the engine swap, every capture byte-identical and counted (design recorded in `plugin/src/roadkeep/installing.py`).
 
 ## Block F — The Claude Code plugin
 

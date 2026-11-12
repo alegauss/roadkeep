@@ -1548,6 +1548,48 @@ def test_the_copy_is_an_artefact_and_not_a_second_repository(tmp_path, monkeypat
     assert (written.into / "src" / "marker.txt").read_text(encoding="utf-8") == "1.0.0"
 
 
+def test_a_refresh_keeps_the_capture_inbox_byte_for_byte(tmp_path, monkeypatch):
+    """RK1740: refreshing seventeen vendored projects erased three projects' captures. The
+    inbox shares `.roadkeep/` with the engine and is gitignored with it, so the replacement
+    was deleting the only copy. The engine is still replaced whole — a stale file goes."""
+    from roadkeep.capturing import REPORTS
+    from roadkeep.installing import PROJECT_ENGINE, vendor
+
+    only_here(monkeypatch, tmp_path)
+    monkeypatch.setenv("ROADKEEP_SRC", str(engine_tree(tmp_path / "src-tree", "1.0.0")))
+    project = tmp_path / "adopter"
+    inbox = project / REPORTS
+    (inbox / "nested").mkdir(parents=True)
+    captures = {
+        inbox / "one.json": b'{"symptom": "x"}\r\n',
+        inbox / "nested" / "two.md": "café\n".encode(),
+    }
+    for path, data in captures.items():
+        path.write_bytes(data)
+    (project / PROJECT_ENGINE / "stale.py").write_text("old", encoding="utf-8")
+
+    written = vendor(project)
+    assert {path: path.read_bytes() for path in captures} == captures
+    assert not (project / PROJECT_ENGINE / "stale.py").exists()
+    assert written.reports == 2 and written.payload()["reports"] == 2
+    assert "kept           2 capture file(s)" in written.stated(False)
+    # Nothing left beside the project from the move aside.
+    assert sorted(one.name for one in project.iterdir()) == [PROJECT_ENGINE]
+    again = vendor(project)
+    assert {path: path.read_bytes() for path in captures} == captures and again.reports == 2
+
+
+def test_a_refresh_with_no_inbox_reports_none(tmp_path, monkeypatch):
+    from roadkeep.installing import vendor
+
+    only_here(monkeypatch, tmp_path)
+    monkeypatch.setenv("ROADKEEP_SRC", str(engine_tree(tmp_path / "src-tree", "1.0.0")))
+    project = tmp_path / "adopter"
+    project.mkdir()
+    written = vendor(project)
+    assert written.reports == 0 and "capture file" not in written.stated(False)
+
+
 def test_what_landed_is_asked_what_it_is(tmp_path, monkeypatch):
     """The fourth rule, and the one that makes the other three mean anything: picking by
     version proves nothing about a tree that arrived different."""

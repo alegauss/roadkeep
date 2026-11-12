@@ -83,27 +83,6 @@ already written, not authorship.
 
 ## Block E — Adoption
 
-### §RK1740 install --vendor deletes the capture inbox it shares a folder with
-
-Measured on 2026-11-12, refreshing seventeen vendored projects under `D:\Git` with
-`install --vendor --committed`: multi-agent, japode/ads and japode/schools each held a
-`.roadkeep/reports/` and no engine, and after the run each held the engine and no
-reports. `vendor` replaces `.roadkeep/` whole with `shutil.rmtree`, which is right for
-the engine (a half-old tree is the state RK1193 exists to prevent) and wrong for the one
-directory under it the engine does not own.
-
-`capturing.REPORTS` puts the capture inbox at `.roadkeep/reports` (RK89), and the same
-run that writes a capture adds `.roadkeep/` to `.gitignore`. So the reports are in no
-history: a refresh that deletes them deletes the only copy, and nothing in the report
-said a file outside the engine went with it.
-
-The replacement should own what it copied and nothing else: move `reports/` (or anything
-the engine did not ship) aside before the removal and back after it, or remove only the
-engine's own directories. Either way the report names what it kept.
-
-Done when `install --vendor` over a `.roadkeep/` holding captures leaves every capture
-byte-identical, and a test holds it.
-
 ### §RK1741 A vendored copy is a cache that never refreshes
 
 Measured on 2026-11-12 across the 57 projects under `D:\Git` that declare a

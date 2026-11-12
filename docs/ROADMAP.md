@@ -32,7 +32,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1740** (deps: —) **install --vendor deletes the whole .roadkeep/ tree, so the capture reports kept under .roadkeep/reports are lost** — Refreshing seventeen projects erased the reports of three, and the folder is gitignored, so no copy survived to restore them. → §RK1740
 - 📋 **RK1741** (deps: —) **A vendored engine falls behind the checkout on the same machine, and nothing refreshes it until a session refuses a line** — Thirteen vendored copies sat at 0.2.473 to 0.2.511 against a 0.2.576 checkout, and four pinned an empty tree, until a hand-run sweep. → §RK1741
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

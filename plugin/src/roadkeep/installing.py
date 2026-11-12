@@ -2803,6 +2803,9 @@ class Vendored:
     #: Whether the project should be told to ignore the copy — False where a `.gitignore`
     #: already names it, so a project that did this once is not advised about it every run.
     ignore: bool = False
+    #: Capture files kept through the replacement (RK1740), said so a reader knows the one
+    #: directory under `.roadkeep/` that is not the engine's survived it.
+    reports: int = 0
 
     def stated(self, checked: bool) -> str:
         """The choice, the evidence for it, and what the copy answered (RK1193)."""
@@ -2821,6 +2824,11 @@ class Vendored:
             # The fourth rule, said out loud: picking by version is worth nothing unless what
             # landed is asked what it is.
             rows.append(f"  {'answers':<14} {self.verified}, as chosen")
+        if self.reports:
+            rows.append(
+                f"  {'kept':<14} {self.reports} capture file(s) in {PROJECT_ENGINE}/reports — "
+                f"the inbox is not the engine's, so the replacement left it as it was"
+            )
         if self.ignore:
             # Printed and never written, which is `merge --register`'s rule about the `git
             # config` half (RK148): `.gitignore` is the project's file, and a copy of somebody
@@ -2859,6 +2867,8 @@ class Vendored:
             "version": self.chosen.version,
             "from": self.chosen.why,
             "files": self.files,
+            # The captures kept through the replacement (RK1740), 0 where there were none.
+            "reports": self.reports,
             "verified": self.verified or None,
             "ignore": self.ignore,
             "considered": [
@@ -3133,14 +3143,33 @@ def vendor(root: str | Path = ".", *, checked: bool = False) -> Vendored:
     if checked:
         return Vendored(into=into, chosen=chosen, considered=found, ignore=unignored)
 
-    if into.exists():
-        # Replaced whole rather than merged: a half-old tree is the state every rule above is
-        # about, and `shutil.copytree` onto a populated directory is how one is made.
-        shutil.rmtree(into)
-    # The engine and not the repository it lives in (RK1606): `_outside` keeps the directories
-    # `_VENDORED` derives from the declared surfaces, so a built site and a test suite stay
-    # where they were written.
-    shutil.copytree(chosen.home, into, ignore=_outside(chosen.home))
+    from roadkeep.capturing import REPORTS  # noqa: PLC0415 - RK260
+
+    # The capture inbox shares the folder and is not the engine's (RK1740): `.roadkeep/` is
+    # gitignored, so a replacement that took it took the only copy. Moved aside and back, and
+    # nothing else is — anything the outgoing engine left is what "replaced whole" is about.
+    inbox = base / REPORTS
+    held = base / f"{PROJECT_ENGINE}.reports-kept"
+    kept = inbox.is_dir()
+    if kept:
+        if held.exists():
+            shutil.rmtree(held)
+        inbox.rename(held)
+    try:
+        if into.exists():
+            # Replaced whole rather than merged: a half-old tree is the state every rule above
+            # is about, and `shutil.copytree` onto a populated directory is how one is made.
+            shutil.rmtree(into)
+        # The engine and not the repository it lives in (RK1606): `_outside` keeps the
+        # directories `_VENDORED` derives from the declared surfaces, so a built site and a
+        # test suite stay where they were written.
+        shutil.copytree(chosen.home, into, ignore=_outside(chosen.home))
+    finally:
+        if kept:
+            inbox.parent.mkdir(parents=True, exist_ok=True)
+            if inbox.exists():
+                shutil.rmtree(inbox)
+            held.rename(inbox)
     answered = _asked(into)
     if answered != chosen.version:
         raise NotVerified(chosen.version, answered, into)
@@ -3149,8 +3178,9 @@ def vendor(root: str | Path = ".", *, checked: bool = False) -> Vendored:
         chosen=chosen,
         considered=found,
         verified=answered,
-        files=sum(1 for one in into.rglob("*") if one.is_file()),
+        files=sum(1 for one in into.rglob("*") if one.is_file() and inbox not in one.parents),
         ignore=unignored,
+        reports=sum(1 for one in inbox.rglob("*") if one.is_file()) if kept else 0,
     )
 
 
