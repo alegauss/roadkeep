@@ -293,49 +293,6 @@ def next_id(config: Config, family: str | None = None) -> str:
     return derivation(config, family).id
 
 
-class UnknownRevision(ValueError):
-    """`--past` naming a revision git does not know, refused before anything is derived."""
-
-    def __init__(self, rev: str) -> None:
-        self.rev = rev
-        super().__init__(
-            f"{rev!r} is not a revision git resolves here: `--past` reads the ids another "
-            f"branch already spent, so it takes a branch, tag or commit this clone has"
-        )
-
-
-def highest_at(config: Config, rev: str, family: str) -> int:
-    """The largest number ``family`` spends in the id sources **as of** ``rev`` (RK1748).
-
-    The other branch's half of "highest anywhere": a merge that spent one id twice is
-    repaired by moving one side's line, and the destination derived from that side alone is
-    the next number the *other* side spent too — measured by the RK1744 spike, a branch with
-    RK1-2 against a main holding RK1-5 renumbered to RK3 and RK4 and collided again. Read
-    through git and never checked out, so the tree the caller is standing in does not move.
-    """
-    from roadkeep.history import blob_at, resolves  # noqa: PLC0415 - RK260
-
-    if not resolves(config, rev):
-        raise UnknownRevision(rev)
-    pattern = id_scanner(config.schema)
-    top = 0
-    for path in config.id_sources():
-        blob = blob_at(config, rev, path)
-        if blob is None:
-            continue
-        for match in pattern.finditer(blob.decode("utf-8", errors="replace")):
-            if match.group("family") == family:
-                top = max(top, int(match.group("number")))
-    return top
-
-
-def next_past(config: Config, family: str, revs: Sequence[str]) -> str:
-    """One past the highest ``family`` id here **and** in every revision named (RK1748)."""
-    local = highest(config, family)
-    top = max([local.number if local else 0, *(highest_at(config, rev, family) for rev in revs)])
-    return config.schema.spell_id(family, top + 1)
-
-
 class UnknownFamily(ValueError):
     """An id was asked for under a prefix this project does not number."""
 

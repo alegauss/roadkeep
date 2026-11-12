@@ -169,6 +169,8 @@ FIELDS: dict[str, Composed] = {
     "task_id": _address("the id to mint under, refused against every id any file carries"),
     "family": _address("which track a derived id counts in, from `[ids]`' declared prefixes"),
     "to": _address("the id or anchor a renumber or a move sends this to, refused if taken"),
+    # RK1748. A revision and not a value written anywhere: the derived id clears what it spent.
+    "past": _address("a branch whose spent ids the derived destination must clear, resolved"),
     "to_block": _address("the label a ledger entry moves under, which a heading must declare"),
     "block": _address("the label this is filed under, which a heading must declare"),
     "label": _address("the block a heading write is about, refused against `[ids]`' shape"),
