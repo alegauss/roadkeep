@@ -110,7 +110,7 @@ test('the sitemap lists every route exactly once, and nothing else', () => {
   }
   for (const loc of locs) {
     assert.ok(
-      loc.startsWith(`https://alegauss.github.io${manifest.base}`),
+      loc.startsWith(`https://alegauss.com${manifest.base}`),
       `${loc} does not carry ${manifest.base}`,
     )
   }
@@ -134,7 +134,7 @@ test('robots allows everything and names the sitemap that was written', () => {
   assert.match(robots, /^Allow: \/$/m)
   const named = robots.match(/^Sitemap: (\S+)$/m)
   assert.ok(named, 'robots.txt names no sitemap')
-  assert.equal(named[1], `https://alegauss.github.io${manifest.base}sitemap.xml`)
+  assert.equal(named[1], `https://alegauss.com${manifest.base}sitemap.xml`)
   assert.ok(existsSync(join(distDir, 'sitemap.xml')), 'robots names a sitemap that is not there')
 })
 

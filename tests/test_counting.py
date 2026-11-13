@@ -939,7 +939,7 @@ def _dated(tmp_path: Path, capsys, *argv: str) -> dict[str, dict]:
 
 
 def test_each_row_carries_the_commits_that_proposed_and_shipped_it(tmp_path, capsys):
-    """alegauss.github.io kept its own git log parser to date each entry, a second reader of
+    """alegauss.com kept its own git log parser to date each entry, a second reader of
     the ledger. The dates are derived here instead, the same ones `origin` reports."""
     from conftest import git, git_commit, git_init
 

@@ -56,7 +56,7 @@ test("robots names the docs sitemap, and the file it names was built", () => {
   const robots = readFileSync(join(distDir, "robots.txt"), "utf8");
   const named = [...robots.matchAll(/^Sitemap: (\S+)$/gm)].map((m) => m[1]);
 
-  const docsSitemap = `https://alegauss.github.io${BASE}docs/sitemap-index.xml`;
+  const docsSitemap = `https://alegauss.com${BASE}docs/sitemap-index.xml`;
   assert.ok(
     named.includes(docsSitemap),
     `robots.txt names ${named.join(", ")} and not the docs sitemap`,
@@ -74,13 +74,13 @@ test("every sitemap URL the docs area emits carries the base", () => {
   assert.ok(parts.length > 0, "the docs sitemap index lists no sitemap");
 
   for (const part of parts) {
-    const file = part.replace(`https://alegauss.github.io${BASE}docs/`, "");
+    const file = part.replace(`https://alegauss.com${BASE}docs/`, "");
     const xml = readFileSync(join(docsDir, file), "utf8");
     const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
     assert.ok(locs.length > 0, `${file} lists no URL`);
     for (const loc of locs) {
       assert.ok(
-        loc.startsWith(`https://alegauss.github.io${BASE}docs/`),
+        loc.startsWith(`https://alegauss.com${BASE}docs/`),
         `${loc} does not carry ${BASE}docs/`,
       );
     }
@@ -153,7 +153,7 @@ test("every docs page has a unique title and a canonical carrying the base", () 
     const canonical = html.match(/<link rel="canonical" href="([^"]+)"/)?.[1];
     assert.ok(canonical, `${relative(page)} has no canonical`);
     assert.ok(
-      canonical.startsWith(`https://alegauss.github.io${BASE}docs/`),
+      canonical.startsWith(`https://alegauss.com${BASE}docs/`),
       `${relative(page)} is canonical at ${canonical}`,
     );
   }

@@ -48,8 +48,8 @@ export const meta = {
 } as const
 
 export const repoUrl = 'https://github.com/alegauss/roadkeep'
-export const parentUrl = 'https://alegauss.github.io/'
-export const roadkeepUrl = 'https://alegauss.github.io/roadkeep/'
+export const parentUrl = 'https://alegauss.com/'
+export const roadkeepUrl = 'https://alegauss.com/roadkeep/'
 
 // The release page rather than a file: each installer carries its version in its name, so
 // there is no version-independent URL for the asset itself. `releases/latest` is the one link
@@ -82,7 +82,7 @@ export const footer = {
 
 /* --------------------------------------------------------------- sponsor */
 
-// Mirrors alegauss.github.io/sponsor.json, the canonical sponsor declaration for these
+// Mirrors alegauss.com/sponsor.json, the canonical sponsor declaration for these
 // projects. Transcribed rather than fetched at runtime: the site is prerendered, and the point
 // of naming a sponsor is that crawlers and LLMs read it in the served HTML.
 // Shaped as the design system's SponsorDeclaration, which SiteSponsor renders.

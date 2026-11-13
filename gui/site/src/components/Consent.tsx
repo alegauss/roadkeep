@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from 'react'
 // "Analytics settings" asks again.
 //
 // The key and the measurement id are the hub's on purpose. This site is served from the same
-// origin (alegauss.github.io/roadkeep/gui/), so the two share one localStorage and one
+// origin (alegauss.com/roadkeep/gui/), so the two share one localStorage and one
 // property, and a visitor who has answered on either has answered for both.
 
 const KEY = 'alegauss-consent'

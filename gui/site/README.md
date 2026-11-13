@@ -1,6 +1,6 @@
 # roadkeep-gui site
 
-The public site, at <https://alegauss.github.io/roadkeep/gui/>: a self-contained Vite +
+The public site, at <https://alegauss.com/roadkeep/gui/>: a self-contained Vite +
 React 19 + TypeScript workspace, prerendered to static files with a Markdown twin beside every
 route. It is standalone: the app's own `npm run build` neither builds nor needs it, and it never
 writes into `docs/`, which is roadkeep's.

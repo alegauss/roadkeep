@@ -12,7 +12,7 @@ Windows installer and a Linux AppImage, both unsigned for now. No macOS build ha
 Neither carries roadkeep: each project answers through its own committed launcher or the
 `roadkeep` on PATH (`pip install roadkeep`). Claude Code is needed only to hand a line over.
 
-roadkeep itself is at [alegauss.github.io/roadkeep](https://alegauss.github.io/roadkeep/).
+roadkeep itself is at [alegauss.com/roadkeep](https://alegauss.com/roadkeep/).
 This app is an unofficial companion by the same author, not affiliated with Anthropic.
 
 ## For agents
@@ -20,9 +20,9 @@ This app is an unofficial companion by the same author, not affiliated with Anth
 Every route of this site has a Markdown twin beside it, the same page converted from the
 same render with the navigation, the footer and the calls to action dropped. Read
 `<route>/index.md` instead of the HTML: the landing page is
-[`/index.md`](https://alegauss.github.io/roadkeep-gui/index.md). The routes, their twins and
+[`/index.md`](https://alegauss.com/roadkeep-gui/index.md). The routes, their twins and
 their byte sizes are in
-[`manifest.json`](https://alegauss.github.io/roadkeep-gui/manifest.json).
+[`manifest.json`](https://alegauss.com/roadkeep-gui/manifest.json).
 
 Every count those pages state (the verbs, the languages, the non-goals, the scan depth) is
 generated at build time from this repository's source, so the twin is the place to read a

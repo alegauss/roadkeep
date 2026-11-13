@@ -1,6 +1,6 @@
 # The roadkeep site
 
-The pages at <https://alegauss.github.io/roadkeep/>. Two npm projects, separate from the Python
+The pages at <https://alegauss.com/roadkeep/>. Two npm projects, separate from the Python
 package, because `docs/` is the governed store this tool owns the writes to and is never a web
 root.
 

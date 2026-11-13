@@ -54,7 +54,7 @@ export const meta = {
 } as const;
 
 export const repoUrl = "https://github.com/alegauss/roadkeep";
-export const parentUrl = "https://alegauss.github.io/";
+export const parentUrl = "https://alegauss.com/";
 export const pypiUrl = "https://pypi.org/project/roadkeep/";
 
 // The brand the design system's nav, hero and footer draw. The mark is the dark-palette copy:
@@ -1225,7 +1225,7 @@ export const closing = {
 
 /* ------------------------------------------------------------------ sponsor + footer */
 
-// Mirrors alegauss.github.io/sponsor.json, the canonical sponsor declaration for these
+// Mirrors alegauss.com/sponsor.json, the canonical sponsor declaration for these
 // projects, in the design system's SponsorDeclaration shape that SiteSponsor renders. Kept as
 // rendered markup on purpose: a runtime fetch would keep the sponsor out of the HTML that
 // crawlers and LLMs actually read.

@@ -23,7 +23,7 @@
 # │   Settings → Pages → Build and deployment → Source: "GitHub Actions"                 │
 # │ Left on "Deploy from a branch" this workflow goes green and publishes nothing — and  │
 # │ the branch it would serve has no built site in it, because nothing commits one.      │
-# │ The site is at alegauss.github.io/roadkeep/, which Pages derives from the repository │
+# │ The site is at alegauss.com/roadkeep/, which Pages derives from the repository │
 # │ name rather than from anything in this file.                                         │
 # └─────────────────────────────────────────────────────────────────────────────────────┘
 #

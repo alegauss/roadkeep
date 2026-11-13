@@ -24,6 +24,6 @@ test("the reader's site is in the deploy artefact", () => {
 
 test("its pages are addressed to where they are served", () => {
   const html = readFileSync(join(placed, "index.html"), "utf8");
-  assert.match(html, /rel="canonical" href="https:\/\/alegauss\.github\.io\/roadkeep\/gui\/"/);
+  assert.match(html, /rel="canonical" href="https:\/\/alegauss\.com\/roadkeep\/gui\/"/);
   assert.ok(!html.includes("/roadkeep-gui/"), "a path still names the retired base");
 });

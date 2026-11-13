@@ -23,7 +23,7 @@
 
 <div align="center">
 
-<img src="https://alegauss.github.io/roadkeep/assets/roadkeep-mark.svg" alt="roadkeep logo" width="120">
+<img src="https://alegauss.com/roadkeep/assets/roadkeep-mark.svg" alt="roadkeep logo" width="120">
 
 # roadkeep
 
@@ -38,7 +38,7 @@ claude plugin install roadkeep@alegauss --scope project
 
 Python 3.11+ · zero runtime dependencies · your files stay plain Markdown
 
-**[alegauss.github.io/roadkeep](https://alegauss.github.io/roadkeep/)** · [docs](https://alegauss.github.io/roadkeep/docs/)
+**[alegauss.com/roadkeep](https://alegauss.com/roadkeep/)** · [docs](https://alegauss.com/roadkeep/docs/)
 
 </div>
 
@@ -97,7 +97,7 @@ declares your roadmap untouched: the prefix comes off the ids it already carries
 blocks off its own headings. On a new project, a bare `init` writes the config and the empty
 files. Years of lines written before the rules can be forgiven by name with `--baseline`, so
 the gate goes into CI on the first day. The whole run, with every refusal it printed, is in
-[Adopting a backlog you already have](https://alegauss.github.io/roadkeep/docs/adopting/).
+[Adopting a backlog you already have](https://alegauss.com/roadkeep/docs/adopting/).
 
 From then on, ask in plain words:
 
@@ -110,7 +110,7 @@ From then on, ask in plain words:
 Claude calls `add`, `pick` and `ship`. If the symptom is too long, the refusal says by how
 much, and `ship` moves the line to the changelog and drops its rationale section in one write.
 If Claude reaches for `Edit` on the roadmap out of habit, the hook stops it and names the call.
-[In a session](https://alegauss.github.io/roadkeep/docs/session/) covers everything the agent
+[In a session](https://alegauss.com/roadkeep/docs/session/) covers everything the agent
 receives.
 
 ## Run it as a gate
@@ -166,7 +166,7 @@ the MCP server point at instead of the plugin root. It finds an engine at run ti
 guard stands down where the plugin is installed. [Viglet Shio](https://github.com/openviglet/shio) carries
 the reference copy at
 [`.claude/hooks/roadkeep-launch.py`](https://github.com/openviglet/shio/blob/main/.claude/hooks/roadkeep-launch.py),
-and [In a session](https://alegauss.github.io/roadkeep/docs/session/) explains the wiring.
+and [In a session](https://alegauss.com/roadkeep/docs/session/) explains the wiring.
 
 ### From a checkout beside it
 
@@ -257,14 +257,14 @@ own conformance fixture: `roadkeep lint` must pass on `docs/` here, and the suit
 
 For Claude Code:
 
-- **[Claude Code Tray](https://alegauss.github.io/claude-tray/)**: your rate-limit usage as a Windows tray icon that turns red before you run out.
-- **[commitclerk](https://alegauss.github.io/commitclerk/)**: Conventional Commits messages from your staged diff, in a single-file Python CLI.
-- **[polyweave](https://alegauss.github.io/polyweave/)**: a Claude Code plugin that makes a game's 3D assets, sounds and names by declaring what each has to satisfy.
+- **[Claude Code Tray](https://alegauss.com/claude-tray/)**: your rate-limit usage as a Windows tray icon that turns red before you run out.
+- **[commitclerk](https://alegauss.com/commitclerk/)**: Conventional Commits messages from your staged diff, in a single-file Python CLI.
+- **[polyweave](https://alegauss.com/polyweave/)**: a Claude Code plugin that makes a game's 3D assets, sounds and names by declaring what each has to satisfy.
 
 For Windows developers:
 
-- **[winwright](https://alegauss.github.io/winwright/)**: drives a Windows desktop app from a test and reports what was actually observed.
-- **[FreeHarbor](https://alegauss.github.io/freeharbor/)**: Docker on Windows without Docker Desktop, with no admin prompt and no telemetry.
-- **[Quickshell](https://alegauss.github.io/quickshell/)**: an SSH client for Windows with sessions, keys, SFTP and tunnels, and without the rest of the suite.
+- **[winwright](https://alegauss.com/winwright/)**: drives a Windows desktop app from a test and reports what was actually observed.
+- **[FreeHarbor](https://alegauss.com/freeharbor/)**: Docker on Windows without Docker Desktop, with no admin prompt and no telemetry.
+- **[Quickshell](https://alegauss.com/quickshell/)**: an SSH client for Windows with sessions, keys, SFTP and tunnels, and without the rest of the suite.
 
-All of them: [alegauss.github.io](https://alegauss.github.io/)
+All of them: [alegauss.com](https://alegauss.com/)

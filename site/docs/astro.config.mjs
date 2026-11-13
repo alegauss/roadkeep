@@ -1,4 +1,4 @@
-// The documentation area, at https://alegauss.github.io/roadkeep/docs/.
+// The documentation area, at https://alegauss.com/roadkeep/docs/.
 //
 // Why an area at all: the README is the only prose this project publishes for a person and it
 // is one file, so a link to any part of it is a link to the whole thing — and everything
@@ -75,7 +75,7 @@ function referenceInOrder() {
 }
 
 export default defineConfig({
-  site: "https://alegauss.github.io",
+  site: "https://alegauss.com",
   base: BASE,
   outDir: OUT_DIR,
 

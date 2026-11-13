@@ -3,9 +3,9 @@ import { Landing } from "./pages/Landing";
 import { meta } from "./lib/site-content";
 
 // GitHub Pages derives the base from the repository name: the site is served at
-// https://alegauss.github.io/roadkeep/, so the canonical, the og:url, the sitemap and every
+// https://alegauss.com/roadkeep/, so the canonical, the og:url, the sitemap and every
 // output path carry it. Written here and in vite.config.ts, and nowhere else.
-export const SITE_ORIGIN = "https://alegauss.github.io";
+export const SITE_ORIGIN = "https://alegauss.com";
 export const BASE = "/roadkeep/";
 
 // The social card. Absolute, because a platform fetching the card is not on this origin — a

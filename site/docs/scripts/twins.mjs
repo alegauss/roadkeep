@@ -123,7 +123,7 @@ if (empty.length) {
 
 // The index. Generated rather than kept by hand, which is stronger than the check RK1410 asked
 // for: a page cannot be added without an entry, because the entry is derived from the page.
-const base = "https://alegauss.github.io/roadkeep/docs";
+const base = "https://alegauss.com/roadkeep/docs";
 const index = [
   "# roadkeep — the documentation area",
   "",
