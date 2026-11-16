@@ -40,9 +40,22 @@ function escapeHtml(s) {
 // The authored tree is named, because this site's sources sit beside generated ones.
 const lastmod = lastAuthoredChange(root, ['src', 'public', 'index.html'])
 
+/** A route's breadcrumb name: its last path segment, each word capitalised. */
+const crumbName = (path) =>
+  path
+    .replace(/\/$/, '')
+    .split('/')
+    .pop()
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+
 prerenderSite({
   distDir,
-  routes: ROUTE_META,
+  // VDS253: each route's crumb is its last path segment, title-cased (`/features/locate` -> "Locate");
+  // the <title> is a sentence, too long for a breadcrumb.
+  routes: ROUTE_META.map((route) => ({ ...route, breadcrumb: crumbName(route.path) })),
+  breadcrumbs: { name: 'GUI', above: [{ name: 'alegauss.com', url: 'https://alegauss.com/' }, { name: 'roadkeep', url: 'https://alegauss.com/roadkeep/' }] },
   render,
   canonicalUrl,
   outputDir,
