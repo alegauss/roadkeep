@@ -650,11 +650,15 @@ class Backlog {
       return item;
     }
     if (row.group) {
+      // The label and the heading the roadmap gives it (RK1753): fourteen bare letters say
+      // nothing about what each block is for, and the title is what does.
       const item = new vscode.TreeItem(
-        row.group,
+        row.title ? `${row.group}  ${row.title}` : row.group,
         vscode.TreeItemCollapsibleState.Expanded
       );
       item.description = `${row.tasks.length}`;
+      // The verb's own sentence about the block — live, finished or empty, with its counts.
+      item.tooltip = row.sentence || undefined;
       item.contextValue = "block";
       return item;
     }
@@ -792,13 +796,24 @@ class Backlog {
         grouped.set(block, []);
       }
     }
+    // Each block's heading, in the order the file declares them (RK1753). A failed read
+    // falls back to the bare label, which is still the payload's and never a guess.
+    const heads = await payload(this.root, ["block", "list"]);
+    const declared = heads.error ? [] : heads.value.blocks;
+    const titled = new Map(declared.map((one) => [one.block, one]));
+    const order = [
+      ...declared.map((one) => one.block).filter((block) => grouped.has(block)),
+      ...[...grouped.keys()].filter((block) => !titled.has(block)),
+    ];
     return [
       said,
       header,
       ...(paused.notice ? [paused.notice] : []),
-      ...[...grouped].map(([block, tasks]) => ({
+      ...order.map((block) => ({
         group: block,
-        tasks,
+        title: titled.has(block) ? titled.get(block).title : "",
+        sentence: titled.has(block) ? titled.get(block).sentence : "",
+        tasks: grouped.get(block),
         pauses: paused.grouped.get(block) || [],
       })),
     ];

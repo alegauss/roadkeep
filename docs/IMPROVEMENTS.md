@@ -112,18 +112,6 @@ leaves the target linted and the source retired with a resolvable pointer.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-### §RK1753 Block titles in the editor view
-
-Each group node is labelled with `task.block`, the bare label such as `G`. The heading
-the roadmap gives it, "The editor surface (the backlog where the file is open)", is what
-tells a reader what the block is for, and the panel drops it. A project with fourteen
-blocks becomes fourteen letters.
-
-`block list --json` already returns each label with its title, state and open and
-recorded counts, in file order. The view should ask it once per refresh and label each
-group `G  The editor surface` instead. It should show the open count as the description
-and the state (live, finished, empty) in the tooltip. Ordering should stay the file's.
-
 ### §RK1754 Design sections from the editor view
 
 Clicking a row opens the roadmap at the line. The line carries a pointer to its design

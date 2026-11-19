@@ -147,7 +147,11 @@ def test_the_host_reads_only_keys_a_payload_promises():
     #: here before it is a dead list in TOML.
     #: `list --stale` since RK1752: the deferred store, a payload of its own with the two keys
     #: (`since`, `reason`) the roadmap listing never carries.
-    read_by_host = ("list", "list --stale", "deps", "lint", "budget", "stats", "engines", "config")
+    #: And `block list` since RK1753, whose headings label the groups.
+    read_by_host = (
+        "list", "list --stale", "block list", "deps", "lint", "budget", "stats", "engines",
+        "config",
+    )
     # Derived since RK1645, where this was a union of fourteen `set(...)` terms — two per verb,
     # plus a fifteenth for the second list `config` grew and a sixteenth waiting for the third.
     # The host's **own** two rows are named beside them, being keys no payload ever carried:
@@ -165,7 +169,7 @@ def test_the_host_reads_only_keys_a_payload_promises():
     # under a block, and the row it wraps each stale line in.
     # The receivers a payload is bound to, named rather than matched by `.value.` alone: an
     # input box also has a `value`, and `box.value.length` is a string's length, not a key.
-    holders = ("answer", "budget", "blocks", "engines", "counted", "stale")
+    holders = ("answer", "budget", "blocks", "engines", "counted", "stale", "heads")
     for holder in holders:
         assert f"{holder}.value" in source, f"{holder} stopped holding a payload"
     read = set(re.findall(rf"(?:{'|'.join(holders)})\.value\.(\w+)|\brow\.(\w+)", source))
@@ -287,7 +291,8 @@ def test_the_tree_groups_by_block_and_separates_what_is_blocked(populated):
     assert "notice" not in tree, tree.get("notice")
     assert tree["blocks"], "the harness read no block at all"
     for block in tree["blocks"]:
-        assert block["label"] == block["group"]
+        # The label leads, and the heading follows it (RK1753).
+        assert block["label"].startswith(block["group"])
         ids = [row["id"] for row in block["rows"]]
         assert len(set(ids)) == len(ids), f"block {block['group']} repeats a line"
         blocked = [index for index, row in enumerate(block["rows"]) if row["blockers"]]
@@ -704,11 +709,34 @@ def test_a_deferred_line_is_shown_under_its_block_with_the_reason_it_stopped(tmp
     assert blocks["A"]["pauses"] == [], "a block with nothing paused grows no deferred node"
     assert blocks["B"]["rows"] == [], "the paused line is not also an open one"
     (pause,) = blocks["B"]["pauses"]
-    assert pause["id"] == "RK2" and "RK2" in pause["label"]
+    assert pause["id"] == "RK2"
+    assert "RK2" in pause["label"]
     assert pause["description"] == "waits on a person"
     assert pause["context"] == "deferred", "the resume action is offered on this row"
     assert Path(pause["opens"]).as_posix().endswith("docs/DEFERRED.md")
     assert pause["line"] >= 0
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_a_block_is_labelled_with_the_heading_the_roadmap_gives_it(tmp_path):
+    """RK1753. A group labelled `B` says nothing about what the block is for; the heading
+    does. Both come from `block list`, in the file's order, and the tooltip is that verb's own
+    sentence about the block — so nothing here decides what *live* means."""
+    root = tmp_path / "project"
+    root.mkdir()
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    assert main(["-C", str(root), "block", "add", "B", "--title", "The second one"]) == EXIT_OK
+    for block in ("B", "A"):
+        assert main([
+            "-C", str(root), "add", "--block", block,
+            "--symptom", f"A thing in block {block} does not work here",
+            "--why", "Because nothing holds it.",
+        ]) == EXIT_OK
+    said = _harness(root)
+    assert [block["group"] for block in said["blocks"]] == ["A", "B"], "the file's order"
+    second = said["blocks"][1]
+    assert second["label"] == "B  The second one"
+    assert "Block B" in second["tooltip"]
 
 
 @pytest.mark.skipif(not NODE, reason="node is not on PATH")

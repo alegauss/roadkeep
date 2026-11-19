@@ -1181,6 +1181,7 @@
 - ✅ **RK1425** **The editor offers every complete door of a finding as an independent quick fix, including a sequence's second step** — A sequence is one action naming its steps in order, or none where the first is prose, and roadkeep.run takes a list of argvs so both shapes compose the same way.
 - ✅ **RK1426** **A finding the gate files with no line loses its doors in the editor, which offers only the explanation** — One reading anchors the diagnostic and keys the remedy, so every finding filed against roadkeep.toml reaches its doors in the panel.
 - ✅ **RK1752** **A deferred line vanishes from the editor view, so nobody can see which tasks are paused or why** — The editor view shows each block's paused lines under a Deferred node, with the reason, the age and a resume action, read from list --stale.
+- ✅ **RK1753** **The editor view labels each block with its bare letter, so a reader cannot tell what block G is about** — The editor labels each block with the heading the roadmap gives it, in file order, and its tooltip carries the block list sentence about it.
 
 ## Block H — The tool's own shape (what one verb costs to change)
 

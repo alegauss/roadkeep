@@ -208,6 +208,7 @@ async function main() {
       group: block.group,
       rows: rows.map((row) => ({ id: row.id, blockers: row.blockers })),
       label: backlog.getTreeItem(block).label,
+      tooltip: backlog.getTreeItem(block).tooltip,
       pauses,
     });
   }

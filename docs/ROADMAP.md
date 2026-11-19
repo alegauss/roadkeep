@@ -38,7 +38,6 @@
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-- 📋 **RK1753** (deps: —) **The editor view labels each block with its bare letter, so a reader cannot tell what block G is about** — Groups take task.block from list, while the title the roadmap gives each block is in block list and never reaches the tree. → §RK1753
 - 📋 **RK1754** (deps: —) **A task's design section cannot be read from the editor view; reaching it means searching IMPROVEMENTS.md by hand** — A row opens only the roadmap line, so the pointer it carries is followed by a file search that section show would answer in one call. → §RK1754
 - 📋 **RK1755** (deps: —) **The editor offers one backlog tree, so the other files roadkeep governs have no place to be browsed** — Everything hangs from roadkeep.backlog, so each asset added would lengthen one tree rather than give it a view a reader can navigate. → §RK1755
 - 📋 **RK1756** (deps: RK1755) **The editor shows no shipped work, so what a block already delivered is a terminal command away** — The panel reads only the roadmap, so the ledger half of a block is reachable by delivered or by opening CHANGELOG.md and never beside what is still open. → §RK1756

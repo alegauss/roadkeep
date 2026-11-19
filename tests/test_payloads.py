@@ -81,6 +81,8 @@ PROMISED = {
     # The deferred store, which the editor shows under each block (RK1752): `file` is where
     # selecting a paused row goes, and `order` says the rows are oldest first.
     "list --stale": ("file", "tasks", "total", "order"),
+    # The block headings, which the editor labels its groups with (RK1753).
+    "block list": ("file", "blocks"),
 }
 
 #: The keys inside **every** object a payload here carries a list of. Held apart from the top
@@ -174,6 +176,12 @@ INSIDE = {
     "list --stale": ((
         "tasks",
         ("id", "block", "status", "symptom", "why", "line", "since", "reason"),
+    ),),
+    # A block as the editor's group draws it (RK1753): the label it joins on, the heading it
+    # shows and the verb's own sentence about it, which the tooltip carries verbatim.
+    "block list": ((
+        "blocks",
+        ("block", "title", "sentence", "state", "open"),
     ),),
 }
 
