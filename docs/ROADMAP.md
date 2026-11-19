@@ -30,6 +30,8 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1758** (deps: —) **No read lists the sections a prose file holds, so a client must parse the Markdown to show strategy by heading** — Section show needs an address already known, section find matches body text and anchors walks git without titles, so the editor shows the strategy as one document. → §RK1758
+
 ## Block D — The gate
 
 ## Block E — Adoption
@@ -37,8 +39,6 @@
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)
-
-- 📋 **RK1757** (deps: RK1755 ✅, RK1754 ✅) **Decisions and strategy are absent from the editor view, so reading one means opening the file and scrolling** — Both are governed roles that config and section show already read, yet the panel shows only the roadmap and so cannot answer why a design went one way. → §RK1757
 
 ## Block H — The tool's own shape (what one verb costs to change)
 

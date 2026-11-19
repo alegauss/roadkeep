@@ -104,6 +104,26 @@ leaves the target linted and the source retired with a resolvable pointer.
 
 ## Block C — Query
 
+### §RK1758 Listing the sections of a prose file
+
+The editor's records view (RK1757) can show the strategy only as one document, because
+no read answers "which sections does this prose file hold". `section show` takes an
+address the caller must already know; `section find` matches body text, so listing
+everything would mean searching for a string every section happens to carry; `anchors`
+names live anchors without their titles and walks git history to date them, which is far
+too slow for a view refreshed on save; and `export --contents` writes a table into the
+file rather than answering. A client that wants headings is left to parse the Markdown,
+which is the second reader of the format this project exists to remove.
+
+The read should be `section list [--role R] [--block X] --json`: one row per heading in
+file order, carrying the anchor (null for an unanchored one), the title, the level, the
+line, the word count and the block it sits under, taken from the parse `section show`
+already makes. No git call. With it, the records view lists the strategy by heading, the
+designs view can show the improvements sections by block before anyone searches, and an
+agent can see what a prose file holds without reading it (L5). The payload joins
+`tests/test_payloads.py`'s promises in the same commit, and the editor reads it in a
+follow-up on RK1757's view.
+
 ## Block D — The gate
 
 ## Block E — Adoption
@@ -111,21 +131,6 @@ leaves the target linted and the source retired with a resolvable pointer.
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)
-
-### §RK1757 Decisions and strategy in the editor view
-
-The decision records and the strategy file are governed roles: `roadkeep.toml [files]`
-names them, and `record`, `section show` and `list --role` read them. The panel shows
-neither, so a person asking why a design went one way has to open DECISIONS.md and
-scroll. A project like Turing, which keeps a strategy, has no view of it at all.
-
-Inside the navigation RK1755 gives the governed files, each declared role beyond roadmap
-and changelog should get a node. Decisions should be listed by record id and title, and
-strategy by section heading. A selected item should open in the same read-only preview
-RK1754 uses. A role the project does not declare should produce no node, because an
-absent file means absent and not empty (L6). The view must not hardcode the role names:
-it should read them from `config --json`, so a role added later appears without a
-release of the extension.
 
 ## Block H — The tool's own shape (what one verb costs to change)
 

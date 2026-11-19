@@ -10,6 +10,10 @@ The roadkeep activity-bar container holds one view per question:
 - **Shipped** — what each block delivered, newest first, read one block at a time when it
   is opened. Selecting an entry reveals it in the changelog. In the Backlog view each block
   shows its open count beside its shipped one.
+- **Decisions & strategy** — every other file the project declares, read from `config`. The
+  decision records open into each record (by block, where the file is long), and a record's
+  section opens in the same preview as a design; the strategy opens as the document itself,
+  in the editor's read-only preview. A role the project does not declare has no node.
 
 In the Backlog view, where the project declares a deferred store, each block also holds a
 collapsed **Deferred** node: every paused line with the reason it was set aside, revealed in

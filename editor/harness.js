@@ -282,6 +282,27 @@ async function main() {
     }
   }
 
+  if (process.env.ROADKEEP_RECORDS) {
+    // The records view, every role and block opened as a reader opens it (RK1757).
+    const records = new extension.Records(root);
+    const walk = async (rows) =>
+      Promise.all(
+        rows.map(async (row) => {
+          const item = records.getTreeItem(row);
+          const children = item.collapsibleState ? await records.getChildren(row) : [];
+          return {
+            kind: Object.keys(row)[0],
+            label: item.label,
+            context: item.contextValue,
+            command: item.command ? item.command.command : null,
+            opens: item.command ? item.command.arguments[0].fsPath : null,
+            children: await walk(children),
+          };
+        })
+      );
+    out.records = await walk(await records.getChildren());
+  }
+
   // The gate half: findings become diagnostics anchored where the report points, and a
   // door the tool marked incomplete is offered to nobody.
   const collection = editor.languages.createDiagnosticCollection();

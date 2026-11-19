@@ -89,6 +89,9 @@ PROMISED = {
     "section find": ("text", "total", "carriers"),
     # One block's ledger, which the shipped view opens into (RK1756).
     "list --role changelog": ("file", "tasks", "total"),
+    # The decision records, which the records view opens into (RK1757): `over` is what it
+    # reads to group a listing too long to answer whole into the blocks it names.
+    "list --role decisions": ("file", "tasks", "total", "over"),
 }
 
 #: The keys inside **every** object a payload here carries a list of. Held apart from the top
@@ -194,6 +197,11 @@ INSIDE = {
     "list --role changelog": ((
         "tasks",
         ("id", "block", "status", "symptom", "why", "line", "ref"),
+    ),),
+    # A decision record as the records view draws it (RK1757).
+    "list --role decisions": ((
+        "tasks",
+        ("id", "block", "symptom", "why", "line"),
     ),),
     # A carrier as the designs view draws and opens it (RK1755): the anchor and role a preview
     # is read by, the heading it is labelled with, and how many times it says the text.
@@ -317,7 +325,17 @@ def paused() -> Path:
     assert main(["-C", str(root), "defer", "RK1", "--reason", "waits on a person"]) == EXIT_OK
     # And a ledger entry, for the changelog's listing (RK1756): the stand-in `populated`
     # becomes on an empty backlog declares no changelog at all.
-    assert main(["-C", str(root), "ship", "RK3", "--why", "Now it works."]) == EXIT_OK
+    # And a decision record beside it, for the decisions listing (RK1757).
+    assert main(["-C", str(root), "declare", "decisions"]) == EXIT_OK
+    assert (
+        main(
+            [
+                "-C", str(root), "ship", "RK3", "--why", "Now it works.",
+                "--decides", "A constraint that outlives the code it was decided for.",
+            ]
+        )
+        == EXIT_OK
+    )
     yield root
     shutil.rmtree(root, ignore_errors=True)
 
@@ -330,7 +348,10 @@ def _where(verb: str, dirty: Path, populated: Path, paused: Path) -> tuple[Path,
     store so its payload comes from `paused` (RK1752)."""
     if verb == "lint":
         return dirty, EXIT_GATE
-    if verb in ("list --stale", "section show", "section find", "list --role changelog"):
+    if verb in (
+        "list --stale", "section show", "section find", "list --role changelog",
+        "list --role decisions",
+    ):
         return paused, EXIT_OK
     return populated, EXIT_OK
 

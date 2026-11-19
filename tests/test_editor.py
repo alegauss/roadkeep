@@ -150,10 +150,12 @@ def test_the_host_reads_only_keys_a_payload_promises():
     #: And `block list` since RK1753, whose headings label the groups, and `section show`
     #: since RK1754, whose title and body are the preview and the hover.
     #: And `section find` since RK1755, whose carriers are the designs view's rows.
-    #: And the ledger's listing since RK1756, one block at a time.
+    #: And the ledger's listing since RK1756, one block at a time, and any other role's since
+    #: RK1757 — read for the decision records, the one such role a payload carries rows of.
     read_by_host = (
-        "list", "list --stale", "list --role changelog", "block list", "section show",
-        "section find", "deps", "lint", "budget", "stats", "engines", "config",
+        "list", "list --stale", "list --role changelog", "list --role decisions",
+        "block list", "section show", "section find", "deps", "lint", "budget", "stats",
+        "engines", "config",
     )
     # Derived since RK1645, where this was a union of fourteen `set(...)` terms — two per verb,
     # plus a fifteenth for the second list `config` grew and a sixteenth waiting for the third.
@@ -171,6 +173,8 @@ def test_the_host_reads_only_keys_a_payload_promises():
         "notice", "group", "engine", "detail", "count", "pauses", "paused", "carrier",
         # The ledger view's two (RK1756): a block's heading node and the row per entry.
         "ledger", "entry",
+        # The records view's four (RK1757): a role, a block of it, the document and a record.
+        "record", "shelf", "document", "decision",
     }
     # `carrier` is the host's too (RK1755): the row it wraps each `section find` carrier in.
     # `pauses` and `paused` are the host's own as well (RK1752): the deferred node it makes
@@ -214,6 +218,8 @@ def test_the_extension_exports_the_two_hooks_and_names_what_else_it_exports():
         "Designs",
         # RK1756. The ledger view, for which entries a block opens into and in what order.
         "Shipped",
+        # RK1757. The records view, for which roles it shows and what each opens into.
+        "Records",
     ]
     assert "function activate(" in source and "function deactivate(" in source
 
@@ -231,6 +237,7 @@ def _harness(
     design: str = "",
     find: str = "",
     shipped: bool = False,
+    records: bool = False,
 ) -> dict:
     """Run the stubbed host against **this checkout's** roadkeep and read its report back.
 
@@ -280,6 +287,9 @@ def _harness(
     if shipped:
         # Open every block of the ledger view (RK1756).
         env["ROADKEEP_SHIPPED"] = "1"
+    if records:
+        # Open every role of the records view (RK1757).
+        env["ROADKEEP_RECORDS"] = "1"
     said = subprocess.run(
         [NODE, str(EDITOR / "harness.js"), str(root)],
         capture_output=True,
@@ -820,7 +830,9 @@ def test_the_container_holds_one_view_per_question(manifest):
     container holds a view per question instead, and the designs view — empty until somebody
     searches — says how to search through a welcome that links a command the host registers."""
     views = [one["id"] for one in manifest["contributes"]["views"]["roadkeep"]]
-    assert views[:3] == ["roadkeep.backlog", "roadkeep.designs", "roadkeep.shipped"]
+    assert views == [
+        "roadkeep.backlog", "roadkeep.designs", "roadkeep.shipped", "roadkeep.records",
+    ]
     (welcome,) = [
         one for one in manifest["contributes"]["viewsWelcome"] if one["view"] == "roadkeep.designs"
     ]
@@ -899,6 +911,49 @@ def test_what_a_block_shipped_is_listed_newest_first_beside_what_it_owes(tmp_pat
     assert Path(ledger["entries"][0]["opens"]).as_posix().endswith("docs/CHANGELOG.md")
     (block,) = said["blocks"]
     assert block["description"] == "1 open · 2 shipped"
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_decisions_and_strategy_are_each_a_node_of_what_they_hold(tmp_path):
+    """RK1757. A role the config declares and no other view shows is a node, read from
+    `config` and never from a list of names: the decision records open into each record,
+    revealed in its file, and the strategy — prose with no records — into its own document,
+    in the editor's read-only preview."""
+    root = tmp_path / "project"
+    root.mkdir()
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    assert main(["-C", str(root), "declare", "decisions"]) == EXIT_OK
+    assert main(["-C", str(root), "declare", "strategy"]) == EXIT_OK
+    assert main([
+        "-C", str(root), "add", "--block", "A",
+        "--symptom", "A thing in block A does not work here",
+        "--why", "Because nothing holds it.",
+    ]) == EXIT_OK
+    assert main([
+        "-C", str(root), "ship", "RK1", "--why", "Now it works.",
+        "--decides", "A constraint that outlives the code it was decided for.",
+    ]) == EXIT_OK
+    roles = {one["label"]: one for one in _harness(root, records=True)["records"]}
+    assert set(roles) == {"decisions", "strategy"}, "only the roles no other view shows"
+    (record,) = roles["decisions"]["children"]
+    assert record["kind"] == "decision"
+    assert record["label"].startswith("RK1")
+    assert record["context"] == "record", "the design action is offered on it"
+    assert Path(record["opens"]).as_posix().endswith("docs/DECISIONS.md")
+    (document,) = roles["strategy"]["children"]
+    assert document["kind"] == "document"
+    assert document["command"] == "markdown.showPreview"
+    assert Path(document["opens"]).as_posix().endswith("docs/STRATEGY.md")
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_a_project_declaring_neither_has_no_record_node(tmp_path):
+    """The other half (RK1757): an absent file is absent and not empty, so the view holds
+    nothing and the manifest's welcome says which verbs would add one."""
+    root = tmp_path / "project"
+    root.mkdir()
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    assert _harness(root, records=True)["records"] == []
 
 
 @pytest.mark.skipif(not NODE, reason="node is not on PATH")

@@ -2,7 +2,7 @@
   "name": "roadkeep",
   "displayName": "roadkeep",
   "description": "The backlog this workspace governs, read by the command that owns it.",
-  "version": "0.2.617",
+  "version": "0.2.618",
   "publisher": "alegauss",
   "license": "MIT",
   "engines": {
@@ -38,6 +38,10 @@
         {
           "id": "roadkeep.shipped",
           "name": "Shipped"
+        },
+        {
+          "id": "roadkeep.records",
+          "name": "Decisions & strategy"
         }
       ]
     },
@@ -45,6 +49,10 @@
       {
         "view": "roadkeep.designs",
         "contents": "Find a design section by a word, an id or a heading it carries.\n[Find a design](command:roadkeep.find)"
+      },
+      {
+        "view": "roadkeep.records",
+        "contents": "This project declares no decision records and no strategy. `roadkeep declare decisions` and `roadkeep declare strategy` add them, and they appear here."
       }
     ],
     "commands": [
@@ -118,6 +126,11 @@
         {
           "command": "roadkeep.design",
           "when": "view == roadkeep.shipped && viewItem == entry-designed",
+          "group": "inline"
+        },
+        {
+          "command": "roadkeep.design",
+          "when": "view == roadkeep.records && viewItem == record",
           "group": "inline"
         }
       ],

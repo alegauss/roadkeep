@@ -882,6 +882,10 @@ function subject(row) {
   if (row?.entry) {
     return row.entry.ref || row.entry.id;
   }
+  // A decision record opens its own section, in its own file (RK1757).
+  if (row?.decision) {
+    return row.decision.id;
+  }
   return row?.id ?? row;
 }
 
@@ -1085,6 +1089,124 @@ class Shipped {
 }
 
 /**
+ * The roles no other view shows, so each has a view of its own (RK1757): what the project
+ * declares beyond the four the backlog, designs and shipped views already read. Names of the
+ * views' own roles, which are the tool's vocabulary and not a project's — a role the tool
+ * adds later is not in this list, and so appears here without a release of this extension.
+ */
+const SHOWN_ELSEWHERE = ["roadmap", "deferred", "changelog", "improvements"];
+
+/**
+ * The decision records and the strategy, and any role declared beside them (RK1757).
+ *
+ * Read from `config`'s `files`, never from a list of names: an absent file is absent and not
+ * empty (L6), so a project that declares no strategy gets no strategy node. Each role opens
+ * by what `list --role` says it holds — **records**, grouped by block where the listing is too
+ * long to answer whole, or **prose** alone, which is a document the editor's own preview
+ * shows read-only. No reading of the Markdown happens here, in either case.
+ */
+class Records {
+  constructor(root, settings) {
+    this.root = root;
+    this.settings = settings || new Settings(root);
+    this.changed = new vscode.EventEmitter();
+    this.onDidChangeTreeData = this.changed.event;
+  }
+
+  refresh() {
+    this.changed.fire();
+  }
+
+  /** Where a role's file is, as an editor addresses it. */
+  at(file) {
+    return vscode.Uri.joinPath(vscode.Uri.file(this.root), ...file.split("/"));
+  }
+
+  getTreeItem(row) {
+    if (row.notice) {
+      const item = new vscode.TreeItem(row.notice);
+      item.iconPath = new vscode.ThemeIcon("warning");
+      return item;
+    }
+    if (row.record) {
+      const item = new vscode.TreeItem(row.record, vscode.TreeItemCollapsibleState.Collapsed);
+      item.description = row.file;
+      item.iconPath = new vscode.ThemeIcon("library");
+      item.contextValue = "role";
+      return item;
+    }
+    if (row.shelf) {
+      const item = new vscode.TreeItem(
+        row.shelf.name,
+        vscode.TreeItemCollapsibleState.Collapsed
+      );
+      item.description = `${row.shelf.counted}`;
+      item.contextValue = "shelf";
+      return item;
+    }
+    if (row.document) {
+      // Prose with no records: the file itself, in the editor's read-only preview.
+      const item = new vscode.TreeItem(`Read ${row.file}`);
+      item.iconPath = new vscode.ThemeIcon("open-preview");
+      item.contextValue = "document";
+      item.command = {
+        command: "markdown.showPreview",
+        title: "Preview the document",
+        arguments: [this.at(row.file)],
+      };
+      return item;
+    }
+    const one = row.decision;
+    const item = new vscode.TreeItem(`${one.id}  ${one.symptom}`);
+    item.tooltip = one.why;
+    item.iconPath = new vscode.ThemeIcon("law");
+    item.contextValue = "record";
+    item.command = {
+      command: "vscode.open",
+      title: "Reveal the record",
+      arguments: [this.at(row.file), { selection: new vscode.Range(one.line - 1, 0, one.line - 1, 0) }],
+    };
+    return item;
+  }
+
+  async getChildren(parent) {
+    if (!parent) {
+      const roles = await this.settings.roles();
+      return Object.keys(roles)
+        .filter((role) => !SHOWN_ELSEWHERE.includes(role))
+        .map((role) => ({ record: role, file: roles[role] }));
+    }
+    if (parent.record) {
+      return this.listing(parent.record, []);
+    }
+    if (parent.shelf) {
+      return this.listing(parent.shelf.role, ["--block", parent.shelf.label]);
+    }
+    return [];
+  }
+
+  /** One role's listing, or one block of it: records, blocks to open, or the document. */
+  async listing(role, narrowed) {
+    const listed = await payload(this.root, ["list", "--role", role, ...narrowed]);
+    if (listed.error) {
+      return [{ notice: listed.error }];
+    }
+    const file = listed.value.file;
+    if (listed.value.over) {
+      // Too long to answer whole, which `[reads] list` decides: the blocks it names instead,
+      // each opened by the narrowing the payload itself suggests.
+      return listed.value.over.blocks
+        .filter((one) => one.counted > 0)
+        .map((one) => ({ shelf: { ...one, role } }));
+    }
+    if (listed.value.tasks.length) {
+      return listed.value.tasks.map((one) => ({ decision: one, file, recordRole: role }));
+    }
+    return [{ document: role, file }];
+  }
+}
+
+/**
  * Whether a saved document is where this project's declaration lives (RK1277).
  *
  * By name and not by a rule: `roadkeep.toml` is the tool's own file — the manifest already
@@ -1130,6 +1252,11 @@ function activate(context) {
   const shippedView = vscode.window.createTreeView("roadkeep.shipped", {
     treeDataProvider: shipped,
   });
+  // Every other role the project declares — decisions, strategy (RK1757).
+  const records = new Records(root, settings);
+  const recordsView = vscode.window.createTreeView("roadkeep.records", {
+    treeDataProvider: records,
+  });
   // Which copy answered, on the status bar: a fact about the installation, always in sight
   // and costing no row (RK1755, RK1009).
   const engineBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
@@ -1147,6 +1274,7 @@ function activate(context) {
   const both = async () => {
     backlog.refresh();
     shipped.refresh();
+    records.refresh();
     await designs.refresh();
     const said = await gate.check();
     return said;
@@ -1178,6 +1306,7 @@ function activate(context) {
     backlogView,
     designsView,
     shippedView,
+    recordsView,
     engineBar,
     // The way into the designs view (RK1755): a word, an id or a heading, answered by
     // `section find` across every prose file the project declares.
@@ -1266,7 +1395,8 @@ function activate(context) {
       if (!id) {
         return;
       }
-      const role = row?.role;
+      // A record row knows its file only by path; the role is the view's node above it.
+      const role = row?.role || row?.recordRole;
       const said = await design.read(id, role);
       if (said.error) {
         vscode.window.showInformationMessage(said.error);
@@ -1309,4 +1439,5 @@ function deactivate() {}
 // and breaks silently.
 module.exports = {
   activate, deactivate, Backlog, Gate, Settings, compose, declares, Design, Designs, Shipped,
+  Records,
 };
