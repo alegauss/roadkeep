@@ -2,7 +2,7 @@
   "name": "roadkeep",
   "displayName": "roadkeep",
   "description": "The backlog this workspace governs, read by the command that owns it.",
-  "version": "0.2.615",
+  "version": "0.2.616",
   "publisher": "alegauss",
   "license": "MIT",
   "engines": {
@@ -30,9 +30,19 @@
         {
           "id": "roadkeep.backlog",
           "name": "Backlog"
+        },
+        {
+          "id": "roadkeep.designs",
+          "name": "Designs"
         }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "roadkeep.designs",
+        "contents": "Find a design section by a word, an id or a heading it carries.\n[Find a design](command:roadkeep.find)"
+      }
+    ],
     "commands": [
       {
         "command": "roadkeep.add",
@@ -65,6 +75,11 @@
         "command": "roadkeep.design",
         "title": "roadkeep: Open this line's design",
         "icon": "$(book)"
+      },
+      {
+        "command": "roadkeep.find",
+        "title": "roadkeep: Find a design",
+        "icon": "$(search)"
       }
     ],
     "menus": {
@@ -77,6 +92,11 @@
         {
           "command": "roadkeep.refresh",
           "when": "view == roadkeep.backlog",
+          "group": "navigation"
+        },
+        {
+          "command": "roadkeep.find",
+          "when": "view == roadkeep.designs",
           "group": "navigation"
         }
       ],

@@ -85,6 +85,8 @@ PROMISED = {
     "block list": ("file", "blocks"),
     # A line's design, which the editor previews and hovers (RK1754).
     "section show": ("anchor", "title", "file", "body"),
+    # The designs view's search (RK1755): what was asked, how many, and the carriers.
+    "section find": ("text", "total", "carriers"),
 }
 
 #: The keys inside **every** object a payload here carries a list of. Held apart from the top
@@ -184,6 +186,12 @@ INSIDE = {
     "block list": ((
         "blocks",
         ("block", "title", "sentence", "state", "open"),
+    ),),
+    # A carrier as the designs view draws and opens it (RK1755): the anchor and role a preview
+    # is read by, the heading it is labelled with, and how many times it says the text.
+    "section find": ((
+        "carriers",
+        ("anchor", "role", "file", "line", "title", "count"),
     ),),
 }
 
@@ -311,7 +319,7 @@ def _where(verb: str, dirty: Path, populated: Path, paused: Path) -> tuple[Path,
     store so its payload comes from `paused` (RK1752)."""
     if verb == "lint":
         return dirty, EXIT_GATE
-    if verb in ("list --stale", "section show"):
+    if verb in ("list --stale", "section show", "section find"):
         return paused, EXIT_OK
     return populated, EXIT_OK
 
@@ -345,6 +353,9 @@ def _argv(verb: str, root: Path | None = None) -> tuple[str, ...]:
         # The one line in `paused` that carries a design, read off its listing (RK1754).
         tasks = payload("list", root=root)["tasks"]
         return ("section", "show", tasks[0]["id"])
+    if verb == "section find":
+        # A word that design's body carries, written by the fixture (RK1755).
+        return ("section", "find", "body")
     if verb == "budget":
         # A block that exists, read off the backlog for `deps`' reason: a letter typed here
         # is a letter that stops being declared.

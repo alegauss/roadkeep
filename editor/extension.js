@@ -617,6 +617,11 @@ class Backlog {
     // process and never on a path that writes. A CLI invocation is a process, so a view that
     // shelled out per save asked it per save, on a keystroke nobody thinks about.
     this.engine = null;
+    // The view's own status, off the rows since RK1755: which copy answered and how much
+    // work there is. `announce` is where the host puts them — the view header and the status
+    // bar in an editor, nothing in a harness that reads `status` directly.
+    this.status = { engine: null, count: null };
+    this.announce = () => {};
   }
 
   /** A save: the reads about the file, and not the one about the tool. */
@@ -635,20 +640,6 @@ class Backlog {
     if (row.notice) {
       const item = new vscode.TreeItem(row.notice);
       item.iconPath = new vscode.ThemeIcon("warning");
-      return item;
-    }
-    if (row.count) {
-      const item = new vscode.TreeItem(row.count);
-      item.description = row.detail;
-      item.iconPath = new vscode.ThemeIcon("list-unordered");
-      item.contextValue = "count";
-      return item;
-    }
-    if (row.engine) {
-      const item = new vscode.TreeItem(row.engine);
-      item.description = row.detail;
-      item.iconPath = new vscode.ThemeIcon("versions");
-      item.contextValue = "engine";
       return item;
     }
     if (row.group) {
@@ -819,9 +810,18 @@ class Backlog {
       ...declared.map((one) => one.block).filter((block) => grouped.has(block)),
       ...[...grouped.keys()].filter((block) => !titled.has(block)),
     ];
+    // Which copy answered and how much work there is are about the whole view, not about a
+    // row (RK1755): they go to the view's header and the status bar, and the top of the tree
+    // is the backlog. A failed read of either stays a row, because a warning nobody sees is
+    // the quiet failure RK1009 exists to prevent.
+    this.status = {
+      engine: said.notice ? null : said,
+      count: header.notice ? null : header,
+    };
+    this.announce(this.status);
     return [
-      said,
-      header,
+      ...(said.notice ? [said] : []),
+      ...(header.notice ? [header] : []),
       ...(paused.notice ? [paused.notice] : []),
       ...order.map((block) => ({
         group: block,
@@ -884,8 +884,12 @@ class Design {
   }
 
   /** The section, or the tool's own sentence about why there is none — and the door. */
-  async read(id) {
-    const shown = await payload(this.root, ["section", "show", id]);
+  async read(id, role) {
+    // Which prose file, where the caller knows (RK1755): a decision record's anchor is not
+    // in the improvements file, and `section show` reads that one unless told otherwise.
+    const shown = await payload(this.root, [
+      "section", "show", id, ...(role ? ["--role", role] : []),
+    ]);
     if (shown.error) {
       // The verb's refusal verbatim, and the verb that writes one: an empty preview would
       // claim a design exists and says nothing.
@@ -899,15 +903,16 @@ class Design {
     };
   }
 
-  /** The address a line's design is previewed at. */
-  uri(id) {
-    return vscode.Uri.parse(`${SCHEME}:/${id}.md`);
+  /** The address a section is previewed at: `/<id>.md`, or `/<role>/<id>.md` (RK1755). */
+  uri(id, role) {
+    return vscode.Uri.parse(`${SCHEME}:/${role ? `${role}/` : ""}${id}.md`);
   }
 
   async provideTextDocumentContent(uri) {
-    const id = uri.path.replace(/^\//, "").replace(/\.md$/, "");
-    // Read from the address, so a preview reopened after a reload still knows its line.
-    const said = await this.read(id);
+    // Read from the address, so a preview reopened after a reload still knows its section.
+    const parts = uri.path.replace(/^\//, "").replace(/\.md$/, "").split("/");
+    const id = parts.pop();
+    const said = await this.read(id, parts[0]);
     return said.error || said.content;
   }
 
@@ -916,6 +921,69 @@ class Design {
     const said = await this.read(row.id);
     const opening = said.error ? "" : said.body.split("\n\n")[0];
     return new vscode.MarkdownString(opening ? `${row.why}\n\n---\n\n${opening}` : row.why);
+  }
+}
+
+/**
+ * The design sections, found by what they say (RK1755).
+ *
+ * Its own view rather than another branch of the backlog: a design is reached by a question
+ * — *which section talks about the deferred store* — and not by walking blocks. `section
+ * find` already answers that across every prose file, so the rows are its carriers and the
+ * search is the only way in. Empty until somebody asks, which is the welcome the manifest
+ * declares rather than a row this provider invents.
+ */
+class Designs {
+  constructor(root) {
+    this.root = root;
+    this.changed = new vscode.EventEmitter();
+    this.onDidChangeTreeData = this.changed.event;
+    //: What was searched for, and the rows it found; null until the first search.
+    this.text = "";
+    this.found = null;
+  }
+
+  /** Ask `section find`, keep the answer, and say how many carried it. */
+  async search(text) {
+    this.text = text;
+    const answer = await payload(this.root, ["section", "find", text]);
+    this.found = answer.error
+      ? [{ notice: answer.error }]
+      : answer.value.carriers.map((one) => ({ carrier: one }));
+    this.total = answer.error ? 0 : answer.value.total;
+    this.changed.fire();
+    return this.found;
+  }
+
+  /** Search again for the same text, after a save moved what the files say. */
+  async refresh() {
+    if (this.text) {
+      await this.search(this.text);
+    }
+  }
+
+  getTreeItem(row) {
+    if (row.notice) {
+      const item = new vscode.TreeItem(row.notice);
+      item.iconPath = new vscode.ThemeIcon("warning");
+      return item;
+    }
+    const one = row.carrier;
+    const item = new vscode.TreeItem(`§${one.anchor}  ${one.title}`);
+    item.description = `${one.role} · ${one.count}`;
+    item.tooltip = `${one.file}:${one.line}`;
+    item.iconPath = new vscode.ThemeIcon("book");
+    item.contextValue = "design";
+    item.command = {
+      command: "roadkeep.design",
+      title: "Open the design",
+      arguments: [{ id: one.anchor, role: one.role }],
+    };
+    return item;
+  }
+
+  getChildren(parent) {
+    return parent || this.found === null ? [] : this.found;
   }
 }
 
@@ -950,8 +1018,33 @@ function activate(context) {
   const backlog = new Backlog(root, settings, design);
   const diagnostics = vscode.languages.createDiagnosticCollection("roadkeep");
   const gate = new Gate(root, diagnostics);
+  const designs = new Designs(root);
+  // One view per question (RK1755), each its own tree in the container: the backlog, and the
+  // designs found by what they say. Views and not registrations, because a view carries a
+  // header — where how much work there is now goes, off the top of the tree.
+  const backlogView = vscode.window.createTreeView("roadkeep.backlog", {
+    treeDataProvider: backlog,
+  });
+  const designsView = vscode.window.createTreeView("roadkeep.designs", {
+    treeDataProvider: designs,
+  });
+  // Which copy answered, on the status bar: a fact about the installation, always in sight
+  // and costing no row (RK1755, RK1009).
+  const engineBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+  engineBar.command = "roadkeep.refresh";
+  backlog.announce = (status) => {
+    backlogView.description = status.count ? status.count.count : "";
+    if (status.engine) {
+      engineBar.text = `$(versions) roadkeep ${status.engine.engine}`;
+      engineBar.tooltip = `${status.engine.detail}\nclick to re-read the engine and the backlog`;
+      engineBar.show();
+    } else {
+      engineBar.hide();
+    }
+  };
   const both = async () => {
     backlog.refresh();
+    await designs.refresh();
     const said = await gate.check();
     return said;
   };
@@ -979,7 +1072,24 @@ function activate(context) {
     watcher,
     declaring,
     diagnostics,
-    vscode.window.registerTreeDataProvider("roadkeep.backlog", backlog),
+    backlogView,
+    designsView,
+    engineBar,
+    // The way into the designs view (RK1755): a word, an id or a heading, answered by
+    // `section find` across every prose file the project declares.
+    vscode.commands.registerCommand("roadkeep.find", async () => {
+      const text = await vscode.window.showInputBox({
+        title: "roadkeep: find a design",
+        prompt: "a word, an id or a heading the section carries",
+        value: designs.text,
+      });
+      if (!text) {
+        return;
+      }
+      await designs.search(text);
+      designsView.description = `"${text}" · ${designs.total}`;
+      designsView.message = designs.total ? undefined : `no section carries "${text}"`;
+    }),
     vscode.languages.registerCodeActionsProvider({ scheme: "file" }, gate, {
       providedCodeActionKinds: [vscode.CodeActionKind.QuickFix],
     }),
@@ -1052,12 +1162,13 @@ function activate(context) {
       if (!id) {
         return;
       }
-      const said = await design.read(id);
+      const role = row?.role;
+      const said = await design.read(id, role);
       if (said.error) {
         vscode.window.showInformationMessage(said.error);
         return;
       }
-      const uri = design.uri(id);
+      const uri = design.uri(id, role);
       design.changed.fire(uri);
       await vscode.commands.executeCommand("markdown.showPreview", uri);
     }),
@@ -1092,4 +1203,6 @@ function deactivate() {}
 // worth proving about this surface — grouped by block, blocked separated and named, a
 // finding anchored at its column, an incomplete door offered to nobody — is not renderable
 // and breaks silently.
-module.exports = { activate, deactivate, Backlog, Gate, Settings, compose, declares, Design };
+module.exports = {
+  activate, deactivate, Backlog, Gate, Settings, compose, declares, Design, Designs,
+};

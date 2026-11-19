@@ -1183,6 +1183,7 @@
 - ✅ **RK1752** **A deferred line vanishes from the editor view, so nobody can see which tasks are paused or why** — The editor view shows each block's paused lines under a Deferred node, with the reason, the age and a resume action, read from list --stale.
 - ✅ **RK1753** **The editor view labels each block with its bare letter, so a reader cannot tell what block G is about** — The editor labels each block with the heading the roadmap gives it, in file order, and its tooltip carries the block list sentence about it.
 - ✅ **RK1754** **A task's design section cannot be read from the editor view; reaching it means searching IMPROVEMENTS.md by hand** — A row's hover carries its reason and the opening of its design, and the book action previews the whole section read-only from section show.
+- ✅ **RK1755** **The editor offers one backlog tree, so the other files roadkeep governs have no place to be browsed** — The roadkeep container holds a Backlog view and a Designs view searched through section find, with the engine on the status bar and the count in the header.
 
 ## Block H — The tool's own shape (what one verb costs to change)
 

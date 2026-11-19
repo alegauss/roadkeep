@@ -112,24 +112,6 @@ leaves the target linted and the source retired with a resolvable pointer.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-### §RK1755 One view per governed question in the editor
-
-The extension contributes one view, `roadkeep.backlog`, and everything it shows hangs
-from that tree: engine, counts, blocks, open lines. The rest of what roadkeep governs
-(paused lines, shipped entries, design sections, decisions, strategy) has no place to
-go. Each addition squeezed into that tree would make it longer without making it
-navigable.
-
-The roadkeep activity-bar container should hold one view per question rather than one
-tree for everything: Backlog (open lines, by block, with deferred), Shipped (the
-ledger), Design (improvements sections, searchable by id or heading through `section
-find`), and Records (decisions and strategy, per declared role). The status rows
-(engine, gate findings, counts) should move to a view header or status bar, so they stop
-taking the top of the backlog. Every view should keep the existing rules: answers come
-from the verbs' JSON, never parsed from Markdown here; a failed read shows a notice and
-never an empty tree; and nothing the panel shows is editable in place. The harness in
-editor/harness.js should hold each view's contract the way it holds the backlog's today.
-
 ### §RK1756 The ledger in the editor view
 
 The panel is a roadmap view. What a block already delivered, the half that answers "is

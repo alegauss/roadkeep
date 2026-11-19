@@ -118,8 +118,13 @@ function stub() {
       registerCompletionItemProvider: () => ({ dispose() {} }),
       registerHoverProvider: () => ({ dispose() {} }),
     },
+    StatusBarAlignment: { Left: 1, Right: 2 },
     window: {
       registerTreeDataProvider() {},
+      // A view and a status bar item record what they were told (RK1755): the header and the
+      // engine are where the status went when it left the rows.
+      createTreeView: () => ({ dispose() {} }),
+      createStatusBarItem: () => ({ show() {}, hide() {}, dispose() {} }),
       // Every message is kept rather than shown: what the write door is judged on is the
       // refusal it reports, and a stub that swallowed it would prove nothing.
       said: [],
@@ -180,18 +185,13 @@ async function main() {
   await activate({ subscriptions: [] });
 
   const backlog = new Backlog(root);
-  const out = { blocks: [] };
+  // `rows` is what kind each top-level row is, so a test can say what the top of the tree
+  // holds without a second read (RK1755).
+  const out = { blocks: [], rows: [] };
   for (const block of await backlog.getChildren()) {
+    out.rows.push(Object.keys(block)[0]);
     if (block.notice) {
       out.notice = block.notice;
-      continue;
-    }
-    if (block.count) {
-      out.count = { label: backlog.getTreeItem(block).label, detail: block.detail };
-      continue;
-    }
-    if (block.engine) {
-      out.engine = { label: backlog.getTreeItem(block).label, detail: block.detail };
       continue;
     }
     const children = await backlog.getChildren(block);
@@ -221,6 +221,40 @@ async function main() {
       pauses,
     });
   }
+  // The view's own status, which left the rows for the header and the status bar (RK1755):
+  // read where the tree put it, in the shape the rows used to carry.
+  const status = backlog.status;
+  if (status.engine) {
+    out.engine = { label: status.engine.engine, detail: status.engine.detail };
+  }
+  if (status.count) {
+    out.count = { label: status.count.count, detail: status.count.detail };
+  }
+
+  if (process.env.ROADKEEP_FIND) {
+    // The designs view, searched the way the find command searches it (RK1755).
+    const designs = new extension.Designs(root);
+    const rows = await designs.search(process.env.ROADKEEP_FIND);
+    out.found = {
+      total: designs.total,
+      rows: rows.map((row) => {
+        const item = designs.getTreeItem(row);
+        return {
+          label: item.label,
+          description: item.description,
+          argv: item.command ? item.command.arguments : null,
+        };
+      }),
+    };
+    if (rows.length && rows[0].carrier) {
+      const first = rows[0].carrier;
+      const design = new extension.Design(root);
+      out.found.opened = await design.provideTextDocumentContent(
+        design.uri(first.anchor, first.role)
+      );
+    }
+  }
+
   // The gate half: findings become diagnostics anchored where the report points, and a
   // door the tool marked incomplete is offered to nobody.
   const collection = editor.languages.createDiagnosticCollection();

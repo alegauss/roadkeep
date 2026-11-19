@@ -149,9 +149,10 @@ def test_the_host_reads_only_keys_a_payload_promises():
     #: (`since`, `reason`) the roadmap listing never carries.
     #: And `block list` since RK1753, whose headings label the groups, and `section show`
     #: since RK1754, whose title and body are the preview and the hover.
+    #: And `section find` since RK1755, whose carriers are the designs view's rows.
     read_by_host = (
-        "list", "list --stale", "block list", "section show", "deps", "lint", "budget",
-        "stats", "engines", "config",
+        "list", "list --stale", "block list", "section show", "section find", "deps", "lint",
+        "budget", "stats", "engines", "config",
     )
     # Derived since RK1645, where this was a union of fourteen `set(...)` terms — two per verb,
     # plus a fifteenth for the second list `config` grew and a sixteenth waiting for the third.
@@ -165,7 +166,8 @@ def test_the_host_reads_only_keys_a_payload_promises():
             *PROMISED[verb],
             *(one for _, keys in INSIDE.get(verb, ()) for one in keys),
         )
-    } | {"notice", "group", "engine", "detail", "count", "pauses", "paused"}
+    } | {"notice", "group", "engine", "detail", "count", "pauses", "paused", "carrier"}
+    # `carrier` is the host's too (RK1755): the row it wraps each `section find` carrier in.
     # `pauses` and `paused` are the host's own as well (RK1752): the deferred node it makes
     # under a block, and the row it wraps each stale line in.
     # The receivers a payload is bound to, named rather than matched by `.value.` alone: an
@@ -201,6 +203,8 @@ def test_the_extension_exports_the_two_hooks_and_names_what_else_it_exports():
         "declares",
         # RK1754. The design provider, for what a preview and a hover read — neither draws.
         "Design",
+        # RK1755. The designs view, for which carriers a search turns into rows.
+        "Designs",
     ]
     assert "function activate(" in source and "function deactivate(" in source
 
@@ -216,6 +220,7 @@ def _harness(
     settings: list[str] | None = None,
     redeclared: str = "",
     design: str = "",
+    find: str = "",
 ) -> dict:
     """Run the stubbed host against **this checkout's** roadkeep and read its report back.
 
@@ -259,6 +264,9 @@ def _harness(
     if design:
         # The line whose design is read (RK1754).
         env["ROADKEEP_DESIGN"] = design
+    if find:
+        # What the designs view is searched for (RK1755).
+        env["ROADKEEP_FIND"] = find
     said = subprocess.run(
         [NODE, str(EDITOR / "harness.js"), str(root)],
         capture_output=True,
@@ -792,6 +800,65 @@ def test_a_line_with_no_design_says_so_and_names_the_door(tmp_path):
     assert "content" not in said["read"]
     assert "section add RK1" in said["read"]["error"]
     assert said["tooltip"] == "the reason on the line"
+
+
+def test_the_container_holds_one_view_per_question(manifest):
+    """RK1755. One tree for everything meant every asset added lengthened the backlog; the
+    container holds a view per question instead, and the designs view — empty until somebody
+    searches — says how to search through a welcome that links a command the host registers."""
+    views = [one["id"] for one in manifest["contributes"]["views"]["roadkeep"]]
+    assert views[:2] == ["roadkeep.backlog", "roadkeep.designs"]
+    (welcome,) = [
+        one for one in manifest["contributes"]["viewsWelcome"] if one["view"] == "roadkeep.designs"
+    ]
+    linked = re.findall(r"command:([\w.]+)", welcome["contents"])
+    assert linked == ["roadkeep.find"]
+    assert 'registerCommand("roadkeep.find"' in _code()
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_the_status_left_the_top_of_the_tree(tmp_path):
+    """RK1755. Which copy answered and how much work there is are about the view, not about
+    a row: they go to the status bar and the view header, and the tree starts with a block."""
+    root = tmp_path / "project"
+    root.mkdir()
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    assert main([
+        "-C", str(root), "add", "--block", "A",
+        "--symptom", "A thing in block A does not work here",
+        "--why", "Because nothing holds it.",
+    ]) == EXIT_OK
+    said = _harness(root)
+    assert said["rows"] == ["group"], said["rows"]
+    assert said["engine"]["label"], "the engine is still read, for the status bar"
+    assert said["count"]["label"].startswith("1 open"), "and the count, for the header"
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_a_design_is_found_by_what_it_says_and_opens_in_its_own_file(tmp_path):
+    """RK1755. The designs view is `section find`'s carriers, each opening through the same
+    read-only preview a line's design uses — with the role, so a decision record is read from
+    the decisions file and not looked for in the improvements one."""
+    root = tmp_path / "project"
+    root.mkdir()
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    body = tmp_path / "body.md"
+    body.write_text("The opening paragraph names a marmot.\n", encoding="utf-8")
+    assert main([
+        "-C", str(root), "add", "--block", "A",
+        "--symptom", "A thing in block A does not work here",
+        "--why", "Because nothing holds it.",
+        "--section", "What to build here", "--section-body-file", str(body),
+    ]) == EXIT_OK
+    said = _harness(root, find="marmot")["found"]
+    assert said["total"] == 1
+    (row,) = said["rows"]
+    assert row["label"] == "§RK1  What to build here"
+    assert row["argv"] == [{"id": "RK1", "role": "improvements"}]
+    assert said["opened"].startswith("# §RK1 What to build here")
+    nothing = _harness(root, find="no such word anywhere")["found"]
+    assert nothing["total"] == 0
+    assert nothing["rows"] == []
 
 
 @pytest.mark.skipif(not NODE, reason="node is not on PATH")
