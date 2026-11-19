@@ -34,8 +34,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1742** (deps: —) **section add S:A --role strategy dies on AssertionError in sections.add on a fresh strategy file** — A new project cannot write its first strategy section at all, and over MCP the crash surfaces only as Connection closed. → §RK1742
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

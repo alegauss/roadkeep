@@ -144,6 +144,30 @@ def test_a_scaffolded_strategy_file_takes_its_first_section(tmp_path: Path, caps
     assert main(["-C", root, "lint"]) == EXIT_OK
 
 
+def test_a_namespaced_anchor_on_an_id_project_is_refused_not_crashed(
+    tmp_path: Path, capsys
+) -> None:
+    """RK1742. `section add S:A --role strategy` on a fresh `init --strategy` died on an
+    AssertionError: the id scheme declares no namespace, so the heading `§S:A` was written and
+    `find` could never read it back. Over MCP that was a closed connection and nothing else.
+    Now the door refuses it as `anchor.namespace` and writes nothing."""
+    from roadkeep.cli import EXIT_OK, main
+
+    root = str(tmp_path)
+    assert main(["-C", root, "init", "--prefix", "VS", "--block", "A", "--strategy"]) == EXIT_OK
+    capsys.readouterr()
+    before = (tmp_path / "docs" / "STRATEGY.md").read_bytes()
+    add = ["-C", root, "section", "add"]
+    for role in ("strategy", "improvements"):
+        code = main([*add, "S:A", "--title", "Aim", "--body", "Prose.", "--role", role])
+        assert code not in (EXIT_OK, 1), role  # a refusal, and not the crash's exit
+        assert "[anchor.namespace]" in capsys.readouterr().err
+    assert (tmp_path / "docs" / "STRATEGY.md").read_bytes() == before
+    # The bare address is the one this file answers, and it still writes.
+    assert main([*add, "A", "--title", "Aim", "--body", "Prose.", "--role", "strategy"]) == EXIT_OK
+    assert main(["-C", root, "lint"]) == EXIT_OK
+
+
 def test_the_deferred_store_is_scaffolded_only_where_it_is_asked_for(tmp_path: Path) -> None:
     """RK1259, and the same two halves one role over.
 

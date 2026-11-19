@@ -233,7 +233,7 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | C — Query (consult without reading the file) | 0 | 205 | 7 |
 | D — The gate | 0 | 319 | 7 |
 | E — Adoption | 0 | 129 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 170 | 4 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 171 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 22 | 0 |
@@ -242,11 +242,7 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | L — Product sites on the package | 0 | 2 | 0 |
 | M — Codex integration (one engine, host-specific adapters) | 2 | 8 | 0 |
 | N — Branches (one backlog across parallel branches) | 0 | 7 | 0 |
-| **Total** | 3 | 1222 | 24 |
-
-**Next ready:**
-
-- 📋 **RK1742** (deps: —) **section add S:A --role strategy dies on AssertionError in sections.add on a fresh strategy file** — A new project cannot write its first strategy section at all, and over MCP the crash surfaces only as Connection closed. → §RK1742
+| **Total** | 2 | 1223 | 24 |
 <!-- roadkeep:end -->
 
 Open work is in

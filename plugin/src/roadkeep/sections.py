@@ -3233,19 +3233,11 @@ def _outline_violation(schema: Schema, anchor: str) -> Violation | None:
     every reading of `<x.y>` and saying so would send an author to fix a spelling that is
     correct for the file they meant (RK340).
     """
+    foreign = _namespace_violation(schema, anchor)
+    if foreign is not None:
+        return foreign
     here = local(schema, anchor)
-    if here is None:
-        # An address in another role's namespace, written into this file: refused rather
-        # than resolved, because the write was told which role it is for and the anchor
-        # names a different one — and the heading drops the prefix, so the disagreement
-        # would not survive in the file to be seen.
-        return Violation(
-            "anchor.namespace",
-            "anchor",
-            f"{anchor!r} is not an address in this file's namespace ("
-            f"{schema.ref_prefix or 'none'}, per [refs]): a section written here is one "
-            f"every pointer to that address resolves somewhere else",
-        )
+    assert here is not None  # the namespace was asked one line ago
     if not OUTLINE_ANCHOR_RE.match(here):
         # Refused rather than written, because the heading would be read back by nothing:
         # under this scheme the number is what announces a section (RK44), so an anchor
@@ -3289,7 +3281,32 @@ def _address_violation(schema: Schema, anchor: str) -> Violation | None:
         return Violation("anchor.sigil", "anchor", f"store the anchor without §: {anchor!r}")
     if schema.ref_scheme == "outline":
         return _outline_violation(schema, anchor)
-    return None
+    return _namespace_violation(schema, anchor)
+
+
+def _namespace_violation(schema: Schema, anchor: str) -> Violation | None:
+    """An address in another role's namespace, refused rather than written (RK340, RK1742).
+
+    Refused because the write was told which role it is for and the anchor names a different
+    one, and the heading drops the prefix, so the disagreement would not survive in the file
+    to be seen. Asked under **both** schemes: the id scheme declares no namespace at all, so
+    `S:A` there is an address no file holds — and writing it anyway put a heading that
+    :func:`find` could never read back, which surfaced as an AssertionError in :func:`add`
+    and, over MCP, as a closed connection.
+    """
+    if local(schema, anchor) is not None:
+        return None
+    spaces = (
+        f"{schema.ref_prefix or 'none'}, per [refs]"
+        if schema.ref_scheme == "outline"
+        else "none: under ref_scheme = id the anchor is the bare id"
+    )
+    return Violation(
+        "anchor.namespace",
+        "anchor",
+        f"{anchor!r} is not an address in this file's namespace ({spaces}): a section "
+        f"written here is one every pointer to that address resolves somewhere else",
+    )
 
 
 def _inherited(body: str, standing: int | None) -> bool:
