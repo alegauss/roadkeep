@@ -4,7 +4,7 @@
 import type { Product } from './product-types'
 
 export const product: Product = {
-  "version": "0.1.0",
+  "version": "0.2.605",
   "license": "MIT",
   "reads": [
     "list",
