@@ -147,10 +147,11 @@ def test_the_host_reads_only_keys_a_payload_promises():
     #: here before it is a dead list in TOML.
     #: `list --stale` since RK1752: the deferred store, a payload of its own with the two keys
     #: (`since`, `reason`) the roadmap listing never carries.
-    #: And `block list` since RK1753, whose headings label the groups.
+    #: And `block list` since RK1753, whose headings label the groups, and `section show`
+    #: since RK1754, whose title and body are the preview and the hover.
     read_by_host = (
-        "list", "list --stale", "block list", "deps", "lint", "budget", "stats", "engines",
-        "config",
+        "list", "list --stale", "block list", "section show", "deps", "lint", "budget",
+        "stats", "engines", "config",
     )
     # Derived since RK1645, where this was a union of fourteen `set(...)` terms — two per verb,
     # plus a fifteenth for the second list `config` grew and a sixteenth waiting for the third.
@@ -169,7 +170,7 @@ def test_the_host_reads_only_keys_a_payload_promises():
     # under a block, and the row it wraps each stale line in.
     # The receivers a payload is bound to, named rather than matched by `.value.` alone: an
     # input box also has a `value`, and `box.value.length` is a string's length, not a key.
-    holders = ("answer", "budget", "blocks", "engines", "counted", "stale", "heads")
+    holders = ("answer", "budget", "blocks", "engines", "counted", "stale", "heads", "shown")
     for holder in holders:
         assert f"{holder}.value" in source, f"{holder} stopped holding a payload"
     read = set(re.findall(rf"(?:{'|'.join(holders)})\.value\.(\w+)|\brow\.(\w+)", source))
@@ -198,6 +199,8 @@ def test_the_extension_exports_the_two_hooks_and_names_what_else_it_exports():
         # RK1277. Which saves drop the shape, exported for the same reason: the predicate is
         # the whole of what keeps a keystroke off a subprocess, and it is not renderable.
         "declares",
+        # RK1754. The design provider, for what a preview and a hover read — neither draws.
+        "Design",
     ]
     assert "function activate(" in source and "function deactivate(" in source
 
@@ -212,6 +215,7 @@ def _harness(
     cycles: bool = False,
     settings: list[str] | None = None,
     redeclared: str = "",
+    design: str = "",
 ) -> dict:
     """Run the stubbed host against **this checkout's** roadkeep and read its report back.
 
@@ -252,6 +256,9 @@ def _harness(
         # What is appended to the config after the shape was read (RK1277), so the two facts
         # in one payload can be asked which clock they are on.
         env["ROADKEEP_REDECLARED"] = redeclared
+    if design:
+        # The line whose design is read (RK1754).
+        env["ROADKEEP_DESIGN"] = design
     said = subprocess.run(
         [NODE, str(EDITOR / "harness.js"), str(root)],
         capture_output=True,
@@ -737,6 +744,54 @@ def test_a_block_is_labelled_with_the_heading_the_roadmap_gives_it(tmp_path):
     second = said["blocks"][1]
     assert second["label"] == "B  The second one"
     assert "Block B" in second["tooltip"]
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_a_line_s_design_is_previewed_and_hovered_without_a_buffer_to_save(tmp_path):
+    """RK1754. A row's pointer used to be followed by a search through the improvements file.
+    `section show` answers it, so the preview is that payload — under a scheme of the
+    provider's own, which is a document with nowhere to save to — and the hover leads with the
+    line's reason and then the design's opening paragraph."""
+    root = tmp_path / "project"
+    root.mkdir()
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    body = tmp_path / "body.md"
+    body.write_text(
+        "The opening paragraph says what is wrong.\n\nThe second says what to build.\n",
+        encoding="utf-8",
+    )
+    assert main([
+        "-C", str(root), "add", "--block", "A",
+        "--symptom", "A thing in block A does not work here",
+        "--why", "Because nothing holds it.",
+        "--section", "What to build here", "--section-body-file", str(body),
+    ]) == EXIT_OK
+    said = _harness(root, design="RK1")["design"]
+    assert said["read"]["title"] == "What to build here"
+    assert said["document"].startswith("# §RK1 What to build here")
+    assert "The second says what to build." in said["document"]
+    assert said["scheme"] != "file", "a preview the editor could save back to the file"
+    assert said["tooltip"].startswith("the reason on the line")
+    assert "The opening paragraph" in said["tooltip"]
+    assert "The second says" not in said["tooltip"], "the hover is the opening, not the whole"
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_a_line_with_no_design_says_so_and_names_the_door(tmp_path):
+    """The other half (RK1754): an empty preview would claim a design exists. The tool's own
+    refusal is shown instead, beside the verb that writes one."""
+    root = tmp_path / "project"
+    root.mkdir()
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    assert main([
+        "-C", str(root), "add", "--block", "A",
+        "--symptom", "A thing in block A does not work here",
+        "--why", "Because nothing holds it.",
+    ]) == EXIT_OK
+    said = _harness(root, design="RK1")["design"]
+    assert "content" not in said["read"]
+    assert "section add RK1" in said["read"]["error"]
+    assert said["tooltip"] == "the reason on the line"
 
 
 @pytest.mark.skipif(not NODE, reason="node is not on PATH")

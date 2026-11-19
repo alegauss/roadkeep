@@ -2,7 +2,7 @@
   "name": "roadkeep",
   "displayName": "roadkeep",
   "description": "The backlog this workspace governs, read by the command that owns it.",
-  "version": "0.2.614",
+  "version": "0.2.615",
   "publisher": "alegauss",
   "license": "MIT",
   "engines": {
@@ -60,6 +60,11 @@
         "command": "roadkeep.resume",
         "title": "roadkeep: Resume this deferred line",
         "icon": "$(debug-continue)"
+      },
+      {
+        "command": "roadkeep.design",
+        "title": "roadkeep: Open this line's design",
+        "icon": "$(book)"
       }
     ],
     "menus": {
@@ -80,9 +85,18 @@
           "command": "roadkeep.resume",
           "when": "view == roadkeep.backlog && viewItem == deferred",
           "group": "inline"
+        },
+        {
+          "command": "roadkeep.design",
+          "when": "view == roadkeep.backlog && viewItem =~ /^(task|deferred)$/",
+          "group": "inline"
         }
       ],
       "commandPalette": [
+        {
+          "command": "roadkeep.design",
+          "when": "false"
+        },
         {
           "command": "roadkeep.resume",
           "when": "false"

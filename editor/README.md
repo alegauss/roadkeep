@@ -6,6 +6,10 @@ Where the project declares a deferred store, each block also holds a collapsed *
 node: every paused line with the reason it was set aside, revealed in the store when
 selected, with a resume action beside it.
 
+Hovering a line shows its reason and the opening of its design section; the book icon beside
+it opens the whole section as a read-only Markdown preview, read from `section show`. A line
+with no design says so and names `section add`.
+
 It carries **no rule** — no limit, no marker set, no id shape and no Markdown parser. Every
 row is read from a payload `roadkeep` printed, so what you see is what the command that owns
 the files says, and a project whose prefix, markers or limits differ needs nothing changed

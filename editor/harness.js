@@ -48,6 +48,11 @@ function stub() {
     },
     Uri: {
       file: (fsPath) => ({ fsPath }),
+      // A virtual document's address (RK1754): the scheme and the path are all it carries.
+      parse: (spelled) => {
+        const at = spelled.indexOf(":");
+        return { scheme: spelled.slice(0, at), path: spelled.slice(at + 1) };
+      },
       joinPath: (base, ...parts) => ({ fsPath: path.join(base.fsPath, ...parts) }),
     },
     RelativePattern: class {
@@ -66,6 +71,7 @@ function stub() {
         dispose() {},
       }),
       onDidSaveTextDocument: () => ({ dispose() {} }),
+      registerTextDocumentContentProvider: () => ({ dispose() {} }),
     },
     Diagnostic: class {
       constructor(range, message, severity) {
@@ -151,7 +157,10 @@ function stub() {
         };
       },
     },
-    commands: { registerCommand: () => ({ dispose() {} }) },
+    commands: {
+      registerCommand: () => ({ dispose() {} }),
+      executeCommand: () => Promise.resolve(),
+    },
   };
 }
 
@@ -282,6 +291,25 @@ async function main() {
         prose: extension.declares({ uri: { fsPath: path.join(root, "docs", "ROADMAP.md") } }),
       };
     }
+  }
+
+  if (process.env.ROADKEEP_DESIGN) {
+    // A line's design, read the three ways a reader meets it (RK1754): the preview behind the
+    // action, the document the virtual address resolves to, and the hover on the row.
+    const id = process.env.ROADKEEP_DESIGN;
+    const design = new extension.Design(root);
+    const read = await design.read(id);
+    const hovered = new Backlog(root, undefined, design);
+    const item = await hovered.resolveTreeItem(
+      { tooltip: "" },
+      { id, why: "the reason on the line" }
+    );
+    out.design = {
+      read,
+      document: await design.provideTextDocumentContent(design.uri(id)),
+      scheme: design.uri(id).scheme,
+      tooltip: item.tooltip.value,
+    };
   }
 
   if (process.env.ROADKEEP_CYCLES) {

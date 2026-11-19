@@ -83,6 +83,8 @@ PROMISED = {
     "list --stale": ("file", "tasks", "total", "order"),
     # The block headings, which the editor labels its groups with (RK1753).
     "block list": ("file", "blocks"),
+    # A line's design, which the editor previews and hovers (RK1754).
+    "section show": ("anchor", "title", "file", "body"),
 }
 
 #: The keys inside **every** object a payload here carries a list of. Held apart from the top
@@ -277,20 +279,25 @@ def gated() -> Path:
 @pytest.fixture(scope="module")
 def paused() -> Path:
     """A project with one line in its deferred store, for the payload `docs/` cannot produce:
-    this repository declares no store, so `list --stale` here is a refusal (RK1752)."""
+    this repository declares no store, so `list --stale` here is a refusal (RK1752).
+
+    And a second line with a design, for `section show` (RK1754): `populated` is a stand-in
+    with no improvements file on the day the backlog empties, so it cannot promise one."""
     root = Path(tempfile.mkdtemp())
     assert main(["-C", str(root), "init", "--prefix", "RK"]) == EXIT_OK
     assert main(["-C", str(root), "declare", "deferred"]) == EXIT_OK
-    assert (
-        main(
-            [
-                "-C", str(root), "add", "--block", "A",
-                "--symptom", "a symptom plainly long enough to read",
-                "--why", "Because a paused line needs a line to pause.",
-            ]
+    for extra in ([], ["--section", "A design to read", "--section-body", "The body of it."]):
+        assert (
+            main(
+                [
+                    "-C", str(root), "add", "--block", "A",
+                    "--symptom", "a symptom plainly long enough to read",
+                    "--why", "Because a paused line needs a line to pause.",
+                    *extra,
+                ]
+            )
+            == EXIT_OK
         )
-        == EXIT_OK
-    )
     assert main(["-C", str(root), "defer", "RK1", "--reason", "waits on a person"]) == EXIT_OK
     yield root
     shutil.rmtree(root, ignore_errors=True)
@@ -304,7 +311,7 @@ def _where(verb: str, dirty: Path, populated: Path, paused: Path) -> tuple[Path,
     store so its payload comes from `paused` (RK1752)."""
     if verb == "lint":
         return dirty, EXIT_GATE
-    if verb == "list --stale":
+    if verb in ("list --stale", "section show"):
         return paused, EXIT_OK
     return populated, EXIT_OK
 
@@ -334,6 +341,10 @@ def _argv(verb: str, root: Path | None = None) -> tuple[str, ...]:
     """
     if verb == "engines":
         return ("engines",)
+    if verb == "section show":
+        # The one line in `paused` that carries a design, read off its listing (RK1754).
+        tasks = payload("list", root=root)["tasks"]
+        return ("section", "show", tasks[0]["id"])
     if verb == "budget":
         # A block that exists, read off the backlog for `deps`' reason: a letter typed here
         # is a letter that stops being declared.

@@ -112,21 +112,6 @@ leaves the target linted and the source retired with a resolvable pointer.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-### §RK1754 Design sections from the editor view
-
-Clicking a row opens the roadmap at the line. The line carries a pointer to its design
-section in the improvements file, and following it means opening that file and searching
-for the heading. That is the read L5 says a query should spare, and the panel is where
-the question arises.
-
-The task row should offer an action, and a default on expand, that runs `section show
-<id>`. The answer should open in a read-only Markdown preview titled with the id and
-symptom. The tooltip should carry the `why` and the first lines of the section, so
-hovering answers most of the question. Where the line has no section, the action should
-say so and name `section add` as the door, rather than opening an empty preview. The
-preview must never be a buffer that saves back to the file: writes stay with the verbs
-(L1).
-
 ### §RK1755 One view per governed question in the editor
 
 The extension contributes one view, `roadkeep.backlog`, and everything it shows hangs

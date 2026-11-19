@@ -596,8 +596,10 @@ function _counted(stats) {
  * under it.
  */
 class Backlog {
-  constructor(root, settings) {
+  constructor(root, settings, design) {
     this.root = root;
+    // Where a row's design is read from, for the hover (RK1754).
+    this.design = design || null;
     // Which roles the project declares, on the config's clock (RK1752): the deferred store is
     // asked about only where one exists, so a project with none pays no process for it.
     this.settings = settings || new Settings(root);
@@ -699,6 +701,8 @@ class Backlog {
     // it cannot. Both are the verb's words, never a judgement made here.
     item.description = row.blockers.length ? `waits on ${row.blockers.join(", ")}` : "";
     item.tooltip = row.why;
+    // A line, so the design action is offered on it (RK1754).
+    item.contextValue = "task";
     item.iconPath = new vscode.ThemeIcon(row.blockers.length ? "circle-outline" : "circle-filled");
     item.command = {
       command: "vscode.open",
@@ -708,6 +712,16 @@ class Backlog {
         { selection: new vscode.Range(row.line - 1, 0, row.line - 1, 0) },
       ],
     };
+    return item;
+  }
+
+  /** The hover, asked only when somebody hovers (RK1754): the reason, then the opening of
+   * the design. One `section show` per row would be a process per line on every save, for
+   * text nobody looked at — so the editor asks for it here, on demand. */
+  async resolveTreeItem(item, row) {
+    if (row && row.id && !row.paused && this.design) {
+      item.tooltip = await this.design.tooltip(row);
+    }
     return item;
   }
 
@@ -841,6 +855,71 @@ class Backlog {
 }
 
 /**
+ * A line's design section, as a document the editor previews and cannot save (RK1754).
+ *
+ * A row carries a pointer to its rationale, and following it meant opening the improvements
+ * file and searching for a heading — the read L5 says a query should spare. `section show`
+ * answers it in one call, so the preview is that payload and nothing else: the title and the
+ * body the verb printed, never a reading of the Markdown file here.
+ *
+ * **A virtual document and never an untitled buffer**: the scheme is this provider's own, so
+ * there is nowhere for a save to go. An untitled buffer would invite one, and an edit made in
+ * the preview would be the second writer of a governed file that L1 and L3 exist to prevent.
+ */
+const SCHEME = "roadkeep-design";
+
+/** Which line a row action is about: a tree row, a paused row, or an id passed as is. */
+function subject(row) {
+  if (row?.paused) {
+    return row.paused.id;
+  }
+  return row?.id ?? row;
+}
+
+class Design {
+  constructor(root) {
+    this.root = root;
+    this.changed = new vscode.EventEmitter();
+    this.onDidChange = this.changed.event;
+  }
+
+  /** The section, or the tool's own sentence about why there is none — and the door. */
+  async read(id) {
+    const shown = await payload(this.root, ["section", "show", id]);
+    if (shown.error) {
+      // The verb's refusal verbatim, and the verb that writes one: an empty preview would
+      // claim a design exists and says nothing.
+      return { error: `${shown.error}\n\n\`roadkeep section add ${id} --title …\` writes one.` };
+    }
+    return {
+      title: shown.value.title,
+      body: shown.value.body,
+      file: shown.value.file,
+      content: `# §${shown.value.anchor} ${shown.value.title}\n\n${shown.value.body}\n`,
+    };
+  }
+
+  /** The address a line's design is previewed at. */
+  uri(id) {
+    return vscode.Uri.parse(`${SCHEME}:/${id}.md`);
+  }
+
+  async provideTextDocumentContent(uri) {
+    const id = uri.path.replace(/^\//, "").replace(/\.md$/, "");
+    // Read from the address, so a preview reopened after a reload still knows its line.
+    const said = await this.read(id);
+    return said.error || said.content;
+  }
+
+  /** The hover a row shows on demand: the reason, then the opening of the design. */
+  async tooltip(row) {
+    const said = await this.read(row.id);
+    const opening = said.error ? "" : said.body.split("\n\n")[0];
+    return new vscode.MarkdownString(opening ? `${row.why}\n\n---\n\n${opening}` : row.why);
+  }
+}
+
+/**
  * Whether a saved document is where this project's declaration lives (RK1277).
  *
  * By name and not by a rule: `roadkeep.toml` is the tool's own file — the manifest already
@@ -867,7 +946,8 @@ function activate(context) {
   // One shape for the providers and the tree, so the roles the tree asks about are dropped on
   // the same config write the completions are (RK1752).
   const settings = new Settings(root);
-  const backlog = new Backlog(root, settings);
+  const design = new Design(root);
+  const backlog = new Backlog(root, settings, design);
   const diagnostics = vscode.languages.createDiagnosticCollection("roadkeep");
   const gate = new Gate(root, diagnostics);
   const both = async () => {
@@ -964,10 +1044,27 @@ function activate(context) {
         await both();
       }
     }),
+    vscode.workspace.registerTextDocumentContentProvider(SCHEME, design),
+    // A line's design, previewed (RK1754). Where there is none the tool's sentence and the
+    // door are shown instead — an empty preview would claim a design exists.
+    vscode.commands.registerCommand("roadkeep.design", async (row) => {
+      const id = subject(row);
+      if (!id) {
+        return;
+      }
+      const said = await design.read(id);
+      if (said.error) {
+        vscode.window.showInformationMessage(said.error);
+        return;
+      }
+      const uri = design.uri(id);
+      design.changed.fire(uri);
+      await vscode.commands.executeCommand("markdown.showPreview", uri);
+    }),
     // The door the terminal has for a pause (RK1752): `resume` writes, and the view shows its
     // answer and re-reads, exactly as for any other door.
     vscode.commands.registerCommand("roadkeep.resume", async (row) => {
-      const id = row && row.paused ? row.paused.id : row;
+      const id = subject(row);
       if (!id) {
         return;
       }
@@ -995,4 +1092,4 @@ function deactivate() {}
 // worth proving about this surface — grouped by block, blocked separated and named, a
 // finding anchored at its column, an incomplete door offered to nobody — is not renderable
 // and breaks silently.
-module.exports = { activate, deactivate, Backlog, Gate, Settings, compose, declares };
+module.exports = { activate, deactivate, Backlog, Gate, Settings, compose, declares, Design };
