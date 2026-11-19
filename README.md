@@ -246,7 +246,7 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 
 **Next ready:**
 
-- ⏳ **RK1737** (deps: RK1735 ✅, RK1736 ✅) **No end-to-end evidence shows Roadkeep enforcement inside Codex** — Desktop and IDE parity, two worktrees, missing Python, disabled hooks, plugin update and uninstall are not yet observed in a live Codex session. → §RK1737
+- 📋 **RK1742** (deps: —) **section add S:A --role strategy dies on AssertionError in sections.add on a fresh strategy file** — A new project cannot write its first strategy section at all, and over MCP the crash surfaces only as Connection closed. → §RK1742
 <!-- roadkeep:end -->
 
 Open work is in

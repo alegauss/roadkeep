@@ -50,7 +50,7 @@
 
 ## Block M — Codex integration (one engine, host-specific adapters)
 
-- ⏳ **RK1737** (deps: RK1735 ✅, RK1736 ✅) **No end-to-end evidence shows Roadkeep enforcement inside Codex** — Desktop and IDE parity, two worktrees, missing Python, disabled hooks, plugin update and uninstall are not yet observed in a live Codex session. → §RK1737
+- ⏳ **RK1737** (deps: RK1735 ✅, RK1736 ✅) (requires: codex) **No end-to-end evidence shows Roadkeep enforcement inside Codex** — Desktop and IDE parity, two worktrees, missing Python, disabled hooks, plugin update and uninstall are not yet observed in a live Codex session. → §RK1737
 - 📋 **RK1738** (deps: RK1737 ⏳) **Users have no verified Codex adoption or distribution guide** — Document supported installation, trust and recovery paths using the integration evidence and current distribution rules. → §RK1738
 
 ## Block N — Branches (one backlog across parallel branches)
