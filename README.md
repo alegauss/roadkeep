@@ -210,6 +210,14 @@ Six laws bind the design, and a change that breaks one is wrong even if requeste
 The non-goals: no web UI and no server, no issue-tracker sync, no model and no prompts inside
 the tool, and no dates, quarters or estimates.
 
+## Compared with
+
+| Tool | What it does | Where roadkeep differs |
+|---|---|---|
+| Backlog.md, Task Master | Task managers for agents, in a format and files of their own | It governs the `ROADMAP.md` you already have, and writes it back byte for byte |
+| git-cliff, release-please, changesets | A changelog generated from commits | It keeps the roadmap and the rationale too; a changelog entry is the outcome stated at `ship` |
+| markdownlint, Vale, rules in `CLAUDE.md` | Report after the text exists, or ask the model to hold back | It refuses at the write, so an over-long line never costs its tokens |
+
 ## Status
 
 The table below is **not written by hand**: `roadkeep export --readme` derives it from
