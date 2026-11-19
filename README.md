@@ -234,7 +234,7 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | D — The gate | 0 | 319 | 7 |
 | E — Adoption | 0 | 129 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 171 | 4 |
-| G — The editor surface (the backlog where the file is open) | 2 | 19 | 0 |
+| G — The editor surface (the backlog where the file is open) | 1 | 20 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 45 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 22 | 0 |
 | J — Validation (whether a person ever tried it) | 0 | 5 | 0 |
@@ -242,7 +242,7 @@ The table below is **not written by hand**: `roadkeep export --readme` derives i
 | L — Product sites on the package | 0 | 2 | 0 |
 | M — Codex integration (one engine, host-specific adapters) | 2 | 8 | 0 |
 | N — Branches (one backlog across parallel branches) | 0 | 7 | 0 |
-| **Total** | 5 | 1227 | 24 |
+| **Total** | 4 | 1228 | 24 |
 
 **Next ready:**
 

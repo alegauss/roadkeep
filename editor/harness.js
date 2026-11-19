@@ -215,6 +215,7 @@ async function main() {
     }
     out.blocks.push({
       group: block.group,
+      description: backlog.getTreeItem(block).description,
       rows: rows.map((row) => ({ id: row.id, blockers: row.blockers })),
       label: backlog.getTreeItem(block).label,
       tooltip: backlog.getTreeItem(block).tooltip,
@@ -252,6 +253,32 @@ async function main() {
       out.found.opened = await design.provideTextDocumentContent(
         design.uri(first.anchor, first.role)
       );
+    }
+  }
+
+  if (process.env.ROADKEEP_SHIPPED) {
+    // The ledger view, every block opened the way a reader opens one (RK1756).
+    const shipped = new extension.Shipped(root);
+    out.shipped = [];
+    for (const head of await shipped.getChildren()) {
+      if (head.notice) {
+        out.shipped.push({ notice: head.notice });
+        continue;
+      }
+      const entries = await shipped.getChildren(head);
+      out.shipped.push({
+        label: shipped.getTreeItem(head).label,
+        description: shipped.getTreeItem(head).description,
+        entries: entries.map((row) => {
+          const item = shipped.getTreeItem(row);
+          return {
+            id: row.entry.id,
+            context: item.contextValue,
+            opens: item.command.arguments[0].fsPath,
+            line: item.command.arguments[1].selection.start.line,
+          };
+        }),
+      });
     }
   }
 

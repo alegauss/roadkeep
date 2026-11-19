@@ -2,7 +2,7 @@
   "name": "roadkeep",
   "displayName": "roadkeep",
   "description": "The backlog this workspace governs, read by the command that owns it.",
-  "version": "0.2.616",
+  "version": "0.2.617",
   "publisher": "alegauss",
   "license": "MIT",
   "engines": {
@@ -34,6 +34,10 @@
         {
           "id": "roadkeep.designs",
           "name": "Designs"
+        },
+        {
+          "id": "roadkeep.shipped",
+          "name": "Shipped"
         }
       ]
     },
@@ -109,6 +113,11 @@
         {
           "command": "roadkeep.design",
           "when": "view == roadkeep.backlog && viewItem =~ /^(task|deferred)$/",
+          "group": "inline"
+        },
+        {
+          "command": "roadkeep.design",
+          "when": "view == roadkeep.shipped && viewItem == entry-designed",
           "group": "inline"
         }
       ],

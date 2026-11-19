@@ -150,9 +150,10 @@ def test_the_host_reads_only_keys_a_payload_promises():
     #: And `block list` since RK1753, whose headings label the groups, and `section show`
     #: since RK1754, whose title and body are the preview and the hover.
     #: And `section find` since RK1755, whose carriers are the designs view's rows.
+    #: And the ledger's listing since RK1756, one block at a time.
     read_by_host = (
-        "list", "list --stale", "block list", "section show", "section find", "deps", "lint",
-        "budget", "stats", "engines", "config",
+        "list", "list --stale", "list --role changelog", "block list", "section show",
+        "section find", "deps", "lint", "budget", "stats", "engines", "config",
     )
     # Derived since RK1645, where this was a union of fourteen `set(...)` terms — two per verb,
     # plus a fifteenth for the second list `config` grew and a sixteenth waiting for the third.
@@ -166,13 +167,19 @@ def test_the_host_reads_only_keys_a_payload_promises():
             *PROMISED[verb],
             *(one for _, keys in INSIDE.get(verb, ()) for one in keys),
         )
-    } | {"notice", "group", "engine", "detail", "count", "pauses", "paused", "carrier"}
+    } | {
+        "notice", "group", "engine", "detail", "count", "pauses", "paused", "carrier",
+        # The ledger view's two (RK1756): a block's heading node and the row per entry.
+        "ledger", "entry",
+    }
     # `carrier` is the host's too (RK1755): the row it wraps each `section find` carrier in.
     # `pauses` and `paused` are the host's own as well (RK1752): the deferred node it makes
     # under a block, and the row it wraps each stale line in.
     # The receivers a payload is bound to, named rather than matched by `.value.` alone: an
     # input box also has a `value`, and `box.value.length` is a string's length, not a key.
-    holders = ("answer", "budget", "blocks", "engines", "counted", "stale", "heads", "shown")
+    holders = (
+        "answer", "budget", "blocks", "engines", "counted", "stale", "heads", "shown", "listed",
+    )
     for holder in holders:
         assert f"{holder}.value" in source, f"{holder} stopped holding a payload"
     read = set(re.findall(rf"(?:{'|'.join(holders)})\.value\.(\w+)|\brow\.(\w+)", source))
@@ -205,6 +212,8 @@ def test_the_extension_exports_the_two_hooks_and_names_what_else_it_exports():
         "Design",
         # RK1755. The designs view, for which carriers a search turns into rows.
         "Designs",
+        # RK1756. The ledger view, for which entries a block opens into and in what order.
+        "Shipped",
     ]
     assert "function activate(" in source and "function deactivate(" in source
 
@@ -221,6 +230,7 @@ def _harness(
     redeclared: str = "",
     design: str = "",
     find: str = "",
+    shipped: bool = False,
 ) -> dict:
     """Run the stubbed host against **this checkout's** roadkeep and read its report back.
 
@@ -267,6 +277,9 @@ def _harness(
     if find:
         # What the designs view is searched for (RK1755).
         env["ROADKEEP_FIND"] = find
+    if shipped:
+        # Open every block of the ledger view (RK1756).
+        env["ROADKEEP_SHIPPED"] = "1"
     said = subprocess.run(
         [NODE, str(EDITOR / "harness.js"), str(root)],
         capture_output=True,
@@ -807,7 +820,7 @@ def test_the_container_holds_one_view_per_question(manifest):
     container holds a view per question instead, and the designs view — empty until somebody
     searches — says how to search through a welcome that links a command the host registers."""
     views = [one["id"] for one in manifest["contributes"]["views"]["roadkeep"]]
-    assert views[:2] == ["roadkeep.backlog", "roadkeep.designs"]
+    assert views[:3] == ["roadkeep.backlog", "roadkeep.designs", "roadkeep.shipped"]
     (welcome,) = [
         one for one in manifest["contributes"]["viewsWelcome"] if one["view"] == "roadkeep.designs"
     ]
@@ -859,6 +872,33 @@ def test_a_design_is_found_by_what_it_says_and_opens_in_its_own_file(tmp_path):
     nothing = _harness(root, find="no such word anywhere")["found"]
     assert nothing["total"] == 0
     assert nothing["rows"] == []
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_what_a_block_shipped_is_listed_newest_first_beside_what_it_owes(tmp_path):
+    """RK1756. The ledger half of a block was reachable only by `delivered` or by scrolling
+    the changelog. The shipped view lists it by block, newest first, each entry opening the
+    ledger line — and the backlog's block says both halves, open beside shipped."""
+    root = tmp_path / "project"
+    root.mkdir()
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    for number in range(3):
+        assert main([
+            "-C", str(root), "add", "--block", "A",
+            "--symptom", f"A thing numbered {number} does not work here",
+            "--why", "Because nothing holds it.",
+        ]) == EXIT_OK
+    for shipping in ("RK1", "RK2"):
+        assert main(["-C", str(root), "ship", shipping, "--why", "Now it works."]) == EXIT_OK
+    said = _harness(root, shipped=True)
+    (ledger,) = said["shipped"]
+    assert ledger["label"].startswith("A")
+    assert ledger["description"] == "2"
+    assert [one["id"] for one in ledger["entries"]] == ["RK2", "RK1"], "newest first"
+    assert all(one["context"] == "entry" for one in ledger["entries"])
+    assert Path(ledger["entries"][0]["opens"]).as_posix().endswith("docs/CHANGELOG.md")
+    (block,) = said["blocks"]
+    assert block["description"] == "1 open · 2 shipped"
 
 
 @pytest.mark.skipif(not NODE, reason="node is not on PATH")

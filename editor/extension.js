@@ -649,7 +649,11 @@ class Backlog {
         row.title ? `${row.group}  ${row.title}` : row.group,
         vscode.TreeItemCollapsibleState.Expanded
       );
-      item.description = `${row.tasks.length}`;
+      // What is owed beside what was delivered (RK1756): the two halves of a block, read
+      // together. The shipped count is `block list`'s and absent where that read failed.
+      item.description = row.recorded
+        ? `${row.tasks.length} open · ${row.recorded} shipped`
+        : `${row.tasks.length}`;
       // The verb's own sentence about the block — live, finished or empty, with its counts.
       item.tooltip = row.sentence || undefined;
       item.contextValue = "block";
@@ -827,6 +831,7 @@ class Backlog {
         group: block,
         title: titled.has(block) ? titled.get(block).title : "",
         sentence: titled.has(block) ? titled.get(block).sentence : "",
+        recorded: titled.has(block) ? titled.get(block).recorded : 0,
         tasks: grouped.get(block),
         pauses: paused.grouped.get(block) || [],
       })),
@@ -872,6 +877,10 @@ const SCHEME = "roadkeep-design";
 function subject(row) {
   if (row?.paused) {
     return row.paused.id;
+  }
+  // A ledger entry opens the design it kept, addressed by its own anchor (RK1756).
+  if (row?.entry) {
+    return row.entry.ref || row.entry.id;
   }
   return row?.id ?? row;
 }
@@ -988,6 +997,94 @@ class Designs {
 }
 
 /**
+ * What each block already delivered, newest first (RK1756).
+ *
+ * The backlog view is the half of a block that is still owed; the ledger is the other half,
+ * and reaching it meant `delivered` in a terminal or scrolling the changelog. A block is the
+ * unit a reader closes, so the ledger is grouped the same way, under the same headings.
+ *
+ * **Asked per block, on expand**: the ledger here holds over a thousand entries, and a listing
+ * of all of them is the read `[reads] list` exists to refuse. A block nobody opens costs
+ * nothing beyond the one `block list` that names it.
+ */
+class Shipped {
+  constructor(root) {
+    this.root = root;
+    this.changed = new vscode.EventEmitter();
+    this.onDidChangeTreeData = this.changed.event;
+    //: Block label to its entries, cleared on every refresh: the ledger is a file.
+    this.entries = new Map();
+    this.file = "";
+  }
+
+  refresh() {
+    this.entries.clear();
+    this.changed.fire();
+  }
+
+  getTreeItem(row) {
+    if (row.notice) {
+      const item = new vscode.TreeItem(row.notice);
+      item.iconPath = new vscode.ThemeIcon("warning");
+      return item;
+    }
+    if (row.ledger) {
+      const head = row.ledger;
+      const item = new vscode.TreeItem(
+        `${head.block}  ${head.title}`,
+        vscode.TreeItemCollapsibleState.Collapsed
+      );
+      item.description = `${head.recorded}`;
+      item.tooltip = head.sentence;
+      item.contextValue = "ledger";
+      return item;
+    }
+    const entry = row.entry;
+    const item = new vscode.TreeItem(`${entry.status} ${entry.id}  ${entry.symptom}`);
+    item.tooltip = entry.why;
+    item.iconPath = new vscode.ThemeIcon("pass");
+    // A design the entry kept (`ref`) can be opened; most were deleted by the ship.
+    item.contextValue = entry.ref ? "entry-designed" : "entry";
+    item.command = {
+      command: "vscode.open",
+      title: "Reveal the entry",
+      arguments: [
+        vscode.Uri.joinPath(vscode.Uri.file(this.root), ...this.file.split("/")),
+        { selection: new vscode.Range(entry.line - 1, 0, entry.line - 1, 0) },
+      ],
+    };
+    return item;
+  }
+
+  async getChildren(parent) {
+    if (!parent) {
+      const heads = await payload(this.root, ["block", "list"]);
+      if (heads.error) {
+        return [{ notice: heads.error }];
+      }
+      // A block that recorded nothing has no ledger half to show.
+      return heads.value.blocks
+        .filter((one) => one.recorded > 0)
+        .map((one) => ({ ledger: one }));
+    }
+    if (!parent.ledger) {
+      return [];
+    }
+    const block = parent.ledger.block;
+    if (!this.entries.has(block)) {
+      const listed = await payload(this.root, ["list", "--role", "changelog", "--block", block]);
+      if (listed.error) {
+        return [{ notice: listed.error }];
+      }
+      this.file = listed.value.file;
+      // Newest first: the ledger appends, so the file's order reversed is the order shipped.
+      this.entries.set(block, [...listed.value.tasks].reverse().map((one) => ({ entry: one })));
+    }
+    return this.entries.get(block);
+  }
+}
+
+/**
  * Whether a saved document is where this project's declaration lives (RK1277).
  *
  * By name and not by a rule: `roadkeep.toml` is the tool's own file — the manifest already
@@ -1028,6 +1125,11 @@ function activate(context) {
   const designsView = vscode.window.createTreeView("roadkeep.designs", {
     treeDataProvider: designs,
   });
+  // The ledger, by block, newest first (RK1756).
+  const shipped = new Shipped(root);
+  const shippedView = vscode.window.createTreeView("roadkeep.shipped", {
+    treeDataProvider: shipped,
+  });
   // Which copy answered, on the status bar: a fact about the installation, always in sight
   // and costing no row (RK1755, RK1009).
   const engineBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
@@ -1044,6 +1146,7 @@ function activate(context) {
   };
   const both = async () => {
     backlog.refresh();
+    shipped.refresh();
     await designs.refresh();
     const said = await gate.check();
     return said;
@@ -1074,6 +1177,7 @@ function activate(context) {
     diagnostics,
     backlogView,
     designsView,
+    shippedView,
     engineBar,
     // The way into the designs view (RK1755): a word, an id or a heading, answered by
     // `section find` across every prose file the project declares.
@@ -1204,5 +1308,5 @@ function deactivate() {}
 // finding anchored at its column, an incomplete door offered to nobody — is not renderable
 // and breaks silently.
 module.exports = {
-  activate, deactivate, Backlog, Gate, Settings, compose, declares, Design, Designs,
+  activate, deactivate, Backlog, Gate, Settings, compose, declares, Design, Designs, Shipped,
 };

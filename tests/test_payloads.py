@@ -87,6 +87,8 @@ PROMISED = {
     "section show": ("anchor", "title", "file", "body"),
     # The designs view's search (RK1755): what was asked, how many, and the carriers.
     "section find": ("text", "total", "carriers"),
+    # One block's ledger, which the shipped view opens into (RK1756).
+    "list --role changelog": ("file", "tasks", "total"),
 }
 
 #: The keys inside **every** object a payload here carries a list of. Held apart from the top
@@ -185,7 +187,13 @@ INSIDE = {
     # shows and the verb's own sentence about it, which the tooltip carries verbatim.
     "block list": ((
         "blocks",
-        ("block", "title", "sentence", "state", "open"),
+        # `recorded` since RK1756: the shipped count a block shows beside its open one.
+        ("block", "title", "sentence", "state", "open", "recorded"),
+    ),),
+    # A ledger entry as the shipped view draws it (RK1756): `ref` is the design it kept.
+    "list --role changelog": ((
+        "tasks",
+        ("id", "block", "status", "symptom", "why", "line", "ref"),
     ),),
     # A carrier as the designs view draws and opens it (RK1755): the anchor and role a preview
     # is read by, the heading it is labelled with, and how many times it says the text.
@@ -294,7 +302,7 @@ def paused() -> Path:
     root = Path(tempfile.mkdtemp())
     assert main(["-C", str(root), "init", "--prefix", "RK"]) == EXIT_OK
     assert main(["-C", str(root), "declare", "deferred"]) == EXIT_OK
-    for extra in ([], ["--section", "A design to read", "--section-body", "The body of it."]):
+    for extra in ([], ["--section", "A design to read", "--section-body", "The body of it."], []):
         assert (
             main(
                 [
@@ -307,6 +315,9 @@ def paused() -> Path:
             == EXIT_OK
         )
     assert main(["-C", str(root), "defer", "RK1", "--reason", "waits on a person"]) == EXIT_OK
+    # And a ledger entry, for the changelog's listing (RK1756): the stand-in `populated`
+    # becomes on an empty backlog declares no changelog at all.
+    assert main(["-C", str(root), "ship", "RK3", "--why", "Now it works."]) == EXIT_OK
     yield root
     shutil.rmtree(root, ignore_errors=True)
 
@@ -319,7 +330,7 @@ def _where(verb: str, dirty: Path, populated: Path, paused: Path) -> tuple[Path,
     store so its payload comes from `paused` (RK1752)."""
     if verb == "lint":
         return dirty, EXIT_GATE
-    if verb in ("list --stale", "section show", "section find"):
+    if verb in ("list --stale", "section show", "section find", "list --role changelog"):
         return paused, EXIT_OK
     return populated, EXIT_OK
 

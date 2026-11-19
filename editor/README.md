@@ -7,6 +7,9 @@ The roadkeep activity-bar container holds one view per question:
   marker, is in the view's header. Selecting a row reveals it in the roadmap.
 - **Designs** — the design sections, found by a word, an id or a heading through
   `section find` across every prose file. Selecting one opens it as a read-only preview.
+- **Shipped** — what each block delivered, newest first, read one block at a time when it
+  is opened. Selecting an entry reveals it in the changelog. In the Backlog view each block
+  shows its open count beside its shipped one.
 
 In the Backlog view, where the project declares a deferred store, each block also holds a
 collapsed **Deferred** node: every paused line with the reason it was set aside, revealed in

@@ -38,7 +38,6 @@
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-- 📋 **RK1756** (deps: RK1755 ✅) **The editor shows no shipped work, so what a block already delivered is a terminal command away** — The panel reads only the roadmap, so the ledger half of a block is reachable by delivered or by opening CHANGELOG.md and never beside what is still open. → §RK1756
 - 📋 **RK1757** (deps: RK1755 ✅, RK1754 ✅) **Decisions and strategy are absent from the editor view, so reading one means opening the file and scrolling** — Both are governed roles that config and section show already read, yet the panel shows only the roadmap and so cannot answer why a design went one way. → §RK1757
 
 ## Block H — The tool's own shape (what one verb costs to change)

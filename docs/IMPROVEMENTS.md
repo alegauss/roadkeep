@@ -112,20 +112,6 @@ leaves the target linted and the source retired with a resolvable pointer.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-### §RK1756 The ledger in the editor view
-
-The panel is a roadmap view. What a block already delivered, the half that answers "is
-this done", is reachable only from the terminal (`delivered`, `list --role changelog`)
-or by opening CHANGELOG.md. A reader closing a block cannot see what the block shipped
-beside what it still owes.
-
-Inside the navigation RK1755 gives the governed files, a "Shipped" tree should read
-`list --role changelog --json`, grouped by block with the block title, newest first.
-Each entry should reveal its ledger line and, where the entry kept a design section,
-open it the way RK1754 does. A block node should state its shipped count beside its open
-one, so the two halves read together. Entries should be loaded per block on expand,
-because a ledger of hundreds of lines would cost one call per row if fetched whole.
-
 ### §RK1757 Decisions and strategy in the editor view
 
 The decision records and the strategy file are governed roles: `roadkeep.toml [files]`
