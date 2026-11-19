@@ -78,6 +78,9 @@ PROMISED = {
         "file", "governed", "non_goals", "non_goals_elided", "non_goals_quoted",
         "non_goals_why",
     ),
+    # The deferred store, which the editor shows under each block (RK1752): `file` is where
+    # selecting a paused row goes, and `order` says the rows are oldest first.
+    "list --stale": ("file", "tasks", "total", "order"),
 }
 
 #: The keys inside **every** object a payload here carries a list of. Held apart from the top
@@ -166,6 +169,12 @@ INSIDE = {
         ("deps", ("dep", "kind", "status", "detail")),
         ("chains", ("path", "via", "end", "detail")),
     ),
+    # A pause as the editor draws it (RK1752): the line's own keys, plus the reason a person
+    # gave and how many commits it has stood — the two a roadmap row never carries.
+    "list --stale": ((
+        "tasks",
+        ("id", "block", "status", "symptom", "why", "line", "since", "reason"),
+    ),),
 }
 
 
@@ -258,6 +267,41 @@ def gated() -> Path:
 
 
 @pytest.fixture(scope="module")
+def paused() -> Path:
+    """A project with one line in its deferred store, for the payload `docs/` cannot produce:
+    this repository declares no store, so `list --stale` here is a refusal (RK1752)."""
+    root = Path(tempfile.mkdtemp())
+    assert main(["-C", str(root), "init", "--prefix", "RK"]) == EXIT_OK
+    assert main(["-C", str(root), "declare", "deferred"]) == EXIT_OK
+    assert (
+        main(
+            [
+                "-C", str(root), "add", "--block", "A",
+                "--symptom", "a symptom plainly long enough to read",
+                "--why", "Because a paused line needs a line to pause.",
+            ]
+        )
+        == EXIT_OK
+    )
+    assert main(["-C", str(root), "defer", "RK1", "--reason", "waits on a person"]) == EXIT_OK
+    yield root
+    shutil.rmtree(root, ignore_errors=True)
+
+
+def _where(verb: str, dirty: Path, populated: Path, paused: Path) -> tuple[Path, int]:
+    """The root a promised verb is read over, and the code it exits with there.
+
+    One answer for every sweep below, where each used to spell it: `lint` passes here by law
+    so its payload comes from `dirty`, and `list --stale` refuses on a project with no deferred
+    store so its payload comes from `paused` (RK1752)."""
+    if verb == "lint":
+        return dirty, EXIT_GATE
+    if verb == "list --stale":
+        return paused, EXIT_OK
+    return populated, EXIT_OK
+
+
+@pytest.fixture(scope="module")
 def dirty() -> Path:
     """A project with exactly one finding, for the payload `docs/` cannot produce."""
     root = Path(tempfile.mkdtemp())
@@ -297,17 +341,17 @@ def _argv(verb: str, root: Path | None = None) -> tuple[str, ...]:
 
 
 @pytest.mark.parametrize("verb", sorted(PROMISED))
-def test_the_top_level_keys_a_client_is_promised_are_there(verb, dirty, populated):
+def test_the_top_level_keys_a_client_is_promised_are_there(verb, dirty, populated, paused):
     """Read by name and never compared whole: a payload that gained a field is compatible,
     and asserting the object would make every addition a breaking change in this suite."""
-    where, code = (dirty, EXIT_GATE) if verb == "lint" else (populated, EXIT_OK)
+    where, code = _where(verb, dirty, populated, paused)
     got = payload(*_argv(verb, where), root=where, expected=code)
     missing = [key for key in PROMISED[verb] if key not in got]
     assert not missing, f"{verb} no longer carries {missing}"
 
 
 @pytest.mark.parametrize("verb", sorted(PROMISED))
-def test_every_payload_says_which_project_and_which_build(verb, dirty, populated):
+def test_every_payload_says_which_project_and_which_build(verb, dirty, populated, paused):
     """RK1630. `lint` led with `root` and `config` with `version`; the reads a client loops
     over carried neither, and every path on them is relative to a root the payload never
     stated. Run from a subdirectory the answer is identical, so a caller that passed `-C`
@@ -320,7 +364,7 @@ def test_every_payload_says_which_project_and_which_build(verb, dirty, populated
     **Leading**, because a key a client reads first is the one it dispatches on, and
     **absolute**, because a relative path is only an address once something names what it is
     relative to."""
-    where, code = (dirty, EXIT_GATE) if verb == "lint" else (populated, EXIT_OK)
+    where, code = _where(verb, dirty, populated, paused)
     got = payload(*_argv(verb, where), root=where, expected=code)
     assert list(got)[:2] == ["root", "version"] or {"root", "version"} <= set(got)
     assert Path(got["root"]).is_absolute()
@@ -413,7 +457,9 @@ def test_a_list_payload_is_handed_back_as_the_list_it_is(populated):
     "verb, field, keys",
     [(verb, field, keys) for verb, lists in sorted(INSIDE.items()) for field, keys in lists],
 )
-def test_the_keys_inside_a_row_are_there_too(verb, field, keys, dirty, populated, claimed, gated, lacking):
+def test_the_keys_inside_a_row_are_there_too(
+    verb, field, keys, dirty, populated, claimed, gated, lacking, paused
+):
     """A client walks into `tasks` and `findings`, so a rename one level down breaks it just
     as hard — and one level is where it stops: nothing here reads a remedy's doors, so those
     stay free to move until something outside says otherwise.
@@ -449,14 +495,14 @@ def test_the_keys_inside_a_row_are_there_too(verb, field, keys, dirty, populated
         # `dirty`'s single line waits on an id nothing holds, so both lists come back filled.
         where, code = dirty, EXIT_OK
     else:
-        where, code = (dirty, EXIT_GATE) if verb == "lint" else (populated, EXIT_OK)
+        where, code = _where(verb, dirty, populated, paused)
     rows = payload(*_argv(verb, where), root=where, expected=code)[field]
     assert rows, f"{verb}: the fixture produced no {field} to read"
     missing = [key for key in keys if key not in rows[0]]
     assert not missing, f"{verb}.{field} no longer carries {missing}"
 
 
-def test_every_list_of_objects_a_promised_payload_carries_has_a_row(dirty, populated):
+def test_every_list_of_objects_a_promised_payload_carries_has_a_row(dirty, populated, paused):
     """RK1645. `config.fixed` was published for four hundred tasks and named in no table here,
     because the population was a list somebody maintained: `INSIDE` was written when every
     payload carried one list, RK1603 added a second table beside it when `config` grew a
@@ -471,7 +517,7 @@ def test_every_list_of_objects_a_promised_payload_carries_has_a_row(dirty, popul
     this build actually answers with rather than a second reading of what they should hold."""
     unpromised: dict[str, list[str]] = {}
     for verb in sorted(PROMISED):
-        where, code = (dirty, EXIT_GATE) if verb == "lint" else (populated, EXIT_OK)
+        where, code = _where(verb, dirty, populated, paused)
         got = payload(*_argv(verb, where), root=where, expected=code)
         named = {field for field, _ in INSIDE.get(verb, ())}
         for field, value in sorted(got.items()):
@@ -495,16 +541,17 @@ def test_the_derived_reading_finds_the_lists_the_table_names():
     assert len(INSIDE["config"]) == 3, INSIDE["config"]
 
 
-def test_a_payload_is_the_whole_of_stdout_and_parses_as_one_object(populated):
+def test_a_payload_is_the_whole_of_stdout_and_parses_as_one_object(dirty, populated, paused):
     """The property a client depends on before any key: `--json` prints a document and not a
     document with a sentence above it. Held over every verb promised, because a status line
     that leaked onto stdout would break the parse and no key assertion would ever run."""
     for verb in sorted(PROMISED):
         if verb == "lint":
             continue
+        where, _ = _where(verb, dirty, populated, paused)
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
-            main(["-C", str(populated), *_argv(verb, populated), "--json"])
+            main(["-C", str(where), *_argv(verb, where), "--json"])
         assert isinstance(json.loads(out.getvalue()), dict), verb
 
 

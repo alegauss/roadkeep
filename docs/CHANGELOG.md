@@ -1180,6 +1180,7 @@
 - ✅ **RK1277** **the config completion caches a fact about the file on the engine's clock, so a declared key still reads as undeclared** — The shape is cached on the clock of what moves it, and the config has a watcher of its own.
 - ✅ **RK1425** **The editor offers every complete door of a finding as an independent quick fix, including a sequence's second step** — A sequence is one action naming its steps in order, or none where the first is prose, and roadkeep.run takes a list of argvs so both shapes compose the same way.
 - ✅ **RK1426** **A finding the gate files with no line loses its doors in the editor, which offers only the explanation** — One reading anchors the diagnostic and keys the remedy, so every finding filed against roadkeep.toml reaches its doors in the panel.
+- ✅ **RK1752** **A deferred line vanishes from the editor view, so nobody can see which tasks are paused or why** — The editor view shows each block's paused lines under a Deferred node, with the reason, the age and a resume action, read from list --stale.
 
 ## Block H — The tool's own shape (what one verb costs to change)
 

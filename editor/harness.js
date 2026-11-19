@@ -185,11 +185,30 @@ async function main() {
       out.engine = { label: backlog.getTreeItem(block).label, detail: block.detail };
       continue;
     }
-    const rows = await backlog.getChildren(block);
+    const children = await backlog.getChildren(block);
+    const rows = children.filter((row) => !row.pauses);
+    // The deferred node, opened the way a reader opens it (RK1752): what each row says and
+    // where selecting it goes, both of which are the payload's and neither of which draws.
+    const pauses = [];
+    for (const node of children.filter((row) => row.pauses)) {
+      for (const row of await backlog.getChildren(node)) {
+        const item = backlog.getTreeItem(row);
+        pauses.push({
+          id: row.paused.id,
+          label: item.label,
+          description: item.description,
+          tooltip: item.tooltip,
+          context: item.contextValue,
+          opens: item.command.arguments[0].fsPath,
+          line: item.command.arguments[1].selection.start.line,
+        });
+      }
+    }
     out.blocks.push({
       group: block.group,
       rows: rows.map((row) => ({ id: row.id, blockers: row.blockers })),
       label: backlog.getTreeItem(block).label,
+      pauses,
     });
   }
   // The gate half: findings become diagnostics anchored where the report points, and a

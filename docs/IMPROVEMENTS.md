@@ -112,21 +112,6 @@ leaves the target linted and the source retired with a resolvable pointer.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-### §RK1752 Deferred lines in the editor view
-
-The view lists what `list` returns, and `defer` moves a line into the deferred store,
-which `list` does not read. A paused task therefore disappears from the panel: a reader
-cannot tell that it exists, why it stopped or for how long. The terminal answers with
-`list --stale`, which prints every pause with its reason and how many commits it has
-stood.
-
-The view should show a collapsed "Deferred" node per block, or one at the root, filled
-from `list --stale --json`. It should use the reason as the description and the age as
-the tooltip, so a pause reads as a pause and not as a blocked line. Each row should
-offer `resume <id>` as an action, the same door the terminal has, and reveal the line
-where the store keeps it. The node should not appear where the store is empty, because
-an empty node invites the question it was meant to answer.
-
 ### §RK1753 Block titles in the editor view
 
 Each group node is labelled with `task.block`, the bare label such as `G`. The heading

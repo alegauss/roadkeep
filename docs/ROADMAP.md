@@ -38,7 +38,6 @@
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-- 📋 **RK1752** (deps: —) **A deferred line vanishes from the editor view, so nobody can see which tasks are paused or why** — The panel reads only list, while defer moves a line into a store that list --stale alone answers, so a pause looks the same as a task that never existed. → §RK1752
 - 📋 **RK1753** (deps: —) **The editor view labels each block with its bare letter, so a reader cannot tell what block G is about** — Groups take task.block from list, while the title the roadmap gives each block is in block list and never reaches the tree. → §RK1753
 - 📋 **RK1754** (deps: —) **A task's design section cannot be read from the editor view; reaching it means searching IMPROVEMENTS.md by hand** — A row opens only the roadmap line, so the pointer it carries is followed by a file search that section show would answer in one call. → §RK1754
 - 📋 **RK1755** (deps: —) **The editor offers one backlog tree, so the other files roadkeep governs have no place to be browsed** — Everything hangs from roadkeep.backlog, so each asset added would lengthen one tree rather than give it a view a reader can navigate. → §RK1755

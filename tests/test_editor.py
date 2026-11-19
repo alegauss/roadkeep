@@ -145,7 +145,9 @@ def test_the_host_reads_only_keys_a_payload_promises():
     #: The verbs this host reads. `config` is among them for RK1271's reason: the completion
     #: and hover providers read the config's shape key by key, so a renamed field there is red
     #: here before it is a dead list in TOML.
-    read_by_host = ("list", "deps", "lint", "budget", "stats", "engines", "config")
+    #: `list --stale` since RK1752: the deferred store, a payload of its own with the two keys
+    #: (`since`, `reason`) the roadmap listing never carries.
+    read_by_host = ("list", "list --stale", "deps", "lint", "budget", "stats", "engines", "config")
     # Derived since RK1645, where this was a union of fourteen `set(...)` terms — two per verb,
     # plus a fifteenth for the second list `config` grew and a sixteenth waiting for the third.
     # The host's **own** two rows are named beside them, being keys no payload ever carried:
@@ -158,10 +160,12 @@ def test_the_host_reads_only_keys_a_payload_promises():
             *PROMISED[verb],
             *(one for _, keys in INSIDE.get(verb, ()) for one in keys),
         )
-    } | {"notice", "group", "engine", "detail", "count"}
+    } | {"notice", "group", "engine", "detail", "count", "pauses", "paused"}
+    # `pauses` and `paused` are the host's own as well (RK1752): the deferred node it makes
+    # under a block, and the row it wraps each stale line in.
     # The receivers a payload is bound to, named rather than matched by `.value.` alone: an
     # input box also has a `value`, and `box.value.length` is a string's length, not a key.
-    holders = ("answer", "budget", "blocks", "engines", "counted")
+    holders = ("answer", "budget", "blocks", "engines", "counted", "stale")
     for holder in holders:
         assert f"{holder}.value" in source, f"{holder} stopped holding a payload"
     read = set(re.findall(rf"(?:{'|'.join(holders)})\.value\.(\w+)|\brow\.(\w+)", source))
@@ -672,6 +676,57 @@ def test_the_tree_says_how_much_work_there_is_without_computing_it(tmp_path):
     assert "📋 2" in said["label"] and "🛠 1" in said["label"]
     assert "uncounted" not in said["label"], "a zero is not news"
     assert said["detail"] == "docs/ROADMAP.md"
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_a_deferred_line_is_shown_under_its_block_with_the_reason_it_stopped(tmp_path):
+    """RK1752. `defer` moves a line out of the roadmap and `list` reads only the roadmap, so a
+    pause simply vanished from the tree — the same as a task that never existed. It comes
+    back under its block, behind a node of its own, carrying the reason a person gave and
+    opening the store where it now lives, every word of which is `list --stale`'s.
+
+    And a block whose **only** line is paused keeps its heading: the pause is what it holds."""
+    root = tmp_path / "project"
+    root.mkdir()
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    assert main(["-C", str(root), "declare", "deferred"]) == EXIT_OK
+    assert main(["-C", str(root), "block", "add", "B", "--title", "The second one"]) == EXIT_OK
+    for block in ("A", "B"):
+        assert main([
+            "-C", str(root), "add", "--block", block,
+            "--symptom", f"A thing in block {block} does not work here",
+            "--why", "Because nothing holds it.",
+        ]) == EXIT_OK
+    assert main(["-C", str(root), "defer", "RK2", "--reason", "waits on a person"]) == EXIT_OK
+    said = _harness(root)
+    assert "notice" not in said, said.get("notice")
+    blocks = {block["group"]: block for block in said["blocks"]}
+    assert blocks["A"]["pauses"] == [], "a block with nothing paused grows no deferred node"
+    assert blocks["B"]["rows"] == [], "the paused line is not also an open one"
+    (pause,) = blocks["B"]["pauses"]
+    assert pause["id"] == "RK2" and "RK2" in pause["label"]
+    assert pause["description"] == "waits on a person"
+    assert pause["context"] == "deferred", "the resume action is offered on this row"
+    assert Path(pause["opens"]).as_posix().endswith("docs/DEFERRED.md")
+    assert pause["line"] >= 0
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_a_project_with_no_deferred_store_is_not_asked_about_one(tmp_path):
+    """The half that keeps it free (RK1752): an undeclared store is a refusal from `list
+    --stale`, and a project that never declared one should neither pay a process for it nor
+    see that refusal as a warning above its backlog."""
+    root = tmp_path / "project"
+    root.mkdir()
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    assert main([
+        "-C", str(root), "add", "--block", "A",
+        "--symptom", "A thing in block A does not work here",
+        "--why", "Because nothing holds it.",
+    ]) == EXIT_OK
+    said = _harness(root)
+    assert "notice" not in said, said.get("notice")
+    assert all(block["pauses"] == [] for block in said["blocks"])
 
 
 # -- completion in the config file, carrying no rule (RK1271) -----------------

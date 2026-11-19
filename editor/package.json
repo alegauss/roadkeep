@@ -2,7 +2,7 @@
   "name": "roadkeep",
   "displayName": "roadkeep",
   "description": "The backlog this workspace governs, read by the command that owns it.",
-  "version": "0.2.612",
+  "version": "0.2.613",
   "publisher": "alegauss",
   "license": "MIT",
   "engines": {
@@ -55,6 +55,11 @@
       {
         "command": "roadkeep.explain",
         "title": "roadkeep: Explain a gate code"
+      },
+      {
+        "command": "roadkeep.resume",
+        "title": "roadkeep: Resume this deferred line",
+        "icon": "$(debug-continue)"
       }
     ],
     "menus": {
@@ -70,7 +75,18 @@
           "group": "navigation"
         }
       ],
+      "view/item/context": [
+        {
+          "command": "roadkeep.resume",
+          "when": "view == roadkeep.backlog && viewItem == deferred",
+          "group": "inline"
+        }
+      ],
       "commandPalette": [
+        {
+          "command": "roadkeep.resume",
+          "when": "false"
+        },
         {
           "command": "roadkeep.run",
           "when": "false"

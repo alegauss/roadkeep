@@ -325,12 +325,22 @@ class Settings {
     this.shape = null;
     //: Table name to the sentence its source carries, filled beside the keys (RK1603).
     this.said = {};
+    //: Role to the path it is declared at (RK1752), from the same payload and on its clock:
+    //: which files a project governs moves when the config does, and only then.
+    this.files = {};
   }
 
   /** Forget the shape — for a config write, and for the refresh an upgrade arrives through. */
   reread() {
     this.shape = null;
     this.said = {};
+    this.files = {};
+  }
+
+  /** The roles this project declares, read off the shape's payload rather than asked twice. */
+  async roles() {
+    await this.keys();
+    return this.files;
   }
 
   async keys() {
@@ -339,6 +349,7 @@ class Settings {
       // An empty list and never an invented one: a read that failed knows nothing about
       // which keys exist, and offering a guess is the compiled-in rule this must not be.
       this.shape = answer.error ? [] : answer.value.keys;
+      this.files = answer.error ? {} : answer.value.files || {};
       // The table's own sentence, which the payload sends once per table since RK1603 — it
       // used to ride on every key row, so this read it off whichever row it had. Kept beside
       // the keys because a hover joins on `table`, a field every row already carries; `{}`
@@ -585,8 +596,13 @@ function _counted(stats) {
  * under it.
  */
 class Backlog {
-  constructor(root) {
+  constructor(root, settings) {
     this.root = root;
+    // Which roles the project declares, on the config's clock (RK1752): the deferred store is
+    // asked about only where one exists, so a project with none pays no process for it.
+    this.settings = settings || new Settings(root);
+    // Where the deferred store is, as the payload that listed it said — never a filename here.
+    this.paused = "";
     this.changed = new vscode.EventEmitter();
     this.onDidChangeTreeData = this.changed.event;
     this.file = "";
@@ -642,6 +658,38 @@ class Backlog {
       item.contextValue = "block";
       return item;
     }
+    if (row.pauses) {
+      // Collapsed, and named for what it holds (RK1752): a pause is not a blocked line, and
+      // opening the block should still show the work that can be started first.
+      const item = new vscode.TreeItem("Deferred", vscode.TreeItemCollapsibleState.Collapsed);
+      item.description = `${row.pauses.length}`;
+      item.iconPath = new vscode.ThemeIcon("debug-pause");
+      item.contextValue = "pauses";
+      return item;
+    }
+    if (row.paused) {
+      const stale = row.paused;
+      const item = new vscode.TreeItem(`${stale.status} ${stale.id}  ${stale.symptom}`);
+      // The reason the person gave and how long it has stood, both the verb's words: `since`
+      // is commits over the governed files, and null where git cannot say.
+      item.description = stale.reason || "";
+      item.tooltip =
+        stale.since === null || stale.since === undefined
+          ? stale.why
+          : `${stale.why}\n\nstanding for ${stale.since} commit(s)`;
+      item.iconPath = new vscode.ThemeIcon("debug-pause");
+      item.contextValue = "deferred";
+      item.id = `deferred:${stale.id}`;
+      item.command = {
+        command: "vscode.open",
+        title: "Reveal the line",
+        arguments: [
+          vscode.Uri.joinPath(vscode.Uri.file(this.root), ...this.paused.split("/")),
+          { selection: new vscode.Range(stale.line - 1, 0, stale.line - 1, 0) },
+        ],
+      };
+      return item;
+    }
     const item = new vscode.TreeItem(`${row.status} ${row.id}  ${row.symptom}`);
     // What the page cannot say: whether this one can be started, and what to ship first if
     // it cannot. Both are the verb's words, never a judgement made here.
@@ -664,9 +712,41 @@ class Backlog {
       return this.blocks();
     }
     if (parent.group) {
-      return this.lines(parent.tasks);
+      const lines = await this.lines(parent.tasks);
+      // Last, and only where there is one: an empty node invites the question it answers.
+      return parent.pauses.length ? [...lines, { pauses: parent.pauses }] : lines;
+    }
+    if (parent.pauses) {
+      return parent.pauses.map((stale) => ({ paused: stale }));
     }
     return [];
+  }
+
+  /** The deferred store, by block, or one notice where reading it failed (RK1752).
+   *
+   * `list` reads the roadmap and `defer` moves a line out of it, so a pause was simply absent
+   * from this tree — indistinguishable from a task that never existed. `list --stale` is the
+   * read the terminal has, oldest first and with the reason beside each line. Asked only where
+   * the config declares the role: an undeclared store is a refusal, and a project that has
+   * none should neither pay a process for it nor see that refusal as a warning. */
+  async pauses() {
+    const roles = await this.settings.roles();
+    if (!roles.deferred) {
+      return { grouped: new Map() };
+    }
+    const stale = await payload(this.root, ["list", "--stale"]);
+    if (stale.error) {
+      return { grouped: new Map(), notice: { notice: stale.error } };
+    }
+    this.paused = stale.value.file;
+    const grouped = new Map();
+    for (const task of stale.value.tasks) {
+      if (!grouped.has(task.block)) {
+        grouped.set(task.block, []);
+      }
+      grouped.get(task.block).push(task);
+    }
+    return { grouped };
   }
 
   /** The blocks, in the order the file declares them — which is the order a reader takes
@@ -705,10 +785,22 @@ class Backlog {
       }
       grouped.get(task.block).push(task);
     }
+    const paused = await this.pauses();
+    // A block whose every line is paused still has a heading: the pause is what it holds.
+    for (const block of paused.grouped.keys()) {
+      if (!grouped.has(block)) {
+        grouped.set(block, []);
+      }
+    }
     return [
       said,
       header,
-      ...[...grouped].map(([block, tasks]) => ({ group: block, tasks })),
+      ...(paused.notice ? [paused.notice] : []),
+      ...[...grouped].map(([block, tasks]) => ({
+        group: block,
+        tasks,
+        pauses: paused.grouped.get(block) || [],
+      })),
     ];
   }
 
@@ -757,10 +849,12 @@ function activate(context) {
     return;
   }
   const root = folder.uri.fsPath;
-  const backlog = new Backlog(root);
+  // One shape for the providers and the tree, so the roles the tree asks about are dropped on
+  // the same config write the completions are (RK1752).
+  const settings = new Settings(root);
+  const backlog = new Backlog(root, settings);
   const diagnostics = vscode.languages.createDiagnosticCollection("roadkeep");
   const gate = new Gate(root, diagnostics);
-  const settings = new Settings(root);
   const both = async () => {
     backlog.refresh();
     const said = await gate.check();
@@ -854,6 +948,17 @@ function activate(context) {
       if (await compose(root)) {
         await both();
       }
+    }),
+    // The door the terminal has for a pause (RK1752): `resume` writes, and the view shows its
+    // answer and re-reads, exactly as for any other door.
+    vscode.commands.registerCommand("roadkeep.resume", async (row) => {
+      const id = row && row.paused ? row.paused.id : row;
+      if (!id) {
+        return;
+      }
+      const said = await command(root, ["resume", id]);
+      vscode.window.showInformationMessage(said.output || said.error || "done");
+      await both();
     }),
     vscode.commands.registerCommand("roadkeep.explain", async (code) => {
       const said = await command(root, ["explain", code]);

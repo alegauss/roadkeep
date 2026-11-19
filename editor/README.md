@@ -2,6 +2,9 @@
 
 The backlog this workspace governs, as a tree: grouped by block, ready before blocked, with
 the blocker named on the lines that are not. Selecting a row reveals it in the roadmap.
+Where the project declares a deferred store, each block also holds a collapsed **Deferred**
+node: every paused line with the reason it was set aside, revealed in the store when
+selected, with a resume action beside it.
 
 It carries **no rule** — no limit, no marker set, no id shape and no Markdown parser. Every
 row is read from a payload `roadkeep` printed, so what you see is what the command that owns
