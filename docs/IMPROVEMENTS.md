@@ -112,6 +112,95 @@ leaves the target linted and the source retired with a resolvable pointer.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
+### §RK1752 Deferred lines in the editor view
+
+The view lists what `list` returns, and `defer` moves a line into the deferred store,
+which `list` does not read. A paused task therefore disappears from the panel: a reader
+cannot tell that it exists, why it stopped or for how long. The terminal answers with
+`list --stale`, which prints every pause with its reason and how many commits it has
+stood.
+
+The view should show a collapsed "Deferred" node per block, or one at the root, filled
+from `list --stale --json`. It should use the reason as the description and the age as
+the tooltip, so a pause reads as a pause and not as a blocked line. Each row should
+offer `resume <id>` as an action, the same door the terminal has, and reveal the line
+where the store keeps it. The node should not appear where the store is empty, because
+an empty node invites the question it was meant to answer.
+
+### §RK1753 Block titles in the editor view
+
+Each group node is labelled with `task.block`, the bare label such as `G`. The heading
+the roadmap gives it, "The editor surface (the backlog where the file is open)", is what
+tells a reader what the block is for, and the panel drops it. A project with fourteen
+blocks becomes fourteen letters.
+
+`block list --json` already returns each label with its title, state and open and
+recorded counts, in file order. The view should ask it once per refresh and label each
+group `G  The editor surface` instead. It should show the open count as the description
+and the state (live, finished, empty) in the tooltip. Ordering should stay the file's.
+
+### §RK1754 Design sections from the editor view
+
+Clicking a row opens the roadmap at the line. The line carries a pointer to its design
+section in the improvements file, and following it means opening that file and searching
+for the heading. That is the read L5 says a query should spare, and the panel is where
+the question arises.
+
+The task row should offer an action, and a default on expand, that runs `section show
+<id>`. The answer should open in a read-only Markdown preview titled with the id and
+symptom. The tooltip should carry the `why` and the first lines of the section, so
+hovering answers most of the question. Where the line has no section, the action should
+say so and name `section add` as the door, rather than opening an empty preview. The
+preview must never be a buffer that saves back to the file: writes stay with the verbs
+(L1).
+
+### §RK1755 One view per governed question in the editor
+
+The extension contributes one view, `roadkeep.backlog`, and everything it shows hangs
+from that tree: engine, counts, blocks, open lines. The rest of what roadkeep governs
+(paused lines, shipped entries, design sections, decisions, strategy) has no place to
+go. Each addition squeezed into that tree would make it longer without making it
+navigable.
+
+The roadkeep activity-bar container should hold one view per question rather than one
+tree for everything: Backlog (open lines, by block, with deferred), Shipped (the
+ledger), Design (improvements sections, searchable by id or heading through `section
+find`), and Records (decisions and strategy, per declared role). The status rows
+(engine, gate findings, counts) should move to a view header or status bar, so they stop
+taking the top of the backlog. Every view should keep the existing rules: answers come
+from the verbs' JSON, never parsed from Markdown here; a failed read shows a notice and
+never an empty tree; and nothing the panel shows is editable in place. The harness in
+editor/harness.js should hold each view's contract the way it holds the backlog's today.
+
+### §RK1756 The ledger in the editor view
+
+The panel is a roadmap view. What a block already delivered, the half that answers "is
+this done", is reachable only from the terminal (`delivered`, `list --role changelog`)
+or by opening CHANGELOG.md. A reader closing a block cannot see what the block shipped
+beside what it still owes.
+
+Inside the navigation RK1755 gives the governed files, a "Shipped" tree should read
+`list --role changelog --json`, grouped by block with the block title, newest first.
+Each entry should reveal its ledger line and, where the entry kept a design section,
+open it the way RK1754 does. A block node should state its shipped count beside its open
+one, so the two halves read together. Entries should be loaded per block on expand,
+because a ledger of hundreds of lines would cost one call per row if fetched whole.
+
+### §RK1757 Decisions and strategy in the editor view
+
+The decision records and the strategy file are governed roles: `roadkeep.toml [files]`
+names them, and `record`, `section show` and `list --role` read them. The panel shows
+neither, so a person asking why a design went one way has to open DECISIONS.md and
+scroll. A project like Turing, which keeps a strategy, has no view of it at all.
+
+Inside the navigation RK1755 gives the governed files, each declared role beyond roadmap
+and changelog should get a node. Decisions should be listed by record id and title, and
+strategy by section heading. A selected item should open in the same read-only preview
+RK1754 uses. A role the project does not declare should produce no node, because an
+absent file means absent and not empty (L6). The view must not hardcode the role names:
+it should read them from `config --json`, so a role added later appears without a
+release of the extension.
+
 ## Block H — The tool's own shape (what one verb costs to change)
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
