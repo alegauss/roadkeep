@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1751** (deps: —) (from: urdido) **A task cannot move to another project: it is re-added there by hand and retired here, losing deps, pause and pointer** — Splitting a framework out of a repository carries its open lines with it, and fifteen hand-made moves drop the link a dep or a reader needs. → §RK1751
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

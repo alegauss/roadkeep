@@ -77,6 +77,31 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1751 Moving a task to another project
+
+Where it happened: on 2026-11-19 the in-repo video framework of `viglet/marketing`
+(prefix VM) became its own package, `alegauss/urdido` (prefix UR), and its open lines
+had to follow it. `filing.md` covers a new line for a sibling, not handing over an
+existing one, so each move was scripted: `show --json` on the source, the section into a
+scratch file, `add --section-body-file` in the target, `retire --reason "moved to urdido
+URn"` in the source. `--superseded-by` takes no foreign id, so the pointer is prose.
+
+What is lost on the way: the deps (a local `VM28` must become `marketing: VM28`, and
+`polyweave PW699` must stay outside work), a paused line's reason and marker, the
+`paths` the line touched, and any link back. Nothing records in the target where the
+line came from.
+
+What roadkeep should do: `move <id> --to <project> [--block <X>]`, with the project one
+`[projects]` declares. In one transaction per side it should add the line in the target
+with its symptom, why, marker, requirements and section; rewrite deps to qualified ones;
+keep a deferred line deferred there; stamp `(from: <source> <id>)`; and retire the
+source line with a forward pointer `<project>: <new id>` that `deps` resolves. A dry run
+should print both writes first. Where the target refuses a field (limits differ),
+nothing is written on either side.
+
+**Done when** moving a line with a section, a sibling-qualified dep and a paused state
+leaves the target linted and the source retired with a resolvable pointer.
+
 ## Block C — Query
 
 ## Block D — The gate
